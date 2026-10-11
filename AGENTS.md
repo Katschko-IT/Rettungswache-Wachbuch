@@ -51,6 +51,10 @@ Status in der Remediation-Roadmap:
 - Benutzerkontrollierte Daten duerfen nie mit `|safe`, `innerHTML` oder
   aehnlichen HTML-Sinks in die Seite gelangen. Fuer JSON `json_script` nutzen.
 - Keine gemeinsam genutzten Konten; keine Umgehung von MFA/Rollen im Mobile-API.
+  Einzige eng begrenzte Ausnahme: das dokumentierte Sammelkonto `Demo`/`Demo` der
+  isolierten öffentlichen Demo (`DEMO_PUBLIC_MODE`), nie im Produktivbetrieb.
+- Die öffentliche Demo bleibt hinter dem Login-Formular: kein passwortloser
+  Einstieg (`demo_login`) und keine Verwaltungs-/Registrierungsrouten.
 - E2EE-Aussagen muessen das reale Vertrauensmodell nennen: gespeicherter
   Ciphertext ist geschuetzt, der ausgelieferte Webclient und Server bleiben
   bei der Web-PWA Teil des Vertrauensmodells.

@@ -4,6 +4,9 @@
 <section class="access-panel">
   <p class="context-line">Persönlicher Zugang</p>
   <h1>Anmelden</h1>
+  {% if demo_public_mode %}
+  <p class="hint"><strong>Öffentliche Demo:</strong> Benutzername <strong>{{ demo_public_username }}</strong>, Passwort <strong>{{ demo_public_password }}</strong> (Groß-/Kleinschreibung beachten). Bitte nur fiktive Musterdaten ansehen, keine echten Daten eingeben.</p>
+  {% endif %}
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}

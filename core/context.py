@@ -24,7 +24,14 @@ def current_membership(request):
 
 def application_metadata(request):
     from .community_views import registration_enabled
-    from .demo import demo_accounts_for_display, demo_mode_enabled, demo_password
+    from .demo import (
+        demo_accounts_for_display,
+        demo_mode_enabled,
+        demo_password,
+        demo_public_mode_enabled,
+        demo_public_password,
+        demo_public_username,
+    )
     from .privacy_models import DataProtectionOfficer
     from .push import web_push_enabled
     from .webauthn_auth import webauthn_enabled
@@ -48,7 +55,10 @@ def application_metadata(request):
         "web_push_enabled": web_push_enabled(),
         "registration_enabled": registration_enabled(),
         "demo_mode": demo,
+        "demo_public_mode": demo_public_mode_enabled(),
         "demo_password": demo_password() if demo else "",
         "demo_accounts": demo_accounts_for_display() if demo else [],
+        "demo_public_username": demo_public_username(),
+        "demo_public_password": demo_public_password(),
         "public_data_protection_officers": public_dpo_contacts,
     }

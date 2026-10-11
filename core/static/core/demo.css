@@ -49,7 +49,7 @@
 
 .demo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
   gap: 1.1rem;
   margin-top: 1.2rem;
 }
@@ -60,6 +60,8 @@
   border-radius: 1rem;
   padding: 1.15rem 1.2rem;
   min-height: 8rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .demo-card strong {
@@ -72,6 +74,26 @@
 .demo-card p {
   margin: 0;
   color: var(--muted);
+}
+
+.demo-card-action {
+  margin-top: auto;
+  padding-top: .75rem;
+}
+
+.demo-card-action a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.demo-card-action a:hover,
+.demo-card-action a:focus {
+  color: var(--brand-deep);
 }
 
 .demo-yes { color: var(--priority-done, #16a34a); }
@@ -158,6 +180,79 @@
 .demo-slide-hero h2,
 .demo-slide-hero .demo-lead {
   color: #fff;
+}
+
+.demo-cred-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-height: 48px;
+  margin: .9rem 0 1.25rem;
+  padding: .5rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .15);
+  border: 1px solid rgba(255, 255, 255, .35);
+  font-size: .95rem;
+}
+
+.demo-cred-label {
+  color: rgba(255, 255, 255, .88);
+}
+
+.demo-cred-item strong {
+  color: #fff;
+  letter-spacing: .02em;
+}
+
+.demo-cred-sep {
+  opacity: .6;
+}
+
+.demo-cred-card {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 1rem;
+  padding: 1.2rem 1.35rem;
+  margin: 1.25rem 0;
+  max-width: 34rem;
+}
+
+.demo-cred-card h3 {
+  margin: 0 0 .75rem;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.demo-cred-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .4rem 1.25rem;
+  margin: 0 0 .75rem;
+}
+
+.demo-cred-list dt {
+  color: rgba(255, 255, 255, .82);
+  font-size: .95rem;
+}
+
+.demo-cred-list dd {
+  margin: 0;
+  color: #fff;
+  font-size: .95rem;
+}
+
+.demo-cred-list dd strong {
+  color: #fff;
+  font-size: 1.05rem;
+  letter-spacing: .03em;
+}
+
+.demo-cred-hint {
+  margin: 0;
+  font-size: .9rem;
+  color: rgba(255, 255, 255, .88);
+  line-height: 1.45;
 }
 
 .demo-cta {
@@ -308,13 +403,71 @@ body.is-vorfuehrung .site-footer {
   to { transform: scale(1.14) translateX(-2%); }
 }
 
+@media (max-width: 48rem) {
+  .demo-deck {
+    width: calc(100% - 1.25rem);
+    margin: 0 auto 1.5rem;
+    gap: 1.5rem;
+  }
+  .demo-deck.is-js {
+    min-height: calc(100dvh - 8rem);
+    padding: 0 0 5.25rem;
+  }
+  .demo-deck.is-js .demo-slide {
+    inset: 0 0 5.25rem;
+    width: calc(100% - 1.25rem);
+    padding: 1.15rem 1rem 1.5rem;
+    border-radius: .85rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .demo-slide h2 {
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+  .demo-lead {
+    font-size: .98rem;
+    line-height: 1.4;
+  }
+  .demo-card {
+    padding: .95rem 1rem;
+    min-height: auto;
+  }
+  .demo-cred-badge {
+    border-radius: .75rem;
+    padding: .5rem .75rem;
+  }
+  .demo-cred-list {
+    grid-template-columns: 1fr;
+    gap: .25rem;
+  }
+}
+
 @media (max-width: 40rem) {
   .demo-deck.is-js .demo-bar {
     flex-wrap: wrap;
+    gap: .4rem;
+    padding: .45rem .65rem calc(.45rem + env(safe-area-inset-bottom));
+  }
+  .demo-bar .button {
+    min-height: 48px;
+    padding: 0 .65rem;
+    font-size: .88rem;
+  }
+  .demo-count {
+    font-size: .85rem;
   }
   .demo-progress {
     order: 5;
     flex-basis: 100%;
+  }
+  .demo-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .demo-cta .button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -327,6 +480,20 @@ body.is-vorfuehrung .site-footer {
   .demo-hero-bg {
     background: #000;
     animation: none;
+  }
+  .demo-cred-badge,
+  .demo-cred-card {
+    background: #000;
+    border: 2px solid #fff;
+  }
+  .demo-cred-label,
+  .demo-cred-list dt,
+  .demo-cred-hint {
+    color: #fff;
+  }
+  .demo-card-action a {
+    color: #000;
+    font-weight: 700;
   }
   .demo-cta .button.primary {
     background: #fff;

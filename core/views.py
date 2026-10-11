@@ -272,8 +272,14 @@ def offline(request):
 
 @require_POST
 def demo_login(request):
-    from .demo import demo_mode_enabled
+    from .demo import demo_mode_enabled, demo_public_mode_enabled
 
+    # Public demo: no passwordless one-click entry. Visitors must authenticate
+    # through the normal login form with the documented Demo/Demo credentials.
+    # (PublicDemoGuardMiddleware also blocks this route by URL name, so this is
+    # defence in depth if the middleware is ever reordered/disabled.)
+    if demo_public_mode_enabled():
+        raise Http404
     if not demo_mode_enabled():
         raise Http404
     user = User.objects.filter(username="demo-admin", is_active=True).first()

@@ -96,6 +96,14 @@ def account_home(request):
     profile = UserProfile.for_user(request.user)
     action = request.POST.get("action") if request.method == "POST" else None
     avatar_form = AvatarForm(prefix="avatar")
+    if action == "password" and getattr(settings, "DEMO_PUBLIC_MODE", False):
+        # Shared demo accounts must keep one documented password for every
+        # visitor, so the public demo never allows changing it.
+        messages.error(
+            request,
+            "Im öffentlichen Demo-Modus kann das Passwort nicht geändert werden.",
+        )
+        return redirect("account_home")
     if action == "profile":
         profile_form = ProfileForm(request.POST, instance=request.user, prefix="profile")
         password_form = PasswordChangeForm(request.user, prefix="password")

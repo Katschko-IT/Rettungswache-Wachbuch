@@ -15,9 +15,19 @@
   <article class="demo-slide demo-slide-hero is-on" data-demo-slide data-title="Titel" aria-hidden="false">
     <div class="demo-hero-bg" aria-hidden="true"></div>
     <div class="demo-copy">
-      <p class="demo-kicker">Wachbuch</p>
+      <p class="demo-kicker">Wachleitung · Schichtführung</p>
       <h2>Wachorganisation, die im Schichtalltag lesbar bleibt.</h2>
-      <p class="demo-lead">Übergaben, Aufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Selbst gehostet. Mobil auf iOS und Android.</p>
+      <p class="demo-lead">Digitales Wachbuch für Rettungswache und Feuerwehr: Strukturierte Schichtübergaben, Mängelmanagement, Prüffristen und Wandtafel-Aufgaben. Selbst gehostet; mit einer für mobile Nutzung ausgelegten Oberfläche.</p>
+      {% if demo_public_mode %}<div class="demo-cred-badge">
+        <span class="demo-cred-label">Öffentlicher Demo-Zugang:</span>
+        <span class="demo-cred-item">Benutzer <strong>Demo</strong></span>
+        <span class="demo-cred-sep">·</span>
+        <span class="demo-cred-item">Passwort <strong>Demo</strong></span>
+      </div>{% endif %}
+      <div class="form-actions demo-cta">
+        <a class="button primary" href="{% url 'login' %}">Zur Anmeldung</a>
+        <a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a>
+      </div>
     </div>
   </article>
 
@@ -28,105 +38,171 @@
     <div class="demo-grid">
       <article class="demo-card">
         <strong class="demo-yes">Im Umfang</strong>
-        <p>Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team.</p>
+        <p>Schichtübergaben, Mängelerfassung, Fahrzeug- &amp; Hallenchecklisten, Geräte- und Schlüsselpools, Wachkalender, Kaffeekasse, Teamrollen.</p>
       </article>
       <article class="demo-card">
         <strong class="demo-no">Nicht im Umfang</strong>
-        <p>Alarmierung, Einsatzleitung, eProtokoll, Patienten- oder Vorgangsdaten.</p>
+        <p>Alarmierung, Einsatzleitung (ELS), Notfallprotokolle (DIVI/NIDA), Patientendaten, medizinische Diagnosen, Personaldisposition.</p>
       </article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Organisationen" aria-hidden="true">
-    <p class="demo-kicker">Für den öffentlichen Dienst</p>
-    <h2>Eine Oberfläche, vier Wachprofile.</h2>
+  <article class="demo-slide" data-demo-slide data-title="Musterwache" aria-hidden="true">
+    <p class="demo-kicker">Fiktive Musterdaten</p>
+    <h2>Eine Musterwache zum Ausprobieren.</h2>
+    <p class="demo-lead">Die Demo enthält ausschließlich fiktive Beispiele für interne Wachenabläufe. Alle Besucher teilen denselben Testdatenbestand.</p>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Rettungsdienst</strong><p>Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks.</p></article>
-      <article class="demo-card"><strong>Berufsfeuerwehr</strong><p>Mängel, Pools, Quittierung – feldlesbar, nicht bunt.</p></article>
-      <article class="demo-card"><strong>Freiwillige Feuerwehr</strong><p>Klar auf dem Handy, auch nach der Alarmierung auf der Wache.</p></article>
-      <article class="demo-card"><strong>Polizei / vergleichbar</strong><p>Interne Wachenabläufe ohne Vorgangs- oder Einsatzdaten.</p></article>
+      <article class="demo-card">
+        <strong>Wache &amp; Fahrzeuge</strong>
+        <p>Beispielhafte RTW und Geräte mit unterschiedlichen Verfügbarkeitszuständen.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Schichtbetrieb</strong>
+        <p>Beispielhafte Übergaben, Tagesaufgaben und Termine für den Wachalltag.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Muster-Mängel</strong>
+        <p>Fiktive Fahrzeug-, Geräte- und Gebäudemängel mit unterschiedlichen Bearbeitungsständen.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Geräte &amp; Schlüssel</strong>
+        <p>Beispielgeräte und Schlüssel; Bestände und Ausgabezustände ansehen.</p>
+      </article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Alltag" aria-hidden="true">
-    <p class="demo-kicker">Wachalltag</p>
-    <h2>Was die Schicht wirklich braucht.</h2>
-    <div class="demo-badges">
+  <article class="demo-slide" data-demo-slide data-title="Dienstbetrieb" aria-hidden="true">
+    <p class="demo-kicker">Testablauf 1: Dienstbetrieb</p>
+    <h2>Schichtübergabe &amp; Tagesaufgaben testen.</h2>
+    <p class="demo-lead">Schichtwechsel ohne Zettelwirtschaft: Priorisierte Übergaben einsehen und Routineaufgaben digital quittieren.</p>
+    <div class="demo-badges" aria-label="Prioritätsstufen">
       <span class="demo-badge"><i class="demo-dot demo-dot-urgent" aria-hidden="true"></i> Dringend – sofort</span>
       <span class="demo-badge"><i class="demo-dot demo-dot-important" aria-hidden="true"></i> Wichtig – zeitnah</span>
       <span class="demo-badge"><i class="demo-dot demo-dot-normal" aria-hidden="true"></i> Normal – regulär</span>
       <span class="demo-badge"><i class="demo-dot demo-dot-done" aria-hidden="true"></i> Erledigt</span>
     </div>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Übergaben</strong><p>Versioniert, priorisiert, stationsbezogen. Farbe plus ausgeschriebener Status.</p></article>
-      <article class="demo-card"><strong>Tagesaufgaben</strong><p>Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen.</p></article>
-      <article class="demo-card"><strong>Mängel &amp; Geräte</strong><p>Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar.</p></article>
-      <article class="demo-card"><strong>Checklisten</strong><p>Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen.</p></article>
+      <article class="demo-card">
+        <strong>1. Schichtübergaben</strong>
+        <p>Priorisierte Übergabeeinträge ansehen, filtern und eigene fiktive Einträge erfassen.</p>
+        <p class="demo-card-action"><a href="{% url 'handover_list' %}">Zu den Übergaben &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>2. Wandtafel digital</strong>
+        <p>Schichtaufgaben digital abzeichnen: Grün (tägliche Routine), Gelb (Wochentagsrotation), Blau (Zusatzpunkte).</p>
+        <p class="demo-card-action"><a href="{% url 'tasks_today' %}">Zu den Tagesaufgaben &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>3. Wochenrotation</strong>
+        <p>Aufgabenverteilung der kommenden Schichttage in der Übersicht vorausschauend planen.</p>
+        <p class="demo-card-action"><a href="{% url 'tasks_week' %}">Zur Wochenübersicht &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>4. Änderungshistorie</strong>
+        <p>Übergabebearbeitungen werden als Revisionen gespeichert. Die Demo ist kein Nachweis einer rechtlich geprüften Revisionssicherheit.</p>
+      </article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Web und Apps" aria-hidden="true">
-    <p class="demo-kicker">Drei Oberflächen, ein Vertrag</p>
-    <h2>Web-PWA, iOS und Android.</h2>
-    <div class="demo-phones">
-      <div class="demo-phone">
-        <h3>Web-PWA</h3>
-        <ul>
-          <li>Übersicht, Übergaben, Kalender, Mehr</li>
-          <li>Installierbar, offline lesbar</li>
-          <li>Ohne CDN, ohne Tracking-Cookies</li>
-        </ul>
-      </div>
-      <div class="demo-phone">
-        <h3>iOS / iPadOS</h3>
-        <ul>
-          <li>Bundle de.wachbuch.wachbuchMobile</li>
-          <li>TestFlight-fähig, VoiceOver-tauglich</li>
-          <li>Solar-Hell/Dunkel plus High Contrast</li>
-        </ul>
-      </div>
-      <div class="demo-phone">
-        <h3>Android</h3>
-        <ul>
-          <li>Paket de.wachbuch.mobile</li>
-          <li>Signiertes AAB, Play-interner Test</li>
-          <li>Dieselben Tokens wie die Web-PWA</li>
-        </ul>
-      </div>
-    </div>
-  </article>
-
-  <article class="demo-slide" data-demo-slide data-title="Sicherheit" aria-hidden="true">
-    <p class="demo-kicker">Vertrauen</p>
-    <h2>Selbst gehostet. Nachvollziehbar. Ohne Tracking.</h2>
+  <article class="demo-slide" data-demo-slide data-title="Technik" aria-hidden="true">
+    <p class="demo-kicker">Testablauf 2: Technik &amp; Sicherheit</p>
+    <h2>Mängelmeldung &amp; Prüffristen testen.</h2>
+    <p class="demo-lead">Fahrzeug- und Gebäudemängel direkt an der Fahrzeughalle dokumentieren, Geräte nachverfolgen und Prüfpfade sichern.</p>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Eigene Infrastruktur</strong><p>Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache.</p></article>
-      <article class="demo-card"><strong>Rollen &amp; Station</strong><p>Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte.</p></article>
-      <article class="demo-card"><strong>Audit append-only</strong><p>Kasse, Checklisten und Übergaben werden korrigiert durch neue Sätze, nicht durch Stille.</p></article>
-      <article class="demo-card"><strong>Chat verschlüsselt</strong><p>Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des Vertrauensmodells.</p></article>
+      <article class="demo-card">
+        <strong>1. Mangel melden</strong>
+        <p>Fiktive Mängel an Fahrzeugen, Geräten oder der Wache erfassen und den Bearbeitungsstand prüfen.</p>
+        <p class="demo-card-action"><a href="{% url 'defects_web' %}">Zur Mängelverwaltung &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>2. Gerätebestand</strong>
+        <p>Fahrzeuge, Geräte und Wachschlüssel mit Status und zugehörigen Ereignissen ansehen.</p>
+        <p class="demo-card-action"><a href="{% url 'assets_inventory_web' %}">Zum Geräteinventar &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>3. Checklisten abzeichnen</strong>
+        <p>Morgenkontrollen, Fahrzeugübergaben und Hygienechecks digital quittieren.</p>
+        <p class="demo-card-action"><a href="{% url 'checklists' %}">Zu den Checklisten &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>4. Prüfintervalle</strong>
+        <p>Wiederkehrende interne Prüfaufgaben und hinterlegte Beispielintervalle ansehen. Die Demo bestätigt keine gesetzliche Prüffrist.</p>
+        <p class="demo-card-action"><a href="{% url 'checklist_schedules_web' %}">Zu den Prüfintervallen &rarr;</a></p>
+      </article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Arbeitgeber" aria-hidden="true">
-    <p class="demo-kicker">Für die Dienststelle</p>
-    <h2>Betrieb, der sich gegenüber Datenschutz vertreten lässt.</h2>
-    <p class="demo-lead">Verantwortliche Stelle, VVT und Mitbestimmung bleiben bei euch. Das Produkt liefert die technische Baseline: keine Patientenfelder, nur notwendige Cookies, dokumentierte Löschpfade.</p>
+  <article class="demo-slide" data-demo-slide data-title="Organisation" aria-hidden="true">
+    <p class="demo-kicker">Testablauf 3: Organisation &amp; Kasse</p>
+    <h2>Termine, Kaffeekasse &amp; Rollen testen.</h2>
+    <p class="demo-lead">Termine und interne Kassenbuchungen ausprobieren. Konto-, Rollen- und Sicherheitseinstellungen sind in der öffentlichen Demo gesperrt.</p>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Datenschutz</strong><p>Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern.</p></article>
-      <article class="demo-card"><strong>Store-Kandidat 1.0</strong><p>CI-Gates für iOS und Android sind da. Konten und Signatur liegen bei der Dienststelle.</p></article>
+      <article class="demo-card">
+        <strong>1. Wachkalender &amp; ICS</strong>
+        <p>Fiktive Termine ansehen oder anlegen. Einzelne Termine können als ICS-Datei heruntergeladen werden; Feedverwaltung bleibt gesperrt.</p>
+        <p class="demo-card-action"><a href="{% url 'calendar' %}">Zum Wachkalender &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>2. Kaffeekasse</strong>
+        <p>Fiktive Einzahlungen und Kaffeebuchungen ausprobieren; Korrekturen erfolgen durch zusätzliche Buchungssätze.</p>
+        <p class="demo-card-action"><a href="{% url 'coffee' %}">Zur Kaffeekasse &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>3. Wachen-Pinnwand</strong>
+        <p>Wichtige Aushänge, Dienstanweisungen und interne Mitteilungen gut sichtbar anpinnen.</p>
+        <p class="demo-card-action"><a href="{% url 'pinboard' %}">Zur Pinnwand &rarr;</a></p>
+      </article>
+      <article class="demo-card">
+        <strong>4. Team &amp; Rollen</strong>
+        <p>Die Teamübersicht ansehen. Benutzeranlage, Rollenänderungen und Passwortänderungen sind in dieser Demo gesperrt.</p>
+        <p class="demo-card-action"><a href="{% url 'team' %}">Zur Teamverwaltung &rarr;</a></p>
+      </article>
     </div>
   </article>
 
-  <article class="demo-slide demo-slide-hero" data-demo-slide data-title="Schluss" aria-hidden="true">
+  <article class="demo-slide" data-demo-slide data-title="Feldtauglichkeit" aria-hidden="true">
+    <p class="demo-kicker">Feldtauglichkeit &amp; Mobiloptik</p>
+    <h2>Touch-optimiert für Schicht und Fahrzeughalle.</h2>
+    <p class="demo-lead">Für den Test auf Smartphone, Tablet oder Desktop vorbereitet. Bitte geben Sie Rückmeldung zu Lesbarkeit und Bedienbarkeit.</p>
+    <div class="demo-grid">
+      <article class="demo-card">
+        <strong>48-Pixel-Bedienfelder</strong>
+        <p>Die Vorführungsnavigation verwendet großzügige Touch-Ziele. Bedienung mit Handschuhen wurde nicht praktisch geprüft.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Lesbare Gestaltung</strong>
+        <p>Ruhige Farben und ausgeschriebene Statusbezeichnungen helfen bei der Orientierung.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Mobile-First &amp; PWA</strong>
+        <p>Im Browser nutzbar, ohne App-Store-Installation. Die mobile Darstellung wird bei der Demo-Abnahme geprüft.</p>
+      </article>
+      <article class="demo-card">
+        <strong>Status immer ausgeschrieben</strong>
+        <p>Prioritäten werden mit Text bezeichnet; Farben ergänzen die Kennzeichnung. Eine vollständige Barrierefreiheitszertifizierung liegt nicht vor.</p>
+      </article>
+    </div>
+  </article>
+
+  <article class="demo-slide demo-slide-hero" data-demo-slide data-title="Abschluss" aria-hidden="true">
     <div class="demo-hero-bg" aria-hidden="true"></div>
     <div class="demo-copy">
-      <p class="demo-kicker">Nächster Schritt</p>
-      <h2>Vorführen. Pilotieren. Selbst hosten.</h2>
-      <p class="demo-lead">Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz.</p>
+      <p class="demo-kicker">Live-Vorführung</p>
+      <h2>Bereit für die Wachleitungs-Demo.</h2>
+      <p class="demo-lead">Melden Sie sich im Wachbuch an und testen Sie alle Abläufe mit den hinterlegten Musterdaten direkt im Browser:</p>
+      {% if demo_public_mode %}<div class="demo-cred-card">
+        <h3>Öffentliche Zugangsdaten</h3>
+        <dl class="demo-cred-list">
+          <div><dt>Benutzername</dt><dd><strong>Demo</strong></dd></div>
+          <div><dt>Passwort</dt><dd><strong>Demo</strong></dd></div>
+          <div><dt>Berechtigung</dt><dd>Demo-Konto der Musterwache</dd></div>
+        </dl>
+        <p class="demo-cred-hint">Anmeldung über das Login-Formular. Interne Wachenabläufe sind testbar; Verwaltungs- und Sicherheitsänderungen bleiben gesperrt. Bitte keine echten Daten eingeben.</p>
+      </div>{% endif %}
       <div class="form-actions demo-cta">
-        <a class="button primary" href="{% url 'login' %}">Anmelden</a>
+        <a class="button primary" href="{% url 'login' %}">Zur Anmeldung (Demo / Demo)</a>
         <a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a>
-        {% if demo_mode %}
+        {% if demo_mode and not demo_public_mode %}
         <form method="post" action="{% url 'demo_login' %}">
           {% csrf_token %}
           <button type="submit" class="button primary">Demo starten</button>

@@ -30,9 +30,25 @@ from .models import (
 )
 from .services import audit, handover_snapshot
 from .task_board import ensure_default_station_tasks
+from .wachalltag_models import (
+    AssetEvent,
+    ChecklistSchedule,
+    Defect,
+    DefectEvent,
+    InventoryEvent,
+    InventoryItem,
+    StationAsset,
+)
 
 DEMO_MARKER = "[Demo]"
 DEMO_PASSWORD_DEFAULT = "Demo-Passwort-12345"
+
+# Fixed, documented login of the shared public-demo visitor account. Only used
+# while ``DEMO_PUBLIC_MODE`` is on. The normal login form is the sole way in;
+# the passwordless one-click ``demo_login`` route is disabled in that mode.
+# Case-sensitive: username ``Demo``, password ``Demo``.
+DEMO_PUBLIC_USERNAME = "Demo"
+DEMO_PUBLIC_PASSWORD = "Demo"
 
 DEMO_ACCOUNTS = (
     {
@@ -83,7 +99,31 @@ class DemoLoadResult:
 
 
 def demo_mode_enabled() -> bool:
-    return bool(getattr(settings, "DEMO_MODE", False))
+    # DEMO_PUBLIC_MODE is a strict superset: enabling it turns a normal demo on.
+    return bool(
+        getattr(settings, "DEMO_MODE", False)
+        or getattr(settings, "DEMO_PUBLIC_MODE", False)
+    )
+
+
+def demo_public_mode_enabled() -> bool:
+    """True on the public, internet-facing demo instance."""
+    return bool(getattr(settings, "DEMO_PUBLIC_MODE", False))
+
+
+def demo_public_username() -> str:
+    """Documented username of the shared public-demo account (empty if off)."""
+    return DEMO_PUBLIC_USERNAME if demo_public_mode_enabled() else ""
+
+
+def demo_public_password() -> str:
+    """Documented password of the shared public-demo account (empty if off)."""
+    return DEMO_PUBLIC_PASSWORD if demo_public_mode_enabled() else ""
+
+
+def demo_protected_usernames() -> frozenset[str]:
+    """Demo accounts that visitors must not be able to disable or re-role."""
+    return frozenset(account["username"] for account in DEMO_ACCOUNTS)
 
 
 def demo_password() -> str:
@@ -123,7 +163,15 @@ def _ensure_station() -> Station:
 
 
 def _demo_usernames():
-    return [account["username"] for account in DEMO_ACCOUNTS]
+    """Demo login names whose seeded rows ``reset_demo_data`` should remove.
+
+    On the public demo the shared visitor account (``Demo``) is included so a
+    reset also clears any content a visitor produced while logged in.
+    """
+    usernames = [account["username"] for account in DEMO_ACCOUNTS]
+    if demo_public_mode_enabled() and DEMO_PUBLIC_USERNAME not in usernames:
+        usernames.append(DEMO_PUBLIC_USERNAME)
+    return usernames
 
 
 def _raw_delete(sql: str, params: list):
@@ -179,6 +227,47 @@ def reset_demo_data(station: Station):
             f"DELETE FROM core_auditevent WHERE station_id = %s AND (actor_id IN ({placeholders}) OR action LIKE %s)",
             [station.id, *user_ids, "demo.%"],
         )
+    # Operative Demo-Module (Mängel, Fuhrpark/Geräte, Inventar, Prüfintervalle).
+    # Append-only Ereignistabellen lassen sich nur per Roh-SQL entfernen; die
+    # Marker-Auswahl stellt sicher, dass nur Demodaten betroffen sind.
+    marker_like = f"{DEMO_MARKER}%"
+    _raw_delete(
+        "DELETE FROM core_defectattachment WHERE station_id = %s AND defect_id IN "
+        "(SELECT id FROM core_defect WHERE station_id = %s AND title LIKE %s)",
+        [station.id, station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_defectevent WHERE station_id = %s AND defect_id IN "
+        "(SELECT id FROM core_defect WHERE station_id = %s AND title LIKE %s)",
+        [station.id, station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_defect WHERE station_id = %s AND title LIKE %s",
+        [station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_assetevent WHERE station_id = %s AND asset_id IN "
+        "(SELECT id FROM core_stationasset WHERE station_id = %s AND label LIKE %s)",
+        [station.id, station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_stationasset WHERE station_id = %s AND label LIKE %s",
+        [station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_inventoryevent WHERE station_id = %s AND item_id IN "
+        "(SELECT id FROM core_inventoryitem WHERE station_id = %s AND label LIKE %s)",
+        [station.id, station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_inventoryitem WHERE station_id = %s AND label LIKE %s",
+        [station.id, marker_like],
+    )
+    _raw_delete(
+        "DELETE FROM core_checklistschedule WHERE station_id = %s AND checklist_id IN "
+        "(SELECT id FROM core_checklist WHERE station_id = %s AND title LIKE %s)",
+        [station.id, station.id, marker_like],
+    )
     ChecklistItem.objects.filter(checklist__station=station, checklist__title__startswith=DEMO_MARKER).delete()
     Checklist.objects.filter(station=station, title__startswith=DEMO_MARKER).delete()
 
@@ -209,6 +298,33 @@ def _ensure_users(station: Station, password: str) -> tuple[dict[str, User], int
         )
         users[account["username"]] = user
     return users, created
+
+
+def _ensure_public_demo_user(station: Station) -> User:
+    """Create/refresh the shared public-demo login (username/password ``Demo``).
+
+    Only ever called while ``DEMO_PUBLIC_MODE`` is on. The account holds an
+    active admin membership so visitors can exercise the operational modules;
+    ``PublicDemoGuardMiddleware`` still keeps every management route out of
+    reach. It is never a Django staff/superuser account.
+    """
+    user, _ = User.objects.get_or_create(
+        username=DEMO_PUBLIC_USERNAME,
+        defaults={"first_name": "Demo", "last_name": "Zugang", "is_active": True},
+    )
+    user.first_name = "Demo"
+    user.last_name = "Zugang"
+    user.is_active = True
+    user.is_staff = False
+    user.is_superuser = False
+    user.set_password(DEMO_PUBLIC_PASSWORD)
+    user.save()
+    Membership.objects.update_or_create(
+        user=user,
+        station=station,
+        defaults={"role": Membership.Role.ADMIN, "is_active": True},
+    )
+    return user
 
 
 def _seed_content(station: Station, users: dict[str, User]) -> int:
@@ -325,12 +441,17 @@ def _seed_content(station: Station, users: dict[str, User]) -> int:
         note=f"{DEMO_MARKER} Vormittag erledigt",
     )
 
-    Checklist.objects.create(
+    round_checklist = Checklist.objects.create(
         station=station,
         title=f"{DEMO_MARKER} Wachenrundgang",
         description="Abendlicher Sicherheitsrundgang.",
         is_active=True,
     )
+    for index, text in enumerate(
+        ("Türen und Fenster geschlossen", "Beleuchtung ausgeschaltet", "Müll entsorgt"),
+        start=1,
+    ):
+        ChecklistItem.objects.create(checklist=round_checklist, text=text, position=index)
 
     BirthdayPreference.objects.update_or_create(
         user=member,
@@ -376,11 +497,174 @@ def _seed_content(station: Station, users: dict[str, User]) -> int:
             defaults={"station": station, "completed_by": member, "note": DEMO_MARKER},
         )
 
+    _seed_operational_demo_data(
+        station,
+        admin=admin,
+        lead=lead,
+        member=member,
+        checklist=checklist,
+        round_checklist=round_checklist,
+        now=now,
+    )
+
     audit(admin, station, "demo.seeded", station, {
-        "fields": ["handovers", "calendar", "coffee", "checklists", "chat"],
+        "fields": [
+            "handovers",
+            "calendar",
+            "coffee",
+            "checklists",
+            "chat",
+            "defects",
+            "assets",
+            "inventory",
+            "checklist_schedules",
+        ],
         "marker": DEMO_MARKER,
     })
     return created
+
+
+def _seed_operational_demo_data(
+    station, *, admin, lead, member, checklist, round_checklist, now
+) -> None:
+    """Fictional rows for the operative modules (defects, assets, inventory).
+
+    All titles/ids/labels carry ``DEMO_MARKER`` so ``reset_demo_data`` can find
+    and remove exactly this data. Append-only event rows are written the same
+    way the application creates them.
+    """
+    # Fuhrpark und Geräte (Fahrzeug-/Gerätestatus).
+    assets_spec = [
+        ("demo-rtw-1", StationAsset.Kind.VEHICLE, StationAsset.Status.LIMITED,
+         "Blaulicht hinten links ohne Funktion, Werkstattauftrag offen."),
+        ("demo-rtw-2", StationAsset.Kind.VEHICLE, StationAsset.Status.READY, ""),
+        ("demo-absaugpumpe", StationAsset.Kind.DEVICE, StationAsset.Status.WORKSHOP,
+         "Wartung in der Werkstatt."),
+        ("demo-schluessel-hauswirtschaft", StationAsset.Kind.KEY, StationAsset.Status.READY, ""),
+    ]
+    for asset_id, kind, status, note in assets_spec:
+        asset = StationAsset.objects.create(
+            station=station,
+            asset_id=asset_id,
+            label=f"{DEMO_MARKER} {asset_id.removeprefix('demo-').replace('-', ' ').title()}",
+            kind=kind,
+            status=status,
+            note=note,
+            updated_by=lead,
+        )
+        AssetEvent.objects.create(
+            asset=asset,
+            station=station,
+            from_status="",
+            to_status=status,
+            note=note,
+            actor=lead,
+        )
+
+    # Inventar / Ausgabe (wer hat was).
+    inventory_spec = [
+        ("demo-funkgeraet-1", InventoryItem.Kind.DEVICE, member),
+        ("demo-schluessel-hof", InventoryItem.Kind.KEY, lead),
+        ("demo-funkgeraet-2", InventoryItem.Kind.DEVICE, None),
+    ]
+    for item_id, kind, holder in inventory_spec:
+        item = InventoryItem.objects.create(
+            station=station,
+            item_id=item_id,
+            label=f"{DEMO_MARKER} {item_id.removeprefix('demo-').replace('-', ' ').title()}",
+            kind=kind,
+            holder=holder,
+            checked_out_at=now if holder else None,
+            updated_by=lead,
+        )
+        if holder is not None:
+            InventoryEvent.objects.create(
+                item=item,
+                station=station,
+                action=InventoryEvent.Action.CHECKOUT,
+                actor=lead,
+                holder=holder,
+            )
+
+    # Mängel in allen Statusstufen.
+    defects_spec = [
+        {
+            "title": f"{DEMO_MARKER} RTW 1 – Blaulicht hinten links defekt",
+            "description": "Sichtprüfung vor Schichtbeginn. Werkstatttermin angefragt.",
+            "asset_ref": "demo-rtw-1",
+            "category": Defect.Category.VEHICLE,
+            "priority": Defect.Priority.URGENT,
+            "status": Defect.Status.IN_PROGRESS,
+            "owner": lead,
+            "due_at": now + timedelta(days=1),
+        },
+        {
+            "title": f"{DEMO_MARKER} Absaugpumpe dicht prüfen",
+            "description": "Dichtung wirkt porös, Funktion eingeschränkt.",
+            "asset_ref": "demo-absaugpumpe",
+            "category": Defect.Category.DEVICE,
+            "priority": Defect.Priority.IMPORTANT,
+            "status": Defect.Status.OPEN,
+            "owner": member,
+            "due_at": now + timedelta(days=3),
+        },
+        {
+            "title": f"{DEMO_MARKER} Flurbeleuchtung Aufenthaltsraum flackert",
+            "description": "Leuchtmittel vermutlich am Lebensende.",
+            "asset_ref": "",
+            "category": Defect.Category.FACILITY,
+            "priority": Defect.Priority.NORMAL,
+            "status": Defect.Status.WAITING,
+            "owner": admin,
+            "due_at": now + timedelta(days=7),
+        },
+        {
+            "title": f"{DEMO_MARKER} Schlüsselbund Hauswirtschaft vollzählig",
+            "description": "Vollzähligkeit bestätigt, keine Maßnahme nötig.",
+            "asset_ref": "demo-schluessel-hauswirtschaft",
+            "category": Defect.Category.KEY,
+            "priority": Defect.Priority.NORMAL,
+            "status": Defect.Status.DONE,
+            "owner": member,
+            "due_at": None,
+        },
+    ]
+    for spec in defects_spec:
+        defect = Defect.objects.create(
+            station=station,
+            title=spec["title"],
+            description=spec["description"],
+            asset_ref=spec["asset_ref"],
+            category=spec["category"],
+            priority=spec["priority"],
+            status=spec["status"],
+            owner=spec["owner"],
+            due_at=spec["due_at"],
+            created_by=admin,
+            closed_at=now if spec["status"] == Defect.Status.DONE else None,
+        )
+        DefectEvent.objects.create(
+            defect=defect,
+            station=station,
+            kind=DefectEvent.Kind.CREATED,
+            from_status="",
+            to_status=defect.status,
+            actor=admin,
+        )
+
+    # Wiederkehrende Prüfungen: ein überfälliger und ein anstehender Lauf.
+    ChecklistSchedule.objects.create(
+        station=station,
+        checklist=checklist,
+        interval=ChecklistSchedule.Interval.DAILY,
+        due_next=now - timedelta(hours=2),
+    )
+    ChecklistSchedule.objects.create(
+        station=station,
+        checklist=round_checklist,
+        interval=ChecklistSchedule.Interval.WEEKLY,
+        due_next=now + timedelta(days=3),
+    )
 
 
 @transaction.atomic
@@ -388,18 +672,23 @@ def load_demo_data(*, reset: bool = False, force: bool = False) -> DemoLoadResul
     """Load fictional sample data. Idempotent unless reset/force."""
     station = _ensure_station()
     password = demo_password()
+    public = demo_public_mode_enabled()
 
     already = User.objects.filter(username="demo-admin").exists() and HandoverEntry.objects.filter(
         station=station, title__startswith=DEMO_MARKER
     ).exists()
     if already and not reset and not force:
         users, created_users = _ensure_users(station, password)
+        if public:
+            _ensure_public_demo_user(station)
         return DemoLoadResult(station=station, created_users=created_users, skipped=True)
 
     if reset:
         reset_demo_data(station)
 
     users, created_users = _ensure_users(station, password)
+    if public:
+        _ensure_public_demo_user(station)
     created_handovers = _seed_content(station, users)
     return DemoLoadResult(
         station=station,

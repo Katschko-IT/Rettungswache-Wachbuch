@@ -24,7 +24,12 @@
 </head>
 <body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#inhalt">Zum Inhalt</a>
-  {% if demo_mode %}
+  {% if demo_public_mode %}
+  <div class="demo-banner" role="status">
+    <strong>Öffentliche Demo</strong>
+    <span>Nur fiktive Musterdaten – kein Echtbetrieb, bitte keine echten Daten eingeben.</span>
+  </div>
+  {% elif demo_mode %}
   <div class="demo-banner" role="status">
     <strong>Demo-Modus</strong>
     <span>Musterdaten zum Testen – nicht für den Echtbetrieb.</span>

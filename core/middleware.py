@@ -11,7 +11,8 @@ import logging
 import re
 
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
+from django.urls import Resolver404, resolve
 
 from .errors import (
     REQUEST_ATTR_CORRELATION_ID,
@@ -132,9 +133,73 @@ class ClientIPMiddleware:
         return ip
 
 
+# Routes that a visitor of the public demo must never reach. The set targets
+# real, existing URL names (see ``config/urls.py`` and ``core/urls.py``) rather
+# than hardcoded paths, so the block stays correct if routes move.
+PUBLIC_DEMO_BLOCKED_URL_NAMES = frozenset({
+    # No self-service registration / account creation.
+    "register",
+    "team_user_create",
+    "team_create",
+    "membership_update",
+    "registration_reject",
+    # No station-wide configuration changes (could re-enable feeds/push/modules).
+    "station_settings",
+    # No security-mechanism changes on the shared demo accounts.
+    "mfa_setup",
+    "mfa_disable",
+    "passkey_register_options",
+    "passkey_register_verify",
+    "passkey_delete",
+    # No credential / egress artefacts.
+    "api_tokens_manage",
+    "push_settings",
+    "calendar_feed_manage",
+    "api_v1_token",
+    "api_v1_anmeldung",
+    # No passwordless demo entry: the public demo is behind the login form only.
+    "demo_login",
+})
+
+
+class PublicDemoGuardMiddleware:
+    """Server-side guard for the public, internet-facing demo instance.
+
+    Active only while ``settings.DEMO_PUBLIC_MODE`` is true. It resolves the
+    incoming request to its URL name and raises ``Http404`` for forbidden
+    operations, so no production-style control (Django admin, registration,
+    user/membership management, station settings, MFA/passkey enrolment, API
+    tokens, push subscriptions, calendar feed links) is reachable by a demo
+    visitor. Read/write routes of the operational modules (handovers, calendar,
+    tasks, defects, assets, checklists, coffee fund) stay reachable, but the
+    passwordless ``demo_login`` entry does not.
+
+    Placed last in ``MIDDLEWARE`` so the resulting 404 still flows back through
+    the outer security-header middleware.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        if getattr(settings, "DEMO_PUBLIC_MODE", False):
+            try:
+                match = resolve(request.path_info)
+            except Resolver404:
+                match = None
+            if match is not None and (
+                match.namespace == "admin"
+                or match.url_name in PUBLIC_DEMO_BLOCKED_URL_NAMES
+            ):
+                raise Http404
+        return self.get_response(request)
+
+
 __all__ = [
     "SecurityHeadersMiddleware",
     "CorrelationIdMiddleware",
     "ClientIPMiddleware",
+    "PublicDemoGuardMiddleware",
+    "PUBLIC_DEMO_BLOCKED_URL_NAMES",
     "csp_connect_src",
 ]
