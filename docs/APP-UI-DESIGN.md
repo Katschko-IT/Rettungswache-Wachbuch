@@ -150,3 +150,23 @@ Inline-Styles einführt.
   Serverfehler statt der gestalteten Fehlerseite.
 - Browser-, Screenreader-, Kontrast- und Reflow-Nachweise am realen Gerät
   stehen weiterhin aus (siehe `docs/GO-LIVE-CHECKLIST.md`).
+
+
+## Handoff (Stand 11.10.2026)
+
+```text
+Roadmap-ID: R-022 (Nachtrag Unterseiten) – R-018 bleibt offen
+Branch/PR: feature/app-design-consistency (lokal gepusht, kein PR)
+Bereits geändert: 61 Templates, base.html, app-ui.css, app.js, core/views.py,
+  core/context.py, core/models.py + Migration 0028, vorfuehrung.html, Tests/Docs
+Ausgeführte Checks und Ergebnis: Django 351 Tests OK (1 Skip);
+  makemigrations --check sauber; Browserlauf gegen das Image 34 angemeldete
+  Seiten, eine h1 je Seite, keine Konsolenfehler, Trefferflaechen >= 44 px;
+  200 %-Reflow korrigiert; öffentliche Demo nachgeprüft (6 Seiten, echter
+  HTTPS-Login, 6 Nutzer/61 Tabellen unverändert)
+Offene Risiken/Blocker: kein Screenreader-/Kontrast-/Gerätetest (R-018),
+  keine unabhaengige Fremdabnahme der Fassung; iPhone-Safari-Tab erkennt
+  "bereits installiert" nicht zuverlässig
+Nächste kleinste Aktion: R-018-Teilpruefung Kontrast/Fokus mit NVDA bzw.
+  VoiceOver auf einem realen Gerät
+```

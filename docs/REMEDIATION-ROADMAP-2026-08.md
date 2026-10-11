@@ -95,6 +95,16 @@ schwerer Schatten). Orientierung: Rettungsdienst / Feuerwehr / Polizei /
 öffentlicher Dienst – feldlesbar, nicht marketinglastig. Manuelle
 Umgesetzt in PR #62 (CI Django/Docker grün). Browser-/Kontrastabnahme bleibt Teil R-018.
 
+Nachtrag 11.10.2026: Alle zuvor unveränderten Unterseiten (61 Templates außerhalb
+der Produktseite) sind auf dieselben Tokens umgestellt und teilen jetzt eine
+Designschicht `core/static/core/app-ui.css`; Bootstrap ist lokal ausgeliefert. Belegt
+durch Django-Vollsuite (351 Tests, ein Skip), einen echten Browserlauf gegen das
+gebaute Image (34 angemeldete Seiten, je eine `h1`, Trefferflächen >= 44 px, keine
+Konsolenfehler) und die öffentliche Nachprüfung der Demo (sechs öffentliche Seiten,
+echter HTTPS-Login, Daten unverändert). Reflow bei 200 % Text ist geprüft und
+korrigiert. **R-018 bleibt offen**: Screenreader-, Kontrast- und Geräteabnahme mit
+realen Nutzern stehen weiter aus. Details: `docs/APP-UI-DESIGN.md`.
+
 ## Wave 2 – Betrieb und Lieferkette
 
 ### [~] R-010 Least-Privilege-Backuprolle
