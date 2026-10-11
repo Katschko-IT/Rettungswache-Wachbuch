@@ -367,6 +367,47 @@
 }
 .ww-app .more-list a:hover::after { border-color: var(--ww-brand); }
 
+/* Enlarged text (200%) and narrow phones: rows, header and agenda must wrap
+   instead of pushing the page wider than the viewport. Verified in the
+   browser acceptance run at 390 px with a 200% root font size. */
+.ww-app .header-inner,
+.ww-app .account,
+.ww-app .list-row,
+.ww-app .agenda-row,
+.ww-app .row-content,
+.ww-app .section-heading,
+.ww-app .page-heading,
+.ww-app .heading-with-action,
+.ww-app .quick-actions,
+.ww-app .form-actions { flex-wrap: wrap; min-width: 0; }
+.ww-app .row-content,
+.ww-app .agenda-row > div,
+.ww-app .list-row > *,
+.ww-app .account > * { min-width: 0; overflow-wrap: anywhere; }
+.ww-app .list-row time,
+.ww-app .agenda-row time { flex: 0 0 auto; }
+.ww-app .list-row .row-content { flex: 1 1 12rem; }
+.ww-app .logout-form { flex: 0 1 auto; min-width: 0; }
+
+/* Cards from tables must not escape the page once text is enlarged: the label
+   column shrinks and long cell values wrap instead of forcing a wide page. */
+.ww-app .responsive-table caption { max-width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 60rem) {
+  .ww-app .table-wrap { overflow-x: auto; max-width: 100%; }
+  .ww-app .responsive-table td { grid-template-columns: minmax(4.5rem, 6.5rem) minmax(0, 1fr); }
+  .ww-app .responsive-table td > *,
+  .ww-app .responsive-table td { min-width: 0; overflow-wrap: anywhere; }
+  .ww-app .responsive-table td::before { overflow-wrap: anywhere; }
+  /* Two-column card rows and the two-column overview collapse instead of
+     overflowing once the browser text size is raised to 200%. */
+  .ww-app .item-list,
+  .ww-app .list-row,
+  .ww-app .agenda-row { min-width: 0; }
+  .ww-app .list-row { grid-template-columns: minmax(0, 1fr) minmax(0, auto); }
+  .ww-app .list-row time { white-space: normal; overflow-wrap: anywhere; }
+  .ww-app .overview-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ==========================================================================
    8. Tabellen
    ========================================================================== */

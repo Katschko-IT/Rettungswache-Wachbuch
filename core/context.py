@@ -5,7 +5,11 @@ from .models import HandoverEntry
 
 
 def current_membership(request):
-    membership = get_membership(request.user) if request.user.is_authenticated else None
+    # Error handlers can run for requests that never passed the auth middleware
+    # (for example a missing static file). Without this guard the 500 page itself
+    # crashed with AttributeError and visitors saw a bare server error.
+    user = getattr(request, "user", None)
+    membership = get_membership(user) if user is not None and user.is_authenticated else None
     nav_urgent_count = 0
     if membership and membership.role in CONTENT_ROLES:
         nav_urgent_count = (
