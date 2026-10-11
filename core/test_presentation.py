@@ -36,7 +36,7 @@ class PresentationLandingTests(TestCase):
             response, "<h1>Die nächste Schicht. Schon im Bild.</h1>", html=False, count=1
         )
         self.assertContains(
-            response, "Interaktive Produktvorschau · fiktive Beispieldaten · keine echte App-Sitzung"
+            response, "Vorschau mit fiktiven Beispieldaten – keine echte App-Sitzung."
         )
         # Produktgrenze bleibt sichtbar.
         self.assertContains(response, "Kein Einsatzleit-, Alarmierungs-, Diagnose- oder Patientensystem.")
@@ -46,6 +46,15 @@ class PresentationLandingTests(TestCase):
         self.assertContains(response, reverse("privacy"))
         # Die echte Demo ist ein separater Link, kein iframe.
         self.assertNotContains(response, "<iframe")
+
+    def test_project_and_platform_icons_are_honest_and_local(self):
+        response = self.client.get(reverse("landing"))
+        self.assertContains(response, 'href="https://github.com/darkspike1988/Rettungswache-Wachbuch"')
+        for icon in ("github", "android", "ios"):
+            self.assertContains(response, f"core/icons/{icon}.svg")
+        self.assertContains(response, "noch nicht in den App-Stores veröffentlicht")
+        self.assertNotContains(response, "https://play.google.com/store/apps")
+        self.assertNotContains(response, "https://apps.apple.com/")
 
     def test_landing_has_no_register_link(self):
         self.client.logout()
@@ -107,6 +116,28 @@ class PresentationLandingTests(TestCase):
         self.assertIn("Grün · täglich", source)
         self.assertIn("Gelb · Wochentagsrotation", source)
         self.assertIn("Blau · zusätzlich", source)
+
+    def test_copy_has_one_home_for_each_core_explanation(self):
+        source = self._template()
+        for explanation in (
+            "Vorschau mit fiktiven Beispieldaten – keine echte App-Sitzung.",
+            "noch nicht in den App-Stores veröffentlicht",
+            "Sie erledigt die Übergabe nicht",
+            "Ohne Analytics oder Scoring",
+            "Der Master-Admin legt Nutzer an",
+            "Kein Einsatzleit-, Alarmierungs-, Diagnose- oder Patientensystem.",
+        ):
+            self.assertEqual(source.count(explanation), 1, explanation)
+        for redundant_question in (
+            "Wo laufen die Daten?",
+            "Brauche ich für die Vorschau ein Konto?",
+            "Welche Oberflächen gibt es?",
+            "Drei Dinge, die die Schicht wirklich braucht.",
+        ):
+            self.assertNotIn(redundant_question, source)
+        # The remaining navigation anchor points to its actual subject.
+        self.assertEqual(source.count('id="funktionen"'), 1)
+        self.assertIn('href="#funktionen">Betrieb</a>', source)
 
     def test_preview_respects_product_boundary(self):
         source = self._template()

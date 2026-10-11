@@ -35,6 +35,8 @@ asset_out.mkdir(parents=True, exist_ok=True)
 for name in ('presentation.css', 'presentation.js'):
     shutil.copy2(repo / 'core/static/core' / name, asset_out / name)
 shutil.copytree(repo / 'core/static/core/fonts', asset_out / 'fonts', dirs_exist_ok=True)
+shutil.copytree(repo / 'core/static/core/icons', asset_out / 'icons', dirs_exist_ok=True)
+shutil.copytree(repo / 'core/static/core/vendor', asset_out / 'vendor', dirs_exist_ok=True)
 assert 'data-pw-demo' in html, 'Presentation markup missing'
 assert 'presentation.css' in html and 'presentation.js' in html
 print(f'EXPORTED {out}: real Django template, two local assets, no database writes')

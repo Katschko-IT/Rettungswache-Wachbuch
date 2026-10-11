@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#0d47a1">
   <meta name="description" content="Wachorganisation für Rettungswache, Feuerwehr und vergleichbare Dienste: Übergaben, Tagesaufgaben, Kalender. Selbst gehostet, ohne Tracking. Kein Einsatzleit-, Alarmierungs- oder Patientensystem.">
   <title>{{ app_name }} – Die nächste Schicht. Schon im Bild.</title>
+  {# Bootstrap 5.3.8 (MIT) ist lokal vendored: core/static/core/vendor/bootstrap/ – kein CDN. #}
+  <link rel="stylesheet" href="{% static 'core/vendor/bootstrap/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'core/presentation.css' %}">
 </head>
 <body class="pw-page is-landing">
@@ -28,215 +30,205 @@
       </a>
       <nav class="pw-nav" aria-label="Hauptnavigation">
         <a href="#demo">Vorschau</a>
-        <a href="#funktionen">Funktionen</a>
+        <a href="#funktionen">Betrieb</a>
         <a href="{% url 'vorfuehrung' %}">Vorführung</a>
         <a href="{% url 'privacy' %}">Datenschutz</a>
         <a href="{% url 'login' %}">Anmelden</a>
       </nav>
+      <details class="pw-mobile-menu">
+        <summary>Menü <span aria-hidden="true">☰</span></summary>
+        <nav aria-label="Mobile Navigation">
+          <a href="#demo">Ausprobieren</a>
+          <a href="#funktionen">Betrieb</a>
+          <a href="{% url 'vorfuehrung' %}">Vorführung</a>
+          <a href="{% url 'privacy' %}">Datenschutz</a>
+          <a href="{% url 'login' %}">Anmelden</a>
+        </nav>
+      </details>
     </div>
   </header>
 
-  <main id="inhalt">
+  <main id="inhalt" data-pw-demo>
 
     <section class="pw-hero">
-      <div class="pw-wrap pw-hero-grid">
-        <div>
-          <p class="pw-marker"><span class="dot" aria-hidden="true"></span> Interaktive Produktvorschau · fiktive Beispieldaten · keine echte App-Sitzung</p>
-          <h1>Die nächste Schicht. Schon im Bild.</h1>
-          <p class="pw-lead">Übergaben, Tagesaufgaben und Kalender für den öffentlichen Dienst – mobil, priorisiert und selbst gehostet. Kein Einsatzleit-, Alarmierungs-, Diagnose- oder Patientensystem.</p>
-          <div class="pw-cta">
-            <a class="pw-btn pw-btn-primary" href="#demo" data-pw-start>Im Browser ausprobieren</a>
-            <a class="pw-btn pw-btn-ghost" href="{% url 'vorfuehrung' %}">Vorführung ansehen</a>
+      <div class="container">
+        <div class="row align-items-center">
+
+          <div class="col-12 col-lg-6 pw-hero-copy">
+            <p class="pw-marker"><span class="dot" aria-hidden="true"></span> Digitale Wachorganisation</p>
+            <h1>Die nächste Schicht. Schon im Bild.</h1>
+            <p class="pw-lead">Was die nächste Besatzung wissen muss – an einem Ort.</p>
+            <div class="pw-cta">
+              <a class="pw-btn pw-btn-primary" href="#demo" data-pw-start>Im Browser ausprobieren</a>
+              <a class="pw-btn pw-btn-ghost" href="{% url 'vorfuehrung' %}">Vorführung ansehen</a>
+            </div>
+            <p class="pw-hero-meta">Ohne Konto oder Installation ausprobieren.</p>
+
           </div>
-          <p class="pw-hero-meta">Direkt im Browser bedienbar. Kein Konto, keine Installation, keine Datenübertragung.</p>
+
+          <div class="col-12 col-lg-6">
+            <div class="pw-demo" id="demo">
+              <div class="pw-demo-toolbar">
+                <div class="pw-journey" role="group" aria-label="Ablauf der Vorschau">
+                  <button type="button" class="pw-step is-on" data-pw-view="overview" aria-pressed="true"><span class="num" aria-hidden="true">1</span> Übersicht</button>
+                  <button type="button" class="pw-step" data-pw-view="handover" aria-pressed="false"><span class="num" aria-hidden="true">2</span> Übergabe prüfen</button>
+                  <button type="button" class="pw-step" data-pw-view="tasks" aria-pressed="false"><span class="num" aria-hidden="true">3</span> Tagesaufgaben</button>
+                  <button type="button" class="pw-step" data-pw-view="calendar" aria-pressed="false"><span class="num" aria-hidden="true">4</span> Kalender</button>
+                </div>
+              </div>
+
+              <noscript><p class="pw-hint">Für die interaktive Smartphone-Vorschau ist JavaScript erforderlich. Produktinformationen und die Vorführung bleiben ohne JavaScript erreichbar.</p></noscript>
+
+              <div class="pw-demo-device-stage">
+                <div class="pw-device">
+                  <div class="pw-device-bar" aria-hidden="true"><span class="pw-device-notch"></span></div>
+                  <div class="pw-screen">
+
+                    <div class="pw-view is-on" data-pw-panel="overview">
+                      <h3>Übersicht</h3>
+                      <p class="pw-screen-sub">Aktive Übergaben, priorisiert.</p>
+                      <ul class="pw-list">
+                        <li>
+                          <button type="button" class="pw-ho" data-pw-ho="ho1" data-pw-title="1-83-1: Warndreieck fehlt" data-pw-pri="Dringend · offen" data-pw-pri-class="pw-pri-urgent" data-pw-summary="Fahrzeugprüfung · Station Musterwache" data-pw-rev="3">
+                            <span class="pw-pri pw-pri-urgent">Dringend</span>
+                            <strong>1-83-1: Warndreieck fehlt</strong>
+                            <small>Übergabe · offen · Revision 3</small>
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" class="pw-ho" data-pw-ho="ho2" data-pw-title="Schlüsselbund: Rückgabe offen" data-pw-pri="Wichtig · offen" data-pw-pri-class="pw-pri-important" data-pw-summary="Spindkontrolle · Station Musterwache" data-pw-rev="2">
+                            <span class="pw-pri pw-pri-important">Wichtig</span>
+                            <strong>Schlüsselbund: Rückgabe offen</strong>
+                            <small>Übergabe · offen · Revision 2</small>
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" class="pw-ho" data-pw-ho="ho3" data-pw-title="Getränkevorrat auffüllen" data-pw-pri="Normal · offen" data-pw-pri-class="pw-pri-normal" data-pw-summary="Wachenlogistik · Station Musterwache" data-pw-rev="1">
+                            <span class="pw-pri pw-pri-normal">Normal</span>
+                            <strong>Getränkevorrat auffüllen</strong>
+                            <small>Übergabe · offen · Revision 1</small>
+                          </button>
+                        </li>
+                      </ul>
+                      <h4>Nächste Termine</h4>
+                      <ul class="pw-mini-agenda">
+                        <li><span class="t">08:00</span> Schichtübergabe</li>
+                        <li><span class="t">12:00</span> Fahrzeugübergabe Werkstatt</li>
+                        <li><span class="t">16:00</span> Checkliste Fahrzeuge</li>
+                      </ul>
+                    </div>
+
+                    <div class="pw-view" data-pw-panel="handover" hidden>
+                      <button type="button" class="pw-back" data-pw-target="overview">← Zurück zur Übersicht</button>
+                      <p class="pw-pri pw-pri-urgent" data-pw-ho-pri>Dringend · offen</p>
+                      <h3 data-pw-ho-title>1-83-1: Warndreieck fehlt</h3>
+                      <p class="pw-screen-sub" data-pw-ho-summary>Fahrzeugprüfung · Station Musterwache</p>
+                      <p class="pw-screen-sub">Revision <span data-pw-rev>3</span> von <span data-pw-rev-total>3</span> geladen</p>
+                      <ol class="pw-revs">
+                        <li data-pw-rev-item>Revision 1 · Vorgang angelegt</li>
+                        <li data-pw-rev-item>Revision 2 · Detail ergänzt</li>
+                        <li data-pw-rev-item>Revision 3 · priorisiert und bestätigt</li>
+                      </ol>
+                      <button type="button" class="pw-btn pw-btn-primary" data-pw-ack>Kenntnisnahme bestätigen (Revision <span data-pw-rev>3</span>)</button>
+                      <p class="pw-ack-status" data-pw-ack-status>Noch nicht gelesen.</p>
+                      <p class="pw-hint">Die Kenntnisnahme bestätigt genau die geladene Revision. Sie erledigt die Übergabe nicht – der Vorgang bleibt offen, bis er abgeschlossen ist.</p>
+                    </div>
+
+                    <div class="pw-view" data-pw-panel="tasks" hidden>
+                      <h3>Tagesaufgaben</h3>
+                      <p class="pw-screen-sub">Getrennt nach Grün, Gelb und Blau. <span data-pw-task-count>0 von 7 erledigt</span></p>
+                      <div class="pw-taskgroup g">
+                        <span class="tag">Grün · täglich</span>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Fahrzeugcheck dokumentieren</span></label>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Wachrundgang 08:00 und 20:00</span></label>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Kaffeekasse abgleichen</span></label>
+                      </div>
+                      <div class="pw-taskgroup y">
+                        <span class="tag">Gelb · Wochentagsrotation</span>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Werkstatt-Rückmeldung einholen</span></label>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Vorrat im Materialraum zählen</span></label>
+                      </div>
+                      <div class="pw-taskgroup b">
+                        <span class="tag">Blau · zusätzlich</span>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Defekt: Türgriff Fahrzeughalle gemeldet</span></label>
+                        <label class="pw-task"><input type="checkbox" data-pw-task> <span>Erste-Hilfe-Material auffüllen</span></label>
+                      </div>
+                    </div>
+
+                    <div class="pw-view" data-pw-panel="calendar" hidden>
+                      <h3>Kalender</h3>
+                      <p class="pw-screen-sub">Chronologische Agenda der Wache.</p>
+                      <ul class="pw-agenda">
+                        <li><span class="t">08:00</span><span class="d">Schichtübergabe, Wachraum</span></li>
+                        <li><span class="t">12:00</span><span class="d">Fahrzeugübergabe an die Werkstatt</span></li>
+                        <li><span class="t">16:00</span><span class="d">Checkliste Fahrzeuge, Halle 2</span></li>
+                        <li><span class="t">18:00</span><span class="d">Abendschleife und Abschluss</span></li>
+                      </ul>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="pw-reset" data-pw-reset>Vorschau zurücksetzen</button>
+              <p class="pw-lead pw-demo-note">Vorschau mit fiktiven Beispieldaten – keine echte App-Sitzung.</p>
+              <span class="visually-hidden" data-pw-status role="status" aria-live="polite"></span>
+            </div>
+          </div>
+
         </div>
-        <aside class="pw-card" aria-label="Im Produktkern">
-          <p class="pw-kicker">Im Produktkern</p>
-          <ul class="pw-checklist">
-            <li><strong>Übergaben</strong> versioniert und priorisiert, stationsbezogen.</li>
-            <li><strong>Tagesaufgaben</strong> als digitaler Wandbogen in Grün, Gelb und Blau.</li>
-            <li><strong>Kalender &amp; Team</strong> als ruhige Agenda statt Dashboard-Lärm.</li>
-            <li><strong>Selbst gehostet</strong> hinter eigenem Proxy, ohne Analytics.</li>
-          </ul>
-        </aside>
+        <div class="pw-platform-block">
+            <div class="pw-platforms" aria-label="Projekt und mobile Plattformen">
+              <a class="pw-platform" href="https://github.com/darkspike1988/Rettungswache-Wachbuch" target="_blank" rel="noopener noreferrer" aria-label="Wachbuch-Projekt auf GitHub öffnen (neuer Tab)">
+                <img src="{% static 'core/icons/github.svg' %}" width="22" height="22" alt="" aria-hidden="true"> GitHub <span class="pw-platform-detail">Quellcode</span>
+              </a>
+              <span class="pw-platform" title="Android-Client">
+                <img src="{% static 'core/icons/android.svg' %}" width="22" height="22" alt="" aria-hidden="true"> Android <span class="pw-platform-detail">Client</span>
+              </span>
+              <span class="pw-platform" title="iOS-Client">
+                <img src="{% static 'core/icons/ios.svg' %}" width="22" height="22" alt="" aria-hidden="true"> iOS <span class="pw-platform-detail">Client</span>
+              </span>
+            </div>
+            <p class="pw-platform-note">Android- und iOS-Client: noch nicht in den App-Stores veröffentlicht.</p>
+        </div>
       </div>
     </section>
 
-    <section class="pw-section pw-demo" id="demo" aria-labelledby="pw-demo-title" data-pw-demo>
-      <div class="pw-wrap">
-        <div class="pw-demo-head">
-          <div class="pw-section-head">
-            <p class="pw-kicker">Interaktive Produktvorschau · fiktive Beispieldaten · keine echte App-Sitzung</p>
-            <h2 id="pw-demo-title">Erst ausprobieren, dann vorführen.</h2>
-            <p class="pw-lead">Folge dem Ablauf links: priorisierte Übersicht, eine Übergabe mit Revisionen, getrennte Tagesaufgaben und die Agenda. Alles läuft lokal im Browser – ohne Serveraufruf und ohne Login.</p>
+    <section class="pw-section pw-section-alt" id="funktionen">
+      <div class="container">
+        <div class="row align-items-center g-4">
+          <div class="col-12 col-lg-6">
+            <p class="pw-kicker">Betrieb</p>
+            <h2>Auf eurer Infrastruktur.</h2>
+            <p class="pw-lead">Die Dienststelle verantwortet den Betrieb und die Mitbestimmung.</p>
+            <ul class="pw-checklist">
+              <li>Docker Compose auf eigenem Server mit TLS-Proxy</li>
+              <li>Ohne Analytics oder Scoring; nur technisch notwendige Cookies</li>
+              <li>Installierbare Web-PWA und Flutter-Client über eine versionierte API</li>
+              <li>Quellcode offen unter AGPL-3.0</li>
+            </ul>
+
           </div>
-          <button type="button" class="pw-btn pw-btn-ghost" data-pw-reset>Vorschau zurücksetzen</button>
-        </div>
-
-        <noscript><p class="pw-hint">Für die interaktive Smartphone-Vorschau ist JavaScript erforderlich. Produktinformationen und die Vorführung bleiben ohne JavaScript erreichbar.</p></noscript>
-        <div class="pw-demo-grid">
-          <div class="pw-journey" role="group" aria-label="Ablauf der Vorschau">
-            <p class="pw-journey-label">Ablauf</p>
-            <button type="button" class="pw-step is-on" data-pw-view="overview" aria-pressed="true"><span class="num" aria-hidden="true">1</span> Übersicht</button>
-            <button type="button" class="pw-step" data-pw-view="handover" aria-pressed="false"><span class="num" aria-hidden="true">2</span> Übergabe prüfen</button>
-            <button type="button" class="pw-step" data-pw-view="tasks" aria-pressed="false"><span class="num" aria-hidden="true">3</span> Tagesaufgaben</button>
-            <button type="button" class="pw-step" data-pw-view="calendar" aria-pressed="false"><span class="num" aria-hidden="true">4</span> Kalender</button>
-          </div>
-
-          <div class="pw-demo-device-stage">
-            <div class="pw-device">
-              <div class="pw-device-bar" aria-hidden="true"><span class="pw-device-notch"></span></div>
-              <div class="pw-screen">
-
-                <div class="pw-view is-on" data-pw-panel="overview">
-                  <h3>Übersicht</h3>
-                  <p class="pw-screen-sub">Aktive Übergaben, priorisiert.</p>
-                  <ul class="pw-list">
-                    <li>
-                      <button type="button" class="pw-ho" data-pw-ho="ho1" data-pw-title="1-83-1: Warndreieck fehlt" data-pw-pri="Dringend · offen" data-pw-pri-class="pw-pri-urgent" data-pw-summary="Fahrzeugprüfung · Station Musterwache" data-pw-rev="3">
-                        <span class="pw-pri pw-pri-urgent">Dringend</span>
-                        <strong>1-83-1: Warndreieck fehlt</strong>
-                        <small>Übergabe · offen · Revision 3</small>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="pw-ho" data-pw-ho="ho2" data-pw-title="Schlüsselbund: Rückgabe offen" data-pw-pri="Wichtig · offen" data-pw-pri-class="pw-pri-important" data-pw-summary="Spindkontrolle · Station Musterwache" data-pw-rev="2">
-                        <span class="pw-pri pw-pri-important">Wichtig</span>
-                        <strong>Schlüsselbund: Rückgabe offen</strong>
-                        <small>Übergabe · offen · Revision 2</small>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="pw-ho" data-pw-ho="ho3" data-pw-title="Getränkevorrat auffüllen" data-pw-pri="Normal · offen" data-pw-pri-class="pw-pri-normal" data-pw-summary="Wachenlogistik · Station Musterwache" data-pw-rev="1">
-                        <span class="pw-pri pw-pri-normal">Normal</span>
-                        <strong>Getränkevorrat auffüllen</strong>
-                        <small>Übergabe · offen · Revision 1</small>
-                      </button>
-                    </li>
-                  </ul>
-                  <h4>Nächste Termine</h4>
-                  <ul class="pw-mini-agenda">
-                    <li><span class="t">08:00</span> Schichtübergabe</li>
-                    <li><span class="t">12:00</span> Fahrzeugübergabe Werkstatt</li>
-                    <li><span class="t">16:00</span> Checkliste Fahrzeuge</li>
-                  </ul>
-                </div>
-
-                <div class="pw-view" data-pw-panel="handover" hidden>
-                  <button type="button" class="pw-back" data-pw-target="overview">← Zurück zur Übersicht</button>
-                  <p class="pw-pri pw-pri-urgent" data-pw-ho-pri>Dringend · offen</p>
-                  <h3 data-pw-ho-title>1-83-1: Warndreieck fehlt</h3>
-                  <p class="pw-screen-sub" data-pw-ho-summary>Fahrzeugprüfung · Station Musterwache</p>
-                  <p class="pw-screen-sub">Revision <span data-pw-rev>3</span> von <span data-pw-rev-total>3</span> geladen</p>
-                  <ol class="pw-revs">
-                    <li data-pw-rev-item>Revision 1 · Vorgang angelegt</li>
-                    <li data-pw-rev-item>Revision 2 · Detail ergänzt</li>
-                    <li data-pw-rev-item>Revision 3 · priorisiert und bestätigt</li>
-                  </ol>
-                  <button type="button" class="pw-btn pw-btn-primary" data-pw-ack>Kenntnisnahme bestätigen (Revision <span data-pw-rev>3</span>)</button>
-                  <p class="pw-ack-status" data-pw-ack-status>Noch nicht gelesen.</p>
-                  <p class="pw-hint">Die Kenntnisnahme bestätigt genau die geladene Revision. Sie erledigt die Übergabe nicht – der Vorgang bleibt offen, bis er abgeschlossen ist.</p>
-                </div>
-
-                <div class="pw-view" data-pw-panel="tasks" hidden>
-                  <h3>Tagesaufgaben</h3>
-                  <p class="pw-screen-sub">Getrennt nach Grün, Gelb und Blau. <span data-pw-task-count>0 von 7 erledigt</span></p>
-                  <div class="pw-taskgroup g">
-                    <span class="tag">Grün · täglich</span>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Fahrzeugcheck dokumentieren</span></label>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Wachrundgang 08:00 und 20:00</span></label>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Kaffeekasse abgleichen</span></label>
-                  </div>
-                  <div class="pw-taskgroup y">
-                    <span class="tag">Gelb · Wochentagsrotation</span>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Werkstatt-Rückmeldung einholen</span></label>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Vorrat im Materialraum zählen</span></label>
-                  </div>
-                  <div class="pw-taskgroup b">
-                    <span class="tag">Blau · zusätzlich</span>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Defekt: Türgriff Fahrzeughalle gemeldet</span></label>
-                    <label class="pw-task"><input type="checkbox" data-pw-task> <span>Erste-Hilfe-Material auffüllen</span></label>
-                  </div>
-                </div>
-
-                <div class="pw-view" data-pw-panel="calendar" hidden>
-                  <h3>Kalender</h3>
-                  <p class="pw-screen-sub">Chronologische Agenda der Wache.</p>
-                  <ul class="pw-agenda">
-                    <li><span class="t">08:00</span><span class="d">Schichtübergabe, Wachraum</span></li>
-                    <li><span class="t">12:00</span><span class="d">Fahrzeugübergabe an die Werkstatt</span></li>
-                    <li><span class="t">16:00</span><span class="d">Checkliste Fahrzeuge, Halle 2</span></li>
-                    <li><span class="t">18:00</span><span class="d">Abendschleife und Abschluss</span></li>
-                  </ul>
-                </div>
-
-              </div>
+          <div class="col-12 col-lg-6">
+            <div class="pw-codebox" aria-label="Einrichtungsschritte">
+              <span>01 / Infrastruktur vorbereiten</span><br>
+              Ressourcen und Zuständigkeiten klären<br><br>
+              <span>02 / Einrichtung nach Betriebsdokumentation</span><br>
+              Zugang, Konfiguration und Backups<br><br>
+              <span>03 / Vor dem Echtbetrieb prüfen</span><br>
+              Rollen, Geräte und Wiederherstellung
             </div>
           </div>
         </div>
-
-        <p class="pw-demo-note" data-pw-status role="status" aria-live="polite">Fiktive Beispieldaten. Keine Verbindung zum Server, kein Login, keine Speicherung.</p>
       </div>
     </section>
 
-    <section class="pw-section" id="funktionen" aria-labelledby="pw-benefits-title">
-      <div class="pw-wrap">
-        <div class="pw-section-head">
-          <p class="pw-kicker">Was die Web-App leistet</p>
-          <h2 id="pw-benefits-title">Drei Dinge, die die Schicht wirklich braucht.</h2>
-          <p class="pw-lead">Bewusst schmal: keine Kennzahlen-Kacheln, keine Ablenkung. Farbe nur zusätzlich, Status immer ausgeschrieben.</p>
-        </div>
-        <div class="pw-bento">
-          <article class="pw-card">
-            <span class="ic" aria-hidden="true">⇄</span>
-            <h3>Übergaben mit Revisionen</h3>
-            <p>Jede Änderung wird eine neue Revision, append-only. Kenntnisnahme bestätigt genau die geladene Fassung – und erledigt den Vorgang nicht.</p>
-          </article>
-          <article class="pw-card">
-            <span class="ic" aria-hidden="true">☑</span>
-            <h3>Tagesaufgaben am Wandbogen</h3>
-            <p>Grün für die tägliche Routine, Gelb für die Wochentagsrotation, Blau für Zusatzpunkte. Getrennt abgehakt, mit 48-Pixel-Zielen.</p>
-          </article>
-          <article class="pw-card">
-            <span class="ic" aria-hidden="true">⌂</span>
-            <h3>Selbst gehostet, ohne Tracking</h3>
-            <p>Eigene Infrastruktur hinter TLS-Proxy, lokale Konten, nur technisch notwendige Cookies. Keine Analytics, kein Scoring.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="pw-section" aria-labelledby="pw-selfhost-title">
-      <div class="pw-wrap pw-selfhost">
-        <div>
-          <p class="pw-kicker">Betrieb</p>
-          <h2 id="pw-selfhost-title">Eure Wache. Eure Daten. Euer Server.</h2>
-          <p class="pw-lead">Wachwerk läuft als Docker-Container im eigenen Netz, die Web-PWA installiert sich auf Handy oder Wachenterminal. Verantwortliche Stelle und Mitbestimmung bleiben bei der Dienststelle.</p>
-          <ul class="pw-checklist">
-            <li>Selfhosting per Docker Compose, TLS über eigenen Reverse-Proxy</li>
-            <li>Lokale Konten mit Zwei-Faktor, keine geteilten Zugänge</li>
-            <li>Web-PWA, iOS und Android über eine versionierte API</li>
-            <li>Quellcode offen unter AGPL-3.0</li>
-          </ul>
-          <p class="pw-cta"><a class="pw-btn pw-btn-ghost" href="{{ source_url }}" rel="noopener noreferrer">Quellcode ansehen (AGPL-3.0)</a></p>
-        </div>
-        <div class="pw-codebox" aria-label="Einrichtungsschritte">
-          <span>01 / Infrastruktur vorbereiten</span><br>
-          Eigener Server und TLS-Proxy<br><br>
-          <span>02 / Einrichtung nach Betriebsdokumentation</span><br>
-          Zugang, Konfiguration und Backups<br><br>
-          <span>03 / Vor dem Echtbetrieb prüfen</span><br>
-          Rollen, Geräte und Wiederherstellung
-        </div>
-      </div>
-    </section>
-
-    <section class="pw-section" aria-labelledby="pw-access-title">
-      <div class="pw-wrap">
+    <section class="pw-section">
+      <div class="container">
         <div class="pw-section-head">
           <p class="pw-kicker">Zugang</p>
-          <h2 id="pw-access-title">Zugang nach Login und Freigabe</h2>
-          <p class="pw-lead">Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat. Jede Fachabfrage bleibt an die eigene Station gebunden.</p>
+          <h2>Das Team einrichten.</h2>
+          <p class="pw-lead">Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Persönliche Konten mit Zwei-Faktor und stationsgebundene Zugriffe trennen die Zuständigkeiten.</p>
         </div>
 
         {% if demo_mode %}
@@ -255,50 +247,33 @@
         </div>
         {% endif %}
 
-        <div class="pw-cta">
+        <div class="pw-cta pw-cta-access">
           <a class="pw-btn pw-btn-primary" href="{% url 'login' %}">Anmelden</a>
-          <a class="pw-btn pw-btn-ghost" href="{% url 'vorfuehrung' %}">Vorführung</a>
-          <a class="pw-btn pw-btn-ghost" href="{% url 'privacy' %}">Datenschutz</a>
         </div>
       </div>
     </section>
 
-    <section class="pw-section" aria-labelledby="pw-faq-title">
-      <div class="pw-wrap">
+    <section class="pw-section">
+      <div class="container">
         <div class="pw-section-head">
           <p class="pw-kicker">Fragen</p>
-          <h2 id="pw-faq-title">Kurz und ehrlich beantwortet.</h2>
+          <h2>Wofür das System nicht gedacht ist.</h2>
         </div>
         <div class="pw-faq">
           <details>
             <summary>Ist das ein Einsatzleit- oder Patientensystem?</summary>
-            <p class="pw-a">Nein. Wachwerk organisiert interne Abläufe hinter der Fahrzeughalle. Alarmierung, Einsatzleitung, eProtokoll und Patientendaten liegen bewusst außerhalb des Systems.</p>
-          </details>
-          <details>
-            <summary>Wo laufen die Daten?</summary>
-            <p class="pw-a">Auf eurer eigenen Infrastruktur. Die Wache betreibt die Container selbst; es gibt keinen gemeinsamen Cloud-Account. Nur technisch notwendige Sicherheitscookies werden gesetzt.</p>
-          </details>
-          <details>
-            <summary>Brauche ich für die Vorschau ein Konto?</summary>
-            <p class="pw-a">Nein. Die Vorschau oben läuft vollständig im Browser mit fiktiven Beispieldaten – ohne Login, ohne Serveraufruf und ohne Speicherung.</p>
-          </details>
-          <details>
-            <summary>Welche Oberflächen gibt es?</summary>
-            <p class="pw-a">Eine Web-PWA, die sich auf Handy und Wachenterminal installieren lässt, sowie ein Flutter-Client für iOS und Android über dieselbe versionierte API. Eine Veröffentlichung in den App-Stores ist noch nicht erfolgt.</p>
+            <p class="pw-a">Kein Einsatzleit-, Alarmierungs-, Diagnose- oder Patientensystem. Diese Bereiche gehören in die dafür vorgesehenen Fachanwendungen.</p>
           </details>
         </div>
       </div>
     </section>
 
     <section class="pw-section">
-      <div class="pw-wrap">
+      <div class="container">
         <div class="pw-final">
-          <h2>Die nächste Schicht kann im Browser beginnen.</h2>
-          <p>Vorschau ausprobieren, Vorführung ansehen oder mit dem eigenen Server starten. Ohne Marketing-Versprechen – nur die Funktionen, die im Wachalltag halten.</p>
+          <h2>Jetzt selbst durchklicken.</h2>
           <div class="pw-cta">
             <a class="pw-btn pw-btn-primary" href="#demo" data-pw-start>Im Browser ausprobieren</a>
-            <a class="pw-btn pw-btn-ghost" href="{% url 'vorfuehrung' %}">Vorführung</a>
-            <a class="pw-btn pw-btn-ghost" href="{{ source_url }}" rel="noopener noreferrer">Quellcode</a>
           </div>
         </div>
       </div>
@@ -307,13 +282,21 @@
   </main>
 
   <footer class="pw-footer">
-    <div class="pw-wrap pw-footer-links">
-      <span>{{ app_name }} – Wachenabläufe für den öffentlichen Dienst.</span>
-      <a href="{{ source_url }}" rel="noopener noreferrer">Quellcode (AGPL-3.0)</a>
-      <a href="{% url 'vorfuehrung' %}">Vorführung</a>
-      <a href="{% url 'privacy' %}">Datenschutz &amp; Cookies</a>
-      <a href="{% url 'login' %}">Anmelden</a>
-      {% if app_version %}<span class="ver">Version {{ app_version }}</span>{% endif %}
+    <div class="container">
+      <div class="row g-3 align-items-center">
+        <div class="col-12 col-md">
+          <span>{{ app_name }} – Wachenabläufe für den öffentlichen Dienst.</span>
+        </div>
+        <div class="col-12 col-md-auto">
+          <div class="pw-footer-links">
+            <a href="{{ source_url }}" rel="noopener noreferrer">Quellcode</a>
+            <a href="{% url 'vorfuehrung' %}">Vorführung</a>
+            <a href="{% url 'privacy' %}">Datenschutz &amp; Cookies</a>
+            <a href="{% url 'login' %}">Anmelden</a>
+            {% if app_version %}<span class="ver">Version {{ app_version }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
     </div>
   </footer>
 

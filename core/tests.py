@@ -140,13 +140,13 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertContains(response, "<h1>Die nächste Schicht. Schon im Bild.</h1>", html=False, count=1)
         self.assertContains(
             response,
-            "Interaktive Produktvorschau · fiktive Beispieldaten · keine echte App-Sitzung",
+            "Vorschau mit fiktiven Beispieldaten – keine echte App-Sitzung.",
         )
         self.assertContains(response, "Im Browser ausprobieren")
         self.assertContains(response, "core/presentation.css")
         self.assertContains(response, "core/presentation.js")
         self.assertContains(response, "data-pw-demo")
-        self.assertContains(response, "Was die Web-App leistet")
+        self.assertContains(response, "Auf eurer Infrastruktur.")
         self.assertNotContains(response, "brand-hero")
         self.assertNotContains(response, "landing-hero-art")
         self.assertNotContains(response, "Zur Anmeldung")
@@ -259,7 +259,7 @@ class SecurityAndAccessTests(PilotTestCase):
         self.assertContains(response, "Wachwerk")
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("vorfuehrung"))
-        self.assertContains(response, "Zugang nach Login und Freigabe")
+        self.assertContains(response, "Das Team einrichten.")
         self.assertContains(response, "Master-Admin")
         self.assertNotContains(response, reverse("register"))
         self.assertNotContains(response, "Tailscale")

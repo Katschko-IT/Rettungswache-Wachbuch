@@ -12,6 +12,19 @@
   var steps = Array.prototype.slice.call(root.querySelectorAll("[data-pw-view]"));
   var panels = Array.prototype.slice.call(root.querySelectorAll("[data-pw-panel]"));
   var status = root.querySelector("[data-pw-status]");
+  var mobileMenu = document.querySelector(".pw-mobile-menu");
+  if (mobileMenu) {
+    Array.prototype.slice.call(mobileMenu.querySelectorAll("a")).forEach(function (link) {
+      link.addEventListener("click", function () { mobileMenu.removeAttribute("open"); });
+    });
+    mobileMenu.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        mobileMenu.removeAttribute("open");
+        mobileMenu.querySelector("summary").focus();
+      }
+    });
+  }
+
 
   function announce(msg) {
     if (status) {
@@ -29,6 +42,8 @@
         panel.setAttribute("hidden", "");
       }
     });
+    var screen = root.querySelector(".pw-screen");
+    if (screen) { screen.scrollTop = 0; }
     steps.forEach(function (step) {
       var on = step.getAttribute("data-pw-view") === name;
       step.classList.toggle("is-on", on);
