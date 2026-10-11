@@ -406,6 +406,24 @@
   .ww-app .list-row { grid-template-columns: minmax(0, 1fr) minmax(0, auto); }
   .ww-app .list-row time { white-space: normal; overflow-wrap: anywhere; }
   .ww-app .overview-layout { grid-template-columns: minmax(0, 1fr); }
+  /* The five-item bottom navigation must not stretch the page: every item
+     shares the width equally and its label truncates instead of overflowing. */
+  .ww-app .nav-inner { overflow-x: auto; }
+  .ww-app .app-nav a { flex: 1 1 0; min-width: 0; overflow: hidden; }
+  .ww-app .app-nav a > span,
+  .ww-app .app-nav a > span > span,
+  .ww-app .nav-badge { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Long unbreakable values in forms stay inside their card. */
+  .ww-app input,
+  .ww-app select,
+  .ww-app textarea { max-width: 100%; }
+  .ww-app label,
+  .ww-app .form-card p,
+  .ww-app .form-card code,
+  .ww-app .details-block,
+  .ww-app .details-help { overflow-wrap: anywhere; }
+  /* The agenda pill is the last element that still poked 2px past the viewport. */
+  .ww-app .agenda-row .status-label { max-width: 100%; white-space: normal; }
 }
 
 /* ==========================================================================
