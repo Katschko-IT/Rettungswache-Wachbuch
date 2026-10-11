@@ -75,7 +75,7 @@ class PublicDemoModeHardeningTests(TestCase):
         response = self.client.get(reverse("landing"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Öffentliche Demo")
-        self.assertContains(response, "fiktive Musterdaten")
+        self.assertContains(response, "fiktive Daten")
 
     # -- Zugang der öffentlichen Demo (Login-Formular, Demo/Demo) -------------
 

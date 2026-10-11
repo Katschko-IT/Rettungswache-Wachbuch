@@ -101,6 +101,15 @@ body.pw-page {
   box-shadow: 0 0 0 3px #fff;
 }
 
+/* The real public demo adds one compact status line, not a second hero. */
+.pw-page .demo-banner { padding: .35rem 1rem; color: var(--pw-brand-deep); background: var(--pw-accent-soft); font-size: .875rem; line-height: 1.4; text-align: center; }
+@media (max-width: 390px) {
+  .pw-page .pw-hero { padding-top: .75rem; }
+  .pw-header-inner { column-gap: .5rem; }
+  .pw-header-inner > .pw-brand { flex: 1 1 0; min-width: 0; }
+  .pw-brand strong { min-width: 0; overflow-wrap: normal; }
+}
+
 /* ---------- Header ---------- */
 .pw-header { position: relative; z-index: 20; border-bottom: 1px solid var(--pw-hair); background: rgba(247, 249, 252, .92); }
 .pw-header-inner {

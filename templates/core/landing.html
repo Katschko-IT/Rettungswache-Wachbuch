@@ -19,7 +19,7 @@
   <div class="demo-banner" role="status">
     {% if demo_public_mode %}
     <strong>Öffentliche Demo</strong>
-    <span>Nur fiktive Musterdaten. Zugang über das <a href="{% url 'login' %}">Anmeldeformular</a> als {{ demo_public_username }}.</span>
+    <span>· fiktive Daten</span>
     {% else %}
     <strong>Demo-Modus</strong>
     <span>Musterdaten zum Testen – nicht für den Echtbetrieb.</span>
@@ -257,7 +257,7 @@
         {% endif %}
 
         <div class="pw-cta pw-cta-access">
-          <a class="pw-btn pw-btn-primary" href="{% url 'login' %}">Anmelden</a>
+          <a class="pw-btn pw-btn-primary" href="{% url 'login' %}">{% if demo_public_mode %}Anmeldeformular{% else %}Anmelden{% endif %}</a>
         </div>
       </div>
     </section>

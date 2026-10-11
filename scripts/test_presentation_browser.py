@@ -106,7 +106,8 @@ try:
                 page.locator('[data-pw-view="' + state + '"]').click()
                 assert page.locator('.pw-screen').evaluate('(e)=>e.scrollTop') == 0, state
             # Text enlargement: bounds matter even when overflow is concealed.
-            style = page.add_style_tag(content='html { font-size: 200% !important; }')
+            # CSSOM models user text enlargement without injecting a stylesheet blocked by CSP.
+            page.evaluate("document.documentElement.style.setProperty('font-size', '200%', 'important')")
             if page.locator('.pw-mobile-menu').is_visible():
                 menu = page.locator('.pw-mobile-menu')
                 box = menu.locator('summary').bounding_box()
@@ -122,7 +123,7 @@ try:
                 for control in page.locator('.pw-screen button:visible, .pw-screen label:visible').all():
                     box = control.bounding_box()
                     assert box['x'] >= 0 and box['x'] + box['width'] <= width + 1, '200% screen control clipped'
-            style.evaluate('(e)=>e.remove()')
+            page.evaluate("document.documentElement.style.removeProperty('font-size')")
             page.locator('.pw-faq summary').first.click()
             assert page.locator('.pw-faq details').first.get_attribute('open') == ''
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
