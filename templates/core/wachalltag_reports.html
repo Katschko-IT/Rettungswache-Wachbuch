@@ -2,8 +2,9 @@
 {% block title %}Auswertung | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
-<header class="page-heading">
-  <p class="context-line">Wachalltag</p><h1>Auswertung</h1>
+<header class="ww-page-intro page-heading">
+  <p class="ww-section-caption context-line">Wachalltag</p>
+  <h1>Auswertung</h1>
   <p class="lead">Leichte Betriebsübersicht ohne Leistungsbewertung einzelner Beschäftigter.</p>
   <div class="status-summary" aria-label="Stationsübersicht">
     <span class="status-pill{% if overdue_defects %} danger{% endif %}"><strong>{{ open_defects }}</strong> offene Mängel · {{ overdue_defects }} überfällig</span>
@@ -13,7 +14,7 @@
     <span class="status-pill"><strong>{{ acks_by_me }}</strong> Übergaben von mir quittiert</span>
   </div>
 </header>
-<section class="section-block">
+<section class="ww-surface section-block">
   <h2>Datenschutzgrenze</h2>
   <p>Die Auswertung zeigt Stationszustände und offene Arbeit. Sie ist nicht für individuelle Leistungsprofile, Patienten- oder Einsatzstatistik vorgesehen.</p>
 </section>

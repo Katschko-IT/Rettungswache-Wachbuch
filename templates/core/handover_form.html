@@ -2,8 +2,12 @@
 {% block title %}Übergabe anlegen | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'handover_list' %}">Zurück zu Übergaben</a>
-<header class="page-heading narrow"><p class="context-line">Wachbuch</p><h1>Übergabe anlegen</h1><p class="lead">Kurz, sachlich und für die nächste Schicht relevant.</p></header>
-<form method="post" class="form-card narrow">
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Wachbuch</p>
+  <h1>Übergabe anlegen</h1>
+  <p class="lead">Kurz, sachlich und für die nächste Schicht relevant.</p>
+</header>
+<form method="post" class="ww-form-panel form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   <div class="field">{{ form.category.errors }}<label for="{{ form.category.id_for_label }}">Kategorie</label>{{ form.category }}</div>

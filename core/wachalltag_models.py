@@ -17,7 +17,7 @@ from .models import Checklist, HandoverEntry, Station
 
 def _require_same_station(parent, station_id, label):
     if parent is not None and station_id and parent.station_id != station_id:
-        raise ValidationError(f"{label} und Wache muessen uebereinstimmen.")
+        raise ValidationError(f"{label} und Wache müssen übereinstimmen.")
 
 
 class Defect(models.Model):
@@ -36,9 +36,9 @@ class Defect(models.Model):
         VEHICLE = "vehicle", "Fahrzeug"
         MATERIAL = "material", "Material"
         SAFETY = "safety", "Sicherheit"
-        FACILITY = "facility", "Gebaeude"
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
+        FACILITY = "facility", "Gebäude"
+        KEY = "key", "Schlüssel"
+        DEVICE = "device", "Gerät"
         TASK = "task", "Aufgabe"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="defects")
@@ -98,19 +98,19 @@ class DefectEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Mangel-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Mangel-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Mangel-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Mangel-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Mangel-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class StationAsset(models.Model):
     class Kind(models.TextChoices):
         VEHICLE = "vehicle", "Fahrzeug"
-        DEVICE = "device", "Geraet"
-        KEY = "key", "Schluessel"
+        DEVICE = "device", "Gerät"
+        KEY = "key", "Schlüssel"
 
     class Status(models.TextChoices):
         READY = "ready", "Einsatzklar"
@@ -159,12 +159,12 @@ class AssetEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Asset-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Asset-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.asset if self.asset_id else None, self.station_id, "Asset-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Asset-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Asset-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class HandoverAck(models.Model):
@@ -182,18 +182,18 @@ class HandoverAck(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Quittierungen duerfen nicht veraendert werden.")
+            raise ValidationError("Quittierungen dürfen nicht verändert werden.")
         _require_same_station(self.handover if self.handover_id else None, self.station_id, "Quittierung")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Quittierungen duerfen nicht geloescht werden.")
+        raise ValidationError("Quittierungen dürfen nicht gelöscht werden.")
 
 
 class InventoryItem(models.Model):
     class Kind(models.TextChoices):
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
+        KEY = "key", "Schlüssel"
+        DEVICE = "device", "Gerät"
         VEHICLE = "vehicle", "Fahrzeug"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="inventory_items")
@@ -260,18 +260,18 @@ class InventoryEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Inventar-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Inventar-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.item if self.item_id else None, self.station_id, "Inventar-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Inventar-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Inventar-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class ChecklistSchedule(models.Model):
     class Interval(models.TextChoices):
-        DAILY = "daily", "Taeglich"
-        WEEKLY = "weekly", "Woechentlich"
+        DAILY = "daily", "Täglich"
+        WEEKLY = "weekly", "Wöchentlich"
         MONTHLY = "monthly", "Monatlich"
 
     checklist = models.OneToOneField(Checklist, on_delete=models.PROTECT, related_name="schedule")
@@ -310,11 +310,11 @@ class DefectAttachment(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Mangel-Anhaenge duerfen nicht veraendert werden.")
+            raise ValidationError("Mangel-Anhaenge dürfen nicht verändert werden.")
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Anhang")
         stem = (self.filename or "foto").rsplit(".", 1)[0].strip(" .") or "foto"
         self.filename = f"{stem[:175]}.jpg"
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Mangel-Anhaenge duerfen nicht geloescht werden.")
+        raise ValidationError("Mangel-Anhaenge dürfen nicht gelöscht werden.")

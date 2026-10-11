@@ -2,33 +2,35 @@
 {% block title %}Kalender-Abo | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'calendar' %}">Zurück zum Kalender</a>
-<header class="page-heading narrow">
-  <p class="context-line">Externe Kalender-Apps</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Externe Kalender-Apps</p>
   <h1>Kalender-Abo</h1>
   <p class="lead">Nur-Lese-ICS-Feed für Apple/Google/Outlook. Der Link ist geheim – bei Verlust widerrufen.</p>
 </header>
 <section class="content-flow narrow">
   <p><a class="text-action" href="{% url 'calendar_feed_ics' %}">Sitzungsgebundener Feed (Browser)</a></p>
-  <form method="post" class="form-card">
+  <form method="post" class="ww-form-panel form-card">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
     <div class="field"><label for="label">Bezeichnung</label><input id="label" name="label" maxlength="120" value="Wachkalender"></div>
     <button class="button primary" type="submit">Abo-Link erzeugen</button>
   </form>
-  <ul class="landing-points">
-    {% for item in tokens %}
-      <li>
-        <strong>{{ item.label|default:"Abo" }}</strong>
-        {% if item.is_active %}
-          <code class="mfa-uri">{{ request.scheme }}://{{ request.get_host }}{% url 'calendar_feed_token_ics' item.token %}</code>
-          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="token_id" value="{{ item.pk }}"><button class="button secondary" type="submit">Widerrufen</button></form>
-        {% else %}
-          <span class="status-label neutral">Widerrufen</span>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>Noch keine Abo-Links.</li>
-    {% endfor %}
-  </ul>
+  <section class="ww-surface" aria-label="Vorhandene Abo-Links">
+    <ul class="landing-points">
+      {% for item in tokens %}
+        <li>
+          <strong>{{ item.label|default:"Abo" }}</strong>
+          {% if item.is_active %}
+            <code class="mfa-uri">{{ request.scheme }}://{{ request.get_host }}{% url 'calendar_feed_token_ics' item.token %}</code>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="token_id" value="{{ item.pk }}"><button class="button secondary" type="submit">Widerrufen</button></form>
+          {% else %}
+            <span class="status-label neutral">Widerrufen</span>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li>Noch keine Abo-Links.</li>
+      {% endfor %}
+    </ul>
+  </section>
 </section>
 {% endblock %}

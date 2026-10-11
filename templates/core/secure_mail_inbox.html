@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Post | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading narrow">
-  <p class="context-line">Interne Post · E2EE</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Interne Post · E2EE</p>
   <h1>Post</h1>
   <p class="lead">Interne Post wird im Browser verschlüsselt gespeichert. Datenbank und Backups enthalten Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells.</p>
 </header>
@@ -42,7 +42,7 @@
     {% empty %}<p class="empty-state">Noch nichts gesendet.</p>{% endfor %}
   </div>
   <h2>Neue Post</h2>
-  <form class="form-card" data-e2ee-mail-compose>
+  <form class="ww-form-panel form-card" data-e2ee-mail-compose>
     <fieldset>
       <legend>Empfänger</legend>
       <div class="recipient-picks" data-recipient-picks></div>

@@ -60,7 +60,7 @@ def vapid_public_key():
 def _build_payload(handover):
     url = reverse("handover_detail", args=[handover.pk])
     return json.dumps({
-        "title": "Dringende Uebergabe",
+        "title": "Dringende Übergabe",
         "body": handover.title[:120],
         "url": url,
     })
@@ -108,6 +108,6 @@ def notify_urgent_handover(handover, actor):
     try:
         from .models import PushOutbox  # noqa: F401
     except Exception as exc:  # pragma: no cover - import guard
-        logger.warning("Web-Push-Outbox nicht verfuegbar: %s", exc)
+        logger.warning("Web-Push-Outbox nicht verfügbar: %s", exc)
         return 0
     return _enqueue_outbox_rows(handover, actor)

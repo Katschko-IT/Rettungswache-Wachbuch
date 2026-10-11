@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Übergaben | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
-  <div><p class="context-line">Wachbuch</p><h1>Übergaben</h1><p class="lead">Nur Informationen für die Wachenorganisation.</p></div>
+<header class="ww-page-intro page-heading heading-with-action">
+  <div>
+    <p class="ww-section-caption context-line">Wachbuch</p>
+    <h1>Übergaben</h1>
+    <p class="lead">Nur Informationen für die Wachenorganisation.</p>
+  </div>
   <a class="button primary" href="{% url 'handover_create' %}">Übergabe anlegen</a>
 </header>
 
@@ -12,7 +16,7 @@
   <a href="?ansicht=archiv"{% if scope == 'archiv' %} aria-current="page"{% endif %}>Archiv</a>
 </nav>
 
-<section class="section-block flush" aria-label="Übergabeliste">
+<section class="ww-surface section-block flush" aria-label="Übergabeliste">
   <div class="item-list">
     {% for item in page_obj %}
       <a class="list-row handover-list-row" href="{% url 'handover_detail' item.pk %}">

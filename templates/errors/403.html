@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{{ status_code }} \u2013 {{ error_label }}{% endblock %}
+{% block title %}{{ status_code }} – {{ error_label }}{% endblock %}
 {% block body_class %}page-error{% endblock %}
 {% block content %}
-<section class="error-shell" aria-labelledby="error-title">
+<section class="error-shell ww-surface" aria-labelledby="error-title">
   <p class="error-code" aria-hidden="true">{{ status_code }}</p>
   <h1 id="error-title">{{ error_label }}</h1>
-  <p class="error-message">Du hast keine Berechtigung fuer diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an.</p>
+  <p class="error-message">Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an.</p>
   <p class="error-actions">
     <a class="button primary" href="{% url 'login' %}">Anmelden</a>
     <a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a>

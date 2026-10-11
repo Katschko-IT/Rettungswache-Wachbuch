@@ -201,62 +201,117 @@
   let deferredPrompt = null;
   const installBanner = doc.querySelector("[data-install-banner]");
   const installButton = doc.querySelector("[data-install-button]");
-  const dismissButton = doc.querySelector("[data-install-dismiss]");
+  const dismissButtons = doc.querySelectorAll("[data-install-dismiss]");
+  const installedKey = "rwsth-installed";
+  const dismissedKey = "rwsth-install-dismissed";
+  const shownKey = "rwsth-install-shown";
+  // Dismissal is permanent for this browser/profile, not a seven-day reminder.
+  // The authenticated shell is manual-only: native install events never open it.
+  const manualOnlyInstall = !!installBanner && installBanner.hasAttribute("data-install-manual-only");
+  let pageDismissed = false;
+  let bannerShownOnPage = false;
+  let installing = false;
+  const installedModes = ["standalone", "minimal-ui", "fullscreen"]
+    .map((mode) => window.matchMedia(`(display-mode: ${mode})`));
 
-  function hideInstallBanner() {
-    if (installBanner) {
-      installBanner.hidden = true;
-    }
+  // Storage may be blocked in private/restricted browser contexts.
+  function readInstallPreference(store, key) {
+    try { return window[store].getItem(key); } catch (_error) { return null; }
   }
-
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredPrompt = event;
-    if (installBanner && !window.matchMedia("(display-mode: standalone)").matches) {
-      installBanner.hidden = false;
-    }
-  });
-
-  window.addEventListener("appinstalled", () => {
+  function writeInstallPreference(store, key, value) {
+    try { window[store].setItem(key, value); } catch (_error) { /* optional */ }
+  }
+  function clearInstallPreference(store, key) {
+    try { window[store].removeItem(key); } catch (_error) { /* optional */ }
+  }
+  function runningAsApp() {
+    return navigator.standalone === true || installedModes.some((query) => query.matches);
+  }
+  function hideInstallBanner() {
+    if (installBanner) installBanner.hidden = true;
+  }
+  function installBannerDismissed() {
+    // Respect legacy "Später" timestamps as well as the new permanent marker.
+    return readInstallPreference("localStorage", dismissedKey) !== null;
+  }
+  function rememberInstalled() {
     deferredPrompt = null;
     hideInstallBanner();
-    try {
-      localStorage.setItem("rwsth-installed", "1");
-    } catch (_error) {
-      /* ignore quota / private mode */
+    writeInstallPreference("localStorage", installedKey, "1");
+  }
+  function updateInstallBanner() {
+    if (runningAsApp()) {
+      rememberInstalled();
+      return;
+    }
+    const alreadyShownElsewhere = !bannerShownOnPage &&
+      readInstallPreference("sessionStorage", shownKey) === "1";
+    const suppress = manualOnlyInstall || pageDismissed || installing || installBannerDismissed() ||
+      readInstallPreference("localStorage", installedKey) === "1" || alreadyShownElsewhere;
+    if (!installBanner || !deferredPrompt || suppress) {
+      hideInstallBanner();
+      return;
+    }
+    installBanner.hidden = false;
+    bannerShownOnPage = true;
+    writeInstallPreference("sessionStorage", shownKey, "1");
+  }
+  function dismissInstallBanner() {
+    pageDismissed = true;
+    hideInstallBanner();
+    writeInstallPreference("localStorage", dismissedKey, "permanent");
+  }
+
+  // Without a genuine browser install offer there is no auto-install banner.
+  // Safari/iOS does not support beforeinstallprompt: no dead install button.
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    if (runningAsApp()) {
+      rememberInstalled();
+      return;
+    }
+    // A new native offer is authoritative; an old marker is not proof of
+    // installation after a user has uninstalled the PWA.
+    clearInstallPreference("localStorage", installedKey);
+    deferredPrompt = event;
+    updateInstallBanner();
+  });
+  window.addEventListener("appinstalled", rememberInstalled);
+  installedModes.forEach((query) => {
+    if (query.addEventListener) query.addEventListener("change", updateInstallBanner);
+    else if (query.addListener) query.addListener(updateInstallBanner);
+  });
+  window.addEventListener("pageshow", updateInstallBanner);
+  window.addEventListener("storage", (event) => {
+    if (event.key === installedKey || event.key === dismissedKey || event.key === null) {
+      updateInstallBanner();
     }
   });
 
   if (installButton) {
     installButton.addEventListener("click", async () => {
-      if (!deferredPrompt) {
-        return;
-      }
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      hideInstallBanner();
-    });
-  }
-
-  if (dismissButton) {
-    dismissButton.addEventListener("click", () => {
+      if (!deferredPrompt || installing || runningAsApp()) return;
+      const prompt = deferredPrompt;
+      deferredPrompt = null; // Native install prompts can only be used once.
+      installing = true;
+      installButton.disabled = true;
       hideInstallBanner();
       try {
-        localStorage.setItem("rwsth-install-dismissed", String(Date.now()));
+        const result = await prompt.prompt();
+        const choice = prompt.userChoice ? await prompt.userChoice : result;
+        if (choice && choice.outcome === "dismissed") dismissInstallBanner();
+        // "accepted" is not proof of completed installation; appinstalled is.
       } catch (_error) {
-        /* ignore */
+        dismissInstallBanner();
+      } finally {
+        installing = false;
+        installButton.disabled = false;
+        hideInstallBanner();
       }
     });
   }
-
-  try {
-    if (localStorage.getItem("rwsth-install-dismissed")) {
-      hideInstallBanner();
-    }
-  } catch (_error) {
-    /* ignore */
-  }
+  dismissButtons.forEach((button) => button.addEventListener("click", dismissInstallBanner));
+  updateInstallBanner();
 
   doc.querySelectorAll("[data-clear-cache-on-submit]").forEach((form) => {
     form.addEventListener("submit", () => {

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Wachenchat | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading narrow">
-  <p class="context-line">Kollegen</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Kollegen</p>
   <h1>Wachenchat</h1>
   <p class="lead">Nachrichten werden im Browser verschlüsselt; die Datenbank speichert nur Ciphertext. Der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells.</p>
 </header>
@@ -43,7 +43,7 @@
     <p class="empty-state">Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis.</p>
   {% endfor %}
   {% if has_keys %}
-  <form class="form-card narrow chat-compose" data-e2ee-compose>
+  <form class="ww-form-panel form-card narrow chat-compose" data-e2ee-compose>
     <p><label>Kurze Nachricht <textarea name="body" rows="2" maxlength="500" placeholder="Kurze Nachricht an die Kollegen …" required></textarea></label></p>
     <button class="button primary" type="submit">Verschlüsselt senden</button>
   </form>

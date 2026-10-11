@@ -1,31 +1,47 @@
 {% extends "base.html" %}
 {% block title %}MFA | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="access-panel">
-  <p class="context-line">Konto</p>
-  <h1>Zwei-Faktor aktiv</h1>
-  {% if device %}
-  <p class="lead">TOTP seit {{ device.confirmed_at|date:"d.m.Y H:i" }} bestätigt.</p>
-  {% endif %}
-  {% if webauthn_enabled %}
-  <h2>Passkeys</h2>
-  <ul class="landing-points">
-    {% for item in passkeys %}
-      <li>
-        {{ item.device_name|default:"Passkey" }}
-        <form method="post" action="{% url 'passkey_delete' item.pk %}" class="inline-form">{% csrf_token %}<button class="button secondary" type="submit">Entfernen</button></form>
-      </li>
-    {% empty %}
-      <li>Noch kein Passkey hinterlegt.</li>
-    {% endfor %}
-  </ul>
-  <p><button type="button" class="button secondary" data-passkey-register>Passkey hinzufügen</button></p>
-  <p class="hint" data-passkey-register-status hidden></p>
-  {% endif %}
-  <form method="post" action="{% url 'mfa_disable' %}">
-    {% csrf_token %}
-    <button class="button secondary" type="submit">Alle zweiten Faktoren deaktivieren</button>
-  </form>
-  <p><a class="text-action" href="{% url 'more' %}">Zurück zu Mehr</a></p>
+<section class="ww-auth-layout">
+  <div class="ww-form-panel">
+    <header class="ww-page-intro">
+      <p class="context-line">Konto</p>
+      <h1>Zwei-Faktor aktiv</h1>
+      {% if device %}
+      <p class="lead">TOTP seit {{ device.confirmed_at|date:"d.m.Y H:i" }} bestätigt.</p>
+      {% endif %}
+    </header>
+
+    {% if webauthn_enabled %}
+    <h2>Passkeys</h2>
+    <ul class="landing-points">
+      {% for item in passkeys %}
+        <li>
+          {{ item.device_name|default:"Passkey" }}
+          <form method="post" action="{% url 'passkey_delete' item.pk %}" class="inline-form">{% csrf_token %}<button class="button secondary" type="submit">Entfernen</button></form>
+        </li>
+      {% empty %}
+        <li>Noch kein Passkey hinterlegt.</li>
+      {% endfor %}
+    </ul>
+    <p><button type="button" class="button secondary" data-passkey-register>Passkey hinzufügen</button></p>
+    <p class="hint" data-passkey-register-status hidden></p>
+    {% endif %}
+
+    <form method="post" action="{% url 'mfa_disable' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit">Alle zweiten Faktoren deaktivieren</button>
+    </form>
+
+    <p><a class="button secondary" href="{% url 'more' %}">Zurück zu Mehr</a></p>
+  </div>
+
+  <aside class="ww-auth-aside" aria-labelledby="mfa-manage-aside-title">
+    <h2 class="ww-section-caption" id="mfa-manage-aside-title">Sicherheit</h2>
+    <ul class="landing-points">
+      <li>Der zweite Faktor schützt den Zugang zusätzlich zum Passwort.</li>
+      <li>Passkeys sind an ein Gerät gebunden und lassen sich hier gezielt entfernen.</li>
+      <li>Das Deaktivieren aller zweiten Faktoren hebt den Zwei-Faktor-Schutz auf.</li>
+    </ul>
+  </aside>
 </section>
 {% endblock %}

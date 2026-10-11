@@ -2,6 +2,6 @@
 {% block title %}Termin anlegen | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'calendar' %}">Zurück zum Kalender</a>
-<header class="page-heading narrow"><p class="context-line">Kalender</p><h1>Termin anlegen</h1></header>
-<form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">Termin anlegen</button><a class="button secondary" href="{% url 'calendar' %}">Abbrechen</a></div></form>
+<header class="ww-page-intro page-heading narrow"><p class="ww-section-caption context-line">Kalender</p><h1>Termin anlegen</h1></header>
+<form method="post" class="ww-form-panel form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">Termin anlegen</button><a class="button secondary" href="{% url 'calendar' %}">Abbrechen</a></div></form>
 {% endblock %}

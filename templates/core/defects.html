@@ -2,22 +2,22 @@
 {% block title %}Mängel | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">Wachalltag</p>
+    <p class="ww-section-caption context-line">Wachalltag</p>
     <h1>Mängel</h1>
     <p class="lead">Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten.</p>
   </div>
   <a class="button primary" href="{% url 'defect_create_web' %}">Mangel anlegen</a>
 </header>
-<nav class="filter-nav" aria-label="Mängel filtern">
+<nav class="filter-nav" aria-label="Mängel nach Status filtern">
   <a href="{% url 'defects_web' %}"{% if scope == 'active' %} aria-current="page"{% endif %}>Aktiv</a>
   <a href="?status=open"{% if scope == 'open' %} aria-current="page"{% endif %}>Offen</a>
   <a href="?status=in_progress"{% if scope == 'in_progress' %} aria-current="page"{% endif %}>In Arbeit</a>
   <a href="?status=waiting"{% if scope == 'waiting' %} aria-current="page"{% endif %}>Wartend</a>
   <a href="?status=done"{% if scope == 'done' %} aria-current="page"{% endif %}>Erledigt</a>
 </nav>
-<section class="section-block flush" aria-label="Mängelliste">
+<section class="ww-surface section-block flush" aria-label="Mängelliste">
   <div class="item-list">
     {% for item in defects %}
       <a class="list-row" href="{% url 'defect_detail_web' item.pk %}">

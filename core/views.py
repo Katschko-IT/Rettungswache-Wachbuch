@@ -230,7 +230,10 @@ def web_manifest(request):
 @never_cache
 def service_worker(request):
     shell_assets = [
+        _static_url("core/vendor/bootstrap/bootstrap.min.css"),
         _static_url("core/app.css"),
+        _static_url("core/app-ui.css"),
+        _static_url("core/crypto_unlock.css"),
         _static_url("core/accessibility.css"),
         _static_url("core/demo.css"),
         _static_url("core/app.js"),
@@ -244,7 +247,7 @@ def service_worker(request):
         request,
         "core/service_worker.js",
         {
-            "sw_version": settings.APP_VERSION,
+            "sw_version": f"{settings.APP_VERSION}-app-ui-1",
             "offline_url": reverse("offline"),
             "shell_assets": json.dumps(shell_assets),
         },
@@ -567,7 +570,7 @@ def handover_create(request):
     form = HandoverForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         handover = create_handover(form, request.membership)
-        messages.success(request, "Uebergabe wurde angelegt.")
+        messages.success(request, "Übergabe wurde angelegt.")
         return redirect("handover_detail", pk=handover.pk)
     return render(request, "core/handover_form.html", {"form": form})
 
@@ -848,7 +851,7 @@ def task_toggle(request, pk):
     work_date = _parse_work_date(request.POST.get("tag"))
     mark_done = request.POST.get("erledigt") == "1"
     if not task.applies_to_date(work_date):
-        messages.error(request, "Diese Aufgabe gilt nicht fuer den gewaehlten Tag.")
+        messages.error(request, "Diese Aufgabe gilt nicht für den gewählten Tag.")
     else:
         toggle_task_completion(
             task=task,
@@ -859,7 +862,7 @@ def task_toggle(request, pk):
         if mark_done:
             messages.success(request, "Aufgabe wurde als erledigt markiert.")
         else:
-            messages.success(request, "Aufgabe wurde wieder geoeffnet.")
+            messages.success(request, "Aufgabe wurde wieder geöffnet.")
     next_url = request.POST.get("next") or reverse("tasks_today")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         next_url = reverse("tasks_today")

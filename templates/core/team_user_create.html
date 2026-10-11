@@ -2,12 +2,12 @@
 {% block title %}Benutzer anlegen | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'team' %}">Zurück zum Team</a>
-<header class="page-heading narrow">
-  <p class="context-line">Master-Admin</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Master-Admin</p>
   <h1>Benutzer anlegen</h1>
   <p class="lead">Konto erstellen und sofort der Wache zuordnen. Der Nutzer ändert Passwort, Zwei-Faktor und Profilbild unter Mein Konto.</p>
 </header>
-<form method="post" class="form-card narrow">
+<form method="post" class="ww-form-panel form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}

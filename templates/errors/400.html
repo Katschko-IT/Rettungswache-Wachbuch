@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}{{ status_code }} \u2013 {{ error_label }}{% endblock %}
+{% block title %}{{ status_code }} – {{ error_label }}{% endblock %}
 {% block body_class %}page-error{% endblock %}
 {% block content %}
-<section class="error-shell" aria-labelledby="error-title">
+<section class="error-shell ww-surface" aria-labelledby="error-title">
   <p class="error-code" aria-hidden="true">{{ status_code }}</p>
   <h1 id="error-title">{{ error_label }}</h1>
-  <p class="error-message">Die Anfrage konnte nicht verarbeitet werden. Bitte pruefe Eingaben oder Link.</p>
+  <p class="error-message">Die Anfrage konnte nicht verarbeitet werden. Bitte prüfe Eingaben oder Link.</p>
   <p class="error-actions"><a class="button primary" href="{% url 'landing' %}">Zur Startseite</a></p>
   {% if correlation_id %}
   <p class="error-meta">Korrelations-ID: <code>{{ correlation_id }}</code></p>

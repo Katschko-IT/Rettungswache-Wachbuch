@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Tagesaufgaben | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {{ board.week_label }}</p>
+    <p class="ww-section-caption context-line">{{ current_membership.station.name }} &middot; {{ board.week_label }}</p>
     <h1>Tagesaufgaben</h1>
     <p class="lead">Wandtafel digital: grün täglich, gelb Wochentag, blau zusätzlich. Farbe ist nur Hilfsmittel – Status steht immer ausgeschrieben.</p>
     <p class="status-summary">
@@ -32,7 +32,7 @@
 </div>
 
 <section class="task-band band-daily" aria-labelledby="band-daily">
-  <div class="task-band-head"><h2 id="band-daily">Tägliche Routine</h2><span>Grün · jeden Tag</span></div>
+  <div class="task-band-head"><h2 id="band-daily">Tägliche Routine</h2><span class="ww-section-caption">Grün · jeden Tag</span></div>
   <div class="task-list">
     {% for item in board.groups.daily %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}
@@ -41,7 +41,7 @@
 </section>
 
 <section class="task-band band-weekday" aria-labelledby="band-weekday">
-  <div class="task-band-head"><h2 id="band-weekday">Wochentagsaufgabe</h2><span>Gelb · nur heute</span></div>
+  <div class="task-band-head"><h2 id="band-weekday">Wochentagsaufgabe</h2><span class="ww-section-caption">Gelb · nur heute</span></div>
   <div class="task-list">
     {% for item in board.groups.weekday %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}
@@ -50,7 +50,7 @@
 </section>
 
 <section class="task-band band-extra" aria-labelledby="band-extra">
-  <div class="task-band-head"><h2 id="band-extra">Zusätzliche Aufgaben</h2><span>Blau · individuell / monatlich</span></div>
+  <div class="task-band-head"><h2 id="band-extra">Zusätzliche Aufgaben</h2><span class="ww-section-caption">Blau · individuell / monatlich</span></div>
   <div class="task-list">
     {% for item in board.groups.extra %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}

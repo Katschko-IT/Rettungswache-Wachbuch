@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Team | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">Master-Admin</p>
+    <p class="ww-section-caption context-line">Master-Admin</p>
     <h1>Team &amp; Rollen</h1>
     <p class="lead">Neue Nutzer anlegen und freigeben – Zugang bleibt stationsbezogen.</p>
   </div>
@@ -14,7 +14,7 @@
 </header>
 
 {% if pending_registrations %}
-<section class="section-block">
+<section class="ww-surface section-block">
   <h2>Offene Registrierungen</h2>
   <div class="member-list-clean">
     {% for item in pending_registrations %}
@@ -33,6 +33,6 @@
 </section>
 {% endif %}
 
-<section class="section-block flush"><div class="member-list-clean">{% for member in page_obj %}<article><div><strong>{{ member.user.first_name|default:member.user.username }}</strong><span>{{ member.user.username }}</span></div><span>{{ member.get_role_display }}</span><span class="status-label {% if member.is_active %}success{% else %}neutral{% endif %}">{% if member.is_active %}Aktiv{% else %}Inaktiv{% endif %}</span><a href="{% url 'membership_update' member.pk %}">{{ member.user.first_name|default:member.user.username }} bearbeiten</a></article>{% empty %}<p class="empty-state">Noch keine Mitgliedschaften.</p>{% endfor %}</div></section>
+<section class="ww-surface section-block flush"><div class="member-list-clean">{% for member in page_obj %}<article><div><strong>{{ member.user.first_name|default:member.user.username }}</strong><span>{{ member.user.username }}</span></div><span>{{ member.get_role_display }}</span><span class="status-label {% if member.is_active %}success{% else %}neutral{% endif %}">{% if member.is_active %}Aktiv{% else %}Inaktiv{% endif %}</span><a href="{% url 'membership_update' member.pk %}">{{ member.user.first_name|default:member.user.username }} bearbeiten</a></article>{% empty %}<p class="empty-state">Noch keine Mitgliedschaften.</p>{% endfor %}</div></section>
 {% include "core/pagination.html" %}
 {% endblock %}

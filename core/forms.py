@@ -227,12 +227,12 @@ class StationSettingsForm(forms.ModelForm):
             "payment_note": "Zahlungshinweis",
         }
         help_texts = {
-            "paypal_me_url": "Vollstaendige https://paypal.me/…-URL.",
-            "wero_link": "Vollstaendige https://…-URL zum Wero-Profil.",
-            "iban": "Deutsche IBAN (DE + 20 Ziffern), nur fuer die Anzeige.",
+            "paypal_me_url": "Vollständige https://paypal.me/…-URL.",
+            "wero_link": "Vollständige https://…-URL zum Wero-Profil.",
+            "iban": "Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige.",
             "bic": "Optional, 8 oder 11 Zeichen.",
             "payment_note": "Freitext, z. B. Verwendungszweck oder Ansprechpartner.",
-            "waste_calendar_url": "Vollstaendige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
+            "waste_calendar_url": "Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
         }
 
     def __init__(self, *args, **kwargs):
@@ -248,19 +248,19 @@ class StationSettingsForm(forms.ModelForm):
         if not value:
             return value
         if not value.startswith("https://"):
-            raise forms.ValidationError("Muellkalender-URLs muessen mit https:// beginnen.")
+            raise forms.ValidationError("Müllkalender-URLs müssen mit https:// beginnen.")
         parsed = urlparse(value)
         host = (parsed.hostname or "").lower()
         if not host:
-            raise forms.ValidationError("Muellkalender-URLs brauchen einen Hostnamen.")
+            raise forms.ValidationError("Müllkalender-URLs brauchen einen Hostnamen.")
         if parsed.username or parsed.password:
-            raise forms.ValidationError("Muellkalender-URLs duerfen keine Zugangsdaten enthalten.")
+            raise forms.ValidationError("Müllkalender-URLs dürfen keine Zugangsdaten enthalten.")
         try:
             port = parsed.port
         except ValueError:
-            raise forms.ValidationError("Die Portangabe der Muellkalender-URL ist ungueltig.")
+            raise forms.ValidationError("Die Portangabe der Müllkalender-URL ist ungültig.")
         if port not in {None, 443}:
-            raise forms.ValidationError("Muellkalender-URLs duerfen nur HTTPS-Port 443 verwenden.")
+            raise forms.ValidationError("Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden.")
         if host not in settings.FEED_ALLOWED_HOSTS:
             raise forms.ValidationError(
                 "Der Host muss zuerst in FEED_ALLOWED_HOSTS freigegeben werden."
@@ -272,26 +272,26 @@ class StationSettingsForm(forms.ModelForm):
         if cleaned.get("waste_calendar_enabled") and not cleaned.get("waste_calendar_url"):
             self.add_error(
                 "waste_calendar_url",
-                "Fuer den Muellkalender-Fallback wird eine HTTPS-ICS-URL benoetigt.",
+                "Für den Müllkalender-Fallback wird eine HTTPS-ICS-URL benötigt.",
             )
         return cleaned
 
     def clean_paypal_me_url(self):
         value = (self.cleaned_data.get("paypal_me_url") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("PayPal.me-Links muessen mit https:// beginnen.")
+            raise forms.ValidationError("PayPal.me-Links müssen mit https:// beginnen.")
         return value
 
     def clean_wero_link(self):
         value = (self.cleaned_data.get("wero_link") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("Wero-Links muessen mit https:// beginnen.")
+            raise forms.ValidationError("Wero-Links müssen mit https:// beginnen.")
         return value
 
     def clean_iban(self):
         value = (self.cleaned_data.get("iban") or "").replace(" ", "").upper()
         if value and not (value.startswith("DE") and len(value) == 22 and value[2:].isdigit()):
-            raise forms.ValidationError("Bitte eine gueltige deutsche IBAN (DE + 20 Ziffern) angeben.")
+            raise forms.ValidationError("Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben.")
         return value
 
     def clean_bic(self):
@@ -409,7 +409,7 @@ class PinboardNoteForm(forms.ModelForm):
             "body": forms.Textarea(attrs={
                 "rows": 5,
                 "maxlength": 2000,
-                "placeholder": "Kurzer Aushang fuer die Wache …",
+                "placeholder": "Kurzer Aushang für die Wache …",
             }),
         }
 

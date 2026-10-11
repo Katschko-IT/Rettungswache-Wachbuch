@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Datenschutz und Cookies | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading narrow">
+<header class="page-heading narrow ww-page-intro">
   <p class="context-line">Rechtliche Hinweise</p>
   <h1>Datenschutz, Cookies und Informationssicherheit</h1>
   <p class="lead">Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen.</p>
@@ -15,15 +15,17 @@
   <h2>Datenschutzbeauftragte / Datenschutzkontakte</h2>
   {% if public_data_protection_officers %}
     <p>Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:</p>
-    <div class="content-flow">
+    <div class="row g-3">
       {% for contact in public_data_protection_officers %}
-        <article class="card">
-          <h3>{{ contact.display_name }}</h3>
-          <p><strong>{{ contact.station.name }}</strong>{% if contact.organization %}<br>{{ contact.organization }}{% endif %}</p>
-          <p><a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% if contact.phone %}<br><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}</p>
-          {% if contact.postal_address %}<p>{{ contact.postal_address|linebreaksbr }}</p>{% endif %}
-          {% if contact.is_external %}<p><small>Externer Datenschutzkontakt</small></p>{% endif %}
-        </article>
+        <div class="col-12 col-lg-6">
+          <article class="card">
+            <h3>{{ contact.display_name }}</h3>
+            <p><strong>{{ contact.station.name }}</strong>{% if contact.organization %}<br>{{ contact.organization }}{% endif %}</p>
+            <p><a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% if contact.phone %}<br><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}</p>
+            {% if contact.postal_address %}<p>{{ contact.postal_address|linebreaksbr }}</p>{% endif %}
+            {% if contact.is_external %}<p><small>Externer Datenschutzkontakt</small></p>{% endif %}
+          </article>
+        </div>
       {% endfor %}
     </div>
   {% else %}
@@ -62,6 +64,6 @@
   <h2>Version {{ app_version }}</h2>
   <p>Die laufende Produktversion erscheint im Fußbereich und unter <code>/healthz/</code>. Änderungsprotokoll, Sicherheits- und Betriebsdokumentation sind Bestandteil der administrativen Freigabe.</p>
 
-  <p><a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a> <a class="button primary" href="{% url 'login' %}">Anmelden</a></p>
+  <p class="form-actions"><a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a> <a class="button primary" href="{% url 'login' %}">Anmelden</a></p>
 </section>
 {% endblock %}

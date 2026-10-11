@@ -144,7 +144,7 @@ def station_agenda(station, events, *, past_days=1, future_days=400):
                 ends_at=ends_at,
                 title=waste.title,
                 kind="waste",
-                description="Muellabfuhr (externe ICS-Quelle)",
+                description="Müllabfuhr (externe ICS-Quelle)",
                 source_pk=waste.pk,
                 all_day=False,
             ))

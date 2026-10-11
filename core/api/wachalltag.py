@@ -87,7 +87,7 @@ def _content_role(request):
 
 def _write_role(request):
     if request.membership.role not in base.WRITE_ROLES:
-        return base._json_error(request, "Rolle darf diese Einstellung nicht aendern.", status=403)
+        return base._json_error(request, "Rolle darf diese Einstellung nicht ändern.", status=403)
     return None
 
 
@@ -103,7 +103,7 @@ def _parse_due(value):
         return None
     parsed = parse_datetime(str(value))
     if parsed is None:
-        raise ValueError("Ungueltige ISO-8601-Frist.")
+        raise ValueError("Ungültige ISO-8601-Frist.")
     if timezone.is_naive(parsed):
         parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
     return parsed
@@ -406,14 +406,14 @@ def defects_list(request):
         return error
     body = _body(request)
     if body is None:
-        return base._json_error(request, "JSON-Koerper erwartet.", status=400)
+        return base._json_error(request, "JSON-Körper erwartet.", status=400)
     title = str(body.get("title") or "").strip()
     if not title or len(title) > 160:
         return base._json_error(request, "Titel ist erforderlich (max. 160 Zeichen).", status=422)
     priority = str(body.get("priority") or Defect.Priority.NORMAL)
     category = str(body.get("category") or Defect.Category.TASK)
     if priority not in Defect.Priority.values or category not in Defect.Category.values:
-        return base._json_error(request, "Prioritaet oder Kategorie ist ungueltig.", status=422)
+        return base._json_error(request, "Priorität oder Kategorie ist ungültig.", status=422)
     try:
         due_at = _parse_due(body.get("due_at"))
         owner = _member_user(station, body.get("owner"))
@@ -475,7 +475,7 @@ def defect_detail(request, pk):
         return error
     body = _body(request)
     if body is None:
-        return base._json_error(request, "JSON-Koerper erwartet.", status=400)
+        return base._json_error(request, "JSON-Körper erwartet.", status=400)
     with transaction.atomic():
         item = Defect.objects.select_for_update().filter(pk=pk, station=station).first()
         if item is None:
@@ -502,11 +502,11 @@ def defect_detail(request, pk):
         if "priority" in body:
             priority = str(body.get("priority") or "")
             if priority not in Defect.Priority.values:
-                return base._json_error(request, "Prioritaet ist ungueltig.", status=422)
+                return base._json_error(request, "Priorität ist ungültig.", status=422)
             item.priority = priority
             changed.append("priority")
         if not changed:
-            return base._json_error(request, "Keine aenderbaren Felder angegeben.", status=422)
+            return base._json_error(request, "Keine änderbaren Felder angegeben.", status=422)
         item.save()
         DefectEvent.objects.create(
             defect=item,
@@ -529,9 +529,9 @@ def defect_status(request, pk):
     body = _body(request) or {}
     status = str(body.get("status") or "")
     if status not in Defect.Status.values:
-        return base._json_error(request, "Status ist ungueltig.", status=422)
+        return base._json_error(request, "Status ist ungültig.", status=422)
     if status == Defect.Status.DONE and request.membership.role not in base.WRITE_ROLES:
-        return base._json_error(request, "Nur Schichtleitung oder Admin darf Maengel abschliessen.", status=403)
+        return base._json_error(request, "Nur Schichtleitung oder Admin darf Mängel abschließen.", status=403)
     with transaction.atomic():
         item = (
             Defect.objects.select_for_update(of=("self",))
@@ -579,7 +579,7 @@ def assets_list(request):
     kind = str(body.get("kind") or StationAsset.Kind.DEVICE)
     status = str(body.get("status") or StationAsset.Status.READY)
     if not label or not asset_id or kind not in StationAsset.Kind.values or status not in StationAsset.Status.values:
-        return base._json_error(request, "Asset-Daten sind ungueltig.", status=422)
+        return base._json_error(request, "Asset-Daten sind ungültig.", status=422)
     try:
         item = StationAsset.objects.create(
             station=station,
@@ -607,7 +607,7 @@ def asset_status(request, asset_id):
     body = _body(request) or {}
     status = str(body.get("status") or "")
     if status not in StationAsset.Status.values:
-        return base._json_error(request, "Asset-Status ist ungueltig.", status=422)
+        return base._json_error(request, "Asset-Status ist ungültig.", status=422)
     note = str(body.get("note") or "")[:300]
     with transaction.atomic():
         item = StationAsset.objects.select_for_update().filter(station=station, asset_id=asset_id).first()
@@ -644,7 +644,7 @@ def inventory_list(request):
     item_id = slugify(str(body.get("id") or body.get("item_id") or label))[:64]
     kind = str(body.get("kind") or InventoryItem.Kind.DEVICE)
     if not label or not item_id or kind not in InventoryItem.Kind.values:
-        return base._json_error(request, "Inventar-Daten sind ungueltig.", status=422)
+        return base._json_error(request, "Inventar-Daten sind ungültig.", status=422)
     try:
         item = InventoryItem.objects.create(
             station=station,
@@ -706,7 +706,7 @@ def inventory_checkin(request, item_id):
             return base._json_error(request, "Inventar nicht gefunden.", status=404)
         previous_holder = item.holder
         if previous_holder and previous_holder.id != request.user.id and request.membership.role not in base.WRITE_ROLES:
-            return base._json_error(request, "Nur Ausleiher, Schichtleitung oder Admin darf zurueckgeben.", status=403)
+            return base._json_error(request, "Nur Ausleiher, Schichtleitung oder Admin darf zurückgeben.", status=403)
         if previous_holder:
             item.holder = None
             item.checked_out_at = None
@@ -729,7 +729,7 @@ def handover_acks(request, pk):
         return error
     handover = HandoverEntry.objects.filter(pk=pk, station=station).first()
     if handover is None:
-        return base._json_error(request, "Uebergabe nicht gefunden.", status=404)
+        return base._json_error(request, "Übergabe nicht gefunden.", status=404)
     acks = HandoverAck.objects.filter(handover=handover).select_related("user")
     return JsonResponse({"ok": True, "results": [_ack_json(item) for item in acks]})
 
@@ -743,7 +743,7 @@ def handover_ack(request, pk):
         return error
     handover = HandoverEntry.objects.filter(pk=pk, station=station).first()
     if handover is None:
-        return base._json_error(request, "Uebergabe nicht gefunden.", status=404)
+        return base._json_error(request, "Übergabe nicht gefunden.", status=404)
     item, created = HandoverAck.objects.get_or_create(station=station, handover=handover, user=request.user)
     if created:
         audit(request.user, station, "handover.acknowledged", handover, {"handover": handover.pk})
@@ -781,11 +781,11 @@ def defect_attachments(request, pk):
     try:
         raw = base64.b64decode(encoded, validate=True)
     except (binascii.Error, ValueError):
-        return base._json_error(request, "Bilddaten sind kein gueltiges Base64.", status=422)
+        return base._json_error(request, "Bilddaten sind kein gültiges Base64.", status=422)
     if not raw or len(raw) > MAX_ATTACHMENT_BYTES:
         return base._json_error(request, "Bild darf maximal 2 MiB gross sein.", status=413)
     if not _image_is_decodable(raw, content_type):
-        return base._json_error(request, "Datei ist kein gueltiges oder unterstuetztes Bild.", status=415)
+        return base._json_error(request, "Datei ist kein gültiges oder unterstütztes Bild.", status=415)
     with transaction.atomic():
         locked_defect = Defect.objects.select_for_update().filter(pk=pk, station=station).first()
         if locked_defect is None:
@@ -804,7 +804,7 @@ def defect_attachments(request, pk):
         if current_total + len(raw) > MAX_ATTACHMENT_TOTAL_BYTES:
             return base._json_error(
                 request,
-                "Gesamtgroesse der Fotos pro Mangel darf 12 MiB nicht ueberschreiten.",
+                "Gesamtgröße der Fotos pro Mangel darf 12 MiB nicht überschreiten.",
                 status=413,
             )
         item = DefectAttachment.objects.create(
@@ -881,7 +881,7 @@ def checklist_schedule(request, pk):
     body = _body(request) or {}
     interval = str(body.get("interval") or "")
     if interval not in ChecklistSchedule.Interval.values:
-        return base._json_error(request, "Intervall ist ungueltig.", status=422)
+        return base._json_error(request, "Intervall ist ungültig.", status=422)
     try:
         due_next = _parse_due(body.get("due_next"))
     except ValueError as exc:

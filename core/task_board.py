@@ -16,14 +16,14 @@ DEFAULT_TASKS = (
     ("Fahrzeugcheck", StationTask.Band.DAILY, None, "", 10),
     ("Geraetekontrolle", StationTask.Band.DAILY, None, "", 20),
     ("Hygiene / Desinfektion", StationTask.Band.DAILY, None, "", 30),
-    ("Kueche / Aufenthaltsraum", StationTask.Band.DAILY, None, "", 40),
-    ("Waesche / Muell", StationTask.Band.DAILY, None, "", 50),
+    ("Küche / Aufenthaltsraum", StationTask.Band.DAILY, None, "", 40),
+    ("Wäsche / Müll", StationTask.Band.DAILY, None, "", 50),
     # Gelbe Zone: Wochentagsrotation
-    ("Sauger und Tuecher waschen", StationTask.Band.WEEKDAY, 0, "", 10),
+    ("Sauger und Tücher waschen", StationTask.Band.WEEKDAY, 0, "", 10),
     ("Materialbestellung", StationTask.Band.WEEKDAY, 1, "", 10),
-    ("Kueche und Kuehlschrank", StationTask.Band.WEEKDAY, 2, "", 10),
+    ("Küche und Kühlschrank", StationTask.Band.WEEKDAY, 2, "", 10),
     ("Technischer Fahrzeugcheck", StationTask.Band.WEEKDAY, 3, "", 10),
-    ("Desinfektionsmittel auffuellen", StationTask.Band.WEEKDAY, 4, "", 10),
+    ("Desinfektionsmittel auffüllen", StationTask.Band.WEEKDAY, 4, "", 10),
     ("Tiefenreinigung / Wochenabschluss", StationTask.Band.WEEKDAY, 5, "", 10),
     ("Wochenbericht und Lagerblick", StationTask.Band.WEEKDAY, 6, "", 10),
     # Blaue Zone: zusaetzliche / individuelle Punkte
@@ -38,7 +38,7 @@ DEFAULT_TASKS = (
         "Individuelle Aufgabe",
         StationTask.Band.EXTRA,
         None,
-        "Frei nutzbar fuer einmalige Wachenaufgaben ohne Patientendaten.",
+        "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten.",
         20,
     ),
 )

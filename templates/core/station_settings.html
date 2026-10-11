@@ -2,13 +2,13 @@
 {% block title %}Einstellungen | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
-<header class="page-heading narrow">
-  <p class="context-line">Administration</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Administration</p>
   <h1>Einstellungen</h1>
   <p class="lead">Name, Organisationsprofil und sichtbare Module dieser Organisationseinheit festlegen.</p>
-  <p class="context-line">Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll.</p>
+  <p class="ww-section-caption context-line">Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll.</p>
 </header>
-<form method="post" class="form-card narrow">
+<form method="post" class="ww-form-panel form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}

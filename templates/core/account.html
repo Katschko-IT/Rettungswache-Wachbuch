@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Mein Konto | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading narrow">
-  <p class="context-line">Persönlicher Bereich</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Persönlicher Bereich</p>
   <h1>Mein Konto</h1>
   <p class="lead">Profilbild, Passwort und Zwei-Faktor für <strong>{{ request.user.username }}</strong>.</p>
 </header>
@@ -15,41 +15,47 @@
     <p class="notice">Noch keiner Wache zugeordnet. Der Master-Admin muss den Zugang freigeben.</p>
   {% endif %}
 
-  <h2>Profilbild</h2>
-  <div class="avatar-panel">
-    {% if profile.has_avatar %}
-      <img class="avatar-preview" src="{% url 'avatar_image' request.user.pk %}" alt="Dein Profilbild" width="96" height="96">
-    {% else %}
-      <span class="avatar-fallback" aria-hidden="true">{{ initials }}</span>
-    {% endif %}
-    <form method="post" enctype="multipart/form-data" class="form-card">
+  <section class="ww-surface">
+    <h2>Profilbild</h2>
+    <div class="avatar-panel">
+      {% if profile.has_avatar %}
+        <img class="avatar-preview" src="{% url 'avatar_image' request.user.pk %}" alt="Dein Profilbild" width="96" height="96">
+      {% else %}
+        <span class="avatar-fallback" aria-hidden="true">{{ initials }}</span>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="ww-form-panel form-card">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="avatar">
+        {% include "core/form_errors.html" with form=avatar_form %}
+        {{ avatar_form.as_p }}
+        <button class="button primary" type="submit">Profilbild speichern</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="ww-surface">
+    <h2>Profil</h2>
+    <form method="post" class="ww-form-panel form-card">
       {% csrf_token %}
-      <input type="hidden" name="action" value="avatar">
-      {% include "core/form_errors.html" with form=avatar_form %}
-      {{ avatar_form.as_p }}
-      <button class="button primary" type="submit">Profilbild speichern</button>
+      <input type="hidden" name="action" value="profile">
+      {% include "core/form_errors.html" with form=profile_form %}
+      {{ profile_form.as_p }}
+      <button class="button primary" type="submit">Profil speichern</button>
     </form>
-  </div>
+  </section>
 
-  <h2>Profil</h2>
-  <form method="post" class="form-card">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="profile">
-    {% include "core/form_errors.html" with form=profile_form %}
-    {{ profile_form.as_p }}
-    <button class="button primary" type="submit">Profil speichern</button>
-  </form>
+  <section class="ww-surface">
+    <h2>Passwort</h2>
+    <form method="post" class="ww-form-panel form-card">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="password">
+      {% include "core/form_errors.html" with form=password_form %}
+      {{ password_form.as_p }}
+      <button class="button primary" type="submit">Passwort ändern</button>
+    </form>
+  </section>
 
-  <h2>Passwort</h2>
-  <form method="post" class="form-card">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="password">
-    {% include "core/form_errors.html" with form=password_form %}
-    {{ password_form.as_p }}
-    <button class="button primary" type="submit">Passwort ändern</button>
-  </form>
-
-  <nav class="more-list" aria-label="Konto-Links">
+  <nav class="ww-module-index more-list" aria-label="Konto-Links">
     {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>Zwei-Faktor / Passkeys</strong><span>Authenticator und Passkeys verwalten</span></a>{% endif %}
     <a href="{% url 'crypto_setup' %}"><strong>Chat-Schlüssel (E2EE)</strong><span>Damit Admin und Server keine Klartexte lesen</span></a>
     <a href="{% url 'api_tokens_manage' %}"><strong>App-Tokens</strong><span>API für spätere iOS-/Android-Clients</span></a>

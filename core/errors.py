@@ -33,7 +33,7 @@ ERROR_CODE_MFA_REQUIRED = "mfa_required"
 ERROR_CODE_MFA_SETUP_REQUIRED = "mfa_setup_required"
 
 ERROR_CODES: dict[str, dict[str, Any]] = {
-    ERROR_CODE_VALIDATION: {"status": 400, "label": "Ungueltige Anfrage."},
+    ERROR_CODE_VALIDATION: {"status": 400, "label": "Ungültige Anfrage."},
     ERROR_CODE_AUTH_REQUIRED: {"status": 401, "label": "Anmeldung erforderlich."},
     ERROR_CODE_FORBIDDEN: {"status": 403, "label": "Zugriff verweigert."},
     ERROR_CODE_NOT_FOUND: {"status": 404, "label": "Nicht gefunden."},

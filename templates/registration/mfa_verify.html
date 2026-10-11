@@ -1,24 +1,40 @@
 {% extends "base.html" %}
 {% block title %}Bestätigungscode | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="access-panel">
-  <p class="context-line">Zwei-Faktor-Authentifizierung</p>
-  <h1>Anmeldung bestätigen</h1>
-  {% if has_totp %}
-  <p class="lead">Öffne die Authenticator-App und gib den aktuellen Code ein.</p>
-  <form method="post" class="form-card">
-    {% csrf_token %}
-    {% include "core/form_errors.html" %}
-    {{ form.as_p }}
-    <button class="button primary" type="submit">Bestätigen</button>
-  </form>
-  {% endif %}
-  {% if has_passkey %}
-  <div class="passkey-login">
-    <p class="lead">{% if has_totp %}Oder mit Passkey bestätigen{% else %}Mit Passkey bestätigen{% endif %}</p>
-    <button type="button" class="button secondary" data-passkey-mfa>Passkey verwenden</button>
-    <p class="hint" data-passkey-mfa-status hidden></p>
+<section class="ww-auth-layout">
+  <div class="ww-form-panel">
+    <header class="ww-page-intro">
+      <p class="context-line">Zwei-Faktor-Authentifizierung</p>
+      <h1>Anmeldung bestätigen</h1>
+      <p class="lead">Der Zugang ist durch einen zweiten Faktor geschützt. Bestätige die Anmeldung mit deinem Code oder Passkey.</p>
+    </header>
+
+    {% if has_totp %}
+    <form method="post" class="form-card">
+      {% csrf_token %}
+      {% include "core/form_errors.html" %}
+      <p class="hint">Öffne die Authenticator-App und gib den aktuellen Code ein.</p>
+      {{ form.as_p }}
+      <p class="form-actions"><button class="button primary" type="submit">Bestätigen</button></p>
+    </form>
+    {% endif %}
+
+    {% if has_passkey %}
+    <div class="passkey-login">
+      <p class="lead">{% if has_totp %}Oder mit Passkey bestätigen{% else %}Mit Passkey bestätigen{% endif %}</p>
+      <button type="button" class="button secondary" data-passkey-mfa>Passkey verwenden</button>
+      <p class="hint" data-passkey-mfa-status hidden></p>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
+
+  <aside class="ww-auth-aside" aria-labelledby="mfa-verify-aside-title">
+    <h2 class="ww-section-caption" id="mfa-verify-aside-title">Code zur Hand</h2>
+    <ul class="landing-points">
+      <li>Der Code stammt aus der Authenticator-App, die bei der Einrichtung verknüpft wurde.</li>
+      <li>Der Code ändert sich in kurzen Abständen; nutze den aktuell angezeigten Wert.</li>
+      <li>Ein hinterlegter Passkey bestätigt die Anmeldung ohne Code-Eingabe.</li>
+    </ul>
+  </aside>
 </section>
 {% endblock %}

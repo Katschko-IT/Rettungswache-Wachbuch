@@ -2,12 +2,13 @@
 {% block title %}Geräte & Status | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
-<header class="page-heading">
-  <p class="context-line">Wachalltag</p><h1>Geräte & Status</h1>
+<header class="ww-page-intro page-heading">
+  <p class="ww-section-caption context-line">Wachalltag</p>
+  <h1>Geräte &amp; Status</h1>
   <p class="lead">Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick.</p>
 </header>
-<section class="section-block">
-  <h2>Fahrzeuge & Geräte</h2>
+<section class="ww-surface section-block">
+  <h2>Fahrzeuge &amp; Geräte</h2>
   <div class="item-list">
     {% for item in assets %}
       <div class="list-row">
@@ -27,7 +28,7 @@
   </div>
   {% if can_manage %}
   <details class="details-block"><summary>Fahrzeug/Gerät anlegen</summary>
-    <form method="post" class="form-card">{% csrf_token %}<input type="hidden" name="action" value="asset-create">
+    <form method="post" class="ww-form-panel form-card">{% csrf_token %}<input type="hidden" name="action" value="asset-create">
       <div class="field"><label for="asset-label">Bezeichnung</label><input id="asset-label" name="label" maxlength="160" required></div>
       <div class="field"><label for="asset-id">ID</label><input id="asset-id" name="asset_id" maxlength="64" placeholder="z. B. rtw-1"></div>
       <div class="field"><label for="asset-kind">Typ</label><select id="asset-kind" name="kind">{% for value,label in asset_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
@@ -35,8 +36,8 @@
     </form>
   </details>{% endif %}
 </section>
-<section class="section-block">
-  <h2>Schlüssel & Pools</h2>
+<section class="ww-surface section-block">
+  <h2>Schlüssel &amp; Pools</h2>
   <div class="item-list">
     {% for item in inventory %}
       <div class="list-row">
@@ -48,7 +49,7 @@
   </div>
   {% if can_manage %}
   <details class="details-block"><summary>Pool-/Schlüsselobjekt anlegen</summary>
-    <form method="post" class="form-card">{% csrf_token %}<input type="hidden" name="action" value="inventory-create">
+    <form method="post" class="ww-form-panel form-card">{% csrf_token %}<input type="hidden" name="action" value="inventory-create">
       <div class="field"><label for="inventory-label">Bezeichnung</label><input id="inventory-label" name="label" maxlength="160" required></div>
       <div class="field"><label for="inventory-id">ID</label><input id="inventory-id" name="item_id" maxlength="64" placeholder="z. B. funk-a"></div>
       <div class="field"><label for="inventory-kind">Typ</label><select id="inventory-kind" name="kind">{% for value,label in inventory_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>

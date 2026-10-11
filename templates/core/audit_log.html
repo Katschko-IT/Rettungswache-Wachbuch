@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Audit | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading"><p class="context-line">Nachvollziehbarkeit</p><h1>Audit</h1><p class="lead">Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte.</p></header>
+<header class="ww-page-intro page-heading">
+  <p class="ww-section-caption context-line">Nachvollziehbarkeit</p>
+  <h1>Audit</h1>
+  <p class="lead">Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte. Einträge sind unveränderlich.</p>
+</header>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Audit-Ereignisse, horizontal scrollbar auf kleinen Bildschirmen"><table class="responsive-table"><caption>Letzte Audit-Ereignisse</caption><thead><tr><th scope="col">Zeit</th><th scope="col">Akteur</th><th scope="col">Aktion</th><th scope="col">Objekt</th><th scope="col">Änderung</th></tr></thead><tbody>{% for event in page_obj %}<tr><td data-label="Zeit"><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i:s" }}</time></td><td data-label="Akteur">{{ event.actor.first_name|default:event.actor.username|default:"System" }}</td><td data-label="Aktion">{{ event.action }}</td><td data-label="Objekt">{{ event.object_type }} #{{ event.object_id }}{% if event.metadata.fields %}<small>{{ event.metadata.fields|join:", " }}</small>{% endif %}</td><td data-label="Änderung">{% if event.metadata.changes %}{% for key, diff in event.metadata.changes.items %}<small>{{ key }}: {{ diff.from }} → {{ diff.to }}</small>{% endfor %}{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="5">Noch keine Audit-Ereignisse.</td></tr>{% endfor %}</tbody></table></div>
 {% include "core/pagination.html" %}
 {% endblock %}

@@ -2,8 +2,8 @@
 {% block title %}Chat mit {{ other.first_name|default:other.username }} | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'private_chat_home' %}">Zurück zu Privat</a>
-<header class="page-heading narrow">
-  <p class="context-line">Privat · E2EE</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Privat · E2EE</p>
   <h1>{{ other.first_name|default:other.username }}</h1>
   <p class="lead">Der Browser verschlüsselt den Verlauf für euch beide. Die Datenbank speichert Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells.</p>
 </header>
@@ -34,7 +34,7 @@
   {% empty %}
     <p class="empty-state">Noch keine privaten Nachrichten.</p>
   {% endfor %}
-  <form class="form-card narrow chat-compose" data-e2ee-compose>
+  <form class="ww-form-panel form-card narrow chat-compose" data-e2ee-compose>
     <p><label>Nachricht <textarea name="body" rows="2" maxlength="500" required placeholder="Private Nachricht …"></textarea></label></p>
     <button class="button primary" type="submit">Verschlüsselt senden</button>
   </form>

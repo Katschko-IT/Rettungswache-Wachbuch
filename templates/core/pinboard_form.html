@@ -2,12 +2,12 @@
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'pinboard' %}">Zurück zur Pinnwand</a>
-<header class="page-heading narrow">
-  <p class="context-line">Pinnwand</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Pinnwand</p>
   <h1>{{ page_title }}</h1>
   <p class="lead">Kurze Aushänge für die Wachenorganisation.</p>
 </header>
-<form method="post" class="form-card narrow">
+<form method="post" class="ww-form-panel form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}

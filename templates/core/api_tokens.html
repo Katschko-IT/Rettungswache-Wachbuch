@@ -2,13 +2,13 @@
 {% block title %}App-Tokens | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'account_home' %}">Zurück zu Mein Konto</a>
-<header class="page-heading narrow">
-  <p class="context-line">Mobile &amp; Integrationen</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Mobile &amp; Integrationen</p>
   <h1>App-Tokens</h1>
   <p class="lead">Widerrufbare Tokens für Open-Source-Apps (iOS/Android), analog zu Paperless und Nextcloud. Header: <code>Authorization: Token …</code></p>
 </header>
 <section class="content-flow narrow">
-  <article class="form-card">
+  <article class="ww-surface form-card">
     <h2>Mobile-App verbinden</h2>
     <p class="lead">In der App zuerst diese Server-Adresse bestätigen (tippen oder QR scannen), danach Benutzername und Passwort.</p>
     <p><code>{{ mobile_setup_url }}</code></p>
@@ -19,14 +19,14 @@
   {% if plaintext_token %}
     <p class="notice" role="status">Neues Token (nur einmal sichtbar): <code>{{ plaintext_token }}</code></p>
   {% endif %}
-  <form method="post" class="form-card">
+  <form method="post" class="ww-form-panel form-card">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
     <p><label>Bezeichnung <input type="text" name="label" maxlength="120" placeholder="z. B. Android App" value="Mobile App"></label></p>
     <button class="button primary" type="submit">Token erzeugen</button>
   </form>
   <p class="lead">API-Wurzel: <a href="{{ api_root }}">{{ api_root }}</a> · Schema: <a href="{% url 'api_v1_openapi' %}">openapi.yaml</a></p>
-  <div class="member-list-clean">
+  <div class="ww-surface member-list-clean" aria-label="Vorhandene Tokens">
     {% for item in tokens %}
       <article>
         <div>

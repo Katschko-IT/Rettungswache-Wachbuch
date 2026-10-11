@@ -2,12 +2,12 @@
 {% block title %}{{ item.title }} | Mängel | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'defects_web' %}">Zurück zu Mängeln</a>
-<header class="page-heading narrow">
-  <p class="context-line">Mangel · {{ item.get_category_display }}</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Mangel · {{ item.get_category_display }}</p>
   <h1>{{ item.title }}</h1>
   <p class="lead">{{ item.description|default:"Keine weiteren Angaben." }}</p>
 </header>
-<section class="section-block">
+<section class="ww-surface section-block">
   <dl class="summary-list">
     <div><dt>Priorität</dt><dd><span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span></dd></div>
     <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
@@ -17,7 +17,7 @@
     <div><dt>Aktualisiert</dt><dd>{{ item.updated_at|date:"d.m.Y H:i" }}</dd></div>
   </dl>
 </section>
-<section class="section-block">
+<section class="ww-surface section-block">
   <h2>Status setzen</h2>
   <form method="post" class="inline-form">
     {% csrf_token %}<input type="hidden" name="action" value="status">
@@ -26,7 +26,7 @@
     <button class="button primary" type="submit">Speichern</button>
   </form>
 </section>
-<section class="section-block">
+<section class="ww-surface section-block">
   <h2>Fotos</h2>
   <p>Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen.</p>
   <div class="item-list">
@@ -44,7 +44,7 @@
     <button class="button secondary" type="submit">Foto anhängen</button>
   </form>
 </section>
-<section class="section-block">
+<section class="ww-surface section-block">
   <h2>Verlauf</h2>
   <div class="item-list">
     {% for event in events %}

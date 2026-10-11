@@ -35,8 +35,8 @@ class Station(models.Model):
     pinboard_enabled = models.BooleanField(default=True, verbose_name="Pinnwand aktiviert")
     holidays_enabled = models.BooleanField(default=True, verbose_name="Feiertage (NRW) im Kalender")
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
-    waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
-    waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
+    waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Müllkalender aktiviert")
+    waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Müllkalender-ICS-URL")
     paypal_me_url = models.URLField(blank=True, default="", verbose_name="PayPal.me-Link")
     wero_link = models.URLField(blank=True, default="", verbose_name="Wero-Link")
     iban = models.CharField(max_length=34, blank=True, default="", verbose_name="IBAN")
@@ -144,11 +144,11 @@ class HandoverRevision(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Uebergaberevisionen duerfen nicht veraendert werden.")
+            raise ValidationError("Übergaberevisionen dürfen nicht verändert werden.")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Uebergaberevisionen duerfen nicht geloescht werden.")
+        raise ValidationError("Übergaberevisionen dürfen nicht gelöscht werden.")
 
 
 class CalendarEvent(models.Model):
@@ -205,17 +205,17 @@ class BirthdayPreference(models.Model):
 
     def clean(self):
         if self.is_visible and (not self.day or not self.month):
-            raise ValidationError("Fuer die Anzeige werden Tag und Monat benoetigt.")
+            raise ValidationError("Für die Anzeige werden Tag und Monat benötigt.")
         if self.day and not 1 <= self.day <= 31:
-            raise ValidationError({"day": "Ungueltiger Tag."})
+            raise ValidationError({"day": "Ungültiger Tag."})
         if self.month and not 1 <= self.month <= 12:
-            raise ValidationError({"month": "Ungueltiger Monat."})
+            raise ValidationError({"month": "Ungültiger Monat."})
         if self.day and self.month:
             try:
                 # Schaltjahr, damit der 29. Februar zulaessig bleibt.
                 date(2000, self.month, self.day)
             except ValueError as exc:
-                raise ValidationError("Tag und Monat ergeben kein gueltiges Datum.") from exc
+                raise ValidationError("Tag und Monat ergeben kein gültiges Datum.") from exc
 
 
 class CoffeeEntry(models.Model):
@@ -243,7 +243,7 @@ class CoffeeEntry(models.Model):
     def clean(self):
         if self.correction_of:
             if self.correction_of.station_id != self.station_id:
-                raise ValidationError("Die Korrektur muss zur gleichen Wache gehoeren.")
+                raise ValidationError("Die Korrektur muss zur gleichen Wache gehören.")
             if self.correction_of.member_id != self.member_id:
                 raise ValidationError("Die Korrektur muss dieselbe Person betreffen.")
             if self.amount_cents != -self.correction_of.amount_cents:
@@ -253,12 +253,12 @@ class CoffeeEntry(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Kassenbuchungen duerfen nicht veraendert werden.")
+            raise ValidationError("Kassenbuchungen dürfen nicht verändert werden.")
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Kassenbuchungen duerfen nicht geloescht werden.")
+        raise ValidationError("Kassenbuchungen dürfen nicht gelöscht werden.")
 
     @property
     def amount_euros(self):
@@ -269,9 +269,9 @@ class StationTask(models.Model):
     """Wachaufgaben analog zur Wandtafel: gruen taeglich, gelb Wochentag, blau zusaetzlich."""
 
     class Band(models.TextChoices):
-        DAILY = "daily", "Taeglich"
+        DAILY = "daily", "Täglich"
         WEEKDAY = "weekday", "Wochentag"
-        EXTRA = "extra", "Zusaetzlich"
+        EXTRA = "extra", "Zusätzlich"
 
     WEEKDAY_LABELS = (
         (0, "Montag"),
@@ -290,7 +290,7 @@ class StationTask(models.Model):
         null=True,
         blank=True,
         choices=WEEKDAY_LABELS,
-        help_text="Nur fuer Wochentagsaufgaben noetig (0=Montag).",
+        help_text="Nur für Wochentagsaufgaben nötig (0=Montag).",
     )
     notes = models.CharField(max_length=240, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=100)
@@ -318,7 +318,7 @@ class StationTask(models.Model):
             if self.weekday is None or not 0 <= self.weekday <= 6:
                 raise ValidationError({"weekday": "Wochentagsaufgaben brauchen einen Wochentag."})
         elif self.weekday is not None:
-            raise ValidationError({"weekday": "Nur Wochentagsaufgaben duerfen einen Wochentag haben."})
+            raise ValidationError({"weekday": "Nur Wochentagsaufgaben dürfen einen Wochentag haben."})
 
     def applies_to_date(self, work_date):
         if not self.is_active:
@@ -384,9 +384,9 @@ class FeedSource(models.Model):
         try:
             port = parsed.port
         except ValueError as exc:
-            raise ValidationError({"url": "Die Portangabe ist ungueltig."}) from exc
+            raise ValidationError({"url": "Die Portangabe ist ungültig."}) from exc
         if parsed.scheme != "https" or port not in {None, 443}:
-            raise ValidationError({"url": "Quellen muessen HTTPS auf Port 443 verwenden."})
+            raise ValidationError({"url": "Quellen müssen HTTPS auf Port 443 verwenden."})
         if parsed.hostname not in settings.FEED_ALLOWED_HOSTS:
             raise ValidationError({
                 "url": "Der Host muss zuerst in FEED_ALLOWED_HOSTS freigegeben werden."

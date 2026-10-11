@@ -1,0 +1,841 @@
+/* Wachwerk – gemeinsame App-UI-Designschicht (Wachbuch Klar).
+   ---------------------------------------------------------------------------
+   Diese Datei ist die gezielte Design-Schicht für ALLE server-gerenderten
+   Unterseiten (templates/base.html). Sie wird als letztes Stylesheet geladen,
+   nach Bootstrap 5.3.8 (lokal vendored), core/app.css, core/accessibility.css
+   und core/crypto_unlock.css, und verfeinert die bestehende App-Shell statt sie
+   zu ersetzen. Sie stimmt die Unterseiten auf die neue Produkt-Landing
+   (core/presentation.css) ab:
+
+       - lokale Source Sans 3 (keine externen Webfonts, kein CDN)
+       - Blau   #0d47a1   (--brand, überschreibbar über profile-*)
+       - Ink    #0f1b2e   (dunkle Überschriften)
+       - Surface #ffffff  (Flächen, Rand statt schwerer Schatten)
+       - Radius 14px      (ruhige, klare Flächen)
+       - Breite 1120px    (App-Shell = Landing-Raster)
+       - Touch  48px      (WCAG 2.5.5 / Client-Vorgabe)
+
+   Invarianten: alle bestehenden Klassennamen, IDs, Rollen und die speziellen
+   Taskboard-/Highcontrast-Semantiken bleiben erhalten. Keine Inline-Styles
+   (CSP: style-src 'self'), keine externen Quellen, keine Icon-Fantasie.
+   Animation nur optional und reduced-motion-freundlich.
+
+   Quelle der Wahrheit: docs/APP-UI-DESIGN.md, docs/DESIGN-SYSTEM.md.
+   --------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   1. Tokens – Brücke zwischen Landing (pw-*) und App (bestehende Variablen)
+   ========================================================================== */
+
+.ww-app {
+  /* Werte mit Fallback, damit die Datei auch isoliert lesbar bleibt; wenn
+     app.css geladen ist, gewinnen dessen Tokens (inkl. profile-* Themes). */
+  --ww-font: "Source Sans 3", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --ww-ink: #0f1b2e;
+  --ww-ink-soft: var(--muted, #445066);
+  --ww-surface: var(--surface, #ffffff);
+  --ww-surface-soft: var(--surface-soft, #f1f5fa);
+  --ww-bg: var(--bg, #f7f9fc);
+  --ww-line: var(--line, #dce4ef);
+  --ww-line-strong: var(--line-strong, #6f7a8f);
+  --ww-brand: var(--brand, #0d47a1);
+  --ww-brand-deep: var(--brand-deep, #082e63);
+  --ww-ink-heading: var(--brand-ink, #17343d);
+  --ww-accent: var(--accent, #2563eb);
+  --ww-focus: var(--focus, #f0b429);
+  --ww-danger: var(--danger, #dc2626);
+  --ww-radius: 14px;
+  --ww-radius-sm: 10px;
+  --ww-radius-pill: 999px;
+  --ww-container: 1120px;
+  --ww-touch: 48px;
+  --ww-gap: 1rem;
+  --ww-shadow-1: 0 1px 2px rgba(8, 46, 99, .06), 0 1px 0 rgba(8, 46, 99, .04);
+  --ww-shadow-2: 0 14px 34px -22px rgba(8, 46, 99, .55);
+  --ww-ring: 0 0 0 3px rgba(13, 71, 161, .18);
+}
+
+/* ==========================================================================
+   2. Grundtypografie & Bootstrap-Ausgleich
+   Bootstrap 5.3.8 liegt lokal vor app.css; hier setzen wir eine bewusste,
+   einheitliche Typo-Skala, damit Reboot-Größen nicht die Hierarchie verwischen.
+   ========================================================================== */
+
+.ww-app {
+  font-family: var(--ww-font);
+  color: var(--ww-ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.ww-app h1,
+.ww-app h2,
+.ww-app h3,
+.ww-app h4,
+.ww-app h5 {
+  color: var(--ww-ink-heading);
+  font-family: var(--ww-font);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -.018em;
+  overflow-wrap: anywhere;
+}
+
+.ww-app h1 { font-size: clamp(1.75rem, 1.2rem + 1.9vw, 2.4rem); }
+.ww-app h2 { font-size: clamp(1.25rem, 1.05rem + .6vw, 1.5rem); }
+.ww-app h3 { font-size: 1.175rem; }
+.ww-app h4 { font-size: 1.05rem; }
+.ww-app h5 { font-size: .95rem; letter-spacing: 0; }
+
+.ww-app p { margin-top: 0; }
+.ww-app small { font-size: .85rem; }
+.ww-app strong { font-weight: 700; }
+.ww-app a { color: var(--accent-dark, var(--ww-brand)); }
+.ww-app a:hover { color: var(--ww-brand-deep); }
+
+.ww-app .lead,
+.ww-app .hint,
+.ww-app .field-hint,
+.ww-app .helptext,
+.ww-app .empty-state,
+.ww-app .notice,
+.ww-app .message {
+  color: var(--ww-ink-soft);
+}
+
+/* Rauscharme, aber sichtbare Trennung der Fließtextspalte. */
+.ww-app .lead { font-size: 1.0625rem; line-height: 1.55; }
+
+/* ==========================================================================
+   3. App-Shell: Header, Navigation, Footer, Container
+   ========================================================================== */
+
+.ww-app .header-inner {
+  width: min(var(--ww-container), calc(100% - 2rem));
+  min-height: 4rem;
+  gap: 1rem;
+}
+
+.ww-app .app-header {
+  background: var(--ww-brand);
+  border-bottom: 4px solid var(--ww-focus);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04);
+}
+
+.ww-app .brand { gap: .7rem; }
+.ww-app .brand strong { font-size: 1.16rem; }
+.ww-app .brand small {
+  color: rgba(255, 255, 255, .82);
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.ww-app .brand-mark {
+  border-radius: var(--ww-radius-sm);
+  box-shadow: inset 0 0 0 2px rgba(240, 180, 41, .9);
+}
+
+.ww-app .identity span { color: rgba(255, 255, 255, .86); }
+
+/* Ruhige, flache Navigationsleiste mit klarem Aktivzustand. */
+.ww-app .app-nav {
+  background: var(--ww-surface);
+  border-bottom: 1px solid var(--ww-line);
+}
+.ww-app .nav-inner { gap: .15rem; }
+.ww-app .app-nav a {
+  min-height: 3.5rem;
+  padding: 0 1.05rem;
+  color: var(--ww-ink-soft);
+  font-weight: 650;
+  border-bottom: 3px solid transparent;
+  border-radius: var(--ww-radius-sm) var(--ww-radius-sm) 0 0;
+}
+.ww-app .app-nav a:hover {
+  background: var(--ww-surface-soft);
+  color: var(--ww-ink);
+}
+.ww-app .app-nav a[aria-current="page"] {
+  color: var(--ww-brand);
+  border-bottom-color: var(--ww-brand);
+  font-weight: 700;
+  background: transparent;
+}
+.ww-app .nav-badge {
+  flex: none;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  border-radius: var(--ww-radius-pill);
+}
+
+/* Seitenrahmen und Footer bleiben im 1120px-Raster der Landing. */
+.ww-app .page-shell {
+  width: min(var(--ww-container), calc(100% - 2rem));
+  padding: clamp(1.25rem, 3vw, 2.25rem) 0 3.5rem;
+}
+.ww-app .site-footer {
+  width: min(var(--ww-container), calc(100% - 2rem));
+  color: var(--ww-ink-soft);
+}
+
+/* ==========================================================================
+   4. Seitentitel & Aktionshierarchie
+   ========================================================================== */
+
+.ww-app .page-heading { margin-bottom: 1.85rem; }
+.ww-app .page-heading.narrow,
+.ww-app .narrow { max-width: 44rem; }
+
+/* Überzeile als taktgebender Marker (feine Linie, kein Icon). */
+.ww-app .context-line {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--ww-accent);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.ww-app .context-line::before {
+  content: "";
+  flex: none;
+  width: 1.4rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ww-brand);
+}
+.ww-app .heading-with-action .context-line::before { background: var(--ww-focus); }
+
+.ww-app .page-heading h1 {
+  margin: .35rem 0 .5rem;
+  font-size: clamp(1.9rem, 1.3rem + 2vw, 2.55rem);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.ww-app .page-heading .lead { margin-top: .4rem; }
+
+/* Genau eine hervorgehobene Primäraktion; sie sitzt sichtbar oben rechts. */
+.ww-app .heading-with-action {
+  align-items: flex-start;
+  gap: 1.25rem 2rem;
+  flex-wrap: wrap;
+}
+.ww-app .heading-with-action > div { min-width: 0; }
+.ww-app .heading-with-action > .button,
+.ww-app .heading-with-action > .form-actions { flex: none; }
+.ww-app .heading-with-action > .form-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+
+.ww-app .status-summary { gap: .5rem; margin-top: 1rem; }
+.ww-app .status-pill {
+  min-height: var(--ww-touch);
+  padding: .35rem .9rem;
+  border-radius: var(--ww-radius-sm);
+  border: 1px solid var(--ww-line);
+  font-weight: 650;
+}
+.ww-app .status-pill strong { font-size: 1.1rem; color: var(--ww-ink-heading); }
+.ww-app .status-pill.danger strong { color: var(--ww-danger); }
+
+/* ==========================================================================
+   5. Buttons & Touch-Ziele
+   ========================================================================== */
+
+.ww-app .button {
+  min-height: var(--ww-touch);
+  padding: .7rem 1.2rem;
+  border-radius: var(--ww-radius);
+  border-width: 2px;
+  font-weight: 700;
+  letter-spacing: .005em;
+}
+.ww-app .button.primary {
+  background: var(--ww-brand);
+  color: var(--on-primary, #fff);
+  box-shadow: var(--ww-shadow-1);
+}
+.ww-app .button.primary:hover { background: var(--ww-brand-deep); }
+.ww-app .button.primary:active { transform: translateY(1px); box-shadow: none; }
+.ww-app .button.secondary {
+  background: var(--ww-surface);
+  color: var(--ww-brand);
+  border-color: color-mix(in srgb, var(--ww-brand) 55%, var(--ww-line));
+}
+.ww-app .button.secondary:hover {
+  background: var(--primary-container, var(--ww-surface-soft));
+  border-color: var(--ww-brand);
+}
+.ww-app .button[disabled],
+.ww-app .button[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.ww-app .text-action,
+.ww-app .back-link { font-weight: 700; }
+.ww-app .back-link { color: var(--ww-accent); }
+
+/* ==========================================================================
+   6. Flächen: Karten, Formularkarten, Summary-Listen, Details
+   Bewusst ruhig: Rand + minimale Anhebung statt Karten-Wand mit Schatten.
+   ========================================================================== */
+
+.ww-app .section-block,
+.ww-app .form-card,
+.ww-app .summary-list,
+.ww-app .payment-hints,
+.ww-app .balance-row > div,
+.ww-app .more-list,
+.ww-app .install-banner {
+  background: var(--ww-surface);
+  border: 1px solid var(--ww-line);
+  border-radius: var(--ww-radius);
+}
+.ww-app .section-block { padding: clamp(1rem, 2vw, 1.4rem); }
+.ww-app .section-block.flush { padding: 0; }
+.ww-app .form-card { padding: clamp(1rem, 2vw, 1.5rem); }
+
+.ww-app .section-heading { margin-bottom: .85rem; align-items: center; }
+.ww-app .section-heading h2,
+.ww-app .section-block h2 { font-size: clamp(1.15rem, 1rem + .4vw, 1.35rem); }
+.ww-app .section-heading .context-line { text-transform: none; letter-spacing: .01em; font-weight: 650; }
+.ww-app .section-heading .context-line::before { display: none; }
+
+.ww-app .summary-list > div { padding: .85rem 1.1rem; }
+.ww-app .summary-list dt { color: var(--ww-ink-soft); font-weight: 600; }
+.ww-app .summary-list dd { font-weight: 650; }
+
+/* Aufklappbereiche: konsistenter Marker (CSS-gezeichnet, keine Icon-Fonts). */
+.ww-app details > summary {
+  list-style: none;
+  cursor: pointer;
+  position: relative;
+}
+.ww-app details > summary::-webkit-details-marker { display: none; }
+.ww-app details > summary::after {
+  content: "+";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ww-accent);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.ww-app details[open] > summary::after { content: "\2013"; }
+.ww-app .details-block > summary,
+.ww-app .details-help > summary { padding: .8rem 2.6rem .8rem 1.1rem; }
+.ww-app details.form-card { padding: 0; }
+.ww-app details.form-card > summary { padding: 1rem 2.6rem 1rem 1.1rem; font-weight: 700; }
+.ww-app details.form-card[open] > summary { border-bottom: 1px solid var(--ww-line); }
+.ww-app details.form-card > form,
+.ww-app details.form-card > *:not(summary) { padding: 0 1.1rem; }
+.ww-app details.form-card > form { padding-top: 1rem; }
+
+/* ==========================================================================
+   7. Listen & Zeilen
+   ========================================================================== */
+
+.ww-app .item-list { border-radius: var(--ww-radius); }
+.ww-app .list-row {
+  min-height: 4.5rem;
+  padding: .9rem 1.1rem;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+.ww-app .list-row:hover {
+  background: var(--ww-surface-soft);
+  box-shadow: inset 3px 0 0 var(--ww-brand);
+}
+.ww-app .row-content strong { font-weight: 700; }
+.ww-app .row-content small,
+.ww-app .list-row time { color: var(--ww-ink-soft); }
+
+.ww-app .more-list a { min-height: 4.25rem; position: relative; padding-right: 2.75rem; }
+.ww-app .more-list a::after {
+  content: "";
+  position: absolute;
+  right: 1.15rem;
+  top: 50%;
+  width: .5rem;
+  height: .5rem;
+  border-right: 2px solid var(--ww-ink-soft);
+  border-bottom: 2px solid var(--ww-ink-soft);
+  transform: translateY(-50%) rotate(-45deg);
+}
+.ww-app .more-list a:hover::after { border-color: var(--ww-brand); }
+
+/* ==========================================================================
+   8. Tabellen
+   ========================================================================== */
+
+.ww-app .table-wrap { border-radius: var(--ww-radius); }
+.ww-app .responsive-table thead th {
+  color: var(--ww-ink-soft);
+  background: var(--ww-surface-soft);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.ww-app .responsive-table tbody tr { transition: background-color .12s ease; }
+.ww-app .responsive-table tbody tr:hover { background: var(--ww-surface-soft); }
+.ww-app .responsive-table caption { font-weight: 700; color: var(--ww-ink-heading); }
+.ww-app .responsive-table td { color: var(--ww-ink); }
+.ww-app .responsive-table .amount { font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   9. Badges, Pills & Status
+   ========================================================================== */
+
+.ww-app .status-label {
+  border-radius: var(--ww-radius-sm);
+  padding: .22rem .6rem;
+  font-weight: 750;
+  letter-spacing: .005em;
+}
+.ww-app .legend-chip { border-radius: var(--ww-radius-sm); }
+
+/* ==========================================================================
+   10. Formulare, Felder, Fehler & Empty States
+   ========================================================================== */
+
+.ww-app .field,
+.ww-app .form-card p { margin-bottom: 1.15rem; }
+.ww-app .form-card label,
+.ww-app .field label { font-weight: 700; margin-bottom: .4rem; }
+
+.ww-app .form-card input:not([type="checkbox"]):not([type="radio"]),
+.ww-app .form-card select,
+.ww-app .form-card textarea,
+.ww-app .field input,
+.ww-app .field select,
+.ww-app .field textarea {
+  border-radius: var(--ww-radius-sm);
+  border-color: var(--ww-line);
+}
+.ww-app .form-card input:focus-visible,
+.ww-app .form-card select:focus-visible,
+.ww-app .form-card textarea:focus-visible,
+.ww-app .field input:focus-visible,
+.ww-app .field select:focus-visible,
+.ww-app .field textarea:focus-visible {
+  border-color: var(--ww-brand);
+}
+/* Fehler bleiben an Feld + Zusammenfassung sichtbar (Text, nicht nur Farbe). */
+.ww-app input[aria-invalid="true"],
+.ww-app textarea[aria-invalid="true"],
+.ww-app select[aria-invalid="true"],
+.ww-app input:user-invalid,
+.ww-app textarea:user-invalid {
+  border-color: var(--ww-danger) !important;
+}
+.ww-app .errorlist { padding-left: 1.1rem; font-weight: 650; }
+.ww-app .error-summary {
+  border-radius: var(--ww-radius);
+  border-left-width: 6px;
+}
+.ww-app .error-summary h2 { margin-bottom: .35rem; }
+
+.ww-app .empty-state {
+  padding: 1.35rem 1.1rem;
+  border: 1px dashed var(--ww-line);
+  border-radius: var(--ww-radius);
+  background: var(--ww-surface-soft);
+  text-align: center;
+}
+
+/* ==========================================================================
+   11. Tabs & Filternavigation (filter-nav, chat-tabs)
+   ========================================================================== */
+
+.ww-app .filter-nav { gap: .3rem; border-bottom: 1px solid var(--ww-line); }
+.ww-app .filter-nav a,
+.ww-app .chat-tabs a {
+  border-radius: var(--ww-radius-sm) var(--ww-radius-sm) 0 0;
+  font-weight: 650;
+}
+.ww-app .filter-nav a[aria-current="page"],
+.ww-app .chat-tabs a[aria-current="page"] {
+  color: var(--ww-brand);
+  border-color: var(--ww-brand);
+  font-weight: 700;
+}
+.ww-app .chat-tabs { gap: .4rem; }
+.ww-app .chat-tabs a {
+  border-radius: var(--ww-radius-pill);
+  padding: .5rem 1rem;
+  min-height: var(--ww-touch);
+}
+.ww-app .chat-tabs a[aria-current="page"] {
+  background: var(--primary-container, var(--ww-surface-soft));
+  border-color: var(--ww-brand);
+}
+
+/* ==========================================================================
+   12. Hinweise & Nachrichten
+   ========================================================================== */
+
+.ww-app .message {
+  border-radius: 0 var(--ww-radius) var(--ww-radius) 0;
+  border-left-width: 5px;
+  padding: .9rem 1.05rem;
+}
+.ww-app .notice {
+  border-radius: 0 var(--ww-radius) var(--ww-radius) 0;
+  border-left-width: 5px;
+  max-width: 72ch;
+}
+
+/* ==========================================================================
+   13. Krypto-Dialog (Schlüssel entsperren)
+   ========================================================================== */
+
+.ww-app dialog.crypto-unlock {
+  border-radius: var(--ww-radius);
+  box-shadow: var(--ww-shadow-2);
+  width: min(30rem, 92vw);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+.ww-app dialog.crypto-unlock::backdrop {
+  background: rgba(8, 46, 99, .5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.ww-app dialog.crypto-unlock h2 { font-size: 1.2rem; }
+.ww-app dialog.crypto-unlock .crypto-unlock-actions .button { min-height: var(--ww-touch); }
+.ww-app dialog.crypto-unlock input { border-radius: var(--ww-radius-sm); }
+
+/* ==========================================================================
+   14. Chat (E2EE)
+   ========================================================================== */
+
+.ww-app .chat-thread { gap: .9rem; }
+.ww-app .chat-bubble {
+  border-radius: var(--ww-radius);
+  border: 1px solid var(--ww-line);
+  padding: .9rem 1.05rem;
+}
+.ww-app .chat-bubble.is-own {
+  background: var(--primary-container, var(--ww-surface-soft));
+  border-color: color-mix(in srgb, var(--ww-brand) 28%, var(--ww-line));
+}
+.ww-app .chat-bubble header strong { color: var(--ww-ink-heading); }
+.ww-app .chat-body p { line-height: 1.5; }
+.ww-app .chat-compose { border-radius: var(--ww-radius); }
+.ww-app .crypto-tag { letter-spacing: .06em; }
+
+/* ==========================================================================
+   15. Kalender & Agenda
+   Agenda-Farben (Feiertag/Müll) bleiben semantisch erhalten.
+   ========================================================================== */
+
+.ww-app .agenda-row { padding: 1rem 1.1rem; gap: 1.1rem; }
+.ww-app .agenda-row > time strong { color: var(--ww-brand); font-size: 1.05rem; }
+.ww-app .agenda-row h2 { font-size: 1.08rem; }
+.ww-app .week-day { border-radius: var(--ww-radius); }
+.ww-app .week-day.is-today {
+  border-color: var(--ww-brand);
+  box-shadow: inset 0 0 0 1px var(--ww-brand);
+}
+.ww-app .day-switcher {
+  padding: .65rem .75rem;
+  background: var(--ww-surface);
+  border: 1px solid var(--ww-line);
+  border-radius: var(--ww-radius);
+}
+
+/* ==========================================================================
+   16. Taskboard / Wochenbogen
+   Die Bänder (grün/gelb/blau) und --band-Farben bleiben unangetastet;
+   hier nur Rhythmus, Rundung und Touch-Flächen.
+   ========================================================================== */
+
+.ww-app .task-band { border-radius: var(--ww-radius); }
+.ww-app .task-band-head { padding: .9rem 1.05rem; }
+.ww-app .task-row { padding: .9rem 1.05rem; }
+.ww-app .task-row .button { flex: none; }
+.ww-app .task-main { gap: .85rem; }
+.ww-app .week-task button { border-radius: var(--ww-radius-sm); }
+.ww-app .quick-actions {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  gap: .85rem;
+}
+.ww-app .quick-actions a {
+  border-radius: var(--ww-radius);
+  border-left-width: 4px;
+  background: var(--ww-surface);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.ww-app .quick-actions a:hover {
+  background: var(--ww-surface-soft);
+  border-color: var(--ww-brand);
+}
+.ww-app .quick-actions strong { font-size: 1.02rem; }
+.ww-app .operations-summary .quick-actions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+
+/* ==========================================================================
+   17. Zugangs-/Auth-Panel & Fehlerseiten
+   ========================================================================== */
+
+.ww-app .access-panel {
+  max-width: 27rem;
+  margin: clamp(1rem, 5vh, 3rem) auto 0;
+  padding: clamp(1.35rem, 3vw, 1.9rem);
+  border-radius: var(--ww-radius);
+  border: 1px solid var(--ww-line);
+  border-top: 5px solid var(--ww-brand);
+  box-shadow: var(--ww-shadow-1);
+}
+.ww-app .access-panel h1 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.05rem); margin: .3rem 0 .8rem; }
+.ww-app .access-panel .form-card { padding: 0; border: 0; background: transparent; }
+.ww-app .access-panel .form-card input { background: var(--ww-surface); }
+.ww-app .offline-panel .form-actions { margin-top: 1.25rem; }
+.ww-app--anon .page-shell { padding-bottom: 2.5rem; }
+
+/* Shell-Varianten: angemeldet ruhiger Identitätsblock, anonym ein klar
+   zentrierter Zugangsbereich. */
+.ww-app--auth .identity { align-items: flex-end; }
+.ww-app--auth .app-nav { border-top: 0; }
+.ww-app--anon .access-panel { margin-top: clamp(1rem, 8vh, 4rem); }
+
+.ww-app.page-error .page-shell,
+.ww-app .page-error .page-shell { max-width: 34rem; }
+.ww-app .error-shell {
+  max-width: 34rem;
+  margin: clamp(1rem, 6vh, 4rem) auto 0;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  text-align: center;
+  background: var(--ww-surface);
+  border: 1px solid var(--ww-line);
+  border-radius: var(--ww-radius);
+  box-shadow: var(--ww-shadow-1);
+}
+.ww-app .error-code {
+  margin: 0;
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: var(--ww-brand);
+}
+.ww-app .error-shell h1 { margin: .35rem 0 .6rem; }
+.ww-app .error-shell .error-message { max-width: 46ch; margin: 0 auto .75rem; color: var(--ww-ink-soft); }
+.ww-app .error-shell .error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  justify-content: center;
+  margin: 0 0 1rem;
+}
+.ww-app .error-shell .error-meta,
+.ww-app .error-shell .error-support { color: var(--ww-ink-soft); font-size: .9rem; }
+.ww-app .error-shell code {
+  padding: .1rem .35rem;
+  background: var(--ww-surface-soft);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   18. Kleinflächen & Utilities
+   ========================================================================== */
+
+.ww-app .balance-row > div { border-radius: var(--ww-radius); }
+.ww-app .balance-row strong { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.ww-app .payment-hints { border-radius: var(--ww-radius); }
+.ww-app .payment-options code,
+.ww-app .iban-value { overflow-wrap: anywhere; }
+.ww-app .copy-iban { min-height: var(--ww-touch); border-radius: var(--ww-radius-sm); }
+.ww-app .mfa-key,
+.ww-app .mfa-uri { border-radius: var(--ww-radius-sm); }
+.ww-app .key-fingerprint { overflow-wrap: anywhere; }
+
+/* Manual-only installation hint: no automatic promotion in the app.
+   The X is positioned in the upper-right corner, outside action rows. */
+.ww-app .install-banner { position: relative; padding-right: 4.5rem; }
+.ww-app .install-banner > div:not(.install-actions) { min-width: 0; flex: 1 1 14rem; }
+.ww-app .install-banner span { overflow-wrap: anywhere; }
+.ww-app .install-actions { align-items: center; margin-left: auto; }
+.ww-app .install-close {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  flex: 0 0 auto;
+  width: var(--ww-touch);
+  min-width: var(--ww-touch);
+  min-height: var(--ww-touch);
+  padding: 0;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.ww-app .install-close:hover { color: var(--ww-brand); border-color: var(--ww-brand); }
+
+/* The presentation deck shares the app's typography and surfaces without
+   changing any slide/music/navigation hooks or the no-JS linear fallback. */
+.ww-app.is-vorfuehrung .ww-demo-heading { max-width: var(--ww-content); margin-inline: auto; }
+.ww-app.is-vorfuehrung .demo-deck { width: 100%; max-width: var(--ww-content); gap: 1.5rem; }
+.ww-app.is-vorfuehrung .demo-slide { border-radius: var(--ww-radius); padding: clamp(1rem, 3vw, 2rem); }
+.ww-app.is-vorfuehrung .demo-slide h2 { color: var(--ww-ink); font-size: clamp(1.5rem, 3vw, 2.5rem); }
+.ww-app.is-vorfuehrung .demo-card { border-radius: var(--ww-radius-sm); min-height: 0; background: var(--ww-surface); }
+.ww-app.is-vorfuehrung .demo-grid { gap: 1rem; }
+.ww-app.is-vorfuehrung .demo-bar { border-radius: var(--ww-radius); flex-wrap: wrap; }
+.ww-app.is-vorfuehrung .demo-kicker { letter-spacing: .07em; }
+.ww-app.is-vorfuehrung .demo-copy { min-width: 0; }
+.ww-app.is-vorfuehrung .demo-cred-card { border-radius: var(--ww-radius); }
+
+/* Versteckter Zustand hat immer Vorrang. Ohne !important würde das
+   display:flex des Banners (app.css) das hidden-Attribut überstimmen. */
+[hidden] { display: none !important; }
+
+/* ==========================================================================
+   19. Responsive: 320px, mobiler Header, vierteilige Bottom-Navigation
+   ========================================================================== */
+
+@media (max-width: 48rem) {
+  .ww-app .header-inner {
+    width: min(100% - 1.1rem, var(--ww-container));
+    min-height: 3.65rem;
+    gap: .5rem;
+  }
+  .ww-app .brand { gap: .55rem; }
+  .ww-app .brand-mark { width: 2.35rem; height: 2.35rem; }
+  .ww-app .logout-form button {
+    min-height: var(--ww-touch);
+    padding: 0 .7rem;
+    font-size: .9rem;
+  }
+  .ww-app .page-shell {
+    width: min(100% - 1.1rem, var(--ww-container));
+    padding-top: 1.15rem;
+  }
+  .ww-app .site-footer { width: min(100% - 1.1rem, var(--ww-container)); }
+
+  /* Bottom-Navigation: ruhig, klar, sichere Touch-Flächen. */
+  .ww-app .app-nav { box-shadow: 0 -6px 20px rgba(8, 46, 99, .1); }
+  .ww-app .app-nav a {
+    min-height: var(--nav-height, 4.75rem);
+    padding: .4rem .15rem;
+    border-radius: 0;
+    border-top: 3px solid transparent;
+    border-bottom: 0;
+    font-size: .78rem;
+    font-weight: 650;
+  }
+  .ww-app .app-nav a[aria-current="page"] {
+    background: var(--primary-container, var(--ww-surface-soft));
+    border-top-color: var(--ww-brand);
+  }
+  .ww-app .nav-icon { width: 1.5rem; height: 1.5rem; }
+
+  .ww-app .heading-with-action { flex-direction: column; align-items: stretch; }
+  .ww-app .heading-with-action > .button,
+  .ww-app .heading-with-action > .form-actions .button { width: 100%; }
+  .ww-app .heading-with-action > .form-actions { width: 100%; }
+  .ww-app .page-heading h1 { font-size: clamp(1.7rem, 1.3rem + 3vw, 2rem); }
+
+  .ww-app .context-line { font-size: .78rem; }
+
+  /* "Später" darf breit sein; das X bleibt eine quadratische 48px-Fläche. */
+  .ww-app .install-banner { flex-direction: column; align-items: stretch; }
+  .ww-app .install-actions { margin-left: 0; }
+  .ww-app .install-actions .install-close { flex: 0 0 auto; width: var(--ww-touch); }
+}
+
+@media (max-width: 22rem) {
+  .ww-app .header-inner,
+  .ww-app .page-shell,
+  .ww-app .site-footer { width: min(100% - .9rem, var(--ww-container)); }
+  .ww-app .app-nav a { font-size: .72rem; padding-inline: .1rem; }
+  .ww-app .brand strong { font-size: 1.05rem; }
+  .ww-app .section-heading { flex-direction: column; align-items: flex-start; gap: .35rem; }
+}
+
+/* Reflow bei starker Textvergrößerung: nichts verstecken, nichts kappen. */
+.ww-app .row-content,
+.ww-app .more-list a,
+.ww-app .status-label,
+.ww-app .status-pill,
+.ww-app .task-main,
+.ww-app .button { overflow-wrap: anywhere; }
+
+/* ==========================================================================
+   20. Bewegung – optional, reduced-motion-freundlich
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  .ww-app .button,
+  .ww-app .list-row,
+  .ww-app .more-list a,
+  .ww-app .quick-actions a,
+  .ww-app .app-nav a,
+  .ww-app .filter-nav a,
+  .ww-app .chat-tabs a,
+  .ww-app .status-pill {
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .ww-app dialog.crypto-unlock[open] { animation: ww-dialog-in .2s ease-out both; }
+}
+
+@keyframes ww-dialog-in {
+  from { opacity: .4; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-app .button,
+  .ww-app .button.primary:active,
+  .ww-app .list-row,
+  .ww-app .more-list a,
+  .ww-app .quick-actions a,
+  .ww-app .app-nav a,
+  .ww-app .filter-nav a,
+  .ww-app .chat-tabs a,
+  .ww-app .status-pill,
+  .ww-app dialog.crypto-unlock[open] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   21. Hoher Kontrast (prefers-contrast: more)
+   accessibility.css setzt die Tokens auf Schwarz/Weiß; hier nur Schatten weg
+   und Ränder verstärken, damit die Flächen genauso klar bleiben.
+   ========================================================================== */
+
+@media (prefers-contrast: more) {
+  .ww-app .section-block,
+  .ww-app .form-card,
+  .ww-app .summary-list,
+  .ww-app .payment-hints,
+  .ww-app .balance-row > div,
+  .ww-app .more-list,
+  .ww-app .install-banner,
+  .ww-app .access-panel,
+  .ww-app .error-shell,
+  .ww-app .day-switcher,
+  .ww-app .empty-state,
+  .ww-app .status-pill,
+  .ww-app .items,
+  .ww-app .table-wrap,
+  .ww-app .task-band,
+  .ww-app .week-day {
+    border-color: #000;
+    box-shadow: none;
+  }
+  .ww-app .button.primary,
+  .ww-app .button.secondary,
+  .ww-app .app-header {
+    box-shadow: none;
+  }
+  .ww-app .more-list a::after { border-color: #000; }
+  .ww-app .row-content small,
+  .ww-app .hint,
+  .ww-app .lead,
+  .ww-app .context-line { color: #000; }
+}

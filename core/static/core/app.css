@@ -358,6 +358,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   background: rgba(13, 71, 161, .08);
   font-size: .95em;
 }
+/* Author display:flex must never override the native hidden attribute. */
+.install-banner[hidden] { display: none !important; }
 .install-banner {
   width: min(var(--content), calc(100% - 2rem));
   display: flex;

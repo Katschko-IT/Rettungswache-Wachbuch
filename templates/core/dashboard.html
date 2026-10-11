@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Übersicht | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} · {{ dashboard_profile.eyebrow }} · {% now "l, d. F" %}</p>
+    <p class="ww-section-caption context-line">{{ current_membership.station.name }} · {{ dashboard_profile.eyebrow }} · {% now "l, d. F" %}</p>
     <h1>Übersicht</h1>
+    <p class="lead">Was die nächste Schicht wissen muss – aktive Übergaben und die nächsten Termine.</p>
     <p class="status-summary">
       <a class="status-pill danger" href="{% url 'handover_list' %}?ansicht=dringend"><strong>{{ urgent_count }}</strong> dringend</a>
       <a class="status-pill" href="{% url 'handover_list' %}"><strong>{{ open_count }}</strong> aktive Übergaben</a>
@@ -19,10 +20,10 @@
   {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>Tagesaufgaben</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} erledigt · Wandtafel</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>Kalender</strong><span>Nächste Wachentermine</span></a>{% endif %}
 </nav>
 
-<section class="section-block operations-summary" aria-labelledby="operations-summary">
+<section class="ww-surface section-block operations-summary" aria-labelledby="operations-summary">
   <div class="section-heading">
     <h2 id="operations-summary">Wachalltag im Blick</h2>
-    <span class="context-line">Nur offene stationsbezogene Punkte</span>
+    <span class="ww-section-caption context-line">Nur offene stationsbezogene Punkte</span>
   </div>
   <div class="quick-actions">
     {% for card in dashboard_cards %}<a href="{% url card.url_name %}"><strong>{{ card.value }} {{ card.title }}</strong><span>{{ card.subtitle }}</span></a>{% endfor %}
@@ -30,7 +31,7 @@
 </section>
 
 <div class="overview-layout">
-  <section class="section-block" aria-labelledby="active-handovers">
+  <section class="ww-surface section-block" aria-labelledby="active-handovers">
     <div class="section-heading">
       <h2 id="active-handovers">{{ dashboard_profile.handover_title }}</h2>
       <a href="{% url 'handover_list' %}">{{ dashboard_profile.handover_link }}</a>
@@ -46,7 +47,7 @@
     </div>
   </section>
 
-  {% if calendar_enabled %}<section class="section-block" aria-labelledby="next-events">
+  {% if calendar_enabled %}<section class="ww-surface section-block" aria-labelledby="next-events">
     <div class="section-heading">
       <h2 id="next-events">Nächste Termine</h2>
       <a href="{% url 'calendar' %}">Kalender</a>

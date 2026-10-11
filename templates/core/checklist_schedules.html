@@ -2,11 +2,11 @@
 {% block title %}Prüfintervalle | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'checklists' %}">Zurück zu Checklisten</a>
-<header class="page-heading">
-  <p class="context-line">Checklisten</p><h1>Prüfintervalle</h1>
+<header class="ww-page-intro page-heading">
+  <p class="ww-section-caption context-line">Checklisten</p><h1>Prüfintervalle</h1>
   <p class="lead">Tägliche, wöchentliche oder monatliche Prüfungen mit nächster Fälligkeit.</p>
 </header>
-<section class="section-block flush">
+<section class="ww-surface section-block flush">
   <div class="item-list">
     {% for checklist,schedule in rows %}
       <div class="list-row">

@@ -2,8 +2,8 @@
 {% block title %}Post | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'secure_mail_inbox' %}">Zurück zur Post</a>
-<header class="page-heading narrow">
-  <p class="context-line">E2EE · Teilnehmerkreis</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">E2EE · Teilnehmerkreis</p>
   <h1>Nachricht</h1>
   <p class="lead">Von {{ mail.sender.first_name|default:mail.sender.username }} · {{ mail.created_at|date:"d.m.Y H:i" }}</p>
 </header>
@@ -13,7 +13,7 @@
 <section class="content-flow narrow" data-e2ee-mail-detail data-viewer-id="{{ viewer_id }}">
   <p class="hint" data-crypto-status hidden></p>
   {{ envelope_json|json_script:"mail-envelope-json" }}
-  <article class="form-card">
+  <article class="ww-surface form-card">
     <h2 data-mail-subject>…</h2>
     <p data-mail-body>…</p>
     <small class="crypto-tag">Clientseitig verschlüsselt gespeichert</small>

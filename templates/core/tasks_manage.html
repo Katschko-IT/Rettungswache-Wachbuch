@@ -2,16 +2,16 @@
 {% block title %}Aufgaben-Vorlage | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'tasks_today' %}">Zurück zu Tagesaufgaben</a>
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">Wachenorganisation</p>
+    <p class="ww-section-caption context-line">Wachenorganisation</p>
     <h1>Aufgaben-Vorlage</h1>
-    <p class="lead">Entspricht dem laminerten Bogen an der Wand. Keine Dienstplanung und keine Patientendaten.</p>
+    <p class="lead">Entspricht dem laminierten Bogen an der Wand. Keine Dienstplanung und keine Patientendaten.</p>
   </div>
   <a class="button primary" href="{% url 'task_create' %}">Aufgabe anlegen</a>
 </header>
 
-<section class="section-block flush">
+<section class="ww-surface section-block flush">
   <div class="item-list">
     {% for task in page_obj %}
       <a class="list-row" href="{% url 'task_edit' task.pk %}">

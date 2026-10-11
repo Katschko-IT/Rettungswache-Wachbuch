@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Private Chats | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading narrow">
-  <p class="context-line">Nur Teilnehmer</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Nur Teilnehmer</p>
   <h1>Private Chats</h1>
   <p class="lead">1:1 und Ende-zu-Ende-verschlüsselt. Master-Admin ohne Teilnahme kann den Inhalt nicht lesen.</p>
 </header>
@@ -14,7 +14,7 @@
 {% if not has_keys %}
   <p class="notice"><a href="{% url 'crypto_setup' %}">Chat-Schlüssel einrichten</a>, bevor private Chats funktionieren.</p>
 {% endif %}
-<section class="section-block narrow">
+<section class="ww-surface section-block narrow">
   <h2>Unterhaltungen</h2>
   <div class="member-list-clean">
     {% for item in peers %}
@@ -30,9 +30,9 @@
     {% endfor %}
   </div>
 </section>
-<section class="section-block narrow">
+<section class="ww-surface section-block narrow">
   <h2>Neuen Chat starten</h2>
-  <form method="post" class="form-card">
+  <form method="post" class="ww-form-panel form-card">
     {% csrf_token %}
     <p>
       <label>Kollege

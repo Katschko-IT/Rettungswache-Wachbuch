@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Kaffeekasse | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
-  <div><p class="context-line">Gemeinschaftskasse</p><h1>Kaffeekasse</h1><p class="lead">Fehler werden nachvollziehbar durch Gegenbuchung korrigiert.</p></div>
+<header class="ww-page-intro page-heading heading-with-action">
+  <div><p class="ww-section-caption context-line">Gemeinschaftskasse</p><h1>Kaffeekasse</h1><p class="lead">Buchungen sind unveränderlich; Fehler werden nachvollziehbar durch Gegenbuchung korrigiert.</p></div>
   {% if can_book %}<a class="button primary" href="{% url 'coffee_create' %}">Buchung erfassen</a>{% endif %}
 </header>
 <div class="balance-row"><div><span>Mein Stand</span><strong>{{ own_euros|floatformat:2 }} €</strong></div>{% if can_book %}<div><span>Gesamtsaldo</span><strong>{{ total_euros|floatformat:2 }} €</strong></div>{% endif %}</div>
 {% if station.paypal_me_url or station.wero_link or station.iban or station.payment_note %}
-<section class="payment-hints" aria-label="Zahlungswege">
+<section class="ww-surface payment-hints" aria-label="Zahlungswege">
   <h2>Einzahlen an die Gemeinschaftskasse</h2>
   {% if station.payment_note %}<p class="payment-note">{{ station.payment_note }}</p>{% endif %}
   <ul class="payment-options">
@@ -22,7 +22,7 @@
     </li>
     {% endif %}
   </ul>
-  <p class="payment-privacy">Diese Zahlungsdaten sind im Team oeffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert.</p>
+  <p class="payment-privacy">Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert.</p>
 </section>
 {% endif %}
 <div class="table-wrap" tabindex="0" role="region" aria-label="Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen">

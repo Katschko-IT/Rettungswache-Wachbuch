@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Offline | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="access-panel offline-panel">
-  <p class="context-line">Keine Verbindung</p>
-  <h1>Offline</h1>
-  <p class="lead">Diese Seite ist gerade nicht erreichbar. Bereits geöffnete Übersichten können im Gerätespeicher noch verfügbar sein und veraltet sein.</p>
+<section class="ww-surface offline-panel" aria-labelledby="offline-title">
+  <header class="ww-page-intro">
+    <p class="context-line">Keine Verbindung</p>
+    <h1 id="offline-title">Offline</h1>
+    <p class="lead">Diese Seite ist gerade nicht erreichbar. Bereits geöffnete Übersichten können im Gerätespeicher noch verfügbar sein und veraltet sein.</p>
+  </header>
+
   <p class="notice">Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich.</p>
+
   <div class="form-actions">
     <a class="button primary" href="{% url 'landing' %}">Zur Startseite</a>
     <a class="button secondary" href="{% url 'handover_list' %}">Übergaben</a>

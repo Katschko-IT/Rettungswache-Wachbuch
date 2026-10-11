@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Pinnwand | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
-  <div><p class="context-line">Wache</p><h1>Pinnwand</h1><p class="lead">Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten.</p></div>
+<header class="ww-page-intro page-heading heading-with-action">
+  <div><p class="ww-section-caption context-line">Wache</p><h1>Pinnwand</h1><p class="lead">Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten.</p></div>
   <a class="button primary" href="{% url 'pinboard_create' %}">Aushang anlegen</a>
 </header>
 
-<section class="section-block flush" aria-label="Aushänge">
+<section class="ww-surface section-block flush" aria-label="Aushänge">
   <div class="item-list">
     {% for note in page_obj %}
       <article class="list-row pinboard-row">

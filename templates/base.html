@@ -17,12 +17,17 @@
   <link rel="icon" href="{% static 'core/icons/icon-192.png' %}" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="{% static 'core/icons/icon-192.png' %}">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  {# Bootstrap 5.3.8 (MIT) lokal vendored, kein CDN: core/static/core/vendor/bootstrap/.
+     Reboot/Utilities liegen vor app.css, damit die App-Designschicht gewinnt. #}
+  <link rel="stylesheet" href="{% static 'core/vendor/bootstrap/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'core/app.css' %}">
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'core/crypto_unlock.css' %}">
+  {# Gemeinsame App-UI-Schicht (Wachbuch Klar) – zuletzt, nach allen Basis-CSS. #}
+  <link rel="stylesheet" href="{% static 'core/app-ui.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
-<body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
+<body class="ww-app {% if request.user.is_authenticated %}ww-app--auth{% else %}ww-app--anon{% endif %} {% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#inhalt">Zum Inhalt</a>
   {% if demo_public_mode %}
   <div class="demo-banner" role="status">
@@ -66,14 +71,14 @@
   <div class="connection-chip" data-connection-chip hidden role="status"></div>
 
   {% if current_membership and current_membership.role != 'auditor' %}
-    <div class="install-banner" data-install-banner hidden>
+    <div class="install-banner" data-install-banner hidden data-install-manual-only>
+      <button type="button" class="button secondary install-close" data-install-dismiss aria-label="Installationshinweis schließen" title="Installationshinweis schließen">&times;</button>
       <div>
         <strong>{{ app_name }} auf dem Gerät</strong>
         <span>Als App installieren für schnellen Zugriff auf der Wache.</span>
       </div>
       <div class="install-actions">
         <button type="button" class="button primary" data-install-button>Installieren</button>
-        <button type="button" class="button secondary" data-install-dismiss>Später</button>
       </div>
     </div>
   {% endif %}

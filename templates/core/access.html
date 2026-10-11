@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Zugang | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="access-panel">
-  <p class="context-line">Geschützter Bereich</p>
-  <h1>Zugang wartet auf Freigabe</h1>
-  <p class="lead">Angemeldet als <strong>{{ request.user.username }}</strong>. Der Master-Admin muss das Konto einer Rettungswache zuordnen.</p>
-  <p><a class="button secondary" href="{% url 'account_home' %}">Zum persönlichen Bereich</a></p>
+<section class="ww-auth-layout">
+  <div class="ww-form-panel">
+    <header class="ww-page-intro">
+      <p class="context-line">Geschützter Bereich</p>
+      <h1>Zugang wartet auf Freigabe</h1>
+      <p class="lead">Angemeldet als <strong>{{ request.user.username }}</strong>. Der Master-Admin muss das Konto einer Rettungswache zuordnen.</p>
+    </header>
+
+    <p class="form-actions">
+      <a class="button primary" href="{% url 'account_home' %}">Zum persönlichen Bereich</a>
+      <a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a>
+    </p>
+  </div>
+
+  <aside class="ww-auth-aside" aria-labelledby="access-aside-title">
+    <h2 class="ww-section-caption" id="access-aside-title">So geht es weiter</h2>
+    <ol class="landing-points">
+      <li>Die Wachenverwaltung ordnet das Konto einer Rettungswache zu.</li>
+      <li>Mit der aktiven Freigabe werden die Fachfunktionen der Wache sichtbar.</li>
+      <li>Bis dahin stehen der persönliche Bereich und die Kontoeinstellungen offen.</li>
+    </ol>
+  </aside>
 </section>
 {% endblock %}

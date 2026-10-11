@@ -2,12 +2,12 @@
 {% block title %}Mangel anlegen | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'defects_web' %}">Zurück zu Mängeln</a>
-<header class="page-heading narrow">
-  <p class="context-line">Wachalltag</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Wachalltag</p>
   <h1>Mangel anlegen</h1>
   <p class="lead">Nur Informationen zur Wachenorganisation, zu Material, Fahrzeugen oder Gebäuden.</p>
 </header>
-<form method="post" class="form-card">
+<form method="post" class="ww-form-panel form-card">
   {% csrf_token %}
   <div class="field"><label for="id_title">Titel</label><input id="id_title" name="title" maxlength="160" required value="{{ request.POST.title }}"></div>
   <div class="field"><label for="id_description">Beschreibung</label><textarea id="id_description" name="description" maxlength="3000" rows="5">{{ request.POST.description }}</textarea></div>

@@ -2,12 +2,12 @@
 {% block title %}Zugang freigeben | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'team' %}">Zurück zum Team</a>
-<header class="page-heading narrow">
-  <p class="context-line">Master-Admin</p>
+<header class="ww-page-intro page-heading narrow">
+  <p class="ww-section-caption context-line">Master-Admin</p>
   <h1>Zugang freigeben</h1>
   <p class="lead">Bestehende Konten ohne aktive Mitgliedschaft einer Wache zuordnen. Neue Nutzer legst du unter „Benutzer anlegen“ an.</p>
 </header>
-<form method="post" class="form-card narrow">
+<form method="post" class="ww-form-panel form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Wochenbogen | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
+<header class="ww-page-intro page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {{ board.week_label }}</p>
+    <p class="ww-section-caption context-line">{{ current_membership.station.name }} &middot; {{ board.week_label }}</p>
     <h1>Wochenbogen</h1>
     <p class="lead">Wie der laminierte Wandbogen: sieben Tage, farbige Aufgabenbereiche, Fortschritt auf einen Blick.</p>
   </div>

@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Kalender | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
-  <div><p class="context-line">Wachenorganisation</p><h1>Kalender</h1><p class="lead">Wachentermine{% if holidays_enabled %} und gesetzliche Feiertage (NRW){% endif %} – keine Dienstplanung.</p></div>
+<header class="ww-page-intro page-heading heading-with-action">
+  <div>
+    <p class="ww-section-caption context-line">Wachenorganisation</p>
+    <h1>Kalender</h1>
+    <p class="lead">Wachentermine{% if holidays_enabled %} und gesetzliche Feiertage (NRW){% endif %} – keine Dienstplanung.</p>
+  </div>
   <div class="form-actions">
     {% if can_create %}<a class="button secondary" href="{% url 'calendar_feed_manage' %}">Abo-Links</a><a class="button primary" href="{% url 'calendar_create' %}">Termin anlegen</a>{% endif %}
   </div>
 </header>
-<section class="section-block flush">
+<section class="ww-surface section-block flush">
   <p><a class="text-action" href="{% url 'calendar_feed_ics' %}">Gesamten Kalender als ICS</a></p>
   <div class="agenda">
     {% for event in page_obj %}
