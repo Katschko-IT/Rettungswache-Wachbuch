@@ -131,9 +131,22 @@ Inline-Styles einführt.
 
 ## 8. Verbleibende Grenzen
 
-- Der Service-Worker-Precache (`core/views.py::service_worker`) listet
-  `app-ui.css` nicht auf; die Datei wird beim ersten Aufruf normal geladen und
-  dann vom Browser gecacht. Der Precacher liegt außerhalb des erlaubten
-  Dateisatzes.
+- Der Service-Worker-Precache (`core/views.py::service_worker`) lädt die lokale
+  Bootstrap-Datei und `app-ui.css` **vor** `app.css` bzw. als letzte Designschicht;
+  die Cache-Version enthält den Zusatz `-app-ui-1`, damit installierte Apps die
+  neuen Dateien erhalten.
+- **Reflow bei 200 % Schriftgröße:** Der Abnahmelauf prüft auf allen 34 Seiten,
+  dass das Dokument nicht seitlich scrollt (`scrollLeft` bleibt 0) und kein
+  Element außerhalb eines bewussten Scroll-Containers über den Viewport
+  hinausragt. Dafür wurden Tabellenkarten, Listenzeilen, Agenda-Zeilen, die
+  Navigationsleiste und das Übersichts-Grid nachgezogen. `scrollWidth -
+  innerWidth` ist hier **kein** gültiges Signal: bei sichtbarem `html`-Kasten
+  meldet es den Overflow-Bereich auch dann, wenn die Seite gar nicht scrollen
+  kann.
+- **Fehlerhandler:** `core/context.py` liest `request.user` nur noch über
+  `getattr(...)`. Vorher brach die 500-Seite selbst ab (`'WSGIRequest' object has
+  no attribute 'user'`), wenn eine Anfrage nie die Auth-Middleware passiert hatte
+  – etwa bei einer fehlenden statischen Datei – und Besucher sahen einen nackten
+  Serverfehler statt der gestalteten Fehlerseite.
 - Browser-, Screenreader-, Kontrast- und Reflow-Nachweise am realen Gerät
   stehen weiterhin aus (siehe `docs/GO-LIVE-CHECKLIST.md`).
