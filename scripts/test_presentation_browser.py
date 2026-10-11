@@ -128,6 +128,31 @@ try:
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.evaluate('Object.keys(localStorage).length + Object.keys(sessionStorage).length')
             assert not any(r['type'] in ['fetch','xhr'] or r['method'] != 'GET' for r in requests)
+            # Opt-in slides use the browser clock; they never change acknowledgements/tasks.
+            play = page.locator('[data-pw-play]')
+            assert play.get_attribute('aria-pressed') == 'false'
+            page.clock.install()
+            play.click()
+            assert play.get_attribute('aria-pressed') == 'true'
+            page.clock.run_for(6500)
+            assert page.locator('[data-pw-panel="handover"]').is_visible()
+            assert page.locator('[data-pw-ack-status]').inner_text() == 'Noch nicht gelesen.'
+            page.locator('[data-pw-view="tasks"]').click()
+            assert play.get_attribute('aria-pressed') == 'false'
+            page.clock.run_for(7000)
+            assert page.locator('[data-pw-panel="tasks"]').is_visible()
+            play.click()
+            page.keyboard.press('Escape')
+            assert play.get_attribute('aria-pressed') == 'false'
+            play.click()
+            page.clock.run_for(26000)
+            assert play.get_attribute('aria-pressed') == 'false'
+            assert page.locator('[data-pw-panel="calendar"]').is_visible()
+            page.clock.run_for(13000)
+            assert page.locator('[data-pw-panel="calendar"]').is_visible()
+            assert page.locator('[data-pw-task]:checked').count() == 0
+            assert page.locator('.pw-view.is-on').evaluate('(e)=>getComputedStyle(e).animationName') == 'none'
+            page.locator('[data-pw-reset]').click()
             assert not errors, errors
             page.screenshot(path=str(out / f'after-{label}.png'), full_page=True)
             page.locator('#demo').screenshot(path=str(out / f'phone-{label}.png'))

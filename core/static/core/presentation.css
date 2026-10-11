@@ -364,6 +364,21 @@ body.pw-page {
   .pw-screen { border-radius: 1.5rem; height: min(600px, 74vh); padding-top: 2.2rem; }
 }
 
+/* ---------- Presentation motion: no autoplay, no layout shifts ---------- */
+.pw-playback:not([hidden]) { display: flex; align-items: center; justify-content: center; gap: .75rem; margin: .75rem auto 0; max-width: 330px; }
+.pw-play { max-width: 100%; min-width: 0; min-height: var(--pw-touch); padding: .5rem .85rem; font: inherit; font-weight: 600; color: var(--pw-brand); background: var(--pw-bg-2); border: 1px solid var(--pw-line); border-radius: 10px; cursor: pointer; }
+.pw-play:hover { border-color: var(--pw-brand); }
+.pw-play-track { flex: 1; min-width: 32px; height: 4px; border-radius: 4px; background: var(--pw-line); overflow: hidden; }
+.pw-play-progress { display: block; width: 25%; height: 100%; background: var(--pw-brand); transition: width 400ms ease; }
+.pw-playback[data-view="handover"] .pw-play-progress { width: 50%; }
+.pw-playback[data-view="tasks"] .pw-play-progress { width: 75%; }
+.pw-playback[data-view="calendar"] .pw-play-progress { width: 100%; }
+.pw-view.is-on { animation: pw-panel-enter 280ms ease-out both; }
+@keyframes pw-panel-enter { from { opacity: .35; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.pw-reveal { opacity: 0; transform: translateY(14px); transition: opacity 450ms ease-out, transform 450ms ease-out; }
+.pw-reveal.pw-entered { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .pw-reveal { opacity: 1; transform: none; } }
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

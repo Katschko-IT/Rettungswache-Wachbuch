@@ -32,6 +32,90 @@
     }
   }
 
+  /* Opt-in presentation: one pass, no mutations or automatic restart. */
+  var playButton = root.querySelector("[data-pw-play]");
+  var playback = root.querySelector("[data-pw-playback]");
+  var tourTimer = null;
+  var tourPlaying = false;
+  var tourIndex = 0;
+  var tourViews = ["overview", "handover", "tasks", "calendar"];
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function stopTour() {
+    window.clearTimeout(tourTimer);
+    tourTimer = null;
+    tourPlaying = false;
+    if (playButton) {
+      playButton.textContent = "Rundgang starten";
+      playButton.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  function advanceTour() {
+    if (!tourPlaying || document.hidden) { stopTour(); return; }
+    tourIndex += 1;
+    if (tourIndex >= tourViews.length) {
+      stopTour();
+      announce("Rundgang beendet. Du kannst die Vorschau selbst bedienen.");
+      return;
+    }
+    show(tourViews[tourIndex]);
+    announce("Rundgang: " + steps[tourIndex].textContent.trim());
+    tourTimer = window.setTimeout(advanceTour, 6500);
+  }
+
+  if (playButton && playback) {
+    playback.removeAttribute("hidden");
+    playButton.addEventListener("click", function () {
+      if (tourPlaying) { stopTour(); announce("Rundgang angehalten."); return; }
+      tourPlaying = true;
+      tourIndex = 0;
+      show("overview");
+      playButton.textContent = "Rundgang stoppen";
+      playButton.setAttribute("aria-pressed", "true");
+      root.querySelector(".pw-device").scrollIntoView({
+        block: "center", behavior: reducedMotion.matches ? "auto" : "smooth"
+      });
+      announce("Rundgang gestartet. Vier Ansichten, jeweils sechseinhalb Sekunden.");
+      tourTimer = window.setTimeout(advanceTour, 6500);
+    });
+    root.addEventListener("click", function (event) {
+      if (event.target.closest("button, input, label, a") && !event.target.closest("[data-pw-play]")) {
+        stopTour();
+      }
+    }, true);
+    root.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" || event.key === "Tab") { stopTour(); }
+    });
+    root.querySelector(".pw-screen").addEventListener("wheel", stopTour, { passive: true });
+    root.querySelector(".pw-screen").addEventListener("touchstart", stopTour, { passive: true });
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) { stopTour(); }
+    });
+  }
+
+  /* Progressive enhancement: content stays visible without JS/observer. */
+  if ("IntersectionObserver" in window && !reducedMotion.matches) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("pw-entered");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    Array.prototype.slice.call(root.querySelectorAll(".pw-section, .pw-final")).forEach(function (section) {
+      section.classList.add("pw-reveal");
+      revealObserver.observe(section);
+    });
+  }
+  if ("IntersectionObserver" in window) {
+    var tourObserver = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) { stopTour(); }
+    });
+    tourObserver.observe(root.querySelector("#demo"));
+  }
+
   function show(name) {
     panels.forEach(function (panel) {
       var on = panel.getAttribute("data-pw-panel") === name;
@@ -42,6 +126,7 @@
         panel.setAttribute("hidden", "");
       }
     });
+    if (playback) { playback.setAttribute("data-view", name); }
     var screen = root.querySelector(".pw-screen");
     if (screen) { screen.scrollTop = 0; }
     steps.forEach(function (step) {
