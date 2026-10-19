@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Checklisten | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Checklisten" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
+<a class="back-link" href="{% url 'more' %}">{% translate "Zurück zu Mehr" %}</a>
 <header class="page-heading">
-  <p class="context-line">Wachalltag</p>
-  <h1>Checklisten</h1>
-  <p class="lead">Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren.</p>
+  <p class="context-line">{% translate "Wachalltag" %}</p>
+  <h1>{% translate "Checklisten" %}</h1>
+  <p class="lead">{% translate "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren." %}</p>
 </header>
 {% if not checklists %}
-<p>Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen
-Checklisten unter der Verwaltung an.</p>
+<p>{% translate "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an." %}</p>
 {% endif %}
 {% for checklist in checklists %}
 <section class="form-card">
@@ -19,15 +19,15 @@ Checklisten unter der Verwaltung an.</p>
     {% for item in checklist.items.all %}<li>{{ item.text }}</li>{% endfor %}
   </ul>
   {% if checklist.latest_completion %}
-  <p class="context-line">Zuletzt erledigt am
+  <p class="context-line">{% translate "Zuletzt erledigt am" %}
     {{ checklist.latest_completion.created_at|date:"d.m.Y H:i" }}
-    von {{ checklist.latest_completion.completed_by.first_name|default:checklist.latest_completion.completed_by.username }}</p>
+    {% translate "von" %} {{ checklist.latest_completion.completed_by.first_name|default:checklist.latest_completion.completed_by.username }}</p>
   {% endif %}
   <form method="post" action="{% url 'checklist_complete' checklist.id %}">
     {% csrf_token %}
-    <input type="text" name="note" maxlength="300" placeholder="Notiz (optional)">
+    <input type="text" name="note" maxlength="300" placeholder="{% translate 'Notiz (optional)' %}">
     <div class="form-actions">
-      <button class="button primary" type="submit">Als erledigt vermerken</button>
+      <button class="button primary" type="submit">{% translate "Als erledigt vermerken" %}</button>
     </div>
   </form>
 </section>

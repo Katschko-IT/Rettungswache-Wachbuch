@@ -1,19 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Benutzer anlegen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Benutzer anlegen" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'team' %}">Zurück zum Team</a>
+<a class="back-link" href="{% url 'team' %}">{% translate "Zurück zum Team" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Master-Admin</p>
-  <h1>Benutzer anlegen</h1>
-  <p class="lead">Konto erstellen und sofort der Wache zuordnen. Der Nutzer ändert Passwort, Zwei-Faktor und Profilbild unter Mein Konto.</p>
+  <p class="context-line">{% translate "Master-Admin" %}</p>
+  <h1>{% translate "Benutzer anlegen" %}</h1>
+  <p class="lead">{% translate "Konto erstellen und sofort der Wache zuordnen. Der Nutzer ändert Passwort, Zwei-Faktor und Profilbild unter Mein Konto." %}</p>
 </header>
 <form method="post" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
   <div class="form-actions">
-    <button class="button primary" type="submit">Anlegen und freigeben</button>
-    <a class="button secondary" href="{% url 'team' %}">Abbrechen</a>
+    <button class="button primary" type="submit">{% translate "Anlegen und freigeben" %}</button>
+    <a class="button secondary" href="{% url 'team' %}">{% translate "Abbrechen" %}</a>
   </div>
 </form>
 {% endblock %}

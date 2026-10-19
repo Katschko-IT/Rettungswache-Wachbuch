@@ -1,16 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Registrieren | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Registrieren" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel">
-  <p class="context-line">Neues Konto</p>
-  <h1>Registrieren</h1>
-  <p class="lead">Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten- oder Einsatzdaten eintragen.</p>
+  <p class="context-line">{% translate "Neues Konto" %}</p>
+  <h1>{% translate "Registrieren" %}</h1>
+  <p class="lead">{% translate "Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten- oder Einsatzdaten eintragen." %}</p>
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}
     {{ form.as_p }}
-    <button class="button primary" type="submit">Konto anlegen</button>
+    <button class="button primary" type="submit">{% translate "Konto anlegen" %}</button>
   </form>
-  <p><a class="text-action" href="{% url 'login' %}">Bereits registriert? Anmelden</a></p>
+  <p><a class="text-action" href="{% url 'login' %}">{% translate "Bereits registriert? Anmelden" %}</a></p>
 </section>
 {% endblock %}

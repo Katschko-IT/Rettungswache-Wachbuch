@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Version und Systemstatus" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line"><a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a></p>
+  <h1>{% translate "Version und Systemstatus" %}</h1>
+  <p class="lead">{% translate "Minimale technische Auskunft für die Wachenadministration. Es werden keine Protokolle, Pfade oder Zugangsdaten angezeigt." %}</p>
+</header>
+
+<section aria-labelledby="system-version-title">
+  <h2 id="system-version-title">{% translate "Version" %}</h2>
+  <dl class="system-facts">
+    <dt>{% translate "Produktversion" %}</dt><dd>{{ app_version }}</dd>
+    <dt>{% translate "Build-Kennung" %}</dt>
+    <dd>{% if build_commit %}{{ build_commit }}{% else %}{% translate "nicht hinterlegt" %}{% endif %}</dd>
+    <dt>{% translate "Hilfe-Artikelstand" %}</dt><dd>{{ help_revision }}</dd>
+    <dt>{% translate "Installation" %}</dt><dd>{{ release_hint.installation }}</dd>
+  </dl>
+  <p>{% translate "Diese Version enthält keine automatische Update-Funktion. Aktualisierungen erfolgen durch die Betreiber." %}</p>
+</section>
+
+<section aria-labelledby="system-db-title">
+  <h2 id="system-db-title">{% translate "Datenbank" %}</h2>
+  <dl class="system-facts">
+    <dt>{% translate "Erreichbarkeit" %}</dt>
+    <dd>{% if database.reachable %}{% translate "erreichbar" %}{% else %}{% translate "nicht erreichbar" %}{% endif %}</dd>
+    <dt>{% translate "Angewendete Migrationen" %}</dt>
+    <dd>{% if migrations.available %}{{ migrations.applied }}{% else %}{% translate "nicht ermittelbar" %}{% endif %}</dd>
+    <dt>{% translate "Offene Migrationen" %}</dt>
+    <dd>{% if not migrations.available %}{% translate "nicht ermittelbar" %}{% elif migrations.pending %}{{ migrations.pending|join:", " }}{% else %}{% translate "keine" %}{% endif %}</dd>
+  </dl>
+</section>
+
+<section aria-labelledby="system-cache-title">
+  <h2 id="system-cache-title">{% translate "Zwischenspeicher" %}</h2>
+  <dl class="system-facts">
+    <dt>{% translate "Typ" %}</dt><dd>{{ cache.backend }}</dd>
+    <dt>{% translate "Dauerhaft" %}</dt>
+    <dd>{% if cache.durable %}{% translate "ja" %}{% else %}{% translate "nein" %}{% endif %}</dd>
+  </dl>
+  {% if not cache.durable %}
+    <p class="warning">{% translate "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher." %}</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="system-diagnostics-title">
+  <h2 id="system-diagnostics-title">{% translate "Diagnose" %}</h2>
+  <p>{% translate "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache." %}</p>
+  <p class="row-actions">
+    <a class="button ghost" href="{% url 'error_events' %}">{% translate "Fehlerereignisse" %}</a>
+    <a class="button ghost" href="{% url 'support_export' %}">{% translate "Supportbericht herunterladen" %}</a>
+  </p>
+</section>
+{% endblock %}

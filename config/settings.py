@@ -51,6 +51,9 @@ MIDDLEWARE = [
     "core.middleware.SecurityHeadersMiddleware",
     "core.middleware.ClientIPMiddleware",
     "axes.middleware.AxesMiddleware",
+    # Muss nach der Korrelations-ID-Middleware stehen, damit die ID bereits
+    # am Request haengt, wenn ein 5xx-Ereignis erfasst wird.
+    "core.diagnostics.ErrorEventMiddleware",
 ]
 
 # Optional Redis cache. Keep serialized values non-executable: django-redis uses
@@ -293,6 +296,10 @@ FEED_MAX_BYTES = 2_000_000
 WASTE_CALENDAR_MAX_BYTES = 1_048_576
 RETENTION_FEED_DAYS = int(os.getenv("RETENTION_FEED_DAYS", "90") or "0")
 RETENTION_AUDIT_DAYS = int(os.getenv("RETENTION_AUDIT_DAYS", "0") or "0")
+# Technische Aufbewahrung bereinigter 5xx-Fehlerereignisse. Das ist eine
+# Betriebsrichtlinie, keine gesetzliche Frist; sie ist bewusst konfigurierbar.
+ERROR_EVENT_RETENTION_DAYS = int(os.getenv("ERROR_EVENT_RETENTION_DAYS", "30") or "30")
+ERROR_EVENT_EXPORT_LIMIT = int(os.getenv("ERROR_EVENT_EXPORT_LIMIT", "200") or "200")
 MFA_ENABLED = env_bool("MFA_ENABLED", default=True)
 MFA_REQUIRED = env_bool("MFA_REQUIRED", default=False)
 DEMO_MODE = env_bool("DEMO_MODE", default=False)

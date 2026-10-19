@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Aufgaben-Vorlage | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Aufgaben-Vorlage" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'tasks_today' %}">Zurück zu Tagesaufgaben</a>
+<a class="back-link" href="{% url 'tasks_today' %}">{% translate "Zurück zu Tagesaufgaben" %}</a>
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">Wachenorganisation</p>
-    <h1>Aufgaben-Vorlage</h1>
-    <p class="lead">Entspricht dem laminerten Bogen an der Wand. Keine Dienstplanung und keine Patientendaten.</p>
+    <p class="context-line">{% translate "Wachenorganisation" %}</p>
+    <h1>{% translate "Aufgaben-Vorlage" %}</h1>
+    <p class="lead">{% translate "Entspricht dem laminerten Bogen an der Wand. Keine Dienstplanung und keine Patientendaten." %}</p>
   </div>
-  <a class="button primary" href="{% url 'task_create' %}">Aufgabe anlegen</a>
+  <a class="button primary" href="{% url 'task_create' %}">{% translate "Aufgabe anlegen" %}</a>
 </header>
 
 <section class="section-block flush">
@@ -20,13 +21,13 @@
           <strong>{{ task.title }}</strong>
           <small>
             {% if task.weekday is not None %}{{ task.get_weekday_display }} · {% endif %}
-            {% if task.is_active %}Aktiv{% else %}Inaktiv{% endif %}
+            {% if task.is_active %}{% translate "Aktiv" %}{% else %}{% translate "Inaktiv" %}{% endif %}
             {% if task.notes %} · {{ task.notes|truncatechars:80 }}{% endif %}
           </small>
         </span>
-        <span>Bearbeiten</span>
+        <span>{% translate "Bearbeiten" %}</span>
       </a>
-    {% empty %}<p class="empty-state">Noch keine Aufgaben.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Aufgaben." %}</p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

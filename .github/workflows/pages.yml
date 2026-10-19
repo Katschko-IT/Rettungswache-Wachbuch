@@ -36,6 +36,9 @@ jobs:
           mkdir -p _site
           cp site/index.html site/styles.css site/.nojekyll _site/
           cp -R site/assets _site/
+          # English edition lives in its own subdirectory and must ship too.
+          mkdir -p _site/en
+          cp site/en/index.html _site/en/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -1,8 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import (
     account_views,
     community_views,
+    diagnostics_views,
+    help_views,
     i18n_views,
     secure_views,
     setup_views,
@@ -18,6 +20,16 @@ urlpatterns = [
     path("demo-einstieg/", views.demo_login, name="demo_login"),
     path("zugang/", views.access, name="access"),
     path("sprache/", i18n_views.set_language, name="set_language"),
+    path("hilfe/", help_views.help_index, name="help_index"),
+    path("hilfe/<slug:slug>/", help_views.help_article, name="help_article"),
+    path("wiki/", include("core.wiki_urls")),
+    path("system/", help_views.system_status, name="system_status"),
+    path("system/fehler/", diagnostics_views.error_events, name="error_events"),
+    path(
+        "system/supportbericht/",
+        diagnostics_views.support_export,
+        name="support_export",
+    ),
     path("setup/", setup_views.setup_wizard, name="setup_wizard"),
     path("setup/wetter/", setup_views.setup_weather_preview, name="setup_weather_preview"),
     path("aktivieren/<str:token>/", setup_views.activate_account, name="activate_account"),

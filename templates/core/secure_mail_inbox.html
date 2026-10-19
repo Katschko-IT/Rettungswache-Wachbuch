@@ -1,55 +1,56 @@
 {% extends "base.html" %}
-{% block title %}Post | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Post" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Interne Post · E2EE</p>
-  <h1>Post</h1>
-  <p class="lead">Interne Post wird im Browser verschlüsselt gespeichert. Datenbank und Backups enthalten Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells.</p>
+  <p class="context-line">{% translate "Interne Post · E2EE" %}</p>
+  <h1>{% translate "Post" %}</h1>
+  <p class="lead">{% translate "Interne Post wird im Browser verschlüsselt gespeichert. Datenbank und Backups enthalten Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells." %}</p>
 </header>
-<nav class="chat-tabs" aria-label="Nachrichtenbereiche">
-  <a href="{% url 'chat' %}">Wache</a>
-  <a href="{% url 'private_chat_home' %}">Privat</a>
-  <a href="{% url 'secure_mail_inbox' %}" aria-current="page">Post</a>
+<nav class="chat-tabs" aria-label="{% translate 'Nachrichtenbereiche' %}">
+  <a href="{% url 'chat' %}">{% translate "Wache" %}</a>
+  <a href="{% url 'private_chat_home' %}">{% translate "Privat" %}</a>
+  <a href="{% url 'secure_mail_inbox' %}" aria-current="page">{% translate "Post" %}</a>
 </nav>
 {% if not has_keys %}
-  <p class="notice"><a href="{% url 'crypto_setup' %}">Chat-Schlüssel einrichten</a></p>
+  <p class="notice"><a href="{% url 'crypto_setup' %}">{% translate "Chat-Schlüssel einrichten" %}</a></p>
 {% else %}
 <section class="content-flow narrow" data-e2ee-mail data-viewer-id="{{ viewer_id }}">
   <p class="hint" data-crypto-status hidden></p>
   {{ colleagues_json|json_script:"mail-members-json" }}
-  <h2>Empfangen</h2>
+  <h2>{% translate "Empfangen" %}</h2>
   <div class="member-list-clean">
     {% for item in received %}
       <article>
         <div>
-          <strong>Von {{ item.sender.first_name|default:item.sender.username }}</strong>
-          <span>{{ item.created_at|date:"d.m.Y H:i" }} · E2EE</span>
+          <strong>{% translate "Von" %} {{ item.sender.first_name|default:item.sender.username }}</strong>
+          <span>{{ item.created_at|date:"d.m.Y H:i" }} · {% translate "E2EE" %}</span>
         </div>
-        <a class="button secondary" href="{% url 'secure_mail_detail' item.pk %}">Öffnen</a>
+        <a class="button secondary" href="{% url 'secure_mail_detail' item.pk %}">{% translate "Öffnen" %}</a>
       </article>
-    {% empty %}<p class="empty-state">Keine Post.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine Post." %}</p>{% endfor %}
   </div>
-  <h2>Gesendet</h2>
+  <h2>{% translate "Gesendet" %}</h2>
   <div class="member-list-clean">
     {% for item in sent %}
       <article>
         <div>
-          <strong>Gesendet {{ item.created_at|date:"d.m.Y H:i" }}</strong>
-          <span>E2EE</span>
+          <strong>{% translate "Gesendet" %} {{ item.created_at|date:"d.m.Y H:i" }}</strong>
+          <span>{% translate "E2EE" %}</span>
         </div>
-        <a class="button secondary" href="{% url 'secure_mail_detail' item.pk %}">Öffnen</a>
+        <a class="button secondary" href="{% url 'secure_mail_detail' item.pk %}">{% translate "Öffnen" %}</a>
       </article>
-    {% empty %}<p class="empty-state">Noch nichts gesendet.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch nichts gesendet." %}</p>{% endfor %}
   </div>
-  <h2>Neue Post</h2>
+  <h2>{% translate "Neue Post" %}</h2>
   <form class="form-card" data-e2ee-mail-compose>
     <fieldset>
-      <legend>Empfänger</legend>
+      <legend>{% translate "Empfänger" %}</legend>
       <div class="recipient-picks" data-recipient-picks></div>
     </fieldset>
-    <p><label>Betreff <input type="text" name="subject" maxlength="160"></label></p>
-    <p><label>Nachricht <textarea name="body" rows="5" maxlength="4000" required></textarea></label></p>
-    <button class="button primary" type="submit">Verschlüsselt senden</button>
+    <p><label>{% translate "Betreff" %} <input type="text" name="subject" maxlength="160"></label></p>
+    <p><label>{% translate "Nachricht" %} <textarea name="body" rows="5" maxlength="4000" required></textarea></label></p>
+    <button class="button primary" type="submit">{% translate "Verschlüsselt senden" %}</button>
   </form>
 </section>
 {% endif %}

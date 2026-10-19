@@ -28,7 +28,7 @@
     input.value = "";
     showError("");
     submitBtn.disabled = false;
-    submitBtn.textContent = "Entsperren";
+    submitBtn.textContent = wbT("unlock", "Entsperren");
   }
 
   function close(reason) {
@@ -59,7 +59,7 @@
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (!input.value) {
-      showError("Bitte Passphrase eingeben.");
+      showError(wbT("passphrase_required", "Bitte Passphrase eingeben."));
       input.focus();
       return;
     }

@@ -1,46 +1,47 @@
 {% extends "base.html" %}
-{% block title %}App-Tokens | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "App-Tokens" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'account_home' %}">Zurück zu Mein Konto</a>
+<a class="back-link" href="{% url 'account_home' %}">{% translate "Zurück zu Mein Konto" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Mobile &amp; Integrationen</p>
-  <h1>App-Tokens</h1>
-  <p class="lead">Widerrufbare Tokens für Open-Source-Apps (iOS/Android), analog zu Paperless und Nextcloud. Header: <code>Authorization: Token …</code></p>
+  <p class="context-line">{% translate "Mobile &amp; Integrationen" %}</p>
+  <h1>{% translate "App-Tokens" %}</h1>
+  <p class="lead">{% translate "Widerrufbare Tokens für Open-Source-Apps (iOS/Android), analog zu Paperless und Nextcloud. Header:" %} <code>{% translate "Authorization: Token …" %}</code></p>
 </header>
 <section class="content-flow narrow">
   <article class="form-card">
-    <h2>Mobile-App verbinden</h2>
-    <p class="lead">In der App zuerst diese Server-Adresse bestätigen (tippen oder QR scannen), danach Benutzername und Passwort.</p>
+    <h2>{% translate "Mobile-App verbinden" %}</h2>
+    <p class="lead">{% translate "In der App zuerst diese Server-Adresse bestätigen (tippen oder QR scannen), danach Benutzername und Passwort." %}</p>
     <p><code>{{ mobile_setup_url }}</code></p>
     <p>
-      <img src="{% url 'mobile_setup_qr' %}" width="180" height="180" alt="QR-Code mit Server-Adresse für die Wachbuch-App">
+      <img src="{% url 'mobile_setup_qr' %}" width="180" height="180" alt="{% translate 'QR-Code mit Server-Adresse für die Wachbuch-App' %}">
     </p>
   </article>
   {% if plaintext_token %}
-    <p class="notice" role="status">Neues Token (nur einmal sichtbar): <code>{{ plaintext_token }}</code></p>
+    <p class="notice" role="status">{% translate "Neues Token (nur einmal sichtbar):" %} <code>{{ plaintext_token }}</code></p>
   {% endif %}
   <form method="post" class="form-card">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
-    <p><label>Bezeichnung <input type="text" name="label" maxlength="120" placeholder="z. B. Android App" value="Mobile App"></label></p>
-    <button class="button primary" type="submit">Token erzeugen</button>
+    <p><label>{% translate "Bezeichnung" %} <input type="text" name="label" maxlength="120" placeholder="{% translate 'z. B. Android App' %}" value="Mobile App"></label></p>
+    <button class="button primary" type="submit">{% translate "Token erzeugen" %}</button>
   </form>
-  <p class="lead">API-Wurzel: <a href="{{ api_root }}">{{ api_root }}</a> · Schema: <a href="{% url 'api_v1_openapi' %}">openapi.yaml</a></p>
+  <p class="lead">{% translate "API-Wurzel:" %} <a href="{{ api_root }}">{{ api_root }}</a> · {% translate "Schema:" %} <a href="{% url 'api_v1_openapi' %}">{% translate "openapi.yaml" %}</a></p>
   <div class="member-list-clean">
     {% for item in tokens %}
       <article>
         <div>
           <strong>{{ item.label }}</strong>
-          <span>{{ item.token_prefix }}… · {% if item.is_active %}aktiv{% else %}widerrufen{% endif %}</span>
-          <span>Scopes: {{ item.scopes|join:", " }}</span>
-          <span>Erstellt {{ item.created_at|date:"d.m.Y H:i" }}{% if item.last_used_at %} · zuletzt {{ item.last_used_at|date:"d.m.Y H:i" }}{% endif %}</span>
+          <span>{{ item.token_prefix }}… · {% if item.is_active %}{% translate "aktiv" %}{% else %}{% translate "widerrufen" %}{% endif %}</span>
+          <span>{% translate "Scopes:" %} {{ item.scopes|join:", " }}</span>
+          <span>{% translate "Erstellt" %} {{ item.created_at|date:"d.m.Y H:i" }}{% if item.last_used_at %} · {% translate "zuletzt" %} {{ item.last_used_at|date:"d.m.Y H:i" }}{% endif %}</span>
         </div>
         {% if item.is_active %}
-          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="token_id" value="{{ item.pk }}"><button class="button secondary" type="submit">Widerrufen</button></form>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="token_id" value="{{ item.pk }}"><button class="button secondary" type="submit">{% translate "Widerrufen" %}</button></form>
         {% endif %}
       </article>
     {% empty %}
-      <p class="empty-state">Noch keine App-Tokens.</p>
+      <p class="empty-state">{% translate "Noch keine App-Tokens." %}</p>
     {% endfor %}
   </div>
 </section>

@@ -1,35 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Kaffeekasse | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
-  <div><p class="context-line">Gemeinschaftskasse</p><h1>Kaffeekasse</h1><p class="lead">Fehler werden nachvollziehbar durch Gegenbuchung korrigiert.</p></div>
-  {% if can_book %}<a class="button primary" href="{% url 'coffee_create' %}">Buchung erfassen</a>{% endif %}
+  <div><p class="context-line">{% translate "Gemeinschaftskasse" %}</p><h1>{% translate "Kaffeekasse" %}</h1><p class="lead">{% translate "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert." %}</p></div>
+  {% if can_book %}<a class="button primary" href="{% url 'coffee_create' %}">{% translate "Buchung erfassen" %}</a>{% endif %}
 </header>
-<div class="balance-row"><div><span>Mein Stand</span><strong>{{ own_euros|floatformat:2 }} €</strong></div>{% if can_book %}<div><span>Gesamtsaldo</span><strong>{{ total_euros|floatformat:2 }} €</strong></div>{% endif %}</div>
+<div class="balance-row"><div><span>{% translate "Mein Stand" %}</span><strong>{{ own_euros|floatformat:2 }} €</strong></div>{% if can_book %}<div><span>{% translate "Gesamtsaldo" %}</span><strong>{{ total_euros|floatformat:2 }} €</strong></div>{% endif %}</div>
 {% if station.paypal_me_url or station.wero_link or station.iban or station.payment_note %}
-<section class="payment-hints" aria-label="Zahlungswege">
-  <h2>Einzahlen an die Gemeinschaftskasse</h2>
+<section class="payment-hints" aria-label="{% translate 'Zahlungswege' %}">
+  <h2>{% translate "Einzahlen an die Gemeinschaftskasse" %}</h2>
   {% if station.payment_note %}<p class="payment-note">{{ station.payment_note }}</p>{% endif %}
   <ul class="payment-options">
-    {% if station.paypal_me_url %}<li><a class="payment-link" href="{{ station.paypal_me_url }}" target="_blank" rel="noopener">PayPal.me öffnen</a></li>{% endif %}
-    {% if station.wero_link %}<li><a class="payment-link" href="{{ station.wero_link }}" target="_blank" rel="noopener">Wero öffnen</a></li>{% endif %}
+    {% if station.paypal_me_url %}<li><a class="payment-link" href="{{ station.paypal_me_url }}" target="_blank" rel="noopener">{% translate "PayPal.me öffnen" %}</a></li>{% endif %}
+    {% if station.wero_link %}<li><a class="payment-link" href="{{ station.wero_link }}" target="_blank" rel="noopener">{% translate "Wero öffnen" %}</a></li>{% endif %}
     {% if station.iban %}
     <li>
-      <span class="iban-label">IBAN:</span>
+      <span class="iban-label">{% translate "IBAN:" %}</span>
       <code class="iban-value" id="coffee-iban">{{ station.iban }}</code>
-      {% if station.bic %}<span class="iban-label">BIC:</span> <code>{{ station.bic }}</code>{% endif %}
-      <button class="copy-iban" type="button" data-target="coffee-iban" aria-label="IBAN kopieren">Kopieren</button>
+      {% if station.bic %}<span class="iban-label">{% translate "BIC:" %}</span> <code>{{ station.bic }}</code>{% endif %}
+      <button class="copy-iban" type="button" data-target="coffee-iban" aria-label="{% translate 'IBAN kopieren' %}">{% translate "Kopieren" %}</button>
     </li>
     {% endif %}
   </ul>
-  <p class="payment-privacy">Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert.</p>
+  <p class="payment-privacy">{% translate "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert." %}</p>
 </section>
 {% endif %}
-<div class="table-wrap" tabindex="0" role="region" aria-label="Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen">
+<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen' %}">
   <table class="responsive-table">
-    <caption>Kassenbuchungen</caption>
-    <thead><tr><th scope="col">Datum</th><th scope="col">Person</th><th scope="col">Grund</th><th scope="col">Betrag</th>{% if can_book %}<th scope="col"><span class="visually-hidden">Aktion</span></th>{% endif %}</tr></thead>
-    <tbody>{% for entry in page_obj %}<tr><td data-label="Datum"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d.m.Y H:i" }}</time></td><td data-label="Person">{{ entry.member.first_name|default:entry.member.username }}</td><td data-label="Grund">{{ entry.reason }}{% if entry.correction_of %}<small>Gegenbuchung zu #{{ entry.correction_of_id }}</small>{% endif %}</td><td data-label="Betrag" class="amount {% if entry.amount_cents < 0 %}negative{% endif %}">{{ entry.amount_euros|floatformat:2 }} €</td>{% if can_book %}<td data-label="Aktion">{% if not entry.correction_of and not entry.corrections.exists %}<a class="text-action" href="{% url 'coffee_correct' entry.pk %}">Korrigieren</a>{% endif %}</td>{% endif %}</tr>{% empty %}<tr><td colspan="5">Noch keine Buchungen.</td></tr>{% endfor %}</tbody>
+    <caption>{% translate "Kassenbuchungen" %}</caption>
+    <thead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Person" %}</th><th scope="col">{% translate "Grund" %}</th><th scope="col">{% translate "Betrag" %}</th>{% if can_book %}<th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th>{% endif %}</tr></thead>
+    <tbody>{% for entry in page_obj %}<tr><td data-label="Datum"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d.m.Y H:i" }}</time></td><td data-label="Person">{{ entry.member.first_name|default:entry.member.username }}</td><td data-label="Grund">{{ entry.reason }}{% if entry.correction_of %}<small>{% translate "Gegenbuchung zu #" %}{{ entry.correction_of_id }}</small>{% endif %}</td><td data-label="Betrag" class="amount {% if entry.amount_cents < 0 %}negative{% endif %}">{{ entry.amount_euros|floatformat:2 }} €</td>{% if can_book %}<td data-label="Aktion">{% if not entry.correction_of and not entry.corrections.exists %}<a class="text-action" href="{% url 'coffee_correct' entry.pk %}">{% translate "Korrigieren" %}</a>{% endif %}</td>{% endif %}</tr>{% empty %}<tr><td colspan="5">{% translate "Noch keine Buchungen." %}</td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% include "core/pagination.html" %}

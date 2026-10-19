@@ -21,6 +21,20 @@ keine eigene Domain, keine Datenbank und kein Backend gehören zum Pages-Artefak
 Die tatsächlich veröffentlichte URL und der Deploymentstatus sind im Workflow
 und in den Repository-Pages-Einstellungen zu prüfen.
 
+## Sprachfassungen
+
+- Deutsch: `site/index.html` (Pfad `/Rettungswache-Wachbuch/`).
+- Englisch: `site/en/index.html` (Pfad `/Rettungswache-Wachbuch/en/`).
+- Das derzeitige Pages-Artefakt enthält `en/` noch nicht. Bis der Workflow
+  entsprechend erweitert und neu veröffentlicht ist, ist die englische Fassung
+  nicht öffentlich erreichbar; sie ist kein Live-Nachweis.
+- Beide Seiten nutzen dieselbe `site/styles.css` und dieselben Dateien unter
+  `site/assets/`; im Ordner `en/` liegt ausschließlich `index.html`. Die
+  Sprachumschaltung im Kopfbereich verlinkt reziprok (`en/` bzw. `../`) und ist
+  mit `hreflang` sowie `rel="alternate"` ausgezeichnet.
+- Die englische Fassung ist eine Übersetzung der deutschen Seite. Screenshots
+  zeigen die deutsche Oberfläche; das ist auf der EN-Seite ausdrücklich vermerkt.
+
 ## Inhalte und Richtlinien
 
 - HTML/CSS ohne JavaScript, CDN oder Analytics.

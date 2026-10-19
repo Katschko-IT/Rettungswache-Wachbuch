@@ -1220,3 +1220,11 @@ class QrTotpUse(models.Model):
 
     def __str__(self):
         return f"QrTotpUse {self.user_id}:{self.time_step}"
+
+
+# Die Wiki-Modelle liegen in einem eigenen Modul. Der Import an dieser Stelle
+# registriert sie fuer Django, ohne die bestehende Modelldatei zu vergroessern.
+from .wiki_models import WikiArticle, WikiRevision  # noqa: E402,F401
+
+# Bereinigte technische Fehlerereignisse (H4) liegen in einem eigenen Modul.
+from .diagnostics_models import ErrorEvent  # noqa: E402,F401

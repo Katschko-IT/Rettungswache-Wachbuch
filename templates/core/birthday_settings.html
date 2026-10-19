@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Geburtstag einstellen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Geburtstag einstellen" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'birthdays' %}">Zurück zu Geburtstagen</a>
-<header class="page-heading narrow"><p class="context-line">Freiwillig und widerrufbar</p><h1>Meine Geburtstagseinstellung</h1><p class="lead">Das Geburtsjahr wird nicht erhoben.</p></header>
-<form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<p class="field-hint">Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt.</p><div class="form-actions"><button class="button primary" type="submit">Einstellung speichern</button><a class="button secondary" href="{% url 'birthdays' %}">Abbrechen</a></div></form>
+<a class="back-link" href="{% url 'birthdays' %}">{% translate "Zurück zu Geburtstagen" %}</a>
+<header class="page-heading narrow"><p class="context-line">{% translate "Freiwillig und widerrufbar" %}</p><h1>{% translate "Meine Geburtstagseinstellung" %}</h1><p class="lead">{% translate "Das Geburtsjahr wird nicht erhoben." %}</p></header>
+<form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<p class="field-hint">{% translate "Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt." %}</p><div class="form-actions"><button class="button primary" type="submit">{% translate "Einstellung speichern" %}</button><a class="button secondary" href="{% url 'birthdays' %}">{% translate "Abbrechen" %}</a></div></form>
 {% endblock %}

@@ -93,16 +93,16 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok === false) {
-      throw new Error(data.error || "Anfrage fehlgeschlagen.");
+      throw new Error(data.error || wbT("request_failed", "Anfrage fehlgeschlagen."));
     }
     return data;
   }
 
   async function runPasskeyLogin(statusEl) {
-    setStatus(statusEl, "Passkey wird geprüft …");
+    setStatus(statusEl, wbT("passkey_checking", "Passkey wird geprüft …"));
     const optionsResponse = await fetch("/anmelden/passkey/optionen/", { credentials: "same-origin" });
     if (!optionsResponse.ok) {
-      throw new Error("Passkeys sind hier nicht verfügbar.");
+      throw new Error(wbT("passkey_unavailable", "Passkeys sind hier nicht verfügbar."));
     }
     const options = revivePublicKeyOptions(await optionsResponse.json());
     const credential = await navigator.credentials.get({ publicKey: options });
@@ -113,10 +113,10 @@
   }
 
   async function runPasskeyMfa(statusEl) {
-    setStatus(statusEl, "Passkey wird geprüft …");
+    setStatus(statusEl, wbT("passkey_checking", "Passkey wird geprüft …"));
     const optionsResponse = await fetch("/anmelden/mfa/passkey/optionen/", { credentials: "same-origin" });
     if (!optionsResponse.ok) {
-      throw new Error("Passkey-Bestätigung nicht möglich.");
+      throw new Error(wbT("passkey_confirm_impossible", "Passkey-Bestätigung nicht möglich."));
     }
     const options = revivePublicKeyOptions(await optionsResponse.json());
     const credential = await navigator.credentials.get({ publicKey: options });
@@ -127,10 +127,10 @@
   }
 
   async function runPasskeyRegister(statusEl) {
-    setStatus(statusEl, "Passkey wird registriert …");
+    setStatus(statusEl, wbT("passkey_registering", "Passkey wird registriert …"));
     const optionsResponse = await fetch("/konto/mfa/passkey/optionen/", { credentials: "same-origin" });
     if (!optionsResponse.ok) {
-      throw new Error("Passkey-Registrierung nicht möglich.");
+      throw new Error(wbT("passkey_register_impossible", "Passkey-Registrierung nicht möglich."));
     }
     const options = revivePublicKeyOptions(await optionsResponse.json());
     const credential = await navigator.credentials.create({ publicKey: options });
@@ -156,7 +156,7 @@
     setStatus(statusEl, "Berechtigung wird angefragt …");
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      throw new Error("Benachrichtigungen wurden nicht erlaubt.");
+      throw new Error(wbT("notifications_not_allowed", "Benachrichtigungen wurden nicht erlaubt."));
     }
     const registration = await navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.subscribe({
@@ -185,7 +185,7 @@
       return;
     }
     chip.hidden = navigator.onLine;
-    chip.textContent = "Offline – angezeigte Daten können veraltet sein";
+    chip.textContent = wbT("offline_banner", "Offline – angezeigte Daten können veraltet sein");
   }
 
   window.addEventListener("online", setOnlineState);
@@ -273,7 +273,7 @@
       try {
         await runPasskeyLogin(status);
       } catch (error) {
-        setStatus(status, error.message || "Passkey-Anmeldung fehlgeschlagen.");
+        setStatus(status, error.message || wbT("passkey_login_failed", "Passkey-Anmeldung fehlgeschlagen."));
       }
     });
   }
@@ -285,7 +285,7 @@
       try {
         await runPasskeyMfa(status);
       } catch (error) {
-        setStatus(status, error.message || "Passkey-Bestätigung fehlgeschlagen.");
+        setStatus(status, error.message || wbT("passkey_confirm_failed", "Passkey-Bestätigung fehlgeschlagen."));
       }
     });
   }
@@ -297,7 +297,7 @@
       try {
         await runPasskeyRegister(status);
       } catch (error) {
-        setStatus(status, error.message || "Passkey-Registrierung fehlgeschlagen.");
+        setStatus(status, error.message || wbT("passkey_register_failed", "Passkey-Registrierung fehlgeschlagen."));
       }
     });
   }
@@ -313,7 +313,7 @@
         try {
           await runPushSubscribe(status, config);
         } catch (error) {
-          setStatus(status, error.message || "Push konnte nicht aktiviert werden.");
+          setStatus(status, error.message || wbT("push_enable_failed", "Push konnte nicht aktiviert werden."));
         }
       });
     }
@@ -322,7 +322,7 @@
         try {
           await runPushUnsubscribe(status, config);
         } catch (error) {
-          setStatus(status, error.message || "Push konnte nicht deaktiviert werden.");
+          setStatus(status, error.message || wbT("push_disable_failed", "Push konnte nicht deaktiviert werden."));
         }
       });
     }
@@ -382,7 +382,7 @@
   async function unlockIdentity(bundle, passphrase) {
     const [ivB64, dataB64] = String(bundle.wrapped_private_jwk || "").split(".");
     if (!ivB64 || !dataB64) {
-      throw new Error("Gespeicherter Schlüsselumschlag ist beschädigt.");
+      throw new Error(wbT("key_envelope_corrupt", "Gespeicherter Schlüsselumschlag ist beschädigt."));
     }
     const wrapKey = await deriveWrapKey(passphrase, bundle.kdf_salt, bundle.kdf_iterations || 600000);
     const plain = await crypto.subtle.decrypt(
@@ -473,7 +473,7 @@
       return envelope.legacy_body || "";
     }
     if (!envelope.wrap) {
-      throw new Error("Kein Schlüsselumschlag für dich – Nachricht nicht lesbar.");
+      throw new Error(wbT("no_envelope", "Kein Schlüsselumschlag für dich – Nachricht nicht lesbar."));
     }
     const rawKey = await unwrapMessageKey(envelope.wrap, privateJwk);
     const messageKey = await crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["decrypt"]);
@@ -492,14 +492,14 @@
     }
     const passphrase = await window.requestCryptoUnlock();
     if (!passphrase) {
-      throw new Error("Entsperren abgebrochen.");
+      throw new Error(wbT("unlock_cancelled", "Entsperren abgebrochen."));
     }
     const response = await fetch("/konto/crypto/bundle.json", { credentials: "same-origin" });
     const bundle = await response.json();
     if (!bundle.configured) {
-      throw new Error("Bitte zuerst unter Mein Konto Schlüssel einrichten.");
+      throw new Error(wbT("setup_keys_first", "Bitte zuerst unter Mein Konto Schlüssel einrichten."));
     }
-    setStatus(statusEl, "Schlüssel werden entsperrt …");
+    setStatus(statusEl, wbT("keys_unlocking", "Schlüssel werden entsperrt …"));
     privateJwk = await unlockIdentity(bundle, passphrase);
     setStatus(statusEl, "");
     return privateJwk;
@@ -513,15 +513,15 @@
       const passphrase = cryptoSetupForm.querySelector("[name='passphrase']").value;
       const confirm = cryptoSetupForm.querySelector("[name='passphrase2']").value;
       if (passphrase.length < 10) {
-        setStatus(status, "Passphrase mindestens 10 Zeichen.");
+        setStatus(status, wbT("passphrase_too_short", "Passphrase mindestens 10 Zeichen."));
         return;
       }
       if (passphrase !== confirm) {
-        setStatus(status, "Passphrasen stimmen nicht überein.");
+        setStatus(status, wbT("passphrases_mismatch", "Passphrasen stimmen nicht überein."));
         return;
       }
       try {
-        setStatus(status, "Schlüssel werden erzeugt …");
+        setStatus(status, wbT("keys_generating", "Schlüssel werden erzeugt …"));
         const identity = await generateIdentity(passphrase);
         await postJson("/konto/crypto/", {
           public_jwk: identity.public_jwk,
@@ -533,7 +533,7 @@
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(identity.private_jwk));
         window.location.reload();
       } catch (error) {
-        setStatus(status, error.message || "Schlüsselsetup fehlgeschlagen.");
+        setStatus(status, error.message || wbT("key_setup_failed", "Schlüsselsetup fehlgeschlagen."));
       }
     });
   }
@@ -547,10 +547,10 @@
         const bundleResponse = await fetch("/konto/crypto/bundle.json", { credentials: "same-origin" });
         const bundle = await bundleResponse.json();
         await unlockIdentity(bundle, cryptoUnlockForm.querySelector("[name='passphrase']").value);
-        setStatus(status, "Schlüssel entsperrt.");
+        setStatus(status, wbT("keys_unlocked", "Schlüssel entsperrt."));
         window.location.reload();
       } catch (error) {
-        setStatus(status, error.message || "Entsperren fehlgeschlagen.");
+        setStatus(status, error.message || wbT("unlock_failed", "Entsperren fehlgeschlagen."));
       }
     });
   }
@@ -565,7 +565,7 @@
         bodyEl.textContent = await decryptEnvelope(item, privateJwk);
       } catch (_error) {
         bodyEl.textContent = item.is_encrypted
-          ? "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
+          ? wbT("encrypted_unreadable", "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel).")
           : (item.legacy_body || "");
       }
     }
@@ -585,7 +585,7 @@
         const privateJwk = await ensureUnlocked(status);
         await renderEncryptedFeed(chatRoot, feed, privateJwk);
       } catch (error) {
-        setStatus(status, error.message || "Entschlüsseln fehlgeschlagen.");
+        setStatus(status, error.message || wbT("decrypt_failed", "Entschlüsseln fehlgeschlagen."));
       }
     })();
     if (compose) {
@@ -600,14 +600,14 @@
           const privateJwk = await ensureUnlocked(status);
           const recipients = members.filter((item) => item.has_keys && item.public_jwk);
           if (!recipients.length) {
-            throw new Error("Noch keine Kollegen mit Schlüsseln.");
+            throw new Error(wbT("no_keyed_colleagues", "Noch keine Kollegen mit Schlüsseln."));
           }
           // Ensure self is included for later reading.
           const payload = await encryptForRecipients(text, recipients);
           await postJson(window.location.pathname, payload);
           window.location.reload();
         } catch (error) {
-          setStatus(status, error.message || "Senden fehlgeschlagen.");
+          setStatus(status, error.message || wbT("send_failed", "Senden fehlgeschlagen."));
         }
       });
     }
@@ -624,7 +624,7 @@
         const privateJwk = await ensureUnlocked(status);
         await renderEncryptedFeed(privateRoot, feed, privateJwk);
       } catch (error) {
-        setStatus(status, error.message || "Entschlüsseln fehlgeschlagen.");
+        setStatus(status, error.message || wbT("decrypt_failed", "Entschlüsseln fehlgeschlagen."));
       }
     })();
     if (compose) {
@@ -642,7 +642,7 @@
           await postJson(window.location.pathname, payload);
           window.location.reload();
         } catch (error) {
-          setStatus(status, error.message || "Senden fehlgeschlagen.");
+          setStatus(status, error.message || wbT("send_failed", "Senden fehlgeschlagen."));
         }
       });
     }
@@ -660,7 +660,7 @@
         const body = (compose.querySelector("[name='body']").value || "").trim();
         const selected = [...compose.querySelectorAll("[name='recipient_ids']:checked")].map((el) => Number(el.value));
         if (!selected.length || !body) {
-          setStatus(status, "Empfänger und Text sind nötig.");
+          setStatus(status, wbT("recipient_and_text_required", "Empfänger und Text sind nötig."));
           return;
         }
         try {
@@ -681,7 +681,7 @@
           void privateJwk;
           void self;
         } catch (error) {
-          setStatus(status, error.message || "Senden fehlgeschlagen.");
+          setStatus(status, error.message || wbT("send_failed", "Senden fehlgeschlagen."));
         }
       });
     }
@@ -699,7 +699,7 @@
         mailDetail.querySelector("[data-mail-subject]").textContent = parsed.subject || "(ohne Betreff)";
         mailDetail.querySelector("[data-mail-body]").textContent = parsed.body || "";
       } catch (error) {
-        setStatus(status, error.message || "Mail nicht entschlüsselbar.");
+        setStatus(status, error.message || wbT("mail_undecryptable", "Mail nicht entschlüsselbar."));
       }
     })();
   }
@@ -894,7 +894,7 @@
     const text = el.textContent.trim().replace(/\s+/g, "");
     navigator.clipboard.writeText(text).then(() => {
       const old = btn.textContent;
-      btn.textContent = "Kopiert";
+      btn.textContent = wbT("copied", "Kopiert");
       btn.classList.add("copied");
       setTimeout(() => {
         btn.textContent = old;

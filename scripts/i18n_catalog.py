@@ -109,6 +109,23 @@ def _const_str(node) -> str | None:
     return None
 
 
+def _gettext_aliases(tree: ast.AST) -> dict[str, str]:
+    """Loest lokale Import-Aliase auf die gettext-Funktionen auf.
+
+    ``from django.utils.translation import gettext_lazy as _lazy`` ist im
+    Projekt ueblich; ohne diese Aufloesung blieben solche Strings unsichtbar.
+    """
+    aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            if not node.module.startswith("django.utils.translation"):
+                continue
+            for imported in node.names:
+                if imported.name in GETTEXT_CALLS:
+                    aliases[imported.asname or imported.name] = imported.name
+    return aliases
+
+
 def extract_python(path: Path, text: str):
     """Liefert (msgctxt, msgid, msgid_plural, lineno)-Tupel aus gettext-Aufrufen."""
     results = []
@@ -116,11 +133,13 @@ def extract_python(path: Path, text: str):
         tree = ast.parse(text)
     except SyntaxError as exc:  # pragma: no cover - defensive
         raise CatalogError(f"{path}: Syntaxfehler: {exc}") from exc
+    aliases = _gettext_aliases(tree)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         func = node.func
         name = getattr(func, "id", None) or getattr(func, "attr", None)
+        name = aliases.get(name, name)
         if name not in GETTEXT_CALLS:
             continue
         id_index, plural_index = GETTEXT_CALLS[name]

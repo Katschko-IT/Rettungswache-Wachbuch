@@ -16,6 +16,7 @@ from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from webauthn.helpers import bytes_to_base64url
 
@@ -270,14 +271,14 @@ def qr_login_confirm(request: HttpRequest, login_id: str) -> HttpResponse:
     if qr_req.expires_at <= now:
         if request.method == "POST":
             return qr_error("qr_expired", 410)
-        messages.error(request, "Diese QR-Anmeldung ist abgelaufen.")
+        messages.error(request, _("Diese QR-Anmeldung ist abgelaufen."))
         return redirect("dashboard")
 
     membership = get_membership(request.user)
     if not membership or not membership.is_active or membership.station_id != qr_req.station_id:
         if request.method == "POST":
             return qr_error("qr_forbidden", 403)
-        messages.error(request, "Keine aktive Berechtigung für diese Wache.")
+        messages.error(request, _("Keine aktive Berechtigung für diese Wache."))
         return redirect("access")
 
     if request.method == "GET":
@@ -341,7 +342,7 @@ def qr_login_confirm(request: HttpRequest, login_id: str) -> HttpResponse:
         or ""
     ).strip()
 
-    ok, totp_step, _ = get_approval_freshness(
+    ok, totp_step, _freshness = get_approval_freshness(
         request, request.user, totp_token=totp_token, qr_request=qr_req
     )
     if not ok:
@@ -366,7 +367,7 @@ def qr_login_confirm(request: HttpRequest, login_id: str) -> HttpResponse:
     if request.headers.get("x-requested-with") == "XMLHttpRequest" or request.content_type == "application/json":
         return JsonResponse({"ok": True, "state": "approved"})
 
-    messages.success(request, "Anmeldung erfolgreich bestätigt.")
+    messages.success(request, _("Anmeldung erfolgreich bestätigt."))
     return redirect("dashboard")
 
 
@@ -398,7 +399,7 @@ def qr_login_deny(request: HttpRequest, login_id: str) -> HttpResponse:
     if request.headers.get("x-requested-with") == "XMLHttpRequest" or request.content_type == "application/json":
         return JsonResponse({"ok": True, "state": "denied"})
 
-    messages.info(request, "Anmeldung wurde abgelehnt.")
+    messages.info(request, _("Anmeldung wurde abgelehnt."))
     return redirect("dashboard")
 
 

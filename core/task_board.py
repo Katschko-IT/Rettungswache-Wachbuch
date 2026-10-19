@@ -6,6 +6,8 @@ from datetime import date, timedelta
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from .models import Station, StationTask, StationTaskCompletion
 from .services import audit
@@ -13,32 +15,32 @@ from .services import audit
 
 DEFAULT_TASKS = (
     # Gruene Zone: taegliche Routine
-    ("Fahrzeugcheck", StationTask.Band.DAILY, None, "", 10),
-    ("Geraetekontrolle", StationTask.Band.DAILY, None, "", 20),
-    ("Hygiene / Desinfektion", StationTask.Band.DAILY, None, "", 30),
-    ("Kueche / Aufenthaltsraum", StationTask.Band.DAILY, None, "", 40),
-    ("Waesche / Muell", StationTask.Band.DAILY, None, "", 50),
+    (_lazy("Fahrzeugcheck"), StationTask.Band.DAILY, None, "", 10),
+    (_lazy("Gerätekontrolle"), StationTask.Band.DAILY, None, "", 20),
+    (_lazy("Hygiene / Desinfektion"), StationTask.Band.DAILY, None, "", 30),
+    (_lazy("Küche / Aufenthaltsraum"), StationTask.Band.DAILY, None, "", 40),
+    (_lazy("Wäsche / Müll"), StationTask.Band.DAILY, None, "", 50),
     # Gelbe Zone: Wochentagsrotation
-    ("Sauger und Tuecher waschen", StationTask.Band.WEEKDAY, 0, "", 10),
-    ("Materialbestellung", StationTask.Band.WEEKDAY, 1, "", 10),
-    ("Kueche und Kuehlschrank", StationTask.Band.WEEKDAY, 2, "", 10),
-    ("Technischer Fahrzeugcheck", StationTask.Band.WEEKDAY, 3, "", 10),
-    ("Desinfektionsmittel auffuellen", StationTask.Band.WEEKDAY, 4, "", 10),
-    ("Tiefenreinigung / Wochenabschluss", StationTask.Band.WEEKDAY, 5, "", 10),
-    ("Wochenbericht und Lagerblick", StationTask.Band.WEEKDAY, 6, "", 10),
+    (_lazy("Sauger und Tücher waschen"), StationTask.Band.WEEKDAY, 0, "", 10),
+    (_lazy("Materialbestellung"), StationTask.Band.WEEKDAY, 1, "", 10),
+    (_lazy("Küche und Kühlschrank"), StationTask.Band.WEEKDAY, 2, "", 10),
+    (_lazy("Technischer Fahrzeugcheck"), StationTask.Band.WEEKDAY, 3, "", 10),
+    (_lazy("Desinfektionsmittel auffüllen"), StationTask.Band.WEEKDAY, 4, "", 10),
+    (_lazy("Tiefenreinigung / Wochenabschluss"), StationTask.Band.WEEKDAY, 5, "", 10),
+    (_lazy("Wochenbericht und Lagerblick"), StationTask.Band.WEEKDAY, 6, "", 10),
     # Blaue Zone: zusaetzliche / individuelle Punkte
     (
-        "Monatliche Fahrzeugdurchsicht",
+        _lazy("Monatliche Fahrzeugdurchsicht"),
         StationTask.Band.EXTRA,
         None,
-        "Typisch am 1. Freitag im Monat – analog zum Wandbogen.",
+        _lazy("Typisch am 1. Freitag im Monat – analog zum Wandbogen."),
         10,
     ),
     (
-        "Individuelle Aufgabe",
+        _lazy("Individuelle Aufgabe"),
         StationTask.Band.EXTRA,
         None,
-        "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten.",
+        _lazy("Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten."),
         20,
     ),
 )
@@ -56,10 +58,10 @@ def ensure_default_station_tasks(station):
         for title, band, weekday, notes, sort_order in DEFAULT_TASKS:
             StationTask.objects.create(
                 station=station,
-                title=title,
+                title=str(title),
                 band=band,
                 weekday=weekday,
-                notes=notes,
+                notes=str(notes),
                 sort_order=sort_order,
             )
             created += 1
@@ -71,7 +73,7 @@ def week_monday(value: date) -> date:
 
 
 def iso_week_label(value: date) -> str:
-    return f"KW {value.isocalendar().week}"
+    return _("KW %(week)s") % {"week": value.isocalendar().week}
 
 
 def tasks_for_date(station, work_date: date):

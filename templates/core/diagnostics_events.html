@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Fehlerereignisse" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line"><a href="{% url 'system_status' %}">{% translate "Version und Systemstatus" %}</a></p>
+    <h1>{% translate "Fehlerereignisse" %}</h1>
+    <p class="lead">{% translate "Bereinigte technische 5xx-Ereignisse dieser Wache. Keine Fehlermeldungen, Roh-URLs oder Inhalte." %}</p>
+  </div>
+  <a class="button ghost" href="{% url 'support_export' %}">{% translate "Supportbericht herunterladen" %}</a>
+</header>
+
+<p class="context-line">
+  {% blocktranslate with days=retention_days %}Globale Ereignisse ohne sicheren Wachenbezug werden hier nicht angezeigt. Die Aufbewahrung folgt einer technischen Richtlinie ({{ days }} Tage), keine gesetzliche Frist.{% endblocktranslate %}
+</p>
+
+<form method="get" action="{% url 'error_events' %}" class="section-block inline-form" role="search">
+  <div class="field">
+    <label for="event-correlation">{% translate "Korrelations-ID" %}</label>
+    <input id="event-correlation" type="text" name="korrelation" value="{{ correlation }}" maxlength="128" autocomplete="off" placeholder="z. B. 4f2c9a7e5b1d4c0e">
+  </div>
+  <button type="submit" class="button primary">{% translate "Filtern" %}</button>
+  <a class="button ghost" href="{% url 'error_events' %}">{% translate "Zurücksetzen" %}</a>
+</form>
+
+<section class="section-block flush" aria-label="{% translate 'Fehlerereignisse' %}">
+  {% if page_obj.object_list %}
+    <div class="item-list">
+      {% for event in page_obj %}
+        <article class="list-row">
+          <span class="status-label">{{ event.get_category_display }}</span>
+          <span class="row-content">
+            <strong>{{ event.route_name }}</strong>
+            <small>{{ event.correlation_id }} · {{ event.occurred_at|date:"d.m.Y H:i" }} · {% blocktranslate with version=event.app_version %}Version {{ version }}{% endblocktranslate %}</small>
+          </span>
+          <time datetime="{{ event.occurred_at|date:'c' }}">{{ event.http_status }}</time>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">{% translate "Keine Fehlerereignisse im Aufbewahrungszeitraum." %}</p>
+  {% endif %}
+</section>
+
+{% if page_obj.has_other_pages %}
+  <nav class="pagination" aria-label="{% translate 'Seitennavigation' %}">
+    {% if page_obj.has_previous %}
+      <a href="?seite={{ page_obj.previous_page_number }}{% if correlation %}&amp;korrelation={{ correlation|urlencode }}{% endif %}">{% translate "Zurück" %}</a>
+    {% endif %}
+    <span>{% blocktranslate with current=page_obj.number total=page_obj.paginator.num_pages %}Seite {{ current }} von {{ total }}{% endblocktranslate %}</span>
+    {% if page_obj.has_next %}
+      <a href="?seite={{ page_obj.next_page_number }}{% if correlation %}&amp;korrelation={{ correlation|urlencode }}{% endif %}">{% translate "Weiter" %}</a>
+    {% endif %}
+  </nav>
+{% endif %}
+{% endblock %}

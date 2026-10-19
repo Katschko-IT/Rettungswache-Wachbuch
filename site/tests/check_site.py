@@ -26,6 +26,8 @@ README_MD = SITE_DIR / "README.md"
 NOJEKYLL = SITE_DIR / ".nojekyll"
 SHOTS_DIR = SITE_DIR / "assets" / "screenshots"
 FONTS_DIR = SITE_DIR / "assets" / "fonts"
+EN_DIR = SITE_DIR / "en"
+EN_HTML = EN_DIR / "index.html"
 
 
 class HTMLStructureParser(html.parser.HTMLParser):
@@ -40,6 +42,7 @@ class HTMLStructureParser(html.parser.HTMLParser):
         self.scripts = []
         self.images = []
         self.figures = 0
+        self.lang = None
         self.has_html_lang_de = False
         self.has_viewport = False
         self.has_main_landmark = False
@@ -48,8 +51,10 @@ class HTMLStructureParser(html.parser.HTMLParser):
         attr_dict = dict(attrs)
         self.tags.append(tag)
 
-        if tag == "html" and attr_dict.get("lang") == "de":
-            self.has_html_lang_de = True
+        if tag == "html":
+            self.lang = attr_dict.get("lang")
+            if attr_dict.get("lang") == "de":
+                self.has_html_lang_de = True
 
         if tag == "meta" and attr_dict.get("name") == "viewport":
             self.has_viewport = True
@@ -312,8 +317,235 @@ class TestSiteIntegrity(unittest.TestCase):
         self.assertIn(":focus-visible", css, "Tastaturfokus fehlt")
 
 
+class TestEnglishSite(unittest.TestCase):
+    """EN-Fassung unter site/en/: Metadaten, lokale Assets, Links und Sprachgates."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not EN_HTML.is_file():
+            raise AssertionError(f"Englische Seite fehlt: {EN_HTML}")
+        cls.en_content = EN_HTML.read_text(encoding="utf-8")
+        cls.de_content = INDEX_HTML.read_text(encoding="utf-8")
+        cls.styles_content = STYLES_CSS.read_text(encoding="utf-8")
+        cls.en = HTMLStructureParser()
+        cls.en.feed(cls.en_content)
+        cls.de = HTMLStructureParser()
+        cls.de.feed(cls.de_content)
+
+    def _meta(self, content):
+        found = {}
+        for tag in re.findall(r"<meta\b[^>]*>", content, re.IGNORECASE):
+            name = re.search(r'(?:name|property)="([^"]+)"', tag)
+            value = re.search(r'content="([^"]*)"', tag)
+            if name and value:
+                found[name.group(1)] = value.group(1)
+        return found
+
+    def _title(self, content):
+        match = re.search(r"<title>(.*?)</title>", content, re.DOTALL | re.IGNORECASE)
+        return match.group(1).strip() if match else ""
+
+    def test_en_utf8_decoding_and_no_mojibake(self):
+        """EN-Seite muss sauberes UTF-8 ohne BOM, Ersatzzeichen oder Mojibake sein."""
+        raw = EN_HTML.read_bytes()
+        self.assertFalse(raw.startswith(b"\xef\xbb\xbf"), "BOM in site/en/index.html unzulässig")
+        self.assertNotIn("\ufffd", self.en_content, "Ersetzungszeichen in site/en/index.html")
+        for bad in ("Ã¤", "Ã¶", "Ã¼", "Ã„", "Ã–", "Ãœ", "ÃŸ", "â€“", "â€ž", "â€œ"):
+            self.assertNotIn(bad, self.en_content, f"Mojibake '{bad}' in site/en/index.html")
+
+    def test_en_document_structure(self):
+        """EN-Seite braucht lang=en, Viewport, genau eine h1 und alle Landmarks."""
+        self.assertEqual(self.en.lang, "en", '<html lang="en"> fehlt in site/en/index.html')
+        self.assertTrue(self.en.has_viewport, "Viewport-Meta fehlt in der EN-Seite")
+        self.assertEqual(self.en.h1_count, 1, f"Erwartet genau 1 <h1>, gefunden: {self.en.h1_count}")
+        for landmark in ("header", "nav", "main", "footer"):
+            self.assertIn(landmark, self.en.tags, f"Pflicht-Landmark <{landmark}> fehlt in der EN-Seite")
+        self.assertTrue(self.en.has_main_landmark, "<main> fehlt in der EN-Seite")
+
+        skip_links = [
+            href for href, cls in self.en.links if "skip-link" in cls or href.startswith("#main")
+        ]
+        self.assertTrue(skip_links, "Kein Skip-Link in der EN-Seite")
+        self.assertIn(
+            skip_links[0].lstrip("#"),
+            self.en.ids,
+            f"Ziel des EN-Skip-Links '{skip_links[0]}' existiert nicht",
+        )
+
+    def test_en_metadata_is_translated(self):
+        """Titel, Description und Open-Graph-Texte müssen englisch und gepflegt sein."""
+        meta = self._meta(self.en_content)
+        de_meta = self._meta(self.de_content)
+        title = self._title(self.en_content)
+
+        self.assertIn("station logbook", title.lower(), f"EN-Titel nicht übersetzt: {title}")
+        self.assertNotEqual(title, self._title(self.de_content), "EN-Titel identisch mit DE-Titel")
+        self.assertIn("description", meta, "Meta-Description fehlt in der EN-Seite")
+        self.assertIn("og:title", meta, "og:title fehlt in der EN-Seite")
+        self.assertIn("og:description", meta, "og:description fehlt in der EN-Seite")
+
+        german = re.compile(r"[äöüßÄÖÜ]|\b(und|oder|nicht|für|über|Wachbuch|Rettungswachen)\b")
+        for key in ("description", "og:title", "og:description"):
+            self.assertGreaterEqual(len(meta[key]), 40, f"{key} zu knapp in der EN-Seite")
+            self.assertIsNone(german.search(meta[key]), f"{key} enthält noch deutschen Text: {meta[key]}")
+            if key in de_meta:
+                self.assertNotEqual(meta[key], de_meta[key], f"{key} unverändert aus der DE-Seite übernommen")
+        self.assertIn("station logbook", meta["og:title"].lower(), "og:title nicht übersetzt")
+
+    def test_en_local_assets_and_no_duplication(self):
+        """EN-Seite nutzt ../assets und ../styles.css; im en/ Ordner liegen keine Kopien."""
+        self.assertEqual(
+            self.en.stylesheets,
+            ["../styles.css"],
+            f"EN-Seite muss genau das zentrale Stylesheet nutzen, gefunden: {self.en.stylesheets}",
+        )
+        self.assertTrue((SITE_DIR / "styles.css").is_file(), "Zentrales Stylesheet fehlt")
+        self.assertFalse((EN_DIR / "styles.css").exists(), "styles.css darf im en/ Ordner nicht dupliziert werden")
+        self.assertFalse((EN_DIR / "assets").exists(), "Assets dürfen im en/ Ordner nicht dupliziert werden")
+
+        for src in self.en.sources:
+            self.assertFalse(src.startswith(("http://", "https://")), f"Externe Ressource in EN-Seite: {src}")
+            self.assertTrue(src.startswith("../assets/"), f"EN-Ressource nutzt nicht ../assets: {src}")
+            self.assertTrue((EN_DIR / src).resolve().is_file(), f"EN-Ressource fehlt: {src}")
+
+        for img in self.en.images:
+            self.assertTrue(img.get("src", "").startswith("../assets/screenshots/"), f"Bild nicht lokal: {img}")
+            self.assertTrue(img.get("alt", "").strip(), f"Alternativtext fehlt für {img.get('src')}")
+            self.assertGreaterEqual(len(img.get("alt", "")), 40, f"Alternativtext zu knapp: {img.get('src')}")
+            self.assertTrue(img.get("width", "").isdigit(), f"width fehlt: {img.get('src')}")
+            self.assertTrue(img.get("height", "").isdigit(), f"height fehlt: {img.get('src')}")
+
+        self.assertGreaterEqual(len(self.en.images), 11, "EN-Seite muss alle 11 App-Screenshots zeigen")
+        self.assertGreaterEqual(len(list(SHOTS_DIR.glob("*.webp"))), 11, "Screenshot-Bestand unvollständig")
+
+    def test_en_no_javascript_or_external_cdn(self):
+        """Auch die EN-Seite bleibt skript- und CDN-frei."""
+        self.assertEqual(len(self.en.scripts), 0, "Script-Tags in der EN-Seite unzulässig")
+        self.assertNotIn("<script", self.en_content.lower(), "Unzulässiges <script>-Tag in der EN-Seite")
+        self.assertNotIn("http://", self.en_content.lower(), "Unsicheres http:// in der EN-Seite")
+        for marker in ("fonts.googleapis.com", "cdnjs.cloudflare.com", "@import"):
+            self.assertNotIn(marker, self.en_content.lower(), f"Externer Verweis '{marker}' in der EN-Seite")
+        self.assertNotIn("fonts.googleapis", self.styles_content)
+
+    def test_en_internal_links_resolve(self):
+        """Alle internen EN-Links und Anker müssen auflösen, Repository-Links bleiben absolut."""
+        for href, _ in self.en.links:
+            if href.startswith("#"):
+                self.assertIn(
+                    href.lstrip("#"),
+                    self.en.ids,
+                    f"EN-Anker '{href}' verweist auf keine existierende ID",
+                )
+                continue
+            if href.startswith(("https://", "http://", "mailto:")):
+                continue
+            target = (EN_DIR / href).resolve()
+            self.assertTrue(target.exists(), f"Interner EN-Link zeigt ins Leere: {href}")
+            if href.endswith("/") or target.is_dir():
+                self.assertTrue((target / "index.html").is_file(), f"Verzeichnislink ohne index.html: {href}")
+
+        for href, _ in self.de.links:
+            if href.startswith("#"):
+                continue
+            if href.startswith(("https://", "http://", "mailto:")):
+                continue
+            self.assertTrue((SITE_DIR / href).exists(), f"Interner DE-Link zeigt ins Leere: {href}")
+
+    def test_language_switch_gates(self):
+        """DE/EN-Umschaltung muss reziprok, eindeutig und mit hreflang belegt sein."""
+        de_switch = re.search(r'<div class="lang-switch".*?</div>', self.de_content, re.DOTALL)
+        en_switch = re.search(r'<div class="lang-switch".*?</div>', self.en_content, re.DOTALL)
+        self.assertIsNotNone(de_switch, "Sprachumschaltung fehlt in site/index.html")
+        self.assertIsNotNone(en_switch, "Sprachumschaltung fehlt in site/en/index.html")
+        self.assertEqual(self.de_content.count('class="lang-switch"'), 1, "DE-Seite braucht genau eine Sprachumschaltung")
+        self.assertEqual(self.en_content.count('class="lang-switch"'), 1, "EN-Seite braucht genau eine Sprachumschaltung")
+
+        de_block, en_block = de_switch.group(0), en_switch.group(0)
+        self.assertRegex(de_block, r'href="en/"[^>]*hreflang="en"', "DE → EN Link fehlt oder ohne hreflang")
+        self.assertRegex(en_block, r'href="\.\./"[^>]*hreflang="de"', "EN → DE Link fehlt oder ohne hreflang")
+        self.assertIn('aria-label="Switch to English"', de_block, "DE-Sprachlink ohne klaren englischen Namen")
+        self.assertIn("Zur deutschen Fassung wechseln", en_block, "EN-Sprachlink ohne klaren deutschen Namen")
+        self.assertIn('<span aria-current="true">DE</span>', de_block, "DE-Seite markiert DE nicht als aktuell")
+        self.assertIn('<span aria-current="true">EN</span>', en_block, "EN-Seite markiert EN nicht als aktuell")
+
+        self.assertTrue((SITE_DIR / "en" / "index.html").is_file(), "Ziel des DE → EN Links fehlt")
+        self.assertTrue((SITE_DIR / "index.html").is_file(), "Ziel des EN → DE Links fehlt")
+
+        for content, name in ((self.de_content, "DE"), (self.en_content, "EN")):
+            self.assertIn(f'hreflang="de"', content, f"{name}-Seite ohne hreflang=de")
+            self.assertIn(f'hreflang="en"', content, f"{name}-Seite ohne hreflang=en")
+            self.assertIn("https://katschko-it.github.io/Rettungswache-Wachbuch/en/", content)
+            self.assertIn("https://katschko-it.github.io/Rettungswache-Wachbuch/", content)
+
+    def test_en_claim_gates(self):
+        """EN-Fassung trägt dieselben Fakten- und Abgrenzungsaussagen wie die DE-Fassung."""
+        lower = self.en_content.lower()
+        for required in (
+            "interim release 0.17.0",
+            "no production approval",
+            "pre-production",
+            "not part of this release",
+            "not publicly available",
+            "synthetic",
+            "german-language interface",
+            "patient documentation system",
+            "duty scheduling",
+            "incident command",
+            "open",
+            "agpl",
+            "postgresql",
+            "django",
+            "docker",
+        ):
+            self.assertIn(required, lower, f"Pflichtaussage '{required}' fehlt in der EN-Seite")
+
+        for forbidden in (
+            "guaranteed",
+            "guarantee",
+            "certified",
+            "certification",
+            "gdpr-compliant",
+            "production-ready",
+            "production ready",
+            "100% secure",
+            "audited",
+        ):
+            self.assertIsNone(
+                re.search(re.escape(forbidden), lower),
+                f"Verbotene Werbeaussage '{forbidden}' in der EN-Seite",
+            )
+
+        self.assertIsNone(
+            re.search(r"\b(todo|lorem|example\.com|demo)\b", lower),
+            "Platzhalter oder Demo-Jargon in der EN-Seite",
+        )
+
+    def test_en_mirrors_de_structure(self):
+        """EN-Seite muss dieselben Abschnitte, Sprungziele und Screenshots abbilden."""
+        self.assertEqual(self.en.ids, self.de.ids, "IDs/Anker unterscheiden sich zwischen DE und EN")
+        self.assertEqual(self.en.figures, self.de.figures, "Unterschiedliche Anzahl <figure> zwischen DE und EN")
+        self.assertEqual(len(self.en.images), len(self.de.images), "Unterschiedliche Bildanzahl zwischen DE und EN")
+        self.assertEqual(
+            [img.get("src", "").replace("../", "") for img in self.en.images],
+            [img.get("src", "") for img in self.de.images],
+            "EN-Seite nutzt andere Screenshots als die DE-Seite",
+        )
+        self.assertEqual(
+            [href for href, _ in self.en.links if href.startswith("#")],
+            [href for href, _ in self.de.links if href.startswith("#")],
+            "Sprungziele unterscheiden sich zwischen DE und EN",
+        )
+        self.assertEqual(self.en_content.count("<details>"), self.de_content.count("<details>"), "FAQ-Anzahl weicht ab")
+        self.assertEqual(
+            self.en_content.count("<tr>"),
+            self.de_content.count("<tr>"),
+            "Tabellenzeilen weichen zwischen DE und EN ab",
+        )
+
+
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestSiteIntegrity)
+    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(TestEnglishSite))
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)

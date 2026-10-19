@@ -1,28 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Mehr | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Mehr" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading">
-  <p class="context-line">Weitere Bereiche</p>
-  <h1>Mehr</h1>
-  <p class="lead">Zusatzmodule und Verwaltung. Die App bleibt auch auf dem Startbildschirm erreichbar.</p>
+  <p class="context-line">{% translate "Weitere Bereiche" %}</p>
+  <h1>{% translate "Mehr" %}</h1>
+  <p class="lead">{% translate "Zusatzmodule und Verwaltung. Die App bleibt auch auf dem Startbildschirm erreichbar." %}</p>
 </header>
-<nav class="more-list" aria-label="Weitere Bereiche">
-  <a href="{% url 'defects_web' %}"><strong>Mängel</strong><span>Offene Punkte mit Priorität, Owner, Frist und Fotos</span></a>
-  <a href="{% url 'assets_inventory_web' %}"><strong>Geräte &amp; Status</strong><span>Fahrzeug-/Gerätestatus, Schlüssel und Poolgeräte</span></a>
-  <a href="{% url 'wachalltag_reports_web' %}"><strong>Auswertung</strong><span>Offene Mängel, fällige Checks und Einsatzklar-Quote</span></a>
-  {% if current_membership.station.tasks_enabled %}<a href="{% url 'tasks_today' %}"><strong>Tagesaufgaben</strong><span>Grüne Routine, gelbe Wochentage, blaue Zusatzpunkte</span></a>{% endif %}
-  {% if current_membership.station.birthdays_enabled %}<a href="{% url 'birthdays' %}"><strong>Geburtstage</strong><span>Freiwillige Teamtermine</span></a>{% endif %}
-  {% if current_membership.station.coffee_enabled %}<a href="{% url 'coffee' %}"><strong>Kaffeekasse</strong><span>Saldo und Buchungen</span></a>{% endif %}
-  {% if current_membership.station.feeds_enabled %}<a href="{% url 'feeds' %}"><strong>Meldungen &amp; Verkehr</strong><span>Konfigurierte offizielle Quellen</span></a>{% endif %}
-  {% if current_membership.station.checklists_enabled %}<a href="{% url 'checklists' %}"><strong>Checklisten</strong><span>Wiederkehrende Prüfungen</span></a><a href="{% url 'checklist_schedules_web' %}"><strong>Prüfintervalle</strong><span>Fälligkeiten täglich, wöchentlich oder monatlich</span></a>{% endif %}
-  {% if current_membership.station.pinboard_enabled %}<a href="{% url 'pinboard' %}"><strong>Pinnwand</strong><span>Kurze Aushänge und Hinweise für die Wache</span></a>{% endif %}
-  {% if current_membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>Wachenchat</strong><span>Wache · Privat · Post (E2EE)</span></a><a href="{% url 'crypto_setup' %}"><strong>Chat-Schlüssel</strong><span>Ende-zu-Ende-Verschlüsselung</span></a>{% endif %}
-  <a href="{% url 'account_home' %}"><strong>Mein Konto</strong><span>Profilbild, Passwort und Zwei-Faktor</span></a>
-  <a href="{% url 'api_tokens_manage' %}"><strong>App-Tokens / API</strong><span>Anbindung Open-Source-Apps (iOS/Android)</span></a>
-  {% if current_membership.role == 'admin' %}<a href="{% url 'team' %}"><strong>Team &amp; Rollen</strong><span>Als Master-Admin Nutzer anlegen und freigeben</span></a><a href="{% url 'team_invites' %}"><strong>Mitarbeiter-Aktivierungen</strong><span>Einmal-Links und QR-Codes für persönliche Konten</span></a><a href="{% url 'station_settings' %}"><strong>Einstellungen</strong><span>Name und Module der Wache verwalten</span></a>{% endif %}
-  {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}<a href="{% url 'audit_log' %}"><strong>Audit</strong><span>Änderungen nachvollziehen</span></a>{% endif %}
-  {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>Zwei-Faktor / Passkeys</strong><span>Authenticator-App und Passkeys</span></a>{% endif %}
-  {% if web_push_enabled %}<a href="{% url 'push_settings' %}"><strong>Push-Benachrichtigungen</strong><span>Nur dringende Übergaben</span></a>{% endif %}
-  {% if request.user.is_staff %}<a href="{% url 'admin:index' %}"><strong>Technische Verwaltung</strong><span>Quellen und Systemkonten verwalten</span></a>{% endif %}
+<nav class="more-list" aria-label="{% translate 'Weitere Bereiche' %}">
+  <a href="{% url 'defects_web' %}"><strong>{% translate "Mängel" %}</strong><span>{% translate "Offene Punkte mit Priorität, Owner, Frist und Fotos" %}</span></a>
+  <a href="{% url 'assets_inventory_web' %}"><strong>{% translate "Geräte &amp; Status" %}</strong><span>{% translate "Fahrzeug-/Gerätestatus, Schlüssel und Poolgeräte" %}</span></a>
+  <a href="{% url 'wachalltag_reports_web' %}"><strong>{% translate "Auswertung" %}</strong><span>{% translate "Offene Mängel, fällige Checks und Einsatzklar-Quote" %}</span></a>
+  {% if current_membership.station.tasks_enabled %}<a href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{% translate "Grüne Routine, gelbe Wochentage, blaue Zusatzpunkte" %}</span></a>{% endif %}
+  {% if current_membership.station.birthdays_enabled %}<a href="{% url 'birthdays' %}"><strong>{% translate "Geburtstage" %}</strong><span>{% translate "Freiwillige Teamtermine" %}</span></a>{% endif %}
+  {% if current_membership.station.coffee_enabled %}<a href="{% url 'coffee' %}"><strong>{% translate "Kaffeekasse" %}</strong><span>{% translate "Saldo und Buchungen" %}</span></a>{% endif %}
+  {% if current_membership.station.feeds_enabled %}<a href="{% url 'feeds' %}"><strong>{% translate "Meldungen &amp; Verkehr" %}</strong><span>{% translate "Konfigurierte offizielle Quellen" %}</span></a>{% endif %}
+  {% if current_membership.station.checklists_enabled %}<a href="{% url 'checklists' %}"><strong>{% translate "Checklisten" %}</strong><span>{% translate "Wiederkehrende Prüfungen" %}</span></a><a href="{% url 'checklist_schedules_web' %}"><strong>{% translate "Prüfintervalle" %}</strong><span>{% translate "Fälligkeiten täglich, wöchentlich oder monatlich" %}</span></a>{% endif %}
+  {% if current_membership.station.pinboard_enabled %}<a href="{% url 'pinboard' %}"><strong>{% translate "Pinnwand" %}</strong><span>{% translate "Kurze Aushänge und Hinweise für die Wache" %}</span></a>{% endif %}
+  <a href="{% url 'wiki_index' %}"><strong>{% translate "Wachen-Wiki" %}</strong><span>{% translate "Dauerhafte Hinweise und Abläufe dieser Wache" %}</span></a>
+  {% if current_membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Wache · Privat · Post (E2EE)" %}</span></a><a href="{% url 'crypto_setup' %}"><strong>{% translate "Chat-Schlüssel" %}</strong><span>{% translate "Ende-zu-Ende-Verschlüsselung" %}</span></a>{% endif %}
+  <a href="{% url 'account_home' %}"><strong>{% translate "Mein Konto" %}</strong><span>{% translate "Profilbild, Passwort und Zwei-Faktor" %}</span></a>
+  <a href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens / API" %}</strong><span>{% translate "Anbindung Open-Source-Apps (iOS/Android)" %}</span></a>
+  {% if current_membership.role == 'admin' %}<a href="{% url 'team' %}"><strong>{% translate "Team &amp; Rollen" %}</strong><span>{% translate "Als Master-Admin Nutzer anlegen und freigeben" %}</span></a><a href="{% url 'team_invites' %}"><strong>{% translate "Mitarbeiter-Aktivierungen" %}</strong><span>{% translate "Einmal-Links und QR-Codes für persönliche Konten" %}</span></a><a href="{% url 'station_settings' %}"><strong>{% translate "Einstellungen" %}</strong><span>{% translate "Name und Module der Wache verwalten" %}</span></a>{% endif %}
+  {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}<a href="{% url 'audit_log' %}"><strong>{% translate "Audit" %}</strong><span>{% translate "Änderungen nachvollziehen" %}</span></a>{% endif %}
+  {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>{% translate "Zwei-Faktor / Passkeys" %}</strong><span>{% translate "Authenticator-App und Passkeys" %}</span></a>{% endif %}
+  {% if web_push_enabled %}<a href="{% url 'push_settings' %}"><strong>{% translate "Push-Benachrichtigungen" %}</strong><span>{% translate "Nur dringende Übergaben" %}</span></a>{% endif %}
+  {% if request.user.is_staff %}<a href="{% url 'admin:index' %}"><strong>{% translate "Technische Verwaltung" %}</strong><span>{% translate "Quellen und Systemkonten verwalten" %}</span></a>{% endif %}
 </nav>
 {% endblock %}

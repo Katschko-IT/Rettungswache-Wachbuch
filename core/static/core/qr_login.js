@@ -129,7 +129,7 @@
         }
         if (remainingSeconds <= 0) {
           stopTimers();
-          setStatus("QR-Code ist abgelaufen. Bitte erneuern.", "status-expired");
+          setStatus(wbT("qr_expired_renew", "QR-Code ist abgelaufen. Bitte erneuern."), "status-expired");
           if (retryBtn) {
             retryBtn.hidden = false;
           }
@@ -150,7 +150,7 @@
           }
           if (res.status === 410) {
             stopTimers();
-            setStatus("QR-Code ist abgelaufen.", "status-expired");
+            setStatus(wbT("qr_expired", "QR-Code ist abgelaufen."), "status-expired");
             if (retryBtn) retryBtn.hidden = false;
             return;
           }
@@ -160,19 +160,19 @@
         const state = res.data.state;
         if (state === "approved") {
           stopTimers();
-          setStatus("Anmeldung freigegeben! Anmeldung wird abgeschlossen …", "status-approved");
+          setStatus(wbT("qr_approved_closing", "Anmeldung freigegeben! Anmeldung wird abgeschlossen …"), "status-approved");
           await performExchange();
         } else if (state === "denied") {
           stopTimers();
-          setStatus("Anmeldung wurde auf dem Mobilgerät abgelehnt.", "status-denied");
+          setStatus(wbT("qr_denied", "Anmeldung wurde auf dem Mobilgerät abgelehnt."), "status-denied");
           if (retryBtn) retryBtn.hidden = false;
         } else if (state === "expired") {
           stopTimers();
-          setStatus("QR-Code ist abgelaufen.", "status-expired");
+          setStatus(wbT("qr_expired", "QR-Code ist abgelaufen."), "status-expired");
           if (retryBtn) retryBtn.hidden = false;
         } else if (state === "revoked") {
           stopTimers();
-          setStatus("Anmeldung wurde widerrufen.", "status-denied");
+          setStatus(wbT("qr_revoked", "Anmeldung wurde widerrufen."), "status-denied");
           if (retryBtn) retryBtn.hidden = false;
         }
       } catch (err) {
@@ -187,11 +187,11 @@
         if (res.ok && res.data.ok && res.data.redirect) {
           window.location.href = res.data.redirect;
         } else {
-          setStatus("Anmeldung konnte nicht abgeschlossen werden.", "status-error");
+          setStatus(wbT("qr_complete_failed", "Anmeldung konnte nicht abgeschlossen werden."), "status-error");
           if (retryBtn) retryBtn.hidden = false;
         }
       } catch (err) {
-        setStatus("Verbindungsfehler beim Austausch.", "status-error");
+        setStatus(wbT("qr_connection_error_exchange", "Verbindungsfehler beim Austausch."), "status-error");
         if (retryBtn) retryBtn.hidden = false;
       }
     }
@@ -204,12 +204,12 @@
         placeholderEl.hidden = false;
         placeholderEl.textContent = "QR-Code wird erzeugt …";
       }
-      setStatus("Warte auf Initialisierung …");
+      setStatus(wbT("qr_wait_init", "Warte auf Initialisierung …"));
 
       try {
         const res = await postJson(startUrl, {});
         if (!res.ok || !res.data.ok) {
-          setStatus("QR-Login konnte nicht gestartet werden.", "status-error");
+          setStatus(wbT("qr_start_failed", "QR-Login konnte nicht gestartet werden."), "status-error");
           if (retryBtn) retryBtn.hidden = false;
           return;
         }
@@ -232,13 +232,13 @@
           manualCodeEl.textContent = data.manual_code;
         }
 
-        setStatus("Warte auf Bestätigung durch das Smartphone …");
+        setStatus(wbT("qr_wait_confirm", "Warte auf Bestätigung durch das Smartphone …"));
         startCountdown(data.expires_in || 120);
 
         // Poll every 1000ms
         pollInterval = setInterval(pollStatus, 1000);
       } catch (err) {
-        setStatus("Verbindungsfehler beim Start.", "status-error");
+        setStatus(wbT("qr_connection_error_start", "Verbindungsfehler beim Start."), "status-error");
         if (retryBtn) retryBtn.hidden = false;
       }
     }
@@ -300,29 +300,29 @@
         const optionsUrl = passkeyBtn.getAttribute("data-options-url");
         const verifyUrl = passkeyBtn.getAttribute("data-verify-url");
         if (passkeyStatus) {
-          passkeyStatus.textContent = "Passkey wird abgefragt …";
+          passkeyStatus.textContent = wbT("passkey_requesting", "Passkey wird abgefragt …");
           passkeyStatus.hidden = false;
         }
         try {
           const optRes = await postJson(optionsUrl, {});
           if (!optRes.ok) {
-            throw new Error("Passkey-Optionen nicht verfügbar.");
+            throw new Error(wbT("passkey_options_unavailable", "Passkey-Optionen nicht verfügbar."));
           }
           const options = revivePublicKeyOptions(optRes.data);
           const credential = await navigator.credentials.get({ publicKey: options });
           const serialized = serializeCredential(credential);
           const verRes = await postJson(verifyUrl, { credential: serialized });
           if (!verRes.ok || !verRes.data.ok) {
-            throw new Error("Passkey-Prüfung fehlgeschlagen.");
+            throw new Error(wbT("passkey_check_failed", "Passkey-Prüfung fehlgeschlagen."));
           }
           if (passkeyStatus) {
-            passkeyStatus.textContent = "Passkey erfolgreich geprüft. Bitte Freigabe absenden.";
+            passkeyStatus.textContent = wbT("passkey_verified_submit", "Passkey erfolgreich geprüft. Bitte Freigabe absenden.");
           }
           passkeyBtn.disabled = true;
-          passkeyBtn.textContent = "Passkey verifiziert ✓";
+          passkeyBtn.textContent = wbT("passkey_verified", "Passkey verifiziert ✓");
         } catch (err) {
           if (passkeyStatus) {
-            passkeyStatus.textContent = err.message || "Passkey-Prüfung abgebrochen.";
+            passkeyStatus.textContent = err.message || wbT("passkey_check_cancelled", "Passkey-Prüfung abgebrochen.");
           }
         }
       });

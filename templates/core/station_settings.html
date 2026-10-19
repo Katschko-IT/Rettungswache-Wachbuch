@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Einstellungen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Einstellungen" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
+<a class="back-link" href="{% url 'more' %}">{% translate "Zurück zu Mehr" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Administration</p>
-  <h1>Einstellungen</h1>
-  <p class="lead">Name, Organisationsprofil und sichtbare Module dieser Organisationseinheit festlegen.</p>
-  <p class="context-line">Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll.</p>
+  <p class="context-line">{% translate "Administration" %}</p>
+  <h1>{% translate "Einstellungen" %}</h1>
+  <p class="lead">{% translate "Name, Organisationsprofil und sichtbare Module dieser Organisationseinheit festlegen." %}</p>
+  <p class="context-line">{% translate "Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll." %}</p>
 </header>
 <form method="post" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
-  <div class="form-actions"><button class="button primary" type="submit">Speichern</button></div>
+  <div class="form-actions"><button class="button primary" type="submit">{% translate "Speichern" %}</button></div>
 </form>
 {% endblock %}

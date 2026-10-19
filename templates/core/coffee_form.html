@@ -1,3 +1,4 @@
 {% extends "base.html" %}
-{% block title %}Buchung erfassen | {{ app_name }}{% endblock %}
-{% block content %}<a class="back-link" href="{% url 'coffee' %}">Zurück zur Kaffeekasse</a><header class="page-heading narrow"><p class="context-line">Kaffeekasse</p><h1>Buchung erfassen</h1></header><form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">Buchung erfassen</button><a class="button secondary" href="{% url 'coffee' %}">Abbrechen</a></div></form>{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Buchung erfassen" %} | {{ app_name }}{% endblock %}
+{% block content %}<a class="back-link" href="{% url 'coffee' %}">{% translate "Zurück zur Kaffeekasse" %}</a><header class="page-heading narrow"><p class="context-line">{% translate "Kaffeekasse" %}</p><h1>{% translate "Buchung erfassen" %}</h1></header><form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">{% translate "Buchung erfassen" %}</button><a class="button secondary" href="{% url 'coffee' %}">{% translate "Abbrechen" %}</a></div></form>{% endblock %}

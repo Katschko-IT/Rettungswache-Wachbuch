@@ -1,19 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Übergabe korrigieren | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Übergabe korrigieren" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'handover_detail' handover.pk %}">Zurück zur Übergabe</a>
+<a class="back-link" href="{% url 'handover_detail' handover.pk %}">{% translate "Zurück zur Übergabe" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Kontrollierte Korrektur</p>
-  <h1>Übergabe bearbeiten</h1>
-  <p class="lead">Änderungen erzeugen eine neue Revision. Freitexte erscheinen nicht im Audit.</p>
+  <p class="context-line">{% translate "Kontrollierte Korrektur" %}</p>
+  <h1>{% translate "Übergabe bearbeiten" %}</h1>
+  <p class="lead">{% translate "Änderungen erzeugen eine neue Revision. Freitexte erscheinen nicht im Audit." %}</p>
 </header>
 <form method="post" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
   <div class="form-actions">
-    <button class="button primary" type="submit">Korrektur speichern</button>
-    <a class="button secondary" href="{% url 'handover_detail' handover.pk %}">Abbrechen</a>
+    <button class="button primary" type="submit">{% translate "Korrektur speichern" %}</button>
+    <a class="button secondary" href="{% url 'handover_detail' handover.pk %}">{% translate "Abbrechen" %}</a>
   </div>
 </form>
 {% endblock %}

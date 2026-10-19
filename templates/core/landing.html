@@ -1,46 +1,47 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 {% block title %}{{ app_name }}{% endblock %}
 {% block body_class %}is-landing{% endblock %}
 {% block content %}
 <section class="landing-hero">
-  <h1>Wachorganisation für den öffentlichen Dienst – klar, mobil, selbst gehostet.</h1>
-  <p class="lead">Übergaben, Tagesaufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Kein Einsatzleit-, Dienstplan- oder Patientensystem.</p>
+  <h1>{% translate "Wachorganisation für den öffentlichen Dienst – klar, mobil, selbst gehostet." %}</h1>
+  <p class="lead">{% translate "Übergaben, Tagesaufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Kein Einsatzleit-, Dienstplan- oder Patientensystem." %}</p>
   <div class="form-actions landing-cta">
-    <a class="button primary" href="{% url 'login' %}">Anmelden</a>
-    <a class="button secondary" href="{% url 'vorfuehrung' %}">Vorführung</a>
-    {% if registration_enabled %}<a class="button secondary" href="{% url 'register' %}">Registrieren</a>{% endif %}
-    <a class="button secondary" href="{% url 'privacy' %}">Datenschutz</a>
+    <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+    <a class="button secondary" href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>
+    {% if registration_enabled %}<a class="button secondary" href="{% url 'register' %}">{% translate "Registrieren" %}</a>{% endif %}
+    <a class="button secondary" href="{% url 'privacy' %}">{% translate "Datenschutz" %}</a>
   </div>
   <figure class="landing-hero-figure">
-    <img class="landing-hero-art" src="{% static 'core/landing-hero.jpg' %}" alt="Rettungswagen-Flotte des Rettungsdienstes an einer Wache" width="1600" height="1066" loading="eager">
-    <figcaption class="landing-hero-credit">Foto: <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">Antonio Batinic / Pexels</a></figcaption>
+    <img class="landing-hero-art" src="{% static 'core/landing-hero.jpg' %}" alt="{% translate 'Rettungswagen-Flotte des Rettungsdienstes an einer Wache' %}" width="1600" height="1066" loading="eager">
+    <figcaption class="landing-hero-credit">{% translate "Foto:" %} <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">{% translate "Antonio Batinic / Pexels" %}</a></figcaption>
   </figure>
 </section>
 
 <section class="landing-scope" aria-labelledby="landing-scope">
-  <h2 id="landing-scope">Was die Web-App leistet</h2>
+  <h2 id="landing-scope">{% translate "Was die Web-App leistet" %}</h2>
   <ul class="landing-points">
-    <li><strong>Übergaben</strong> – versioniert, priorisiert, stationsbezogen</li>
-    <li><strong>Tagesaufgaben</strong> – Wandbogen digital mit Grün, Gelb und Blau</li>
-    <li><strong>Kalender, Chat &amp; Team</strong> – Termine, Wachenchat und Freigaben</li>
-    <li><strong>iOS &amp; Android</strong> – native Apps als mobile Schnittstelle über die versionierte API</li>
-    <li><strong>Audit &amp; Privacy</strong> – nachvollziehbar, ohne Tracking-Cookies</li>
+    <li><strong>{% translate "Übergaben" %}</strong> – {% translate "versioniert, priorisiert, stationsbezogen" %}</li>
+    <li><strong>{% translate "Tagesaufgaben" %}</strong> – {% translate "Wandbogen digital mit Grün, Gelb und Blau" %}</li>
+    <li><strong>{% translate "Kalender, Chat &amp; Team" %}</strong> – {% translate "Termine, Wachenchat und Freigaben" %}</li>
+    <li><strong>{% translate "iOS &amp; Android" %}</strong> – {% translate "native Apps als mobile Schnittstelle über die versionierte API" %}</li>
+    <li><strong>{% translate "Audit &amp; Privacy" %}</strong> – {% translate "nachvollziehbar, ohne Tracking-Cookies" %}</li>
   </ul>
 </section>
 
 <section class="landing-scope" aria-labelledby="landing-access">
-  <h2 id="landing-access">Zugang nach Login und Freigabe</h2>
-  <p class="lead">Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat.</p>
+  <h2 id="landing-access">{% translate "Zugang nach Login und Freigabe" %}</h2>
+  <p class="lead">{% translate "Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat." %}</p>
 </section>
 
 {% if demo_mode %}
 <section class="landing-scope demo-accounts" aria-labelledby="landing-demo">
-  <h2 id="landing-demo">Demo-Zugang</h2>
-  <p class="lead">Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin.</p>
+  <h2 id="landing-demo">{% translate "Demo-Zugang" %}</h2>
+  <p class="lead">{% translate "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin." %}</p>
   <form method="post" action="{% url 'demo_login' %}" class="form-actions">
     {% csrf_token %}
-    <button type="submit" class="button primary">Demo starten</button>
+    <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
   </form>
   <ul class="landing-points">
     {% for account in demo_accounts %}

@@ -14,6 +14,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from webauthn.helpers import bytes_to_base64url
 
@@ -236,10 +237,10 @@ def passkey_delete(request, pk):
     if mfa_required() and not user_has_totp(request.user):
         remaining = WebAuthnCredential.objects.filter(user=request.user).exclude(pk=pk).count()
         if remaining == 0:
-            messages.error(request, "Mindestens ein zweiter Faktor muss erhalten bleiben.")
+            messages.error(request, _("Mindestens ein zweiter Faktor muss erhalten bleiben."))
             return redirect("mfa_setup")
     credential.delete()
-    messages.success(request, "Passkey wurde entfernt.")
+    messages.success(request, _("Passkey wurde entfernt."))
     return redirect("mfa_setup")
 
 
@@ -253,7 +254,7 @@ def push_settings(request):
         body = _json_body(request)
         if body is None and request.POST.get("action") == "unsubscribe":
             PushSubscription.objects.filter(user=request.user, station=station).delete()
-            messages.success(request, "Push-Benachrichtigungen deaktiviert.")
+            messages.success(request, _("Push-Benachrichtigungen deaktiviert."))
             return redirect("push_settings")
         if not body or body.get("action") == "unsubscribe":
             PushSubscription.objects.filter(user=request.user, station=station).delete()
@@ -332,12 +333,12 @@ def calendar_feed_manage(request):
                 label=(request.POST.get("label") or "Kalender-Abo")[:120],
                 created_by=request.user,
             )
-            messages.success(request, "Abo-Link wurde erzeugt.")
+            messages.success(request, _("Abo-Link wurde erzeugt."))
         elif action == "revoke":
             CalendarFeedToken.objects.filter(
                 station=station, pk=request.POST.get("token_id")
             ).update(is_active=False)
-            messages.success(request, "Abo-Link wurde widerrufen.")
+            messages.success(request, _("Abo-Link wurde widerrufen."))
         return redirect("calendar_feed_manage")
     tokens = CalendarFeedToken.objects.filter(station=station).select_related("created_by")
     return render(request, "core/calendar_feed.html", {"tokens": tokens})
@@ -350,7 +351,7 @@ def api_tokens_manage(request):
         return redirect(f"{reverse('login')}?next={reverse('api_tokens_manage')}")
     membership = get_membership(request.user)
     if membership is None:
-        messages.error(request, "API-Tokens brauchen einen aktiven Wachenzugang.")
+        messages.error(request, _("API-Tokens brauchen einen aktiven Wachenzugang."))
         return redirect("account_home")
     plaintext = None
     if request.method == "POST":
@@ -372,7 +373,7 @@ def api_tokens_manage(request):
                 "via": "account",
             })
             plaintext = raw
-            messages.success(request, "App-Token erzeugt. Bitte jetzt kopieren – es wird nur einmal angezeigt.")
+            messages.success(request, _("App-Token erzeugt. Bitte jetzt kopieren – es wird nur einmal angezeigt."))
         elif action == "revoke":
             updated = ApiToken.objects.filter(
                 user=request.user,
@@ -383,7 +384,7 @@ def api_tokens_manage(request):
                 audit(request.user, membership.station, "api.token_revoked", request.user, {
                     "fields": ["is_active"],
                 })
-                messages.success(request, "App-Token wurde widerrufen.")
+                messages.success(request, _("App-Token wurde widerrufen."))
         if plaintext is None:
             return redirect("api_tokens_manage")
     tokens = ApiToken.objects.filter(user=request.user).order_by("-created_at")

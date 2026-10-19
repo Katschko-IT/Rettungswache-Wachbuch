@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Wachen-Wiki" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">{% translate "Wachenorganisation" %}</p>
+    <h1>{% translate "Wachen-Wiki" %}</h1>
+    <p class="lead">{% translate "Hinweise und Organisationswissen dieser Wache. Keine Einsatz- oder Personendaten." %}</p>
+  </div>
+  {% if can_manage %}
+    <a href="{% url 'wiki_create' %}" class="button primary">{% translate "Hinweis anlegen" %}</a>
+  {% endif %}
+</header>
+
+<form method="get" action="{% url 'wiki_index' %}" class="section-block inline-form" role="search">
+  <div class="field">
+    <label for="wiki-query">{% translate "Hinweise durchsuchen" %}</label>
+    <input id="wiki-query" type="search" name="q" value="{{ query }}" maxlength="120" autocomplete="off">
+  </div>
+  {% if show_archived %}<input type="hidden" name="archiv" value="1">{% endif %}
+  <button type="submit" class="button primary">{% translate "Suchen" %}</button>
+  {% if query %}
+    <a href="{% url 'wiki_index' %}{% if show_archived %}?archiv=1{% endif %}" class="button ghost">{% translate "Zurücksetzen" %}</a>
+  {% endif %}
+</form>
+
+{% if can_manage %}
+  <nav class="filter-nav" aria-label="{% translate 'Ansicht' %}">
+    {% if show_archived %}
+      <a href="{% url 'wiki_index' %}{% if query %}?q={{ query|urlencode }}{% endif %}">{% translate "Aktive Hinweise" %}</a>
+      <a href="?archiv=1{% if query %}&amp;q={{ query|urlencode }}{% endif %}" aria-current="page">{% translate "Archivierte" %} ({{ archived_count }})</a>
+    {% else %}
+      <a href="{% url 'wiki_index' %}{% if query %}?q={{ query|urlencode }}{% endif %}" aria-current="page">{% translate "Aktive Hinweise" %}</a>
+      <a href="?archiv=1{% if query %}&amp;q={{ query|urlencode }}{% endif %}">{% translate "Archivierte" %} ({{ archived_count }})</a>
+    {% endif %}
+  </nav>
+{% endif %}
+
+{% if page_obj.object_list %}
+  <section class="section-block flush" aria-label="{% translate 'Hinweise' %}">
+    <div class="item-list">
+      {% for article in page_obj %}
+        <article class="list-row">
+          <span class="status-label">{% if article.is_archived %}{% translate "Archiviert" %}{% else %}{% translate "Aktiv" %}{% endif %}</span>
+          <span class="row-content">
+            <strong><a href="{% url 'wiki_detail' pk=article.pk %}">{{ article.title }}</a></strong>
+            <small>{% blocktranslate with rev=article.current_revision_number date=article.updated_at|date:"d.m.Y H:i" %}Revision {{ rev }} · aktualisiert {{ date }}{% endblocktranslate %}</small>
+          </span>
+          {% if can_manage %}
+            <span class="row-actions">
+              <a href="{% url 'wiki_edit' pk=article.pk %}" class="button ghost">{% translate "Bearbeiten" %}</a>
+            </span>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if page_obj.has_other_pages %}
+    <nav class="pagination" aria-label="{% translate 'Seitennavigation' %}">
+      {% if page_obj.has_previous %}
+        <a href="?seite={{ page_obj.previous_page_number }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if show_archived %}&amp;archiv=1{% endif %}">{% translate "Zurück" %}</a>
+      {% endif %}
+      <span>{% blocktranslate with current=page_obj.number total=page_obj.paginator.num_pages %}Seite {{ current }} von {{ total }}{% endblocktranslate %}</span>
+      {% if page_obj.has_next %}
+        <a href="?seite={{ page_obj.next_page_number }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if show_archived %}&amp;archiv=1{% endif %}">{% translate "Weiter" %}</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <p class="empty-state">
+    {% if query %}{% translate "Keine Treffer für diese Suche." %}{% else %}{% translate "Noch keine Hinweise. Als Wachenadmin können Sie den ersten Hinweis anlegen." %}{% endif %}
+  </p>
+{% endif %}
+{% endblock %}

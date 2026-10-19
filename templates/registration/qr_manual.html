@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Manueller Code | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Manueller Code" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel qr-manual-panel">
   <p class="context-line">{{ station.name }}</p>
-  <h1>Anmeldung mit manuellem Code</h1>
+  <h1>{% translate "Anmeldung mit manuellem Code" %}</h1>
   <p class="lead">
-    Keine Kamera oder kein Zugriff auf den QR-Code? Geben Sie den 10-stelligen Code ein,
-    der auf dem wartenden Bildschirm unter dem QR-Code angezeigt wird.
+    {% translate "Keine Kamera oder kein Zugriff auf den QR-Code? Geben Sie den 10-stelligen Code ein, der auf dem wartenden Bildschirm unter dem QR-Code angezeigt wird." %}
   </p>
 
   {% if error %}
@@ -16,18 +16,17 @@
   <form method="post" class="form-card">
     {% csrf_token %}
     <div class="form-field">
-      <label for="id_manual_code">10-stelliger Code</label>
+      <label for="id_manual_code">{% translate "10-stelliger Code" %}</label>
       <input type="text" id="id_manual_code" name="manual_code" maxlength="10"
-             placeholder="z. B. 4K8M9NP2QR" autocomplete="off" autocorrect="off"
+             placeholder="{% translate 'z. B. 4K8M9NP2QR' %}" autocomplete="off" autocorrect="off"
              autocapitalize="characters" required autofocus>
     </div>
-    <button class="button primary" type="submit">Weiter zur Bestätigung</button>
+    <button class="button primary" type="submit">{% translate "Weiter zur Bestätigung" %}</button>
   </form>
 
   <p class="hint">
-    Der Code ist nur für diese eine Anmeldung und etwa zwei Minuten gültig.
-    Er ist kein Passwort und wird nicht gespeichert.
+    {% translate "Der Code ist nur für diese eine Anmeldung und etwa zwei Minuten gültig. Er ist kein Passwort und wird nicht gespeichert." %}
   </p>
-  <p><a class="text-action" href="{% url 'qr_login_wait' %}">Zurück zur QR-Anmeldung</a></p>
+  <p><a class="text-action" href="{% url 'qr_login_wait' %}">{% translate "Zurück zur QR-Anmeldung" %}</a></p>
 </section>
 {% endblock %}

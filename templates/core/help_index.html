@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Hilfe" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Produkthilfe" %}</p>
+  <h1>{% translate "Hilfe" %}</h1>
+  <p class="lead">{% translate "Lokale Hilfe zum Wachbuch. Die Artikel liegen auf dem Server und funktionieren ohne Internetzugang." %}</p>
+</header>
+
+<form class="help-search" method="get" action="{% url 'help_index' %}" role="search">
+  <label for="help-query">{% translate "Hilfe durchsuchen" %}</label>
+  <input id="help-query" type="search" name="q" value="{{ help_query }}" maxlength="120" autocomplete="off">
+  <button class="button primary" type="submit">{% translate "Suchen" %}</button>
+</form>
+
+{% if help_query %}
+  <section aria-labelledby="help-results-title" class="help-results">
+    <h2 id="help-results-title">{% blocktranslate %}Treffer für „{{ help_query }}“{% endblocktranslate %}</h2>
+    {% if help_results %}
+      <ul class="help-list">
+        {% for article in help_results %}
+          <li><a href="{% url 'help_article' article.slug %}"><strong>{{ article.title }}</strong></a><span>{{ article.summary }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>{% translate "Keine Treffer. Versuche einen kürzeren Begriff." %}</p>
+    {% endif %}
+  </section>
+{% endif %}
+
+<section aria-labelledby="help-topics-title" class="help-topics">
+  <h2 id="help-topics-title">{% translate "Themen" %}</h2>
+  <ul class="help-list">
+    {% for article in help_articles %}
+      <li><a href="{% url 'help_article' article.slug %}"><strong>{{ article.title }}</strong></a><span>{{ article.summary }}</span></li>
+    {% empty %}
+      <li>{% translate "Für diese Sprache sind keine Artikel hinterlegt." %}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% if current_membership.role == 'admin' %}
+<section aria-labelledby="help-admin-title" class="help-admin">
+  <h2 id="help-admin-title">{% translate "Administration" %}</h2>
+  <p><a href="{% url 'system_status' %}">{% translate "Version und Systemstatus" %}</a></p>
+</section>
+{% endif %}
+
+<p class="help-meta">{% blocktranslate %}Artikelstand {{ help_revision }} · Produktversion {{ app_version }}{% endblocktranslate %}</p>
+{% endblock %}

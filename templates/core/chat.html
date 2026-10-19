@@ -1,18 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Wachenchat | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Wachenchat" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Kollegen</p>
-  <h1>Wachenchat</h1>
-  <p class="lead">Nachrichten werden im Browser verschlüsselt; die Datenbank speichert nur Ciphertext. Der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells.</p>
+  <p class="context-line">{% translate "Kollegen" %}</p>
+  <h1>{% translate "Wachenchat" %}</h1>
+  <p class="lead">{% translate "Nachrichten werden im Browser verschlüsselt; die Datenbank speichert nur Ciphertext. Der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells." %}</p>
 </header>
-<nav class="chat-tabs" aria-label="Nachrichtenbereiche">
-  <a href="{% url 'chat' %}" aria-current="page">Wache</a>
-  <a href="{% url 'private_chat_home' %}">Privat</a>
-  <a href="{% url 'secure_mail_inbox' %}">Post</a>
+<nav class="chat-tabs" aria-label="{% translate 'Nachrichtenbereiche' %}">
+  <a href="{% url 'chat' %}" aria-current="page">{% translate "Wache" %}</a>
+  <a href="{% url 'private_chat_home' %}">{% translate "Privat" %}</a>
+  <a href="{% url 'secure_mail_inbox' %}">{% translate "Post" %}</a>
 </nav>
 {% if not has_keys %}
-  <p class="notice">Bitte zuerst <a href="{% url 'crypto_setup' %}">Chat-Schlüssel einrichten</a>, sonst kannst du neue Nachrichten weder senden noch lesen.</p>
+  <p class="notice">{% translate "Bitte zuerst" %} <a href="{% url 'crypto_setup' %}">{% translate "Chat-Schlüssel einrichten" %}</a>{% translate ", sonst kannst du neue Nachrichten weder senden noch lesen." %}</p>
 {% endif %}
 <section class="chat-thread" data-e2ee-chat {% if has_keys %}data-has-keys="1"{% endif %} data-viewer-id="{{ viewer_id }}">
   <p class="hint" data-crypto-status hidden></p>
@@ -33,19 +34,19 @@
           <time datetime="{{ item.message.created_at|date:'c' }}">{{ item.message.created_at|date:"d.m. H:i" }}</time>
         </header>
         <p data-msg-body="{{ item.message.pk }}">{% if item.message.is_encrypted %}…{% else %}{{ item.message.body|linebreaksbr }}{% endif %}</p>
-        {% if item.message.is_encrypted %}<small class="crypto-tag">E2EE</small>{% endif %}
+        {% if item.message.is_encrypted %}<small class="crypto-tag">{% translate "E2EE" %}</small>{% endif %}
         {% if can_moderate %}
-          <form method="post" action="{% url 'chat_hide' item.message.pk %}">{% csrf_token %}<button class="button secondary" type="submit">Ausblenden</button></form>
+          <form method="post" action="{% url 'chat_hide' item.message.pk %}">{% csrf_token %}<button class="button secondary" type="submit">{% translate "Ausblenden" %}</button></form>
         {% endif %}
       </div>
     </article>
   {% empty %}
-    <p class="empty-state">Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis.</p>
+    <p class="empty-state">{% translate "Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis." %}</p>
   {% endfor %}
   {% if has_keys %}
   <form class="form-card narrow chat-compose" data-e2ee-compose>
-    <p><label>Kurze Nachricht <textarea name="body" rows="2" maxlength="500" placeholder="Kurze Nachricht an die Kollegen …" required></textarea></label></p>
-    <button class="button primary" type="submit">Verschlüsselt senden</button>
+    <p><label>{% translate "Kurze Nachricht" %} <textarea name="body" rows="2" maxlength="500" placeholder="{% translate 'Kurze Nachricht an die Kollegen …' %}" required></textarea></label></p>
+    <button class="button primary" type="submit">{% translate "Verschlüsselt senden" %}</button>
   </form>
   {% endif %}
 </section>

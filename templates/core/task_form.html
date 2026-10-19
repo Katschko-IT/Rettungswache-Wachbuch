@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}{{ page_title }} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'tasks_manage' %}">Zurück zur Vorlage</a>
+<a class="back-link" href="{% url 'tasks_manage' %}">{% translate "Zurück zur Vorlage" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Tagesaufgaben</p>
+  <p class="context-line">{% translate "Tagesaufgaben" %}</p>
   <h1>{{ page_title }}</h1>
-  <p class="lead">Grün = täglich, Gelb = fester Wochentag, Blau = zusätzlich oder monatlich.</p>
+  <p class="lead">{% translate "Grün = täglich, Gelb = fester Wochentag, Blau = zusätzlich oder monatlich." %}</p>
 </header>
 <form method="post" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
   <div class="form-actions">
-    <button class="button primary" type="submit">Speichern</button>
-    <a class="button secondary" href="{% url 'tasks_manage' %}">Abbrechen</a>
+    <button class="button primary" type="submit">{% translate "Speichern" %}</button>
+    <a class="button secondary" href="{% url 'tasks_manage' %}">{% translate "Abbrechen" %}</a>
   </div>
 </form>
 {% endblock %}

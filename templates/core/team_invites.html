@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Offene Aktivierungen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Offene Aktivierungen" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">Master-Admin</p>
-    <h1>Offene Aktivierungen</h1>
-    <p class="lead">Einmal-Links dieser Wache. Roh-Token werden nicht gespeichert und können nicht erneut angezeigt werden.</p>
+    <p class="context-line">{% translate "Master-Admin" %}</p>
+    <h1>{% translate "Offene Aktivierungen" %}</h1>
+    <p class="lead">{% translate "Einmal-Links dieser Wache. Roh-Token werden nicht gespeichert und können nicht erneut angezeigt werden." %}</p>
   </div>
   <div class="form-actions">
-    <a class="button primary" href="{% url 'team_invite_create' %}">Mitarbeiterzugang anlegen</a>
+    <a class="button primary" href="{% url 'team_invite_create' %}">{% translate "Mitarbeiterzugang anlegen" %}</a>
   </div>
 </header>
 
@@ -19,16 +20,16 @@
         <div>
           <strong>{{ activation.user.get_full_name|default:activation.user.username }}</strong>
           <span>{{ activation.user.username }}</span>
-          <span>Gültig bis {{ activation.expires_at }}</span>
-          {% if activation.created_by %}<span>Angelegt von {{ activation.created_by.get_username }}</span>{% endif %}
+          <span>{% translate "Gültig bis" %} {{ activation.expires_at }}</span>
+          {% if activation.created_by %}<span>{% translate "Angelegt von" %} {{ activation.created_by.get_username }}</span>{% endif %}
         </div>
         <form method="post" action="{% url 'team_invite_revoke' activation.pk %}">
           {% csrf_token %}
-          <button class="button secondary" type="submit">Widerrufen</button>
+          <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
         </form>
       </article>
     {% empty %}
-      <p class="empty-state">Keine offenen Aktivierungen.</p>
+      <p class="empty-state">{% translate "Keine offenen Aktivierungen." %}</p>
     {% endfor %}
   </div>
 </section>

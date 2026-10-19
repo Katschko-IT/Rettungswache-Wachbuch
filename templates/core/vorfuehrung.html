@@ -1,135 +1,136 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
-{% block title %}Vorführung – {{ app_name }}{% endblock %}
+{% block title %}{% translate "Vorführung" %} – {{ app_name }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'core/demo.css' %}">
 {% endblock %}
 {% block body_class %}is-landing is-vorfuehrung{% endblock %}
 {% block content %}
-<h1 class="visually-hidden">Wachbuch-Vorführung</h1>
+<h1 class="visually-hidden">{% translate "Wachbuch-Vorführung" %}</h1>
 <noscript>
-  <p class="demo-noscript-hint">Ohne JavaScript erscheinen alle Folien untereinander. Musik steht nur mit JavaScript und nach einem Klick zur Verfügung.</p>
+  <p class="demo-noscript-hint">{% translate "Ohne JavaScript erscheinen alle Folien untereinander. Musik steht nur mit JavaScript und nach einem Klick zur Verfügung." %}</p>
 </noscript>
 
-<section class="demo-deck" data-demo-deck data-demo-index="0" aria-label="Vorführungsfolien">
-  <article class="demo-slide demo-slide-hero is-on" data-demo-slide data-title="Titel" aria-hidden="false">
+<section class="demo-deck" data-demo-deck data-demo-index="0" aria-label="{% translate 'Vorführungsfolien' %}">
+  <article class="demo-slide demo-slide-hero is-on" data-demo-slide data-title="{% translate 'Titel' %}" aria-hidden="false">
     <div class="demo-hero-bg" aria-hidden="true"></div>
     <div class="demo-copy">
-      <p class="demo-kicker">Wachbuch</p>
-      <h2>Wachorganisation, die im Schichtalltag lesbar bleibt.</h2>
-      <p class="demo-lead">Übergaben, Aufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Selbst gehostet. Mobil auf iOS und Android.</p>
+      <p class="demo-kicker">{% translate "Wachbuch" %}</p>
+      <h2>{% translate "Wachorganisation, die im Schichtalltag lesbar bleibt." %}</h2>
+      <p class="demo-lead">{% translate "Übergaben, Aufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Selbst gehostet. Mobil auf iOS und Android." %}</p>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Grenze" aria-hidden="true">
-    <p class="demo-kicker">Produktgrenze</p>
-    <h2>Für die Wache. Nicht für den Einsatz.</h2>
-    <p class="demo-lead">Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem.</p>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Grenze' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Produktgrenze" %}</p>
+    <h2>{% translate "Für die Wache. Nicht für den Einsatz." %}</h2>
+    <p class="demo-lead">{% translate "Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem." %}</p>
     <div class="demo-grid">
       <article class="demo-card">
-        <strong class="demo-yes">Im Umfang</strong>
-        <p>Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team.</p>
+        <strong class="demo-yes">{% translate "Im Umfang" %}</strong>
+        <p>{% translate "Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team." %}</p>
       </article>
       <article class="demo-card">
-        <strong class="demo-no">Nicht im Umfang</strong>
-        <p>Alarmierung, Einsatzleitung, eProtokoll, Patienten- oder Vorgangsdaten.</p>
+        <strong class="demo-no">{% translate "Nicht im Umfang" %}</strong>
+        <p>{% translate "Alarmierung, Einsatzleitung, eProtokoll, Patienten- oder Vorgangsdaten." %}</p>
       </article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Organisationen" aria-hidden="true">
-    <p class="demo-kicker">Für den öffentlichen Dienst</p>
-    <h2>Eine Oberfläche, vier Wachprofile.</h2>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Organisationen' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Für den öffentlichen Dienst" %}</p>
+    <h2>{% translate "Eine Oberfläche, vier Wachprofile." %}</h2>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Rettungsdienst</strong><p>Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks.</p></article>
-      <article class="demo-card"><strong>Berufsfeuerwehr</strong><p>Mängel, Pools, Quittierung – feldlesbar, nicht bunt.</p></article>
-      <article class="demo-card"><strong>Freiwillige Feuerwehr</strong><p>Klar auf dem Handy, auch nach der Alarmierung auf der Wache.</p></article>
-      <article class="demo-card"><strong>Polizei / vergleichbar</strong><p>Interne Wachenabläufe ohne Vorgangs- oder Einsatzdaten.</p></article>
+      <article class="demo-card"><strong>{% translate "Rettungsdienst" %}</strong><p>{% translate "Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Berufsfeuerwehr" %}</strong><p>{% translate "Mängel, Pools, Quittierung – feldlesbar, nicht bunt." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Freiwillige Feuerwehr" %}</strong><p>{% translate "Klar auf dem Handy, auch nach der Alarmierung auf der Wache." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Polizei / vergleichbar" %}</strong><p>{% translate "Interne Wachenabläufe ohne Vorgangs- oder Einsatzdaten." %}</p></article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Alltag" aria-hidden="true">
-    <p class="demo-kicker">Wachalltag</p>
-    <h2>Was die Schicht wirklich braucht.</h2>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Alltag' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Wachalltag" %}</p>
+    <h2>{% translate "Was die Schicht wirklich braucht." %}</h2>
     <div class="demo-badges">
-      <span class="demo-badge"><i class="demo-dot demo-dot-urgent" aria-hidden="true"></i> Dringend – sofort</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-important" aria-hidden="true"></i> Wichtig – zeitnah</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-normal" aria-hidden="true"></i> Normal – regulär</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-done" aria-hidden="true"></i> Erledigt</span>
+      <span class="demo-badge"><i class="demo-dot demo-dot-urgent" aria-hidden="true"></i> {% translate "Dringend – sofort" %}</span>
+      <span class="demo-badge"><i class="demo-dot demo-dot-important" aria-hidden="true"></i> {% translate "Wichtig – zeitnah" %}</span>
+      <span class="demo-badge"><i class="demo-dot demo-dot-normal" aria-hidden="true"></i> {% translate "Normal – regulär" %}</span>
+      <span class="demo-badge"><i class="demo-dot demo-dot-done" aria-hidden="true"></i> {% translate "Erledigt" %}</span>
     </div>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Übergaben</strong><p>Versioniert, priorisiert, stationsbezogen. Farbe plus ausgeschriebener Status.</p></article>
-      <article class="demo-card"><strong>Tagesaufgaben</strong><p>Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen.</p></article>
-      <article class="demo-card"><strong>Mängel &amp; Geräte</strong><p>Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar.</p></article>
-      <article class="demo-card"><strong>Checklisten</strong><p>Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen.</p></article>
+      <article class="demo-card"><strong>{% translate "Übergaben" %}</strong><p>{% translate "Versioniert, priorisiert, stationsbezogen. Farbe plus ausgeschriebener Status." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Tagesaufgaben" %}</strong><p>{% translate "Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Mängel &amp; Geräte" %}</strong><p>{% translate "Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Checklisten" %}</strong><p>{% translate "Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen." %}</p></article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Web und Apps" aria-hidden="true">
-    <p class="demo-kicker">Drei Oberflächen, ein Vertrag</p>
-    <h2>Web-PWA, iOS und Android.</h2>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Web und Apps' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Drei Oberflächen, ein Vertrag" %}</p>
+    <h2>{% translate "Web-PWA, iOS und Android." %}</h2>
     <div class="demo-phones">
       <div class="demo-phone">
-        <h3>Web-PWA</h3>
+        <h3>{% translate "Web-PWA" %}</h3>
         <ul>
-          <li>Übersicht, Übergaben, Kalender, Mehr</li>
-          <li>Installierbar, offline lesbar</li>
-          <li>Ohne CDN, ohne Tracking-Cookies</li>
+          <li>{% translate "Übersicht, Übergaben, Kalender, Mehr" %}</li>
+          <li>{% translate "Installierbar, offline lesbar" %}</li>
+          <li>{% translate "Ohne CDN, ohne Tracking-Cookies" %}</li>
         </ul>
       </div>
       <div class="demo-phone">
-        <h3>iOS / iPadOS</h3>
+        <h3>{% translate "iOS / iPadOS" %}</h3>
         <ul>
-          <li>Bundle de.wachbuch.wachbuchMobile</li>
-          <li>TestFlight-fähig, VoiceOver-tauglich</li>
-          <li>Solar-Hell/Dunkel plus High Contrast</li>
+          <li>{% translate "Bundle de.wachbuch.wachbuchMobile" %}</li>
+          <li>{% translate "TestFlight-fähig, VoiceOver-tauglich" %}</li>
+          <li>{% translate "Solar-Hell/Dunkel plus High Contrast" %}</li>
         </ul>
       </div>
       <div class="demo-phone">
-        <h3>Android</h3>
+        <h3>{% translate "Android" %}</h3>
         <ul>
-          <li>Paket de.wachbuch.mobile</li>
-          <li>Signiertes AAB, Play-interner Test</li>
-          <li>Dieselben Tokens wie die Web-PWA</li>
+          <li>{% translate "Paket de.wachbuch.mobile" %}</li>
+          <li>{% translate "Signiertes AAB, Play-interner Test" %}</li>
+          <li>{% translate "Dieselben Tokens wie die Web-PWA" %}</li>
         </ul>
       </div>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Sicherheit" aria-hidden="true">
-    <p class="demo-kicker">Vertrauen</p>
-    <h2>Selbst gehostet. Nachvollziehbar. Ohne Tracking.</h2>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Sicherheit' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Vertrauen" %}</p>
+    <h2>{% translate "Selbst gehostet. Nachvollziehbar. Ohne Tracking." %}</h2>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Eigene Infrastruktur</strong><p>Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache.</p></article>
-      <article class="demo-card"><strong>Rollen &amp; Station</strong><p>Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte.</p></article>
-      <article class="demo-card"><strong>Audit append-only</strong><p>Kasse, Checklisten und Übergaben werden korrigiert durch neue Sätze, nicht durch Stille.</p></article>
-      <article class="demo-card"><strong>Chat verschlüsselt</strong><p>Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des Vertrauensmodells.</p></article>
+      <article class="demo-card"><strong>{% translate "Eigene Infrastruktur" %}</strong><p>{% translate "Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Rollen &amp; Station" %}</strong><p>{% translate "Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Audit append-only" %}</strong><p>{% translate "Kasse, Checklisten und Übergaben werden korrigiert durch neue Sätze, nicht durch Stille." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Chat verschlüsselt" %}</strong><p>{% translate "Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des Vertrauensmodells." %}</p></article>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="Arbeitgeber" aria-hidden="true">
-    <p class="demo-kicker">Für die Dienststelle</p>
-    <h2>Betrieb, der sich gegenüber Datenschutz vertreten lässt.</h2>
-    <p class="demo-lead">Verantwortliche Stelle, VVT und Mitbestimmung bleiben bei euch. Das Produkt liefert die technische Baseline: keine Patientenfelder, nur notwendige Cookies, dokumentierte Löschpfade.</p>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Arbeitgeber' %}" aria-hidden="true">
+    <p class="demo-kicker">{% translate "Für die Dienststelle" %}</p>
+    <h2>{% translate "Betrieb, der sich gegenüber Datenschutz vertreten lässt." %}</h2>
+    <p class="demo-lead">{% translate "Verantwortliche Stelle, VVT und Mitbestimmung bleiben bei euch. Das Produkt liefert die technische Baseline: keine Patientenfelder, nur notwendige Cookies, dokumentierte Löschpfade." %}</p>
     <div class="demo-grid">
-      <article class="demo-card"><strong>Datenschutz</strong><p>Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern.</p></article>
-      <article class="demo-card"><strong>Store-Kandidat 1.0</strong><p>CI-Gates für iOS und Android sind da. Konten und Signatur liegen bei der Dienststelle.</p></article>
+      <article class="demo-card"><strong>{% translate "Datenschutz" %}</strong><p>{% translate "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern." %}</p></article>
+      <article class="demo-card"><strong>{% translate "Store-Kandidat 1.0" %}</strong><p>{% translate "CI-Gates für iOS und Android sind da. Konten und Signatur liegen bei der Dienststelle." %}</p></article>
     </div>
   </article>
 
-  <article class="demo-slide demo-slide-hero" data-demo-slide data-title="Schluss" aria-hidden="true">
+  <article class="demo-slide demo-slide-hero" data-demo-slide data-title="{% translate 'Schluss' %}" aria-hidden="true">
     <div class="demo-hero-bg" aria-hidden="true"></div>
     <div class="demo-copy">
-      <p class="demo-kicker">Nächster Schritt</p>
-      <h2>Vorführen. Pilotieren. Selbst hosten.</h2>
-      <p class="demo-lead">Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz.</p>
+      <p class="demo-kicker">{% translate "Nächster Schritt" %}</p>
+      <h2>{% translate "Vorführen. Pilotieren. Selbst hosten." %}</h2>
+      <p class="demo-lead">{% translate "Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz." %}</p>
       <div class="form-actions demo-cta">
-        <a class="button primary" href="{% url 'login' %}">Anmelden</a>
-        <a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a>
+        <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+        <a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
         {% if demo_mode %}
         <form method="post" action="{% url 'demo_login' %}">
           {% csrf_token %}
-          <button type="submit" class="button primary">Demo starten</button>
+          <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
         </form>
         {% endif %}
       </div>
@@ -137,15 +138,15 @@
   </article>
 
   <div class="demo-bar" data-demo-bar hidden>
-    <button class="button secondary" type="button" data-demo-prev aria-label="Vorherige Folie">Zurück</button>
+    <button class="button secondary" type="button" data-demo-prev aria-label="{% translate 'Vorherige Folie' %}">{% translate "Zurück" %}</button>
     <div class="demo-progress" aria-hidden="true"><span class="demo-progress-fill"></span></div>
     <span class="demo-count" data-demo-count aria-live="polite">1 / 8</span>
-    <button class="button secondary" type="button" data-demo-music aria-pressed="false">Musik</button>
-    <button class="button primary" type="button" data-demo-next>Weiter</button>
+    <button class="button secondary" type="button" data-demo-music aria-pressed="false">{% translate "Musik" %}</button>
+    <button class="button primary" type="button" data-demo-next>{% translate "Weiter" %}</button>
   </div>
 </section>
 
 <figure class="demo-photo-credit">
-  <figcaption>Foto: <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">Antonio Batinic / Pexels</a></figcaption>
+  <figcaption>{% translate "Foto:" %} <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">{% translate "Antonio Batinic / Pexels" %}</a></figcaption>
 </figure>
 {% endblock %}

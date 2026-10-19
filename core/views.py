@@ -17,6 +17,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -392,35 +393,35 @@ def access(request):
 
 DASHBOARD_PROFILES = {
     Station.Profile.RESCUE: {
-        "eyebrow": "Rettungsdienst",
-        "handover_title": "Für die nächste Schicht",
-        "handover_link": "Alle Übergaben",
-        "asset_label": "Fahrzeuge/Geräte",
-        "task_label": "Wachaufgaben",
+        "eyebrow": _lazy("Rettungsdienst"),
+        "handover_title": _lazy("Für die nächste Schicht"),
+        "handover_link": _lazy("Alle Übergaben"),
+        "asset_label": _lazy("Fahrzeuge/Geräte"),
+        "task_label": _lazy("Wachaufgaben"),
         "cards": ("defects", "assets", "loans", "checklists", "tasks"),
     },
     Station.Profile.FIRE: {
-        "eyebrow": "Feuerwehr",
-        "handover_title": "Für den nächsten Dienst",
-        "handover_link": "Alle Dienstübergaben",
-        "asset_label": "Einsatzmittel",
-        "task_label": "Wachdienst-Aufgaben",
+        "eyebrow": _lazy("Feuerwehr"),
+        "handover_title": _lazy("Für den nächsten Dienst"),
+        "handover_link": _lazy("Alle Dienstübergaben"),
+        "asset_label": _lazy("Einsatzmittel"),
+        "task_label": _lazy("Wachdienst-Aufgaben"),
         "cards": ("defects", "assets", "checklists", "tasks"),
     },
     Station.Profile.POLICE: {
-        "eyebrow": "Polizei",
-        "handover_title": "Für die nächste Dienstübergabe",
-        "handover_link": "Alle Dienstübergaben",
-        "asset_label": "Fahrzeuge/Geräte",
-        "task_label": "Dienststellen-Aufgaben",
+        "eyebrow": _lazy("Polizei"),
+        "handover_title": _lazy("Für die nächste Dienstübergabe"),
+        "handover_link": _lazy("Alle Dienstübergaben"),
+        "asset_label": _lazy("Fahrzeuge/Geräte"),
+        "task_label": _lazy("Dienststellen-Aufgaben"),
         "cards": ("defects", "assets", "loans", "checklists", "tasks"),
     },
     Station.Profile.GENERAL: {
-        "eyebrow": "Organisationseinheit",
-        "handover_title": "Für die nächste Übergabe",
-        "handover_link": "Alle Übergaben",
-        "asset_label": "Geräte/Fahrzeuge",
-        "task_label": "Organisationsaufgaben",
+        "eyebrow": _lazy("Organisationseinheit"),
+        "handover_title": _lazy("Für die nächste Übergabe"),
+        "handover_link": _lazy("Alle Übergaben"),
+        "asset_label": _lazy("Geräte/Fahrzeuge"),
+        "task_label": _lazy("Organisationsaufgaben"),
         "cards": ("defects", "assets", "loans", "checklists", "tasks"),
     },
 }
@@ -472,11 +473,11 @@ def dashboard(request):
     }
     profile = dashboard_profile(station)
     card_definitions = {
-        "defects": ("defects_web", "Mängel", "offen", operations["defects_count"]),
-        "assets": ("assets_inventory_web", profile["asset_label"], "nicht bereit", operations["asset_attention_count"]),
-        "loans": ("assets_inventory_web", "Inventar", "ausgegeben", operations["inventory_loans_count"]),
-        "checklists": ("checklists", "Checklisten", "fällig oder überfällig", operations["due_checklists_count"]),
-        "tasks": ("tasks_today", profile["task_label"], "heute erledigt", f'{operations["task_done"]}/{operations["task_total"]}'),
+        "defects": ("defects_web", _("Mängel"), _("offen"), operations["defects_count"]),
+        "assets": ("assets_inventory_web", profile["asset_label"], _("nicht bereit"), operations["asset_attention_count"]),
+        "loans": ("assets_inventory_web", _("Inventar"), _("ausgegeben"), operations["inventory_loans_count"]),
+        "checklists": ("checklists", _("Checklisten"), _("fällig oder überfällig"), operations["due_checklists_count"]),
+        "tasks": ("tasks_today", profile["task_label"], _("heute erledigt"), f'{operations["task_done"]}/{operations["task_total"]}'),
     }
     dashboard_cards = [
         {"url_name": card_definitions[key][0], "title": card_definitions[key][1], "subtitle": card_definitions[key][2], "value": card_definitions[key][3]}
@@ -579,7 +580,7 @@ def handover_create(request):
     form = HandoverForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         handover = create_handover(form, request.membership)
-        messages.success(request, "Uebergabe wurde angelegt.")
+        messages.success(request, _("Übergabe wurde angelegt."))
         return redirect("handover_detail", pk=handover.pk)
     return render(request, "core/handover_form.html", {"form": form})
 
@@ -610,7 +611,7 @@ def handover_edit(request, pk):
     form = HandoverEditForm(request.POST or None, instance=handover)
     if request.method == "POST" and form.is_valid():
         update_handover_content(handover, form.cleaned_data, request.membership)
-        messages.success(request, "Übergabe wurde korrigiert (neue Revision).")
+        messages.success(request, _("Übergabe wurde korrigiert (neue Revision)."))
         return redirect("handover_detail", pk=pk)
     return render(request, "core/handover_edit.html", {
         "form": form,
@@ -625,9 +626,9 @@ def handover_status(request, pk):
     form = HandoverStatusForm(request.POST, instance=handover)
     if form.is_valid():
         change_handover_status(handover, form.cleaned_data["status"], request.membership)
-        messages.success(request, "Status wurde aktualisiert.")
+        messages.success(request, _("Status wurde aktualisiert."))
     else:
-        messages.error(request, "Status konnte nicht aktualisiert werden.")
+        messages.error(request, _("Status konnte nicht aktualisiert werden."))
     return redirect("handover_detail", pk=pk)
 
 
@@ -665,7 +666,7 @@ def calendar_create(request):
             audit(request.user, request.membership.station, "calendar.created", event, {"fields": [
                 "title", "description", "starts_at", "ends_at"
             ]})
-        messages.success(request, "Termin wurde angelegt.")
+        messages.success(request, _("Termin wurde angelegt."))
         return redirect("calendar")
     return render(request, "core/calendar_form.html", {"form": form})
 
@@ -682,7 +683,7 @@ def birthdays(request):
 @station_module_required("birthdays_enabled")
 @require_http_methods(["GET", "POST"])
 def birthday_settings(request):
-    preference, _ = BirthdayPreference.objects.get_or_create(
+    preference, _created = BirthdayPreference.objects.get_or_create(
         user=request.user,
         station=request.membership.station,
     )
@@ -693,7 +694,7 @@ def birthday_settings(request):
             audit(request.user, request.membership.station, "birthday.preference_changed", saved, {
                 "fields": ["day", "month", "is_visible"]
             })
-        messages.success(request, "Geburtstagseinstellung wurde gespeichert.")
+        messages.success(request, _("Geburtstagseinstellung wurde gespeichert."))
         return redirect("birthdays")
     return render(request, "core/birthday_settings.html", {
         "form": form,
@@ -738,7 +739,7 @@ def coffee_create(request):
             audit(request.user, station, "coffee.entry_created", entry, {
                 "fields": ["member", "amount_cents", "reason"]
             })
-        messages.success(request, "Kassenbuchung wurde erfasst.")
+        messages.success(request, _("Kassenbuchung wurde erfasst."))
         return redirect("coffee")
     return render(request, "core/coffee_form.html", {"form": form})
 
@@ -754,7 +755,7 @@ def coffee_correct(request, pk):
     )
     original = get_object_or_404(base_qs)
     if original.corrections.exists():
-        messages.error(request, "Diese Buchung wurde bereits korrigiert.")
+        messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
         return redirect("coffee")
     form = CoffeeCorrectionForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -762,7 +763,7 @@ def coffee_correct(request, pk):
             with transaction.atomic():
                 original = get_object_or_404(base_qs.select_for_update())
                 if original.corrections.exists():
-                    messages.error(request, "Diese Buchung wurde bereits korrigiert.")
+                    messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
                     return redirect("coffee")
                 correction = CoffeeEntry.objects.create(
                     station=original.station,
@@ -776,9 +777,9 @@ def coffee_correct(request, pk):
                     "fields": ["reason", "correction_of"]
                 })
         except IntegrityError:
-            messages.error(request, "Diese Buchung wurde bereits korrigiert.")
+            messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
             return redirect("coffee")
-        messages.success(request, "Gegenbuchung wurde erfasst.")
+        messages.success(request, _("Gegenbuchung wurde erfasst."))
         return redirect("coffee")
     return render(request, "core/coffee_correction.html", {
         "form": form,
@@ -860,7 +861,7 @@ def task_toggle(request, pk):
     work_date = _parse_work_date(request.POST.get("tag"))
     mark_done = request.POST.get("erledigt") == "1"
     if not task.applies_to_date(work_date):
-        messages.error(request, "Diese Aufgabe gilt nicht fuer den gewaehlten Tag.")
+        messages.error(request, _("Diese Aufgabe gilt nicht für den gewählten Tag."))
     else:
         toggle_task_completion(
             task=task,
@@ -869,9 +870,9 @@ def task_toggle(request, pk):
             mark_done=mark_done,
         )
         if mark_done:
-            messages.success(request, "Aufgabe wurde als erledigt markiert.")
+            messages.success(request, _("Aufgabe wurde als erledigt markiert."))
         else:
-            messages.success(request, "Aufgabe wurde wieder geoeffnet.")
+            messages.success(request, _("Aufgabe wurde wieder geöffnet."))
     next_url = request.POST.get("next") or reverse("tasks_today")
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         next_url = reverse("tasks_today")
@@ -903,7 +904,7 @@ def task_create(request):
             audit(request.user, request.membership.station, "station_task.created", task, {
                 "fields": ["title", "band", "weekday", "notes", "is_active"],
             })
-        messages.success(request, "Aufgabe wurde angelegt.")
+        messages.success(request, _("Aufgabe wurde angelegt."))
         return redirect("tasks_manage")
     return render(request, "core/task_form.html", {
         "form": form,
@@ -925,7 +926,7 @@ def task_edit(request, pk):
             audit(request.user, request.membership.station, "station_task.updated", saved, {
                 "fields": form.changed_data,
             })
-        messages.success(request, "Aufgabe wurde gespeichert.")
+        messages.success(request, _("Aufgabe wurde gespeichert."))
         return redirect("tasks_manage")
     return render(request, "core/task_form.html", {
         "form": form,
@@ -969,7 +970,7 @@ def checklist_complete(request, pk):
         audit(request.user, station, "checklist.completed", completion, {
             "fields": ["checklist", "note"],
         })
-    messages.success(request, "Checkliste wurde als erledigt vermerkt.")
+    messages.success(request, _("Checkliste wurde als erledigt vermerkt."))
     return redirect("checklists")
 
 
@@ -1133,7 +1134,7 @@ def membership_update(request, pk):
                         "is_active": membership.is_active,
                     }),
                 })
-                messages.success(request, "Mitgliedschaft wurde aktualisiert.")
+                messages.success(request, _("Mitgliedschaft wurde aktualisiert."))
         if not form.errors:
             return redirect("team")
     return render(request, "core/membership_form.html", {
@@ -1165,7 +1166,7 @@ def station_settings(request):
                 "fields": changed_fields,
                 "changes": structure_changes(before, after),
             })
-        messages.success(request, "Einstellungen wurden gespeichert.")
+        messages.success(request, _("Einstellungen wurden gespeichert."))
         return redirect("station_settings")
     return render(request, "core/station_settings.html", {"form": form})
 
@@ -1301,7 +1302,7 @@ def pinboard_create(request):
             body=form.cleaned_data["body"],
             category=form.cleaned_data["category"],
         )
-        messages.success(request, "Aushang wurde angelegt.")
+        messages.success(request, _("Aushang wurde angelegt."))
         return redirect("pinboard")
     return render(request, "core/pinboard_form.html", {
         "form": form,
@@ -1325,7 +1326,7 @@ def pinboard_edit(request, pk):
             body=form.cleaned_data["body"],
             category=form.cleaned_data["category"],
         )
-        messages.success(request, "Aushang wurde aktualisiert.")
+        messages.success(request, _("Aushang wurde aktualisiert."))
         return redirect("pinboard")
     return render(request, "core/pinboard_form.html", {
         "form": form,
@@ -1350,5 +1351,5 @@ def pinboard_archive(request, pk):
     if not (request.membership.role in PINBOARD_MANAGE_ROLES or note.author_id == request.user.id):
         raise PermissionDenied
     archive_pinboard_note(note, actor=request.user)
-    messages.success(request, "Aushang wurde archiviert.")
+    messages.success(request, _("Aushang wurde archiviert."))
     return redirect("pinboard")

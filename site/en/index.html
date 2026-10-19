@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wachwerk – Station logbook for rescue stations, self-hosted</title>
+<meta name="description" content="Wachwerk is a self-hosted station logbook for rescue stations: handovers, tasks, checklists, calendar, coffee fund, defects, and team – locally in the station network, without mandatory cloud use.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#082e63">
+<meta property="og:title" content="Wachwerk – Station logbook for rescue stations">
+<meta property="og:description" content="Self-hosted station logbook for day-to-day station operations: handovers, tasks, checklists, calendar, coffee fund, and more. Locally operated, station-based, without external services in the core path.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="de" href="https://katschko-it.github.io/Rettungswache-Wachbuch/">
+<link rel="alternate" hreflang="en" href="https://katschko-it.github.io/Rettungswache-Wachbuch/en/">
+<link rel="stylesheet" href="../styles.css">
+<link rel="preload" href="../assets/fonts/SourceSans3-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/SourceSans3-Semibold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip-link" href="#inhalt">Skip to content</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">WB</span> <span class="brand-text"> <strong>Wachwerk</strong> <span>Station logbook for rescue stations</span> </span></a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <ul>
+        <li><a href="#funktionen">Features</a></li>
+        <li><a href="#einblicke">Insights</a></li>
+        <li><a href="#architektur">Architecture</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#grenzen">Operating limits</a></li>
+        <li><a href="#status">Status</a></li>
+      </ul>
+    </nav>
+    <a class="header-cta" href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Source code on GitHub</a>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <a href="../" hreflang="de" lang="de" aria-label="Zur deutschen Fassung wechseln">DE</a>
+      <span aria-current="true">EN</span>
+    </div>
+  </div>
+</header>
+
+<main id="inhalt">
+  <section class="hero" id="top">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Self-hosted · Station-specific · Offline-capable in the LAN</p>
+        <h1>Everyday station life, <span>in one place</span>.</h1>
+        <p class="hero-lead">Wachwerk consolidates shift handovers, daily tasks, checklists, calendar and coffee fund in one station logbook. It runs on a server at the station, the data remains there – without a cloud account and without external scripts.</p>
+        <ul class="hero-points">
+          <li>Handovers with priority, status and traceable revisions instead of paper slips and shout-outs.</li>
+          <li>Tasks and checklists with daily reference, ensuring routine tasks are not overlooked.</li>
+          <li>Roles per station, personal accounts and an audit trail for changes.</li>
+        </ul>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#installation">View installation</a>
+          <a class="button button-secondary" href="#einblicke">Real insights</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="../assets/screenshots/uebersicht.webp" width="1280" height="800" alt="Overview in the station logbook: header with station name and role, metrics for handovers, tiles for daily tasks, defects, vehicles, and checklists, as well as upcoming dates." fetchpriority="high" decoding="async">
+        <figcaption>Overview of the current shift – capture from the local application with synthetic data.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="funktionen" aria-labelledby="funktionen-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Scope of features</span>
+        <h2 id="funktionen-h">What the station logbook actually delivers</h2>
+        <p>The following modules are implemented in the repository and covered by the test suite. They organise the internal operation of a station – not emergency response.</p>
+      </div>
+
+      <ul class="fact-strip">
+        <li><strong>Local in the station network</strong> <span>Django, PostgreSQL and assets run on local hardware. The core path requires no internet.</span></li>
+        <li><strong>Five station roles</strong> <span>Member, shift lead, treasurer, master admin and auditor – each bound to one station.</span></li>
+        <li><strong>Installable web app</strong> <span>Usable on mobile and station terminal as a PWA; writing requires a connection to the station server.</span></li>
+      </ul>
+
+      <div class="grid grid-3" style="margin-top:1.25rem">
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Shift handovers</h3>
+          <p>Create, confirm and complete handovers with category, priority and status. Changes are recorded as revisions; entries remain traceable.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Daily tasks</h3>
+          <p>Tasks by daily routine, day of the week and additional tasks. Completion applies per day and shift; the wallboard shows the status of the current shift.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Checklists</h3>
+          <p>Checklists with individual items, recurrence schedule and completion note – such as for vehicle takeover or station inspection.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Station calendar</h3>
+          <p>Maintain appointments, duty meetings and training sessions. Public holidays are taken into account; an ICS subscription makes the calendar readable in standard calendar apps.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Coffee fund</h3>
+          <p>Continuous ledger with amounts, reason and contra entry instead of an editable total. Postings are preserved as a chain and are role-specific.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Core</span>
+          <h3>Notice board</h3>
+          <p>Internal notices and announcements for the station – visible to all members, managed by the shift lead or administration.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Operations</span>
+          <h3>Defects, equipment, inventory</h3>
+          <p>Defects with status workflow and optional photo, vehicles and equipment with readiness status, inventory with issue and return. All station-specific.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Operations</span>
+          <h3>Team, roles and audit</h3>
+          <p>Create accounts, activate via invitation, assign roles and revoke access. Security-relevant changes end up in the audit trail.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Access</span>
+          <h3>Login and QR login</h3>
+          <p>Local accounts with password, optional TOTP and Passkeys. QR login confirms a browser session on the staff device – short-lived and bound to the station.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Access</span>
+          <h3>Initial setup</h3>
+          <p>Setup wizard for station name, address, time zone, roles and modules – accessible only with a one-time bootstrap token, no longer available thereafter.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Interface</span>
+          <h3>API and mobile client</h3>
+          <p>Versioned JSON API with token scopes for the open-source Flutter client. The same role and station limits apply there as well.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Operations</span>
+          <h3>Backup and push</h3>
+          <p>Daily local PostgreSQL dumps with a restore test as well as optional WebPush dispatch from a dedicated outbox.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="einblicke" aria-labelledby="einblicke-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Insights</span>
+        <h2 id="einblicke-h">The application, not a draft</h2>
+        <p>All captures originate from the locally launched application with a test database and fictional accounts. No montage, no retouching, no third-party screenshots. Persons, stations and records are synthetic.</p>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <img src="../assets/screenshots/uebergaben.webp" width="1280" height="800" loading="lazy" decoding="async" alt="List of handovers with priority indication, status, and a brief extract for each entry.">
+          <figcaption><strong>Handovers at a glance</strong>Open items by priority, with status and direct assignment to the shift.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/uebergabe-detail.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Detailed view of a handover with description, status, confirmation, and revision notice.">
+          <figcaption><strong>A handover in detail</strong>Description, status changes and revisions remain traceable on the record.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/aufgaben.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Daily tasks grouped into daily routine, weekday tasks, and additional tasks with completion toggles.">
+          <figcaption><strong>Daily tasks</strong>Routine, day of the week and additional tasks separated – the tick applies to the current day.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/checklisten.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Checklist overview with vehicle check and station round, scores, and last completion.">
+          <figcaption><strong>Checklists</strong>Recurring inspections with individual items and documented completion.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/kalender.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Calendar view with station appointments and highlighted public holidays.">
+          <figcaption><strong>Station calendar</strong>Appointments and public holidays in one place, additionally available as an ICS subscription.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/kaffeekasse.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Coffee fund view with continuous entries, amounts, reason, and correction option.">
+          <figcaption><strong>Coffee fund</strong>Continuous entries instead of overwritten totals; corrections remain visible.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/pinnwand.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Notice board with internal notices and announcements for the station.">
+          <figcaption><strong>Notice board</strong>Internal notices reach all station members without a messenger group.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/team.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Team management with accounts, roles, and active status, as well as buttons to create and approve.">
+          <figcaption><strong>Team and roles</strong>Accounts, roles and permissions remain bound to one's own station.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/anmeldung.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Login page with fields for username and password, as well as a reference to the QR login.">
+          <figcaption><strong>Login</strong>Local accounts, optional second factor – and entry into QR login.</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/screenshots/uebersicht-mobil.webp" width="390" height="844" loading="lazy" decoding="async" alt="Mobile overview at 390 pixels width: header, metrics, tiles, and bottom navigation.">
+          <figcaption><strong>On mobile</strong>Tested at 390 CSS pixels: single-column, without horizontal scrolling, with 48-pixel targets.</figcaption>
+        </figure>
+      </div>
+      <p class="gallery-note">Capture basis: Chromium, local server on <code>127.0.0.1</code>, test accounts without real persons. No capture contains login tokens, QR secrets or activation links. All screenshots show the German-language interface of interim release 0.17.0; labels inside the application remain in German.</p>
+    </div>
+  </section>
+
+  <section id="architektur" aria-labelledby="architektur-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Architecture</span>
+        <h2 id="architektur-h">A server at the station, clear boundaries</h2>
+        <p>Wachwerk is a modular Django monolith with PostgreSQL, served via Gunicorn and WhiteNoise. Docker Compose starts database, application, worker and backup as separate services.</p>
+      </div>
+
+      <div class="split">
+        <div>
+          <ul class="stack-list">
+            <li><span class="stack-key">Application</span><span class="stack-val">Django 6.1, Python 3.13, Gunicorn, WhiteNoise</span></li>
+            <li><span class="stack-key">Database</span><span class="stack-val">PostgreSQL 17 in the Compose stack, separate roles for app and feed retrieval</span></li>
+            <li><span class="stack-key">Cache / Limits</span><span class="stack-val">Redis 7 for cache and rate limits; without Redis, local fallbacks take effect</span></li>
+            <li><span class="stack-key">Background</span><span class="stack-val">Feed worker for approved HTTPS sources, push worker for WebPush, daily backup</span></li>
+            <li><span class="stack-key">Delivery</span><span class="stack-val">Gunicorn only on loopback; TLS and network exposure are handled by reverse proxy and firewall</span></li>
+            <li><span class="stack-key">Clients</span><span class="stack-val">Browser/PWA and open-source Flutter client via the versioned API</span></li>
+            <li><span class="stack-key">External sources</span><span class="stack-val">Optional and must be explicitly approved: RSS/traffic sources and waste calendar via host allowlist</span></li>
+          </ul>
+        </div>
+        <div>
+          <div class="card">
+            <h3>System requirements</h3>
+            <ul>
+              <li>64-bit Linux with Docker Engine and Compose v2</li>
+              <li>Documented minimum baseline: 1 vCPU, 1 GB RAM, approximately 1 GB free storage</li>
+              <li>For continuous operation with backups and multiple devices: plan for 2 vCPU and 2 GB RAM</li>
+              <li>Fixed local hostname or IP address in the station network</li>
+              <li>For mobile phones on Wi-Fi: reverse proxy with TLS via an internal CA</li>
+              <li>Time synchronisation via NTP, otherwise TOTP and activation periods drift</li>
+            </ul>
+          </div>
+          <div class="notice">
+            <p><strong>No SaaS, no multi-tenancy.</strong> One instance belongs to one station. There is no central operator instance, no cloud login and no telemetry in the core path.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="installation" aria-labelledby="installation-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Installation</span>
+        <h2 id="installation-h">From zero to operational</h2>
+        <p>Git, Docker Engine and Compose v2 are prerequisites. All steps run on the station server; internet access is only required to pull the images.</p>
+      </div>
+
+      <div class="split">
+        <ol class="steps">
+          <li>
+            <h3>Obtain repository</h3>
+            <pre><code>git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
+cd Rettungswache-Wachbuch
+cp .env.example .env</code></pre>
+          </li>
+          <li>
+            <h3>Set secrets</h3>
+            <p>In <code>.env</code>, replace all placeholders with independent random values, for example using <code>openssl rand -hex 32</code>. Do not use values from the example. The backup directory must be writable for the database user.</p>
+            <pre><code>sudo chown 70:70 backups
+docker compose up --build -d</code></pre>
+          </li>
+          <li>
+            <h3>Complete initial setup</h3>
+            <p>Set <code>SETUP_BOOTSTRAP_TOKEN</code> once outside the application and call <code>/setup/</code>. The wizard guides through station name, address, time zone, roles and modules. Remove the token afterwards – without the token, the route is not present.</p>
+          </li>
+          <li>
+            <h3>Administration and team</h3>
+            <pre><code>docker compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py grant_station_admin BENUTZERNAME</code></pre>
+            <p>The master admin creates further accounts under <code>/team/</code> or via invitation; permissions remain station-specific.</p>
+          </li>
+          <li>
+            <h3>TLS and network exposure</h3>
+            <p>The container intentionally binds only to <code>127.0.0.1:8090</code>. Place a reverse proxy with TLS in front for mobile phones and station terminals, and configure <code>ALLOWED_HOSTS</code> as well as <code>CSRF_TRUSTED_ORIGINS</code> with the local address actually used.</p>
+          </li>
+        </ol>
+        <div>
+          <div class="card">
+            <h3>Operation in the station network</h3>
+            <p>The station server is the authority: login, roles, forms, and assets are served locally. If the WAN connection fails, core operations remain usable in the LAN – login, roles, tasks, checklists, and QR display are verified by tests with blocked external socket, DNS, and URL calls.</p>
+            <p>The prerequisite is an accessible server and a functioning local network. A station server that would only be accessible via a cloud does not fulfil this model.</p>
+          </div>
+          <div class="card" style="margin-top:1rem">
+            <h3>Operations and updates</h3>
+            <ul>
+              <li>Daily PostgreSQL dumps with retention and restore test</li>
+              <li>Migrations run as a dedicated Compose service prior to web startup</li>
+              <li>Health endpoint <code>/healthz/</code> for monitoring</li>
+              <li>Retention and clean-up commands for push outbox and QR requests</li>
+              <li>Operations manual: <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OPERATIONS.md">docs/OPERATIONS.md</a></li>
+            </ul>
+          </div>
+          <div class="notice">
+            <p><strong>Local HTTP startup for testing only.</strong> Without TLS, <code>SECURE_COOKIES=false</code> must be set deliberately. For genuine operation, TLS with a reverse proxy remains the intended approach.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grenzen" aria-labelledby="grenzen-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Operating limits</span>
+        <h2 id="grenzen-h">What is deliberately not included</h2>
+        <p>Wachwerk is an organisational station logbook. It replaces neither incident management nor staff planning, and makes no statement regarding the legality of any specific operation.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table class="boundary-table">
+          <caption>Demarcation of the product and evidence</caption>
+          <thead>
+            <tr><th scope="col">Area</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Patient and incident data</th>
+              <td>Not intended. No field for health, diagnostic, alerting, or incident data; such content does not belong in the station logbook.</td>
+            </tr>
+            <tr>
+              <th scope="row">Duty and staff planning</th>
+              <td>Not included. No shift rotas, time accounts, payroll, or performance appraisal.</td>
+            </tr>
+            <tr>
+              <th scope="row">WAN failure with accessible LAN</th>
+              <td>Core operations function; verified by tests with blocked external calls.</td>
+            </tr>
+            <tr>
+              <th scope="row">Mobile phone without signal or server switched off</th>
+              <td>Not implemented. There is no client database, no outbox, and no offline login; the PWA merely displays an offline page.</td>
+            </tr>
+            <tr>
+              <th scope="row">External sign-offs</th>
+              <td>Open: real passkey authenticator, WebPush delivery, ICS retrieval against a genuine third-party host, TLS/proxy operation, disaster recovery.</td>
+            </tr>
+            <tr>
+              <th scope="row">Data protection and employee participation</th>
+              <td>Technical measures are documented; data protection impact assessment, deletion periods, and operational approval rest with the operator.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:1.5rem">
+        <article class="card">
+          <h3>Security: what is verified</h3>
+          <ul>
+            <li>Passwords with Argon2id, lockout mechanism against repeated failed attempts</li>
+            <li>Optional second factor via TOTP and Passkeys; sessions with freshness check</li>
+            <li>Role and station boundaries verified on the server side, audit trail for changes</li>
+            <li>Chat and private messages encrypted in the browser (AES-256-GCM, ECDH P-256); the server stores ciphertext and key envelopes</li>
+            <li>No external scripts, fonts, or analytics services in the interface</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Security: what is not promised</h3>
+          <ul>
+            <li>No end-to-end encryption for the entire system and no statement regarding compromised end devices</li>
+            <li>No audit seal and no official recognition; the ASVS evaluation is a self-assessment</li>
+            <li>No protection against XSS, malicious browser extensions, or malware on the client</li>
+            <li>No legal or compliance commitment: an assessment only arises through operator review and approval</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="status" aria-labelledby="status-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Project status</span>
+        <h2 id="status-h">Pre-production, openly stated</h2>
+        <p>The project is not a product promise. The following status separates what is implemented and tested from what can only be proven in operation.</p>
+      </div>
+
+      <div class="status-grid">
+        <div class="status-card">
+          <h3><span class="pill pill-done">Verified</span> Implemented and tested</h3>
+          <ul>
+            <li>Handovers, tasks, checklists, calendar, coffee fund, notice board</li>
+            <li>Defect, equipment, and inventory management including API</li>
+            <li>Roles, invitations, activation, audit, and station boundaries</li>
+            <li>QR login with short-lived requests and station binding</li>
+            <li>Setup wizard, local WAN outage operation, restart with persistent database</li>
+            <li>Interim release 0.17.0 for evaluation and presentation, no production approval</li>
+            <li>Interface predominantly in German; login and setup with de/en language foundation. Specialist modules and the application's project page not yet fully bilingual</li>
+            <li>Integrated help, wiki, and diagnostic centre are not part of this release and are not publicly available.</li>
+            <li>Touch targets, focus, and contrast are design specifications</li>
+          </ul>
+        </div>
+        <div class="status-card">
+          <h3><span class="pill pill-open">Open</span> Prior to production operation</h3>
+          <ul>
+            <li>Real hardware and network sign-off at the station, including TLS/proxy</li>
+            <li>Passkeys and WebPush on real devices, ICS against a genuine host</li>
+            <li>Data protection impact assessment, deletion concept, and employee participation</li>
+            <li>Restore test with real backup data</li>
+            <li>Client offline operation (draft, not implemented)</li>
+            <li>Independent security assessment</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="notice" style="margin-top:1.25rem">
+        <p><strong>No production approval.</strong> This page describes the development status of the repository. It is not an approval for operation and not a confirmation of compliance requirements.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="fragen" aria-labelledby="fragen-h">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-kicker">Questions</span>
+        <h2 id="fragen-h">Frequently asked questions</h2>
+      </div>
+
+      <details>
+        <summary>Does operation require an internet connection?</summary>
+        <div class="details-body">
+          <p>No. Login, roles, forms, and assets are served locally. Only optional features such as enabled RSS feeds, waste calendar, geocoding, or WebPush require an outbound connection – and can be disabled.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What happens during a WAN outage?</summary>
+        <div class="details-body">
+          <p>As long as the station server is reachable in the LAN, core operations continue. If the server itself fails or the mobile phone has no network, there is no offline write operation: no local database, no outbox, no subsequent synchronisation.</p>
+        </div>
+      </details>
+      <details>
+        <summary>How does login via QR code work?</summary>
+        <div class="details-body">
+          <p>The browser displays a short-lived request. An already logged-in staff device confirms it – with a fresh login, TOTP, or passkey. The QR code contains no password and no permanent token; the request is bound to the station and browser session and expires. This does not replace two-factor authentication, but shifts confirmation to the device.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What role does the Flutter client play?</summary>
+        <div class="details-body">
+          <p>The client is open source (AGPL) and uses the versioned JSON API with token scopes. It is subject to the same role and station boundaries. It is not required for web operation.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What about data protection and compliance?</summary>
+        <div class="details-body">
+          <p>No, the project makes no statement on this. Documented are technical measures and open points. An assessment requires examination of the specific station, its retention periods, and operational employee participation.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What about compatibility and licences?</summary>
+        <div class="details-body">
+          <p>The server code is licensed under AGPL-3.0-or-later. Anyone operating a modified version as a network service must provide the corresponding source code. The open-source components used and their licences are documented in the repository.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h2>Wachwerk</h2>
+        <p>Self-hosted station logbook for the internal organisation of a rescue station. Not an incident command, alerting, duty scheduling, or patient documentation system.</p>
+      </div>
+      <div>
+        <h3>Project</h3>
+        <ul>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Source code and issues</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/README.md">README</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/ARCHITECTURE.md">Architecture</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/GO-LIVE-CHECKLIST.md">Go-live checklist</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/LICENSE">Licence (AGPL-3.0)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Documentation</h3>
+        <ul>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OPERATIONS.md">Operations and backup</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OFFLINE-BETRIEB.md">Local operation without WAN</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/SECURITY-PRIVACY.md">Data protection and security</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/API.md">API for mobile clients</a></li>
+          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/CONTRIBUTING.md">Contributing</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Copyright (C) 2026 Darkspike1988 · AGPL-3.0-or-later</span>
+      <span>Project page without operator details, without tracking, and without legal or compliance commitments.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

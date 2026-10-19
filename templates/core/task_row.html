@@ -1,10 +1,11 @@
+{% load i18n %}
 <article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}">
   <div class="task-main">
-    <span class="status-label {% if item.completion %}success{% else %}neutral{% endif %}">{% if item.completion %}Erledigt{% else %}Offen{% endif %}</span>
+    <span class="status-label {% if item.completion %}success{% else %}neutral{% endif %}">{% if item.completion %}{% translate "Erledigt" %}{% else %}{% translate "Offen" %}{% endif %}</span>
     <div>
       <strong>{{ item.task.title }}</strong>
       {% if item.task.notes %}<small>{{ item.task.notes }}</small>{% endif %}
-      {% if item.completion %}<small>von {{ item.completion.completed_by.first_name|default:item.completion.completed_by.username }} · {{ item.completion.completed_at|date:"H:i" }}</small>{% endif %}
+      {% if item.completion %}<small>{% translate "von" %} {{ item.completion.completed_by.first_name|default:item.completion.completed_by.username }} · {{ item.completion.completed_at|date:"H:i" }}</small>{% endif %}
     </div>
   </div>
   <form method="post" action="{% url 'task_toggle' item.task.pk %}">
@@ -13,10 +14,10 @@
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% if item.completion %}
       <input type="hidden" name="erledigt" value="0">
-      <button class="button secondary" type="submit">Wieder öffnen</button>
+      <button class="button secondary" type="submit">{% translate "Wieder öffnen" %}</button>
     {% else %}
       <input type="hidden" name="erledigt" value="1">
-      <button class="button primary" type="submit">Erledigt</button>
+      <button class="button primary" type="submit">{% translate "Erledigt" %}</button>
     {% endif %}
   </form>
 </article>
