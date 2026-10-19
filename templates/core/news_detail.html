@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ post.title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'news_index' %}">{% translate "Zurück zu Neuigkeiten" %}</a>
+<header class="page-heading narrow">
+  <h1>{{ post.title }}</h1>
+  <p class="context-line">
+    {{ post.created_by.first_name|default:post.created_by.username }} · {{ post.created_at|date:"d.m.Y H:i" }}
+    {% if post.is_archived %} · {% translate "Archiviert" %}{% endif %}
+  </p>
+</header>
+
+<div class="content-flow narrow">
+  <section class="section-block prose">
+    <p>{{ post.body|linebreaksbr }}</p>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Anhänge" %}</h2>
+    {% if attachments %}
+      <ul class="attachment-list">
+        {% for file in attachments %}
+          <li>
+            <a href="{% url 'news_attachment' file.pk %}" target="_blank" rel="noopener">{{ file.filename }}</a>
+            <small>{{ file.size|filesizeformat }} · {{ file.created_at|date:"d.m.Y H:i" }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">{% translate "Keine Anhänge." %}</p>
+    {% endif %}
+    {% if can_edit %}
+    <form method="post" enctype="multipart/form-data" class="inline-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="upload">
+      <label for="news-attachment">{% translate "Bild oder PDF anhängen" %}</label>
+      <input id="news-attachment" type="file" name="attachment" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+      <button class="button secondary" type="submit">{% translate "Hochladen" %}</button>
+    </form>
+    <p class="helptext">{% blocktranslate %}JPEG, PNG, WebP oder PDF, maximal {{ max_upload_mb }} MB je Datei.{% endblocktranslate %}</p>
+    {% endif %}
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Gelesen" %}</h2>
+    <p class="lead">{% blocktranslate with read=status.read total=status.total %}{{ read }} von {{ total }} haben gelesen.{% endblocktranslate %}</p>
+    {% if status.complete %}
+      <p class="notice">{% translate "Alle haben gelesen – die Neuigkeit liegt im Archiv." %}</p>
+    {% else %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="acknowledge">
+        <button class="button primary" type="submit"{% if has_read %} disabled{% endif %}>
+          {% if has_read %}{% translate "Bereits quittiert" %}{% else %}{% translate "Gelesen – quittieren" %}{% endif %}
+        </button>
+      </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

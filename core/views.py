@@ -61,6 +61,7 @@ from .models import (
     CoffeeEntry,
     FeedItem,
     FeedSource,
+    HandoverAttachment,
     HandoverEntry,
     Membership,
     PinboardNote,
@@ -68,6 +69,12 @@ from .models import (
     StationTask,
     TotpDevice,
     WebAuthnCredential,
+)
+from .api.wachalltag import (
+    ALLOWED_ATTACHMENT_TYPES,
+    MAX_ATTACHMENT_BYTES,
+    MAX_ATTACHMENTS_PER_HANDOVER,
+    attachment_is_valid,
 )
 from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
@@ -587,12 +594,44 @@ def handover_create(request):
 
 
 @membership_required(CONTENT_ROLES)
+@require_http_methods(["GET", "POST"])
 def handover_detail(request, pk):
     handover = get_object_or_404(
         HandoverEntry.objects.select_related("author").prefetch_related("revisions__changed_by"),
         pk=pk,
         station=request.membership.station,
     )
+    if request.method == "POST" and request.POST.get("action") == "upload":
+        upload = request.FILES.get("attachment")
+        if upload is None:
+            messages.error(request, _("Bitte eine Datei auswählen."))
+        elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
+            messages.error(request, _("Erlaubt sind JPEG, PNG, WebP und PDF."))
+        elif upload.size > MAX_ATTACHMENT_BYTES:
+            messages.error(request, _("Datei darf maximal 5 MiB groß sein."))
+        elif handover.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
+            messages.error(request, _("Mehr Anhänge sind nicht möglich."))
+        else:
+            raw = upload.read()
+            if not attachment_is_valid(raw, upload.content_type):
+                messages.error(request, _("Datei ist kein gültiges Bild und kein lesbares PDF."))
+            else:
+                with transaction.atomic():
+                    attachment = HandoverAttachment.objects.create(
+                        handover=handover,
+                        station=request.membership.station,
+                        filename=upload.name[:180],
+                        content_type=upload.content_type,
+                        data=raw,
+                        size=len(raw),
+                        uploaded_by=request.user,
+                    )
+                    audit(request.user, request.membership.station, "handover.attachment_added", handover, {
+                        "attachment_id": attachment.pk,
+                        "size": len(raw),
+                    })
+                messages.success(request, _("Anhang wurde hinzugefügt."))
+                return redirect("handover_detail", pk=pk)
     can_change_status = request.membership.role in {
         Membership.Role.SHIFT_LEAD,
         Membership.Role.ADMIN,
@@ -602,6 +641,8 @@ def handover_detail(request, pk):
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,
+        "attachments": handover.attachments.select_related("uploaded_by").all(),
+        "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
     })
 
 

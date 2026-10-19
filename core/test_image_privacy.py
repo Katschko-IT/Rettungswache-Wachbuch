@@ -120,7 +120,7 @@ class DefectWebUploadPrivacyTests(TestCase):
         response = self.client.post(self.url, {"action": "upload", "attachment": upload})
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Datei ist kein gültiges oder unterstütztes Bild.")
+        self.assertContains(response, "Datei ist kein gültiges Bild und kein lesbares PDF.")
         self.assertEqual(DefectAttachment.objects.count(), 0)
 
     def test_web_upload_strips_exif_like_api(self):

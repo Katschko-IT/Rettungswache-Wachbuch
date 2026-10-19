@@ -17,6 +17,7 @@
   {% if current_membership.station.feeds_enabled %}<a href="{% url 'feeds' %}"><strong>{% translate "Meldungen &amp; Verkehr" %}</strong><span>{% translate "Konfigurierte offizielle Quellen" %}</span></a>{% endif %}
   {% if current_membership.station.checklists_enabled %}<a href="{% url 'checklists' %}"><strong>{% translate "Checklisten" %}</strong><span>{% translate "Wiederkehrende Prüfungen" %}</span></a><a href="{% url 'checklist_schedules_web' %}"><strong>{% translate "Prüfintervalle" %}</strong><span>{% translate "Fälligkeiten täglich, wöchentlich oder monatlich" %}</span></a>{% endif %}
   {% if current_membership.station.pinboard_enabled %}<a href="{% url 'pinboard' %}"><strong>{% translate "Pinnwand" %}</strong><span>{% translate "Kurze Aushänge und Hinweise für die Wache" %}</span></a>{% endif %}
+  <a href="{% url 'news_index' %}"><strong>{% translate "Neuigkeiten" %}</strong><span>{% translate "Mitteilungen lesen und quittieren" %}</span></a>
   <a href="{% url 'wiki_index' %}"><strong>{% translate "Wachen-Wiki" %}</strong><span>{% translate "Dauerhafte Hinweise und Abläufe dieser Wache" %}</span></a>
   {% if current_membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}
   <a href="{% url 'account_home' %}"><strong>{% translate "Mein Konto" %}</strong><span>{% translate "Profilbild, Passwort und Zwei-Faktor" %}</span></a>

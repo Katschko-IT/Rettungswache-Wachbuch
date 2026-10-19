@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Neuigkeiten" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <h1>{% translate "Neuigkeiten" %}</h1>
+    <p class="lead">{% translate "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich." %}</p>
+  </div>
+  {% if can_edit %}<a class="button primary" href="{% url 'news_create' %}">{% translate "Neuigkeit anlegen" %}</a>{% endif %}
+</header>
+
+<section class="content-flow">
+  <h2>{% translate "Aktuell" %}</h2>
+  <div class="list-stack">
+    {% for item in posts %}
+      <a class="list-row" href="{% url 'news_detail' item.post.pk %}">
+        <span class="status-label {% if item.has_read %}success{% else %}neutral{% endif %}">
+          {% if item.has_read %}{% translate "Gelesen" %}{% else %}{% translate "Offen" %}{% endif %}
+        </span>
+        <span class="row-content">
+          <strong>{{ item.post.title }}</strong>
+          <small>
+            {{ item.post.created_by.first_name|default:item.post.created_by.username }} ·
+            {{ item.post.created_at|date:"d.m.Y" }} ·
+            {% blocktranslate with read=item.status.read total=item.status.total %}{{ read }} von {{ total }} gelesen{% endblocktranslate %}
+            {% if item.post.attachments.exists %} · {% translate "mit Anhang" %}{% endif %}
+          </small>
+        </span>
+      </a>
+    {% empty %}
+      <p class="empty-state">{% translate "Keine offenen Neuigkeiten." %}</p>
+    {% endfor %}
+  </div>
+
+  <h2>{% translate "Archiv" %}</h2>
+  <p class="helptext">{% translate "Eine Neuigkeit wandert automatisch ins Archiv, sobald alle sie gelesen haben." %}</p>
+  <div class="list-stack">
+    {% for item in archive %}
+      <a class="list-row" href="{% url 'news_detail' item.post.pk %}">
+        <span class="status-label success">{% translate "Archiviert" %}</span>
+        <span class="row-content">
+          <strong>{{ item.post.title }}</strong>
+          <small>{{ item.post.archived_at|date:"d.m.Y" }} · {{ item.status.read }}/{{ item.status.total }}</small>
+        </span>
+      </a>
+    {% empty %}
+      <p class="empty-state">{% translate "Noch nichts archiviert." %}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -17,7 +17,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
-from .api.wachalltag import ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES, _image_is_decodable
+from .api.wachalltag import ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES, attachment_is_valid
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
@@ -160,13 +160,13 @@ def defect_detail(request, pk):
             if upload is None:
                 messages.error(request, "Bitte ein Bild auswählen.")
             elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
-                messages.error(request, "Nur JPEG, PNG oder WebP sind erlaubt.")
+                messages.error(request, "Erlaubt sind JPEG, PNG, WebP und PDF.")
             elif upload.size > MAX_ATTACHMENT_BYTES:
-                messages.error(request, "Bild darf maximal 2 MiB groß sein.")
+                messages.error(request, "Datei darf maximal 5 MiB groß sein.")
             else:
                 raw = upload.read()
-                if not _image_is_decodable(raw, upload.content_type):
-                    messages.error(request, "Datei ist kein gültiges oder unterstütztes Bild.")
+                if not attachment_is_valid(raw, upload.content_type):
+                    messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
                 else:
                     with transaction.atomic():
                         attachment = DefectAttachment.objects.create(

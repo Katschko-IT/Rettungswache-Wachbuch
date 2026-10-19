@@ -28,7 +28,7 @@
   </form>
 </section>
 <section class="section-block">
-  <h2>{% translate "Fotos" %}</h2>
+  <h2>{% translate "Anhänge" %}</h2>
   <p>{% translate "Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen." %}</p>
   <div class="item-list">
     {% for attachment in attachments %}
@@ -36,13 +36,13 @@
         <span class="row-content"><strong>{{ attachment.filename }}</strong><small>{{ attachment.content_type }} · {{ attachment.size|filesizeformat }} · {{ attachment.uploaded_by.username }}</small></span>
         <time datetime="{{ attachment.created_at|date:'c' }}">{{ attachment.created_at|date:"d.m.Y H:i" }}</time>
       </a>
-    {% empty %}<p class="empty-state">{% translate "Noch keine Fotos." %}</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Anhänge." %}</p>{% endfor %}
   </div>
   <form method="post" enctype="multipart/form-data" class="inline-form">
     {% csrf_token %}<input type="hidden" name="action" value="upload">
-    <label for="attachment">{% translate "JPEG, PNG oder WebP · max. 2 MiB" %}</label>
-    <input id="attachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp" required>
-    <button class="button secondary" type="submit">{% translate "Foto anhängen" %}</button>
+    <label for="attachment">{% translate "JPEG, PNG, WebP oder PDF · max. 5 MiB" %}</label>
+    <input id="attachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+    <button class="button secondary" type="submit">{% translate "Anhang hinzufügen" %}</button>
   </form>
 </section>
 <section class="section-block">

@@ -43,11 +43,18 @@ from core.wachalltag_models import (
 
 from . import views as base
 
-MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024
+MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024
 MAX_ATTACHMENTS_PER_DEFECT = 8
+MAX_ATTACHMENTS_PER_HANDOVER = 8
 MAX_ATTACHMENT_TOTAL_BYTES = 12 * 1024 * 1024
 MAX_ATTACHMENT_PIXELS = 25_000_000
-ALLOWED_ATTACHMENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_ATTACHMENT_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+ATTACHMENT_SUFFIX = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "application/pdf": ".pdf",
+}
 EXPECTED_IMAGE_FORMAT = {
     "image/jpeg": "JPEG",
     "image/png": "PNG",
@@ -199,6 +206,20 @@ def _image_matches(data, content_type):
         return data.startswith(b"\x89PNG\r\n\x1a\n")
     if content_type == "image/webp":
         return len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+    return False
+
+
+def _pdf_is_readable(data):
+    """Grobe Prüfung: echtes PDF-Signatur und ein EOF-Marker."""
+    return data.startswith(b"%PDF-") and b"%%EOF" in data[-2048:]
+
+
+def attachment_is_valid(data, content_type):
+    """Prüft Bild- und PDF-Anhänge vor dem Speichern."""
+    if content_type == "application/pdf":
+        return _pdf_is_readable(data)
+    if content_type in EXPECTED_IMAGE_FORMAT:
+        return _image_is_decodable(data, content_type)
     return False
 
 
