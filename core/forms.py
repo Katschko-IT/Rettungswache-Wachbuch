@@ -68,7 +68,7 @@ class CalendarEventForm(forms.ModelForm):
 class BirthdayForm(forms.ModelForm):
     consent = forms.BooleanField(
         required=False,
-        label="Ich möchte meinen Geburtstag freiwillig im Team anzeigen.",
+        label=_("Ich möchte meinen Geburtstag freiwillig im Team anzeigen."),
     )
 
     class Meta:
@@ -87,12 +87,12 @@ class BirthdayForm(forms.ModelForm):
         day = cleaned.get("day")
         month = cleaned.get("month")
         if cleaned.get("consent") and (not day or not month):
-            raise forms.ValidationError("Bitte Tag und Monat angeben oder die Anzeige deaktivieren.")
+            raise forms.ValidationError(_("Bitte Tag und Monat angeben oder die Anzeige deaktivieren."))
         if day and month:
             try:
                 date(2000, month, day)
             except ValueError as exc:
-                raise forms.ValidationError("Tag und Monat ergeben kein gültiges Datum.") from exc
+                raise forms.ValidationError(_("Tag und Monat ergeben kein gültiges Datum.")) from exc
         return cleaned
 
     def save(self, commit=True):
@@ -114,15 +114,15 @@ class BirthdayForm(forms.ModelForm):
 
 
 class CoffeeEntryForm(forms.Form):
-    member = forms.ModelChoiceField(queryset=User.objects.none(), label="Teammitglied")
+    member = forms.ModelChoiceField(queryset=User.objects.none(), label=_("Teammitglied"))
     direction = forms.ChoiceField(
         choices=(("credit", "Einzahlung/Gutschrift"), ("debit", "Entnahme/Verbrauch")),
-        label="Buchungsart",
+        label=_("Buchungsart"),
     )
     amount_eur = forms.DecimalField(
-        min_value=Decimal("0.01"), max_digits=8, decimal_places=2, label="Betrag in EUR"
+        min_value=Decimal("0.01"), max_digits=8, decimal_places=2, label=_("Betrag in EUR")
     )
-    reason = forms.CharField(max_length=200, label="Grund")
+    reason = forms.CharField(max_length=200, label=_("Grund"))
 
     def __init__(self, *args, station, **kwargs):
         super().__init__(*args, **kwargs)
@@ -137,12 +137,12 @@ class CoffeeEntryForm(forms.Form):
 
 
 class CoffeeCorrectionForm(forms.Form):
-    reason = forms.CharField(max_length=200, label="Korrekturgrund")
+    reason = forms.CharField(max_length=200, label=_("Korrekturgrund"))
 
 
 class MembershipAssignmentForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.none(), label="Benutzerkonto")
-    role = forms.ChoiceField(choices=Membership.Role.choices, label="Rolle")
+    user = forms.ModelChoiceField(queryset=User.objects.none(), label=_("Benutzerkonto"))
+    role = forms.ChoiceField(choices=Membership.Role.choices, label=_("Rolle"))
 
     def __init__(self, *args, station=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -155,21 +155,21 @@ class MembershipAssignmentForm(forms.Form):
 
 
 class MasterAdminCreateUserForm(forms.Form):
-    username = forms.CharField(max_length=150, label="Benutzername (z. B. E-Mail)")
-    first_name = forms.CharField(max_length=150, label="Vorname", required=False)
-    last_name = forms.CharField(max_length=150, label="Nachname", required=False)
+    username = forms.CharField(max_length=150, label=_("Benutzername (z. B. E-Mail)"))
+    first_name = forms.CharField(max_length=150, label=_("Vorname"), required=False)
+    last_name = forms.CharField(max_length=150, label=_("Nachname"), required=False)
     password1 = forms.CharField(
-        label="Startpasswort",
+        label=_("Startpasswort"),
         widget=forms.PasswordInput,
-        help_text="Der Nutzer sollte das Passwort danach unter Mein Konto ändern.",
+        help_text=_("Der Nutzer sollte das Passwort danach unter Mein Konto ändern."),
     )
-    password2 = forms.CharField(label="Startpasswort wiederholen", widget=forms.PasswordInput)
-    role = forms.ChoiceField(choices=Membership.Role.choices, label="Rolle", initial=Membership.Role.MEMBER)
+    password2 = forms.CharField(label=_("Startpasswort wiederholen"), widget=forms.PasswordInput)
+    role = forms.ChoiceField(choices=Membership.Role.choices, label=_("Rolle"), initial=Membership.Role.MEMBER)
 
     def clean_username(self):
         username = self.cleaned_data["username"].strip()
         if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("Dieser Benutzername ist bereits vergeben.")
+            raise forms.ValidationError(_("Dieser Benutzername ist bereits vergeben."))
         return username
 
     def clean(self):
@@ -177,7 +177,7 @@ class MasterAdminCreateUserForm(forms.Form):
         password1 = cleaned.get("password1")
         password2 = cleaned.get("password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Die Passwörter stimmen nicht überein.")
+            raise forms.ValidationError(_("Die Passwörter stimmen nicht überein."))
         if password1:
             from django.contrib.auth.password_validation import validate_password
 
@@ -186,8 +186,8 @@ class MasterAdminCreateUserForm(forms.Form):
 
 
 class MembershipEditForm(forms.Form):
-    role = forms.ChoiceField(choices=Membership.Role.choices, label="Rolle")
-    is_active = forms.BooleanField(required=False, label="Zugang aktiv")
+    role = forms.ChoiceField(choices=Membership.Role.choices, label=_("Rolle"))
+    is_active = forms.BooleanField(required=False, label=_("Zugang aktiv"))
 
     def __init__(self, *args, membership, **kwargs):
         super().__init__(*args, **kwargs)
@@ -249,19 +249,19 @@ class StationSettingsForm(forms.ModelForm):
         if not value:
             return value
         if not value.startswith("https://"):
-            raise forms.ValidationError("Müllkalender-URLs müssen mit https:// beginnen.")
+            raise forms.ValidationError(_("Müllkalender-URLs müssen mit https:// beginnen."))
         parsed = urlparse(value)
         host = (parsed.hostname or "").lower()
         if not host:
-            raise forms.ValidationError("Müllkalender-URLs brauchen einen Hostnamen.")
+            raise forms.ValidationError(_("Müllkalender-URLs brauchen einen Hostnamen."))
         if parsed.username or parsed.password:
-            raise forms.ValidationError("Müllkalender-URLs dürfen keine Zugangsdaten enthalten.")
+            raise forms.ValidationError(_("Müllkalender-URLs dürfen keine Zugangsdaten enthalten."))
         try:
             port = parsed.port
         except ValueError:
-            raise forms.ValidationError("Die Portangabe der Müllkalender-URL ist ungültig.")
+            raise forms.ValidationError(_("Die Portangabe der Müllkalender-URL ist ungültig."))
         if port not in {None, 443}:
-            raise forms.ValidationError("Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden.")
+            raise forms.ValidationError(_("Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden."))
         if host not in settings.FEED_ALLOWED_HOSTS:
             raise forms.ValidationError(
                 "Der Host muss zuerst in FEED_ALLOWED_HOSTS freigegeben werden."
@@ -280,25 +280,25 @@ class StationSettingsForm(forms.ModelForm):
     def clean_paypal_me_url(self):
         value = (self.cleaned_data.get("paypal_me_url") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("PayPal.me-Links müssen mit https:// beginnen.")
+            raise forms.ValidationError(_("PayPal.me-Links müssen mit https:// beginnen."))
         return value
 
     def clean_wero_link(self):
         value = (self.cleaned_data.get("wero_link") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("Wero-Links müssen mit https:// beginnen.")
+            raise forms.ValidationError(_("Wero-Links müssen mit https:// beginnen."))
         return value
 
     def clean_iban(self):
         value = (self.cleaned_data.get("iban") or "").replace(" ", "").upper()
         if value and not (value.startswith("DE") and len(value) == 22 and value[2:].isdigit()):
-            raise forms.ValidationError("Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben.")
+            raise forms.ValidationError(_("Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben."))
         return value
 
     def clean_bic(self):
         value = (self.cleaned_data.get("bic") or "").replace(" ", "").upper()
         if value and (not value.isalnum() or len(value) not in (8, 11)):
-            raise forms.ValidationError("BIC muss 8 oder 11 alphanumerische Zeichen haben.")
+            raise forms.ValidationError(_("BIC muss 8 oder 11 alphanumerische Zeichen haben."))
         return value
 
 
@@ -360,19 +360,19 @@ class ProfileForm(forms.ModelForm):
 class AvatarForm(forms.Form):
     avatar = forms.ImageField(
         required=False,
-        label="Profilbild",
-        help_text="JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert.",
+        label=_("Profilbild"),
+        help_text=_("JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert."),
     )
-    clear_avatar = forms.BooleanField(required=False, label="Profilbild entfernen")
+    clear_avatar = forms.BooleanField(required=False, label=_("Profilbild entfernen"))
 
     def clean(self):
         cleaned = super().clean()
         avatar = cleaned.get("avatar")
         clear = cleaned.get("clear_avatar")
         if not avatar and not clear:
-            raise forms.ValidationError("Bitte ein Bild wählen oder Entfernen markieren.")
+            raise forms.ValidationError(_("Bitte ein Bild wählen oder Entfernen markieren."))
         if avatar and clear:
-            raise forms.ValidationError("Bild hochladen und entfernen geht nicht gleichzeitig.")
+            raise forms.ValidationError(_("Bild hochladen und entfernen geht nicht gleichzeitig."))
         if avatar:
             from .avatars import process_avatar_upload
 
@@ -388,7 +388,7 @@ class AvatarForm(forms.Form):
 class ChatMessageForm(forms.Form):
     body = forms.CharField(
         max_length=500,
-        label="Kurze Nachricht",
+        label=_("Kurze Nachricht"),
         widget=forms.Textarea(attrs={
             "rows": 2,
             "maxlength": 500,
@@ -568,11 +568,11 @@ class ActivationPasswordForm(forms.Form):
 
 
 class EmployeeInviteForm(forms.Form):
-    username = forms.CharField(label="Benutzername", max_length=150)
-    first_name = forms.CharField(label="Vorname", max_length=150, required=False)
-    last_name = forms.CharField(label="Nachname", max_length=150, required=False)
+    username = forms.CharField(label=_("Benutzername"), max_length=150)
+    first_name = forms.CharField(label=_("Vorname"), max_length=150, required=False)
+    last_name = forms.CharField(label=_("Nachname"), max_length=150, required=False)
     role = forms.ChoiceField(
-        label="Rolle",
+        label=_("Rolle"),
         choices=[
             (Membership.Role.MEMBER, Membership.Role.MEMBER.label),
             (Membership.Role.SHIFT_LEAD, Membership.Role.SHIFT_LEAD.label),
@@ -593,7 +593,7 @@ class EmployeeInviteForm(forms.Form):
         from .setup_wizard import reusable_pending_invite
 
         if not reusable_pending_invite(existing, station=self.station):
-            raise ValidationError("Dieser Benutzername ist bereits vergeben.")
+            raise ValidationError(_("Dieser Benutzername ist bereits vergeben."))
         if EmployeeActivation.objects.filter(
             user=existing,
             used_at__isnull=True,

@@ -1,16 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Benachrichtigungen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Benachrichtigungen" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Gerät</p>
-  <h1>Push-Benachrichtigungen</h1>
-  <p class="lead">Nur für dringende Übergaben dieser Wache. Kein Tracking, keine Werbung.</p>
+  <p class="context-line">{% translate "Gerät" %}</p>
+  <h1>{% translate "Push-Benachrichtigungen" %}</h1>
+  <p class="lead">{% translate "Nur für dringende Übergaben dieser Wache. Kein Tracking, keine Werbung." %}</p>
 </header>
 <section class="content-flow narrow">
-  <p>{% if push_active %}Push ist auf diesem Konto aktiv.{% else %}Push ist noch nicht aktiviert.{% endif %}</p>
+  <p>{% if push_active %}{% translate "Push ist auf diesem Konto aktiv." %}{% else %}{% translate "Push ist noch nicht aktiviert." %}{% endif %}</p>
   <div class="form-actions">
-    <button type="button" class="button primary" data-push-subscribe {% if push_active %}hidden{% endif %}>Aktivieren</button>
-    <button type="button" class="button secondary" data-push-unsubscribe {% if not push_active %}hidden{% endif %}>Deaktivieren</button>
+    <button type="button" class="button primary" data-push-subscribe {% if push_active %}hidden{% endif %}>{% translate "Aktivieren" %}</button>
+    <button type="button" class="button secondary" data-push-unsubscribe {% if not push_active %}hidden{% endif %}>{% translate "Deaktivieren" %}</button>
   </div>
   <p class="hint" data-push-status hidden></p>
   {{ push_config|json_script:"push-config" }}

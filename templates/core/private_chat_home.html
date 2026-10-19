@@ -1,21 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Private Chats | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Private Chats" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Nur Teilnehmer</p>
-  <h1>Private Chats</h1>
-  <p class="lead">1:1 und Ende-zu-Ende-verschlüsselt. Master-Admin ohne Teilnahme kann den Inhalt nicht lesen.</p>
+  <p class="context-line">{% translate "Nur Teilnehmer" %}</p>
+  <h1>{% translate "Private Chats" %}</h1>
+  <p class="lead">{% translate "1:1 und Ende-zu-Ende-verschlüsselt. Master-Admin ohne Teilnahme kann den Inhalt nicht lesen." %}</p>
 </header>
-<nav class="chat-tabs" aria-label="Nachrichtenbereiche">
-  <a href="{% url 'chat' %}">Wache</a>
-  <a href="{% url 'private_chat_home' %}" aria-current="page">Privat</a>
-  <a href="{% url 'secure_mail_inbox' %}">Post</a>
+<nav class="chat-tabs" aria-label="{% translate 'Nachrichtenbereiche' %}">
+  <a href="{% url 'chat' %}">{% translate "Wache" %}</a>
+  <a href="{% url 'private_chat_home' %}" aria-current="page">{% translate "Privat" %}</a>
+  <a href="{% url 'secure_mail_inbox' %}">{% translate "Post" %}</a>
 </nav>
 {% if not has_keys %}
-  <p class="notice"><a href="{% url 'crypto_setup' %}">Chat-Schlüssel einrichten</a>, bevor private Chats funktionieren.</p>
+  <p class="notice"><a href="{% url 'crypto_setup' %}">{% translate "Chat-Schlüssel einrichten" %}</a>{% translate ", bevor private Chats funktionieren." %}</p>
 {% endif %}
 <section class="section-block narrow">
-  <h2>Unterhaltungen</h2>
+  <h2>{% translate "Unterhaltungen" %}</h2>
   <div class="member-list-clean">
     {% for item in peers %}
       <article>
@@ -23,30 +24,30 @@
           <strong>{{ item.other_name }}</strong>
           <span>{{ item.updated_at|date:"d.m.Y H:i" }}</span>
         </div>
-        <a class="button secondary" href="{% url 'private_chat_thread' item.id %}">Öffnen</a>
+        <a class="button secondary" href="{% url 'private_chat_thread' item.id %}">{% translate "Öffnen" %}</a>
       </article>
     {% empty %}
-      <p class="empty-state">Noch keine privaten Chats.</p>
+      <p class="empty-state">{% translate "Noch keine privaten Chats." %}</p>
     {% endfor %}
   </div>
 </section>
 <section class="section-block narrow">
-  <h2>Neuen Chat starten</h2>
+  <h2>{% translate "Neuen Chat starten" %}</h2>
   <form method="post" class="form-card">
     {% csrf_token %}
     <p>
-      <label>Kollege
+      <label>{% translate "Kollege" %}
         <select name="peer_id" required>
-          <option value="">Bitte wählen</option>
+          <option value="">{% translate "Bitte wählen" %}</option>
           {% for person in colleagues %}
             <option value="{{ person.id }}" {% if not person.has_keys %}disabled{% endif %}>
-              {{ person.label }}{% if not person.has_keys %} (ohne Schlüssel){% endif %}
+              {{ person.label }}{% if not person.has_keys %} {% translate "(ohne Schlüssel)" %}{% endif %}
             </option>
           {% endfor %}
         </select>
       </label>
     </p>
-    <button class="button primary" type="submit">Chat öffnen</button>
+    <button class="button primary" type="submit">{% translate "Chat öffnen" %}</button>
   </form>
 </section>
 {% endblock %}

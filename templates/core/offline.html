@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Offline | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Offline" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel offline-panel">
-  <p class="context-line">Keine Verbindung</p>
-  <h1>Offline</h1>
-  <p class="lead">Diese Seite ist gerade nicht erreichbar. Bereits geöffnete Übersichten können im Gerätespeicher noch verfügbar sein und veraltet sein.</p>
-  <p class="notice">Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich.</p>
+  <p class="context-line">{% translate "Keine Verbindung" %}</p>
+  <h1>{% translate "Offline" %}</h1>
+  <p class="lead">{% translate "Diese Seite ist gerade nicht erreichbar. Bereits geöffnete Übersichten können im Gerätespeicher noch verfügbar sein und veraltet sein." %}</p>
+  <p class="notice">{% translate "Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich." %}</p>
   <div class="form-actions">
-    <a class="button primary" href="{% url 'landing' %}">Zur Startseite</a>
-    <a class="button secondary" href="{% url 'handover_list' %}">Übergaben</a>
+    <a class="button primary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
+    <a class="button secondary" href="{% url 'handover_list' %}">{% translate "Übergaben" %}</a>
   </div>
 </section>
 {% endblock %}

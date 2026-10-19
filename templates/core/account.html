@@ -1,24 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Mein Konto | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Mein Konto" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Persönlicher Bereich</p>
-  <h1>Mein Konto</h1>
-  <p class="lead">Profilbild, Passwort und Zwei-Faktor für <strong>{{ request.user.username }}</strong>.</p>
+  <p class="context-line">{% translate "Persönlicher Bereich" %}</p>
+  <h1>{% translate "Mein Konto" %}</h1>
+  <p class="lead">{% translate "Profilbild, Passwort und Zwei-Faktor für" %} <strong>{{ request.user.username }}</strong>.</p>
 </header>
 <section class="content-flow narrow">
   {% if membership %}
     <p class="notice">{{ membership.station.name }} · {{ membership.get_role_display }}</p>
   {% elif registration %}
-    <p class="notice">Registrierung: {{ registration.get_status_display }}{% if registration.preferred_station %} · Wunschwache {{ registration.preferred_station.name }}{% endif %}. Freigabe erfolgt durch den Master-Admin.</p>
+    <p class="notice">{% translate "Registrierung:" %} {{ registration.get_status_display }}{% if registration.preferred_station %} · {% translate "Wunschwache" %} {{ registration.preferred_station.name }}{% endif %} · {% translate "Freigabe erfolgt durch den Master-Admin." %}</p>
   {% else %}
-    <p class="notice">Noch keiner Wache zugeordnet. Der Master-Admin muss den Zugang freigeben.</p>
+    <p class="notice">{% translate "Noch keiner Wache zugeordnet. Der Master-Admin muss den Zugang freigeben." %}</p>
   {% endif %}
 
-  <h2>Profilbild</h2>
+  <h2>{% translate "Profilbild" %}</h2>
   <div class="avatar-panel">
     {% if profile.has_avatar %}
-      <img class="avatar-preview" src="{% url 'avatar_image' request.user.pk %}" alt="Dein Profilbild" width="96" height="96">
+      <img class="avatar-preview" src="{% url 'avatar_image' request.user.pk %}" alt="{% translate 'Dein Profilbild' %}" width="96" height="96">
     {% else %}
       <span class="avatar-fallback" aria-hidden="true">{{ initials }}</span>
     {% endif %}
@@ -27,35 +28,35 @@
       <input type="hidden" name="action" value="avatar">
       {% include "core/form_errors.html" with form=avatar_form %}
       {{ avatar_form.as_p }}
-      <button class="button primary" type="submit">Profilbild speichern</button>
+      <button class="button primary" type="submit">{% translate "Profilbild speichern" %}</button>
     </form>
   </div>
 
-  <h2>Profil</h2>
+  <h2>{% translate "Profil" %}</h2>
   <form method="post" class="form-card">
     {% csrf_token %}
     <input type="hidden" name="action" value="profile">
     {% include "core/form_errors.html" with form=profile_form %}
     {{ profile_form.as_p }}
-    <button class="button primary" type="submit">Profil speichern</button>
+    <button class="button primary" type="submit">{% translate "Profil speichern" %}</button>
   </form>
 
-  <h2>Passwort</h2>
+  <h2>{% translate "Passwort" %}</h2>
   <form method="post" class="form-card">
     {% csrf_token %}
     <input type="hidden" name="action" value="password">
     {% include "core/form_errors.html" with form=password_form %}
     {{ password_form.as_p }}
-    <button class="button primary" type="submit">Passwort ändern</button>
+    <button class="button primary" type="submit">{% translate "Passwort ändern" %}</button>
   </form>
 
-  <nav class="more-list" aria-label="Konto-Links">
-    {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>Zwei-Faktor / Passkeys</strong><span>Authenticator und Passkeys verwalten</span></a>{% endif %}
-    <a href="{% url 'crypto_setup' %}"><strong>Chat-Schlüssel (E2EE)</strong><span>Damit Admin und Server keine Klartexte lesen</span></a>
-    <a href="{% url 'api_tokens_manage' %}"><strong>App-Tokens</strong><span>API für spätere iOS-/Android-Clients</span></a>
-    {% if membership and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>Wachenchat</strong><span>Wache, Privat und Post</span></a>{% endif %}
-    {% if web_push_enabled and membership %}<a href="{% url 'push_settings' %}"><strong>Push-Benachrichtigungen</strong><span>Dringende Übergaben</span></a>{% endif %}
-    {% if membership and membership.station.birthdays_enabled %}<a href="{% url 'birthday_settings' %}"><strong>Geburtstag</strong><span>Freiwillige Anzeige</span></a>{% endif %}
+  <nav class="more-list" aria-label="{% translate 'Konto-Links' %}">
+    {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>{% translate "Zwei-Faktor / Passkeys" %}</strong><span>{% translate "Authenticator und Passkeys verwalten" %}</span></a>{% endif %}
+    <a href="{% url 'crypto_setup' %}"><strong>{% translate "Chat-Schlüssel (E2EE)" %}</strong><span>{% translate "Damit Admin und Server keine Klartexte lesen" %}</span></a>
+    <a href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens" %}</strong><span>{% translate "API für spätere iOS-/Android-Clients" %}</span></a>
+    {% if membership and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Wache, Privat und Post" %}</span></a>{% endif %}
+    {% if web_push_enabled and membership %}<a href="{% url 'push_settings' %}"><strong>{% translate "Push-Benachrichtigungen" %}</strong><span>{% translate "Dringende Übergaben" %}</span></a>{% endif %}
+    {% if membership and membership.station.birthdays_enabled %}<a href="{% url 'birthday_settings' %}"><strong>{% translate "Geburtstag" %}</strong><span>{% translate "Freiwillige Anzeige" %}</span></a>{% endif %}
   </nav>
 </section>
 {% endblock %}

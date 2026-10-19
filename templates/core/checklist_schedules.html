@@ -1,28 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Prüfintervalle | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Prüfintervalle" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'checklists' %}">Zurück zu Checklisten</a>
+<a class="back-link" href="{% url 'checklists' %}">{% translate "Zurück zu Checklisten" %}</a>
 <header class="page-heading">
-  <p class="context-line">Checklisten</p><h1>Prüfintervalle</h1>
-  <p class="lead">Tägliche, wöchentliche oder monatliche Prüfungen mit nächster Fälligkeit.</p>
+  <p class="context-line">{% translate "Checklisten" %}</p><h1>{% translate "Prüfintervalle" %}</h1>
+  <p class="lead">{% translate "Tägliche, wöchentliche oder monatliche Prüfungen mit nächster Fälligkeit." %}</p>
 </header>
 <section class="section-block flush">
   <div class="item-list">
     {% for checklist,schedule in rows %}
       <div class="list-row">
-        <span class="row-content"><strong>{{ checklist.title }}</strong><small>{% if schedule %}{{ schedule.get_interval_display }}{% if schedule.due_next %} · nächste Fälligkeit {{ schedule.due_next|date:"d.m.Y H:i" }}{% if schedule.due_next < now %} · überfällig{% endif %}{% endif %}{% else %}Kein Intervall{% endif %}</small></span>
+        <span class="row-content"><strong>{{ checklist.title }}</strong><small>{% if schedule %}{{ schedule.get_interval_display }}{% if schedule.due_next %} · {% translate "nächste Fälligkeit" %} {{ schedule.due_next|date:"d.m.Y H:i" }}{% if schedule.due_next < now %} · {% translate "überfällig" %}{% endif %}{% endif %}{% else %}{% translate "Kein Intervall" %}{% endif %}</small></span>
         {% if can_manage %}
         <form method="post" class="inline-form">
           {% csrf_token %}<input type="hidden" name="checklist_id" value="{{ checklist.pk }}">
-          <label class="sr-only" for="interval-{{ checklist.pk }}">Intervall {{ checklist.title }}</label>
-          <select id="interval-{{ checklist.pk }}" name="interval"><option value="">Kein Intervall</option>{% for value,label in intervals %}<option value="{{ value }}"{% if schedule and schedule.interval == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-          <label class="sr-only" for="due-{{ checklist.pk }}">Nächste Fälligkeit</label>
+          <label class="sr-only" for="interval-{{ checklist.pk }}">{% translate "Intervall" %} {{ checklist.title }}</label>
+          <select id="interval-{{ checklist.pk }}" name="interval"><option value="">{% translate "Kein Intervall" %}</option>{% for value,label in intervals %}<option value="{{ value }}"{% if schedule and schedule.interval == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <label class="sr-only" for="due-{{ checklist.pk }}">{% translate "Nächste Fälligkeit" %}</label>
           <input id="due-{{ checklist.pk }}" name="due_next" type="datetime-local"{% if schedule and schedule.due_next %} value="{{ schedule.due_next|date:'Y-m-d\TH:i' }}"{% endif %}>
-          <button class="button secondary" type="submit">Speichern</button>
+          <button class="button secondary" type="submit">{% translate "Speichern" %}</button>
         </form>
         {% endif %}
       </div>
-    {% empty %}<p class="empty-state">Keine aktiven Checklisten vorhanden.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine aktiven Checklisten vorhanden." %}</p>{% endfor %}
   </div>
 </section>
 {% endblock %}

@@ -1,41 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Verschlüsselung | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Verschlüsselung" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'account_home' %}">Zurück zu Mein Konto</a>
+<a class="back-link" href="{% url 'account_home' %}">{% translate "Zurück zu Mein Konto" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Clientseitige Verschlüsselung</p>
-  <h1>Chat-Schlüssel</h1>
-  <p class="lead">Der private Schlüssel wird mit deiner Passphrase umschlossen gespeichert und erst im Browser entsperrt. Das schützt gespeicherte Daten und Backups; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells.</p>
+  <p class="context-line">{% translate "Clientseitige Verschlüsselung" %}</p>
+  <h1>{% translate "Chat-Schlüssel" %}</h1>
+  <p class="lead">{% translate "Der private Schlüssel wird mit deiner Passphrase umschlossen gespeichert und erst im Browser entsperrt. Das schützt gespeicherte Daten und Backups; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells." %}</p>
 </header>
 <section class="content-flow narrow" data-crypto-page>
   <p class="hint" data-crypto-status hidden></p>
   {% if has_keys %}
-    <p class="notice">Schlüssel sind eingerichtet. Zum Lesen und Schreiben wird die Passphrase einmal pro Browsersitzung benötigt.</p>
+    <p class="notice">{% translate "Schlüssel sind eingerichtet. Zum Lesen und Schreiben wird die Passphrase einmal pro Browsersitzung benötigt." %}</p>
     {% if fingerprint %}
     <div class="form-card" data-key-fingerprint>
-      <p><strong>Sicherheitsnummer deines Schlüssels</strong></p>
+      <p><strong>{% translate "Sicherheitsnummer deines Schlüssels" %}</strong></p>
       <p class="app-version key-fingerprint">{{ fingerprint }}</p>
-      <p class="hint">Vergleiche diese Sicherheitsnummer persönlich mit Kolleginnen und Kollegen. Stimmen die Nummern überein, ist der Schlüssel echt. (QR-Abgleich und Key-Change-Warnungen sind in Vorbereitung, R-020.)</p>
+      <p class="hint">{% translate "Vergleiche diese Sicherheitsnummer persönlich mit Kolleginnen und Kollegen. Stimmen die Nummern überein, ist der Schlüssel echt. (QR-Abgleich und Key-Change-Warnungen sind in Vorbereitung, R-020.)" %}</p>
     </div>
     {% endif %}
     <form data-crypto-unlock class="form-card">
-      <p><label>Passphrase <input type="password" name="passphrase" required autocomplete="current-password"></label></p>
-      <button class="button primary" type="submit">Für diese Sitzung entsperren</button>
+      <p><label>{% translate "Passphrase" %} <input type="password" name="passphrase" required autocomplete="current-password"></label></p>
+      <button class="button primary" type="submit">{% translate "Für diese Sitzung entsperren" %}</button>
     </form>
     <details class="form-card">
-      <summary>Schlüssel neu erzeugen (alte Nachrichten ggf. unlesbar)</summary>
+      <summary>{% translate "Schlüssel neu erzeugen (alte Nachrichten ggf. unlesbar)" %}</summary>
       <form data-crypto-setup data-replace="1" class="form-card">
-        <p><label>Neue Passphrase <input type="password" name="passphrase" required minlength="10" autocomplete="new-password"></label></p>
-        <p><label>Wiederholen <input type="password" name="passphrase2" required minlength="10" autocomplete="new-password"></label></p>
-        <button class="button secondary" type="submit">Neu erzeugen</button>
+        <p><label>{% translate "Neue Passphrase" %} <input type="password" name="passphrase" required minlength="10" autocomplete="new-password"></label></p>
+        <p><label>{% translate "Wiederholen" %} <input type="password" name="passphrase2" required minlength="10" autocomplete="new-password"></label></p>
+        <button class="button secondary" type="submit">{% translate "Neu erzeugen" %}</button>
       </form>
     </details>
   {% else %}
     <form data-crypto-setup class="form-card">
-      <p><label>Passphrase (min. 10 Zeichen) <input type="password" name="passphrase" required minlength="10" autocomplete="new-password"></label></p>
-      <p><label>Wiederholen <input type="password" name="passphrase2" required minlength="10" autocomplete="new-password"></label></p>
-      <p class="lead">Die Passphrase ist nicht dein Login-Passwort. Ohne sie sind verschlüsselte Chats und Post nicht lesbar.</p>
-      <button class="button primary" type="submit">Schlüssel einrichten</button>
+      <p><label>{% translate "Passphrase (min. 10 Zeichen)" %} <input type="password" name="passphrase" required minlength="10" autocomplete="new-password"></label></p>
+      <p><label>{% translate "Wiederholen" %} <input type="password" name="passphrase2" required minlength="10" autocomplete="new-password"></label></p>
+      <p class="lead">{% translate "Die Passphrase ist nicht dein Login-Passwort. Ohne sie sind verschlüsselte Chats und Post nicht lesbar." %}</p>
+      <button class="button primary" type="submit">{% translate "Schlüssel einrichten" %}</button>
     </form>
   {% endif %}
 </section>

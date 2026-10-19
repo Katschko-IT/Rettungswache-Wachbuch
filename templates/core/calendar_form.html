@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Termin anlegen | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Termin anlegen" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'calendar' %}">Zurück zum Kalender</a>
-<header class="page-heading narrow"><p class="context-line">Kalender</p><h1>Termin anlegen</h1></header>
-<form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">Termin anlegen</button><a class="button secondary" href="{% url 'calendar' %}">Abbrechen</a></div></form>
+<a class="back-link" href="{% url 'calendar' %}">{% translate "Zurück zum Kalender" %}</a>
+<header class="page-heading narrow"><p class="context-line">{% translate "Kalender" %}</p><h1>{% translate "Termin anlegen" %}</h1></header>
+<form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">{% translate "Termin anlegen" %}</button><a class="button secondary" href="{% url 'calendar' %}">{% translate "Abbrechen" %}</a></div></form>
 {% endblock %}

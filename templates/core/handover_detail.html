@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}{{ handover.title }} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'handover_list' %}">Zurück zu Übergaben</a>
+<a class="back-link" href="{% url 'handover_list' %}">{% translate "Zurück zu Übergaben" %}</a>
 <header class="page-heading narrow heading-with-action">
   <div>
-    <p class="context-line">{{ handover.get_category_display }} &middot; Version {{ handover.version }}</p>
+    <p class="context-line">{% blocktranslate with category=handover.get_category_display version=handover.version %}{{ category }} &middot; Version {{ version }}{% endblocktranslate %}</p>
     <h1>{{ handover.title }}</h1>
     <div class="status-row"><span class="status-label priority-{{ handover.priority }}">{{ handover.get_priority_display }}</span><span class="status-label neutral">{{ handover.get_status_display }}</span></div>
   </div>
-  {% if can_edit_content %}<a class="button secondary" href="{% url 'handover_edit' handover.pk %}">Inhalt korrigieren</a>{% endif %}
+  {% if can_edit_content %}<a class="button secondary" href="{% url 'handover_edit' handover.pk %}">{% translate "Inhalt korrigieren" %}</a>{% endif %}
 </header>
 <div class="content-flow narrow">
-  <section class="section-block prose"><h2>Information</h2><p>{{ handover.details|linebreaksbr }}</p></section>
-  {% if can_change_status %}<form method="post" action="{% url 'handover_status' handover.pk %}" class="section-block inline-form">{% csrf_token %}<div class="field"><label for="{{ status_form.status.id_for_label }}">Status</label>{{ status_form.status }}</div><button class="button primary" type="submit">Status aktualisieren</button></form>{% endif %}
-  <dl class="summary-list"><div><dt>Erstellt von</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div><div><dt>Erstellt</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div><div><dt>Aktualisiert</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div></dl>
-  <details class="details-block"><summary>Änderungshistorie ({{ handover.revisions.count }})</summary><div class="revision-list">{% for revision in handover.revisions.all %}<div><strong>Version {{ revision.version }}</strong><span>{{ revision.changed_by.first_name|default:revision.changed_by.username }}</span><time datetime="{{ revision.created_at|date:'c' }}">{{ revision.created_at|date:"d.m.Y H:i" }}</time></div>{% endfor %}</div></details>
+  <section class="section-block prose"><h2>{% translate "Information" %}</h2><p>{{ handover.details|linebreaksbr }}</p></section>
+  {% if can_change_status %}<form method="post" action="{% url 'handover_status' handover.pk %}" class="section-block inline-form">{% csrf_token %}<div class="field"><label for="{{ status_form.status.id_for_label }}">{% translate "Status" %}</label>{{ status_form.status }}</div><button class="button primary" type="submit">{% translate "Status aktualisieren" %}</button></form>{% endif %}
+  <dl class="summary-list"><div><dt>{% translate "Erstellt von" %}</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div><div><dt>{% translate "Erstellt" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div><div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div></dl>
+  <details class="details-block"><summary>{% blocktranslate with count=handover.revisions.count %}Änderungshistorie ({{ count }}){% endblocktranslate %}</summary><div class="revision-list">{% for revision in handover.revisions.all %}<div><strong>{% translate "Version" %} {{ revision.version }}</strong><span>{{ revision.changed_by.first_name|default:revision.changed_by.username }}</span><time datetime="{{ revision.created_at|date:'c' }}">{{ revision.created_at|date:"d.m.Y H:i" }}</time></div>{% endfor %}</div></details>
 </div>
 {% endblock %}

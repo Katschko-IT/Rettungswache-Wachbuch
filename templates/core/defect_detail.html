@@ -1,55 +1,56 @@
 {% extends "base.html" %}
-{% block title %}{{ item.title }} | Mängel | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{{ item.title }} | {% translate "Mängel" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'defects_web' %}">Zurück zu Mängeln</a>
+<a class="back-link" href="{% url 'defects_web' %}">{% translate "Zurück zu Mängeln" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Mangel · {{ item.get_category_display }}</p>
+  <p class="context-line">{% translate "Mangel" %} · {{ item.get_category_display }}</p>
   <h1>{{ item.title }}</h1>
   <p class="lead">{{ item.description|default:"Keine weiteren Angaben." }}</p>
 </header>
 <section class="section-block">
   <dl class="summary-list">
-    <div><dt>Priorität</dt><dd><span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span></dd></div>
-    <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
-    <div><dt>Bezug</dt><dd>{{ item.asset_ref|default:"—" }}</dd></div>
-    <div><dt>Zuständig</dt><dd>{% if item.owner %}{{ item.owner.first_name|default:item.owner.username }}{% else %}—{% endif %}</dd></div>
-    <div><dt>Frist</dt><dd>{% if item.due_at %}{{ item.due_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}</dd></div>
-    <div><dt>Aktualisiert</dt><dd>{{ item.updated_at|date:"d.m.Y H:i" }}</dd></div>
+    <div><dt>{% translate "Priorität" %}</dt><dd><span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span></dd></div>
+    <div><dt>{% translate "Status" %}</dt><dd>{{ item.get_status_display }}</dd></div>
+    <div><dt>{% translate "Bezug" %}</dt><dd>{{ item.asset_ref|default:"—" }}</dd></div>
+    <div><dt>{% translate "Zuständig" %}</dt><dd>{% if item.owner %}{{ item.owner.first_name|default:item.owner.username }}{% else %}—{% endif %}</dd></div>
+    <div><dt>{% translate "Frist" %}</dt><dd>{% if item.due_at %}{{ item.due_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}</dd></div>
+    <div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ item.updated_at|date:"d.m.Y H:i" }}</dd></div>
   </dl>
 </section>
 <section class="section-block">
-  <h2>Status setzen</h2>
+  <h2>{% translate "Status setzen" %}</h2>
   <form method="post" class="inline-form">
     {% csrf_token %}<input type="hidden" name="action" value="status">
-    <label for="status">Status</label>
+    <label for="status">{% translate "Status" %}</label>
     <select id="status" name="status">{% for value,label in statuses %}{% if value != 'done' or can_close %}<option value="{{ value }}"{% if item.status == value %} selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select>
-    <button class="button primary" type="submit">Speichern</button>
+    <button class="button primary" type="submit">{% translate "Speichern" %}</button>
   </form>
 </section>
 <section class="section-block">
-  <h2>Fotos</h2>
-  <p>Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen.</p>
+  <h2>{% translate "Fotos" %}</h2>
+  <p>{% translate "Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen." %}</p>
   <div class="item-list">
     {% for attachment in attachments %}
       <a class="list-row" href="{% url 'defect_attachment_web' attachment.pk %}" target="_blank" rel="noopener">
         <span class="row-content"><strong>{{ attachment.filename }}</strong><small>{{ attachment.content_type }} · {{ attachment.size|filesizeformat }} · {{ attachment.uploaded_by.username }}</small></span>
         <time datetime="{{ attachment.created_at|date:'c' }}">{{ attachment.created_at|date:"d.m.Y H:i" }}</time>
       </a>
-    {% empty %}<p class="empty-state">Noch keine Fotos.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Fotos." %}</p>{% endfor %}
   </div>
   <form method="post" enctype="multipart/form-data" class="inline-form">
     {% csrf_token %}<input type="hidden" name="action" value="upload">
-    <label for="attachment">JPEG, PNG oder WebP · max. 2 MiB</label>
+    <label for="attachment">{% translate "JPEG, PNG oder WebP · max. 2 MiB" %}</label>
     <input id="attachment" name="attachment" type="file" accept="image/jpeg,image/png,image/webp" required>
-    <button class="button secondary" type="submit">Foto anhängen</button>
+    <button class="button secondary" type="submit">{% translate "Foto anhängen" %}</button>
   </form>
 </section>
 <section class="section-block">
-  <h2>Verlauf</h2>
+  <h2>{% translate "Verlauf" %}</h2>
   <div class="item-list">
     {% for event in events %}
       <div class="list-row"><span class="row-content"><strong>{{ event.get_kind_display }}</strong><small>{% if event.from_status or event.to_status %}{{ event.from_status|default:"—" }} → {{ event.to_status|default:"—" }} · {% endif %}{{ event.actor.username }}</small></span><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i" }}</time></div>
-    {% empty %}<p class="empty-state">Noch keine Historie.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Historie." %}</p>{% endfor %}
   </div>
 </section>
 {% endblock %}

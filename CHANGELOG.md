@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.18.0 - 2026-10-19
+
+Pilotstand für lokalen Betrieb und Praxistest. Keine Produktionsfreigabe.
+
+- Hilfe & System: lokale, offline mitgelieferte Produkthilfe mit Suche (de/en)
+  und rollenbeschränkte Systemseite mit Version, Datenbankstatus und Cache-Hinweisen.
+- Wachen-Wiki mit unveränderlichen Revisionen, Konfliktschutz und rollenbasierter
+  Bearbeitung; gleichzeitige Titel-Kollisionen und fehlende Revisionsangaben
+  werden kontrolliert als Konflikt beantwortet.
+- Diagnose und Supportexport: bereinigte Fehlerereignisse (Zeit, Korrelations-ID,
+  stabiler Routenname, Kategorie, Status, Version) ohne URLs, Abfrageparameter,
+  Exception-Texte oder Zugangsdaten; einheitliche Aufbewahrungsgrenze.
+- Zweisprachigkeit über Templates, Fachmodule, JavaScript und sichtbare
+  Python-Texte; Sprachumschaltung ohne Änderung der Adressen.
+- Englische Projektseite neben der deutschen Fassung; Pages liefert beide aus.
+
+Ausdrücklich nicht enthalten: schreibfähiger Offlinebetrieb ohne Server,
+vollständige Übersetzung von Datenbank-Altbeständen und Modell-Labels, reale
+Warenbetriebs-, TLS- und Geräteabnahme. Details: docs/RELEASE-0.18.0.md
+
 ## 0.17.0 - 2026-10-19
 
 Zwischenrelease für Entwicklung und Präsentation, keine Produktionsfreigabe.

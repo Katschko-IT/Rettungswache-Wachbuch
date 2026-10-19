@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Post | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Post" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'secure_mail_inbox' %}">Zurück zur Post</a>
+<a class="back-link" href="{% url 'secure_mail_inbox' %}">{% translate "Zurück zur Post" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">E2EE · Teilnehmerkreis</p>
-  <h1>Nachricht</h1>
-  <p class="lead">Von {{ mail.sender.first_name|default:mail.sender.username }} · {{ mail.created_at|date:"d.m.Y H:i" }}</p>
+  <p class="context-line">{% translate "E2EE · Teilnehmerkreis" %}</p>
+  <h1>{% translate "Nachricht" %}</h1>
+  <p class="lead">{% translate "Von" %} {{ mail.sender.first_name|default:mail.sender.username }} · {{ mail.created_at|date:"d.m.Y H:i" }}</p>
 </header>
 {% if not has_keys %}
-  <p class="notice"><a href="{% url 'crypto_setup' %}">Schlüssel einrichten</a></p>
+  <p class="notice"><a href="{% url 'crypto_setup' %}">{% translate "Schlüssel einrichten" %}</a></p>
 {% else %}
 <section class="content-flow narrow" data-e2ee-mail-detail data-viewer-id="{{ viewer_id }}">
   <p class="hint" data-crypto-status hidden></p>
@@ -16,9 +17,9 @@
   <article class="form-card">
     <h2 data-mail-subject>…</h2>
     <p data-mail-body>…</p>
-    <small class="crypto-tag">Clientseitig verschlüsselt gespeichert</small>
+    <small class="crypto-tag">{% translate "Clientseitig verschlüsselt gespeichert" %}</small>
   </article>
-  <p class="lead">Empfänger:
+  <p class="lead">{% translate "Empfänger:" %}
     {% for item in recipients %}{{ item.user.first_name|default:item.user.username }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
   </p>
 </section>

@@ -1,32 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Kalender | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Kalender" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
-  <div><p class="context-line">Wachenorganisation</p><h1>Kalender</h1><p class="lead">Wachentermine{% if holidays_enabled %} und gesetzliche Feiertage (NRW){% endif %} – keine Dienstplanung.</p></div>
+  <div><p class="context-line">{% translate "Wachenorganisation" %}</p><h1>{% translate "Kalender" %}</h1><p class="lead">{% translate "Wachentermine" %}{% if holidays_enabled %} {% translate "und gesetzliche Feiertage (NRW)" %}{% endif %} – {% translate "keine Dienstplanung." %}</p></div>
   <div class="form-actions">
-    {% if can_create %}<a class="button secondary" href="{% url 'calendar_feed_manage' %}">Abo-Links</a><a class="button primary" href="{% url 'calendar_create' %}">Termin anlegen</a>{% endif %}
+    {% if can_create %}<a class="button secondary" href="{% url 'calendar_feed_manage' %}">{% translate "Abo-Links" %}</a><a class="button primary" href="{% url 'calendar_create' %}">{% translate "Termin anlegen" %}</a>{% endif %}
   </div>
 </header>
 <section class="section-block flush">
-  <p><a class="text-action" href="{% url 'calendar_feed_ics' %}">Gesamten Kalender als ICS</a></p>
+  <p><a class="text-action" href="{% url 'calendar_feed_ics' %}">{% translate "Gesamten Kalender als ICS" %}</a></p>
   <div class="agenda">
     {% for event in page_obj %}
       <article class="agenda-row {% if event.kind == 'holiday' %}agenda-holiday{% elif event.kind == 'waste' %}agenda-waste{% endif %}">
-        <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}ganztägig{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
+        <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}{% translate "ganztägig" %}{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
         <div>
-          <h2>{{ event.title }}{% if event.kind == 'holiday' %} <span class="status-label neutral">Feiertag</span>{% elif event.kind == 'waste' %} <span class="status-label neutral">Müll</span>{% endif %}</h2>
+          <h2>{{ event.title }}{% if event.kind == 'holiday' %} <span class="status-label neutral">{% translate "Feiertag" %}</span>{% elif event.kind == 'waste' %} <span class="status-label neutral">{% translate "Müll" %}</span>{% endif %}</h2>
           {% if event.description %}<p>{{ event.description|linebreaksbr }}</p>{% endif %}
           {% if event.kind == 'event' %}
-            <small>Bis {{ event.ends_at|date:"d.m.Y H:i" }}</small>
-            {% if event.source_pk %}<p><a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">Als ICS speichern</a></p>{% endif %}
+            <small>{% translate "Bis" %} {{ event.ends_at|date:"d.m.Y H:i" }}</small>
+            {% if event.source_pk %}<p><a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "Als ICS speichern" %}</a></p>{% endif %}
           {% elif event.kind == 'waste' %}
-            <small>Müllabfuhr (externe ICS-Quelle)</small>
+            <small>{% translate "Müllabfuhr (externe ICS-Quelle)" %}</small>
           {% else %}
-            <small>Gesetzlicher Feiertag NRW</small>
+            <small>{% translate "Gesetzlicher Feiertag NRW" %}</small>
           {% endif %}
         </div>
       </article>
-    {% empty %}<p class="empty-state">Keine anstehenden Termine.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %}</p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

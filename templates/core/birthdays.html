@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Geburtstage | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Geburtstage" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
-  <div><p class="context-line">Freiwillige Teamfunktion</p><h1>Geburtstage</h1><p class="lead">Sichtbar sind nur freiwillig freigegebene Tage und Monate.</p></div>
-  <a class="button primary" href="{% url 'birthday_settings' %}">Meine Einstellung</a>
+  <div><p class="context-line">{% translate "Freiwillige Teamfunktion" %}</p><h1>{% translate "Geburtstage" %}</h1><p class="lead">{% translate "Sichtbar sind nur freiwillig freigegebene Tage und Monate." %}</p></div>
+  <a class="button primary" href="{% url 'birthday_settings' %}">{% translate "Meine Einstellung" %}</a>
 </header>
 <section class="section-block flush">
   <div class="birthday-list-clean">
-    {% for birthday in birthdays %}<article><time datetime="--{{ birthday.month|stringformat:'02d' }}-{{ birthday.day|stringformat:'02d' }}">{{ birthday.day|stringformat:"02d" }}.{{ birthday.month|stringformat:"02d" }}.</time><strong>{{ birthday.user.first_name|default:birthday.user.username }}</strong></article>{% empty %}<p class="empty-state">Noch keine freiwilligen Freigaben.</p>{% endfor %}
+    {% for birthday in birthdays %}<article><time datetime="--{{ birthday.month|stringformat:'02d' }}-{{ birthday.day|stringformat:'02d' }}">{{ birthday.day|stringformat:"02d" }}.{{ birthday.month|stringformat:"02d" }}.</time><strong>{{ birthday.user.first_name|default:birthday.user.username }}</strong></article>{% empty %}<p class="empty-state">{% translate "Noch keine freiwilligen Freigaben." %}</p>{% endfor %}
   </div>
 </section>
 {% endblock %}

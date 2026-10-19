@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ article.title }} | {% translate "Hilfe" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line"><a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a></p>
+  <h1>{{ article.title }}</h1>
+  <p class="lead">{{ article.summary }}</p>
+</header>
+
+<article class="help-article">
+  {% for section in article.sections %}
+    <section>
+      <h2>{{ section.heading }}</h2>
+      <p>{{ section.body }}</p>
+    </section>
+  {% endfor %}
+</article>
+
+<footer class="help-article-meta">
+  <p>{% blocktranslate with source=article.source revision=article.revision manifest=help_revision %}Quelle: {{ source }} · Artikelstand {{ revision }} · Manifest {{ manifest }}{% endblocktranslate %}</p>
+  <p>{% blocktranslate with version=app_version %}Produktversion {{ version }}{% endblocktranslate %}{% if build_commit %} · {% blocktranslate with commit=build_commit %}Build {{ commit }}{% endblocktranslate %}{% endif %}</p>
+  <p><a href="{% url 'help_index' %}">{% translate "Zurück zur Hilfe" %}</a></p>
+</footer>
+{% endblock %}

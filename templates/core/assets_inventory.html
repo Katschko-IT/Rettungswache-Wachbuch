@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Geräte & Status | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Geräte & Status" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'more' %}">Zurück zu Mehr</a>
+<a class="back-link" href="{% url 'more' %}">{% translate "Zurück zu Mehr" %}</a>
 <header class="page-heading">
-  <p class="context-line">Wachalltag</p><h1>Geräte & Status</h1>
-  <p class="lead">Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick.</p>
+  <p class="context-line">{% translate "Wachalltag" %}</p><h1>{% translate "Geräte & Status" %}</h1>
+  <p class="lead">{% translate "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick." %}</p>
 </header>
 <section class="section-block">
-  <h2>Fahrzeuge & Geräte</h2>
+  <h2>{% translate "Fahrzeuge & Geräte" %}</h2>
   <div class="item-list">
     {% for item in assets %}
       <div class="list-row">
@@ -16,43 +17,43 @@
         {% if can_manage %}
           <form method="post" class="inline-form">
             {% csrf_token %}<input type="hidden" name="action" value="asset-status"><input type="hidden" name="asset_id" value="{{ item.asset_id }}">
-            <label class="sr-only" for="asset-status-{{ item.pk }}">Status {{ item.label }}</label>
+            <label class="sr-only" for="asset-status-{{ item.pk }}">{% translate "Status" %} {{ item.label }}</label>
             <select id="asset-status-{{ item.pk }}" name="status">{% for value,label in asset_statuses %}<option value="{{ value }}"{% if item.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-            <input name="note" maxlength="300" value="{{ item.note }}" aria-label="Hinweis {{ item.label }}">
-            <button class="button secondary" type="submit">Speichern</button>
+            <input name="note" maxlength="300" value="{{ item.note }}" aria-label="{% blocktranslate %}Hinweis {{ item.label }}{% endblocktranslate %}">
+            <button class="button secondary" type="submit">{% translate "Speichern" %}</button>
           </form>
         {% endif %}
       </div>
-    {% empty %}<p class="empty-state">Noch keine Fahrzeuge oder Geräte angelegt.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Fahrzeuge oder Geräte angelegt." %}</p>{% endfor %}
   </div>
   {% if can_manage %}
-  <details class="details-block"><summary>Fahrzeug/Gerät anlegen</summary>
+  <details class="details-block"><summary>{% translate "Fahrzeug/Gerät anlegen" %}</summary>
     <form method="post" class="form-card">{% csrf_token %}<input type="hidden" name="action" value="asset-create">
-      <div class="field"><label for="asset-label">Bezeichnung</label><input id="asset-label" name="label" maxlength="160" required></div>
-      <div class="field"><label for="asset-id">ID</label><input id="asset-id" name="asset_id" maxlength="64" placeholder="z. B. rtw-1"></div>
-      <div class="field"><label for="asset-kind">Typ</label><select id="asset-kind" name="kind">{% for value,label in asset_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
-      <div class="form-actions"><button class="button primary" type="submit">Anlegen</button></div>
+      <div class="field"><label for="asset-label">{% translate "Bezeichnung" %}</label><input id="asset-label" name="label" maxlength="160" required></div>
+      <div class="field"><label for="asset-id">{% translate "ID" %}</label><input id="asset-id" name="asset_id" maxlength="64" placeholder="{% translate 'z. B. rtw-1' %}"></div>
+      <div class="field"><label for="asset-kind">{% translate "Typ" %}</label><select id="asset-kind" name="kind">{% for value,label in asset_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+      <div class="form-actions"><button class="button primary" type="submit">{% translate "Anlegen" %}</button></div>
     </form>
   </details>{% endif %}
 </section>
 <section class="section-block">
-  <h2>Schlüssel & Pools</h2>
+  <h2>{% translate "Schlüssel & Pools" %}</h2>
   <div class="item-list">
     {% for item in inventory %}
       <div class="list-row">
-        <span class="status-label">{% if item.holder %}Ausgegeben{% else %}Verfügbar{% endif %}</span>
-        <span class="row-content"><strong>{{ item.label }}</strong><small>{{ item.get_kind_display }}{% if item.holder %} · bei {{ item.holder.first_name|default:item.holder.username }} seit {{ item.checked_out_at|date:"d.m. H:i" }}{% endif %}{% if item.note %} · {{ item.note }}{% endif %}</small></span>
-        <form method="post">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.item_id }}"><input type="hidden" name="action" value="{% if item.holder %}checkin{% else %}checkout{% endif %}"><button class="button secondary" type="submit">{% if item.holder %}Zurückgeben{% else %}Ausgeben{% endif %}</button></form>
+        <span class="status-label">{% if item.holder %}{% translate "Ausgegeben" %}{% else %}{% translate "Verfügbar" %}{% endif %}</span>
+        <span class="row-content"><strong>{{ item.label }}</strong><small>{{ item.get_kind_display }}{% if item.holder %} · {% translate "bei" %} {{ item.holder.first_name|default:item.holder.username }} {% translate "seit" %} {{ item.checked_out_at|date:"d.m. H:i" }}{% endif %}{% if item.note %} · {{ item.note }}{% endif %}</small></span>
+        <form method="post">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.item_id }}"><input type="hidden" name="action" value="{% if item.holder %}checkin{% else %}checkout{% endif %}"><button class="button secondary" type="submit">{% if item.holder %}{% translate "Zurückgeben" %}{% else %}{% translate "Ausgeben" %}{% endif %}</button></form>
       </div>
-    {% empty %}<p class="empty-state">Noch keine Schlüssel oder Poolgeräte angelegt.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Schlüssel oder Poolgeräte angelegt." %}</p>{% endfor %}
   </div>
   {% if can_manage %}
-  <details class="details-block"><summary>Pool-/Schlüsselobjekt anlegen</summary>
+  <details class="details-block"><summary>{% translate "Pool-/Schlüsselobjekt anlegen" %}</summary>
     <form method="post" class="form-card">{% csrf_token %}<input type="hidden" name="action" value="inventory-create">
-      <div class="field"><label for="inventory-label">Bezeichnung</label><input id="inventory-label" name="label" maxlength="160" required></div>
-      <div class="field"><label for="inventory-id">ID</label><input id="inventory-id" name="item_id" maxlength="64" placeholder="z. B. funk-a"></div>
-      <div class="field"><label for="inventory-kind">Typ</label><select id="inventory-kind" name="kind">{% for value,label in inventory_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
-      <div class="form-actions"><button class="button primary" type="submit">Anlegen</button></div>
+      <div class="field"><label for="inventory-label">{% translate "Bezeichnung" %}</label><input id="inventory-label" name="label" maxlength="160" required></div>
+      <div class="field"><label for="inventory-id">{% translate "ID" %}</label><input id="inventory-id" name="item_id" maxlength="64" placeholder="{% translate 'z. B. funk-a' %}"></div>
+      <div class="field"><label for="inventory-kind">{% translate "Typ" %}</label><select id="inventory-kind" name="kind">{% for value,label in inventory_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+      <div class="form-actions"><button class="button primary" type="submit">{% translate "Anlegen" %}</button></div>
     </form>
   </details>{% endif %}
 </section>

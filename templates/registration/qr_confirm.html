@@ -1,40 +1,41 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
-{% block title %}Anmeldung bestätigen | {{ app_name }}{% endblock %}
+{% block title %}{% translate "Anmeldung bestätigen" %} | {{ app_name }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'core/qr_login.css' %}">
 {% endblock %}
 {% block content %}
 <section class="access-panel qr-confirm-panel" data-qr-confirm-panel data-login-id="{{ qr_req.id }}" data-manual-granted="{% if has_manual_grant %}1{% else %}0{% endif %}">
   <p class="context-line">{{ station.name }}</p>
-  <h1>Anmeldung bestätigen</h1>
-  <p class="lead">Ein zweites Gerät bittet um Freigabe einer Anmeldung für diese Wache.</p>
+  <h1>{% translate "Anmeldung bestätigen" %}</h1>
+  <p class="lead">{% translate "Ein zweites Gerät bittet um Freigabe einer Anmeldung für diese Wache." %}</p>
 
   <div class="qr-details-card">
     <div class="qr-meta-item">
-      <span class="qr-meta-label">Wache</span>
+      <span class="qr-meta-label">{% translate "Wache" %}</span>
       <strong class="qr-meta-value">{{ station.name }}</strong>
     </div>
     <div class="qr-meta-item">
-      <span class="qr-meta-label">Zielkonto</span>
+      <span class="qr-meta-label">{% translate "Zielkonto" %}</span>
       <strong class="qr-meta-value">{{ request.user.first_name|default:request.user.username }} ({{ request.user.username }})</strong>
     </div>
     <div class="qr-meta-item">
-      <span class="qr-meta-label">Host / Ursprung</span>
+      <span class="qr-meta-label">{% translate "Host / Ursprung" %}</span>
       <strong class="qr-meta-value">{{ origin_host }}</strong>
     </div>
     <div class="qr-meta-item">
-      <span class="qr-meta-label">Prüfwort</span>
+      <span class="qr-meta-label">{% translate "Prüfwort" %}</span>
       <strong class="qr-meta-value qr-check-word">{{ check_word }}</strong>
     </div>
     <div class="qr-meta-item">
-      <span class="qr-meta-label">Restzeit</span>
+      <span class="qr-meta-label">{% translate "Restzeit" %}</span>
       <span class="qr-meta-value"><span data-countdown="{{ expires_in }}">{{ expires_in }}</span> s</span>
     </div>
   </div>
 
   <p class="hint">
-    Vergleichen Sie das Prüfwort <strong>{{ check_word }}</strong> mit der Anzeige auf dem anderen Bildschirm. Stimmen sie nicht überein, brechen Sie ab.
+    {% translate "Vergleichen Sie das Prüfwort" %} <strong>{{ check_word }}</strong> {% translate "mit der Anzeige auf dem anderen Bildschirm. Stimmen sie nicht überein, brechen Sie ab." %}
   </p>
 
   <form method="post" action="{% url 'qr_login_confirm' qr_req.id %}" class="form-card" data-qr-confirm-form>
@@ -42,29 +43,29 @@
     <input type="hidden" name="qr_secret" data-qr-secret-input value="">
 
     <div class="form-field" data-manual-code-container {% if has_manual_grant %}hidden{% endif %}>
-      <label for="id_manual_code">10-stelliger Prüfcode vom Bildschirm:</label>
-      <input type="text" id="id_manual_code" name="manual_code" maxlength="10" placeholder="z. B. 4K8M9NP2QR" autocomplete="off" autocorrect="off" autocapitalize="characters">
-      <p class="hint">Wird nur abgefragt, wenn kein QR-Code gescannt wurde.</p>
+      <label for="id_manual_code">{% translate "10-stelliger Prüfcode vom Bildschirm:" %}</label>
+      <input type="text" id="id_manual_code" name="manual_code" maxlength="10" placeholder="{% translate 'z. B. 4K8M9NP2QR' %}" autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <p class="hint">{% translate "Wird nur abgefragt, wenn kein QR-Code gescannt wurde." %}</p>
     </div>
 
     {% if requires_totp_or_passkey %}
       <div class="qr-mfa-prompt">
-        <p class="hint warning-text">Ihre letzte Anmeldung liegt länger zurück. Bitte bestätigen Sie mit Ihrem zweiten Faktor:</p>
+        <p class="hint warning-text">{% translate "Ihre letzte Anmeldung liegt länger zurück. Bitte bestätigen Sie mit Ihrem zweiten Faktor:" %}</p>
 
         {% if has_totp %}
           <div class="form-field">
-            <label for="id_totp_code">TOTP-Code (aus der Authenticator-App):</label>
+            <label for="id_totp_code">{% translate "TOTP-Code (aus der Authenticator-App):" %}</label>
             <input type="text" id="id_totp_code" name="totp_code" pattern="[0-9]*" inputmode="numeric" maxlength="8" placeholder="123456" autocomplete="one-time-code">
           </div>
         {% endif %}
 
         {% if has_passkey %}
           <div class="passkey-confirm-box">
-            <p class="lead">Oder mit Passkey:</p>
+            <p class="lead">{% translate "Oder mit Passkey:" %}</p>
             <button type="button" class="button secondary" data-qr-passkey-button
               data-options-url="{% url 'qr_login_passkey_options' qr_req.id %}"
               data-verify-url="{% url 'qr_login_passkey_verify' qr_req.id %}">
-              Passkey bestätigen
+              {% translate "Passkey bestätigen" %}
             </button>
             <p class="hint" data-qr-passkey-status hidden></p>
           </div>
@@ -73,13 +74,13 @@
     {% endif %}
 
     <div class="button-row qr-btn-group">
-      <button class="button primary" type="submit" data-approve-button>Anmeldung freigeben</button>
+      <button class="button primary" type="submit" data-approve-button>{% translate "Anmeldung freigeben" %}</button>
     </div>
   </form>
 
   <form method="post" action="{% url 'qr_login_deny' qr_req.id %}" class="form-card-secondary qr-deny-form">
     {% csrf_token %}
-    <button class="button danger" type="submit">Ablehnen</button>
+    <button class="button danger" type="submit">{% translate "Ablehnen" %}</button>
   </form>
 </section>
 <script src="{% static 'core/qr_login.js' %}" defer></script>

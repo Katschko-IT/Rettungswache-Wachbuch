@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<p><a href="{% url 'wiki_index' %}" class="back-link">{% translate "Zurück zur Übersicht" %}</a></p>
+
+{% if conflict %}
+  <div class="warning" role="alert">
+    {% blocktranslate with rev=current_revision %}Der Hinweis wurde zwischenzeitlich geändert (aktuell Revision {{ rev }}). Ihre Eingabe wurde nicht gespeichert. Bitte prüfen und erneut speichern.{% endblocktranslate %}
+  </div>
+{% endif %}
+
+{% if article.is_archived %}
+  <p class="warning">{% translate "Dieser Hinweis ist archiviert und für reguläre Mitglieder nicht sichtbar." %}</p>
+{% endif %}
+
+<header class="page-heading">
+  <p class="context-line">{% translate "Wachen-Wiki" %}</p>
+  <h1>{{ article.title }}</h1>
+  <p class="context-line">
+    {% blocktranslate with rev=article.current_revision_number date=article.updated_at|date:"d.m.Y H:i" %}Revision {{ rev }} · zuletzt geändert {{ date }}{% endblocktranslate %}
+  </p>
+</header>
+
+<section class="section-block">
+  <div>{{ article.body|linebreaksbr }}</div>
+</section>
+
+{% if can_manage %}
+  <section class="section-block">
+    <div class="row-actions">
+      <a href="{% url 'wiki_edit' pk=article.pk %}" class="button ghost">{% translate "Bearbeiten" %}</a>
+      {% if article.is_archived %}
+        <form method="post" action="{% url 'wiki_restore' pk=article.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="expected_revision" value="{{ article.current_revision_number }}">
+          <button type="submit" class="button ghost">{% translate "Wiederherstellen" %}</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'wiki_archive' pk=article.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="expected_revision" value="{{ article.current_revision_number }}">
+          <button type="submit" class="button ghost">{% translate "Archivieren" %}</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Revisionsgeschichte" %}</h2>
+  <p class="context-line">{% translate "Revisionen sind unveränderlich und werden nicht gelöscht." %}</p>
+  {% if revisions %}
+    <div class="revision-list">
+      {% for rev in revisions %}
+        <div>
+          <strong>{% blocktranslate with rev_num=rev.number %}Revision {{ rev_num }}{% endblocktranslate %}</strong>
+          <span>{{ rev.created_at|date:"d.m.Y H:i" }} · {{ rev.edited_by.first_name|default:rev.edited_by.username|default:"—" }}</span>
+          <span>{% if rev.app_version %}{{ rev.app_version }}{% else %}—{% endif %}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

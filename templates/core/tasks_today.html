@@ -1,60 +1,61 @@
 {% extends "base.html" %}
-{% block title %}Tagesaufgaben | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Tagesaufgaben" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ board.week_label }}</p>
-    <h1>Tagesaufgaben</h1>
-    <p class="lead">Wandtafel digital: grün täglich, gelb Wochentag, blau zusätzlich. Farbe ist nur Hilfsmittel – Status steht immer ausgeschrieben.</p>
+    <h1>{% translate "Tagesaufgaben" %}</h1>
+    <p class="lead">{% translate "Wandtafel digital: grün täglich, gelb Wochentag, blau zusätzlich. Farbe ist nur Hilfsmittel – Status steht immer ausgeschrieben." %}</p>
     <p class="status-summary">
-      <span class="status-pill"><strong>{{ board.done_count }}</strong> erledigt</span>
-      <span class="status-pill{% if board.open_count %} danger{% endif %}"><strong>{{ board.open_count }}</strong> offen</span>
+      <span class="status-pill"><strong>{{ board.done_count }}</strong> {% translate "erledigt" %}</span>
+      <span class="status-pill{% if board.open_count %} danger{% endif %}"><strong>{{ board.open_count }}</strong> {% translate "offen" %}</span>
     </p>
   </div>
-  {% if can_manage %}<a class="button secondary" href="{% url 'tasks_manage' %}">Vorlage verwalten</a>{% endif %}
+  {% if can_manage %}<a class="button secondary" href="{% url 'tasks_manage' %}">{% translate "Vorlage verwalten" %}</a>{% endif %}
 </header>
 
-<nav class="filter-nav" aria-label="Aufgabenansicht">
-  <a href="{% url 'tasks_today' %}?tag={{ board.work_date|date:'Y-m-d' }}" aria-current="page">Heute / Tag</a>
-  <a href="{% url 'tasks_week' %}?woche={{ board.work_date|date:'Y-m-d' }}">Wochenbogen</a>
+<nav class="filter-nav" aria-label="{% translate 'Aufgabenansicht' %}">
+  <a href="{% url 'tasks_today' %}?tag={{ board.work_date|date:'Y-m-d' }}" aria-current="page">{% translate "Heute / Tag" %}</a>
+  <a href="{% url 'tasks_week' %}?woche={{ board.work_date|date:'Y-m-d' }}">{% translate "Wochenbogen" %}</a>
 </nav>
 
-<nav class="day-switcher" aria-label="Tag wählen">
-  <a class="button secondary" href="?tag={{ prev_date|date:'Y-m-d' }}">Vorheriger Tag</a>
-  <strong>{% if is_today %}Heute · {% endif %}{{ board.work_date|date:"l, d.m.Y" }}</strong>
-  <a class="button secondary" href="?tag={{ next_date|date:'Y-m-d' }}">Nächster Tag</a>
+<nav class="day-switcher" aria-label="{% translate 'Tag wählen' %}">
+  <a class="button secondary" href="?tag={{ prev_date|date:'Y-m-d' }}">{% translate "Vorheriger Tag" %}</a>
+  <strong>{% if is_today %}{% translate "Heute" %} · {% endif %}{{ board.work_date|date:"l, d.m.Y" }}</strong>
+  <a class="button secondary" href="?tag={{ next_date|date:'Y-m-d' }}">{% translate "Nächster Tag" %}</a>
 </nav>
 
-<div class="task-legend" aria-label="Farblegende">
-  <span class="legend-chip band-daily">Täglich</span>
-  <span class="legend-chip band-weekday">Wochentag</span>
-  <span class="legend-chip band-extra">Zusätzlich</span>
+<div class="task-legend" aria-label="{% translate 'Farblegende' %}">
+  <span class="legend-chip band-daily">{% translate "Täglich" %}</span>
+  <span class="legend-chip band-weekday">{% translate "Wochentag" %}</span>
+  <span class="legend-chip band-extra">{% translate "Zusätzlich" %}</span>
 </div>
 
 <section class="task-band band-daily" aria-labelledby="band-daily">
-  <div class="task-band-head"><h2 id="band-daily">Tägliche Routine</h2><span>Grün · jeden Tag</span></div>
+  <div class="task-band-head"><h2 id="band-daily">{% translate "Tägliche Routine" %}</h2><span>{% translate "Grün · jeden Tag" %}</span></div>
   <div class="task-list">
     {% for item in board.groups.daily %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}
-    {% empty %}<p class="empty-state">Keine täglichen Aufgaben.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine täglichen Aufgaben." %}</p>{% endfor %}
   </div>
 </section>
 
 <section class="task-band band-weekday" aria-labelledby="band-weekday">
-  <div class="task-band-head"><h2 id="band-weekday">Wochentagsaufgabe</h2><span>Gelb · nur heute</span></div>
+  <div class="task-band-head"><h2 id="band-weekday">{% translate "Wochentagsaufgabe" %}</h2><span>{% translate "Gelb · nur heute" %}</span></div>
   <div class="task-list">
     {% for item in board.groups.weekday %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}
-    {% empty %}<p class="empty-state">Keine spezielle Aufgabe für diesen Wochentag.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine spezielle Aufgabe für diesen Wochentag." %}</p>{% endfor %}
   </div>
 </section>
 
 <section class="task-band band-extra" aria-labelledby="band-extra">
-  <div class="task-band-head"><h2 id="band-extra">Zusätzliche Aufgaben</h2><span>Blau · individuell / monatlich</span></div>
+  <div class="task-band-head"><h2 id="band-extra">{% translate "Zusätzliche Aufgaben" %}</h2><span>{% translate "Blau · individuell / monatlich" %}</span></div>
   <div class="task-list">
     {% for item in board.groups.extra %}
       {% include "core/task_row.html" with item=item work_date=board.work_date %}
-    {% empty %}<p class="empty-state">Keine zusätzlichen Aufgaben.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine zusätzlichen Aufgaben." %}</p>{% endfor %}
   </div>
 </section>
 {% endblock %}

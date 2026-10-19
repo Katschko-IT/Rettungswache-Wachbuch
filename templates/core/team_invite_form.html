@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Neuer Mitarbeiterzugang | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Neuer Mitarbeiterzugang" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading">
-  <p class="context-line">Master-Admin</p>
-  <h1>Mitarbeiterzugang anlegen</h1>
-  <p class="lead">Das Konto wird ohne Passwort angelegt. Die Person setzt ihr Passwort selbst über den einmaligen Link.</p>
+  <p class="context-line">{% translate "Master-Admin" %}</p>
+  <h1>{% translate "Mitarbeiterzugang anlegen" %}</h1>
+  <p class="lead">{% translate "Das Konto wird ohne Passwort angelegt. Die Person setzt ihr Passwort selbst über den einmaligen Link." %}</p>
 </header>
 
 <section class="section-block form-card">
@@ -18,8 +19,8 @@
         {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
       </p>
     {% endfor %}
-    <button class="button primary" type="submit">Einmal-Link erzeugen</button>
-    <a class="button secondary" href="{% url 'team' %}">Zurück zum Team</a>
+    <button class="button primary" type="submit">{% translate "Einmal-Link erzeugen" %}</button>
+    <a class="button secondary" href="{% url 'team' %}">{% translate "Zurück zum Team" %}</a>
   </form>
 </section>
 {% endblock %}

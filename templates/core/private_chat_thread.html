@@ -1,19 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Chat mit {{ other.first_name|default:other.username }} | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Chat mit" %} {{ other.first_name|default:other.username }} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'private_chat_home' %}">Zurück zu Privat</a>
+<a class="back-link" href="{% url 'private_chat_home' %}">{% translate "Zurück zu Privat" %}</a>
 <header class="page-heading narrow">
-  <p class="context-line">Privat · E2EE</p>
+  <p class="context-line">{% translate "Privat · E2EE" %}</p>
   <h1>{{ other.first_name|default:other.username }}</h1>
-  <p class="lead">Der Browser verschlüsselt den Verlauf für euch beide. Die Datenbank speichert Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells.</p>
+  <p class="lead">{% translate "Der Browser verschlüsselt den Verlauf für euch beide. Die Datenbank speichert Ciphertext; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells." %}</p>
 </header>
-<nav class="chat-tabs" aria-label="Nachrichtenbereiche">
-  <a href="{% url 'chat' %}">Wache</a>
-  <a href="{% url 'private_chat_home' %}" aria-current="page">Privat</a>
-  <a href="{% url 'secure_mail_inbox' %}">Post</a>
+<nav class="chat-tabs" aria-label="{% translate 'Nachrichtenbereiche' %}">
+  <a href="{% url 'chat' %}">{% translate "Wache" %}</a>
+  <a href="{% url 'private_chat_home' %}" aria-current="page">{% translate "Privat" %}</a>
+  <a href="{% url 'secure_mail_inbox' %}">{% translate "Post" %}</a>
 </nav>
 {% if not has_keys %}
-  <p class="notice"><a href="{% url 'crypto_setup' %}">Schlüssel einrichten</a></p>
+  <p class="notice"><a href="{% url 'crypto_setup' %}">{% translate "Schlüssel einrichten" %}</a></p>
 {% else %}
 <section class="chat-thread" data-e2ee-private data-viewer-id="{{ viewer_id }}">
   <p class="hint" data-crypto-status hidden></p>
@@ -28,15 +29,15 @@
           <time>{{ item.created_at }}</time>
         </header>
         <p data-msg-body="{{ item.id }}">…</p>
-        <small class="crypto-tag">E2EE · privat</small>
+        <small class="crypto-tag">{% translate "E2EE · privat" %}</small>
       </div>
     </article>
   {% empty %}
-    <p class="empty-state">Noch keine privaten Nachrichten.</p>
+    <p class="empty-state">{% translate "Noch keine privaten Nachrichten." %}</p>
   {% endfor %}
   <form class="form-card narrow chat-compose" data-e2ee-compose>
-    <p><label>Nachricht <textarea name="body" rows="2" maxlength="500" required placeholder="Private Nachricht …"></textarea></label></p>
-    <button class="button primary" type="submit">Verschlüsselt senden</button>
+    <p><label>{% translate "Nachricht" %} <textarea name="body" rows="2" maxlength="500" required placeholder="{% translate 'Private Nachricht …' %}"></textarea></label></p>
+    <button class="button primary" type="submit">{% translate "Verschlüsselt senden" %}</button>
   </form>
 </section>
 {% endif %}

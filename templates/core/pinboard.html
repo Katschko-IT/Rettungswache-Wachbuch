@@ -1,16 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Pinnwand | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Pinnwand" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
-  <div><p class="context-line">Wache</p><h1>Pinnwand</h1><p class="lead">Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten.</p></div>
-  <a class="button primary" href="{% url 'pinboard_create' %}">Aushang anlegen</a>
+  <div><p class="context-line">{% translate "Wache" %}</p><h1>{% translate "Pinnwand" %}</h1><p class="lead">{% translate "Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten." %}</p></div>
+  <a class="button primary" href="{% url 'pinboard_create' %}">{% translate "Aushang anlegen" %}</a>
 </header>
 
-<section class="section-block flush" aria-label="Aushänge">
+<section class="section-block flush" aria-label="{% translate 'Aushänge' %}">
   <div class="item-list">
     {% for note in page_obj %}
       <article class="list-row pinboard-row">
-        <span class="status-label priority-{{ note.category }}">{% if note.is_pinned %}Angepinnt · {% endif %}{{ note.get_category_display }}</span>
+        <span class="status-label priority-{{ note.category }}">{% if note.is_pinned %}{% translate "Angepinnt" %} · {% endif %}{{ note.get_category_display }}</span>
         <span class="row-content">
           <strong>{{ note.title }}</strong>
           <small>{{ note.author.first_name|default:note.author.username|default:"—" }} &middot; <time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"d.m.Y H:i" }}</time></small>
@@ -18,15 +19,15 @@
         </span>
         <span class="row-actions">
           {% if can_manage or note.author_id == request.user.id %}
-            <a class="button ghost" href="{% url 'pinboard_edit' note.pk %}">Bearbeiten</a>
-            <form method="post" action="{% url 'pinboard_archive' note.pk %}">{% csrf_token %}<button class="button ghost" type="submit">Archivieren</button></form>
+            <a class="button ghost" href="{% url 'pinboard_edit' note.pk %}">{% translate "Bearbeiten" %}</a>
+            <form method="post" action="{% url 'pinboard_archive' note.pk %}">{% csrf_token %}<button class="button ghost" type="submit">{% translate "Archivieren" %}</button></form>
           {% endif %}
           {% if can_manage %}
-            <form method="post" action="{% url 'pinboard_pin' note.pk %}">{% csrf_token %}<button class="button ghost" type="submit">{% if note.is_pinned %}Loslösen{% else %}Anpinnen{% endif %}</button></form>
+            <form method="post" action="{% url 'pinboard_pin' note.pk %}">{% csrf_token %}<button class="button ghost" type="submit">{% if note.is_pinned %}{% translate "Loslösen" %}{% else %}{% translate "Anpinnen" %}{% endif %}</button></form>
           {% endif %}
         </span>
       </article>
-    {% empty %}<p class="empty-state">Noch keine Aushänge an der Pinnwand.</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Aushänge an der Pinnwand." %}</p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

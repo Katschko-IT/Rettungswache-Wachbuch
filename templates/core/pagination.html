@@ -1,7 +1,8 @@
+{% load i18n %}
 {% if page_obj.paginator.num_pages > 1 %}
-<nav class="pagination" aria-label="Seitennavigation">
-  {% if page_obj.has_previous %}<a href="?seite={{ page_obj.previous_page_number }}{% if scope %}&amp;ansicht={{ scope }}{% endif %}{% if feed_type %}&amp;typ={{ feed_type }}{% endif %}">Zurück</a>{% endif %}
-  <span>Seite {{ page_obj.number }} von {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a href="?seite={{ page_obj.next_page_number }}{% if scope %}&amp;ansicht={{ scope }}{% endif %}{% if feed_type %}&amp;typ={{ feed_type }}{% endif %}">Weiter</a>{% endif %}
+<nav class="pagination" aria-label="{% translate 'Seitennavigation' %}">
+  {% if page_obj.has_previous %}<a href="?seite={{ page_obj.previous_page_number }}{% if scope %}&amp;ansicht={{ scope }}{% endif %}{% if feed_type %}&amp;typ={{ feed_type }}{% endif %}">{% translate "Zurück" %}</a>{% endif %}
+  <span>{% blocktranslate with number=page_obj.number total=page_obj.paginator.num_pages %}Seite {{ number }} von {{ total }}{% endblocktranslate %}</span>
+  {% if page_obj.has_next %}<a href="?seite={{ page_obj.next_page_number }}{% if scope %}&amp;ansicht={{ scope }}{% endif %}{% if feed_type %}&amp;typ={{ feed_type }}{% endif %}">{% translate "Weiter" %}</a>{% endif %}
 </nav>
 {% endif %}

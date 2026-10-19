@@ -24,6 +24,7 @@ from django.urls import reverse
 from scripts.i18n_catalog import (
     blocktranslate_msgid,
     expected_mo_catalog,
+    extract_python,
     mo_catalog,
     parse_po,
     validate,
@@ -208,7 +209,62 @@ class RepositoryCatalogTests(SimpleTestCase):
     def test_english_catalog_has_no_empty_or_identity_translations(self):
         po = settings.BASE_DIR / "locale" / "en" / "LC_MESSAGES" / "django.po"
         # Begriffe, die im Englischen identisch sind (bewusst, kein Versehen).
-        identical_ok = {"Audit", "MFA", "Max.", "Min.", "Passkey", "Passkeys", "Passphrase"}
+        # Jeder Eintrag braucht einen Grund; echte Uebersetzungsluecken gehoeren
+        # nicht hierher, sondern in den Katalog.
+        identical_ok = {
+            # Produkt-, Plattform- und Eigennamen
+            "Android": "Plattformname",
+            "iOS &amp; Android": "Plattformnamen",
+            "iOS / iPadOS": "Plattformnamen",
+            "Web-PWA": "Produktbegriff",
+            "Bundle de.wachbuch.wachbuchMobile": "iOS-Bundle-Identifier",
+            "Antonio Batinic / Pexels": "Fotografen-Credit (Eigenname)",
+            "openapi.yaml": "Dateiname",
+            "/anmelden/qr/": "Route, laut Projektregel unveraenderlich",
+            # Protokoll-, Header- und Sicherheitsbegriffe
+            "Audit": "Fachbegriff, im Englischen identisch",
+            "Audit append-only": "Protokoll-/Audit-Fachbegriff",
+            "MFA": "Akronym",
+            "E2EE": "Akronym",
+            "ID": "Akronym",
+            "WB": "Projektkuerzel",
+            "BIC:": "Bank-Feldkuerzel mit Doppelpunkt",
+            "IBAN:": "Bank-Feldkuerzel mit Doppelpunkt",
+            "HttpOnly:": "Cookie-Attribut",
+            "SameSite:": "Cookie-Attribut",
+            "SameSite=": "Cookie-Attribut, Wertzuweisung",
+            "Secure:": "Cookie-Attribut",
+            "Scopes:": "OAuth-Feld",
+            "Authorization: Token …": "HTTP-Headerzeile",
+            # Lehnwoerter, die im Deutschen und Englischen gleich lauten
+            "Administration": "Lehnwort, identisch",
+            "Information": "Lehnwort, identisch",
+            "Link": "Lehnwort, identisch",
+            "Name:": "Feldbeschriftung, identisch",
+            "(Name:": "Fragment einer Feldbeschriftung",
+            "Offline": "Lehnwort, identisch",
+            "Person": "Lehnwort, identisch",
+            "Schema:": "Fachbegriff (Datenbank), identisch",
+            "Status": "Lehnwort, identisch",
+            "Team": "Lehnwort, identisch",
+            "Version": "Lehnwort, identisch",
+            # Aus der Hilfe-/Systemseite (Lane A): im Englischen bewusst identisch.
+            "Installation": "Lehnwort, identisch",
+            "Build %(commit)s": "Versionszeile, Produktwort",
+            "HTTP": "Protokollkuerzel",
+            "Server": "Fachbegriff, identisch",
+            "Slug": "Fachbegriff, identisch",
+            "Text": "Feldbezeichnung, identisch",
+            "Version %(version)s": "Versionszeile, Produktwort",
+            "Revision %(rev_num)s": "Versionszeile, Produktwort",
+            "Max.": "Abkuerzung, identisch",
+            "Min.": "Abkuerzung, identisch",
+            "Passkey": "Fachbegriff, identisch",
+            "Passkeys": "Fachbegriff, identisch",
+            "Passphrase": "Fachbegriff, identisch",
+            # Platzhalterzeile ohne uebersetzbaren Text
+            "%(category)s &middot; Version %(version)s": "nur Platzhalter und Produktwort",
+        }
         identical = set()
         for entry in parse_po(po):
             if not entry["msgid"]:
@@ -216,7 +272,20 @@ class RepositoryCatalogTests(SimpleTestCase):
             self.assertTrue(entry["msgstr"].strip(), f"leer: {entry['msgid']}")
             if entry["msgstr"] == entry["msgid"]:
                 identical.add(entry["msgid"])
-        self.assertEqual(identical, identical_ok)
+        self.assertEqual(identical, set(identical_ok), f"unbegruendet identisch: {sorted(identical - set(identical_ok))}")
+
+
+class ExtractionTests(SimpleTestCase):
+    """Import-Aliase muessen erkannt werden, sonst fehlen UI-Strings im Katalog."""
+
+    def test_gettext_alias_is_extracted(self):
+        source = (
+            "from django.utils.translation import gettext_lazy as _lazy\n"
+            "LABEL = _lazy(\"Fahrzeuge/Geräte\")\n"
+            "OTHER = some_function(\"nicht extrahieren\")\n"
+        )
+        entries = extract_python(Path("core/beispiel.py"), source)
+        self.assertEqual([entry[1] for entry in entries], ["Fahrzeuge/Geräte"])
 
 
 class BlocktranslateRenderingTests(TestCase):

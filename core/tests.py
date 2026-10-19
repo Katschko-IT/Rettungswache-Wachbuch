@@ -4,6 +4,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 import json
+import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -905,7 +906,13 @@ class PaymentHintsTests(PilotTestCase):
         self.station.save(update_fields=["iban"])
         html = self.client.get(reverse("coffee")).content.decode()
         self.assertIn("copy-iban", html)
-        self.assertEqual(html.count("<script"), html.count("<script src="))
+        # Der i18n-Katalog liegt als nicht ausfuehrbarer JSON-Datenblock
+        # (<script type="application/json">) im Dokument. Das ist kein
+        # JavaScript, wird von CSP script-src 'self' nicht als Skript
+        # behandelt und darf daher bleiben; ausfuehrbare Inline-Skripte
+        # bleiben verboten.
+        executable = re.sub(r'<script[^>]*type="application/json"[^>]*>.*?</script>', "", html, flags=re.S)
+        self.assertEqual(executable.count("<script"), executable.count("<script src="))
 
     def test_external_links_use_noopener(self):
         self.station.wero_link = "https://wero.eu/pay/team"

@@ -1,28 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Übersicht | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Übersicht" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
     <p class="context-line">{{ current_membership.station.name }} · {{ dashboard_profile.eyebrow }} · {% now "l, d. F" %}</p>
-    <h1>Übersicht</h1>
+    <h1>{% translate "Übersicht" %}</h1>
     <p class="status-summary">
-      <a class="status-pill danger" href="{% url 'handover_list' %}?ansicht=dringend"><strong>{{ urgent_count }}</strong> dringend</a>
-      <a class="status-pill" href="{% url 'handover_list' %}"><strong>{{ open_count }}</strong> aktive Übergaben</a>
+      <a class="status-pill danger" href="{% url 'handover_list' %}?ansicht=dringend"><strong>{{ urgent_count }}</strong> {% translate "dringend" %}</a>
+      <a class="status-pill" href="{% url 'handover_list' %}"><strong>{{ open_count }}</strong> {% translate "aktive Übergaben" %}</a>
     </p>
   </div>
-  <a class="button primary" href="{% url 'handover_create' %}">Übergabe anlegen</a>
+  <a class="button primary" href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a>
 </header>
 
-<nav class="quick-actions" aria-label="Schnellzugriff">
-  <a href="{% url 'handover_create' %}"><strong>Neue Übergabe</strong><span>Für die nächste Schicht festhalten</span></a>
-  <a href="{% url 'handover_list' %}?ansicht=dringend"><strong>Dringendes öffnen</strong><span>{{ urgent_count }} offene Punkte</span></a>
-  {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>Tagesaufgaben</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} erledigt · Wandtafel</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>Kalender</strong><span>Nächste Wachentermine</span></a>{% endif %}
+<nav class="quick-actions" aria-label="{% translate 'Schnellzugriff' %}">
+  <a href="{% url 'handover_create' %}"><strong>{% translate "Neue Übergabe" %}</strong><span>{% translate "Für die nächste Schicht festhalten" %}</span></a>
+  <a href="{% url 'handover_list' %}?ansicht=dringend"><strong>{% translate "Dringendes öffnen" %}</strong><span>{{ urgent_count }} {% translate "offene Punkte" %}</span></a>
+  {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} {% translate "erledigt · Wandtafel" %}</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>{% translate "Kalender" %}</strong><span>{% translate "Nächste Wachentermine" %}</span></a>{% endif %}
 </nav>
 
 <section class="section-block operations-summary" aria-labelledby="operations-summary">
   <div class="section-heading">
-    <h2 id="operations-summary">Wachalltag im Blick</h2>
-    <span class="context-line">Nur offene stationsbezogene Punkte</span>
+    <h2 id="operations-summary">{% translate "Wachalltag im Blick" %}</h2>
+    <span class="context-line">{% translate "Nur offene stationsbezogene Punkte" %}</span>
   </div>
   <div class="quick-actions">
     {% for card in dashboard_cards %}<a href="{% url card.url_name %}"><strong>{{ card.value }} {{ card.title }}</strong><span>{{ card.subtitle }}</span></a>{% endfor %}
@@ -42,27 +43,27 @@
           <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small></span>
           <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m. H:i" }}</time>
         </a>
-      {% empty %}<p class="empty-state">Keine aktiven Übergaben.</p>{% endfor %}
+      {% empty %}<p class="empty-state">{% translate "Keine aktiven Übergaben." %}</p>{% endfor %}
     </div>
   </section>
 
   {% if calendar_enabled %}<section class="section-block" aria-labelledby="next-events">
     <div class="section-heading">
-      <h2 id="next-events">Nächste Termine</h2>
-      <a href="{% url 'calendar' %}">Kalender</a>
+      <h2 id="next-events">{% translate "Nächste Termine" %}</h2>
+      <a href="{% url 'calendar' %}">{% translate "Kalender" %}</a>
     </div>
     <div class="agenda compact-agenda">
       {% for event in events %}
         <article class="agenda-row {% if event.kind == 'holiday' %}agenda-holiday{% endif %}">
-          <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}ganztägig{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
+          <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}{% translate "ganztägig" %}{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
           <div>
             <strong>{{ event.title }}</strong>
-            {% if event.kind == 'holiday' %}<span class="status-label neutral">Feiertag</span>{% endif %}
+            {% if event.kind == 'holiday' %}<span class="status-label neutral">{% translate "Feiertag" %}</span>{% endif %}
             {% if event.description %}<p>{{ event.description|truncatechars:90 }}</p>{% endif %}
-            {% if event.kind == 'event' and event.source_pk %}<a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">In Kalender speichern</a>{% endif %}
+            {% if event.kind == 'event' and event.source_pk %}<a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "In Kalender speichern" %}</a>{% endif %}
           </div>
         </article>
-      {% empty %}<p class="empty-state">Keine anstehenden Termine.</p>{% endfor %}
+      {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %}</p>{% endfor %}
     </div>
   </section>{% endif %}
 </div>

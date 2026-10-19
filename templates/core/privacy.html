@@ -1,45 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Datenschutz und Cookies | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Datenschutz und Cookies" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading narrow">
-  <p class="context-line">Rechtliche Hinweise</p>
-  <h1>Datenschutz, Cookies und Informationssicherheit</h1>
-  <p class="lead">Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen.</p>
+  <p class="context-line">{% translate "Rechtliche Hinweise" %}</p>
+  <h1>{% translate "Datenschutz, Cookies und Informationssicherheit" %}</h1>
+  <p class="lead">{% translate "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen." %}</p>
 </header>
 
 <div class="narrow">
-  <aside class="privacy-blocker-warning" role="alert" aria-label="Veröffentlichungsblocker">
-    <p class="blocker-title"><strong>Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe</strong></p>
-    <p>Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt <strong>keine</strong> rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden.</p>
+  <aside class="privacy-blocker-warning" role="alert" aria-label="{% translate 'Veröffentlichungsblocker' %}">
+    <p class="blocker-title"><strong>{% translate "Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe" %}</strong></p>
+    <p>{% translate "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt" %} <strong>{% translate "keine" %}</strong> {% translate "rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden." %}</p>
   </aside>
 
-  <nav class="toc" aria-label="Inhaltsverzeichnis">
-    <h2 class="toc-title">Inhaltsverzeichnis</h2>
+  <nav class="toc" aria-label="{% translate 'Inhaltsverzeichnis' %}">
+    <h2 class="toc-title">{% translate "Inhaltsverzeichnis" %}</h2>
     <ol class="toc-list">
-      <li><a href="#verantwortung">1. Verantwortung &amp; Kontakt</a></li>
-      <li><a href="#verbindungsdaten">2. Verbindungsdaten beim Aufruf</a></li>
-      <li><a href="#demokonten">3. Demokonten &amp; fiktive Inhalte</a></li>
-      <li><a href="#cookies">4. Cookies &amp; Browser-Speicherung</a></li>
-      <li><a href="#hosting">5. Hosting &amp; Empfänger</a></li>
-      <li><a href="#sicherheit">6. Zugriffe &amp; Sicherheit</a></li>
-      <li><a href="#loeschung">7. Speicherdauer, Reset &amp; Löschung</a></li>
-      <li><a href="#rechte">8. Betroffenenrechte &amp; Aufsichtsbehörde</a></li>
-      <li><a href="#dienstbetrieb">9. Späterer Dienstbetrieb</a></li>
-      <li><a href="#aenderungen">10. Stand, Version &amp; Revisionsverlauf</a></li>
+      <li><a href="#verantwortung">{% translate "1. Verantwortung &amp; Kontakt" %}</a></li>
+      <li><a href="#verbindungsdaten">{% translate "2. Verbindungsdaten beim Aufruf" %}</a></li>
+      <li><a href="#demokonten">{% translate "3. Demokonten &amp; fiktive Inhalte" %}</a></li>
+      <li><a href="#cookies">{% translate "4. Cookies &amp; Browser-Speicherung" %}</a></li>
+      <li><a href="#hosting">{% translate "5. Hosting &amp; Empfänger" %}</a></li>
+      <li><a href="#sicherheit">{% translate "6. Zugriffe &amp; Sicherheit" %}</a></li>
+      <li><a href="#loeschung">{% translate "7. Speicherdauer, Reset &amp; Löschung" %}</a></li>
+      <li><a href="#rechte">{% translate "8. Betroffenenrechte &amp; Aufsichtsbehörde" %}</a></li>
+      <li><a href="#dienstbetrieb">{% translate "9. Späterer Dienstbetrieb" %}</a></li>
+      <li><a href="#aenderungen">{% translate "10. Stand, Version &amp; Revisionsverlauf" %}</a></li>
     </ol>
   </nav>
 </div>
 
 <div class="content-flow narrow prose">
   <section id="verantwortung" class="privacy-section">
-    <h2>1. Verantwortung und Kontakt</h2>
-    <p>Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachwerk-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen.</p>
-    <p><strong>Status für diese Demonstration:</strong> Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt.</p>
-    <p>Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung.</p>
+    <h2>{% translate "1. Verantwortung und Kontakt" %}</h2>
+    <p>{% translate "Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachwerk-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen." %}</p>
+    <p><strong>{% translate "Status für diese Demonstration:" %}</strong> {% translate "Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt." %}</p>
+    <p>{% translate "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung." %}</p>
 
-    <h3>Datenschutzbeauftragte / Datenschutzkontakte</h3>
+    <h3>{% translate "Datenschutzbeauftragte / Datenschutzkontakte" %}</h3>
     {% if public_data_protection_officers %}
-      <p>Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:</p>
+      <p>{% translate "Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:" %}</p>
       <div class="content-flow">
         {% for contact in public_data_protection_officers %}
           <article class="card">
@@ -47,60 +48,60 @@
             <p><strong>{{ contact.station.name }}</strong>{% if contact.organization %}<br>{{ contact.organization }}{% endif %}</p>
             <p><a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% if contact.phone %}<br><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}</p>
             {% if contact.postal_address %}<p>{{ contact.postal_address|linebreaksbr }}</p>{% endif %}
-            {% if contact.is_external %}<p><small>Externer Datenschutzkontakt</small></p>{% endif %}
+            {% if contact.is_external %}<p><small>{% translate "Externer Datenschutzkontakt" %}</small></p>{% endif %}
           </article>
         {% endfor %}
       </div>
     {% else %}
-      <p><strong>Noch kein veröffentlichter Datenschutzkontakt hinterlegt.</strong> Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen.</p>
+      <p><strong>{% translate "Noch kein veröffentlichter Datenschutzkontakt hinterlegt." %}</strong> {% translate "Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen." %}</p>
     {% endif %}
-    <p>Interne Notizen aus der Verwaltung werden auf dieser Seite technisch nicht ausgegeben.</p>
+    <p>{% translate "Interne Notizen aus der Verwaltung werden auf dieser Seite technisch nicht ausgegeben." %}</p>
   </section>
 
   <section id="verbindungsdaten" class="privacy-section">
-    <h2>2. Welche echten Daten beim Besuch anfallen</h2>
-    <p>Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:</p>
+    <h2>{% translate "2. Welche echten Daten beim Besuch anfallen" %}</h2>
+    <p>{% translate "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:" %}</p>
     <ul>
-      <li>IP-Adresse des anfragenden Geräts</li>
-      <li>Datum und Uhrzeit des Abrufs</li>
-      <li>HTTP-Anfragemethode, Pfad und Protokoll</li>
-      <li>HTTP-Statuscode der Serverantwort</li>
-      <li>Übertragene Datenmenge</li>
-      <li>User-Agent (Browsertyp, Betriebssystem) und Referrer-URL (sofern vom Browser übermittelt)</li>
+      <li>{% translate "IP-Adresse des anfragenden Geräts" %}</li>
+      <li>{% translate "Datum und Uhrzeit des Abrufs" %}</li>
+      <li>{% translate "HTTP-Anfragemethode, Pfad und Protokoll" %}</li>
+      <li>{% translate "HTTP-Statuscode der Serverantwort" %}</li>
+      <li>{% translate "Übertragene Datenmenge" %}</li>
+      <li>{% translate "User-Agent (Browsertyp, Betriebssystem) und Referrer-URL (sofern vom Browser übermittelt)" %}</li>
     </ul>
-    <p><strong>Zweck:</strong> Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz).</p>
-    <p>Verbindliche Fristen für die Aufbewahrung und Rotation dieser Server-Logs müssen durch den Betreiber im Löschkonzept festgelegt werden. Standard-Logfristen werden nicht erfunden.</p>
+    <p><strong>{% translate "Zweck:" %}</strong> {% translate "Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz)." %}</p>
+    <p>{% translate "Verbindliche Fristen für die Aufbewahrung und Rotation dieser Server-Logs müssen durch den Betreiber im Löschkonzept festgelegt werden. Standard-Logfristen werden nicht erfunden." %}</p>
   </section>
 
   <section id="demokonten" class="privacy-section">
-    <h2>3. Demokonten und fiktive Inhalte</h2>
+    <h2>{% translate "3. Demokonten und fiktive Inhalte" %}</h2>
     {% if demo_mode %}
-    <p>Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium.</p>
+    <p>{% translate "Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium." %}</p>
     {% else %}
-    <p>Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden.</p>
+    <p>{% translate "Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden." %}</p>
     {% endif %}
-    <p><strong>Wichtiger Hinweis:</strong> Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten.</p>
-    <p>Bereitgestellte Demokonten sind gemeinsame synthetische Testzugänge und stellen keine persönlichen dienstlichen Nutzerkonten dar. Eingaben in einer gemeinsamen Sandbox können für andere Tester sichtbar sein. Sollten versehentlich schutzwürdige Daten eingegeben worden sein, ist unverzüglich der Testbetrieb zu kontaktieren, damit die betroffenen Datensätze kontrolliert beseitigt werden können.</p>
+    <p><strong>{% translate "Wichtiger Hinweis:" %}</strong> {% translate "Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten." %}</p>
+    <p>{% translate "Bereitgestellte Demokonten sind gemeinsame synthetische Testzugänge und stellen keine persönlichen dienstlichen Nutzerkonten dar. Eingaben in einer gemeinsamen Sandbox können für andere Tester sichtbar sein. Sollten versehentlich schutzwürdige Daten eingegeben worden sein, ist unverzüglich der Testbetrieb zu kontaktieren, damit die betroffenen Datensätze kontrolliert beseitigt werden können." %}</p>
   </section>
 
   <section id="cookies" class="privacy-section">
-    <h2>4. Cookies und Browser-Speicherung (TDDDG / DSGVO)</h2>
-    <p>Die Anwendung setzt nach aktuellem Produktstand keine Analyse-, Marketing-, Tracking- oder Drittanbieter-Cookies. Die hier beschriebenen Speicherungen dienen ausschließlich Anmeldung, Formularschutz und ausdrücklich angeforderten App-/Offline-Funktionen. Für unbedingt erforderliche Speicherungen sieht <a href="https://www.gesetze-im-internet.de/ttdsg/__25.html" rel="noopener noreferrer">§ 25 Abs. 2 Nr. 2 TDDDG</a> eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies erneut bewerten, sobald weitere Dienste, SDKs oder Cookies ergänzt werden.</p>
+    <h2>{% translate "4. Cookies und Browser-Speicherung (TDDDG / DSGVO)" %}</h2>
+    <p>{% translate "Die Anwendung setzt nach aktuellem Produktstand keine Analyse-, Marketing-, Tracking- oder Drittanbieter-Cookies. Die hier beschriebenen Speicherungen dienen ausschließlich Anmeldung, Formularschutz und ausdrücklich angeforderten App-/Offline-Funktionen. Für unbedingt erforderliche Speicherungen sieht" %} <a href="https://www.gesetze-im-internet.de/ttdsg/__25.html" rel="noopener noreferrer">{% translate "§ 25 Abs. 2 Nr. 2 TDDDG" %}</a> {% translate "eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies erneut bewerten, sobald weitere Dienste, SDKs oder Cookies ergänzt werden." %}</p>
 
     <dl class="summary-list">
       <div>
-        <dt>{{ session_cookie }} (Name: <code>{{ session_cookie_name }}</code>)</dt>
+        <dt>{{ session_cookie }} ({% translate "Name:" %} <code>{{ session_cookie_name }}</code>)</dt>
         <dd>
-          Sitzungs-Cookie für Anmeldung und authentifizierte Nutzung.
+          {% translate "Sitzungs-Cookie für Anmeldung und authentifizierte Nutzung." %}
           <ul class="cookie-attributes">
-            <li><strong>Secure:</strong> {% if session_cookie_secure %}True (nur über HTTPS übertragen){% else %}False (Übertragung nicht auf HTTPS beschränkt){% endif %}</li>
-            <li><strong>HttpOnly:</strong> {% if session_cookie_httponly %}True (für clientseitige Skripte unzugänglich){% else %}False (für JavaScript lesbar){% endif %}</li>
-            <li><strong>SameSite:</strong> SameSite={{ session_cookie_samesite }}</li>
-            <li><strong>Gültigkeit:</strong>
+            <li><strong>{% translate "Secure:" %}</strong> {% if session_cookie_secure %}{% translate "True (nur über HTTPS übertragen)" %}{% else %}{% translate "False (Übertragung nicht auf HTTPS beschränkt)" %}{% endif %}</li>
+            <li><strong>{% translate "HttpOnly:" %}</strong> {% if session_cookie_httponly %}{% translate "True (für clientseitige Skripte unzugänglich)" %}{% else %}{% translate "False (für JavaScript lesbar)" %}{% endif %}</li>
+            <li><strong>{% translate "SameSite:" %}</strong> {% translate "SameSite=" %}{{ session_cookie_samesite }}</li>
+            <li><strong>{% translate "Gültigkeit:" %}</strong>
               {% if session_expire_at_browser_close %}
-                Sitzungscookie ohne persistentes Ablaufdatum (SESSION_EXPIRE_AT_BROWSER_CLOSE=True). Die Browser-Sitzungswiederherstellung kann es über einen Neustart hinaus erhalten. Serverseitige Standardfrist: {{ session_cookie_age }} Sekunden.
+                {% translate "Sitzungscookie ohne persistentes Ablaufdatum (SESSION_EXPIRE_AT_BROWSER_CLOSE=True). Die Browser-Sitzungswiederherstellung kann es über einen Neustart hinaus erhalten. Serverseitige Standardfrist:" %} {{ session_cookie_age }} {% translate "Sekunden" %}.
               {% else %}
-                Konfigurierte Standardfrist: {{ session_cookie_age }} Sekunden{% if session_exact_hours %} ({{ session_exact_hours }} Stunden){% endif %}. Verlängerung oder abweichende Laufzeiten einzelner Sitzungen sind möglich.
+                {% translate "Konfigurierte Standardfrist:" %} {{ session_cookie_age }} {% translate "Sekunden" %}{% if session_exact_hours %} ({{ session_exact_hours }} {% translate "Stunden" %}){% endif %}. {% translate "Verlängerung oder abweichende Laufzeiten einzelner Sitzungen sind möglich." %}
               {% endif %}
             </li>
           </ul>
@@ -109,88 +110,88 @@
 
       <div>
         {% if csrf_use_sessions %}
-          <dt>CSRF-Schutz (sitzungsbasiert)</dt>
+          <dt>{% translate "CSRF-Schutz (sitzungsbasiert)" %}</dt>
           <dd>
-            Der CSRF-Schutz erfolgt sitzungsbasiert über die Session (CSRF_USE_SESSIONS=True); es wird kein separates CSRF-Cookie im Browser abgelegt.
+            {% translate "Der CSRF-Schutz erfolgt sitzungsbasiert über die Session (CSRF_USE_SESSIONS=True); es wird kein separates CSRF-Cookie im Browser abgelegt." %}
           </dd>
         {% else %}
-          <dt>{{ csrf_cookie }} (Name: <code>{{ csrf_cookie_name }}</code>)</dt>
+          <dt>{{ csrf_cookie }} {% translate "(Name:" %} <code>{{ csrf_cookie_name }}</code>)</dt>
           <dd>
-            Sicherheits-Cookie zum Schutz vor websiteübergreifenden Anfragen (CSRF).
+            {% translate "Sicherheits-Cookie zum Schutz vor websiteübergreifenden Anfragen (CSRF)." %}
             <ul class="cookie-attributes">
-              <li><strong>Secure:</strong> {% if csrf_cookie_secure %}True (nur über HTTPS übertragen){% else %}False (Übertragung nicht auf HTTPS beschränkt){% endif %}</li>
-              <li><strong>HttpOnly:</strong> {% if csrf_cookie_httponly %}True (für clientseitige Skripte unzugänglich){% else %}False (für JavaScript lesbar){% endif %}</li>
-              <li><strong>SameSite:</strong> SameSite={{ csrf_cookie_samesite }}</li>
-              <li><strong>Gültigkeit:</strong> Konfigurierte Standardfrist: {{ csrf_cookie_age }} Sekunden{% if csrf_exact_days %} ({{ csrf_exact_days }} Tage){% endif %}; erneutes Setzen kann die Frist verlängern.</li>
+              <li><strong>{% translate "Secure:" %}</strong> {% if csrf_cookie_secure %}{% translate "True (nur über HTTPS übertragen)" %}{% else %}{% translate "False (Übertragung nicht auf HTTPS beschränkt)" %}{% endif %}</li>
+              <li><strong>{% translate "HttpOnly:" %}</strong> {% if csrf_cookie_httponly %}{% translate "True (für clientseitige Skripte unzugänglich)" %}{% else %}{% translate "False (für JavaScript lesbar)" %}{% endif %}</li>
+              <li><strong>{% translate "SameSite:" %}</strong> {% translate "SameSite=" %}{{ csrf_cookie_samesite }}</li>
+              <li><strong>{% translate "Gültigkeit:" %}</strong> {% translate "Konfigurierte Standardfrist:" %} {{ csrf_cookie_age }} {% translate "Sekunden" %}{% if csrf_exact_days %} ({{ csrf_exact_days }} {% translate "Tage" %}){% endif %}. {% translate "Erneutes Setzen kann die Frist verlängern." %}</li>
             </ul>
           </dd>
         {% endif %}
       </div>
     </dl>
 
-    <p>Zusätzlich kann der Browser technisch erforderliche PWA-Daten und einen Lese-Cache des Service Workers lokal speichern. Diese Funktionen enthalten keine Werbe-ID und dürfen nicht für Tracking zweckentfremdet werden.</p>
-    <p>Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches.</p>
+    <p>{% translate "Zusätzlich kann der Browser technisch erforderliche PWA-Daten und einen Lese-Cache des Service Workers lokal speichern. Diese Funktionen enthalten keine Werbe-ID und dürfen nicht für Tracking zweckentfremdet werden." %}</p>
+    <p>{% translate "Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches." %}</p>
   </section>
 
   <section id="hosting" class="privacy-section">
-    <h2>5. Hosting, Empfänger und Übermittlungen</h2>
-    <p>Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen.</p>
-    <p>Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Source Sans 3) und Stylesheets werden lokal vom selben Server ausgeliefert.</p>
+    <h2>{% translate "5. Hosting, Empfänger und Übermittlungen" %}</h2>
+    <p>{% translate "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen." %}</p>
+    <p>{% translate "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Source Sans 3) und Stylesheets werden lokal vom selben Server ausgeliefert." %}</p>
   </section>
 
   <section id="sicherheit" class="privacy-section">
-    <h2>6. Zugriffe, Sicherheit und ihre Grenzen</h2>
-    <p>Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:</p>
+    <h2>{% translate "6. Zugriffe, Sicherheit und ihre Grenzen" %}</h2>
+    <p>{% translate "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:" %}</p>
     <ul>
-      <li>Verpflichtende Transportverschlüsselung (TLS) für alle Produktivumgebungen.</li>
-      <li>Strikte rollen- und stationsbezogene Zugriffskontrolle (RBAC und Stationsisolation).</li>
-      <li>Content Security Policy (CSP) ohne <code>unsafe-inline</code> und ohne <code>unsafe-eval</code>.</li>
-      <li>Schutz sensibler Kommunikationsbereiche (z. B. persönliche Nachrichten/Chat) durch clientseitige Ende-zu-Ende-Verschlüsselung (AES-256-GCM mit ECDH P-256).</li>
+      <li>{% translate "Verpflichtende Transportverschlüsselung (TLS) für alle Produktivumgebungen." %}</li>
+      <li>{% translate "Strikte rollen- und stationsbezogene Zugriffskontrolle (RBAC und Stationsisolation)." %}</li>
+      <li>{% translate "Content Security Policy (CSP) ohne" %} <code>unsafe-inline</code> {% translate "und ohne" %} <code>unsafe-eval</code>.</li>
+      <li>{% translate "Schutz sensibler Kommunikationsbereiche (z. B. persönliche Nachrichten/Chat) durch clientseitige Ende-zu-Ende-Verschlüsselung (AES-256-GCM mit ECDH P-256)." %}</li>
     </ul>
-    <p><strong>Grenzen des Vertrauensmodells:</strong> Bei einer Web-PWA bleiben der ausgelieferte Webclient und der Server Teil des Vertrauensmodells. Der Schutz gespeicherter Daten gegen unbefugte Dritte ersetzt keine Absicherung gegen einen kompromittierten Server. Aus den referenzierten Sicherheitsmaßnahmen folgt keine BSI-Zertifizierung des Produkts und keine Garantie absoluter Sicherheit.</p>
+    <p><strong>{% translate "Grenzen des Vertrauensmodells:" %}</strong> {% translate "Bei einer Web-PWA bleiben der ausgelieferte Webclient und der Server Teil des Vertrauensmodells. Der Schutz gespeicherter Daten gegen unbefugte Dritte ersetzt keine Absicherung gegen einen kompromittierten Server. Aus den referenzierten Sicherheitsmaßnahmen folgt keine BSI-Zertifizierung des Produkts und keine Garantie absoluter Sicherheit." %}</p>
   </section>
 
   <section id="loeschung" class="privacy-section">
-    <h2>7. Speicherdauer, Reset und Löschung</h2>
-    <p>Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen.</p>
-    <p>Ein kontrollierter Neuaufbau der getrennten Demo ist vorgesehen; ein automatischer Reset, seine Häufigkeit und seine Wirksamkeit sind noch nicht nachgewiesen. Das erneute Einspielen von Seed-Daten allein beweist keine Löschung vorhandener Eingaben. Fachliche Revisions-, Kassen- und Auditzeilen bleiben append-only; Korrekturen erfolgen durch neue Buchungs- oder Revisionssätze. Für versehentlich eingegebene Echtdaten sind Sperrung, Kontaktkette, Vorfallbewertung und kontrollierte Entfernung einschließlich geschützter Log- und Sicherungsreste vor Start festzulegen. Ein serverseitiger Reset entfernt keine lokalen Browser-Caches auf fremden Endgeräten.</p>
+    <h2>{% translate "7. Speicherdauer, Reset und Löschung" %}</h2>
+    <p>{% translate "Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen." %}</p>
+    <p>{% translate "Ein kontrollierter Neuaufbau der getrennten Demo ist vorgesehen; ein automatischer Reset, seine Häufigkeit und seine Wirksamkeit sind noch nicht nachgewiesen. Das erneute Einspielen von Seed-Daten allein beweist keine Löschung vorhandener Eingaben. Fachliche Revisions-, Kassen- und Auditzeilen bleiben append-only; Korrekturen erfolgen durch neue Buchungs- oder Revisionssätze. Für versehentlich eingegebene Echtdaten sind Sperrung, Kontaktkette, Vorfallbewertung und kontrollierte Entfernung einschließlich geschützter Log- und Sicherungsreste vor Start festzulegen. Ein serverseitiger Reset entfernt keine lokalen Browser-Caches auf fremden Endgeräten." %}</p>
   </section>
 
   <section id="rechte" class="privacy-section">
-    <h2>8. Betroffenenrechte und Beschwerdeweg</h2>
-    <p>Betroffene Personen haben bei Vorliegen der gesetzlichen Voraussetzungen nach Art. 15–22 DSGVO folgende Rechte gegenüber dem Verantwortlichen:</p>
+    <h2>{% translate "8. Betroffenenrechte und Beschwerdeweg" %}</h2>
+    <p>{% translate "Betroffene Personen haben bei Vorliegen der gesetzlichen Voraussetzungen nach Art. 15–22 DSGVO folgende Rechte gegenüber dem Verantwortlichen:" %}</p>
     <ul>
-      <li>Recht auf Auskunft (Art. 15 DSGVO)</li>
-      <li>Recht auf Berichtigung unrichtiger Daten (Art. 16 DSGVO)</li>
-      <li>Recht auf Löschung (Art. 17 DSGVO)</li>
-      <li>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
-      <li>Recht auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
-      <li>Recht auf Widerspruch nach Art. 21 DSGVO bei Verarbeitung auf Grundlage von Art. 6 Abs. 1 Buchst. e oder f, unter den jeweiligen gesetzlichen Voraussetzungen.</li>
+      <li>{% translate "Recht auf Auskunft (Art. 15 DSGVO)" %}</li>
+      <li>{% translate "Recht auf Berichtigung unrichtiger Daten (Art. 16 DSGVO)" %}</li>
+      <li>{% translate "Recht auf Löschung (Art. 17 DSGVO)" %}</li>
+      <li>{% translate "Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)" %}</li>
+      <li>{% translate "Recht auf Datenübertragbarkeit (Art. 20 DSGVO)" %}</li>
+      <li>{% translate "Recht auf Widerspruch nach Art. 21 DSGVO bei Verarbeitung auf Grundlage von Art. 6 Abs. 1 Buchst. e oder f, unter den jeweiligen gesetzlichen Voraussetzungen." %}</li>
     </ul>
-    <p>Bei einwilligungsbasierter Verarbeitung besteht ein Widerrufsrecht für die Zukunft; dies unterstellt nicht, dass der Demobesuch eine Einwilligung erfordert. Es besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde nach Art. 77 DSGVO. Die konkrete Art.-13-/Art.-14-Information des Betreibers muss Kontaktweg, Rechtsgrundlagen, Empfänger, Fristen und die tatsächlich zuständige Aufsichtsbehörde benennen.</p>
+    <p>{% translate "Bei einwilligungsbasierter Verarbeitung besteht ein Widerrufsrecht für die Zukunft; dies unterstellt nicht, dass der Demobesuch eine Einwilligung erfordert. Es besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde nach Art. 77 DSGVO. Die konkrete Art.-13-/Art.-14-Information des Betreibers muss Kontaktweg, Rechtsgrundlagen, Empfänger, Fristen und die tatsächlich zuständige Aufsichtsbehörde benennen." %}</p>
   </section>
 
   <section id="dienstbetrieb" class="privacy-section">
-    <h2>9. Späterer dienstlicher Einsatz – klar getrennte Information</h2>
-    <p>Dieser Abschnitt dient ausschließlich der Information über künftige Voraussetzungen und ist <strong>keine</strong> bereits wirksame Beschäftigtendatenschutz-Information:</p>
-    <p>Ein späterer regulärer Betrieb für eine Rettungswache erfordert:</p>
+    <h2>{% translate "9. Späterer dienstlicher Einsatz – klar getrennte Information" %}</h2>
+    <p>{% translate "Dieser Abschnitt dient ausschließlich der Information über künftige Voraussetzungen und ist" %} <strong>{% translate "keine" %}</strong> {% translate "bereits wirksame Beschäftigtendatenschutz-Information:" %}</p>
+    <p>{% translate "Ein späterer regulärer Betrieb für eine Rettungswache erfordert:" %}</p>
     <ul>
-      <li>Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber.</li>
-      <li>Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbarem Landesdatenschutzrecht, BDSG oder kirchlichem Datenschutzrecht).</li>
-      <li>Die Beteiligung der zuständigen Personalvertretung / des Betriebsrats sowie den Abschluss erforderlicher Dienst- oder Betriebsvereinbarungen.</li>
-      <li>Ein verbindliches Rollen-, Berechtigungs- und Löschkonzept.</li>
+      <li>{% translate "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber." %}</li>
+      <li>{% translate "Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbarem Landesdatenschutzrecht, BDSG oder kirchlichem Datenschutzrecht)." %}</li>
+      <li>{% translate "Die Beteiligung der zuständigen Personalvertretung / des Betriebsrats sowie den Abschluss erforderlicher Dienst- oder Betriebsvereinbarungen." %}</li>
+      <li>{% translate "Ein verbindliches Rollen-, Berechtigungs- und Löschkonzept." %}</li>
     </ul>
-    <p>Auswertungen zur individuellen Leistungs- oder Verhaltenskontrolle von Beschäftigten sind produktseitig nicht vorgesehen und organisatorisch zu untersagen.</p>
+    <p>{% translate "Auswertungen zur individuellen Leistungs- oder Verhaltenskontrolle von Beschäftigten sind produktseitig nicht vorgesehen und organisatorisch zu untersagen." %}</p>
   </section>
 
   <section id="aenderungen" class="privacy-section">
-    <h2>10. Stand, Version und Revisionsverlauf</h2>
-    <p><strong>EU-KI-Verordnung (AI Act):</strong> Dieses Wachbuch enthält im Produktumfang kein KI-System zur Inferenz oder automatisierten Entscheidung über Beschäftigte. Werden zukünftig KI-Funktionen integriert, sind Datenschutz-, Informationssicherheits- und AI-Act-Bewertung vor Aktivierung neu durchzuführen.</p>
-    <p><strong>Laufende Version:</strong> Version {{ app_version }}</p>
-    <p><strong>Stand dieser technischen Dokumentation:</strong> 16. Oktober 2026 (Demo- und Prüfstand).</p>
-    <p>Änderungsprotokoll, Sicherheits- und Betriebsdokumentation sind Bestandteil der administrativen Freigabe.</p>
+    <h2>{% translate "10. Stand, Version und Revisionsverlauf" %}</h2>
+    <p><strong>{% translate "EU-KI-Verordnung (AI Act):" %}</strong> {% translate "Dieses Wachbuch enthält im Produktumfang kein KI-System zur Inferenz oder automatisierten Entscheidung über Beschäftigte. Werden zukünftig KI-Funktionen integriert, sind Datenschutz-, Informationssicherheits- und AI-Act-Bewertung vor Aktivierung neu durchzuführen." %}</p>
+    <p><strong>{% translate "Laufende Version:" %}</strong> {% translate "Version" %} {{ app_version }}</p>
+    <p><strong>{% translate "Stand dieser technischen Dokumentation:" %}</strong> {% translate "16. Oktober 2026 (Demo- und Prüfstand)." %}</p>
+    <p>{% translate "Änderungsprotokoll, Sicherheits- und Betriebsdokumentation sind Bestandteil der administrativen Freigabe." %}</p>
 
-    <p><a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a> <a class="button primary" href="{% url 'login' %}">Anmelden</a></p>
+    <p><a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a> <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a></p>
   </section>
 </div>
 {% endblock %}

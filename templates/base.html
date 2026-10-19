@@ -35,7 +35,7 @@
   <header class="app-header">
     <div class="header-inner">
       <a class="brand" href="{% if current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
-        <span class="brand-mark" aria-hidden="true">WB</span>
+        <span class="brand-mark" aria-hidden="true">{% translate "WB" %}</span>
         <span>
           <strong>{{ app_name }}</strong>
           {% if current_membership %}<small>{{ current_membership.station.name }} · {{ current_membership.station.get_organization_profile_display }}</small>{% endif %}
@@ -114,6 +114,10 @@
             <span>{% translate "Mehr" %}</span>
           </a>
         {% endif %}
+        <a class="nav-help" href="{% url 'help_index' %}"{% if request.resolver_match.url_name == 'help_index' or request.resolver_match.url_name == 'help_article' or request.resolver_match.url_name == 'system_status' %} aria-current="page"{% endif %}>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a7 7 0 0 0-4 12.7V19h8v-3.3A7 7 0 0 0 12 3zm-3 18h6v-1H9v1z" fill="currentColor"/></svg></span>
+          <span>{% translate "Hilfe" %}</span>
+        </a>
       </div>
     </nav>
   {% endif %}
@@ -132,7 +136,8 @@
       <a href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
       <a href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>
       <a href="{% url 'privacy' %}">{% translate "Datenschutz & Cookies" %}</a>
-      <span class="app-version">Version {{ app_version }}</span>
+      <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>
+      <span class="app-version">{% translate "Version" %} {{ app_version }}</span>
     </div>
   </footer>
   <dialog id="crypto-unlock-dialog" aria-labelledby="crypto-unlock-title" aria-describedby="crypto-unlock-description" class="crypto-unlock">
@@ -148,6 +153,8 @@
       </div>
     </form>
   </dialog>
+  {% include "core/_js_i18n.html" %}
+  <script src="{% static 'core/i18n.js' %}" defer></script>
   <script src="{% static 'core/json_data.js' %}" defer></script>
   <script src="{% static 'core/crypto_unlock.js' %}" defer></script>
   <script src="{% static 'core/app.js' %}" defer></script>
