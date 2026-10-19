@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Neuigkeit anlegen" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'news_index' %}">{% translate "Zurück zu Neuigkeiten" %}</a>
+<header class="page-heading narrow">
+  <h1>{% translate "Neuigkeit anlegen" %}</h1>
+</header>
+<form method="post" enctype="multipart/form-data" class="form-card narrow">
+  {% csrf_token %}
+  <p class="form-row">
+    <label for="news-title">{% translate "Titel" %} *</label>
+    <input id="news-title" name="title" type="text" maxlength="160" required>
+  </p>
+  <p class="form-row">
+    <label for="news-body">{% translate "Text" %} *</label>
+    <textarea id="news-body" name="body" rows="8" maxlength="4000" required></textarea>
+  </p>
+  <p class="form-row">
+    <label for="news-upload">{% translate "Anhang (optional)" %}</label>
+    <input id="news-upload" name="attachment" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+    <span class="helptext">{% blocktranslate %}JPEG, PNG, WebP oder PDF, maximal {{ max_upload_mb }} MB.{% endblocktranslate %}</span>
+  </p>
+  <div class="form-actions">
+    <button class="button primary" type="submit">{% translate "Veröffentlichen" %}</button>
+    <a class="button secondary" href="{% url 'news_index' %}">{% translate "Abbrechen" %}</a>
+  </div>
+</form>
+{% endblock %}

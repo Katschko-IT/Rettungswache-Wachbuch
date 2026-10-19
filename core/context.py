@@ -16,10 +16,48 @@ def current_membership(request):
             .exclude(status=HandoverEntry.Status.DONE)
             .count()
         )
+    from .navigation import CATALOG, more_config, nav_config
+
+    station = membership.station if membership else None
+    config = nav_config(station)
+    nav_keys = [entry["key"] for entry in config["entries"]]
+    current = _current_url_name(request)
+    for entry in config["entries"]:
+        entry["current"] = _matches_prefix(current, entry["active"])
     return {
         "current_membership": membership,
         "nav_urgent_count": nav_urgent_count,
+        "nav_conf": config,
+        "nav_keys": nav_keys,
+        # „Mehr“ gilt als aktiv, wenn die aktuelle Seite zu einem Bereich
+        # gehört, der nicht in der Leiste steht.
+        "more_active": _more_tab_is_active(request, nav_keys),
+        "more_order": more_config(station),
     }
+
+
+def _current_url_name(request):
+    match = getattr(request, "resolver_match", None)
+    return getattr(match, "url_name", "") if match else ""
+
+
+def _matches_prefix(url_name, prefixes):
+    return any(url_name == prefix or url_name.startswith(prefix) for prefix in prefixes)
+
+
+def _more_tab_is_active(request, nav_keys):
+    from .navigation import CATALOG
+
+    url_name = _current_url_name(request)
+    if not url_name or url_name == "more":
+        return False
+    in_bar = any(
+        key in nav_keys and _matches_prefix(url_name, CATALOG[key][3]) for key in CATALOG
+    )
+    in_more = any(
+        key not in nav_keys and _matches_prefix(url_name, CATALOG[key][3]) for key in CATALOG
+    )
+    return in_more and not in_bar
 
 
 def application_metadata(request):

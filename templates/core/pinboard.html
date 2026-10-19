@@ -16,6 +16,13 @@
           <strong>{{ note.title }}</strong>
           <small>{{ note.author.first_name|default:note.author.username|default:"—" }} &middot; <time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"d.m.Y H:i" }}</time></small>
           <p class="pinboard-body">{{ note.body|linebreaksbr }}</p>
+          {% if note.attachments.exists %}
+          <ul class="attachment-list">
+            {% for file in note.attachments.all %}
+              <li><a href="{% url 'pinboard_attachment' file.pk %}" target="_blank" rel="noopener">{{ file.filename }}</a> <small>{{ file.size|filesizeformat }}</small></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
         </span>
         <span class="row-actions">
           {% if can_manage or note.author_id == request.user.id %}

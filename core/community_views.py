@@ -176,6 +176,26 @@ def avatar_image(request, user_id):
 
 
 @membership_required(CONTENT_ROLES)
+@require_GET
+def chat_signal_qr(request):
+    """QR-Code zum hinterlegten Signal-Einladungslink als PNG."""
+    from io import BytesIO
+
+    import qrcode
+    from django.http import HttpResponse
+
+    url = (request.membership.station.signal_group_url or "").strip()
+    if not url:
+        return HttpResponse(status=404)
+    image = qrcode.make(url)
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    response = HttpResponse(buffer.getvalue(), content_type="image/png")
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+@membership_required(CONTENT_ROLES)
 @station_module_required("chat_enabled")
 @require_http_methods(["GET", "POST"])
 def chat(request):
@@ -185,12 +205,13 @@ def chat(request):
     from .models import UserCryptoIdentity
 
     station = request.membership.station
-    # Ist eine Signal-Gruppe hinterlegt, läuft der Wachenchat dort – ohne
-    # Nachrichten, Schlüssel oder Verläufe in dieser Anwendung.
-    if station.signal_group_url:
+    # Die Chatseite zeigt ausschließlich die Signal-Gruppe. Nachrichten werden
+    # in der App nicht mehr dargestellt oder gespeichert; die JSON-Schnittstelle
+    # bleibt für bestehende Clients unverändert.
+    if request.method == "GET":
         return render(request, "core/chat_signal.html", {
             "signal_url": station.signal_group_url,
-            "can_configure": request.membership.role in {"admin", "master"},
+            "can_configure": request.membership.role == "admin",
         })
     identity = UserCryptoIdentity.objects.filter(user=request.user).first()
     if request.method == "POST" and request.headers.get("Content-Type", "").startswith("application/json"):

@@ -12,11 +12,21 @@
     <p class="lead">
       {% translate "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert." %}
     </p>
+    {% if signal_url %}
+    <p class="qr-block">
+      <img src="{% url 'chat_signal_qr' %}" alt="{% translate 'QR-Code zur Signal-Gruppe' %}" width="220" height="220">
+      <span class="helptext">{% translate "Mit der Signal-App scannen – oder den Button öffnen." %}</span>
+    </p>
     <p class="form-actions">
       <a class="button primary" href="{{ signal_url }}" rel="noopener noreferrer" target="_blank">
         {% translate "Signal-Gruppe öffnen" %}
       </a>
     </p>
+    {% else %}
+    <p class="notice">
+      {% translate "Für diese Wache ist noch keine Signal-Gruppe hinterlegt. Der Admin trägt den Einladungslink in den Einstellungen ein." %}
+    </p>
+    {% endif %}
     <p class="helptext">
       {% translate "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Metadaten. Den Einladungslink teile bitte nur innerhalb der Wache." %}
     </p>

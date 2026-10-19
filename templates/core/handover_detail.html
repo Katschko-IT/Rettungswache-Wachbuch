@@ -15,6 +15,32 @@
   <section class="section-block prose"><h2>{% translate "Information" %}</h2><p>{{ handover.details|linebreaksbr }}</p></section>
   {% if can_change_status %}<form method="post" action="{% url 'handover_status' handover.pk %}" class="section-block inline-form">{% csrf_token %}<div class="field"><label for="{{ status_form.status.id_for_label }}">{% translate "Status" %}</label>{{ status_form.status }}</div><button class="button primary" type="submit">{% translate "Status aktualisieren" %}</button></form>{% endif %}
   <dl class="summary-list"><div><dt>{% translate "Erstellt von" %}</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div><div><dt>{% translate "Erstellt" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div><div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div></dl>
+  <section class="section-block">
+    <h2>{% translate "Anhänge" %}</h2>
+    {% if attachments %}
+      <ul class="attachment-list">
+        {% for file in attachments %}
+          <li>
+            <a href="{% url 'handover_attachment' file.pk %}" target="_blank" rel="noopener">{{ file.filename }}</a>
+            <small>{{ file.size|filesizeformat }} · {{ file.uploaded_by.first_name|default:file.uploaded_by.username }} · {{ file.created_at|date:"d.m.Y H:i" }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">{% translate "Noch keine Anhänge." %}</p>
+    {% endif %}
+    {% if handover.attachments.count < 8 %}
+    <form method="post" enctype="multipart/form-data" class="inline-form" action="{% url 'handover_detail' handover.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="upload">
+      <label for="handover-attachment">{% translate "Bild oder PDF anhängen" %}</label>
+      <input id="handover-attachment" type="file" name="attachment" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+      <button class="button secondary" type="submit">{% translate "Hochladen" %}</button>
+    </form>
+    <p class="helptext">{% blocktranslate %}JPEG, PNG, WebP oder PDF, maximal {{ max_upload_mb }} MB je Datei.{% endblocktranslate %}</p>
+    {% endif %}
+  </section>
+
   <details class="details-block"><summary>{% blocktranslate with count=handover.revisions.count %}Änderungshistorie ({{ count }}){% endblocktranslate %}</summary><div class="revision-list">{% for revision in handover.revisions.all %}<div><strong>{% translate "Version" %} {{ revision.version }}</strong><span>{{ revision.changed_by.first_name|default:revision.changed_by.username }}</span><time datetime="{{ revision.created_at|date:'c' }}">{{ revision.created_at|date:"d.m.Y H:i" }}</time></div>{% endfor %}</div></details>
 </div>
 {% endblock %}

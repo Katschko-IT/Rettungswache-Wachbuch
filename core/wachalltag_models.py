@@ -312,8 +312,12 @@ class DefectAttachment(models.Model):
         if self.pk:
             raise ValidationError("Mangel-Anhänge dürfen nicht verändert werden.")
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Anhang")
-        stem = (self.filename or "foto").rsplit(".", 1)[0].strip(" .") or "foto"
-        self.filename = f"{stem[:175]}.jpg"
+        # Endung folgt dem Inhaltstyp: Bilder als JPEG, PDFs als PDF.
+        stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+        # Bilder werden beim Speichern immer zu JPEG normalisiert; ohne diese
+        # Regel bliebe eine irreführende Endung wie .png stehen.
+        suffix = ".pdf" if self.content_type == "application/pdf" else ".jpg"
+        self.filename = f"{stem[:170]}{suffix}"
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):

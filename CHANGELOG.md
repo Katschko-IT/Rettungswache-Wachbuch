@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.19.0 - 2026-10-19
+
+Pilotstand mit Anhängen, Neuigkeiten und konfigurierbarer Navigation. Keine
+Produktionsfreigabe.
+
+- Anhänge: Übergaben, Fehlermeldungen, Pinnwand und Neuigkeiten nehmen Bilder
+  (JPEG/PNG/WebP) und PDF bis 5 MiB auf; Dateien bleiben unverändert,
+  wachengebunden und unveränderlich abgelegt.
+- Neuigkeiten: eigener Bereich mit Anhang, persönlicher Quittung je Person und
+  automatischer Archivierung, sobald alle aktiven Personen gelesen haben.
+- Wachenchat: Einladungslink zur Signal-Gruppe samt QR-Code, je Aufruf neu
+  erzeugt; die App speichert keine Chatnachrichten.
+- Darstellung: eine einzige sortierbare Liste aller Bereiche. Ein Häkchen holt
+  einen Bereich in die obere Leiste, ohne Häkchen bleibt er unter „Mehr“ – in
+  derselben Reihenfolge. Übersicht, Übergaben, Mehr und Hilfe sind fest.
+- Kopfzeile und Marke: Wachwerk-Logo, Wachenname mittig, Sprachwahl in den
+  Kontoeinstellungen.
+- Installationshinweis erscheint nur bei Bedarf und lässt sich dauerhaft
+  schließen.
+- Kalender: farbige Balken liegen außerhalb des Datumsfelds, Agenda-Zeilen
+  brechen bei schmalen Anzeigen sauber um.
+- Wiederholte Vorlagenaufgaben erzeugen wieder die vorgesehene Anzahl je Tag.
+
+Ausdrücklich nicht enthalten: schreibfähiger Offlinebetrieb ohne Server,
+vollständige Übersetzung von Datenbank-Altbeständen sowie reale Warenbetriebs-,
+TLS- und Geräteabnahme.
+
 ## 0.18.0 - 2026-10-19
 
 Pilotstand für lokalen Betrieb und Praxistest. Keine Produktionsfreigabe.

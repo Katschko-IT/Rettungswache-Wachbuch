@@ -61,14 +61,23 @@ from .models import (
     CoffeeEntry,
     FeedItem,
     FeedSource,
+    HandoverAttachment,
     HandoverEntry,
     Membership,
+    PinboardAttachment,
     PinboardNote,
     Station,
     StationTask,
     TotpDevice,
     WebAuthnCredential,
 )
+from .api.wachalltag import (
+    ALLOWED_ATTACHMENT_TYPES,
+    MAX_ATTACHMENT_BYTES,
+    MAX_ATTACHMENTS_PER_HANDOVER,
+    attachment_is_valid,
+)
+from .attachments import read_uploads
 from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
 from .mfa import (
@@ -580,19 +589,65 @@ def handover_list(request):
 def handover_create(request):
     form = HandoverForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        handover = create_handover(form, request.membership)
-        messages.success(request, _("Übergabe wurde angelegt."))
-        return redirect("handover_detail", pk=handover.pk)
+        uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+        if upload_error:
+            messages.error(request, upload_error)
+        else:
+            handover = create_handover(form, request.membership)
+            for upload, raw in uploads:
+                HandoverAttachment.objects.create(
+                    handover=handover,
+                    station=request.membership.station,
+                    filename=upload.name[:180],
+                    content_type=upload.content_type,
+                    data=raw,
+                    size=len(raw),
+                    uploaded_by=request.user,
+                )
+            messages.success(request, _("Übergabe wurde angelegt."))
+            return redirect("handover_detail", pk=handover.pk)
     return render(request, "core/handover_form.html", {"form": form})
 
 
 @membership_required(CONTENT_ROLES)
+@require_http_methods(["GET", "POST"])
 def handover_detail(request, pk):
     handover = get_object_or_404(
         HandoverEntry.objects.select_related("author").prefetch_related("revisions__changed_by"),
         pk=pk,
         station=request.membership.station,
     )
+    if request.method == "POST" and request.POST.get("action") == "upload":
+        upload = request.FILES.get("attachment")
+        if upload is None:
+            messages.error(request, _("Bitte eine Datei auswählen."))
+        elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
+            messages.error(request, _("Erlaubt sind JPEG, PNG, WebP und PDF."))
+        elif upload.size > MAX_ATTACHMENT_BYTES:
+            messages.error(request, _("Datei darf maximal 5 MiB groß sein."))
+        elif handover.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
+            messages.error(request, _("Mehr Anhänge sind nicht möglich."))
+        else:
+            raw = upload.read()
+            if not attachment_is_valid(raw, upload.content_type):
+                messages.error(request, _("Datei ist kein gültiges Bild und kein lesbares PDF."))
+            else:
+                with transaction.atomic():
+                    attachment = HandoverAttachment.objects.create(
+                        handover=handover,
+                        station=request.membership.station,
+                        filename=upload.name[:180],
+                        content_type=upload.content_type,
+                        data=raw,
+                        size=len(raw),
+                        uploaded_by=request.user,
+                    )
+                    audit(request.user, request.membership.station, "handover.attachment_added", handover, {
+                        "attachment_id": attachment.pk,
+                        "size": len(raw),
+                    })
+                messages.success(request, _("Anhang wurde hinzugefügt."))
+                return redirect("handover_detail", pk=pk)
     can_change_status = request.membership.role in {
         Membership.Role.SHIFT_LEAD,
         Membership.Role.ADMIN,
@@ -602,6 +657,8 @@ def handover_detail(request, pk):
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,
+        "attachments": handover.attachments.select_related("uploaded_by").all(),
+        "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
     })
 
 
@@ -1147,6 +1204,39 @@ def membership_update(request, pk):
 
 @membership_required({Membership.Role.ADMIN})
 @require_http_methods(["GET", "POST"])
+def presentation_settings(request):
+    """Bereiche in die Leiste holen bzw. unter 'Mehr' belassen und sortieren."""
+    from .navigation import CATALOG, MORE_ITEMS, PINNED, nav_config, parse_order_more
+
+    station = request.membership.station
+    if request.method == "POST":
+        order = [part.strip() for part in (request.POST.get("order") or "").split(",") if part.strip()]
+        order = [key for key in order if key in CATALOG]
+        if not order:
+            order = list(CATALOG.keys())
+        primary = [
+            key for key in order
+            if key in PINNED or request.POST.get(f"inbar_{key}")
+        ]
+        # Alles, was nicht oben steht, erscheint unter „Mehr“ – in derselben
+        # Reihenfolge wie in der Liste.
+        below = [key for key in order if key not in primary]
+        station.nav_order = ",".join(primary)
+        station.more_order = ",".join(parse_order_more(",".join(below)))
+        station.save(update_fields=["nav_order", "more_order"])
+        messages.success(request, _("Darstellung gespeichert."))
+        return redirect("presentation_settings")
+
+    config = nav_config(station)
+    by_key = {option["key"]: option for option in config["options"]}
+    rows = [by_key[key] for key in config["sequence"] if key in by_key]
+    rows += [option for option in config["options"] if not option["selected"]]
+
+    return render(request, "core/presentation.html", {"rows": rows})
+
+
+@membership_required({Membership.Role.ADMIN})
+@require_http_methods(["GET", "POST"])
 def station_settings(request):
     station = request.membership.station
     if request.method == "POST":
@@ -1309,13 +1399,27 @@ def pinboard(request):
 def pinboard_create(request):
     form = PinboardNoteForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        create_pinboard_note(
+        uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+        if upload_error:
+            messages.error(request, upload_error)
+            return render(request, "core/pinboard_form.html", {"form": form, "page_title": "Aushang anlegen"})
+        note = create_pinboard_note(
             station=request.membership.station,
             author=request.user,
             title=form.cleaned_data["title"],
             body=form.cleaned_data["body"],
             category=form.cleaned_data["category"],
         )
+        for upload, raw in uploads:
+            PinboardAttachment.objects.create(
+                note=note,
+                station=request.membership.station,
+                filename=upload.name[:180],
+                content_type=upload.content_type,
+                data=raw,
+                size=len(raw),
+                uploaded_by=request.user,
+            )
         messages.success(request, _("Aushang wurde angelegt."))
         return redirect("pinboard")
     return render(request, "core/pinboard_form.html", {

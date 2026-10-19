@@ -38,6 +38,20 @@ class Station(models.Model):
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
+    more_order = models.CharField(
+        max_length=400,
+        blank=True,
+        default="",
+        verbose_name="Reihenfolge der Bereiche unter Mehr",
+        help_text="Kommagetrennte Liste der Bausteine in gewünschter Reihenfolge.",
+    )
+    nav_order = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        verbose_name="Reihenfolge der Hauptnavigation",
+        help_text="Kommagetrennte Liste der Bereiche in gewünschter Reihenfolge.",
+    )
     signal_group_url = models.URLField(
         blank=True,
         default="",
@@ -170,6 +184,154 @@ class HandoverRevision(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Übergaberevisionen dürfen nicht gelöscht werden.")
+
+
+class NewsPost(models.Model):
+    """Interne Neuigkeit der Wache, die gelesen und quittiert wird."""
+
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="news_posts")
+    title = models.CharField(max_length=160)
+    body = models.TextField(max_length=4000)
+    created_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="authored_news"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["station", "created_at"], name="news_station_created_idx")]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def is_archived(self):
+        return self.archived_at is not None
+
+
+class NewsAcknowledgement(models.Model):
+    post = models.ForeignKey(
+        NewsPost, on_delete=models.CASCADE, related_name="acknowledgements"
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="news_acknowledgements")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["post", "user"], name="unique_news_acknowledgement")
+        ]
+
+
+class NewsAttachment(models.Model):
+    """Bild- oder PDF-Anhang einer Neuigkeit (unveränderlich)."""
+
+    post = models.ForeignKey(NewsPost, on_delete=models.PROTECT, related_name="attachments")
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="news_attachments")
+    filename = models.CharField(max_length=180)
+    content_type = models.CharField(max_length=40)
+    data = models.BinaryField(editable=False)
+    size = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="news_attachments")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Anhänge dürfen nicht verändert werden.")
+        if self.post_id and self.post.station_id != self.station_id:
+            raise ValidationError("Anhang und Neuigkeit gehören zu verschiedenen Wachen.")
+        from .api.wachalltag import ATTACHMENT_SUFFIX
+
+        stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+        suffix = ATTACHMENT_SUFFIX.get(self.content_type, ".bin")
+        self.filename = f"{stem[:170]}{suffix}"
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Anhänge dürfen nicht gelöscht werden.")
+
+
+class PinboardAttachment(models.Model):
+    """Bild- oder PDF-Anhang eines Aushangs."""
+
+    note = models.ForeignKey(
+        "PinboardNote", on_delete=models.PROTECT, related_name="attachments"
+    )
+    station = models.ForeignKey(
+        Station, on_delete=models.PROTECT, related_name="pinboard_attachments"
+    )
+    filename = models.CharField(max_length=180)
+    content_type = models.CharField(max_length=40)
+    data = models.BinaryField(editable=False)
+    size = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="pinboard_attachments"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Anhänge dürfen nicht verändert werden.")
+        if self.note_id and self.note.station_id != self.station_id:
+            raise ValidationError("Anhang und Aushang gehören zu verschiedenen Wachen.")
+        from .api.wachalltag import ATTACHMENT_SUFFIX
+
+        stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+        suffix = ATTACHMENT_SUFFIX.get(self.content_type, ".bin")
+        self.filename = f"{stem[:170]}{suffix}"
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Anhänge dürfen nicht gelöscht werden.")
+
+
+class HandoverAttachment(models.Model):
+    """Bild- oder PDF-Anhang einer Übergabe (unveränderlich, wachengebunden)."""
+
+    handover = models.ForeignKey(
+        HandoverEntry, on_delete=models.PROTECT, related_name="attachments"
+    )
+    station = models.ForeignKey(
+        Station, on_delete=models.PROTECT, related_name="handover_attachments"
+    )
+    filename = models.CharField(max_length=180)
+    content_type = models.CharField(max_length=40)
+    data = models.BinaryField(editable=False)
+    size = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="handover_attachments"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(
+                fields=["station", "handover"], name="handover_att_station_idx"
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Übergabe-Anhänge dürfen nicht verändert werden.")
+        if self.handover_id and self.handover.station_id != self.station_id:
+            raise ValidationError("Anhang und Übergabe gehören zu verschiedenen Wachen.")
+        from .api.wachalltag import ATTACHMENT_SUFFIX
+
+        stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+        suffix = ATTACHMENT_SUFFIX.get(self.content_type, ".bin")
+        self.filename = f"{stem[:170]}{suffix}"
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Übergabe-Anhänge dürfen nicht gelöscht werden.")
 
 
 class CalendarEvent(models.Model):

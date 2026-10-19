@@ -4,7 +4,7 @@
 {% block content %}
 <a class="back-link" href="{% url 'handover_list' %}">{% translate "Zurück zu Übergaben" %}</a>
 <header class="page-heading narrow"><p class="context-line">{% translate "Wachbuch" %}</p><h1>{% translate "Übergabe anlegen" %}</h1><p class="lead">{% translate "Kurz, sachlich und für die nächste Schicht relevant." %}</p></header>
-<form method="post" class="form-card narrow">
+<form method="post" enctype="multipart/form-data" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   <div class="field">{{ form.category.errors }}<label for="{{ form.category.id_for_label }}">{% translate "Kategorie" %}</label>{{ form.category }}</div>
@@ -15,6 +15,11 @@
     <label for="{{ form.details.id_for_label }}">{% translate "Information für die nächste Schicht" %}</label>
     <p class="field-hint">{% translate "Keine Namen, Diagnosen, Einsatznummern, Adressen oder Krankheitsgründe eintragen." %}</p>
     {{ form.details }}
+  </div>
+  <div class="field">
+    <label for="handover-attachments">{% translate "Anhänge (optional)" %}</label>
+    <input id="handover-attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf">
+    <p class="field-hint">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</p>
   </div>
   <details class="details-help"><summary>{% translate "Warum dürfen hier keine Einsatzdaten stehen?" %}</summary><p>{% translate "Das Wachbuch ist nur für Wachenorganisation, Material, Fahrzeuge und offene Aufgaben vorgesehen. Patienten- und Einsatzdokumentation bleibt im freigegebenen Fachverfahren." %}</p></details>
   <div class="form-actions"><button class="button primary" type="submit">{% translate "Übergabe anlegen" %}</button><a class="button secondary" href="{% url 'handover_list' %}">{% translate "Abbrechen" %}</a></div>

@@ -13,6 +13,9 @@
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
+  <p class="form-actions">
+    <a class="button secondary" href="{% url 'presentation_settings' %}">{% translate "Darstellung: Reihenfolge der Bereiche" %}</a>
+  </p>
   <p class="helptext">
     {% translate "Müllkalender: Entweder eine HTTPS-ICS-Adresse eintragen oder eine ICS-Datei hochladen. Die Datei wird beim Speichern eingelesen und ersetzt die bisherigen Abfuhrtermine." %}
   </p>

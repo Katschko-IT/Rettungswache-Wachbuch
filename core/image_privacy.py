@@ -70,6 +70,9 @@ def sanitize_defect_image(raw: bytes) -> bytes:
 def sanitize_defect_attachment(sender, instance: DefectAttachment, **kwargs):
     if not instance.data:
         return
+    # PDFs werden nicht neu gerendert; ihre Prüfung passiert bei der Annahme.
+    if instance.content_type == "application/pdf":
+        return
     sanitized = sanitize_defect_image(bytes(instance.data))
     instance.data = sanitized
     instance.size = len(sanitized)
