@@ -12,6 +12,7 @@ from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth.models import User
+from core.version import APP_VERSION
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import OperationalError
@@ -107,7 +108,7 @@ class ErrorCaptureTests(DiagnosticsBase):
         self.assertEqual(event.route_name, "boom_view")
         self.assertEqual(event.category, ErrorEvent.Category.SERVER)
         self.assertEqual(event.http_status, 500)
-        self.assertEqual(event.app_version, "0.17.0")
+        self.assertEqual(event.app_version, APP_VERSION)
         self.assertIsNone(event.station)
         self.assertEqual(ErrorEvent.objects.count(), 1)
 
