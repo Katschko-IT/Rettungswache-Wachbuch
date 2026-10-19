@@ -19,6 +19,7 @@
     <ul class="display-waste" data-display-waste></ul>
   </section>
 
+  {% if display_station.tasks_enabled %}
   <section class="display-column">
     <h2 class="display-heading">{% translate "Tagesaufgaben" %}</h2>
     <p class="display-metric"><span data-display-tasks-open>0</span><small>{% translate "offen" %}</small></p>
@@ -27,6 +28,7 @@
     </div>
     <p class="display-sub" data-display-tasks-detail></p>
   </section>
+  {% endif %}
 
   <section class="display-column">
     <h2 class="display-heading">{% translate "Wetter" %}</h2>

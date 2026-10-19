@@ -8,8 +8,9 @@ expired/revoked token, CSRF, WAN outage).
 from __future__ import annotations
 
 import socket
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -27,6 +28,17 @@ from core.models import (
     TotpDevice,
 )
 from core.setup_wizard import create_activation, hash_token
+
+
+def local_days(count: int = 5) -> list[str]:
+    """Die nächsten lokalen Kalendertage als ISO-Strings.
+
+    Wettertests dürfen nicht an fest verdrahteten Daten hängen: Der Forecast
+    gilt nur, wenn er zu den fünf lokalen Tagen ab heute passt.
+    """
+    start = datetime.now(ZoneInfo("Europe/Berlin")).date()
+    return [(start + timedelta(days=index)).isoformat() for index in range(count)]
+
 
 BOOTSTRAP = "test-bootstrap-token-2026-very-secret"
 PASSWORD = "Sicher-Passwort-2026!"
@@ -316,7 +328,7 @@ class WeatherTests(TestCase):
     def test_forecast_returns_exactly_five_local_days(self):
         payload = {
             "daily": {
-                "time": [f"2026-10-{day:02d}" for day in range(19, 24)],
+                "time": local_days(),
                 "temperature_2m_max": [14, 15, 16, 17, 18],
                 "temperature_2m_min": [5, 6, 7, 8, 9],
                 "precipitation_sum": [0, 1, 2, 3, 4],
@@ -335,7 +347,7 @@ class WeatherTests(TestCase):
     def test_failed_refresh_returns_marked_cache_instead_of_dummy_values(self):
         payload = {
             "daily": {
-                "time": [f"2026-10-{day:02d}" for day in range(19, 24)],
+                "time": local_days(),
                 "temperature_2m_max": [14, 15, 16, 17, 18],
                 "temperature_2m_min": [5, 6, 7, 8, 9],
                 "precipitation_sum": [0, 1, 2, 3, 4],
@@ -424,13 +436,13 @@ class WeatherConsentTests(TestCase):
         forecast = weather.Forecast(
             days=[
                 {
-                    "date": f"2026-10-{day:02d}",
+                    "date": day,
                     "temperature_max": 15,
                     "temperature_min": 5,
                     "precipitation_mm": 0,
                     "weather_code": 0,
                 }
-                for day in range(19, 24)
+                for day in local_days()
             ],
             fetched_at=timezone.now(),
             stale=False,
