@@ -56,7 +56,7 @@ def ensure_default_station_tasks(station):
             return 0
         created = 0
         for title, band, weekday, notes, sort_order in DEFAULT_TASKS:
-            StationTask.objects.create(
+            task = StationTask(
                 station=station,
                 title=str(title),
                 band=band,
@@ -64,6 +64,14 @@ def ensure_default_station_tasks(station):
                 notes=str(notes),
                 sort_order=sort_order,
             )
+            # Wiederholung passend zum Band setzen, sonst gilt eine
+            # Wochentagsvorlage jeden Tag.
+            if band == StationTask.Band.WEEKDAY and weekday is not None:
+                task.repeat = StationTask.Repeat.WEEKLY
+                task.set_weekdays([weekday])
+            else:
+                task.repeat = StationTask.Repeat.DAILY
+            task.save()
             created += 1
         return created
 
@@ -135,7 +143,7 @@ def week_board(station, any_day: date):
     columns = []
     for day in days:
         day_tasks = []
-        for task in daily + [t for t in weekday_rows if t.weekday == day.weekday()] + extras:
+        for task in tasks:
             if not task.applies_to_date(day):
                 continue
             completion = done_map.get((task.pk, day))

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenchat" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <h1>{% translate "Wachenchat" %}</h1>
+</header>
+
+<section class="content-flow narrow">
+  <div class="form-card">
+    <h2>{% translate "Signal-Gruppe" %}</h2>
+    <p class="lead">
+      {% translate "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert." %}
+    </p>
+    <p class="form-actions">
+      <a class="button primary" href="{{ signal_url }}" rel="noopener noreferrer" target="_blank">
+        {% translate "Signal-Gruppe öffnen" %}
+      </a>
+    </p>
+    <p class="helptext">
+      {% translate "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Metadaten. Den Einladungslink teile bitte nur innerhalb der Wache." %}
+    </p>
+  </div>
+
+  {% if can_configure %}
+  <div class="form-card">
+    <h2>{% translate "Einladungslink ändern" %}</h2>
+    <p class="helptext">
+      {% translate "Der Link zur Signal-Gruppe wird in den Einstellungen hinterlegt und gilt für alle Mitglieder dieser Wache." %}
+    </p>
+    <p><a class="button secondary" href="{% url 'station_settings' %}">{% translate "Zu den Einstellungen" %}</a></p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

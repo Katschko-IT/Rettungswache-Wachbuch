@@ -54,11 +54,11 @@
     </div>
     <div class="agenda compact-agenda">
       {% for event in events %}
-        <article class="agenda-row {% if event.kind == 'holiday' %}agenda-holiday{% endif %}">
+        <article class="agenda-row agenda-{{ event.kind }}">
           <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}{% translate "ganztägig" %}{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
           <div>
             <strong>{{ event.title }}</strong>
-            {% if event.kind == 'holiday' %}<span class="status-label neutral">{% translate "Feiertag" %}</span>{% endif %}
+            {% if event.kind == 'holiday' %}<span class="status-label neutral">{% translate "Feiertag" %}</span>{% elif event.kind == 'waste' %}<span class="status-label neutral">{% translate "Müll" %}</span>{% elif event.kind == 'birthday' %}<span class="status-label neutral">{% translate "Geburtstag" %}</span>{% endif %}
             {% if event.description %}<p>{{ event.description|truncatechars:90 }}</p>{% endif %}
             {% if event.kind == 'event' and event.source_pk %}<a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "In Kalender speichern" %}</a>{% endif %}
           </div>

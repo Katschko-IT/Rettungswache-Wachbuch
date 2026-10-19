@@ -11,7 +11,14 @@
 <form method="post" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
-  {{ form.as_p }}
+  {% for field in form.ordered_fields %}
+    <p class="form-row{% if field.errors %} has-error{% endif %}">
+      {{ field.errors }}
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+    </p>
+  {% endfor %}
   <div class="form-actions">
     <button class="button primary" type="submit">{% translate "Speichern" %}</button>
     <a class="button secondary" href="{% url 'tasks_manage' %}">{% translate "Abbrechen" %}</a>

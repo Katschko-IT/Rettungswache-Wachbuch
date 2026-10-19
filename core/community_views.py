@@ -185,6 +185,13 @@ def chat(request):
     from .models import UserCryptoIdentity
 
     station = request.membership.station
+    # Ist eine Signal-Gruppe hinterlegt, läuft der Wachenchat dort – ohne
+    # Nachrichten, Schlüssel oder Verläufe in dieser Anwendung.
+    if station.signal_group_url:
+        return render(request, "core/chat_signal.html", {
+            "signal_url": station.signal_group_url,
+            "can_configure": request.membership.role in {"admin", "master"},
+        })
     identity = UserCryptoIdentity.objects.filter(user=request.user).first()
     if request.method == "POST" and request.headers.get("Content-Type", "").startswith("application/json"):
         if not identity:

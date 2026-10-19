@@ -2,6 +2,11 @@
    Tokens aligned with clients/wachbuch-mobile (BOS / öffentlicher Dienst).
    Offline-fähig: lokale Source Sans 3, keine CDN-Abhängigkeiten. */
 
+/* Das hidden-Attribut muss jede Layout-Regel gewinnen: sonst macht
+   display:flex/-grid ein per JS oder Template verstecktes Element wieder
+   sichtbar (z. B. das Installationsbanner). */
+[hidden] { display: none !important; }
+
 @font-face {
   font-family: "Source Sans 3";
   font-style: normal;
@@ -161,16 +166,55 @@ button, a { -webkit-tap-highlight-color: transparent; }
   width: min(var(--content), calc(100% - 2rem));
   min-height: 3.75rem;
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
   margin: 0 auto;
+  position: relative;
+}
+
+/* Der Wachenname steht mittig in der Kopfzeile, ohne die Navigation zu
+   verschieben. Auf schmalen Anzeigen tritt er zurück, statt umzubrechen. */
+.calendar-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: .75rem;
+}
+
+.calendar-heading h1 {
+  margin: 0;
+}
+
+.brand-logo {
+  display: block;
+  height: 2.6rem;
+  width: auto;
+}
+
+.header-station {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0 .5rem;
+  max-width: 40%;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 .brand {
   min-height: var(--touch);
   display: inline-flex;
   align-items: center;
-  gap: .75rem;
+  gap: .6rem;
   color: white;
   text-decoration: none;
 }
@@ -706,10 +750,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .agenda-row:last-child { border-bottom: 0; }
 .agenda-row > time { color: var(--brand); }
 .agenda-row > time strong, .agenda-row > time span { display: block; }
-.agenda-row h2, .agenda-row div > strong { margin: 0; font-size: 1rem; }
+.agenda-row > div { min-width: 0; }
+.agenda-row h2, .agenda-row div > strong {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
 .agenda-row p { max-width: 65ch; margin: .25rem 0; color: var(--muted); }
 .agenda-row small { color: var(--muted); }
 .compact-agenda .agenda-row { padding-inline: 0; }
+.compact-agenda .agenda-row[class*="agenda-holiday"],
+.compact-agenda .agenda-row[class*="agenda-waste"],
+.compact-agenda .agenda-row[class*="agenda-birthday"] {
+  padding-left: .85rem;
+}
 
 .filter-nav {
   display: flex;
@@ -1206,6 +1260,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
     width: min(100% - 1.25rem, var(--content));
   }
   .header-inner { min-height: 3.5rem; }
+  .brand-logo { height: 2.1rem; }
+  .header-station { display: none; }
   .brand small, .identity strong { display: none; }
   .identity span { max-width: 11rem; color: rgba(255, 255, 255, .88); }
   .app-nav {
@@ -1405,10 +1461,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
   margin: .5rem 0 1rem;
 }
 .passkey-login { margin-top: 1.5rem; }
-.agenda-holiday { background: var(--primary-container); }
-.agenda-holiday h2, .agenda-holiday strong { color: var(--brand-deep); }
-.agenda-waste { background: #f8f4e8; }
-.agenda-waste h2, .agenda-waste strong { color: #6b5d2b; }
+/* Kalenderquellen auf einen Blick unterscheidbar: Feiertag, Müll, Geburtstag.
+   Der Balken liegt als Rahmen AUSSERHALB des Inhalts, sonst überdeckt er die
+   Datumszahlen in der ersten Spalte. */
+.agenda-holiday { background: #fdf1f1; border-left: 4px solid #c0392b; }
+.agenda-holiday h2, .agenda-holiday strong { color: #8a2222; }
+.agenda-waste { background: #eef7f0; border-left: 4px solid #2e7d4f; }
+.agenda-waste h2, .agenda-waste strong { color: #1f5d3a; }
+.agenda-birthday { background: #f6f0fb; border-left: 4px solid #7c4dbd; }
+.agenda-birthday h2, .agenda-birthday strong { color: #4f2c86; }
 
 /* Organisationsprofile: gleiche Informationsarchitektur, eigene visuelle Akzente. */
 .profile-rescue {

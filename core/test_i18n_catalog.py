@@ -227,7 +227,6 @@ class RepositoryCatalogTests(SimpleTestCase):
             "MFA": "Akronym",
             "E2EE": "Akronym",
             "ID": "Akronym",
-            "WB": "Projektkuerzel",
             "BIC:": "Bank-Feldkuerzel mit Doppelpunkt",
             "IBAN:": "Bank-Feldkuerzel mit Doppelpunkt",
             "HttpOnly:": "Cookie-Attribut",

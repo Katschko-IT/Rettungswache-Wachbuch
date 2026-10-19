@@ -70,6 +70,7 @@ from .models import (
     WebAuthnCredential,
 )
 from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
+from .waste_sync import store_station_waste
 from .mfa import (
     confirm_device,
     create_pending_device,
@@ -648,6 +649,7 @@ def calendar_view(request):
         "page_obj": page_for(request, agenda, 20),
         "can_create": can_create,
         "holidays_enabled": station.holidays_enabled,
+        "waste_enabled": station.waste_calendar_enabled,
     })
 
 
@@ -1152,11 +1154,14 @@ def station_settings(request):
         post_data.setdefault("organization_profile", station.organization_profile)
     else:
         post_data = None
-    form = StationSettingsForm(post_data, instance=station)
+    form = StationSettingsForm(post_data, request.FILES or None, instance=station)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
+            # Nur echte Modellfelder protokollieren; Upload-Felder wie die
+            # ICS-Datei existieren nicht auf der Station.
+            model_fields = set(form._meta.fields)
             changed_fields = [
-                field for field in form.changed_data if field in form.fields
+                field for field in form.changed_data if field in model_fields
             ]
             # form.initial keeps values from before ModelForm._post_clean mutated instance.
             before = {field: form.initial.get(field) for field in changed_fields}
@@ -1166,7 +1171,16 @@ def station_settings(request):
                 "fields": changed_fields,
                 "changes": structure_changes(before, after),
             })
+            upload = form.cleaned_data.get("waste_calendar_file")
+            imported = None
+            if upload:
+                if not saved.waste_calendar_enabled:
+                    saved.waste_calendar_enabled = True
+                    saved.save(update_fields=["waste_calendar_enabled"])
+                imported = store_station_waste(saved, upload.read())
         messages.success(request, _("Einstellungen wurden gespeichert."))
+        if imported is not None:
+            messages.success(request, _("Müllkalender übernommen: %(count)s Termine.") % {"count": imported})
         return redirect("station_settings")
     return render(request, "core/station_settings.html", {"form": form})
 

@@ -209,10 +209,27 @@
     }
   }
 
+  function installDismissed() {
+    try {
+      return Boolean(
+        localStorage.getItem("rwsth-install-dismissed") ||
+          localStorage.getItem("rwsth-installed")
+      );
+    } catch (_error) {
+      return false;
+    }
+  }
+
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredPrompt = event;
-    if (installBanner && !window.matchMedia("(display-mode: standalone)").matches) {
+    // Ein einmal abgelehnter oder installierter Hinweis darf nicht bei jedem
+    // Seitenaufruf erneut erscheinen.
+    if (
+      installBanner &&
+      !installDismissed() &&
+      !window.matchMedia("(display-mode: standalone)").matches
+    ) {
       installBanner.hidden = false;
     }
   });

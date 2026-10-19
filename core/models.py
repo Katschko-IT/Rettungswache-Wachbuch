@@ -1,4 +1,5 @@
-from datetime import date
+import calendar
+from datetime import date, timedelta
 from urllib.parse import urlparse
 import uuid
 
@@ -37,6 +38,16 @@ class Station(models.Model):
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
+    signal_group_url = models.URLField(
+        blank=True,
+        default="",
+        max_length=600,
+        verbose_name="Signal-Gruppe (Einladungslink)",
+        help_text=(
+            "Einladungslink zu einer Signal-Gruppe der Wache. Der Chat läuft "
+            "bewusst außerhalb der App."
+        ),
+    )
     paypal_me_url = models.URLField(blank=True, default="", verbose_name="PayPal.me-Link")
     wero_link = models.URLField(blank=True, default="", verbose_name="Wero-Link")
     iban = models.CharField(max_length=34, blank=True, default="", verbose_name="IBAN")
@@ -279,9 +290,9 @@ class StationTask(models.Model):
     """Wachaufgaben analog zur Wandtafel: gruen taeglich, gelb Wochentag, blau zusaetzlich."""
 
     class Band(models.TextChoices):
-        DAILY = "daily", "Taeglich"
+        DAILY = "daily", "Täglich"
         WEEKDAY = "weekday", "Wochentag"
-        EXTRA = "extra", "Zusaetzlich"
+        EXTRA = "extra", "Zusätzlich"
 
     WEEKDAY_LABELS = (
         (0, "Montag"),
@@ -300,7 +311,50 @@ class StationTask(models.Model):
         null=True,
         blank=True,
         choices=WEEKDAY_LABELS,
-        help_text="Nur fuer Wochentagsaufgaben noetig (0=Montag).",
+        help_text="Nur für Wochentagsaufgaben nötig (0=Montag).",
+    )
+    class Repeat(models.TextChoices):
+        ONCE = "once", "Einmalig"
+        DAILY = "daily", "Täglich"
+        WEEKLY = "weekly", "Wöchentlich"
+        MONTHLY = "monthly", "Monatlich"
+
+    color = models.CharField(
+        max_length=7,
+        blank=True,
+        default="",
+        help_text="Eigene Farbe als Hex-Wert (z. B. #1f7a4d). Leer = Farbe des Bereichs.",
+    )
+    repeat = models.CharField(
+        max_length=10,
+        choices=Repeat.choices,
+        default=Repeat.DAILY,
+        help_text="Wie oft die Aufgabe fällig wird – analog zu Kalendereinträgen.",
+    )
+    repeat_interval = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Jede 1., 2., 3. … Wiederholung (Tag, Woche oder Monat).",
+    )
+    weekdays = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Mehrere Wochentage als Zahlen, z. B. 0,2,4 (Montag = 0).",
+    )
+    month_day = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Tag im Monat (1–31). 31 trifft den letzten Tag eines kürzeren Monats.",
+    )
+    start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Erster möglicher Termin; Bezugspunkt für Wiederholungen.",
+    )
+    end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Letzter möglicher Termin (optional).",
     )
     notes = models.CharField(max_length=240, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=100)
@@ -310,34 +364,72 @@ class StationTask(models.Model):
 
     class Meta:
         ordering = ["band", "weekday", "sort_order", "title"]
-        constraints = [
-            models.CheckConstraint(
-                condition=(
-                    (Q(band="weekday") & Q(weekday__isnull=False))
-                    | (~Q(band="weekday") & Q(weekday__isnull=True))
-                ),
-                name="station_task_weekday_matches_band",
-            ),
-        ]
 
     def __str__(self):
         return self.title
 
     def clean(self):
-        if self.band == self.Band.WEEKDAY:
-            if self.weekday is None or not 0 <= self.weekday <= 6:
-                raise ValidationError({"weekday": "Wochentagsaufgaben brauchen einen Wochentag."})
-        elif self.weekday is not None:
-            raise ValidationError({"weekday": "Nur Wochentagsaufgaben dürfen einen Wochentag haben."})
+        # Die Pflichtfelder je Wiederholungsart prüft das Formular; hier bleibt
+        # nur die Prüfung, die ohne Formularkontext immer gilt.
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": "Der letzte Termin liegt vor dem ersten."})
+
+    def weekday_list(self):
+        """Wochentage als Liste von 0 (Montag) bis 6 (Sonntag)."""
+        values = []
+        for raw in (self.weekdays or "").split(","):
+            raw = raw.strip()
+            if raw.isdigit() and 0 <= int(raw) <= 6 and int(raw) not in values:
+                values.append(int(raw))
+        if not values and self.weekday is not None:
+            values.append(self.weekday)
+        return sorted(values)
+
+    def set_weekdays(self, days):
+        cleaned = sorted({int(day) for day in days if 0 <= int(day) <= 6})
+        self.weekdays = ",".join(str(day) for day in cleaned)
+        self.weekday = cleaned[0] if cleaned else None
+        return cleaned
 
     def applies_to_date(self, work_date):
         if not self.is_active:
             return False
-        if self.band == self.Band.DAILY:
-            return True
-        if self.band == self.Band.WEEKDAY:
-            return self.weekday == work_date.weekday()
+        if self.start_date and work_date < self.start_date:
+            return False
+        if self.end_date and work_date > self.end_date:
+            return False
+        repeat = self.repeat or self.Repeat.DAILY
+        interval = max(1, self.repeat_interval or 1)
+        anchor = self.start_date
+        if repeat == self.Repeat.ONCE:
+            return anchor == work_date
+        if repeat == self.Repeat.DAILY:
+            if anchor is None:
+                return True
+            return (work_date - anchor).days % interval == 0
+        if repeat == self.Repeat.WEEKLY:
+            if work_date.weekday() not in self.weekday_list():
+                return False
+            if anchor is None:
+                return True
+            anchor_monday = anchor - timedelta(days=anchor.weekday())
+            weeks = (work_date - anchor_monday).days // 7
+            return weeks >= 0 and weeks % interval == 0
+        if repeat == self.Repeat.MONTHLY:
+            if self.month_day is None:
+                return False
+            last_day = calendar.monthrange(work_date.year, work_date.month)[1]
+            if work_date.day != min(self.month_day, last_day):
+                return False
+            if anchor is None:
+                return True
+            months = (work_date.year - anchor.year) * 12 + (work_date.month - anchor.month)
+            return months >= 0 and months % interval == 0
         return True
+
+    @property
+    def display_color(self):
+        return self.color if self.color else ""
 
     @property
     def band_css(self):
