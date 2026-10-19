@@ -64,6 +64,7 @@ from .models import (
     HandoverAttachment,
     HandoverEntry,
     Membership,
+    PinboardAttachment,
     PinboardNote,
     Station,
     StationTask,
@@ -76,6 +77,7 @@ from .api.wachalltag import (
     MAX_ATTACHMENTS_PER_HANDOVER,
     attachment_is_valid,
 )
+from .attachments import read_uploads
 from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
 from .mfa import (
@@ -587,9 +589,23 @@ def handover_list(request):
 def handover_create(request):
     form = HandoverForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        handover = create_handover(form, request.membership)
-        messages.success(request, _("Übergabe wurde angelegt."))
-        return redirect("handover_detail", pk=handover.pk)
+        uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+        if upload_error:
+            messages.error(request, upload_error)
+        else:
+            handover = create_handover(form, request.membership)
+            for upload, raw in uploads:
+                HandoverAttachment.objects.create(
+                    handover=handover,
+                    station=request.membership.station,
+                    filename=upload.name[:180],
+                    content_type=upload.content_type,
+                    data=raw,
+                    size=len(raw),
+                    uploaded_by=request.user,
+                )
+            messages.success(request, _("Übergabe wurde angelegt."))
+            return redirect("handover_detail", pk=handover.pk)
     return render(request, "core/handover_form.html", {"form": form})
 
 
@@ -1188,6 +1204,32 @@ def membership_update(request, pk):
 
 @membership_required({Membership.Role.ADMIN})
 @require_http_methods(["GET", "POST"])
+def presentation_settings(request):
+    """Reihenfolge der Hauptleiste und der Bereiche unter 'Mehr' verwalten."""
+    from .navigation import DEFAULT_ORDER, MORE_ITEMS, NAV_ITEMS, parse_order, parse_order_more
+
+    station = request.membership.station
+    if request.method == "POST":
+        station.nav_order = ",".join(parse_order(request.POST.get("nav_order", "")))
+        station.more_order = ",".join(parse_order_more(request.POST.get("more_order", "")))
+        station.save(update_fields=["nav_order", "more_order"])
+        messages.success(request, _("Darstellung gespeichert."))
+        return redirect("presentation_settings")
+
+    nav_current = parse_order(station.nav_order) or list(DEFAULT_ORDER)
+    more_current = parse_order_more(station.more_order) or [key for key, _ in MORE_ITEMS]
+    nav_labels = dict(NAV_ITEMS)
+    more_labels = dict(MORE_ITEMS)
+    return render(request, "core/presentation.html", {
+        "nav_rows": [{"key": key, "label": nav_labels[key]} for key in nav_current],
+        "more_rows": [{"key": key, "label": more_labels[key]} for key in more_current],
+        "nav_order_value": ",".join(nav_current),
+        "more_order_value": ",".join(more_current),
+    })
+
+
+@membership_required({Membership.Role.ADMIN})
+@require_http_methods(["GET", "POST"])
 def station_settings(request):
     station = request.membership.station
     if request.method == "POST":
@@ -1350,13 +1392,27 @@ def pinboard(request):
 def pinboard_create(request):
     form = PinboardNoteForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        create_pinboard_note(
+        uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+        if upload_error:
+            messages.error(request, upload_error)
+            return render(request, "core/pinboard_form.html", {"form": form, "page_title": "Aushang anlegen"})
+        note = create_pinboard_note(
             station=request.membership.station,
             author=request.user,
             title=form.cleaned_data["title"],
             body=form.cleaned_data["body"],
             category=form.cleaned_data["category"],
         )
+        for upload, raw in uploads:
+            PinboardAttachment.objects.create(
+                note=note,
+                station=request.membership.station,
+                filename=upload.name[:180],
+                content_type=upload.content_type,
+                data=raw,
+                size=len(raw),
+                uploaded_by=request.user,
+            )
         messages.success(request, _("Aushang wurde angelegt."))
         return redirect("pinboard")
     return render(request, "core/pinboard_form.html", {

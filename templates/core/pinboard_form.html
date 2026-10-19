@@ -8,10 +8,15 @@
   <h1>{{ page_title }}</h1>
   <p class="lead">{% translate "Kurze Aushänge für die Wachenorganisation." %}</p>
 </header>
-<form method="post" class="form-card narrow">
+<form method="post" enctype="multipart/form-data" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
   {{ form.as_p }}
+  <p class="form-row">
+    <label for="pinboard-attachments">{% translate "Anhänge (optional)" %}</label>
+    <input id="pinboard-attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf">
+    <span class="helptext">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</span>
+  </p>
   <div class="form-actions"><button class="button primary" type="submit">{% translate "Speichern" %}</button></div>
 </form>
 {% endblock %}

@@ -18,6 +18,7 @@ from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
 from .api.wachalltag import ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES, attachment_is_valid
+from .attachments import read_uploads
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
@@ -90,6 +91,10 @@ def defect_create(request):
             else:
                 owner = request.user if request.POST.get("owner_self") == "1" else None
                 due_at = _parse_local_datetime(request.POST.get("due_at"))
+                uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+                if upload_error:
+                    messages.error(request, upload_error)
+                    return redirect("defect_create_web")
                 with transaction.atomic():
                     item = Defect.objects.create(
                         station=station,
@@ -110,6 +115,23 @@ def defect_create(request):
                         to_status=item.status,
                         actor=request.user,
                     )
+                    for upload, raw in uploads:
+                        attachment = DefectAttachment.objects.create(
+                            defect=item,
+                            station=station,
+                            filename=upload.name[:180],
+                            content_type=upload.content_type,
+                            data=raw,
+                            size=len(raw),
+                            uploaded_by=request.user,
+                        )
+                        DefectEvent.objects.create(
+                            defect=item,
+                            station=station,
+                            kind=DefectEvent.Kind.ATTACHMENT,
+                            actor=request.user,
+                            metadata={"attachment_id": attachment.pk, "size": len(raw)},
+                        )
                     audit(request.user, station, "defect.created", item, {"via": "web"})
                 messages.success(request, "Mangel wurde angelegt.")
                 return redirect("defect_detail_web", pk=item.pk)

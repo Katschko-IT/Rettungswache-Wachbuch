@@ -38,6 +38,20 @@ class Station(models.Model):
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
+    more_order = models.CharField(
+        max_length=400,
+        blank=True,
+        default="",
+        verbose_name="Reihenfolge der Bereiche unter Mehr",
+        help_text="Kommagetrennte Liste der Bausteine in gewünschter Reihenfolge.",
+    )
+    nav_order = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        verbose_name="Reihenfolge der Hauptnavigation",
+        help_text="Kommagetrennte Liste der Bereiche in gewünschter Reihenfolge.",
+    )
     signal_group_url = models.URLField(
         blank=True,
         default="",
@@ -230,6 +244,43 @@ class NewsAttachment(models.Model):
             raise ValidationError("Anhänge dürfen nicht verändert werden.")
         if self.post_id and self.post.station_id != self.station_id:
             raise ValidationError("Anhang und Neuigkeit gehören zu verschiedenen Wachen.")
+        from .api.wachalltag import ATTACHMENT_SUFFIX
+
+        stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+        suffix = ATTACHMENT_SUFFIX.get(self.content_type, ".bin")
+        self.filename = f"{stem[:170]}{suffix}"
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Anhänge dürfen nicht gelöscht werden.")
+
+
+class PinboardAttachment(models.Model):
+    """Bild- oder PDF-Anhang eines Aushangs."""
+
+    note = models.ForeignKey(
+        "PinboardNote", on_delete=models.PROTECT, related_name="attachments"
+    )
+    station = models.ForeignKey(
+        Station, on_delete=models.PROTECT, related_name="pinboard_attachments"
+    )
+    filename = models.CharField(max_length=180)
+    content_type = models.CharField(max_length=40)
+    data = models.BinaryField(editable=False)
+    size = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="pinboard_attachments"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Anhänge dürfen nicht verändert werden.")
+        if self.note_id and self.note.station_id != self.station_id:
+            raise ValidationError("Anhang und Aushang gehören zu verschiedenen Wachen.")
         from .api.wachalltag import ATTACHMENT_SUFFIX
 
         stem = (self.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"

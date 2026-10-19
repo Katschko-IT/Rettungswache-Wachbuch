@@ -215,6 +215,7 @@ class RepositoryCatalogTests(SimpleTestCase):
             # Produkt-, Plattform- und Eigennamen
             "Android": "Plattformname",
             "iOS &amp; Android": "Plattformnamen",
+            "Wiki": "etablierter Fachbegriff, im Englischen identisch",
             "iOS / iPadOS": "Plattformnamen",
             "Web-PWA": "Produktbegriff",
             "Bundle de.wachbuch.wachbuchMobile": "iOS-Bundle-Identifier",

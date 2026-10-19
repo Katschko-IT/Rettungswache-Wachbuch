@@ -16,9 +16,14 @@ def current_membership(request):
             .exclude(status=HandoverEntry.Status.DONE)
             .count()
         )
+    from .navigation import more_config, nav_config
+
+    station = membership.station if membership else None
     return {
         "current_membership": membership,
         "nav_urgent_count": nav_urgent_count,
+        "nav_conf": nav_config(station),
+        "more_order": more_config(station),
     }
 
 

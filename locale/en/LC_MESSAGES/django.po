@@ -159,16 +159,17 @@ msgstr "API tokens require active station access."
 msgid "API-Wurzel:"
 msgstr "API root:"
 
-#: templates/base.html:140
+#: templates/base.html:158
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
 #: templates/core/coffee_form.html:4
-#: templates/core/defect_form.html:20
+#: templates/core/defect_form.html:21
 #: templates/core/handover_edit.html:17
-#: templates/core/handover_form.html:20
+#: templates/core/handover_form.html:25
 #: templates/core/membership_form.html:4
 #: templates/core/news_form.html:26
+#: templates/core/presentation.html:57
 #: templates/core/task_form.html:24
 #: templates/core/team_form.html:17
 #: templates/core/team_user_create.html:17
@@ -282,8 +283,8 @@ msgstr "Alerting, incident command, e-protocol, patient or incident data."
 msgid "Alle Angaben werden lokal gespeichert. Der Abschluss ist einmalig und atomar; ein zweiter Abschluss ist nicht möglich."
 msgstr "All information is stored locally. Completion is one-time and atomic; completing it a second time is not possible."
 
-#: core/views.py:414
-#: core/views.py:422
+#: core/views.py:416
+#: core/views.py:424
 msgid "Alle Dienstübergaben"
 msgstr "All shift handovers"
 
@@ -295,8 +296,8 @@ msgstr "Everyone has read it – the item is archived."
 msgid "Alle zweiten Faktoren deaktivieren"
 msgstr "Disable all second factors"
 
-#: core/views.py:406
-#: core/views.py:430
+#: core/views.py:408
+#: core/views.py:432
 msgid "Alle Übergaben"
 msgstr "All handovers"
 
@@ -369,7 +370,7 @@ msgid "Anhang hinzufügen"
 msgstr "Add attachment"
 
 #: core/news_views.py:84
-#: core/views.py:633
+#: core/views.py:649
 msgid "Anhang wurde hinzugefügt."
 msgstr "Attachment added."
 
@@ -378,6 +379,12 @@ msgstr "Attachment added."
 #: templates/core/news_detail.html:20
 msgid "Anhänge"
 msgstr "Attachments"
+
+#: templates/core/defect_form.html:19
+#: templates/core/handover_form.html:20
+#: templates/core/pinboard_form.html:16
+msgid "Anhänge (optional)"
+msgstr "Attachments (optional)"
 
 #: templates/core/assets_inventory.html:35
 #: templates/core/assets_inventory.html:56
@@ -443,7 +450,7 @@ msgstr "Sign-in was rejected on the mobile device."
 msgid "Anmeldung wurde widerrufen."
 msgstr "Sign-in was revoked."
 
-#: templates/core/pinboard.html:26
+#: templates/core/pinboard.html:33
 msgid "Anpinnen"
 msgstr "Pin"
 
@@ -483,7 +490,7 @@ msgstr "Employer"
 msgid "Archiv"
 msgstr "Archive"
 
-#: templates/core/pinboard.html:23
+#: templates/core/pinboard.html:30
 #: templates/core/wiki_detail.html:45
 msgid "Archivieren"
 msgstr "Archive"
@@ -519,7 +526,7 @@ msgstr "Even a demonstration with fictional operational content processes real c
 #: templates/base.html:84
 #: templates/core/audit_log.html:3
 #: templates/core/audit_log.html:5
-#: templates/core/more.html:26
+#: templates/core/more.html:27
 msgid "Audit"
 msgstr "Audit"
 
@@ -539,21 +546,25 @@ msgstr "Audit events, horizontally scrollable on small screens"
 msgid "Aufgabe anlegen"
 msgstr "Create task"
 
-#: core/views.py:916
+#: core/views.py:932
 msgid "Aufgabe wurde als erledigt markiert."
 msgstr "Task was marked as completed."
 
-#: core/views.py:950
+#: core/views.py:966
 msgid "Aufgabe wurde angelegt."
 msgstr "Task was created."
 
-#: core/views.py:972
+#: core/views.py:988
 msgid "Aufgabe wurde gespeichert."
 msgstr "Task was saved."
 
-#: core/views.py:918
+#: core/views.py:934
 msgid "Aufgabe wurde wieder geöffnet."
 msgstr "Task was reopened."
+
+#: templates/base.html:104
+msgid "Aufgaben"
+msgstr "Tasks"
 
 #: templates/core/tasks_manage.html:3
 #: templates/core/tasks_manage.html:9
@@ -585,15 +596,15 @@ msgstr "Issued"
 msgid "Aushang anlegen"
 msgstr "Create notice"
 
-#: core/views.py:1384
+#: core/views.py:1440
 msgid "Aushang wurde aktualisiert."
 msgstr "Notice was updated."
 
-#: core/views.py:1360
+#: core/views.py:1416
 msgid "Aushang wurde angelegt."
 msgstr "Notice was created."
 
-#: core/views.py:1409
+#: core/views.py:1465
 msgid "Aushang wurde archiviert."
 msgstr "Notice was archived."
 
@@ -619,7 +630,7 @@ msgstr "Evaluations for individual performance or behavior control of employees 
 msgid "Authenticator und Passkeys verwalten"
 msgstr "Manage authenticator and passkeys"
 
-#: templates/core/more.html:27
+#: templates/core/more.html:28
 msgid "Authenticator-App und Passkeys"
 msgstr "Authenticator app and passkeys"
 
@@ -635,7 +646,7 @@ msgstr "BIC must have 8 or 11 alphanumeric characters."
 msgid "BIC:"
 msgstr "BIC:"
 
-#: templates/core/pinboard.html:22
+#: templates/core/pinboard.html:29
 #: templates/core/tasks_manage.html:28
 #: templates/core/wiki_detail.html:34
 #: templates/core/wiki_index.html:54
@@ -708,6 +719,10 @@ msgstr "Master admin username"
 #: core/diagnostics_models.py:29
 msgid "Berechtigung"
 msgstr "Permission"
+
+#: templates/core/presentation.html:39
+msgid "Bereiche unter „Mehr“"
+msgstr "Sections under “More”"
 
 #: templates/core/diagnostics_events.html:11
 msgid "Bereinigte technische 5xx-Ereignisse dieser Wache. Keine Fehlermeldungen, Roh-URLs oder Inhalte."
@@ -797,6 +812,12 @@ msgstr "Cannot upload and remove an image at the same time."
 msgid "Bild oder PDF anhängen"
 msgstr "Attach image or PDF"
 
+#: templates/core/defect_form.html:19
+#: templates/core/handover_form.html:22
+#: templates/core/pinboard_form.html:18
+msgid "Bilder oder PDFs, maximal 5 MB je Datei."
+msgstr "Images or PDFs, at most 5 MB per file."
+
 #: templates/core/calendar.html:24
 msgid "Bis"
 msgstr "To"
@@ -826,7 +847,7 @@ msgid "Bitte ein Bild wählen oder Entfernen markieren."
 msgstr "Please select an image or check Remove."
 
 #: core/news_views.py:64
-#: core/views.py:607
+#: core/views.py:623
 msgid "Bitte eine Datei auswählen."
 msgstr "Please choose a file."
 
@@ -960,11 +981,11 @@ msgstr "Chat key (E2EE)"
 msgid "Chat-Schlüssel einrichten"
 msgstr "Set up chat key"
 
-#: core/views.py:1016
+#: core/views.py:1032
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
-#: core/views.py:487
+#: core/views.py:489
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
@@ -981,11 +1002,11 @@ msgstr "Stored client-side encrypted"
 msgid "Clientseitige Verschlüsselung"
 msgstr "Client-side encryption"
 
-#: core/views.py:1271
+#: core/views.py:1313
 msgid "Code ungültig oder abgelaufen."
 msgstr "Code invalid or expired."
 
-#: core/views.py:1301
+#: core/views.py:1343
 msgid "Code ungültig. Bitte erneut scannen und prüfen."
 msgstr "Code invalid. Please scan again and verify."
 
@@ -1009,6 +1030,24 @@ msgstr "To help us assist you: Contact logbook support and share the correlation
 msgid "Danke – alle haben gelesen. Die Neuigkeit ist im Archiv."
 msgstr "Thank you – everyone has read it. The item is archived."
 
+#: templates/core/more.html:25
+#: templates/core/presentation.html:3
+#: templates/core/presentation.html:7
+msgid "Darstellung"
+msgstr "Layout"
+
+#: core/views.py:1216
+msgid "Darstellung gespeichert."
+msgstr "Layout saved."
+
+#: templates/core/presentation.html:56
+msgid "Darstellung speichern"
+msgstr "Save layout"
+
+#: templates/core/station_settings.html:17
+msgid "Darstellung: Reihenfolge der Bereiche"
+msgstr "Layout: order of sections"
+
 #: templates/core/birthday_settings.html:6
 msgid "Das Geburtsjahr wird nicht erhoben."
 msgstr "The year of birth is not collected."
@@ -1021,7 +1060,7 @@ msgstr "The account is created without a password. The person sets their passwor
 msgid "Das Passwort wird ausschließlich von dir gesetzt. Der Link ist einmalig gültig und läuft am %(date)s ab."
 msgstr "You set the password yourself. The link is valid once and expires on %(date)s."
 
-#: templates/core/handover_form.html:19
+#: templates/core/handover_form.html:24
 msgid "Das Wachbuch ist nur für Wachenorganisation, Material, Fahrzeuge und offene Aufgaben vorgesehen. Patienten- und Einsatzdokumentation bleibt im freigegebenen Fachverfahren."
 msgstr "The watch log is only intended for station organization, equipment, vehicles, and open tasks. Patient and incident documentation remains in the approved specialized system."
 
@@ -1030,12 +1069,12 @@ msgid "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesond
 msgstr "The watch log supports the internal organization of a station, in particular handovers, appointments, tasks, checklists, defects, equipment/vehicle status, inventory, team roles, and audit. Patient, incident, dispatch, ePCR, and comparable specialized medical data explicitly do not belong in this application."
 
 #: core/news_views.py:68
-#: core/views.py:611
+#: core/views.py:627
 msgid "Datei darf maximal 5 MiB groß sein."
 msgstr "File may be at most 5 MiB."
 
 #: core/news_views.py:72
-#: core/views.py:617
+#: core/views.py:633
 msgid "Datei ist kein gültiges Bild und kein lesbares PDF."
 msgstr "The file is not a valid image and not a readable PDF."
 
@@ -1049,7 +1088,7 @@ msgstr "Database"
 msgid "Datenschutz"
 msgstr "Privacy"
 
-#: templates/base.html:127
+#: templates/base.html:145
 msgid "Datenschutz & Cookies"
 msgstr "Privacy & Cookies"
 
@@ -1148,7 +1187,7 @@ msgstr "The note could not be created because of a simultaneous write conflict. 
 msgid "Der Hinweis wurde zwischenzeitlich geändert (aktuell Revision %(rev)s). Ihre Eingabe wurde nicht gespeichert. Bitte prüfen und erneut speichern."
 msgstr "The note was modified in the meantime (currently revision %(rev)s). Your input was not saved. Please check and save again."
 
-#: templates/core/chat_signal.html:29
+#: templates/core/chat_signal.html:39
 msgid "Der Link zur Signal-Gruppe wird in den Einstellungen hinterlegt und gilt für alle Mitglieder dieser Wache."
 msgstr "The link to the Signal group is stored in the settings and applies to all members of this station."
 
@@ -1271,17 +1310,17 @@ msgstr "The formal operator identity and serviceable address have not yet been a
 msgid "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:"
 msgstr "The technical protection concept includes the following measures; their effective configuration in specific operations must be verified separately:"
 
-#: core/views.py:424
+#: core/views.py:426
 msgid "Dienststellen-Aufgaben"
 msgstr "Department tasks"
 
-#: core/views.py:907
+#: core/views.py:923
 msgid "Diese Aufgabe gilt nicht für den gewählten Tag."
 msgstr "This task does not apply to the selected day."
 
-#: core/views.py:801
-#: core/views.py:823
-#: core/views.py:809
+#: core/views.py:817
+#: core/views.py:839
+#: core/views.py:825
 msgid "Diese Buchung wurde bereits korrigiert."
 msgstr "This entry has already been corrected."
 
@@ -1442,7 +1481,7 @@ msgstr "One interface, four watch profiles."
 msgid "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
 msgstr "A formal definition of responsibility by the governing body or operator."
 
-#: templates/core/chat_signal.html:27
+#: templates/core/chat_signal.html:37
 msgid "Einladungslink ändern"
 msgstr "Change invitation link"
 
@@ -1466,7 +1505,7 @@ msgstr "One-time code"
 msgid "Einmalig verwendbar und widerrufbar"
 msgstr "Single-use and revocable"
 
-#: core/views.py:415
+#: core/views.py:417
 msgid "Einsatzmittel"
 msgstr "Resources"
 
@@ -1474,13 +1513,13 @@ msgstr "Resources"
 msgid "Einstellung speichern"
 msgstr "Save setting"
 
-#: templates/core/more.html:25
+#: templates/core/more.html:26
 #: templates/core/station_settings.html:3
 #: templates/core/station_settings.html:8
 msgid "Einstellungen"
 msgstr "Settings"
 
-#: core/views.py:1222
+#: core/views.py:1264
 msgid "Einstellungen wurden gespeichert."
 msgstr "Settings were saved."
 
@@ -1513,7 +1552,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Decryption failed."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:141
+#: templates/base.html:159
 msgid "Entsperren"
 msgstr "Unlock"
 
@@ -1530,7 +1569,7 @@ msgid "Entspricht dem laminerten Bogen an der Wand. Keine Dienstplanung und kein
 msgstr "Corresponds to the laminated sheet on the wall. No duty scheduling and no patient data."
 
 #: core/news_views.py:66
-#: core/views.py:609
+#: core/views.py:625
 msgid "Erlaubt sind JPEG, PNG, WebP und PDF."
 msgstr "Only JPEG, PNG, WebP and PDF are allowed."
 
@@ -1616,8 +1655,8 @@ msgstr "Vehicle check"
 msgid "Fahrzeuge & Geräte"
 msgstr "Vehicles & devices"
 
-#: core/views.py:407
-#: core/views.py:423
+#: core/views.py:409
+#: core/views.py:425
 msgid "Fahrzeuge/Geräte"
 msgstr "Vehicles/equipment"
 
@@ -1653,7 +1692,7 @@ msgid "Feiertag"
 msgstr "Public holiday"
 
 #: core/forms.py:582
-#: core/views.py:412
+#: core/views.py:414
 msgid "Feuerwehr"
 msgstr "Fire service"
 
@@ -1726,7 +1765,7 @@ msgstr "For <strong>%(name)s</strong> at station <strong>%(station)s</strong>."
 msgid "Für Gütersloh ist kein gleichwertiger vollständiger Baustellenfeed verifiziert; die Anzeige beschränkt sich auf freigegebene Quellen."
 msgstr "For Gütersloh, no equivalent complete construction site feed has been verified; the display is limited to approved sources."
 
-#: core/views.py:413
+#: core/views.py:415
 msgid "Für den nächsten Dienst"
 msgstr "For the next duty"
 
@@ -1750,11 +1789,11 @@ msgstr "Hosting with Hetzner is planned for the demonstration, but has not yet b
 msgid "Für die Wache. Nicht für den Einsatz."
 msgstr "For the station. Not for operations."
 
-#: core/views.py:421
+#: core/views.py:423
 msgid "Für die nächste Dienstübergabe"
 msgstr "For the next shift handover"
 
-#: core/views.py:405
+#: core/views.py:407
 msgid "Für die nächste Schicht"
 msgstr "For the next shift"
 
@@ -1762,7 +1801,7 @@ msgstr "For the next shift"
 msgid "Für die nächste Schicht festhalten"
 msgstr "Record for the next shift"
 
-#: core/views.py:429
+#: core/views.py:431
 msgid "Für die nächste Übergabe"
 msgstr "For the next handover"
 
@@ -1773,6 +1812,10 @@ msgstr "Unlock for this session"
 #: templates/core/help_index.html:38
 msgid "Für diese Sprache sind keine Artikel hinterlegt."
 msgstr "No articles are available for this language."
+
+#: templates/core/chat_signal.html:27
+msgid "Für diese Wache ist noch keine Signal-Gruppe hinterlegt. Der Admin trägt den Einladungslink in den Einstellungen ein."
+msgstr "No Signal group has been configured for this station yet. The admin adds the invitation link in the settings."
 
 #: templates/core/defects.html:32
 msgid "Für diesen Filter gibt es keine Mängel."
@@ -1794,7 +1837,7 @@ msgstr "Set birthday"
 msgid "Geburtstage"
 msgstr "Birthdays"
 
-#: core/views.py:740
+#: core/views.py:756
 msgid "Geburtstagseinstellung wurde gespeichert."
 msgstr "Birthday setting was saved."
 
@@ -1810,7 +1853,7 @@ msgstr "Offsetting entry"
 msgid "Gegenbuchung erfassen"
 msgstr "Record offsetting entry"
 
-#: core/views.py:825
+#: core/views.py:841
 msgid "Gegenbuchung wurde erfasst."
 msgstr "Offsetting entry was recorded."
 
@@ -1848,7 +1891,7 @@ msgstr "Devices & status"
 msgid "Geräte &amp; Status"
 msgstr "Devices &amp; status"
 
-#: core/views.py:431
+#: core/views.py:433
 msgid "Geräte/Fahrzeuge"
 msgstr "Equipment/vehicles"
 
@@ -1889,7 +1932,7 @@ msgstr "Saved key envelope is corrupted."
 msgid "Gewünschte Wache"
 msgstr "Preferred station"
 
-#: templates/base.html:135
+#: templates/base.html:153
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Enter the passphrase for your end-to-end key. It will only stay in this browser."
 
@@ -1970,8 +2013,8 @@ msgstr "Today / day"
 msgid "Heutige Liste"
 msgstr "Today's list"
 
-#: templates/base.html:108
-#: templates/base.html:128
+#: templates/base.html:126
+#: templates/base.html:146
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -2171,7 +2214,7 @@ msgstr "Internal station workflows without case or operational data."
 msgid "Intervall"
 msgstr "Interval"
 
-#: core/views.py:486
+#: core/views.py:488
 msgid "Inventar"
 msgstr "Inventory"
 
@@ -2237,7 +2280,7 @@ msgstr "Cash fund, checklists, and handovers are corrected by new entries, not b
 msgid "Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen"
 msgstr "Cash log, horizontally scrollable on small screens"
 
-#: core/views.py:785
+#: core/views.py:801
 msgid "Kassenbuchung wurde erfasst."
 msgstr "Cash entry was recorded."
 
@@ -2481,7 +2524,7 @@ msgstr "Link"
 msgid "Lokale Hilfe zum Wachbuch. Die Artikel liegen auf dem Server und funktionieren ohne Internetzugang."
 msgstr "Local help for the watch log. The articles are stored on the server and work without internet access."
 
-#: templates/core/pinboard.html:26
+#: templates/core/pinboard.html:33
 msgid "Loslösen"
 msgstr "Detach"
 
@@ -2493,7 +2536,7 @@ msgstr "MFA"
 msgid "MFA einrichten"
 msgstr "Set up MFA"
 
-#: core/views.py:1317
+#: core/views.py:1359
 msgid "MFA ist für diese Installation vorgeschrieben."
 msgstr "MFA is required for this installation."
 
@@ -2511,7 +2554,7 @@ msgstr "Defect"
 msgid "Mangel anlegen"
 msgstr "Create defect"
 
-#: templates/core/defect_form.html:20
+#: templates/core/defect_form.html:21
 msgid "Mangel speichern"
 msgstr "Save defect"
 
@@ -2544,13 +2587,13 @@ msgstr "Material order"
 msgid "Max."
 msgstr "Max."
 
-#: templates/base.html:103
+#: templates/base.html:121
 #: templates/core/more.html:3
 #: templates/core/more.html:7
 msgid "Mehr"
 msgstr "More"
 
-#: core/views.py:613
+#: core/views.py:629
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "No more attachments are possible."
 
@@ -2597,7 +2640,7 @@ msgstr "At least one field is missing or invalid."
 msgid "Minimale technische Auskunft für die Wachenadministration. Es werden keine Protokolle, Pfade oder Zugangsdaten angezeigt."
 msgstr "Minimal technical information for station administration. No logs, paths, or credentials are displayed."
 
-#: templates/core/defect_form.html:19
+#: templates/core/defect_form.html:20
 msgid "Mir zuordnen"
 msgstr "Assign to me"
 
@@ -2613,6 +2656,10 @@ msgstr "Sign in with QR code"
 #: templates/core/setup_wizard.html:66
 msgid "Mit dem Abschluss wird genau eine Wache und genau ein Master-Admin angelegt. Weitere Mitarbeiterkonten erhalten anschließend persönliche Einmal-Aktivierungslinks."
 msgstr "Upon completion, exactly one station and exactly one master admin are created. Other employee accounts will then receive personal one-time activation links."
+
+#: templates/core/chat_signal.html:18
+msgid "Mit der Signal-App scannen – oder den Button öffnen."
+msgstr "Scan with the Signal app – or use the button."
 
 #: templates/core/more.html:25
 msgid "Mitarbeiter-Aktivierungen"
@@ -2631,7 +2678,7 @@ msgstr "Create employee access"
 msgid "Mitglied bearbeiten"
 msgstr "Edit member"
 
-#: core/views.py:1180
+#: core/views.py:1196
 msgid "Mitgliedschaft wurde aktualisiert."
 msgstr "Membership was updated."
 
@@ -2667,7 +2714,7 @@ msgstr "Music"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
-#: core/views.py:484
+#: core/views.py:486
 #: templates/core/defect_detail.html:3
 #: templates/core/defects.html:3
 #: templates/core/defects.html:9
@@ -2700,7 +2747,7 @@ msgstr "Waste"
 msgid "Müllabfuhr (externe ICS-Quelle)"
 msgstr "Waste collection (external ICS source)"
 
-#: core/views.py:1224
+#: core/views.py:1266
 msgid "Müllkalender übernommen: %(count)s Termine."
 msgstr "Waste calendar imported: %(count)s dates."
 
@@ -2720,13 +2767,23 @@ msgstr "Waste calendar URLs may only use HTTPS port 443."
 msgid "Müllkalender-URLs müssen mit https:// beginnen."
 msgstr "Waste calendar URLs must start with https://."
 
-#: templates/core/station_settings.html:17
+#: templates/core/station_settings.html:20
 msgid "Müllkalender: Entweder eine HTTPS-ICS-Adresse eintragen oder eine ICS-Datei hochladen. Die Datei wird beim Speichern eingelesen und ersetzt die bisherigen Abfuhrtermine."
 msgstr "Waste calendar: either enter an HTTPS ICS address or upload an ICS file. The file is read on save and replaces the previous collection dates."
 
 #: templates/registration/register.html:8
 msgid "Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten- oder Einsatzdaten eintragen."
 msgstr "After registration, a station admin approves access. Do not enter patient or incident data."
+
+#: templates/core/presentation.html:24
+#: templates/core/presentation.html:46
+msgid "Nach oben"
+msgstr "Move up"
+
+#: templates/core/presentation.html:25
+#: templates/core/presentation.html:47
+msgid "Nach unten"
+msgstr "Move down"
 
 #: core/forms.py:161
 #: core/forms.py:614
@@ -2759,7 +2816,7 @@ msgstr "Traceability"
 msgid "Name der Wache"
 msgstr "Station name"
 
-#: templates/core/more.html:25
+#: templates/core/more.html:26
 msgid "Name und Module der Wache verwalten"
 msgstr "Manage station name and modules"
 
@@ -2831,6 +2888,7 @@ msgstr "Create news item"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
+#: templates/base.html:110
 #: templates/core/more.html:20
 #: templates/core/news_index.html:3
 #: templates/core/news_index.html:7
@@ -2844,6 +2902,10 @@ msgstr "Not found."
 #: templates/core/vorfuehrung.html:35
 msgid "Nicht im Umfang"
 msgstr "Out of scope"
+
+#: templates/core/presentation.html:32
+msgid "Nicht in der Leiste:"
+msgstr "Not in the bar:"
 
 #: templates/core/setup_wizard.html:35
 msgid "Niederschlag"
@@ -2878,7 +2940,7 @@ msgstr "No audit events yet."
 msgid "Noch keine Aufgaben."
 msgstr "No tasks yet."
 
-#: templates/core/pinboard.html:30
+#: templates/core/pinboard.html:37
 msgid "Noch keine Aushänge an der Pinnwand."
 msgstr "No notices on the pinboard yet."
 
@@ -2962,7 +3024,7 @@ msgstr "Participants only"
 msgid "Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen."
 msgstr "Only condition photos of the defect. Do not upload patients, personally identifiable license plates, or incident documentation."
 
-#: templates/core/more.html:28
+#: templates/core/more.html:29
 msgid "Nur dringende Übergaben"
 msgstr "Only urgent handovers"
 
@@ -3009,6 +3071,10 @@ msgstr "Next step"
 #: templates/core/tasks_today.html:26
 msgid "Nächster Tag"
 msgstr "Next day"
+
+#: templates/core/presentation.html:16
+msgid "Obere Leiste"
+msgstr "Top bar"
 
 #: templates/core/audit_log.html:6
 msgid "Objekt"
@@ -3096,11 +3162,11 @@ msgstr "Without explicit consent, the address is not transmitted to the weather 
 msgid "Organisationen"
 msgstr "Organizations"
 
-#: core/views.py:432
+#: core/views.py:434
 msgid "Organisationsaufgaben"
 msgstr "Organizational tasks"
 
-#: core/views.py:428
+#: core/views.py:430
 msgid "Organisationseinheit"
 msgstr "Organizational unit"
 
@@ -3206,7 +3272,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys are not available here."
 
-#: templates/base.html:136
+#: templates/base.html:154
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -3222,6 +3288,10 @@ msgstr "Passphrase at least 10 characters."
 #: core/templatetags/js_i18n.py:38
 msgid "Passphrasen stimmen nicht überein."
 msgstr "Passphrases do not match."
+
+#: templates/core/presentation.html:17
+msgid "Passt der Inhalt nicht in die Breite, erscheint darunter ein Schieberegler zum Wischen."
+msgstr "If the content does not fit, a slider appears below for swiping."
 
 #: core/forms.py:339
 #: core/forms.py:616
@@ -3273,7 +3343,7 @@ msgid "Pinnwand"
 msgstr "Pinboard"
 
 #: core/forms.py:583
-#: core/views.py:420
+#: core/views.py:422
 msgid "Polizei"
 msgstr "Police"
 
@@ -3402,7 +3472,7 @@ msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
 #: templates/core/account.html:70
-#: templates/core/more.html:28
+#: templates/core/more.html:29
 #: templates/core/push_settings.html:7
 msgid "Push-Benachrichtigungen"
 msgstr "Push notifications"
@@ -3443,11 +3513,15 @@ msgstr "QR code is loading..."
 msgid "QR-Code zur Anmeldung"
 msgstr "QR code for login"
 
+#: templates/core/chat_signal.html:17
+msgid "QR-Code zur Signal-Gruppe"
+msgstr "QR code for the Signal group"
+
 #: core/templatetags/js_i18n.py:58
 msgid "QR-Login konnte nicht gestartet werden."
 msgstr "QR login could not be started."
 
-#: templates/base.html:125
+#: templates/base.html:143
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Source code (AGPL-3.0)"
 
@@ -3463,7 +3537,7 @@ msgstr "Source: %(source)s · Article revision %(revision)s · Manifest %(manife
 msgid "Quellen und Aktualität"
 msgstr "Sources and timeliness"
 
-#: templates/core/more.html:29
+#: templates/core/more.html:30
 msgid "Quellen und Systemkonten verwalten"
 msgstr "Manage sources and system accounts"
 
@@ -3509,12 +3583,20 @@ msgstr "Register"
 msgid "Registrierung:"
 msgstr "Registration:"
 
+#: templates/core/more.html:25
+msgid "Reihenfolge der Leiste und der Bereiche unter Mehr"
+msgstr "Order of the bar and of the sections under More"
+
+#: templates/core/presentation.html:8
+msgid "Reihenfolge der oberen Leiste und der Bereiche unter „Mehr“ festlegen. Mit der Maus ziehen oder die Pfeile nutzen – die Pfeile funktionieren auch auf dem Handy."
+msgstr "Set the order of the top bar and of the sections under “More”. Drag with the mouse or use the arrows – the arrows also work on a phone."
+
 #: templates/registration/qr_confirm.html:32
 msgid "Restzeit"
 msgstr "Remaining time"
 
 #: core/forms.py:581
-#: core/views.py:404
+#: core/views.py:406
 #: templates/core/vorfuehrung.html:45
 msgid "Rettungsdienst"
 msgstr "Rescue service"
@@ -3610,7 +3692,7 @@ msgstr "Keys & pools"
 msgid "Schlüssel einrichten"
 msgstr "Set up keys"
 
-#: templates/base.html:134
+#: templates/base.html:152
 msgid "Schlüssel entsperren"
 msgstr "Unlock key"
 
@@ -3716,7 +3798,7 @@ msgstr "Security number of your key"
 msgid "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 msgstr "Only voluntarily shared days and months are visible."
 
-#: templates/core/chat_signal.html:21
+#: templates/core/chat_signal.html:31
 msgid "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Metadaten. Den Einladungslink teile bitte nur innerhalb der Wache."
 msgstr "Signal is open source, encrypted end to end and stores almost no metadata. Only share the invitation link within your station."
 
@@ -3729,7 +3811,7 @@ msgstr "Signal group"
 msgid "Signal-Gruppe oder interner Chat"
 msgstr "Signal group or internal chat"
 
-#: templates/core/chat_signal.html:17
+#: templates/core/chat_signal.html:22
 msgid "Signal-Gruppe öffnen"
 msgstr "Open Signal group"
 
@@ -3764,8 +3846,8 @@ msgstr "Solar light/dark plus high contrast"
 #: templates/core/assets_inventory.html:23
 #: templates/core/checklist_schedules.html:22
 #: templates/core/defect_detail.html:27
-#: templates/core/pinboard_form.html:15
-#: templates/core/station_settings.html:19
+#: templates/core/pinboard_form.html:20
+#: templates/core/station_settings.html:22
 #: templates/core/task_form.html:23
 #: templates/core/wiki_form.html:30
 msgid "Speichern"
@@ -3818,7 +3900,7 @@ msgstr "Update status"
 msgid "Status für diese Demonstration:"
 msgstr "Status for this demonstration:"
 
-#: core/views.py:673
+#: core/views.py:689
 msgid "Status konnte nicht aktualisiert werden."
 msgstr "Status could not be updated."
 
@@ -3826,7 +3908,7 @@ msgstr "Status could not be updated."
 msgid "Status setzen"
 msgstr "Set status"
 
-#: core/views.py:671
+#: core/views.py:687
 msgid "Status wurde aktualisiert."
 msgstr "Status was updated."
 
@@ -3911,7 +3993,7 @@ msgstr "Team member"
 msgid "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen."
 msgstr "Technical product information for operators and users. The specific operator must supplement this information with its complete data subject information under Art. 13/14 GDPR."
 
-#: templates/core/more.html:29
+#: templates/core/more.html:30
 msgid "Technische Verwaltung"
 msgstr "Technical administration"
 
@@ -3926,7 +4008,7 @@ msgstr "Technical vehicle check"
 msgid "Termin anlegen"
 msgstr "Create appointment"
 
-#: core/views.py:712
+#: core/views.py:728
 msgid "Termin wurde angelegt."
 msgstr "Event was created."
 
@@ -4086,7 +4168,7 @@ msgstr "Encrypted – cannot be decrypted (missing keys)."
 msgid "Verschlüsselung"
 msgstr "Encryption"
 
-#: templates/base.html:129
+#: templates/base.html:147
 #: templates/core/handover_detail.html:44
 #: templates/core/privacy.html:190
 #: templates/core/system_status.html:12
@@ -4133,7 +4215,7 @@ msgstr "From"
 msgid "Vorführen. Pilotieren. Selbst hosten."
 msgstr "Demonstrate. Pilot. Self-host."
 
-#: templates/base.html:126
+#: templates/base.html:144
 #: templates/core/landing.html:12
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
@@ -4183,7 +4265,7 @@ msgstr "Daily watch routine"
 msgid "Wachalltag im Blick"
 msgstr "Daily watch routine at a glance"
 
-#: core/views.py:408
+#: core/views.py:410
 msgid "Wachaufgaben"
 msgstr "Station tasks"
 
@@ -4200,7 +4282,7 @@ msgstr "Watch log organizes internal processes behind the apparatus bay. It is n
 msgid "Wachbuch-Vorführung"
 msgstr "Watch log demonstration"
 
-#: core/views.py:416
+#: core/views.py:418
 msgid "Wachdienst-Aufgaben"
 msgstr "Watch duty tasks"
 
@@ -4299,7 +4381,7 @@ msgstr "Waiting for initialization..."
 msgid "Wartend"
 msgstr "Waiting"
 
-#: templates/core/handover_form.html:19
+#: templates/core/handover_form.html:24
 msgid "Warum dürfen hier keine Einsatzdaten stehen?"
 msgstr "Why are incident data not allowed here?"
 
@@ -4419,6 +4501,10 @@ msgstr "Recurring checks"
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Process and document recurring checks in station operations."
 
+#: templates/base.html:116
+msgid "Wiki"
+msgstr "Wiki"
+
 #: core/wiki_models.py:83
 #: core/wiki_models.py:84
 msgid "Wiki-Artikel"
@@ -4496,7 +4582,7 @@ msgstr "Timezone"
 msgid "Zielkonto"
 msgstr "Destination account"
 
-#: templates/core/chat_signal.html:31
+#: templates/core/chat_signal.html:41
 msgid "Zu den Einstellungen"
 msgstr "Go to settings"
 
@@ -4512,7 +4598,7 @@ msgstr "Too many requests in a short time. Please wait a moment and try again."
 msgid "Zu viele Anfragen."
 msgstr "Too many requests."
 
-#: core/views.py:1269
+#: core/views.py:1311
 msgid "Zu viele Fehlversuche. Bitte erneut anmelden."
 msgstr "Too many failed attempts. Please sign in again."
 
@@ -4593,6 +4679,10 @@ msgstr "Back"
 #: templates/core/checklist_schedules.html:5
 msgid "Zurück zu Checklisten"
 msgstr "Back to checklists"
+
+#: templates/core/presentation.html:5
+msgid "Zurück zu Einstellungen"
+msgstr "Back to settings"
 
 #: templates/core/birthday_settings.html:5
 msgid "Zurück zu Geburtstagen"
@@ -4724,7 +4814,7 @@ msgid "Zweck:"
 msgstr "Purpose:"
 
 #: templates/core/account.html:66
-#: templates/core/more.html:27
+#: templates/core/more.html:28
 msgid "Zwei-Faktor / Passkeys"
 msgstr "Two-factor / Passkeys"
 
@@ -4748,11 +4838,11 @@ msgstr "Two-factor authentication must be set up first."
 msgid "Zwei-Faktor-Authentifizierung"
 msgstr "Two-factor authentication"
 
-#: core/views.py:1299
+#: core/views.py:1341
 msgid "Zwei-Faktor-Authentifizierung ist aktiv."
 msgstr "Two-factor authentication is active."
 
-#: core/views.py:1322
+#: core/views.py:1364
 msgid "Zwei-Faktor-Authentifizierung wurde deaktiviert."
 msgstr "Two-factor authentication was disabled."
 
@@ -4780,7 +4870,7 @@ msgstr "active handovers"
 msgid "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 msgstr "displayed. The server only stores a hash of the token. Role:"
 
-#: core/views.py:486
+#: core/views.py:488
 msgid "ausgegeben"
 msgstr "issued"
 
@@ -4822,7 +4912,7 @@ msgstr "completed · wall board"
 msgid "erreichbar"
 msgstr "reachable"
 
-#: core/views.py:487
+#: core/views.py:489
 msgid "fällig oder überfällig"
 msgstr "due or overdue"
 
@@ -4831,7 +4921,7 @@ msgstr "due or overdue"
 msgid "ganztägig"
 msgstr "all-day"
 
-#: core/views.py:488
+#: core/views.py:490
 msgid "heute erledigt"
 msgstr "completed today"
 
@@ -4873,7 +4963,7 @@ msgstr "native apps as a mobile interface via the versioned API"
 msgid "nein"
 msgstr "no"
 
-#: core/views.py:485
+#: core/views.py:487
 msgid "nicht bereit"
 msgstr "not ready"
 
@@ -4898,7 +4988,7 @@ msgstr "only now"
 msgid "nächste Fälligkeit"
 msgstr "next due date"
 
-#: core/views.py:484
+#: core/views.py:486
 #: templates/core/tasks_today.html:12
 msgid "offen"
 msgstr "open"
@@ -4981,7 +5071,7 @@ msgstr "Change"
 msgid "Änderungen erzeugen eine neue Revision. Freitexte erscheinen nicht im Audit."
 msgstr "Changes create a new revision. Free text does not appear in the audit."
 
-#: templates/core/more.html:26
+#: templates/core/more.html:27
 msgid "Änderungen nachvollziehen"
 msgstr "Track changes"
 
@@ -5010,7 +5100,7 @@ msgstr "Open"
 #: templates/core/dashboard.html:14
 #: templates/core/handover_form.html:3
 #: templates/core/handover_form.html:6
-#: templates/core/handover_form.html:20
+#: templates/core/handover_form.html:25
 #: templates/core/handover_list.html:7
 msgid "Übergabe anlegen"
 msgstr "Create handover"
@@ -5023,11 +5113,11 @@ msgstr "Edit handover"
 msgid "Übergabe korrigieren"
 msgstr "Correct handover"
 
-#: core/views.py:591
+#: core/views.py:607
 msgid "Übergabe wurde angelegt."
 msgstr "Handover was created."
 
-#: core/views.py:656
+#: core/views.py:672
 msgid "Übergabe wurde korrigiert (neue Revision)."
 msgstr "Handover was corrected (new revision)."
 

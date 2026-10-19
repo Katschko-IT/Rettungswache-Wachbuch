@@ -920,3 +920,58 @@
     });
   });
 })();
+
+/* Sortierbare Listen (Einstellungen → Darstellung): Maus-Drag und Pfeiltasten. */
+(() => {
+  const lists = document.querySelectorAll("[data-sortable]");
+  if (!lists.length) return;
+
+  lists.forEach((list) => {
+    const output = document.querySelector(
+      `[data-sortable-output="${list.dataset.input}"]`
+    );
+    const sync = () => {
+      if (!output) return;
+      output.value = [...list.children]
+        .map((item) => item.dataset.key)
+        .filter(Boolean)
+        .join(",");
+    };
+
+    list.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-move]");
+      if (!button) return;
+      const item = button.closest("li");
+      if (!item) return;
+      if (button.dataset.move === "up" && item.previousElementSibling) {
+        list.insertBefore(item, item.previousElementSibling);
+      } else if (button.dataset.move === "down" && item.nextElementSibling) {
+        list.insertBefore(item.nextElementSibling, item);
+      }
+      sync();
+    });
+
+    let dragged = null;
+    list.addEventListener("dragstart", (event) => {
+      dragged = event.target.closest("li");
+      if (dragged) dragged.classList.add("is-dragging");
+    });
+    list.addEventListener("dragend", () => {
+      if (dragged) dragged.classList.remove("is-dragging");
+      dragged = null;
+      sync();
+    });
+    list.addEventListener("dragover", (event) => event.preventDefault());
+    list.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const target = event.target.closest("li");
+      if (!target || !dragged || target === dragged) return;
+      const rect = target.getBoundingClientRect();
+      const after = event.clientY - rect.top > rect.height / 2;
+      list.insertBefore(dragged, after ? target.nextSibling : target);
+      sync();
+    });
+
+    sync();
+  });
+})();

@@ -156,23 +156,21 @@ class ChatHideRouteTests(BasePhase1RoutesTestCase):
         self.message_a.refresh_from_db()
         self.assertFalse(self.message_a.is_hidden)
 
-    def test_hidden_message_disappears_from_chat_feed(self):
+    def test_chat_page_points_to_signal_and_hides_messages(self):
+        """Der Wachenchat läuft in Signal; die Seite zeigt keine Nachrichten mehr."""
         client_lead = Client()
         client_lead.force_login(self.user_lead)
         client_lead.post(self.hide_url_a)
 
-        # Another normal member views the chat
         client_member = Client()
         client_member.force_login(self.user_member)
         response = client_member.get(reverse("chat"))
         self.assertEqual(response.status_code, 200)
-
-        feed_pks = [item["message"].pk for item in response.context["feed"]]
-        self.assertNotIn(self.message_a.pk, feed_pks)
-
-        client_feed = json.loads(response.context["feed_json"])
-        feed_json_pks = [item["id"] for item in client_feed]
-        self.assertNotIn(self.message_a.pk, feed_json_pks)
+        body = response.content.decode()
+        self.assertIn("Signal", body)
+        # Weder der Nachrichtentext noch die interne Feed-Struktur erscheinen.
+        self.assertNotIn(self.message_a.body, body)
+        self.assertNotIn("chat-feed", body)
 
     def test_audit_log_remains_content_free(self):
         client = Client()

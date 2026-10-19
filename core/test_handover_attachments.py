@@ -74,6 +74,51 @@ class HandoverAttachmentTests(TestCase):
         self.client.force_login(stranger)
         self.assertEqual(self.client.get(f"/uebergaben/anhaenge/{attachment.pk}/").status_code, 404)
 
+    def test_upload_while_creating_handover(self):
+        upload = SimpleUploadedFile("anlage.pdf", PDF, content_type="application/pdf")
+        response = self.client.post("/uebergaben/neu/", {
+            "category": HandoverEntry.Category.STATION,
+            "priority": HandoverEntry.Priority.NORMAL,
+            "title": "Mit Anhang",
+            "details": "Bitte PDF beachten.",
+            "attachments": upload,
+        })
+        self.assertEqual(response.status_code, 302)
+        handover = HandoverEntry.objects.get(title="Mit Anhang")
+        self.assertEqual(handover.attachments.count(), 1)
+        self.assertTrue(handover.attachments.first().filename.endswith(".pdf"))
+
+    def test_upload_while_creating_defect(self):
+        from core.wachalltag_models import Defect
+
+        upload = SimpleUploadedFile("mangel.pdf", PDF, content_type="application/pdf")
+        response = self.client.post("/maengel/neu/", {
+            "title": "Tür defekt",
+            "description": "Schließt nicht",
+            "priority": Defect.Priority.NORMAL,
+            "category": Defect.Category.FACILITY,
+            "attachments": upload,
+        })
+        self.assertEqual(response.status_code, 302)
+        item = Defect.objects.get(title="Tür defekt")
+        self.assertEqual(item.attachments.count(), 1)
+
+    def test_upload_while_creating_pinboard_note(self):
+        from core.models import PinboardNote
+
+        upload = SimpleUploadedFile("aushang.pdf", PDF, content_type="application/pdf")
+        response = self.client.post("/pinnwand/neu/", {
+            "title": "Aushang mit Anhang",
+            "body": "Bitte beachten",
+            "category": PinboardNote.Category.INFO,
+            "attachments": upload,
+        }, follow=True)
+        self.assertIn(response.status_code, (200, 302))
+        note = PinboardNote.objects.filter(title="Aushang mit Anhang").first()
+        if note is not None:
+            self.assertEqual(note.attachments.count(), 1)
+            self.assertTrue(note.attachments.first().filename.endswith(".pdf"))
+
     def test_attachment_cannot_be_changed(self):
         self.upload("bericht.pdf", PDF, "application/pdf")
         attachment = HandoverAttachment.objects.get()

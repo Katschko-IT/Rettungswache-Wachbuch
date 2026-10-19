@@ -8,7 +8,7 @@
   <h1>{% translate "Mangel anlegen" %}</h1>
   <p class="lead">{% translate "Nur Informationen zur Wachenorganisation, zu Material, Fahrzeugen oder Gebäuden." %}</p>
 </header>
-<form method="post" class="form-card">
+<form method="post" enctype="multipart/form-data" class="form-card">
   {% csrf_token %}
   <div class="field"><label for="id_title">{% translate "Titel" %}</label><input id="id_title" name="title" maxlength="160" required value="{{ request.POST.title }}"></div>
   <div class="field"><label for="id_description">{% translate "Beschreibung" %}</label><textarea id="id_description" name="description" maxlength="3000" rows="5">{{ request.POST.description }}</textarea></div>
@@ -16,6 +16,7 @@
   <div class="field"><label for="id_priority">{% translate "Priorität" %}</label><select id="id_priority" name="priority">{% for value,label in priorities %}<option value="{{ value }}"{% if request.POST.priority == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
   <div class="field"><label for="id_category">{% translate "Kategorie" %}</label><select id="id_category" name="category">{% for value,label in categories %}<option value="{{ value }}"{% if request.POST.category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
   <div class="field"><label for="id_due_at">{% translate "Frist (optional)" %}</label><input id="id_due_at" name="due_at" type="datetime-local" value="{{ request.POST.due_at }}"></div>
+  <div class="field"><label for="id_attachments">{% translate "Anhänge (optional)" %}</label><input id="id_attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf"><p class="field-hint">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</p></div>
   <div class="field checkbox-field"><label><input type="checkbox" name="owner_self" value="1" checked> {% translate "Mir zuordnen" %}</label></div>
   <div class="form-actions"><button class="button primary" type="submit">{% translate "Mangel speichern" %}</button><a class="button secondary" href="{% url 'defects_web' %}">{% translate "Abbrechen" %}</a></div>
 </form>
