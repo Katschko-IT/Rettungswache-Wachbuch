@@ -41,6 +41,18 @@
     <button class="button primary" type="submit">{% translate "Profil speichern" %}</button>
   </form>
 
+  <h2>{% translate "Sprache" %}</h2>
+  <form method="post" action="{% url 'set_language' %}" class="form-card">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <p class="helptext">{% translate "Sprache der Benutzeroberfläche. Die Auswahl gilt für dein Konto in diesem Browser." %}</p>
+    <div class="language-switch">
+      {% for code, name in LANGUAGES %}
+        <button class="button {% if code == LANGUAGE_CODE %}primary{% else %}secondary{% endif %}" type="submit" name="language" value="{{ code }}" lang="{{ code }}"{% if code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ name }}</button>
+      {% endfor %}
+    </div>
+  </form>
+
   <h2>{% translate "Passwort" %}</h2>
   <form method="post" class="form-card">
     {% csrf_token %}

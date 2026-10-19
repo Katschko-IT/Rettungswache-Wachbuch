@@ -135,7 +135,7 @@ def week_board(station, any_day: date):
     columns = []
     for day in days:
         day_tasks = []
-        for task in daily + [t for t in weekday_rows if t.weekday == day.weekday()] + extras:
+        for task in tasks:
             if not task.applies_to_date(day):
                 continue
             completion = done_map.get((task.pk, day))

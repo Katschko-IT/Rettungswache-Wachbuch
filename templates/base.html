@@ -35,23 +35,12 @@
   <header class="app-header">
     <div class="header-inner">
       <a class="brand" href="{% if current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
-        <span class="brand-mark" aria-hidden="true">{% translate "WB" %}</span>
-        <span>
-          <strong>{{ app_name }}</strong>
-          {% if current_membership %}<small>{{ current_membership.station.name }} · {{ current_membership.station.get_organization_profile_display }}</small>{% endif %}
-        </span>
+        <span class="brand-word"><strong>{{ app_name }}</strong></span>
       </a>
-      <nav class="public-nav" aria-label="{% translate 'Öffentliche Seiten' %}">
-        <a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>
-        <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz" %}</a>
-      </nav>
-      <form class="language-switch" action="{% url 'set_language' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{% if '/aktivieren/' in request.path %}/{% else %}{{ request.get_full_path }}{% endif %}">
-        {% for code, name in LANGUAGES %}
-          <button type="submit" name="language" value="{{ code }}" lang="{{ code }}"{% if code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ code|upper }}</button>
-        {% endfor %}
-      </form>
+      {% if current_membership %}
+      <p class="header-station">{{ current_membership.station.name }} {{ current_membership.station.get_organization_profile_display }}</p>
+      {% endif %}
+      {# Datenschutz und Vorführung stehen im Fußbereich. #}
       {% if request.user.is_authenticated %}
         <div class="account">
           <div class="identity">
@@ -134,7 +123,7 @@
   <footer class="site-footer">
     <div class="footer-links">
       <a href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
-      <a href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>
+      {% if not current_membership %}<a href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>{% endif %}
       <a href="{% url 'privacy' %}">{% translate "Datenschutz & Cookies" %}</a>
       <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>
       <span class="app-version">{% translate "Version" %} {{ app_version }}</span>

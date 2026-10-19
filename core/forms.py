@@ -1,3 +1,4 @@
+import re
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 from urllib.parse import urlparse
@@ -416,31 +417,145 @@ class PinboardNoteForm(forms.ModelForm):
 
 
 class StationTaskForm(forms.ModelForm):
+    """Aufgabe anlegen – Wiederholung wie in einer Kalender-App."""
+
+    use_band_color = forms.BooleanField(
+        label="Bereichsfarbe verwenden",
+        required=False,
+        initial=True,
+        help_text="Standardfarben des Bereichs statt eigener Farbe.",
+    )
+
+    weekdays_selected = forms.MultipleChoiceField(
+        label="Wochentage",
+        choices=StationTask.WEEKDAY_LABELS,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text="Gilt für wöchentliche Wiederholungen. Mehrfachauswahl möglich.",
+    )
+
     class Meta:
         model = StationTask
-        fields = ["title", "band", "weekday", "notes", "sort_order", "is_active"]
+        fields = [
+            "title",
+            "band",
+            "color",
+            "repeat",
+            "repeat_interval",
+            "weekdays_selected",
+            "month_day",
+            "start_date",
+            "end_date",
+            "notes",
+            "sort_order",
+            "is_active",
+        ]
         labels = {
             "title": "Aufgabe",
-            "band": "Farbe / Bereich",
-            "weekday": "Wochentag",
+            "band": "Bereich",
+            "color": "Farbe",
+            "repeat": "Wiederholung",
+            "repeat_interval": "Alle …",
+            "month_day": "Tag im Monat",
+            "start_date": "Erster Termin",
+            "end_date": "Letzter Termin",
             "notes": "Hinweis",
             "sort_order": "Reihenfolge",
             "is_active": "Aktiv",
         }
         help_texts = {
-            "band": "Grün = täglich, Gelb = Wochentag, Blau = zusätzlich.",
-            "weekday": "Nur bei gelben Wochentagsaufgaben setzen.",
+            "band": "Grobe Einordnung für die Tafel. Die Farbe kannst du frei wählen.",
+            "color": "Hex-Wert, z. B. #1f7a4d. Leer lassen für die Bereichsfarbe.",
+            "repeat": "Einmalig, täglich, wöchentlich oder monatlich.",
+            "repeat_interval": "1 = jede Woche, 2 = jede zweite Woche, 3 = jede dritte Woche …",
         }
+        field_order = [
+            "title",
+            "band",
+            "use_band_color",
+            "color",
+            "repeat",
+            "repeat_interval",
+            "weekdays_selected",
+            "month_day",
+            "start_date",
+            "end_date",
+            "notes",
+            "sort_order",
+            "is_active",
+        ]
+        widgets = {
+            "color": forms.TextInput(attrs={
+                "type": "color",
+                "class": "color-input",
+            }),
+            "start_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields["weekdays_selected"].initial = [
+                str(day) for day in self.instance.weekday_list()
+            ]
+            self.fields["use_band_color"].initial = not bool(self.instance.color)
+        # Ein reines Farbfeld erzwingt im Browser immer einen Wert. Die
+        # Bereichsfarbe bleibt Standard, solange niemand eine eigene Farbe setzt.
+        self.fields["color"].required = False
+
+    @property
+    def ordered_fields(self):
+        order = [
+            "title",
+            "band",
+            "use_band_color",
+            "color",
+            "repeat",
+            "repeat_interval",
+            "weekdays_selected",
+            "month_day",
+            "start_date",
+            "end_date",
+            "notes",
+            "sort_order",
+            "is_active",
+        ]
+        return [self[name] for name in order if name in self.fields]
 
     def clean(self):
         cleaned = super().clean()
-        band = cleaned.get("band")
-        weekday = cleaned.get("weekday")
-        if band == StationTask.Band.WEEKDAY and weekday is None:
-            self.add_error("weekday", "Bitte einen Wochentag wählen.")
-        if band != StationTask.Band.WEEKDAY:
-            cleaned["weekday"] = None
+        repeat = cleaned.get("repeat") or StationTask.Repeat.DAILY
+        days = cleaned.get("weekdays_selected") or []
+        if repeat == StationTask.Repeat.WEEKLY and not days:
+            self.add_error("weekdays_selected", "Bitte mindestens einen Wochentag wählen.")
+        if repeat == StationTask.Repeat.MONTHLY and not cleaned.get("month_day"):
+            self.add_error("month_day", "Bitte einen Tag im Monat angeben (1–31).")
+        if repeat == StationTask.Repeat.ONCE and not cleaned.get("start_date"):
+            self.add_error("start_date", "Einmalige Aufgaben brauchen ein Datum.")
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
+        if start and end and end < start:
+            self.add_error("end_date", "Der letzte Termin liegt vor dem ersten.")
+        if cleaned.get("use_band_color"):
+            cleaned["color"] = ""
+        color = (cleaned.get("color") or "").strip()
+        if color and not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
+            self.add_error("color", "Bitte einen Hex-Wert wie #1f7a4d angeben.")
+        cleaned["color"] = color.lower()
         return cleaned
+
+    def save(self, commit=True):
+        task = super().save(commit=False)
+        days = self.cleaned_data.get("weekdays_selected") or []
+        if task.repeat == StationTask.Repeat.WEEKLY:
+            task.set_weekdays(days)
+        else:
+            task.set_weekdays([])
+        if commit:
+            task.save()
+            self.save_m2m()
+        return task
 
 
 def _translated_profile_choices():

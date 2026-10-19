@@ -2,6 +2,11 @@
    Tokens aligned with clients/wachbuch-mobile (BOS / öffentlicher Dienst).
    Offline-fähig: lokale Source Sans 3, keine CDN-Abhängigkeiten. */
 
+/* Das hidden-Attribut muss jede Layout-Regel gewinnen: sonst macht
+   display:flex/-grid ein per JS oder Template verstecktes Element wieder
+   sichtbar (z. B. das Installationsbanner). */
+[hidden] { display: none !important; }
+
 @font-face {
   font-family: "Source Sans 3";
   font-style: normal;
@@ -161,16 +166,49 @@ button, a { -webkit-tap-highlight-color: transparent; }
   width: min(var(--content), calc(100% - 2rem));
   min-height: 3.75rem;
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
   margin: 0 auto;
+  position: relative;
+}
+
+/* Der Wachenname steht mittig in der Kopfzeile, ohne die Navigation zu
+   verschieben. Auf schmalen Anzeigen tritt er zurück, statt umzubrechen. */
+.brand-word {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.brand-word strong {
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: .015em;
+  line-height: 1;
+}
+
+.header-station {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0 .5rem;
+  max-width: 40%;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 .brand {
   min-height: var(--touch);
   display: inline-flex;
   align-items: center;
-  gap: .75rem;
+  gap: .6rem;
   color: white;
   text-decoration: none;
 }
@@ -1206,6 +1244,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     width: min(100% - 1.25rem, var(--content));
   }
   .header-inner { min-height: 3.5rem; }
+  .header-station { display: none; }
   .brand small, .identity strong { display: none; }
   .identity span { max-width: 11rem; color: rgba(255, 255, 255, .88); }
   .app-nav {
