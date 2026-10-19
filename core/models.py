@@ -1482,3 +1482,6 @@ from .wiki_models import WikiArticle, WikiRevision  # noqa: E402,F401
 
 # Bereinigte technische Fehlerereignisse (H4) liegen in einem eigenen Modul.
 from .diagnostics_models import ErrorEvent  # noqa: E402,F401
+
+# Widerrufbare Display-Zugaenge fuer Wandmonitore liegen in einem eigenen Modul.
+from .display_models import DisplayToken  # noqa: E402,F401

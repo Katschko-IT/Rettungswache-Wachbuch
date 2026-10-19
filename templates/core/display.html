@@ -1,0 +1,25 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'de' }}" class="display-root">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="theme-color" content="#0b1622">
+  <title>{{ display_station.name }} · {% translate "Wachen-Display" %}</title>
+  <link rel="stylesheet" href="{% static 'core/display.css' %}">
+</head>
+<body class="display-body">
+  <div class="display-surface" data-display-root data-display-overlay="false" data-data-url="{% url 'display_data' %}">
+    {% include "core/_display_surface.html" %}
+  </div>
+
+  <div class="display-fullscreen-prompt" data-display-prompt hidden>
+    <button type="button" class="display-fullscreen-button" data-display-fullscreen>
+      {% translate "Vollbild starten" %}
+    </button>
+  </div>
+
+  <script src="{% static 'core/display.js' %}" defer></script>
+</body>
+</html>

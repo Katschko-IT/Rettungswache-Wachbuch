@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachen-Display" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu Einstellungen" %}</a>
+<header class="page-heading narrow">
+  <h1>{% translate "Wachen-Display" %}</h1>
+  <p class="lead">{% translate "Ein Display-Link zeigt Uhrzeit, Termine, Aufgaben, Wetter und Geburtstage im Vollbild auf einem Monitor. Der Link gilt nur für diese Wache und lässt sich jederzeit widerrufen." %}</p>
+</header>
+
+<section class="content-flow narrow">
+  {% if new_url %}
+    <div class="callout" role="status">
+      <h2>{% translate "Neuer Display-Link" %}</h2>
+      <p>{% translate "Dieser Link wird nur jetzt angezeigt. Kopiere ihn auf das Anzeigegerät." %}</p>
+      <p class="token-value"><a href="{{ new_url }}">{{ new_url }}</a></p>
+    </div>
+  {% endif %}
+
+  <section class="section-block">
+    <h2>{% translate "Neuen Link erzeugen" %}</h2>
+    <form method="post" action="{% url 'display_token_create' %}" class="content-flow">
+      {% csrf_token %}
+      <label for="display-label">{% translate "Bezeichnung" %}</label>
+      <input id="display-label" name="label" maxlength="80" placeholder="{% translate 'z. B. Aufenthaltsraum' %}">
+      <div class="form-actions">
+        <button class="button primary" type="submit">{% translate "Link erzeugen" %}</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Vorhandene Links" %}</h2>
+    {% if tokens %}
+      <ul class="token-list">
+        {% for token in tokens %}
+          <li>
+            <div>
+              <strong>{{ token.label }}</strong>
+              <p class="helptext">
+                {% translate "Erstellt" %}: {{ token.created_at|date:"d.m.Y H:i" }}
+                {% if token.last_used_at %} · {% translate "Zuletzt genutzt" %}: {{ token.last_used_at|date:"d.m.Y H:i" }}{% endif %}
+              </p>
+            </div>
+            {% if token.is_active %}
+              <form method="post" action="{% url 'display_token_revoke' token.pk %}">
+                {% csrf_token %}
+                <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
+              </form>
+            {% else %}
+              <span class="status-label neutral">{% translate "Widerrufen" %}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="helptext">{% translate "Noch kein Display-Link angelegt." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Was die Anzeige zeigt" %}</h2>
+    <ul class="helptext">
+      <li>{% translate "Uhrzeit, Datum und Wachenname" %}</li>
+      <li>{% translate "Heutige Termine und Abfuhrtermine" %}</li>
+      <li>{% translate "Anzahl offener Tagesaufgaben" %}</li>
+      <li>{% translate "Wetter, sofern aktiviert" %}</li>
+      <li>{% translate "Geburtstage nur mit Einwilligung, ohne Jahr" %}</li>
+      <li>{% translate "Anzahl dringender Übergaben – ohne Titel oder Personenbezug" %}</li>
+    </ul>
+  </section>
+</section>
+{% endblock %}

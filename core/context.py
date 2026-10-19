@@ -33,6 +33,7 @@ def current_membership(request):
         # gehört, der nicht in der Leiste steht.
         "more_active": _more_tab_is_active(request, nav_keys),
         "more_order": more_config(station),
+        "display_station": station,
     }
 
 
