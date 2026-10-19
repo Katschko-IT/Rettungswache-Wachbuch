@@ -1,31 +1,32 @@
 {% extends "base.html" %}
-{% block title %}MFA | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "MFA" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel">
-  <p class="context-line">Konto</p>
-  <h1>Zwei-Faktor aktiv</h1>
+  <p class="context-line">{% translate "Konto" %}</p>
+  <h1>{% translate "Zwei-Faktor aktiv" %}</h1>
   {% if device %}
-  <p class="lead">TOTP seit {{ device.confirmed_at|date:"d.m.Y H:i" }} bestätigt.</p>
+  <p class="lead">{% blocktranslate with date=device.confirmed_at|date:"d.m.Y H:i" %}TOTP seit {{ date }} bestätigt.{% endblocktranslate %}</p>
   {% endif %}
   {% if webauthn_enabled %}
-  <h2>Passkeys</h2>
+  <h2>{% translate "Passkeys" %}</h2>
   <ul class="landing-points">
     {% for item in passkeys %}
       <li>
         {{ item.device_name|default:"Passkey" }}
-        <form method="post" action="{% url 'passkey_delete' item.pk %}" class="inline-form">{% csrf_token %}<button class="button secondary" type="submit">Entfernen</button></form>
+        <form method="post" action="{% url 'passkey_delete' item.pk %}" class="inline-form">{% csrf_token %}<button class="button secondary" type="submit">{% translate "Entfernen" %}</button></form>
       </li>
     {% empty %}
-      <li>Noch kein Passkey hinterlegt.</li>
+      <li>{% translate "Noch kein Passkey hinterlegt." %}</li>
     {% endfor %}
   </ul>
-  <p><button type="button" class="button secondary" data-passkey-register>Passkey hinzufügen</button></p>
+  <p><button type="button" class="button secondary" data-passkey-register>{% translate "Passkey hinzufügen" %}</button></p>
   <p class="hint" data-passkey-register-status hidden></p>
   {% endif %}
   <form method="post" action="{% url 'mfa_disable' %}">
     {% csrf_token %}
-    <button class="button secondary" type="submit">Alle zweiten Faktoren deaktivieren</button>
+    <button class="button secondary" type="submit">{% translate "Alle zweiten Faktoren deaktivieren" %}</button>
   </form>
-  <p><a class="text-action" href="{% url 'more' %}">Zurück zu Mehr</a></p>
+  <p><a class="text-action" href="{% url 'more' %}">{% translate "Zurück zu Mehr" %}</a></p>
 </section>
 {% endblock %}

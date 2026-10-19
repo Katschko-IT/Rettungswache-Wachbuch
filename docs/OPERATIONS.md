@@ -2,8 +2,8 @@
 
 ## Endpunkte
 
-- Anwendung: `http://127.0.0.1:${HTTP_PORT:-8090}/` (oeffentliche Projektseite)
-- Uebersicht (nach Login): `/uebersicht/`
+- Anwendung: `http://127.0.0.1:${HTTP_PORT:-8090}/` (öffentliche Projektseite)
+- Übersicht (nach Login): `/uebersicht/`
 - Healthcheck: `/healthz/` (JSON mit `status` und `version`)
 - Datenschutz/Cookies: `/datenschutz/`
 - Anmeldung: `/anmelden/` (optional TOTP unter `/anmelden/mfa/` und `/konto/mfa/`)
@@ -11,10 +11,10 @@
 - Teamfreigaben: `/team/`
 - technische Verwaltung: `/django-admin/`
 
-Der Standard-Port ist nicht oeffentlich gebunden. `HTTP_BIND_ADDRESS=0.0.0.0`
+Der Standard-Port ist nicht öffentlich gebunden. `HTTP_BIND_ADDRESS=0.0.0.0`
 sollte nur in einem kontrollierten Netz hinter einem Reverse-Proxy verwendet
-werden. Fuer jeden TLS-Betrieb muss `SECURE_COOKIES=true` gesetzt sein; `false`
-ist nur fuer lokalen HTTP-Zugriff ueber Loopback vorgesehen.
+werden. Für jeden TLS-Betrieb muss `SECURE_COOKIES=true` gesetzt sein; `false`
+ist nur für lokalen HTTP-Zugriff über Loopback vorgesehen.
 
 ## Standardbefehle
 
@@ -36,10 +36,10 @@ docker compose exec web python manage.py createsuperuser
 docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 ```
 
-Weitere persoenliche Konten werden unter `/django-admin/auth/user/` angelegt.
-Stationsadministratoren geben sie anschliessend unter `/team/` frei und setzen
+Weitere persönliche Konten werden unter `/django-admin/auth/user/` angelegt.
+Stationsadministratoren geben sie anschließend unter `/team/` frei und setzen
 die Rolle. Gemeinschaftskonten sind nicht vorgesehen. Unter **Mehr → Zwei-Faktor
-/ Passkeys** koennen TOTP und Passkeys eingerichtet werden. Mit
+/ Passkeys** können TOTP und Passkeys eingerichtet werden. Mit
 `MFA_REQUIRED=true` wird die Einrichtung nach dem Passwort-Login erzwungen.
 
 Passkeys brauchen `WEBAUTHN_RP_ID` (Hostname) und `WEBAUTHN_ORIGIN` (z. B.
@@ -51,7 +51,7 @@ VAPID-Schluessel (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`).
 TLS nach **BSI TR-02102-2**: bevorzugt TLS 1.3 mit AEAD (z. B. AES-256-GCM).
 Details: [`CRYPTO-BSI.md`](CRYPTO-BSI.md).
 
-Beispiel fuer Caddy vor dem Loopback-Port:
+Beispiel für Caddy vor dem Loopback-Port:
 
 ```caddy
 wache.example.org {
@@ -59,9 +59,9 @@ wache.example.org {
 }
 ```
 
-Hostname und HTTPS-Origin muessen in `ALLOWED_HOSTS` und
+Hostname und HTTPS-Origin müssen in `ALLOWED_HOSTS` und
 `CSRF_TRUSTED_ORIGINS` stehen. Der Proxy sollte `X-Forwarded-Proto` setzen.
-Fuer jeden TLS-Betrieb muss `SECURE_COOKIES=true` gesetzt sein.
+Für jeden TLS-Betrieb muss `SECURE_COOKIES=true` gesetzt sein.
 Django wertet `SECURE_PROXY_SSL_HEADER` aus und erzwingt sichere Cookies, wenn
 `SECURE_COOKIES=true` gesetzt ist.
 
@@ -73,35 +73,35 @@ Der Worker aktualisiert aktivierte Quellen alle 15 Minuten. Ein manueller Lauf:
 docker compose exec -T feed-worker python manage.py sync_feeds
 ```
 
-Neue Hosts werden zuerst in `FEED_ALLOWED_HOSTS` freigegeben. Das gilt fuer
-RSS-/CSV-Feeds und den optionalen Muellkalender-ICS-Fallback. Quellen koennen
+Neue Hosts werden zuerst in `FEED_ALLOWED_HOSTS` freigegeben. Das gilt für
+RSS-/CSV-Feeds und den optionalen Muellkalender-ICS-Fallback. Quellen können
 danach im Django-Admin erstellt, deaktiviert oder korrigiert werden. Fehler und
 der letzte erfolgreiche Abruf stehen direkt am `FeedSource`.
 
-Vor dem Upgrade einer 0.2-Installation muessen die Hosts aller bestehenden
-Quellen aus dem Django-Admin in `FEED_ALLOWED_HOSTS` uebernommen werden. Eine
+Vor dem Upgrade einer 0.2-Installation müssen die Hosts aller bestehenden
+Quellen aus dem Django-Admin in `FEED_ALLOWED_HOSTS` übernommen werden. Eine
 leere Allowlist deaktiviert Abrufe absichtlich.
 
 ## Push-Outbox
 
-Dringende Uebergaben schreiben innerhalb der Handover-Transaktion einen
+Dringende Übergaben schreiben innerhalb der Handover-Transaktion einen
 `PushOutbox`-Eintrag pro aktivem Abo. Der `push-worker`-Service liest die
-Tabelle, sendet ueber `pywebpush` und loescht das Abo bei HTTP 404/410.
+Tabelle, sendet über `pywebpush` und löscht das Abo bei HTTP 404/410.
 Der Gunicorn-Request selbst macht **keinen** externen Netzaufruf.
 
 Die Browser-CSP `connect-src` erlaubt nur `'self'` und die Hosts aus
 `PUSH_ALLOWED_ENDPOINT_HOSTS` (Standard: FCM, Mozilla Autopush, Apple, WNS).
-Ein Override dieser Variable gilt gemeinsam fuer das Speichern von
-Subscriptions und fuer die CSP.
+Ein Override dieser Variable gilt gemeinsam für das Speichern von
+Subscriptions und für die CSP.
 
-Der Container laeuft mit dedizierter DB-Rolle `PUSH_DB_USER` (Least Privilege)
-und eigenem `PUSH_WORKER_SECRET_KEY`. Erreichbar nur ueber `worker-db` und
+Der Container läuft mit dedizierter DB-Rolle `PUSH_DB_USER` (Least Privilege)
+und eigenem `PUSH_WORKER_SECRET_KEY`. Erreichbar nur über `worker-db` und
 `egress`, kein direkter App-DB-User.
 
 ### Retry und Backoff
 
 Bei Netzwerkfehlern oder 5xx-Antworten bleibt der Eintrag `pending` und der
-Worker plant den naechsten Versuch mit exponentiellem Backoff:
+Worker plant den nächsten Versuch mit exponentiellem Backoff:
 
 | Versuch | Wartezeit |
 |--------:|----------:|
@@ -113,14 +113,14 @@ Worker plant den naechsten Versuch mit exponentiellem Backoff:
 
 Nach `MAX_ATTEMPTS = 10` Versuchen wird der Eintrag auf `discarded` gesetzt
 und ein `push.outbox_failed` Audit-Event geschrieben. Die Idempotenz wird
-ueber den HTTP-Header `X-Idempotency-Key` (UUID der Outbox-Zeile) an den
-Push-Provider uebertragen.
+über den HTTP-Header `X-Idempotency-Key` (UUID der Outbox-Zeile) an den
+Push-Provider übertragen.
 
 ### Aufbewahrung
 
 Abgeschlossene Zeilen (`sent`, `discarded`, `failed`) werden nach 30 Tagen
-geloescht. Aufrufbar als eigenstaendiger Befehl oder Bestandteil der
-taeglichen Retention:
+gelöscht. Aufrufbar als eigenständiger Befehl oder Bestandteil der
+täglichen Retention:
 
 ```bash
 docker compose exec -T web python manage.py cleanup_pushoutbox
@@ -136,43 +136,43 @@ bestehende Retention-Cron-Pfad die Outbox mitraeumt.
 
 Die Datenbank unterscheidet fünf Rollen mit klar getrennten Aufgaben:
 
-- `rwsth_owner` (entspricht `POSTGRES_USER`): ausschliesslich fuer Init,
+- `rwsth_owner` (entspricht `POSTGRES_USER`): ausschließlich für Init,
   Migration, manuelle Restore-Skripte und die Passwortrotation. Wird im
   laufenden Betrieb von keinem dauerhaften Container benutzt.
 - `rwsth_app` (entspricht `APP_DB_USER`): Web- und Migrationscontainer. Volle
   CRUD-Rechte auf das Schema, aber kein `UPDATE`/`DELETE` auf den
   append-only-Tabellen `core_coffeeentry`, `core_auditevent`,
   `core_handoverrevision` und `core_checklistcompletion`.
-- `rwsth_feed` (entspricht `FEED_DB_USER`): ausschliesslich `FeedSource`-
+- `rwsth_feed` (entspricht `FEED_DB_USER`): ausschließlich `FeedSource`-
   Status- und `FeedItem`-CRUD.
 - `rwsth_push` (entspricht `PUSH_DB_USER`): `SELECT`/`UPDATE` auf der
   Push-Outbox, `SELECT`/`DELETE` auf Push-Subscriptions sowie ausschließlich
   `INSERT` in das append-only Audit-Log. Der Worker erhält keine allgemeinen
   Schema- oder Fachdatentabellenrechte.
-- `rwsth_backup` (entspricht `BACKUP_DB_USER`): ausschliesslich `SELECT` plus
-  `pg_read_all_data`. Wird vom dauerhaften `backup`-Container fuer
+- `rwsth_backup` (entspricht `BACKUP_DB_USER`): ausschließlich `SELECT` plus
+  `pg_read_all_data`. Wird vom dauerhaften `backup`-Container für
   `pg_dump` benutzt. Kann weder `INSERT`, `UPDATE` noch `DELETE` auf
-  Fach-Tabellen ausfuehren.
+  Fach-Tabellen ausführen.
 
 ### Tagesbackup
 
-Der `backup`-Container laeuft standardmaessig als PostgreSQL-UID/GID 70 und
+Der `backup`-Container läuft standardmaessig als PostgreSQL-UID/GID 70 und
 nutzt die `rwsth_backup`-Rolle. Die Dumps liegen im persistenten Named Volume
 `backups-data`. Der kurzlebige `backup-init`-Container setzt vor dem Start
 mit ausschließlich `CAP_CHOWN` und `CAP_FOWNER` die Volume-Rechte auf `0700`;
 der dauerhafte Backup-Prozess bleibt non-root und hat keine Capabilities.
-Abweichende Images koennen `BACKUP_UID` und `BACKUP_GID` in `.env` anpassen.
+Abweichende Images können `BACKUP_UID` und `BACKUP_GID` in `.env` anpassen.
 
-`pg_dump` laeuft mit `--no-owner --no-acl --format custom`. Der lokale
+`pg_dump` läuft mit `--no-owner --no-acl --format custom`. Der lokale
 Ring bleibt im Volume `backups-data` und wird pro Durchlauf um Dumps
-aelter als `BACKUP_RETENTION_DAYS` ausgeduennt.
+älter als `BACKUP_RETENTION_DAYS` ausgedünnt.
 
 ### Aufbewahrung alter Dumps
 
 `BACKUP_RETENTION_DAYS` (Standard `7`) steuert, wie viele Tage alte Dumps
-im `backup`-Container behalten werden. Jeder Durchlauf loescht Dateien
-(`rwsth-*.dump`, `rwsth-*.dump.gpg`), deren Modifikationszeit aelter ist.
-Der Wert `0` deaktiviert das Loeschen; der lokale Ring waechst dann
+im `backup`-Container behalten werden. Jeder Durchlauf löscht Dateien
+(`rwsth-*.dump`, `rwsth-*.dump.gpg`), deren Modifikationszeit älter ist.
+Der Wert `0` deaktiviert das Löschen; der lokale Ring wächst dann
 unbegrenzt und muss von Hand gepflegt werden. Die Einstellung wirkt nur
 auf die lokalen Dumps im Container, nicht auf das Offsite-Ziel.
 
@@ -182,14 +182,14 @@ BACKUP_RETENTION_DAYS=14   # zwei Wochen behalten
 BACKUP_RETENTION_DAYS=0    # nie automatisch loeschen
 ```
 
-### Offsite-Verschluesselung
+### Offsite-Verschlüsselung
 
 Wenn `BACKUP_ENCRYPT_REMOTE=true` gesetzt ist, wird jeder Dump vor dem
 Offsite-Upload symmetrisch mit GnuPG gegen `BACKUP_GPG_RECIPIENT`
-(AES-256, Empfaenger-Fingerprint oder E-Mail) verschluesselt. Der Klartext
-verlaesst den Container nie. `BACKUP_OFF_TARGET` akzeptiert `file://`-Ziele
-und ist die einzige Stelle, an der das verschluesselte Artefakt abgelegt
-wird. Eine leerer Wert fuehrt das lokale Backup weiter aus, unterdrueckt
+(AES-256, Empfänger-Fingerprint oder E-Mail) verschlüsselt. Der Klartext
+verlässt den Container nie. `BACKUP_OFF_TARGET` akzeptiert `file://`-Ziele
+und ist die einzige Stelle, an der das verschlüsselte Artefakt abgelegt
+wird. Ein leerer Wert führt das lokale Backup weiter aus, unterdrückt
 aber den Offsite-Schritt.
 
 ```bash
@@ -201,56 +201,56 @@ BACKUP_OFF_TARGET=file:///srv/wachbuch-offsite
 
 ### Restore-Test
 
-Der Restore-Test benoetigt Owner-Rechte (`createdb`/`dropdb`) und wird daher
-ueber den nur manuell gestarteten `restore-test`-Service ausgefuehrt. Die
-Owner-Credentials werden nur diesem Einmal-Container uebergeben; der dauerhafte
-`backup`-Container behaelt ausschließlich die Read-only-Backup-Rolle.
+Der Restore-Test benötigt Owner-Rechte (`createdb`/`dropdb`) und wird daher
+über den nur manuell gestarteten `restore-test`-Service ausgeführt. Die
+Owner-Credentials werden nur diesem Einmal-Container übergeben; der dauerhafte
+`backup`-Container behält ausschließlich die Read-only-Backup-Rolle.
 
 ```bash
 docker compose run --rm restore-test
 ```
 
 Der Restore-Test erstellt kurzzeitig `rwsth_restore_test`, spielt den
-neuesten Dump ein, prueft Schluesseltabellen und entfernt die Testdatenbank
+neuesten Dump ein, prüft Schlüsseltabellen und entfernt die Testdatenbank
 wieder.
 
 ## Aufbewahrung (Retention)
 
-- `RETENTION_FEED_DAYS` (Standard `90`): entfernt Feed-Eintraege, deren
-  `last_seen_at` aelter ist. `0` deaktiviert die Feed-Loeschung.
+- `RETENTION_FEED_DAYS` (Standard `90`): entfernt Feed-Einträge, deren
+  `last_seen_at` älter ist. `0` deaktiviert die Feed-Löschung.
 - `RETENTION_AUDIT_DAYS` (Standard `0`): Audit-Purge bleibt absichtlich aus, bis
   organisatorische Fristen freigegeben sind. Nur mit Owner-Rechten und klarer
   Freigabe setzen.
 - Kommando: `docker compose exec -T web python manage.py apply_retention`
-  (z. B. taeglich per Host-Cron).
+  (z. B. täglich per Host-Cron).
 
 ## Datenbank-Passwortrotation
 
-App- und Feed-Rollenpasswoerter rotieren (Owner-Passwort bleibt unangetastet):
+App- und Feed-Rollenpasswörter rotieren (Owner-Passwort bleibt unangetastet):
 
 ```bash
 ./scripts/rotate-db-passwords.sh
 ```
 
 Das Skript setzt neue Zufallswerte in PostgreSQL und `.env`, startet `web` und
-`feed-worker` neu. Anschliessend Healthcheck und Feed-Worker-Logs pruefen. Das
+`feed-worker` neu. Anschließend Healthcheck und Feed-Worker-Logs prüfen. Das
 Owner-Passwort (`POSTGRES_PASSWORD`) nur mit Dump/Restore und Neuinitialisierung
 rotieren.
 
-## Krypto-Schluesselrotation (TOTP-Secrets)
+## Krypto-Schlüsselrotation (TOTP-Secrets)
 
 Die TOTP-Geheimnisse liegen AES-256-GCM-verschluesselt in der Datenbank. Der
 Master-Key stammt Vorgabe aus `HKDF(SECRET_KEY)`. Da eine `SECRET_KEY`-Rotation
-damit alle Umschlaege unlesbar machen wuerde, kann der Master-Key unabhaengig
+damit alle Umschläge unlesbar machen würde, kann der Master-Key unabhängig
 von `SECRET_KEY` konfiguriert und rotiert werden:
 
 - `CRYPTO_MASTER_KEY` – 32 Byte hex-codiert (z. B. `openssl rand -hex 32`).
   Wenn gesetzt, ersetzt er die `HKDF(SECRET_KEY)`-Ableitung. Wenn nicht gesetzt,
   gilt das alte Verfahren (Rueckwaertskompatibilitaet).
-- `CRYPTO_PREVIOUS_MASTER_KEY` – optionaler Fallback-Schluessel, der waehrend
-  eines Rotationsfensters **zusätzlich** zum Entschluesseln akzeptiert wird.
-  Er erlaubt das Betreiben der App mit dem neuen Key, waehrend noch alte
-  Umschlaege in der Datenbank stehen.
+- `CRYPTO_PREVIOUS_MASTER_KEY` – optionaler Fallback-Schlüssel, der während
+  eines Rotationsfensters **zusätzlich** zum Entschlüsseln akzeptiert wird.
+  Er erlaubt das Betreiben der App mit dem neuen Key, während noch alte
+  Umschläge in der Datenbank stehen.
 
 ### Rotationsablauf
 
@@ -277,30 +277,30 @@ docker compose exec -T web python manage.py rotate_crypto_key
 #    und erneut neu starten. Healthcheck und TOTP-Anmeldung verifizieren.
 ```
 
-`--dry-run` aendert nichts, zaehlt aber wie viele Datensaetze neu
-verschluesselt wuerden. Waehrend des Rotationsfensters (Schritt 3–4) kann die
-App sowohl alte als auch neue Umschlaege lesen, sodass TOTP-Anmeldungen nicht
+`--dry-run` ändert nichts, zählt aber wie viele Datensätze neu
+verschlüsselt würden. Während des Rotationsfensters (Schritt 3–4) kann die
+App sowohl alte als auch neue Umschläge lesen, sodass TOTP-Anmeldungen nicht
 ausfallen. Erst nach Entfernen von `CRYPTO_PREVIOUS_MASTER_KEY` (Schritt 5)
-akzeptiert das System ausschliesslich den neuen Key.
+akzeptiert das System ausschließlich den neuen Key.
 
 ## Versionierung und Updates
 
 Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env`
-ueberschrieben werden. Die Version erscheint im Footer und unter `/healthz/`.
+überschrieben werden. Die Version erscheint im Footer und unter `/healthz/`.
 
 ### Release vorbereiten
 
 1. SemVer in `core/version.py` setzen und `CHANGELOG.md` aktualisieren.
 2. Migrationshinweise und Breaking Changes dokumentieren.
-3. Backup und Restore-Test ausfuehren.
-4. Abhaengigkeiten und Image-Digests kontrolliert aktualisieren.
-5. `docker compose build --no-cache` ausfuehren.
+3. Backup und Restore-Test ausführen.
+4. Abhängigkeiten und Image-Digests kontrolliert aktualisieren.
+5. `docker compose build --no-cache` ausführen.
 6. Images auf HIGH/CRITICAL-Schwachstellen scannen.
-7. Tests ausfuehren und danach `docker compose up -d` starten.
+7. Tests ausführen und danach `docker compose up -d` starten.
 8. Healthcheck inkl. Versionsfeld, Anmeldung, Rollen, Tagesaufgaben und optionale
-   Feeds pruefen.
+   Feeds prüfen.
 9. Service-Worker-Caches leeren bzw. einmal ab-/anmelden, falls Shell-Assets
-   geaendert wurden.
+   geändert wurden.
 
 ### Rollback
 
@@ -310,18 +310,18 @@ ueberschrieben werden. Die Version erscheint im Footer und unter `/healthz/`.
 3. Keine Tabellen manuell „reparieren“.
 4. Incident, Root Cause und erneuten Release-Versuch dokumentieren.
 
-Bei Stoerungen zuerst Logs und letzten Dump sichern, dann die Ursache
-reproduzierbar ueber Anwendung oder Migration beheben.
+Bei Störungen zuerst Logs und letzten Dump sichern, dann die Ursache
+reproduzierbar über Anwendung oder Migration beheben.
 
 Siehe auch [`COMPLIANCE.md`](COMPLIANCE.md).
 
 ## Korrelations-IDs und Fehlerkanone (R-014)
 
-Jeder Request traegt eine Korrelations-ID, die Antworten, JSON-Fehler und
-Logeintraege miteinander verknuepft. Sie ist die wichtigste Information fuer
+Jeder Request trägt eine Korrelations-ID, die Antworten, JSON-Fehler und
+Logeinträge miteinander verknüpft. Sie ist die wichtigste Information für
 den Support, weil personenbezogene Daten bewusst nicht geloggt werden.
 
-* Eingehender Header `X-Correlation-ID` wird uebernommen, wenn er dem Muster
+* Eingehender Header `X-Correlation-ID` wird übernommen, wenn er dem Muster
   `[A-Za-z0-9_-]{1,128}` entspricht. Andernfalls erzeugt der Server eine
   frische UUID4 (hex, 32 Zeichen).
 * Die ID wird in jeder Antwort als `X-Correlation-ID` mitgesendet und auf
@@ -329,7 +329,7 @@ den Support, weil personenbezogene Daten bewusst nicht geloggt werden.
 * Logs (Logger `wachbuch.requests` und `wachbuch.errors`) erhalten die ID
   als strukturiertes Feld `extra={"correlation_id": ...}`. Request-Bodies,
   Formularfelder und Auth-Header werden nie geloggt.
-* Fehlerseiten (HTML und JSON) zeigen die Korrelations-ID fuer den
+* Fehlerseiten (HTML und JSON) zeigen die Korrelations-ID für den
   Support-Vorgang an.
 
 ### JSON-Fehlerstruktur
@@ -348,7 +348,7 @@ Alle JSON-Fehlerantworten folgen demselben Schema:
 }
 ```
 
-Das `fields`-Objekt ist optional und enthaelt Formularfehler bei
+Das `fields`-Objekt ist optional und enthält Formularfehler bei
 `validation_error`.
 
 ### Eindeutige Fehler-Codes
@@ -362,14 +362,14 @@ Das `fields`-Objekt ist optional und enthaelt Formularfehler bei
 | `rate_limit` | 429 | Zu viele Anfragen (Axes, R-011). |
 | `server_error` | 500 | Unerwarteter interner Fehler. |
 
-Stabile Codes gehoeren zum oeffentlichen API-Versprechen. Aenderungen
+Stabile Codes gehören zum öffentlichen API-Versprechen. Änderungen
 erfordern ein neues Mapping in `core.errors.ERROR_CODES`.
 
 ### Verhalten nach Modus
 
-* `DEBUG=true`: Django zeigt die Standard-Traceback-Seiten. Fuer den
-  Pilotbetrieb zulaessig, fuer Produktion aus.
+* `DEBUG=true`: Django zeigt die Standard-Traceback-Seiten. Für den
+  Pilotbetrieb zulässig, für Produktion aus.
 * `DEBUG=false`: Eigene Templates (`templates/errors/400-500.html`) und
   kanonische JSON-Antworten werden ausgeliefert. 500-Fehler loggen den
-  vollstaendigen Stacktrace intern, die Antwort enthaelt nur die
+  vollständigen Stacktrace intern, die Antwort enthält nur die
   Korrelations-ID.

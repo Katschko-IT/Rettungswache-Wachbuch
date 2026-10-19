@@ -1,20 +1,21 @@
 {% extends "base.html" %}
-{% block title %}{{ status_code }} \u2013 {{ error_label }}{% endblock %}
+{% load i18n %}
+{% block title %}{{ status_code }} – {{ error_label }}{% endblock %}
 {% block body_class %}page-error{% endblock %}
 {% block content %}
 <section class="error-shell" aria-labelledby="error-title">
   <p class="error-code" aria-hidden="true">{{ status_code }}</p>
   <h1 id="error-title">{{ error_label }}</h1>
-  <p class="error-message">Beim Verarbeiten der Anfrage ist ein interner Fehler aufgetreten. Es wurden keine personenbezogenen Inhalte zurueckgegeben.</p>
+  <p class="error-message">{% translate "Beim Verarbeiten der Anfrage ist ein interner Fehler aufgetreten. Es wurden keine personenbezogenen Inhalte zurückgegeben." %}</p>
   <p class="error-actions">
-    <a class="button primary" href="{% url 'landing' %}">Zur Startseite</a>
+    <a class="button primary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
     {% if user.is_authenticated %}
-      <a class="button secondary" href="{% url 'dashboard' %}">Zur Uebersicht</a>
+      <a class="button secondary" href="{% url 'dashboard' %}">{% translate "Zur Übersicht" %}</a>
     {% endif %}
   </p>
   {% if correlation_id %}
-  <p class="error-meta">Korrelations-ID: <code>{{ correlation_id }}</code></p>
+  <p class="error-meta">{% translate "Korrelations-ID" %}: <code>{{ correlation_id }}</code></p>
   {% endif %}
-  <p class="error-support">Damit wir helfen koennen: Wende dich an den Wachbuch-Support und teile die obenstehende Korrelations-ID sowie ungefaehr die durchgefuehrte Aktion.</p>
+  <p class="error-support">{% translate "Damit wir helfen können: Wende dich an den Wachbuch-Support und teile die obenstehende Korrelations-ID sowie ungefähr die durchgeführte Aktion." %}</p>
 </section>
 {% endblock %}

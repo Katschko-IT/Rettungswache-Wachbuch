@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Zugang | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Zugang" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel">
-  <p class="context-line">Geschützter Bereich</p>
-  <h1>Zugang wartet auf Freigabe</h1>
-  <p class="lead">Angemeldet als <strong>{{ request.user.username }}</strong>. Der Master-Admin muss das Konto einer Rettungswache zuordnen.</p>
-  <p><a class="button secondary" href="{% url 'account_home' %}">Zum persönlichen Bereich</a></p>
+  <p class="context-line">{% translate "Geschützter Bereich" %}</p>
+  <h1>{% translate "Zugang wartet auf Freigabe" %}</h1>
+  <p class="lead">{% blocktranslate with username=request.user.username %}Angemeldet als <strong>{{ username }}</strong>. Der Master-Admin muss das Konto einer Rettungswache zuordnen.{% endblocktranslate %}</p>
+  <p><a class="button secondary" href="{% url 'account_home' %}">{% translate "Zum persönlichen Bereich" %}</a></p>
 </section>
 {% endblock %}

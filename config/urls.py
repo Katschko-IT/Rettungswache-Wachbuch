@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from core import account_views, community_views, secure_views
+from core import account_views, community_views, qr_login_views, secure_views
 from core.auth_views import PasswordLoginView
 from core.views import (
     bad_request,
@@ -51,7 +51,17 @@ urlpatterns = [
     path("konto/mfa/passkey/<int:pk>/entfernen/", account_views.passkey_delete, name="passkey_delete"),
     path("konto/api/", account_views.api_tokens_manage, name="api_tokens_manage"),
     path("konto/api/mobile-qr.png", account_views.mobile_setup_qr, name="mobile_setup_qr"),
-    path("abmelden/", auth_views.LogoutView.as_view(), name="logout"),
+    path("anmelden/qr/", qr_login_views.qr_login_wait, name="qr_login_wait"),
+    path("anmelden/qr/start/", qr_login_views.qr_login_start, name="qr_login_start"),
+    path("anmelden/qr/eingeben/", qr_login_views.qr_login_manual, name="qr_login_manual"),
+    path("anmelden/qr/<uuid:login_id>/", qr_login_views.qr_login_wait, name="qr_login_wait_id"),
+    path("anmelden/qr/<uuid:login_id>/status/", qr_login_views.qr_login_status, name="qr_login_status"),
+    path("anmelden/qr/<uuid:login_id>/bestaetigen/", qr_login_views.qr_login_confirm, name="qr_login_confirm"),
+    path("anmelden/qr/<uuid:login_id>/bestaetigen/passkey/optionen/", qr_login_views.qr_login_passkey_options, name="qr_login_passkey_options"),
+    path("anmelden/qr/<uuid:login_id>/bestaetigen/passkey/pruefen/", qr_login_views.qr_login_passkey_verify, name="qr_login_passkey_verify"),
+    path("anmelden/qr/<uuid:login_id>/ablehnen/", qr_login_views.qr_login_deny, name="qr_login_deny"),
+    path("anmelden/qr/<uuid:login_id>/exchange/", qr_login_views.qr_login_exchange, name="qr_login_exchange"),
+    path("abmelden/", qr_login_views.QrLogoutView.as_view(), name="logout"),
     path("django-admin/", admin.site.urls),
     path("api/v1/", include("core.api.urls")),
     path("", include("core.urls")),

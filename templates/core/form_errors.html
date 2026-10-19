@@ -1,6 +1,7 @@
+{% load i18n %}
 {% if form.errors %}
 <div class="error-summary" role="alert" tabindex="-1">
-  <h2>Bitte Eingaben prüfen</h2>
-  <p>Mindestens eine Angabe fehlt oder ist ungültig.</p>
+  <h2>{% translate "Bitte Eingaben prüfen" %}</h2>
+  <p>{% translate "Mindestens eine Angabe fehlt oder ist ungültig." %}</p>
 </div>
 {% endif %}

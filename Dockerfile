@@ -18,6 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY manage.py .
 COPY config config
 COPY core core
+COPY locale locale
 COPY templates templates
 RUN SECRET_KEY=build-only-secret-key-not-used-at-runtime \
     DJANGO_DEBUG=true \
@@ -50,6 +51,7 @@ COPY --from=builder /opt/venv /opt/venv
 COPY --chown=app:app manage.py .
 COPY --chown=app:app config config
 COPY --chown=app:app core core
+COPY --chown=app:app locale locale
 COPY --chown=app:app scripts scripts
 COPY --chown=app:app templates templates
 COPY --from=builder --chown=app:app /app/staticfiles /app/staticfiles

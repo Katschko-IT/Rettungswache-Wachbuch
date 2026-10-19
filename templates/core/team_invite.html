@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Aktivierungslink | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">Nur einmal sichtbar</p>
+  <h1>Aktivierungslink für {{ created_user.get_full_name|default:created_user.username }}</h1>
+</header>
+
+<div class="alert" role="status">
+  <p>Dieser Link und der QR-Code werden <strong>nur jetzt</strong> angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle: {{ role }}.</p>
+  <p>Gültig bis {{ activation.expires_at }}. Einmalig verwendbar und widerrufbar.</p>
+</div>
+
+<section class="section-block">
+  <h2>Link</h2>
+  <p><code class="activation-link">{{ activation_link }}</code></p>
+  <h2>QR-Code für die Person</h2>
+  <p><img src="{{ qr_data_uri }}" alt="QR-Code für den einmaligen Aktivierungslink" width="220" height="220"></p>
+  <p class="help-text">Der QR-Code enthält ausschließlich den einmaligen Aktivierungslink – keine dauerhaften Zugangsdaten und keinen wiederholbaren Login.</p>
+  <p>
+    <a class="button secondary" href="{% url 'team_invites' %}">Offene Einladungen</a>
+    <a class="button secondary" href="{% url 'team' %}">Zum Team</a>
+  </p>
+</section>
+{% endblock %}

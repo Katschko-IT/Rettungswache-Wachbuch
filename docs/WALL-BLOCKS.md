@@ -1,4 +1,4 @@
-# Wandbausteine fuer das Wachbuch
+# Wandbausteine für das Wachbuch
 
 Stand: 31. Juli 2026
 
@@ -30,26 +30,26 @@ Farbe ist **nur Hilfsmittel**. Status und Bereich stehen immer ausgeschrieben.
 | Neutral | Offen | Noch nicht erledigt |
 
 Bewusst **kein Magenta** aus dem Infoposter als Systemfarbe: es konkurriert mit
-Rot/Dringend. Magenta bliebe optional fuer spaetere reine Hinweis-Kacheln.
+Rot/Dringend. Magenta bliebe optional für spätere reine Hinweis-Kacheln.
 
 ## App-Bausteine
 
-1. **Heute-Liste** (`/aufgaben/`): Wandtablet-tauglich, drei farbige Baender,
+1. **Heute-Liste** (`/aufgaben/`): Wandtablet-tauglich, drei farbige Bänder,
    Ein-Tap-Erledigt mit Audit.
 2. **Wochenbogen** (`/aufgaben/woche/`): Sieben Spalten wie der laminierte Bogen,
    heutige Spalte hervorgehoben.
 3. **Vorlage** (`/aufgaben/verwaltung/`): Schichtleitung/Admin pflegt Titel,
    Band, Wochentag und Hinweise.
 4. **Standardvorlage**: Beim ersten Aufruf oder Bootstrap werden typische
-   Steinhagen-nahe Aufgaben ohne Ortspflicht angelegt und koennen angepasst
+   Steinhagen-nahe Aufgaben ohne Ortspflicht angelegt und können angepasst
    werden.
 5. **Dashboard-Kachel**: Fortschritt `erledigt/gesamt` als Schnellzugriff.
 6. **Modulschalter** `tasks_enabled`: Wache kann den Baustein ausblenden.
 
 ## Grenzen
 
-- Keine Zuweisung von Dienstschichten oder Personenplaenen.
+- Keine Zuweisung von Dienstschichten oder Personenplänen.
 - Keine Fahrzeug- oder Patientendaten in Freitexten.
 - Kein Drag-and-drop offline; Erledigungen brauchen Online-Verbindung.
-- Magnettafel-Lagebilder und Infoposter-Artikel bleiben ausserhalb, bis es einen
+- Magnettafel-Lagebilder und Infoposter-Artikel bleiben außerhalb, bis es einen
   eigenen freigegebenen Zweck gibt.

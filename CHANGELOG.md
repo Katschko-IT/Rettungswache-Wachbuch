@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0 - 2026-10-19
+
+Zwischenrelease für Entwicklung und Präsentation, keine Produktionsfreigabe.
+
+- Einrichtungsassistent mit Wachendaten, persönlichen Konten und optionalem Fünf-Tage-Wetter.
+- Wiederholbarer QR-Login mit Gerätebestätigung, MFA-Anforderungen und Schutz gegen Wiederverwendung.
+- Lokaler Betrieb bei WAN-Ausfall, wenn Server und LAN/WLAN erreichbar bleiben; keine Client-Outbox.
+- Deutsche Textkorrekturen und de/en-Sprachfundament für Anmeldung, Einrichtung und Meldungen; Fachmodule noch nicht vollständig übersetzt.
+- Token-Redaktion in Accesslogs und zusätzliche Funktions-, Berechtigungs- und Offline-Regressionstests.
+- Statische Projektwebseite mit lokalen Assets und ausschließlich synthetischen Bildschirmaufnahmen.
+- Nicht Bestandteil: integriertes Hilfe-/Wiki-/Diagnosezentrum, vollständige Mehrsprachigkeit und reale Geräte-/Produktionsabnahme.
+
 ## 0.16.0 - 2026-08-20
 
 - Öffentliche Vorführungsseite unter `/vorfuehrung/` in der Web-PWA (Folien,
@@ -27,10 +39,10 @@
   Client-Tokens (Primary `#0D47A1`, Prioritätsfarben, 48px Touch-Ziele, ruhige
   Flächen mit Rand); lokale Source Sans 3 (OFL); Landing und Manifest auf
   öffentlicher-Dienst-Ästhetik; Doku in `docs/DESIGN-SYSTEM.md`
-- **Sicherheitshaertung R-021** – `obtain_token` verweigert API-Tokens, wenn
-  `MFA_REQUIRED=true` gilt und das Konto keine bestaetigte MFA hat
+- **Sicherheitshärtung R-021** – `obtain_token` verweigert API-Tokens, wenn
+  `MFA_REQUIRED=true` gilt und das Konto keine bestätigte MFA hat
   (Fehlercode `mfa_setup_required`); Push-Subscription-Endpoints werden vor dem
-  Speichern gegen eine HTTPS-Host-Allowlist geprueft (`PUSH_ALLOWED_ENDPOINT_HOSTS`,
+  Speichern gegen eine HTTPS-Host-Allowlist geprüft (`PUSH_ALLOWED_ENDPOINT_HOSTS`,
   SSRF-Schutz); IBAN-Kopie-Handler aus der Kaffeeseite in `app.js` verschoben,
   damit `script-src 'self'` die Funktion nicht mehr blockiert; MFA-Fehlercodes
   in der kanonischen Fehlertabelle registriert
@@ -40,7 +52,7 @@
   `sync_waste_calendar` importiert sie mit demselben Haertungsprofil wie die
   Feed-Sync (HTTPS-only, Port 443, keine Weiterleitungen, DNS-Pinning auf globale
   Adressen, 1-MB-Limit); Abfuhrtermine erscheinen im Kalender, Dashboard und ICS-Abo
-  mit Kennzeichnung „Muell“; HTTP- und private-IP-Quellen werden abgewiesen
+  mit Kennzeichnung „Müll“; HTTP- und private-IP-Quellen werden abgewiesen
 - Doku-Sync: Versionspaarung Server ↔ Client dokumentiert
 - **Kaffeekasse: Zahlungsweg-Hinweise** – optionale Felder `paypal_me_url`,
   `wero_link`, `iban`, `bic`, `payment_note` in den Stationseinstellungen;
@@ -50,8 +62,8 @@
   entkoppelt die TOTP-Verschlüsselung von `SECRET_KEY`; neuer Management-Befehl
   `rotate_crypto_key` re-verschlüsselt alle TOTP-Secrets, `CRYPTO_PREVIOUS_MASTER_KEY`
   sichert das Migrationsfenster (#20)
-- Fahrplan fuer Kaffeekasse-Zahlungshinweise (PayPal.me, Wero, IBAN) und
-  Muellkalender Kreis Guetersloh in `docs/ROADMAP.md`
+- Fahrplan für Kaffeekasse-Zahlungshinweise (PayPal.me, Wero, IBAN) und
+  Müllkalender Kreis Gütersloh in `docs/ROADMAP.md`
 
 ## 0.15.0 - 2026-08-02
 
@@ -66,23 +78,23 @@
 
 ## 0.14.1 - 2026-08-02
 
-- Review-Haertung API: Passwortwechsel widerruft App-Tokens; Scope-Checks auf `/me/` und `/uebersicht/`
+- Review-Härtung API: Passwortwechsel widerruft App-Tokens; Scope-Checks auf `/me/` und `/uebersicht/`
 - App-Tokens mit Default-Ablauf (90 Tage); Axes-Reset nach Token-Mint; API-404 als JSON
-- Checklisten-Abschluss prueft Stationskonsistenz; Compose-Log-Rotation fuer web/worker/backup
+- Checklisten-Abschluss prüft Stationskonsistenz; Compose-Log-Rotation für web/worker/backup
 
 ## 0.14.0 - 2026-08-01
 
 - API v1 vereinheitlicht: widerrufbare `wb_`-App-Tokens plus deutsche Alias-Pfade
   (`anmeldung/`, `status/`, `uebersicht/`, `uebergaben/`, `kalender/`, `kaffeekasse/`, `checklisten/`)
-- Schreibende API: Uebergaben anlegen/Status, Kalender, Kaffeekasse, Checklisten-Abschluss
+- Schreibende API: Übergaben anlegen/Status, Kalender, Kaffeekasse, Checklisten-Abschluss
 - Checklisten-Modul (Admin-Schalter, HTML `/checklisten/`, append-only Completions, DB-REVOKE)
 - Multi-Stage-Dockerfile und Compose-Log-Rotation; OpenAPI/Doku aktualisiert
 
 ## 0.13.0 - 2026-07-31
 
 - Krypto-Profil an BSI TR-02102 angelehnt (`docs/CRYPTO-BSI.md`): AES-256-GCM, ECDH P-256, TLS 1.3
-- Login-Passwoerter bevorzugt **Argon2id**; TOTP-Geheimnisse AES-256-GCM at rest
-- E2EE Private-Key-Umschlag: PBKDF2-SHA-256 mit 600 000 Iterationen (bestehende Umschlaege weiter lesbar)
+- Login-Passwörter bevorzugt **Argon2id**; TOTP-Geheimnisse AES-256-GCM at rest
+- E2EE Private-Key-Umschlag: PBKDF2-SHA-256 mit 600 000 Iterationen (bestehende Umschläge weiter lesbar)
 
 ## 0.12.1 - 2026-07-31
 
@@ -117,24 +129,24 @@
 
 ## 0.9.0 - 2026-07-31
 
-- API-Fundament `/api/v1/` fuer spaetere Open-Source-iOS-/Android-Clients
+- API-Fundament `/api/v1/` für spätere Open-Source-iOS-/Android-Clients
 - App-Tokens (Paperless/Nextcloud-Stil) unter `/konto/api/` und `POST /api/v1/token/`
-- Discovery, OpenAPI, `me`, lesende Uebergaben; Doku in `docs/API.md`
+- Discovery, OpenAPI, `me`, lesende Übergaben; Doku in `docs/API.md`
 
 ## 0.8.0 - 2026-07-31
 
-- Ende-zu-Ende-Verschluesselung fuer Wachenchat (Ciphertext auf dem Server)
-- private 1:1-Chats nur fuer Teilnehmer; Master-Admin ohne Teilnahme sieht nichts
-- interne verschluesselte Post (`/post/`); nur Absender/Empfaenger lesen Klartext
-- Chat-Schluessel unter `/konto/crypto/` (Passphrase-umschlossener Private Key)
+- Ende-zu-Ende-Verschlüsselung für Wachenchat (Ciphertext auf dem Server)
+- private 1:1-Chats nur für Teilnehmer; Master-Admin ohne Teilnahme sieht nichts
+- interne verschlüsselte Post (`/post/`); nur Absender/Empfänger lesen Klartext
+- Chat-Schlüssel unter `/konto/crypto/` (Passphrase-umschlossener Private Key)
 
 ## 0.7.0 - 2026-07-31
 
 - Master-Admin legt Nutzer an und gibt Wachenzugaenge frei (`/team/anlegen/`)
-- oeffentliche Selbstregistrierung standardmaessig aus (optional per Env)
-- persoenlicher Bereich: Profilbild, Passwort, Zwei-Faktor, Link zum Wachenchat
+- öffentliche Selbstregistrierung standardmaessig aus (optional per Env)
+- persönlicher Bereich: Profilbild, Passwort, Zwei-Faktor, Link zum Wachenchat
 - Wachenchat als kurze Kollegennachrichten mit Avatar/Initialen (Facebook light)
-- Rolle `admin` heisst sichtbar **Master-Admin**
+- Rolle `admin` heißt sichtbar **Master-Admin**
 
 ## 0.6.1 - 2026-07-31
 
@@ -144,85 +156,85 @@
 ## 0.6.0 - 2026-07-31
 
 - Selbstregistrierung mit Admin-Freigabe und Ablehnung
-- persoenlicher Kontbereich (`/konto/`) fuer Profil und Passwort
+- persönlicher Kontbereich (`/konto/`) für Profil und Passwort
 - stationsbezogener Wachenchat (ohne Uploads, moderierbar)
 - Modulschalter `chat_enabled` in den Stationseinstellungen
 
 ## 0.5.0 - 2026-07-31
 
-- Passkeys (WebAuthn) fuer Anmeldung und als zweiter Faktor neben TOTP
-- Web-Push fuer dringende Uebergaben (opt-in, VAPID)
+- Passkeys (WebAuthn) für Anmeldung und als zweiter Faktor neben TOTP
+- Web-Push für dringende Übergaben (opt-in, VAPID)
 - Stationsweiter ICS-Feed und widerrufbare Kalender-Abo-Links
-- ASVS-L2-Abdeckungsmatrix und Permissions-Policy fuer WebAuthn
-- MFA-Fehlversuche begrenzt; CSP `connect-src` fuer Push-Dienste
+- ASVS-L2-Abdeckungsmatrix und Permissions-Policy für WebAuthn
+- MFA-Fehlversuche begrenzt; CSP `connect-src` für Push-Dienste
 
 ## 0.4.0 - 2026-07-31
 
-- Austritt: Deaktivierung einer Mitgliedschaft zieht Geburtstags-Opt-in zurueck
-- Audit-Diffs fuer Rollen, Modulschalter und Uebergabe-Status (ohne Freitexte)
-- kontrollierte Uebergabe-Korrektur mit neuer Revision (`/uebergaben/<id>/bearbeiten/`)
+- Austritt: Deaktivierung einer Mitgliedschaft zieht Geburtstags-Opt-in zurück
+- Audit-Diffs für Rollen, Modulschalter und Übergabe-Status (ohne Freitexte)
+- kontrollierte Übergabe-Korrektur mit neuer Revision (`/uebergaben/<id>/bearbeiten/`)
 - Feed-Felder `first_imported_at` / `last_seen_at` und Null-sichere Sortierung
 - Retention-Kommando `apply_retention` (`RETENTION_FEED_DAYS`, optional Audit)
 - optionale TOTP-Zwei-Faktor-Anmeldung (`MFA_ENABLED` / `MFA_REQUIRED`)
-- Skript und Ablauf zur Rotation der App-/Feed-DB-Passwoerter
-- Touchziele fuer Footer-, Sektions- und Kassen-Aktionslinks nachgezogen
+- Skript und Ablauf zur Rotation der App-/Feed-DB-Passwörter
+- Touchziele für Footer-, Sektions- und Kassen-Aktionslinks nachgezogen
 
 ## 0.3.0 - 2026-07-31
 
-- Compliance-Doku zu DSGVO, TDDDG-Cookies, EU AI Act und NRW oeffentlichem Dienst
+- Compliance-Doku zu DSGVO, TDDDG-Cookies, EU AI Act und NRW öffentlichem Dienst
 - Datenschutz-/Cookie-Transparenzseite unter `/datenschutz/` ohne Tracking-Banner
-- oeffentliche Startseite unter `/` praesentiert das Projekt; Fachfunktionen erst nach Login
-- Dashboard unter `/uebersicht/`; Logout und unauthentifizierte App-Routen fuehren zu Startseite bzw. Anmeldung
+- öffentliche Startseite unter `/` präsentiert das Projekt; Fachfunktionen erst nach Login
+- Dashboard unter `/uebersicht/`; Logout und unauthentifizierte App-Routen führen zu Startseite bzw. Anmeldung
 - sichtbare Produktmarke einheitlich `Wachbuch`; Header-Unterzeile zeigt den Stationsnamen
 - sichtbare SemVer-Version in Footer, `/healthz/` und Image-Label
 - dokumentierter Versions- und Update-/Rollback-Ablauf
-- Tagesaufgaben-Modul nach Wandbogen: gruen taeglich, gelb Wochentag, blau zusaetzlich
-- Heute-Liste, Wochenbogen, Vorlagenverwaltung und Audit fuer Erledigungen
+- Tagesaufgaben-Modul nach Wandbogen: grün täglich, gelb Wochentag, blau zusätzlich
+- Heute-Liste, Wochenbogen, Vorlagenverwaltung und Audit für Erledigungen
 - installierbare PWA mit Manifest, Service Worker, Icons und Offline-Hinweis
 - App-Shell mit Safe Areas, Installationshinweis, Dringend-Badge und Schnellzugriff
-- ICS-Export fuer einzelne Wachentermine
-- Design der Oberflaeche fuer Standalone-Nutzung aufpoliert
-- Tailscale-Header-Login und zugehoerige Konfiguration vollstaendig entfernt
-- Authentifizierung nur noch ueber lokale Django-Konten hinter Docker/Reverse-Proxy
-- Docker-Image mit Labels, ausfuehrbaren Startskripten und Healthcheck gestrafft
+- ICS-Export für einzelne Wachentermine
+- Design der Oberfläche für Standalone-Nutzung aufpoliert
+- Tailscale-Header-Login und zugehörige Konfiguration vollständig entfernt
+- Authentifizierung nur noch über lokale Django-Konten hinter Docker/Reverse-Proxy
+- Docker-Image mit Labels, ausführbaren Startskripten und Healthcheck gestrafft
 - Compose-Projektname und Image-Name vereinheitlicht; Stack-Dokumentation bereinigt
-- Geburtstage speichern Tag/Monat nur noch bei aktivem Opt-in und pruefen echte Kalenderdaten
+- Geburtstage speichern Tag/Monat nur noch bei aktivem Opt-in und prüfen echte Kalenderdaten
 - Geburtstagsliste blendet inaktive Mitglieder aus
 - erneute Teamfreigabe reaktiviert bestehende Mitgliedschaften statt in einen 500-Fehler zu laufen
 - Kaffeekorrekturen sperren die Originalbuchung und fangen parallele Doppelkorrekturen ab
-- Feedansicht zeigt nur aktivierte Quellen und benennt die Guetersloh-Datenluecke
+- Feedansicht zeigt nur aktivierte Quellen und benennt die Gütersloh-Datenlücke
 - Migration setzt externe Meldungen nach dem Modul-Upgrade wieder auf Opt-in
-- Audit-Dokument mit Funktionsueberblick und Folgeplan ergaenzt
+- Audit-Dokument mit Funktionsüberblick und Folgeplan ergänzt
 
 ## Unreleased - Open-Source-Basis
 
 - portable Docker-Konfiguration ohne servergebundene Hosts und Datenbank-URLs
-- sichere, stationsbezogene Einstellungsseite fuer Name und optionale Module
-- lokaler Login und reproduzierbarer Erstadmin-Workflow ergaenzt
+- sichere, stationsbezogene Einstellungsseite für Name und optionale Module
+- lokaler Login und reproduzierbarer Erstadmin-Workflow ergänzt
 - Migrationen vom dauerhaften Webprozess getrennt
 - Build-Kontext gegen Backups, Datenbanken und Bytecode abgesichert
-- Adminzugriff auf fachliche und unveraenderliche Datensaetze eingeschraenkt
+- Adminzugriff auf fachliche und unveränderliche Datensätze eingeschränkt
 - GitHub-CI, Beitrags- und Sicherheitsrichtlinie vorbereitet
 - Lizenz auf GNU AGPL v3 umgestellt
 
 ## 2026-07-28 - UI 0.2.0
 
-- Dashboard auf aktive Uebergaben und die naechsten drei Termine reduziert
-- globale Navigation auf Uebersicht, Uebergaben, Kalender und Mehr vereinfacht
+- Dashboard auf aktive Übergaben und die nächsten drei Termine reduziert
+- globale Navigation auf Übersicht, Übergaben, Kalender und Mehr vereinfacht
 - Schreibformulare auf eigene, lineare Seiten verschoben
-- Uebergaben fachlich nach Dringlichkeit sortiert und Archiv getrennt
+- Übergaben fachlich nach Dringlichkeit sortiert und Archiv getrennt
 - Feedansicht nach Meldungen und Verkehr getrennt sowie paginiert
 - Kassenbuch und Audit als semantische responsive Tabellen umgesetzt
-- mobile Navigation, 768-Pixel-Tablet-Reflow und 44-Pixel-Touchziele eingefuehrt
+- mobile Navigation, 768-Pixel-Tablet-Reflow und 44-Pixel-Touchziele eingeführt
 - offene Designquellen und zehn verbindliche UX-Regeln dokumentiert
 
 ## 2026-07-28 - Tailnet-Pilot 0.1.0
 
 - Django/PostgreSQL-Projektbasis und eigenes Git-Repository angelegt
-- Uebergaben, Kalender, Geburtstage, Kaffeekasse, Teamrollen und Audit umgesetzt
+- Übergaben, Kalender, Geburtstage, Kaffeekasse, Teamrollen und Audit umgesetzt
 - offizielle Guetersloh-/Bielefeld-Feeds und Bielefelder Verkehrsdaten integriert
 - Tailscale-Identitaet, Loopback-Bindung und getrennte Docker-Netze eingerichtet
-- eingeschraenkte PostgreSQL-Rollen und Append-only-Rechte gesetzt
-- taegliches lokales Backup, Restic-Offsite-Pfad und Restore-Test eingerichtet
+- eingeschränkte PostgreSQL-Rollen und Append-only-Rechte gesetzt
+- tägliches lokales Backup, Restic-Offsite-Pfad und Restore-Test eingerichtet
 - 21 automatisierte Tests, Deployment-Checks und Trivy-Scans bestanden
-- Pilot ausschliesslich im Tailnet bereitgestellt; oeffentliche Domain bleibt offline
+- Pilot ausschließlich im Tailnet bereitgestellt; öffentliche Domain bleibt offline

@@ -1,6 +1,8 @@
-{% load static %}
+{% load i18n static %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
 <!doctype html>
-<html lang="de">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="{{ app_name }}">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="description" content="Mobiles Wachbuch für die interne Organisation einer Rettungswache.">
+  <meta name="description" content="{% translate 'Mobiles Wachbuch für die interne Organisation einer Rettungswache.' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="manifest" href="{% url 'web_manifest' %}">
   <link rel="icon" href="{% static 'core/icons/icon-192.png' %}" type="image/png" sizes="192x192">
@@ -23,11 +25,11 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
-  <a class="skip-link" href="#inhalt">Zum Inhalt</a>
+  <a class="skip-link" href="#inhalt">{% translate "Zum Inhalt" %}</a>
   {% if demo_mode %}
   <div class="demo-banner" role="status">
-    <strong>Demo-Modus</strong>
-    <span>Musterdaten zum Testen – nicht für den Echtbetrieb.</span>
+    <strong>{% translate "Demo-Modus" %}</strong>
+    <span>{% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</span>
   </div>
   {% endif %}
   <header class="app-header">
@@ -39,6 +41,17 @@
           {% if current_membership %}<small>{{ current_membership.station.name }} · {{ current_membership.station.get_organization_profile_display }}</small>{% endif %}
         </span>
       </a>
+      <nav class="public-nav" aria-label="{% translate 'Öffentliche Seiten' %}">
+        <a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>
+        <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz" %}</a>
+      </nav>
+      <form class="language-switch" action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% if '/aktivieren/' in request.path %}/{% else %}{{ request.get_full_path }}{% endif %}">
+        {% for code, name in LANGUAGES %}
+          <button type="submit" name="language" value="{{ code }}" lang="{{ code }}"{% if code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ code|upper }}</button>
+        {% endfor %}
+      </form>
       {% if request.user.is_authenticated %}
         <div class="account">
           <div class="identity">
@@ -47,12 +60,12 @@
           </div>
           <form class="logout-form" method="post" action="{% url 'logout' %}" data-clear-cache-on-submit>
             {% csrf_token %}
-            <button type="submit">Abmelden</button>
+            <button type="submit">{% translate "Abmelden" %}</button>
           </form>
         </div>
       {% else %}
         <div class="account">
-          <a class="button secondary header-login" href="{% url 'login' %}">Anmelden</a>
+          <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
         </div>
       {% endif %}
     </div>
@@ -63,42 +76,42 @@
   {% if current_membership and current_membership.role != 'auditor' %}
     <div class="install-banner" data-install-banner hidden>
       <div>
-        <strong>{{ app_name }} auf dem Gerät</strong>
-        <span>Als App installieren für schnellen Zugriff auf der Wache.</span>
+        <strong>{% blocktranslate %}{{ app_name }} auf dem Gerät{% endblocktranslate %}</strong>
+        <span>{% translate "Als App installieren für schnellen Zugriff auf der Wache." %}</span>
       </div>
       <div class="install-actions">
-        <button type="button" class="button primary" data-install-button>Installieren</button>
-        <button type="button" class="button secondary" data-install-dismiss>Später</button>
+        <button type="button" class="button primary" data-install-button>{% translate "Installieren" %}</button>
+        <button type="button" class="button secondary" data-install-dismiss>{% translate "Später" %}</button>
       </div>
     </div>
   {% endif %}
 
   {% if current_membership %}
-    <nav class="app-nav" aria-label="Hauptnavigation">
+    <nav class="app-nav" aria-label="{% translate 'Hauptnavigation' %}">
       <div class="nav-inner">
         {% if current_membership.role == 'auditor' %}
           <a href="{% url 'audit_log' %}" aria-current="page">
             <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 4h14v2H5V4zm0 5h14v2H5V9zm0 5h9v2H5v-2z" fill="currentColor"/></svg></span>
-            <span>Audit</span>
+            <span>{% translate "Audit" %}</span>
           </a>
         {% else %}
           <a href="{% url 'dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
             <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>
-            <span>Übersicht</span>
+            <span>{% translate "Übersicht" %}</span>
           </a>
           <a class="nav-handovers" href="{% url 'handover_list' %}"{% if 'handover' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
             <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 4h9l3 3v13H6V4zm2 4h7v2H8V8zm0 4h7v2H8v-2zm0 4h5v2H8v-2z" fill="currentColor"/></svg></span>
-            <span>Übergaben{% if nav_urgent_count %} <span class="nav-badge" aria-label="{{ nav_urgent_count }} dringend">{{ nav_urgent_count }}</span>{% endif %}</span>
+            <span>{% translate "Übergaben" %}{% if nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
           </a>
           {% if current_membership.station.calendar_enabled %}
             <a href="{% url 'calendar' %}"{% if 'calendar' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
               <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 3h2v2h6V3h2v2h3v16H4V5h3V3zm13 6H6v10h14V9z" fill="currentColor"/></svg></span>
-              <span>Kalender</span>
+              <span>{% translate "Kalender" %}</span>
             </a>
           {% endif %}
           <a href="{% url 'more' %}"{% if request.resolver_match.url_name == 'more' or request.resolver_match.url_name == 'account_home' or request.resolver_match.url_name == 'birthdays' or request.resolver_match.url_name == 'birthday_settings' or request.resolver_match.url_name == 'coffee' or request.resolver_match.url_name == 'coffee_create' or request.resolver_match.url_name == 'coffee_correct' or request.resolver_match.url_name == 'feeds' or request.resolver_match.url_name == 'tasks_today' or request.resolver_match.url_name == 'tasks_week' or request.resolver_match.url_name == 'tasks_manage' or request.resolver_match.url_name == 'task_create' or request.resolver_match.url_name == 'task_edit' or request.resolver_match.url_name == 'team' or request.resolver_match.url_name == 'team_create' or request.resolver_match.url_name == 'membership_update' or request.resolver_match.url_name == 'station_settings' or request.resolver_match.url_name == 'audit_log' or request.resolver_match.url_name == 'push_settings' or request.resolver_match.url_name == 'chat' or request.resolver_match.url_name == 'chat_hide' or 'private_chat' in request.resolver_match.url_name or 'secure_mail' in request.resolver_match.url_name or request.resolver_match.url_name == 'crypto_setup' or 'defect' in request.resolver_match.url_name or request.resolver_match.url_name == 'assets_inventory_web' or request.resolver_match.url_name == 'checklist_schedules_web' or request.resolver_match.url_name == 'wachalltag_reports_web' %} aria-current="page"{% endif %}>
             <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 7h14v2H5V7zm0 4h14v2H5v-2zm0 4h10v2H5v-2z" fill="currentColor"/></svg></span>
-            <span>Mehr</span>
+            <span>{% translate "Mehr" %}</span>
           </a>
         {% endif %}
       </div>
@@ -116,22 +129,22 @@
 
   <footer class="site-footer">
     <div class="footer-links">
-      <a href="{{ source_url }}" rel="noopener noreferrer">Quellcode (AGPL-3.0)</a>
-      <a href="{% url 'vorfuehrung' %}">Vorführung</a>
-      <a href="{% url 'privacy' %}">Datenschutz &amp; Cookies</a>
+      <a href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
+      <a href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>
+      <a href="{% url 'privacy' %}">{% translate "Datenschutz & Cookies" %}</a>
       <span class="app-version">Version {{ app_version }}</span>
     </div>
   </footer>
   <dialog id="crypto-unlock-dialog" aria-labelledby="crypto-unlock-title" aria-describedby="crypto-unlock-description" class="crypto-unlock">
     <form method="dialog" id="crypto-unlock-form">
-      <h2 id="crypto-unlock-title">Schlüssel entsperren</h2>
-      <p id="crypto-unlock-description">Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser.</p>
-      <label for="crypto-unlock-input">Passphrase</label>
+      <h2 id="crypto-unlock-title">{% translate "Schlüssel entsperren" %}</h2>
+      <p id="crypto-unlock-description">{% translate "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser." %}</p>
+      <label for="crypto-unlock-input">{% translate "Passphrase" %}</label>
       <input id="crypto-unlock-input" name="passphrase" type="password" autocomplete="current-password" required aria-invalid="false" aria-describedby="crypto-unlock-error" />
       <p id="crypto-unlock-error" class="crypto-unlock-error" role="alert" aria-live="assertive" hidden></p>
       <div class="crypto-unlock-actions">
-        <button type="button" id="crypto-unlock-cancel" class="button secondary">Abbrechen</button>
-        <button type="submit" id="crypto-unlock-submit" class="button primary">Entsperren</button>
+        <button type="button" id="crypto-unlock-cancel" class="button secondary">{% translate "Abbrechen" %}</button>
+        <button type="submit" id="crypto-unlock-submit" class="button primary">{% translate "Entsperren" %}</button>
       </div>
     </form>
   </dialog>

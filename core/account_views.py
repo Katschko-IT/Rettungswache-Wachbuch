@@ -143,7 +143,8 @@ def passkey_login_verify(request):
     except Exception:
         return JsonResponse({"ok": False, "error": "Passkey konnte nicht geprüft werden."}, status=400)
     request.session.pop("webauthn_login_challenge", None)
-    login(request, user, backend="axes.backends.AxesStandaloneBackend")
+    request.session["auth_method"] = "passkey"
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     redirect_to = reverse("landing")
     if mfa_enabled() and mfa_required() and not user_has_confirmed_mfa(user):
         redirect_to = reverse("mfa_setup")
@@ -183,7 +184,8 @@ def passkey_mfa_verify(request):
         locked = _mfa_failure(request)
         error = "Zu viele Fehlversuche." if locked else "Passkey ungültig."
         return JsonResponse({"ok": False, "error": error}, status=400)
-    login(request, verified, backend="axes.backends.AxesStandaloneBackend")
+    request.session["auth_method"] = "passkey"
+    login(request, verified, backend="django.contrib.auth.backends.ModelBackend")
     next_url = request.session.pop("mfa_next", None) or reverse("landing")
     request.session.pop("mfa_pending_user_id", None)
     request.session.pop("mfa_failures", None)

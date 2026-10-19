@@ -212,6 +212,32 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .logout-form button:hover { background: rgba(255, 255, 255, .12); }
 
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.language-switch button {
+  min-height: 2rem;
+  padding: .2rem .5rem;
+  color: white;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: var(--radius);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.language-switch button:hover {
+  background: rgba(255, 255, 255, .12);
+}
+.language-switch button[aria-current="true"] {
+  background: white;
+  color: var(--brand);
+  border-color: white;
+  font-weight: 700;
+}
+
 /* —— Landing: BOS / öffentliche Dienstleistung —— */
 .is-landing {
   background: var(--bg);
@@ -1424,3 +1450,125 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .profile-fire .brand-mark { background: var(--brand); }
 .profile-police .brand-mark { background: var(--brand); }
 .profile-general .brand-mark { background: var(--brand); }
+
+/* —— Public navigation & privacy section styles —— */
+.public-nav {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.public-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 .75rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: .95rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+.public-nav a:hover {
+  background: rgba(255, 255, 255, .15);
+}
+.public-nav a[aria-current="page"] {
+  background: rgba(255, 255, 255, .25);
+  border-color: #f0b429;
+}
+.public-nav a:focus-visible {
+  outline: 3px solid #f0b429;
+  outline-offset: 2px;
+}
+
+@media (max-width: 48rem) {
+  .header-inner {
+    flex-wrap: wrap;
+    row-gap: .5rem;
+    padding-top: .4rem;
+    padding-bottom: .4rem;
+  }
+  .public-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    gap: .5rem;
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    padding-top: .25rem;
+  }
+}
+
+.privacy-blocker-warning {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: var(--warning-soft);
+  border: 2px solid var(--warning);
+  border-radius: var(--radius);
+  color: #78350f;
+}
+.privacy-blocker-warning .blocker-title {
+  margin: 0 0 .5rem;
+  font-size: 1.05rem;
+}
+.privacy-blocker-warning p:last-child {
+  margin-bottom: 0;
+}
+
+.toc {
+  margin-bottom: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.toc-title {
+  margin: 0 0 .75rem;
+  font-size: 1.15rem;
+  color: var(--brand-ink);
+}
+.toc-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.toc-list li {
+  margin: 0;
+}
+.toc-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  min-width: 48px;
+  padding: .25rem .5rem;
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+.toc-list a:hover {
+  color: var(--brand-deep);
+  background: var(--surface-soft);
+}
+.toc-list a:focus-visible {
+  outline: 3px solid #f0b429;
+  outline-offset: 2px;
+}
+
+.privacy-section {
+  scroll-margin-top: 5rem;
+  margin-bottom: 2.5rem;
+}
+.privacy-section h2 {
+  scroll-margin-top: 5rem;
+}
+.cookie-attributes {
+  margin: .5rem 0 0;
+  padding-left: 1.25rem;
+}
+.cookie-attributes li {
+  margin-bottom: .25rem;
+}

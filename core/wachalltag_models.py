@@ -1,7 +1,7 @@
-"""Persistente Wachalltag-Modelle fuer die Mobile-/Web-API.
+"""Persistente Wachalltag-Modelle für die Mobile-/Web-API.
 
 Die Modelle halten die Produktgrenze bewusst ein: keine Patienten-, Einsatz-,
-Alarmierungs- oder Vorgangsdaten. Statusaenderungen und Bewegungen werden in
+Alarmierungs- oder Vorgangsdaten. Statusänderungen und Bewegungen werden in
 append-only Ereignistabellen nachvollziehbar gemacht.
 """
 
@@ -17,7 +17,7 @@ from .models import Checklist, HandoverEntry, Station
 
 def _require_same_station(parent, station_id, label):
     if parent is not None and station_id and parent.station_id != station_id:
-        raise ValidationError(f"{label} und Wache muessen uebereinstimmen.")
+        raise ValidationError(f"{label} und Wache müssen übereinstimmen.")
 
 
 class Defect(models.Model):
@@ -98,12 +98,12 @@ class DefectEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Mangel-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Mangel-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Mangel-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Mangel-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Mangel-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class StationAsset(models.Model):
@@ -159,12 +159,12 @@ class AssetEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Asset-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Asset-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.asset if self.asset_id else None, self.station_id, "Asset-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Asset-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Asset-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class HandoverAck(models.Model):
@@ -182,12 +182,12 @@ class HandoverAck(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Quittierungen duerfen nicht veraendert werden.")
+            raise ValidationError("Quittierungen dürfen nicht verändert werden.")
         _require_same_station(self.handover if self.handover_id else None, self.station_id, "Quittierung")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Quittierungen duerfen nicht geloescht werden.")
+        raise ValidationError("Quittierungen dürfen nicht gelöscht werden.")
 
 
 class InventoryItem(models.Model):
@@ -260,12 +260,12 @@ class InventoryEvent(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Inventar-Ereignisse duerfen nicht veraendert werden.")
+            raise ValidationError("Inventar-Ereignisse dürfen nicht verändert werden.")
         _require_same_station(self.item if self.item_id else None, self.station_id, "Inventar-Ereignis")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Inventar-Ereignisse duerfen nicht geloescht werden.")
+        raise ValidationError("Inventar-Ereignisse dürfen nicht gelöscht werden.")
 
 
 class ChecklistSchedule(models.Model):
@@ -310,11 +310,11 @@ class DefectAttachment(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Mangel-Anhaenge duerfen nicht veraendert werden.")
+            raise ValidationError("Mangel-Anhänge dürfen nicht verändert werden.")
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Anhang")
         stem = (self.filename or "foto").rsplit(".", 1)[0].strip(" .") or "foto"
         self.filename = f"{stem[:175]}.jpg"
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Mangel-Anhaenge duerfen nicht geloescht werden.")
+        raise ValidationError("Mangel-Anhänge dürfen nicht gelöscht werden.")

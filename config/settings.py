@@ -41,6 +41,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -118,6 +119,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
+            "()": "core.logging_redaction.ActivationRedactingFormatter",
             "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
         },
     },
@@ -143,6 +145,11 @@ LOGGING = {
             "propagate": False,
         },
         "wachbuch.requests": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.server": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
@@ -217,7 +224,12 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.ScryptPasswordHasher",
 ]
 
-LANGUAGE_CODE = "de-de"
+LANGUAGE_CODE = "de"
+LANGUAGES = [
+    ("de", "Deutsch"),
+    ("en", "English"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Europe/Berlin"
 USE_I18N = True
 USE_TZ = True
@@ -248,6 +260,11 @@ SESSION_COOKIE_SECURE = SECURE_COOKIES
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = SECURE_COOKIES
 CSRF_COOKIE_SAMESITE = "Lax"
+LANGUAGE_COOKIE_NAME = "wachbuch_language"
+LANGUAGE_COOKIE_AGE = 31_536_000
+LANGUAGE_COOKIE_SAMESITE = "Lax"
+LANGUAGE_COOKIE_HTTPONLY = True
+LANGUAGE_COOKIE_SECURE = SECURE_COOKIES
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 SECURE_HSTS_SECONDS = 31_536_000
@@ -283,10 +300,25 @@ DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "Demo-Passwort-12345").strip() or "De
 if DEMO_MODE:
     # Presentations should not require MFA setup on every demo account.
     MFA_REQUIRED = False
+SETUP_BOOTSTRAP_TOKEN = os.getenv("SETUP_BOOTSTRAP_TOKEN", "").strip()
+# Optional canonical origin (e.g. https://wachbuch.example). When set, activation
+# links and QR codes use it instead of the request Host. Empty keeps the request
+# origin; ALLOWED_HOSTS validation is never weakened by this setting.
+SITE_URL = os.getenv("SITE_URL", "").strip().rstrip("/")
 REGISTRATION_ENABLED = env_bool("REGISTRATION_ENABLED", default=False)
 REGISTRATION_RATE_LIMIT = int(os.getenv("REGISTRATION_RATE_LIMIT", "5") or "5")
 TRUSTED_PROXY = env_bool("TRUSTED_PROXY", default=False)
 RATELIMIT_KEY_SALT = os.getenv("RATELIMIT_KEY_SALT", "wachbuch")
+QR_LOGIN_ENABLED = env_bool("QR_LOGIN_ENABLED", default=False)
+QR_LOGIN_TTL_SECONDS = int(os.getenv("QR_LOGIN_TTL_SECONDS", "120") or "120")
+QR_LOGIN_ALLOW_INSECURE_TEST_ORIGIN = env_bool("QR_LOGIN_ALLOW_INSECURE_TEST_ORIGIN", default=False)
+QR_LOGIN_RATE_LIMITS = {
+    "qr_start": (10, 300),
+    "qr_status": (120, 120),
+    "qr_approve": (10, 60),
+    "qr_exchange": (10, 60),
+    "qr_manual": (10, 60),
+}
 WEBAUTHN_ENABLED = env_bool("WEBAUTHN_ENABLED", default=True)
 WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "").strip()

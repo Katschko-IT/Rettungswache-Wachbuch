@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Konto aktivieren" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Persönlicher Zugang" %}</p>
+  <h1>{% translate "Konto aktivieren" %}</h1>
+</header>
+
+{% if rate_limited %}
+  <div class="alert alert-error" role="alert">
+    <p>{% translate "Zu viele Aktivierungsversuche. Bitte warte eine Minute und versuche es erneut." %}</p>
+  </div>
+{% elif invalid %}
+  <div class="alert alert-error" role="alert">
+    <p>{% translate "Dieser Aktivierungslink ist ungültig, abgelaufen, widerrufen oder wurde bereits verwendet." %}</p>
+    <p>{% translate "Bitte wende dich an den Master-Admin deiner Wache, um einen neuen Link zu erhalten." %}</p>
+  </div>
+  <p><a class="button secondary" href="{% url 'login' %}">{% translate "Zur Anmeldung" %}</a></p>
+{% else %}
+  <section class="section-block form-card">
+    <p>{% blocktranslate with name=activation.user.get_full_name|default:activation.user.username station=activation.station.name %}Für <strong>{{ name }}</strong> in der Wache <strong>{{ station }}</strong>.{% endblocktranslate %}</p>
+    <p>{% blocktranslate with date=activation.expires_at %}Das Passwort wird ausschließlich von dir gesetzt. Der Link ist einmalig gültig und läuft am {{ date }} ab.{% endblocktranslate %}</p>
+    <p class="help-text">{% translate "Ein QR-Code enthält nur diesen einmaligen Aktivierungslink, keine dauerhaften Zugangsdaten." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+        </p>
+      {% endfor %}
+      <button class="button primary" type="submit">{% translate "Passwort setzen und Konto aktivieren" %}</button>
+    </form>
+  </section>
+{% endif %}
+{% endblock %}

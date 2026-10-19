@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Offene Aktivierungen | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">Master-Admin</p>
+    <h1>Offene Aktivierungen</h1>
+    <p class="lead">Einmal-Links dieser Wache. Roh-Token werden nicht gespeichert und können nicht erneut angezeigt werden.</p>
+  </div>
+  <div class="form-actions">
+    <a class="button primary" href="{% url 'team_invite_create' %}">Mitarbeiterzugang anlegen</a>
+  </div>
+</header>
+
+<section class="section-block flush">
+  <div class="member-list-clean">
+    {% for activation in activations %}
+      <article>
+        <div>
+          <strong>{{ activation.user.get_full_name|default:activation.user.username }}</strong>
+          <span>{{ activation.user.username }}</span>
+          <span>Gültig bis {{ activation.expires_at }}</span>
+          {% if activation.created_by %}<span>Angelegt von {{ activation.created_by.get_username }}</span>{% endif %}
+        </div>
+        <form method="post" action="{% url 'team_invite_revoke' activation.pk %}">
+          {% csrf_token %}
+          <button class="button secondary" type="submit">Widerrufen</button>
+        </form>
+      </article>
+    {% empty %}
+      <p class="empty-state">Keine offenen Aktivierungen.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

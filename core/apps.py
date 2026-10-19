@@ -12,3 +12,4 @@ class CoreConfig(AppConfig):
         from . import wachalltag_models  # noqa: F401
         from . import image_privacy  # noqa: F401
         from . import checks  # noqa: F401
+        from . import auth_session  # noqa: F401

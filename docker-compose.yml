@@ -115,6 +115,12 @@ services:
       CRYPTO_PREVIOUS_MASTER_KEY: ${CRYPTO_PREVIOUS_MASTER_KEY:-}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
       SECURE_COOKIES: ${SECURE_COOKIES:-true}
+      # Explicit opt-in; never pass the insecure QR test override to this service.
+      SETUP_BOOTSTRAP_TOKEN: ${SETUP_BOOTSTRAP_TOKEN:-}
+      QR_LOGIN_ENABLED: ${QR_LOGIN_ENABLED:-false}
+      QR_LOGIN_TTL_SECONDS: ${QR_LOGIN_TTL_SECONDS:-120}
+      SITE_URL: ${SITE_URL:-}
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-false}
       DB_HOST: db
       REDIS_HOST: redis
       REDIS_PORT: 6379

@@ -1,31 +1,31 @@
 # AGENTS.md
 
-Arbeitsanleitung fuer Coding-, Review- und Operations-Agenten in diesem Repository.
+Arbeitsanleitung für Coding-, Review- und Operations-Agenten in diesem Repository.
 
 ## 1. Produktgrenze
 
-Das Wachbuch organisiert interne Wachenablaeufe. Es ist **kein** System fuer
+Das Wachbuch organisiert interne Wachenablaeufe. Es ist **kein** System für
 Patienten-, Einsatz-, Alarmierungs-, Diagnose-, Krankheits- oder Leistungsdaten.
-Neue Funktionen duerfen diese Grenze weder durch Felder noch durch freie
+Neue Funktionen dürfen diese Grenze weder durch Felder noch durch freie
 Standardtexte, Telemetrie oder Exporte aufweichen.
 
 ## 2. Quellen der Wahrheit
 
-Vor einer Aenderung mindestens lesen:
+Vor einer Änderung mindestens lesen:
 
 1. `README.md` – Produkt, Schnellstart und Betriebsmodell
 2. `docs/ARCHITECTURE.md` – Vertrauensgrenzen und Datenfluss
 3. `docs/SECURITY-PRIVACY.md` – Sicherheits- und Datenschutzinvarianten
 4. `docs/DESIGN-SYSTEM.md` – UI-, Responsive- und Accessibility-Regeln
-5. `docs/REMEDIATION-ROADMAP-2026-08.md` – offene Review-Massnahmen
+5. `docs/REMEDIATION-ROADMAP-2026-08.md` – offene Review-Maßnahmen
 6. `docs/GO-LIVE-CHECKLIST.md` – Freigabekriterien
 
 Status in der Remediation-Roadmap:
 
 - `[ ]` offen
-- `[~]` begonnen / nicht vollstaendig abgenommen
+- `[~]` begonnen / nicht vollständig abgenommen
 - `[x]` umgesetzt und durch die dort genannten Checks belegt
-- `[!]` blockiert; Grund und naechste Aktion muessen daneben stehen
+- `[!]` blockiert; Grund und nächste Aktion müssen daneben stehen
 
 ## 3. Repository-Karte
 
@@ -35,7 +35,7 @@ Status in der Remediation-Roadmap:
 - `core/access.py` – stationsbezogene Rollen- und Objektgrenzen
 - `core/api/` – versionierte Token-API
 - `core/static/core/` – lokale CSS-/JavaScript-Assets, keine CDN-Abhaengigkeiten
-- `templates/` – serverseitig gerenderte Oberflaeche
+- `templates/` – serverseitig gerenderte Oberfläche
 - `scripts/` – Start, Migration, Backup und Restore
 - `docs/` – Architektur, Betrieb, Compliance, Tests und Roadmaps
 
@@ -43,32 +43,32 @@ Status in der Remediation-Roadmap:
 
 - Jede fachliche Abfrage bleibt an `request.membership.station` gebunden.
 - Auditoren erhalten keine fachlichen Freitexte.
-- Audit, Kaffeekasse, Checklisten-Abschluesse und Uebergaberevisionen bleiben
-  append-only; Korrekturen erfolgen durch neue Datensaetze.
+- Audit, Kaffeekasse, Checklisten-Abschlüsse und Übergaberevisionen bleiben
+  append-only; Korrekturen erfolgen durch neue Datensätze.
 - Keine allgemeinen Datei-Uploads; Avatare bleiben typ- und groessenbegrenzt.
 - Externe Feedziele bleiben HTTPS-Allowlist, Port 443, ohne Redirects/private IPs.
 - CSP bleibt ohne `unsafe-inline` und ohne `unsafe-eval`.
-- Benutzerkontrollierte Daten duerfen nie mit `|safe`, `innerHTML` oder
-  aehnlichen HTML-Sinks in die Seite gelangen. Fuer JSON `json_script` nutzen.
+- Benutzerkontrollierte Daten dürfen nie mit `|safe`, `innerHTML` oder
+  ähnlichen HTML-Sinks in die Seite gelangen. Für JSON `json_script` nutzen.
 - Keine gemeinsam genutzten Konten; keine Umgehung von MFA/Rollen im Mobile-API.
-- E2EE-Aussagen muessen das reale Vertrauensmodell nennen: gespeicherter
-  Ciphertext ist geschuetzt, der ausgelieferte Webclient und Server bleiben
+- E2EE-Aussagen müssen das reale Vertrauensmodell nennen: gespeicherter
+  Ciphertext ist geschützt, der ausgelieferte Webclient und Server bleiben
   bei der Web-PWA Teil des Vertrauensmodells.
 
 ## 5. Arbeitsablauf
 
-1. Passende Roadmap-ID waehlen und Status auf `[~]` setzen.
-2. Eine kleine, zusammenhaengende Aenderung umsetzen.
-3. Negative Tests fuer den urspruenglichen Fehler hinzufuegen.
+1. Passende Roadmap-ID wählen und Status auf `[~]` setzen.
+2. Eine kleine, zusammenhängende Änderung umsetzen.
+3. Negative Tests für den ursprünglichen Fehler hinzufügen.
 4. Dokumentation und Betriebsauswirkungen im selben PR aktualisieren.
-5. Relevante Checks ausfuehren.
+5. Relevante Checks ausführen.
 6. Roadmap erst nach belegter Abnahme auf `[x]` setzen.
 7. Im PR die Roadmap-ID, Ursache, Risiko, Tests und verbleibende Grenzen nennen.
 
-Keine grossen Sicherheits-, Krypto-, Auth-, Backup- oder Datenmodellumbauten mit
+Keine großen Sicherheits-, Krypto-, Auth-, Backup- oder Datenmodellumbauten mit
 unverbundenen UX-Funktionen in denselben PR mischen.
 
-## 6. Standardpruefungen
+## 6. Standardprüfungen
 
 ```bash
 python manage.py makemigrations --check --dry-run --settings=config.test_settings
@@ -79,7 +79,7 @@ docker compose config --quiet
 docker build --tag rettungswache-wachbuch:test .
 ```
 
-Fuer Frontend-Aenderungen zusaetzlich:
+Für Frontend-Änderungen zusätzlich:
 
 ```bash
 node --check core/static/core/app.js
@@ -89,9 +89,9 @@ node --check core/static/core/json_data.js
 Vor Produktion bleiben Browser-, Screenreader-, Last-, Restore- und externe
 Sicherheitstests gemaess Roadmap und Go-live-Checkliste erforderlich.
 
-## 7. Handoff fuer den naechsten Agenten
+## 7. Handoff für den nächsten Agenten
 
-Jeder unvollstaendige Arbeitsstand dokumentiert:
+Jeder unvollständige Arbeitsstand dokumentiert:
 
 ```text
 Roadmap-ID:
@@ -103,4 +103,4 @@ Naechste kleinste Aktion:
 ```
 
 Keine Aufgabe als erledigt markieren, wenn nur Dokumentation, Mock oder ein
-nicht ausgefuehrter Test vorliegt.
+nicht ausgeführter Test vorliegt.

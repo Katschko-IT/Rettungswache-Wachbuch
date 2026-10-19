@@ -51,7 +51,7 @@ Gemeinsames Passwort: Wert von `DEMO_PASSWORD` (Standard `Demo-Passwort-12345`).
 
 Auf der Startseite erscheinen die Konten, solange `DEMO_MODE=true` ist.
 Unter `/vorfuehrung/` gibt es denselben One-Click-Einstieg, ohne Fachdaten.
-Ein gelber Banner „Demo-Modus“ ist überall sichtbar.
+Ein gelbes Banner „Demo-Modus“ ist überall sichtbar.
 
 ## Was wird angelegt?
 

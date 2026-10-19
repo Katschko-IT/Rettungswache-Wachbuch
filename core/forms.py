@@ -7,8 +7,9 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from .models import BirthdayPreference, CalendarEvent, HandoverEntry, Membership, PinboardNote, Station, StationTask
+from .models import BirthdayPreference, CalendarEvent, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
 
 
 class DateTimeLocalInput(forms.DateTimeInput):
@@ -44,7 +45,7 @@ class HandoverStatusForm(forms.ModelForm):
 class TotpConfirmForm(forms.Form):
     token = forms.CharField(
         max_length=8,
-        label="Einmalcode",
+        label=_("Einmalcode"),
         widget=forms.TextInput(attrs={
             "inputmode": "numeric",
             "autocomplete": "one-time-code",
@@ -227,12 +228,12 @@ class StationSettingsForm(forms.ModelForm):
             "payment_note": "Zahlungshinweis",
         }
         help_texts = {
-            "paypal_me_url": "Vollstaendige https://paypal.me/…-URL.",
-            "wero_link": "Vollstaendige https://…-URL zum Wero-Profil.",
-            "iban": "Deutsche IBAN (DE + 20 Ziffern), nur fuer die Anzeige.",
+            "paypal_me_url": "Vollständige https://paypal.me/…-URL.",
+            "wero_link": "Vollständige https://…-URL zum Wero-Profil.",
+            "iban": "Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige.",
             "bic": "Optional, 8 oder 11 Zeichen.",
             "payment_note": "Freitext, z. B. Verwendungszweck oder Ansprechpartner.",
-            "waste_calendar_url": "Vollstaendige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
+            "waste_calendar_url": "Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
         }
 
     def __init__(self, *args, **kwargs):
@@ -248,19 +249,19 @@ class StationSettingsForm(forms.ModelForm):
         if not value:
             return value
         if not value.startswith("https://"):
-            raise forms.ValidationError("Muellkalender-URLs muessen mit https:// beginnen.")
+            raise forms.ValidationError("Müllkalender-URLs müssen mit https:// beginnen.")
         parsed = urlparse(value)
         host = (parsed.hostname or "").lower()
         if not host:
-            raise forms.ValidationError("Muellkalender-URLs brauchen einen Hostnamen.")
+            raise forms.ValidationError("Müllkalender-URLs brauchen einen Hostnamen.")
         if parsed.username or parsed.password:
-            raise forms.ValidationError("Muellkalender-URLs duerfen keine Zugangsdaten enthalten.")
+            raise forms.ValidationError("Müllkalender-URLs dürfen keine Zugangsdaten enthalten.")
         try:
             port = parsed.port
         except ValueError:
-            raise forms.ValidationError("Die Portangabe der Muellkalender-URL ist ungueltig.")
+            raise forms.ValidationError("Die Portangabe der Müllkalender-URL ist ungültig.")
         if port not in {None, 443}:
-            raise forms.ValidationError("Muellkalender-URLs duerfen nur HTTPS-Port 443 verwenden.")
+            raise forms.ValidationError("Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden.")
         if host not in settings.FEED_ALLOWED_HOSTS:
             raise forms.ValidationError(
                 "Der Host muss zuerst in FEED_ALLOWED_HOSTS freigegeben werden."
@@ -272,26 +273,26 @@ class StationSettingsForm(forms.ModelForm):
         if cleaned.get("waste_calendar_enabled") and not cleaned.get("waste_calendar_url"):
             self.add_error(
                 "waste_calendar_url",
-                "Fuer den Muellkalender-Fallback wird eine HTTPS-ICS-URL benoetigt.",
+                "Für den Müllkalender-Fallback wird eine HTTPS-ICS-URL benötigt.",
             )
         return cleaned
 
     def clean_paypal_me_url(self):
         value = (self.cleaned_data.get("paypal_me_url") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("PayPal.me-Links muessen mit https:// beginnen.")
+            raise forms.ValidationError("PayPal.me-Links müssen mit https:// beginnen.")
         return value
 
     def clean_wero_link(self):
         value = (self.cleaned_data.get("wero_link") or "").strip()
         if value and not value.startswith("https://"):
-            raise forms.ValidationError("Wero-Links muessen mit https:// beginnen.")
+            raise forms.ValidationError("Wero-Links müssen mit https:// beginnen.")
         return value
 
     def clean_iban(self):
         value = (self.cleaned_data.get("iban") or "").replace(" ", "").upper()
         if value and not (value.startswith("DE") and len(value) == 22 and value[2:].isdigit()):
-            raise forms.ValidationError("Bitte eine gueltige deutsche IBAN (DE + 20 Ziffern) angeben.")
+            raise forms.ValidationError("Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben.")
         return value
 
     def clean_bic(self):
@@ -302,23 +303,23 @@ class StationSettingsForm(forms.ModelForm):
 
 
 class RegistrationForm(forms.Form):
-    username = forms.CharField(max_length=150, label="Benutzername (z. B. E-Mail)")
-    first_name = forms.CharField(max_length=150, label="Vorname", required=False)
+    username = forms.CharField(max_length=150, label=_("Benutzername (z. B. E-Mail)"))
+    first_name = forms.CharField(max_length=150, label=_("Vorname"), required=False)
     preferred_station = forms.ModelChoiceField(
         queryset=Station.objects.none(),
         required=True,
-        label="Gewünschte Wache",
-        empty_label="Bitte Wache wählen",
-        error_messages={"required": "Bitte eine Wache auswählen."},
+        label=_("Gewünschte Wache"),
+        empty_label=_("Bitte Wache wählen"),
+        error_messages={"required": _("Bitte eine Wache auswählen.")},
     )
     note = forms.CharField(
         max_length=300,
         required=False,
-        label="Hinweis an die Verwaltung",
+        label=_("Hinweis an die Verwaltung"),
         widget=forms.Textarea(attrs={"rows": 3}),
     )
-    password1 = forms.CharField(label="Passwort", widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Passwort wiederholen", widget=forms.PasswordInput)
+    password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput)
+    password2 = forms.CharField(label=_("Passwort wiederholen"), widget=forms.PasswordInput)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -329,7 +330,7 @@ class RegistrationForm(forms.Form):
     def clean_username(self):
         username = self.cleaned_data["username"].strip()
         if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("Dieser Benutzername ist bereits vergeben.")
+            raise forms.ValidationError(_("Dieser Benutzername ist bereits vergeben."))
         return username
 
     def clean(self):
@@ -337,7 +338,7 @@ class RegistrationForm(forms.Form):
         password1 = cleaned.get("password1")
         password2 = cleaned.get("password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Die Passwörter stimmen nicht überein.")
+            raise forms.ValidationError(_("Die Passwörter stimmen nicht überein."))
         if password1:
             from django.contrib.auth.password_validation import validate_password
 
@@ -409,7 +410,7 @@ class PinboardNoteForm(forms.ModelForm):
             "body": forms.Textarea(attrs={
                 "rows": 5,
                 "maxlength": 2000,
-                "placeholder": "Kurzer Aushang fuer die Wache …",
+                "placeholder": "Kurzer Aushang für die Wache …",
             }),
         }
 
@@ -440,3 +441,167 @@ class StationTaskForm(forms.ModelForm):
         if band != StationTask.Band.WEEKDAY:
             cleaned["weekday"] = None
         return cleaned
+
+
+def _translated_profile_choices():
+    """Organisationsprofil-Auswahl mit uebersetzten Labels (Modell bleibt unveraendert)."""
+    labels = {
+        Station.Profile.RESCUE: _("Rettungsdienst"),
+        Station.Profile.FIRE: _("Feuerwehr"),
+        Station.Profile.POLICE: _("Polizei"),
+        Station.Profile.GENERAL: _("Allgemein"),
+    }
+    return [(value, labels[value]) for value in Station.Profile.values]
+
+
+class SetupWizardForm(forms.Form):
+    """First-installation data. The bootstrap token is only used on step 1."""
+
+    bootstrap_token = forms.CharField(
+        required=False,
+        label=_("Bootstrap-Token"),
+        widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "off"}),
+        help_text=_("Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."),
+    )
+    station_name = forms.CharField(label=_("Name der Wache"), max_length=120)
+    organization_profile = forms.ChoiceField(
+        label=_("Organisationsprofil"), choices=_translated_profile_choices(), initial=Station.Profile.RESCUE
+    )
+    employee_count = forms.IntegerField(label=_("Mitarbeiterzahl"), min_value=1, max_value=9999, required=False)
+    street = forms.CharField(label=_("Straße und Hausnummer"), max_length=120, required=False)
+    postal_code = forms.CharField(label=_("Postleitzahl"), max_length=10, required=False)
+    city = forms.CharField(label=_("Ort"), max_length=80, required=False)
+    timezone_name = forms.ChoiceField(
+        label=_("Zeitzone"),
+        choices=[("Europe/Berlin", "Europe/Berlin"), ("Europe/Vienna", "Europe/Vienna"), ("Europe/Zurich", "Europe/Zurich")],
+        initial="Europe/Berlin",
+    )
+    weather_enabled = forms.BooleanField(label=_("5-Tage-Wetter am Wachenstandort anzeigen"), required=False)
+    admin_username = forms.CharField(label=_("Benutzername des Master-Admins"), max_length=150)
+    admin_first_name = forms.CharField(label=_("Vorname"), max_length=150, required=False)
+    admin_last_name = forms.CharField(label=_("Nachname"), max_length=150, required=False)
+    admin_email = forms.EmailField(label=_("E-Mail (optional)"), required=False)
+    password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password2 = forms.CharField(label=_("Passwort wiederholen"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+
+    def __init__(self, *args, preview_only: bool = False, **kwargs):
+        # The optional weather check is submitted from the station section
+        # before the master-admin block is filled in. In that partial POST the
+        # admin/password fields are legitimately empty and must not be reported
+        # as missing required fields.
+        self.preview_only = preview_only
+        super().__init__(*args, **kwargs)
+        if preview_only:
+            for name in ("admin_username", "password1", "password2"):
+                self.fields[name].required = False
+
+    def clean_admin_username(self):
+        username = (self.cleaned_data.get("admin_username") or "").strip()
+        if getattr(self, "preview_only", False):
+            return username
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError(_("Dieser Benutzername ist bereits vergeben."))
+        return username
+
+    def clean_station_name(self):
+        name = (self.cleaned_data.get("station_name") or "").strip()
+        if len(name) < 2:
+            raise ValidationError(_("Bitte einen aussagekräftigen Wachennamen angeben."))
+        return name
+
+    def clean(self):
+        cleaned = super().clean()
+        if getattr(self, "preview_only", False):
+            # Partial weather POST: only the station section is validated.
+            if cleaned.get("postal_code") and not (cleaned["postal_code"].isdigit() and len(cleaned["postal_code"]) in (4, 5)):
+                self.add_error("postal_code", _("Bitte eine vier- oder fünfstellige Postleitzahl angeben."))
+            return cleaned
+        password1 = cleaned.get("password1")
+        password2 = cleaned.get("password2")
+        if password1 and password2 and password1 != password2:
+            self.add_error("password2", _("Die Passwörter stimmen nicht überein."))
+        if password1:
+            from django.contrib.auth.password_validation import validate_password
+
+            candidate_user = User(
+                username=cleaned.get("admin_username", ""),
+                first_name=cleaned.get("admin_first_name", ""),
+                last_name=cleaned.get("admin_last_name", ""),
+                email=cleaned.get("admin_email", ""),
+            )
+            try:
+                validate_password(password1, user=candidate_user)
+            except ValidationError as exc:
+                self.add_error("password1", exc)
+        if cleaned.get("postal_code") and not (cleaned["postal_code"].isdigit() and len(cleaned["postal_code"]) in (4, 5)):
+            self.add_error("postal_code", _("Bitte eine vier- oder fünfstellige Postleitzahl angeben."))
+        return cleaned
+
+
+class ActivationPasswordForm(forms.Form):
+    password1 = forms.CharField(
+        label=_("Neues Passwort"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"})
+    )
+    password2 = forms.CharField(
+        label=_("Passwort wiederholen"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"})
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        # The similarity validator can only work with the real account.
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned = super().clean()
+        password1 = cleaned.get("password1")
+        password2 = cleaned.get("password2")
+        if password1 and password2 and password1 != password2:
+            self.add_error("password2", _("Die Passwörter stimmen nicht überein."))
+        if password1:
+            from django.contrib.auth.password_validation import validate_password
+
+            try:
+                validate_password(password1, user=self.user)
+            except ValidationError as exc:
+                self.add_error("password1", exc)
+        return cleaned
+
+
+class EmployeeInviteForm(forms.Form):
+    username = forms.CharField(label="Benutzername", max_length=150)
+    first_name = forms.CharField(label="Vorname", max_length=150, required=False)
+    last_name = forms.CharField(label="Nachname", max_length=150, required=False)
+    role = forms.ChoiceField(
+        label="Rolle",
+        choices=[
+            (Membership.Role.MEMBER, Membership.Role.MEMBER.label),
+            (Membership.Role.SHIFT_LEAD, Membership.Role.SHIFT_LEAD.label),
+            (Membership.Role.CASHIER, Membership.Role.CASHIER.label),
+        ],
+        initial=Membership.Role.MEMBER,
+    )
+
+    def __init__(self, *args, station=None, **kwargs):
+        self.station = station
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        username = (self.cleaned_data.get("username") or "").strip()
+        existing = User.objects.filter(username__iexact=username).first()
+        if existing is None:
+            return username
+        from .setup_wizard import reusable_pending_invite
+
+        if not reusable_pending_invite(existing, station=self.station):
+            raise ValidationError("Dieser Benutzername ist bereits vergeben.")
+        if EmployeeActivation.objects.filter(
+            user=existing,
+            used_at__isnull=True,
+            revoked_at__isnull=True,
+            expires_at__gt=timezone.now(),
+        ).exists():
+            raise ValidationError(
+                "Für dieses Konto ist bereits ein offener Aktivierungslink vorhanden. "
+                "Bitte zuerst widerrufen."
+            )
+        return username

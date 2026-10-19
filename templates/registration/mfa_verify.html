@@ -1,22 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Bestätigungscode | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Bestätigungscode" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel">
-  <p class="context-line">Zwei-Faktor-Authentifizierung</p>
-  <h1>Anmeldung bestätigen</h1>
+  <p class="context-line">{% translate "Zwei-Faktor-Authentifizierung" %}</p>
+  <h1>{% translate "Anmeldung bestätigen" %}</h1>
   {% if has_totp %}
-  <p class="lead">Öffne die Authenticator-App und gib den aktuellen Code ein.</p>
+  <p class="lead">{% translate "Öffne die Authenticator-App und gib den aktuellen Code ein." %}</p>
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}
     {{ form.as_p }}
-    <button class="button primary" type="submit">Bestätigen</button>
+    <button class="button primary" type="submit">{% translate "Bestätigen" %}</button>
   </form>
   {% endif %}
   {% if has_passkey %}
   <div class="passkey-login">
-    <p class="lead">{% if has_totp %}Oder mit Passkey bestätigen{% else %}Mit Passkey bestätigen{% endif %}</p>
-    <button type="button" class="button secondary" data-passkey-mfa>Passkey verwenden</button>
+    <p class="lead">{% if has_totp %}{% translate "Oder mit Passkey bestätigen" %}{% else %}{% translate "Mit Passkey bestätigen" %}{% endif %}</p>
+    <button type="button" class="button secondary" data-passkey-mfa>{% translate "Passkey verwenden" %}</button>
     <p class="hint" data-passkey-mfa-status hidden></p>
   </div>
   {% endif %}
