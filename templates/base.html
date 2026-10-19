@@ -90,6 +90,10 @@
               <span>{{ item.label }}{% if item.key == 'handovers' and nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
             </a>
           {% endfor %}
+          <button type="button" class="nav-display-toggle" data-display-open aria-label="{% translate 'Wachen-Display öffnen' %}" title="{% translate 'Wachen-Display' %}">
+            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 5h18v11H3V5zm2 2v7h14V7H5zm4 11h6v2h-6v-2z" fill="currentColor"/></svg></span>
+            <span class="visually-hidden">{% translate "Wachen-Display" %}</span>
+          </button>
         {% endif %}
       </div>
     </nav>
@@ -126,10 +130,19 @@
       </div>
     </form>
   </dialog>
+  {% if current_membership %}
+  <div class="display-overlay" hidden>
+    <div class="display-surface" data-display-root data-display-overlay="true" data-data-url="{% url 'display_data' %}">
+      {% include "core/_display_surface.html" %}
+    </div>
+  </div>
+  {% endif %}
+  <link rel="stylesheet" href="{% static 'core/display.css' %}">
   {% include "core/_js_i18n.html" %}
   <script src="{% static 'core/i18n.js' %}" defer></script>
   <script src="{% static 'core/json_data.js' %}" defer></script>
   <script src="{% static 'core/crypto_unlock.js' %}" defer></script>
   <script src="{% static 'core/app.js' %}" defer></script>
+  {% if current_membership %}<script src="{% static 'core/display.js' %}" defer></script>{% endif %}
 </body>
 </html>

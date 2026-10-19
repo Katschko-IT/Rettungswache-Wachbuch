@@ -1,0 +1,51 @@
+{% load i18n %}
+<div class="display-background" data-display-background aria-hidden="true"></div>
+<div class="display-vignette" aria-hidden="true"></div>
+
+<main class="display-grid">
+  <header class="display-header">
+    <div class="display-clock-block">
+      <p class="display-clock" data-display-clock>--:--</p>
+      <p class="display-date" data-display-date></p>
+    </div>
+    <p class="display-station">{{ display_station.name }}</p>
+  </header>
+
+  <section class="display-column display-column-wide">
+    <h2 class="display-heading">{% translate "Heute" %}</h2>
+    <ul class="display-list" data-display-events>
+      <li class="display-empty">{% translate "Keine Termine" %}</li>
+    </ul>
+    <ul class="display-waste" data-display-waste></ul>
+  </section>
+
+  {% if display_station.tasks_enabled %}
+  <section class="display-column">
+    <h2 class="display-heading">{% translate "Tagesaufgaben" %}</h2>
+    <p class="display-metric"><span data-display-tasks-open>0</span><small>{% translate "offen" %}</small></p>
+    <div class="display-progress" role="img" aria-label="{% translate 'Fortschritt der Tagesaufgaben' %}">
+      <span class="display-progress-bar" data-display-progress></span>
+    </div>
+    <p class="display-sub" data-display-tasks-detail></p>
+  </section>
+  {% endif %}
+
+  <section class="display-column">
+    <h2 class="display-heading">{% translate "Wetter" %}</h2>
+    <div class="display-weather" data-display-weather hidden>
+      <p class="display-temperature"><span data-display-temp>--</span><small>°C</small></p>
+      <p class="display-weather-label" data-display-weather-label></p>
+      <p class="display-sub" data-display-weather-range></p>
+    </div>
+    <p class="display-empty" data-display-weather-empty>{% translate "Wetter nicht aktiviert" %}</p>
+    <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
+  </section>
+
+  <footer class="display-footer">
+    <p class="display-urgent" data-display-urgent-block hidden>
+      <span class="display-urgent-count" data-display-urgent>0</span>
+      <span class="display-urgent-label">{% translate "dringende Übergaben" %}</span>
+    </p>
+    <p class="display-hint" data-display-hint>{% translate "Esc beendet die Anzeige" %}</p>
+  </footer>
+</main>
