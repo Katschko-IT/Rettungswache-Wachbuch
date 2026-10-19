@@ -23,37 +23,46 @@ class NavigationOrderTests(TestCase):
         self.assertEqual(
             config["sequence"], ["overview", "handovers", "calendar", "more", "help"]
         )
-        self.assertTrue(config["visible"]["overview"])
+        keys = [entry["key"] for entry in config["entries"]]
+        self.assertEqual(keys[0], "overview")
+        self.assertIn("handovers", keys)
 
     def test_custom_order_changes_positions(self):
         self.station.nav_order = "help,overview,calendar"
         self.station.save(update_fields=["nav_order"])
         config = nav_config(self.station)
-        self.assertEqual(config["order"]["help"], 1)
-        self.assertEqual(config["order"]["overview"], 2)
-        self.assertFalse(config["visible"]["handovers"])
+        entries = {entry["key"]: entry for entry in config["entries"]}
+        self.assertEqual(entries["help"]["order"], 1)
+        self.assertEqual(entries["overview"]["order"], 2)
+        # Übergaben sind fest verankert und bleiben in der Leiste.
+        self.assertIn("handovers", entries)
 
     def test_settings_page_saves_both_orders(self):
         self.client.force_login(self.admin)
         response = self.client.post("/einstellungen/darstellung/", {
-            "nav_order": "overview,more,help",
+            "order": "overview,handovers,news,wiki,more,help",
+            "inbar_overview": "on",
+            "inbar_news": "on",
+            "inbar_more": "on",
+            "inbar_help": "on",
             "more_order": "wiki,news,settings",
         })
         self.assertEqual(response.status_code, 302)
         self.station.refresh_from_db()
-        self.assertEqual(self.station.nav_order, "overview,more,help")
-        self.assertEqual(self.station.more_order, "wiki,news,settings")
+        self.assertEqual(self.station.nav_order, "overview,handovers,news,more,help")
+        # Nicht angehakte Bereiche landen in Listenreihenfolge unter „Mehr“.
+        self.assertEqual(self.station.more_order, "wiki")
         order = more_config(self.station)
         self.assertLess(order["wiki"], order["settings"])
 
-    def test_presentation_page_renders_both_sortable_lists(self):
+    def test_presentation_page_renders_one_sortable_list(self):
         self.client.force_login(self.admin)
         response = self.client.get("/einstellungen/darstellung/")
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
-        self.assertIn('data-input="nav_order"', body)
-        self.assertIn('data-input="more_order"', body)
+        self.assertIn('data-input="order"', body)
         self.assertIn("data-sortable", body)
+        self.assertIn('name="inbar_news"', body)
 
     def test_more_page_reflects_order(self):
         self.station.more_order = "wiki,news"

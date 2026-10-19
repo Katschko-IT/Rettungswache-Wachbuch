@@ -11,7 +11,7 @@ msgstr "%(app_name)s on this device"
 msgid "%(category)s &middot; Version %(version)s"
 msgstr "%(category)s &middot; Version %(version)s"
 
-#: templates/base.html:93
+#: templates/base.html:90
 msgid "%(nav_urgent_count)s dringend"
 msgstr "%(nav_urgent_count)s urgent"
 
@@ -159,7 +159,7 @@ msgstr "API tokens require active station access."
 msgid "API-Wurzel:"
 msgstr "API root:"
 
-#: templates/base.html:158
+#: templates/base.html:124
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
@@ -169,7 +169,7 @@ msgstr "API root:"
 #: templates/core/handover_form.html:25
 #: templates/core/membership_form.html:4
 #: templates/core/news_form.html:26
-#: templates/core/presentation.html:57
+#: templates/core/presentation.html:43
 #: templates/core/task_form.html:24
 #: templates/core/team_form.html:17
 #: templates/core/team_user_create.html:17
@@ -291,6 +291,10 @@ msgstr "All shift handovers"
 #: templates/core/news_detail.html:49
 msgid "Alle haben gelesen – die Neuigkeit liegt im Archiv."
 msgstr "Everyone has read it – the item is archived."
+
+#: templates/core/presentation.html:39
+msgid "Alle nicht angehakten Bereiche erscheinen unter „Mehr“ – in derselben Reihenfolge."
+msgstr "All sections without a tick appear under “More” – in the same order."
 
 #: templates/registration/mfa_manage.html:28
 msgid "Alle zweiten Faktoren deaktivieren"
@@ -471,6 +475,7 @@ msgstr "App token generated. Please copy now – it will only be displayed once.
 msgid "App-Token wurde widerrufen."
 msgstr "App token was revoked."
 
+#: core/navigation.py:54
 #: templates/core/account.html:68
 #: templates/core/api_tokens.html:3
 #: templates/core/api_tokens.html:8
@@ -523,6 +528,7 @@ msgstr "Assets operational"
 msgid "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:"
 msgstr "Even a demonstration with fictional operational content processes real connection data. Which details permanently end up in access or error logs depends on the actual configuration of the application, the reverse proxy, and the hosting. Prior to publication, an inventory is required for the following possible data fields; the list is not a statement that all fields are logged:"
 
+#: core/navigation.py:59
 #: templates/base.html:84
 #: templates/core/audit_log.html:3
 #: templates/core/audit_log.html:5
@@ -562,7 +568,7 @@ msgstr "Task was saved."
 msgid "Aufgabe wurde wieder geöffnet."
 msgstr "Task was reopened."
 
-#: templates/base.html:104
+#: core/navigation.py:16
 msgid "Aufgaben"
 msgstr "Tasks"
 
@@ -596,15 +602,15 @@ msgstr "Issued"
 msgid "Aushang anlegen"
 msgstr "Create notice"
 
-#: core/views.py:1440
+#: core/views.py:1447
 msgid "Aushang wurde aktualisiert."
 msgstr "Notice was updated."
 
-#: core/views.py:1416
+#: core/views.py:1423
 msgid "Aushang wurde angelegt."
 msgstr "Notice was created."
 
-#: core/views.py:1465
+#: core/views.py:1472
 msgid "Aushang wurde archiviert."
 msgstr "Notice was archived."
 
@@ -616,6 +622,8 @@ msgstr "Notices"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Descriptive title of the entry (max. 160 characters)."
 
+#: core/navigation.py:22
+#: core/navigation.py:42
 #: templates/core/more.html:13
 #: templates/core/wachalltag_reports.html:3
 #: templates/core/wachalltag_reports.html:7
@@ -719,10 +727,6 @@ msgstr "Master admin username"
 #: core/diagnostics_models.py:29
 msgid "Berechtigung"
 msgstr "Permission"
-
-#: templates/core/presentation.html:39
-msgid "Bereiche unter „Mehr“"
-msgstr "Sections under “More”"
 
 #: templates/core/diagnostics_events.html:11
 msgid "Bereinigte technische 5xx-Ereignisse dieser Wache. Keine Fehlermeldungen, Roh-URLs oder Inhalte."
@@ -985,6 +989,8 @@ msgstr "Set up chat key"
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
+#: core/navigation.py:26
+#: core/navigation.py:47
 #: core/views.py:489
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
@@ -1002,11 +1008,11 @@ msgstr "Stored client-side encrypted"
 msgid "Clientseitige Verschlüsselung"
 msgstr "Client-side encryption"
 
-#: core/views.py:1313
+#: core/views.py:1320
 msgid "Code ungültig oder abgelaufen."
 msgstr "Code invalid or expired."
 
-#: core/views.py:1343
+#: core/views.py:1350
 msgid "Code ungültig. Bitte erneut scannen und prüfen."
 msgstr "Code invalid. Please scan again and verify."
 
@@ -1030,17 +1036,18 @@ msgstr "To help us assist you: Contact logbook support and share the correlation
 msgid "Danke – alle haben gelesen. Die Neuigkeit ist im Archiv."
 msgstr "Thank you – everyone has read it. The item is archived."
 
+#: core/navigation.py:57
 #: templates/core/more.html:25
 #: templates/core/presentation.html:3
 #: templates/core/presentation.html:7
 msgid "Darstellung"
 msgstr "Layout"
 
-#: core/views.py:1216
+#: core/views.py:1227
 msgid "Darstellung gespeichert."
 msgstr "Layout saved."
 
-#: templates/core/presentation.html:56
+#: templates/core/presentation.html:42
 msgid "Darstellung speichern"
 msgstr "Save layout"
 
@@ -1088,7 +1095,7 @@ msgstr "Database"
 msgid "Datenschutz"
 msgstr "Privacy"
 
-#: templates/base.html:145
+#: templates/base.html:111
 msgid "Datenschutz & Cookies"
 msgstr "Privacy & Cookies"
 
@@ -1513,13 +1520,14 @@ msgstr "Resources"
 msgid "Einstellung speichern"
 msgstr "Save setting"
 
+#: core/navigation.py:58
 #: templates/core/more.html:26
 #: templates/core/station_settings.html:3
 #: templates/core/station_settings.html:8
 msgid "Einstellungen"
 msgstr "Settings"
 
-#: core/views.py:1264
+#: core/views.py:1271
 msgid "Einstellungen wurden gespeichert."
 msgstr "Settings were saved."
 
@@ -1552,7 +1560,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Decryption failed."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:159
+#: templates/base.html:125
 msgid "Entsperren"
 msgstr "Unlock"
 
@@ -1831,6 +1839,8 @@ msgstr "Birthday"
 msgid "Geburtstag einstellen"
 msgstr "Set birthday"
 
+#: core/navigation.py:24
+#: core/navigation.py:44
 #: templates/core/birthdays.html:3
 #: templates/core/birthdays.html:6
 #: templates/core/more.html:15
@@ -1882,6 +1892,11 @@ msgstr "Community fund"
 msgid "Gerät"
 msgstr "Device"
 
+#: core/navigation.py:21
+msgid "Geräte"
+msgstr "Equipment"
+
+#: core/navigation.py:41
 #: templates/core/assets_inventory.html:3
 #: templates/core/assets_inventory.html:7
 msgid "Geräte & Status"
@@ -1932,7 +1947,7 @@ msgstr "Saved key envelope is corrupted."
 msgid "Gewünschte Wache"
 msgstr "Preferred station"
 
-#: templates/base.html:153
+#: templates/base.html:119
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Enter the passphrase for your end-to-end key. It will only stay in this browser."
 
@@ -2013,8 +2028,8 @@ msgstr "Today / day"
 msgid "Heutige Liste"
 msgstr "Today's list"
 
-#: templates/base.html:126
-#: templates/base.html:146
+#: core/navigation.py:30
+#: templates/base.html:112
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -2094,6 +2109,10 @@ msgstr "HttpOnly:"
 #: core/task_board.py:20
 msgid "Hygiene / Desinfektion"
 msgstr "Hygiene / disinfection"
+
+#: templates/core/presentation.html:8
+msgid "Häkchen setzen, um einen Bereich in die obere Leiste zu holen – Häkchen entfernen, damit er nur unter „Mehr“ erscheint. Ziehen oder Pfeile ändern die Reihenfolge."
+msgstr "Tick a box to move a section into the top bar – clear it so the section only appears under “More”. Drag or use the arrows to change the order."
 
 #: templates/core/coffee.html:22
 msgid "IBAN kopieren"
@@ -2243,6 +2262,8 @@ msgstr "Each domain query remains tied to its own station. Auditors without free
 msgid "KW %(week)s"
 msgstr "CW %(week)s"
 
+#: core/navigation.py:23
+#: core/navigation.py:45
 #: templates/core/coffee.html:3
 #: templates/core/coffee.html:6
 #: templates/core/coffee_form.html:4
@@ -2250,7 +2271,7 @@ msgstr "CW %(week)s"
 msgid "Kaffeekasse"
 msgstr "Coffee fund"
 
-#: templates/base.html:98
+#: core/navigation.py:15
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
 #: templates/core/calendar_form.html:6
@@ -2536,7 +2557,7 @@ msgstr "MFA"
 msgid "MFA einrichten"
 msgstr "Set up MFA"
 
-#: core/views.py:1359
+#: core/views.py:1366
 msgid "MFA ist für diese Installation vorgeschrieben."
 msgstr "MFA is required for this installation."
 
@@ -2587,7 +2608,7 @@ msgstr "Material order"
 msgid "Max."
 msgstr "Max."
 
-#: templates/base.html:121
+#: core/navigation.py:29
 #: templates/core/more.html:3
 #: templates/core/more.html:7
 msgid "Mehr"
@@ -2597,6 +2618,8 @@ msgstr "More"
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "No more attachments are possible."
 
+#: core/navigation.py:28
+#: core/navigation.py:53
 #: templates/core/account.html:3
 #: templates/core/account.html:7
 #: templates/core/more.html:23
@@ -2615,6 +2638,11 @@ msgstr "My setting"
 msgid "Meine Geburtstagseinstellung"
 msgstr "My birthday setting"
 
+#: core/navigation.py:25
+msgid "Meldungen"
+msgstr "Alerts"
+
+#: core/navigation.py:46
 #: templates/core/feeds.html:3
 msgid "Meldungen & Verkehr"
 msgstr "Reports & traffic"
@@ -2661,6 +2689,7 @@ msgstr "Upon completion, exactly one station and exactly one master admin are cr
 msgid "Mit der Signal-App scannen – oder den Button öffnen."
 msgstr "Scan with the Signal app – or use the button."
 
+#: core/navigation.py:56
 #: templates/core/more.html:25
 msgid "Mitarbeiter-Aktivierungen"
 msgstr "Employee activations"
@@ -2702,6 +2731,10 @@ msgstr "Connect mobile app"
 msgid "Mobiles Wachbuch für die interne Organisation einer Rettungswache."
 msgstr "Mobile logbook for internal organization of a rescue station."
 
+#: templates/core/presentation.html:28
+msgid "Modul aus"
+msgstr "Module off"
+
 #: core/task_board.py:33
 msgid "Monatliche Fahrzeugdurchsicht"
 msgstr "Monthly vehicle inspection"
@@ -2714,6 +2747,8 @@ msgstr "Music"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
+#: core/navigation.py:20
+#: core/navigation.py:40
 #: core/views.py:486
 #: templates/core/defect_detail.html:3
 #: templates/core/defects.html:3
@@ -2747,7 +2782,7 @@ msgstr "Waste"
 msgid "Müllabfuhr (externe ICS-Quelle)"
 msgstr "Waste collection (external ICS source)"
 
-#: core/views.py:1266
+#: core/views.py:1273
 msgid "Müllkalender übernommen: %(count)s Termine."
 msgstr "Waste calendar imported: %(count)s dates."
 
@@ -2775,13 +2810,11 @@ msgstr "Waste calendar: either enter an HTTPS ICS address or upload an ICS file.
 msgid "Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten- oder Einsatzdaten eintragen."
 msgstr "After registration, a station admin approves access. Do not enter patient or incident data."
 
-#: templates/core/presentation.html:24
-#: templates/core/presentation.html:46
+#: templates/core/presentation.html:31
 msgid "Nach oben"
 msgstr "Move up"
 
-#: templates/core/presentation.html:25
-#: templates/core/presentation.html:47
+#: templates/core/presentation.html:32
 msgid "Nach unten"
 msgstr "Move down"
 
@@ -2888,7 +2921,8 @@ msgstr "Create news item"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
-#: templates/base.html:110
+#: core/navigation.py:17
+#: core/navigation.py:50
 #: templates/core/more.html:20
 #: templates/core/news_index.html:3
 #: templates/core/news_index.html:7
@@ -2902,10 +2936,6 @@ msgstr "Not found."
 #: templates/core/vorfuehrung.html:35
 msgid "Nicht im Umfang"
 msgstr "Out of scope"
-
-#: templates/core/presentation.html:32
-msgid "Nicht in der Leiste:"
-msgstr "Not in the bar:"
 
 #: templates/core/setup_wizard.html:35
 msgid "Niederschlag"
@@ -3072,7 +3102,7 @@ msgstr "Next step"
 msgid "Nächster Tag"
 msgstr "Next day"
 
-#: templates/core/presentation.html:16
+#: templates/core/presentation.html:17
 msgid "Obere Leiste"
 msgstr "Top bar"
 
@@ -3272,7 +3302,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys are not available here."
 
-#: templates/base.html:154
+#: templates/base.html:120
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -3289,7 +3319,7 @@ msgstr "Passphrase at least 10 characters."
 msgid "Passphrasen stimmen nicht überein."
 msgstr "Passphrases do not match."
 
-#: templates/core/presentation.html:17
+#: templates/core/presentation.html:18
 msgid "Passt der Inhalt nicht in die Breite, erscheint darunter ein Schieberegler zum Wischen."
 msgstr "If the content does not fit, a slider appears below for swiping."
 
@@ -3335,6 +3365,8 @@ msgstr "Personal area"
 msgid "Persönlicher Zugang"
 msgstr "Personal access"
 
+#: core/navigation.py:19
+#: core/navigation.py:49
 #: templates/core/more.html:19
 #: templates/core/pinboard.html:3
 #: templates/core/pinboard.html:6
@@ -3444,6 +3476,7 @@ msgstr "Profile picture, password, and two-factor"
 msgid "Profilbild, Passwort und Zwei-Faktor für"
 msgstr "Profile picture, password, and two-factor for"
 
+#: core/navigation.py:48
 #: templates/core/checklist_schedules.html:3
 #: templates/core/checklist_schedules.html:7
 #: templates/core/more.html:18
@@ -3471,6 +3504,7 @@ msgstr "Push could not be activated."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
+#: core/navigation.py:61
 #: templates/core/account.html:70
 #: templates/core/more.html:29
 #: templates/core/push_settings.html:7
@@ -3521,7 +3555,7 @@ msgstr "QR code for the Signal group"
 msgid "QR-Login konnte nicht gestartet werden."
 msgstr "QR login could not be started."
 
-#: templates/base.html:143
+#: templates/base.html:109
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Source code (AGPL-3.0)"
 
@@ -3586,10 +3620,6 @@ msgstr "Registration:"
 #: templates/core/more.html:25
 msgid "Reihenfolge der Leiste und der Bereiche unter Mehr"
 msgstr "Order of the bar and of the sections under More"
-
-#: templates/core/presentation.html:8
-msgid "Reihenfolge der oberen Leiste und der Bereiche unter „Mehr“ festlegen. Mit der Maus ziehen oder die Pfeile nutzen – die Pfeile funktionieren auch auf dem Handy."
-msgstr "Set the order of the top bar and of the sections under “More”. Drag with the mouse or use the arrows – the arrows also work on a phone."
 
 #: templates/registration/qr_confirm.html:32
 msgid "Restzeit"
@@ -3692,7 +3722,7 @@ msgstr "Keys & pools"
 msgid "Schlüssel einrichten"
 msgstr "Set up keys"
 
-#: templates/base.html:152
+#: templates/base.html:118
 msgid "Schlüssel entsperren"
 msgstr "Unlock key"
 
@@ -3966,6 +3996,7 @@ msgstr "Open day"
 msgid "Tage"
 msgstr "Days"
 
+#: core/navigation.py:43
 #: templates/core/dashboard.html:20
 #: templates/core/landing.html:26
 #: templates/core/more.html:14
@@ -3980,6 +4011,10 @@ msgstr "Daily tasks"
 msgid "Team"
 msgstr "Team"
 
+#: core/navigation.py:55
+msgid "Team & Rollen"
+msgstr "Team & roles"
+
 #: templates/core/more.html:25
 #: templates/core/team.html:8
 msgid "Team &amp; Rollen"
@@ -3993,6 +4028,7 @@ msgstr "Team member"
 msgid "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen."
 msgstr "Technical product information for operators and users. The specific operator must supplement this information with its complete data subject information under Art. 13/14 GDPR."
 
+#: core/navigation.py:62
 #: templates/core/more.html:30
 msgid "Technische Verwaltung"
 msgstr "Technical administration"
@@ -4168,7 +4204,7 @@ msgstr "Encrypted – cannot be decrypted (missing keys)."
 msgid "Verschlüsselung"
 msgstr "Encryption"
 
-#: templates/base.html:147
+#: templates/base.html:113
 #: templates/core/handover_detail.html:44
 #: templates/core/privacy.html:190
 #: templates/core/system_status.html:12
@@ -4215,7 +4251,7 @@ msgstr "From"
 msgid "Vorführen. Pilotieren. Selbst hosten."
 msgstr "Demonstrate. Pilot. Self-host."
 
-#: templates/base.html:144
+#: templates/base.html:110
 #: templates/core/landing.html:12
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
@@ -4308,6 +4344,7 @@ msgstr "Set up station"
 msgid "Wache und Master-Admin einrichten"
 msgstr "Set up station and master admin"
 
+#: core/navigation.py:51
 #: templates/core/more.html:21
 #: templates/core/wiki_detail.html:20
 #: templates/core/wiki_index.html:4
@@ -4315,6 +4352,8 @@ msgstr "Set up station and master admin"
 msgid "Wachen-Wiki"
 msgstr "Station wiki"
 
+#: core/navigation.py:27
+#: core/navigation.py:52
 #: templates/core/account.html:69
 #: templates/core/chat.html:3
 #: templates/core/chat.html:7
@@ -4501,7 +4540,7 @@ msgstr "Recurring checks"
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Process and document recurring checks in station operations."
 
-#: templates/base.html:116
+#: core/navigation.py:18
 msgid "Wiki"
 msgstr "Wiki"
 
@@ -4598,7 +4637,7 @@ msgstr "Too many requests in a short time. Please wait a moment and try again."
 msgid "Zu viele Anfragen."
 msgstr "Too many requests."
 
-#: core/views.py:1311
+#: core/views.py:1318
 msgid "Zu viele Fehlversuche. Bitte erneut anmelden."
 msgstr "Too many failed attempts. Please sign in again."
 
@@ -4813,6 +4852,10 @@ msgstr "Additional tasks"
 msgid "Zweck:"
 msgstr "Purpose:"
 
+#: core/navigation.py:60
+msgid "Zwei-Faktor"
+msgstr "Two-factor"
+
 #: templates/core/account.html:66
 #: templates/core/more.html:28
 msgid "Zwei-Faktor / Passkeys"
@@ -4838,11 +4881,11 @@ msgstr "Two-factor authentication must be set up first."
 msgid "Zwei-Faktor-Authentifizierung"
 msgstr "Two-factor authentication"
 
-#: core/views.py:1341
+#: core/views.py:1348
 msgid "Zwei-Faktor-Authentifizierung ist aktiv."
 msgstr "Two-factor authentication is active."
 
-#: core/views.py:1364
+#: core/views.py:1371
 msgid "Zwei-Faktor-Authentifizierung wurde deaktiviert."
 msgstr "Two-factor authentication was disabled."
 
@@ -4932,6 +4975,10 @@ msgstr "iOS &amp; Android"
 #: templates/core/vorfuehrung.html:82
 msgid "iOS / iPadOS"
 msgstr "iOS / iPadOS"
+
+#: templates/core/presentation.html:29
+msgid "immer oben"
+msgstr "always in the bar"
 
 #: templates/core/system_status.html:40
 msgid "ja"
@@ -5125,7 +5172,7 @@ msgstr "Handover was corrected (new revision)."
 msgid "Übergabeliste"
 msgstr "Handover list"
 
-#: templates/base.html:93
+#: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
 #: templates/core/landing.html:25
@@ -5154,7 +5201,7 @@ msgstr "Handovers, defects, checklists, equipment, keys, calendar, cash fund, te
 msgid "Übergaben, Tagesaufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Kein Einsatzleit-, Dienstplan- oder Patientensystem."
 msgstr "Handovers, daily tasks, and team roles for rescue stations, fire departments, and comparable services. No dispatch, shift scheduling, or patient system."
 
-#: templates/base.html:89
+#: core/navigation.py:13
 #: templates/core/dashboard.html:3
 #: templates/core/dashboard.html:8
 msgid "Übersicht"

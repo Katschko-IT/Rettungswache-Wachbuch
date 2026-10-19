@@ -84,47 +84,13 @@
             <span>{% translate "Audit" %}</span>
           </a>
         {% else %}
-          <a style="order: {{ nav_conf.order.overview|default:1 }}" href="{% url 'dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}>
-            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>
-            <span>{% translate "Übersicht" %}</span>
-          </a>
-          <a style="order: {{ nav_conf.order.handovers|default:2 }}" class="nav-handovers" href="{% url 'handover_list' %}"{% if 'handover' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 4h9l3 3v13H6V4zm2 4h7v2H8V8zm0 4h7v2H8v-2zm0 4h5v2H8v-2z" fill="currentColor"/></svg></span>
-            <span>{% translate "Übergaben" %}{% if nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
-          </a>
-          {% if nav_conf.visible.calendar %}
-            <a style="order: {{ nav_conf.order.calendar|default:3 }}" href="{% url 'calendar' %}"{% if 'calendar' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 3h2v2h6V3h2v2h3v16H4V5h3V3zm13 6H6v10h14V9z" fill="currentColor"/></svg></span>
-              <span>{% translate "Kalender" %}</span>
+          {% for item in nav_conf.entries %}
+            <a style="order: {{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
+              {% if item.key == 'overview' %}<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>{% endif %}
+              <span>{{ item.label }}{% if item.key == 'handovers' and nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
             </a>
-          {% endif %}
-          {% if nav_conf.visible.tasks %}
-            <a style="order: {{ nav_conf.order.tasks|default:4 }}" href="{% url 'tasks_today' %}"{% if 'task' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/></svg></span>
-              <span>{% translate "Aufgaben" %}</span>
-            </a>
-          {% endif %}
-          {% if nav_conf.visible.news %}
-            <a style="order: {{ nav_conf.order.news|default:5 }}" href="{% url 'news_index' %}"{% if 'news' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 5h16v14H4V5zm2 2v10h12V7H6zm2 2h8v2H8V9zm0 4h5v2H8v-2z" fill="currentColor"/></svg></span>
-              <span>{% translate "Neuigkeiten" %}</span>
-            </a>
-          {% endif %}
-          {% if nav_conf.visible.wiki %}
-            <a style="order: {{ nav_conf.order.wiki|default:6 }}" href="{% url 'wiki_index' %}"{% if 'wiki' in request.resolver_match.url_name %} aria-current="page"{% endif %}>
-              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 4h6v16H5V4zm8 0h6v16h-6V4z" fill="currentColor"/></svg></span>
-              <span>{% translate "Wiki" %}</span>
-            </a>
-          {% endif %}
-          <a style="order: {{ nav_conf.order.more|default:7 }}" href="{% url 'more' %}"{% if request.resolver_match.url_name == 'more' or request.resolver_match.url_name == 'account_home' or request.resolver_match.url_name == 'birthdays' or request.resolver_match.url_name == 'birthday_settings' or request.resolver_match.url_name == 'coffee' or request.resolver_match.url_name == 'coffee_create' or request.resolver_match.url_name == 'coffee_correct' or request.resolver_match.url_name == 'feeds' or request.resolver_match.url_name == 'tasks_today' or request.resolver_match.url_name == 'tasks_week' or request.resolver_match.url_name == 'tasks_manage' or request.resolver_match.url_name == 'task_create' or request.resolver_match.url_name == 'task_edit' or request.resolver_match.url_name == 'team' or request.resolver_match.url_name == 'team_create' or request.resolver_match.url_name == 'membership_update' or request.resolver_match.url_name == 'station_settings' or request.resolver_match.url_name == 'audit_log' or request.resolver_match.url_name == 'push_settings' or request.resolver_match.url_name == 'chat' or request.resolver_match.url_name == 'chat_hide' or 'private_chat' in request.resolver_match.url_name or 'secure_mail' in request.resolver_match.url_name or request.resolver_match.url_name == 'crypto_setup' or 'defect' in request.resolver_match.url_name or request.resolver_match.url_name == 'assets_inventory_web' or request.resolver_match.url_name == 'checklist_schedules_web' or request.resolver_match.url_name == 'wachalltag_reports_web' %} aria-current="page"{% endif %}>
-            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 7h14v2H5V7zm0 4h14v2H5v-2zm0 4h10v2H5v-2z" fill="currentColor"/></svg></span>
-            <span>{% translate "Mehr" %}</span>
-          </a>
+          {% endfor %}
         {% endif %}
-        <a style="order: {{ nav_conf.order.help|default:8 }}" class="nav-help" href="{% url 'help_index' %}"{% if request.resolver_match.url_name == 'help_index' or request.resolver_match.url_name == 'help_article' or request.resolver_match.url_name == 'system_status' %} aria-current="page"{% endif %}>
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a7 7 0 0 0-4 12.7V19h8v-3.3A7 7 0 0 0 12 3zm-3 18h6v-1H9v1z" fill="currentColor"/></svg></span>
-          <span>{% translate "Hilfe" %}</span>
-        </a>
       </div>
     </nav>
   {% endif %}

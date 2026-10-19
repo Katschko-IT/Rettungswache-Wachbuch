@@ -1205,27 +1205,34 @@ def membership_update(request, pk):
 @membership_required({Membership.Role.ADMIN})
 @require_http_methods(["GET", "POST"])
 def presentation_settings(request):
-    """Reihenfolge der Hauptleiste und der Bereiche unter 'Mehr' verwalten."""
-    from .navigation import DEFAULT_ORDER, MORE_ITEMS, NAV_ITEMS, parse_order, parse_order_more
+    """Bereiche in die Leiste holen bzw. unter 'Mehr' belassen und sortieren."""
+    from .navigation import CATALOG, MORE_ITEMS, PINNED, nav_config, parse_order_more
 
     station = request.membership.station
     if request.method == "POST":
-        station.nav_order = ",".join(parse_order(request.POST.get("nav_order", "")))
-        station.more_order = ",".join(parse_order_more(request.POST.get("more_order", "")))
+        order = [part.strip() for part in (request.POST.get("order") or "").split(",") if part.strip()]
+        order = [key for key in order if key in CATALOG]
+        if not order:
+            order = list(CATALOG.keys())
+        primary = [
+            key for key in order
+            if key in PINNED or request.POST.get(f"inbar_{key}")
+        ]
+        # Alles, was nicht oben steht, erscheint unter „Mehr“ – in derselben
+        # Reihenfolge wie in der Liste.
+        below = [key for key in order if key not in primary]
+        station.nav_order = ",".join(primary)
+        station.more_order = ",".join(parse_order_more(",".join(below)))
         station.save(update_fields=["nav_order", "more_order"])
         messages.success(request, _("Darstellung gespeichert."))
         return redirect("presentation_settings")
 
-    nav_current = parse_order(station.nav_order) or list(DEFAULT_ORDER)
-    more_current = parse_order_more(station.more_order) or [key for key, _ in MORE_ITEMS]
-    nav_labels = dict(NAV_ITEMS)
-    more_labels = dict(MORE_ITEMS)
-    return render(request, "core/presentation.html", {
-        "nav_rows": [{"key": key, "label": nav_labels[key]} for key in nav_current],
-        "more_rows": [{"key": key, "label": more_labels[key]} for key in more_current],
-        "nav_order_value": ",".join(nav_current),
-        "more_order_value": ",".join(more_current),
-    })
+    config = nav_config(station)
+    by_key = {option["key"]: option for option in config["options"]}
+    rows = [by_key[key] for key in config["sequence"] if key in by_key]
+    rows += [option for option in config["options"] if not option["selected"]]
+
+    return render(request, "core/presentation.html", {"rows": rows})
 
 
 @membership_required({Membership.Role.ADMIN})

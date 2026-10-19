@@ -5,21 +5,28 @@
 <a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu Einstellungen" %}</a>
 <header class="page-heading narrow">
   <h1>{% translate "Darstellung" %}</h1>
-  <p class="lead">{% translate "Reihenfolge der oberen Leiste und der Bereiche unter „Mehr“ festlegen. Mit der Maus ziehen oder die Pfeile nutzen – die Pfeile funktionieren auch auf dem Handy." %}</p>
+  <p class="lead">{% translate "Häkchen setzen, um einen Bereich in die obere Leiste zu holen – Häkchen entfernen, damit er nur unter „Mehr“ erscheint. Ziehen oder Pfeile ändern die Reihenfolge." %}</p>
 </header>
 
 <form method="post" class="content-flow narrow" data-sortable-form>
   {% csrf_token %}
   <input type="hidden" name="action" value="presentation">
+  <input type="hidden" name="order" value="" data-sortable-output="order">
 
   <section class="section-block">
     <h2>{% translate "Obere Leiste" %}</h2>
     <p class="helptext">{% translate "Passt der Inhalt nicht in die Breite, erscheint darunter ein Schieberegler zum Wischen." %}</p>
-    <ol class="sortable-list" data-sortable data-input="nav_order">
-      {% for row in nav_rows %}
+    <ol class="sortable-list" data-sortable data-input="order">
+      {% for row in rows %}
         <li draggable="true" data-key="{{ row.key }}">
           <span class="drag-handle" aria-hidden="true">⠿</span>
-          <span>{{ row.label }}</span>
+          <label class="sortable-toggle">
+            <input type="checkbox" name="inbar_{{ row.key }}"{% if row.selected %} checked{% endif %}{% if row.pinned %} disabled{% endif %}>
+            <span>{{ row.label }}</span>
+          </label>
+          {% if row.pinned %}<input type="hidden" name="inbar_{{ row.key }}" value="on">{% endif %}
+          {% if not row.available %}<span class="status-label neutral">{% translate "Modul aus" %}</span>{% endif %}
+          {% if row.pinned %}<span class="status-label neutral">{% translate "immer oben" %}</span>{% endif %}
           <span class="sort-buttons">
             <button type="button" class="button secondary" data-move="up" aria-label="{% translate 'Nach oben' %}">▲</button>
             <button type="button" class="button secondary" data-move="down" aria-label="{% translate 'Nach unten' %}">▼</button>
@@ -27,30 +34,9 @@
         </li>
       {% endfor %}
     </ol>
-    <input type="hidden" name="nav_order" value="{{ nav_order_value }}" data-sortable-output="nav_order">
-    {% if nav_available %}
-      <p class="helptext">{% translate "Nicht in der Leiste:" %}
-        {% for row in nav_available %}<span class="status-label neutral">{{ row.label }}</span> {% endfor %}
-      </p>
-    {% endif %}
   </section>
 
-  <section class="section-block">
-    <h2>{% translate "Bereiche unter „Mehr“" %}</h2>
-    <ol class="sortable-list" data-sortable data-input="more_order">
-      {% for row in more_rows %}
-        <li draggable="true" data-key="{{ row.key }}">
-          <span class="drag-handle" aria-hidden="true">⠿</span>
-          <span>{{ row.label }}</span>
-          <span class="sort-buttons">
-            <button type="button" class="button secondary" data-move="up" aria-label="{% translate 'Nach oben' %}">▲</button>
-            <button type="button" class="button secondary" data-move="down" aria-label="{% translate 'Nach unten' %}">▼</button>
-          </span>
-        </li>
-      {% endfor %}
-    </ol>
-    <input type="hidden" name="more_order" value="{{ more_order_value }}" data-sortable-output="more_order">
-  </section>
+  <p class="helptext">{% translate "Alle nicht angehakten Bereiche erscheinen unter „Mehr“ – in derselben Reihenfolge." %}</p>
 
   <div class="form-actions">
     <button class="button primary" type="submit">{% translate "Darstellung speichern" %}</button>
