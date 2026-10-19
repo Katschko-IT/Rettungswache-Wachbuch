@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.20.0 - 2026-10-20
+
+Pilotstand mit Wachen-Display für Monitor und Fernseher. Keine
+Produktionsfreigabe.
+
+- Wachen-Display: Vollbildansicht mit Uhrzeit, Datum, Wachenname, heutigen
+  Terminen, Tagesaufgaben mit Fortschritt, Wetter, Geburtstagen und der Zahl
+  dringender Übergaben. Auf einen Blick lesbar aus mehreren Metern Entfernung.
+- Display-Start über ein Monitor-Symbol in der Kopfleiste; Esc beendet die
+  Anzeige, ein Knopf startet das echte Vollbild. Der Bildschirm bleibt über die
+  Wake-Lock-Schnittstelle aktiv, solange der Browser das zulässt.
+- Anzeigelinks: In den Einstellungen lassen sich benannte Display-Token
+  erzeugen und jederzeit widerrufen. Gespeichert wird nur ein SHA-256-Hash, der
+  Klartextlink erscheint genau einmal. Der Zugang ist rein lesend und liefert
+  ausschließlich aggregierte Daten ohne Personendetails aus Übergaben.
+- Hintergründe: achtzehn ruhige Full-HD-Motive in unterschiedlichen Farbtönen,
+  auf gleichmäßige Helligkeit kalibriert und im Wechsel alle fünf Minuten.
+- Sprache: Das Display folgt der eingestellten Sprache (Deutsch/Englisch).
+- Tests: Wetterdaten und die Sichtbarkeit der Tagesaufgaben werden
+  zeitunabhängig geprüft; die Wettertests hingen zuvor an festen Kalenderdaten.
+
+Ausdrücklich nicht enthalten: schreibfähiger Offlinebetrieb ohne Server,
+vollständige Übersetzung von Datenbank-Altbeständen sowie reale Warenbetriebs-,
+TLS- und Geräteabnahme.
+
 ## 0.19.0 - 2026-10-19
 
 Pilotstand mit Anhängen, Neuigkeiten und konfigurierbarer Navigation. Keine
