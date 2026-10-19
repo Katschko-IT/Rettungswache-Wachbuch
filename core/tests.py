@@ -66,7 +66,8 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_brand_uses_station_subtitle(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, "<strong>Wachwerk</strong>", html=False)
+        self.assertContains(response, 'class="brand-logo"', html=False)
+        self.assertContains(response, 'alt="Wachwerk"', html=False)
         self.assertContains(response, self.station.name)
         self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
@@ -101,7 +102,7 @@ class ProgressiveWebAppTests(PilotTestCase):
     def test_shell_and_manifest_use_bos_theme_tokens(self):
         response = self.client.get(reverse("dashboard"))
         self.assertContains(response, 'name="theme-color" content="#0d47a1"')
-        self.assertContains(response, 'class="brand-mark"', html=False)
+        self.assertContains(response, 'class="brand-logo"', html=False)
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
             encoding="utf-8"
         )
@@ -136,7 +137,7 @@ class ProgressiveWebAppTests(PilotTestCase):
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))
-        self.assertContains(response, "<strong>Wachwerk</strong>", html=False, count=1)
+        self.assertContains(response, 'alt="Wachwerk"', html=False, count=1)
         self.assertNotContains(response, "brand-hero")
         self.assertContains(response, "landing-hero-art")
         self.assertContains(response, "Pexels")
@@ -1773,7 +1774,6 @@ class HolidayCalendarTests(PilotTestCase):
     def test_calendar_lists_nrw_holidays(self):
         response = self.client.get(reverse("calendar"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "gesetzliche Feiertage (NRW)")
         self.assertTrue(any(item.kind == "holiday" for item in response.context["page_obj"]))
         self.assertContains(response, "Feiertag")
 

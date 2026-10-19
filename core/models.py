@@ -38,6 +38,16 @@ class Station(models.Model):
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
+    signal_group_url = models.URLField(
+        blank=True,
+        default="",
+        max_length=600,
+        verbose_name="Signal-Gruppe (Einladungslink)",
+        help_text=(
+            "Einladungslink zu einer Signal-Gruppe der Wache. Der Chat läuft "
+            "bewusst außerhalb der App."
+        ),
+    )
     paypal_me_url = models.URLField(blank=True, default="", verbose_name="PayPal.me-Link")
     wero_link = models.URLField(blank=True, default="", verbose_name="Wero-Link")
     iban = models.CharField(max_length=34, blank=True, default="", verbose_name="IBAN")

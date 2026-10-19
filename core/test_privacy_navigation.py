@@ -33,7 +33,7 @@ class PrivacyNavigationTests(TestCase):
         # 1. On /datenschutz/
         response_privacy = self.client.get(reverse("privacy"))
         self.assertEqual(response_privacy.status_code, 200)
-        self.assertContains(response_privacy, 'class="public-nav"')
+        self.assertContains(response_privacy, 'class="footer-links"')
         self.assertContains(response_privacy, f'href="{reverse("privacy")}" aria-current="page"')
         self.assertContains(response_privacy, f'href="{reverse("vorfuehrung")}"')
         self.assertNotContains(response_privacy, f'href="{reverse("vorfuehrung")}" aria-current="page"')
@@ -41,7 +41,7 @@ class PrivacyNavigationTests(TestCase):
         # 2. On /vorfuehrung/
         response_demo = self.client.get(reverse("vorfuehrung"))
         self.assertEqual(response_demo.status_code, 200)
-        self.assertContains(response_demo, 'class="public-nav"')
+        self.assertContains(response_demo, 'class="footer-links"')
         self.assertContains(response_demo, f'href="{reverse("vorfuehrung")}" aria-current="page"')
         self.assertContains(response_demo, f'href="{reverse("privacy")}"')
         self.assertNotContains(response_demo, f'href="{reverse("privacy")}" aria-current="page"')
@@ -49,14 +49,14 @@ class PrivacyNavigationTests(TestCase):
         # 3. On /anmelden/ (login)
         response_login = self.client.get(reverse("login"))
         self.assertEqual(response_login.status_code, 200)
-        self.assertContains(response_login, 'class="public-nav"')
+        self.assertContains(response_login, 'class="footer-links"')
         self.assertNotContains(response_login, f'href="{reverse("privacy")}" aria-current="page"')
         self.assertNotContains(response_login, f'href="{reverse("vorfuehrung")}" aria-current="page"')
 
         # 4. On landing page /
         response_landing = self.client.get(reverse("landing"))
         self.assertEqual(response_landing.status_code, 200)
-        self.assertContains(response_landing, 'class="public-nav"')
+        self.assertContains(response_landing, 'class="footer-links"')
 
     def test_ten_anchors_present_and_consistent(self):
         response = self.client.get(reverse("privacy"))
@@ -217,5 +217,5 @@ class PrivacyNavigationTests(TestCase):
         self.assertNotContains(response, f'class="app-nav" aria-label="Hauptnavigation">\n      <div class="nav-inner">\n        <a href="{reverse("privacy")}"')
 
         # Public nav is also present in header for authenticated users
-        self.assertContains(response, 'class="public-nav"')
+        self.assertContains(response, 'class="footer-links"')
         self.assertContains(response, f'href="{reverse("privacy")}"')

@@ -207,12 +207,12 @@ class StationSettingsForm(forms.ModelForm):
             "coffee_enabled",
             "feeds_enabled",
             "tasks_enabled",
-            "chat_enabled",
             "pinboard_enabled",
             "holidays_enabled",
             "checklists_enabled",
             "waste_calendar_enabled",
             "waste_calendar_url",
+            "signal_group_url",
             "paypal_me_url",
             "wero_link",
             "iban",
@@ -235,6 +235,7 @@ class StationSettingsForm(forms.ModelForm):
             "bic": "Optional, 8 oder 11 Zeichen.",
             "payment_note": "Freitext, z. B. Verwendungszweck oder Ansprechpartner.",
             "waste_calendar_url": "Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
+            "signal_group_url": "Link der Signal-Gruppe, z. B. https://signal.group/#…",
         }
 
     waste_calendar_file = forms.FileField(

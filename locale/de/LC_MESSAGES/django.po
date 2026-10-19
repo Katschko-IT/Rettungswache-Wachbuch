@@ -95,7 +95,7 @@ msgstr "4. Cookies &amp; Browser-Speicherung"
 msgid "4. Cookies und Browser-Speicherung (TDDDG / DSGVO)"
 msgstr "4. Cookies und Browser-Speicherung (TDDDG / DSGVO)"
 
-#: core/forms.py:610
+#: core/forms.py:611
 msgid "5-Tage-Wetter am Wachenstandort anzeigen"
 msgstr "5-Tage-Wetter am Wachenstandort anzeigen"
 
@@ -283,7 +283,7 @@ msgstr "Alle zweiten Faktoren deaktivieren"
 msgid "Alle Übergaben"
 msgstr "Alle Übergaben"
 
-#: core/forms.py:583
+#: core/forms.py:584
 msgid "Allgemein"
 msgstr "Allgemein"
 
@@ -584,7 +584,7 @@ msgstr "Authenticator-App und Passkeys"
 msgid "Authorization: Token …"
 msgstr "Authorization: Token …"
 
-#: core/forms.py:318
+#: core/forms.py:319
 msgid "BIC muss 8 oder 11 alphanumerische Zeichen haben."
 msgstr "BIC muss 8 oder 11 alphanumerische Zeichen haben."
 
@@ -649,16 +649,16 @@ msgstr "Benutzer anlegen"
 msgid "Benutzerkonto"
 msgstr "Benutzerkonto"
 
-#: core/forms.py:702
+#: core/forms.py:703
 msgid "Benutzername"
 msgstr "Benutzername"
 
 #: core/forms.py:159
-#: core/forms.py:323
+#: core/forms.py:324
 msgid "Benutzername (z. B. E-Mail)"
 msgstr "Benutzername (z. B. E-Mail)"
 
-#: core/forms.py:611
+#: core/forms.py:612
 msgid "Benutzername des Master-Admins"
 msgstr "Benutzername des Master-Admins"
 
@@ -741,7 +741,7 @@ msgstr "Bezug"
 msgid "Bezug (z. B. RTW 1, Defi, Gerätehaus)"
 msgstr "Bezug (z. B. RTW 1, Defi, Gerätehaus)"
 
-#: core/forms.py:392
+#: core/forms.py:393
 msgid "Bild hochladen und entfernen geht nicht gleichzeitig."
 msgstr "Bild hochladen und entfernen geht nicht gleichzeitig."
 
@@ -761,15 +761,15 @@ msgstr "Bitte Passphrase eingeben."
 msgid "Bitte Tag und Monat angeben oder die Anzeige deaktivieren."
 msgstr "Bitte Tag und Monat angeben oder die Anzeige deaktivieren."
 
-#: core/forms.py:329
+#: core/forms.py:330
 msgid "Bitte Wache wählen"
 msgstr "Bitte Wache wählen"
 
-#: core/forms.py:390
+#: core/forms.py:391
 msgid "Bitte ein Bild wählen oder Entfernen markieren."
 msgstr "Bitte ein Bild wählen oder Entfernen markieren."
 
-#: core/forms.py:330
+#: core/forms.py:331
 msgid "Bitte eine Wache auswählen."
 msgstr "Bitte eine Wache auswählen."
 
@@ -777,16 +777,16 @@ msgstr "Bitte eine Wache auswählen."
 msgid "Bitte eine der angebotenen Zeitzonen wählen."
 msgstr "Bitte eine der angebotenen Zeitzonen wählen."
 
-#: core/forms.py:312
+#: core/forms.py:313
 msgid "Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben."
 msgstr "Bitte eine gültige deutsche IBAN (DE + 20 Ziffern) angeben."
 
-#: core/forms.py:668
-#: core/forms.py:648
+#: core/forms.py:669
+#: core/forms.py:649
 msgid "Bitte eine vier- oder fünfstellige Postleitzahl angeben."
 msgstr "Bitte eine vier- oder fünfstellige Postleitzahl angeben."
 
-#: core/forms.py:640
+#: core/forms.py:641
 msgid "Bitte einen aussagekräftigen Wachennamen angeben."
 msgstr "Bitte einen aussagekräftigen Wachennamen angeben."
 
@@ -826,7 +826,7 @@ msgstr "Bleibt das Problem bestehen? Wende dich an den Wachbuch-Support und teil
 msgid "Bootstrap-Autorisierung"
 msgstr "Bootstrap-Autorisierung"
 
-#: core/forms.py:593
+#: core/forms.py:594
 #: templates/core/setup_token.html:21
 msgid "Bootstrap-Token"
 msgstr "Bootstrap-Token"
@@ -886,7 +886,6 @@ msgid "Chat öffnen"
 msgstr "Chat öffnen"
 
 #: templates/core/crypto_setup.html:8
-#: templates/core/more.html:21
 msgid "Chat-Schlüssel"
 msgstr "Chat-Schlüssel"
 
@@ -1074,6 +1073,10 @@ msgstr "Der Hinweis konnte aufgrund eines gleichzeitigen Schreibkonflikts nicht 
 msgid "Der Hinweis wurde zwischenzeitlich geändert (aktuell Revision %(rev)s). Ihre Eingabe wurde nicht gespeichert. Bitte prüfen und erneut speichern."
 msgstr "Der Hinweis wurde zwischenzeitlich geändert (aktuell Revision %(rev)s). Ihre Eingabe wurde nicht gespeichert. Bitte prüfen und erneut speichern."
 
+#: templates/core/chat_signal.html:29
+msgid "Der Link zur Signal-Gruppe wird in den Einstellungen hinterlegt und gilt für alle Mitglieder dieser Wache."
+msgstr "Der Link zur Signal-Gruppe wird in den Einstellungen hinterlegt und gilt für alle Mitglieder dieser Wache."
+
 #: templates/core/landing.html:35
 msgid "Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat."
 msgstr "Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat."
@@ -1105,6 +1108,10 @@ msgstr "Der Titel darf maximal 160 Zeichen lang sein."
 #: core/wiki_services.py:89
 msgid "Der Titel darf nicht leer sein."
 msgstr "Der Titel darf nicht leer sein."
+
+#: templates/core/chat_signal.html:13
+msgid "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert."
+msgstr "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert."
 
 #: templates/core/system_status.html:43
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
@@ -1159,13 +1166,13 @@ msgid "Die Passphrase ist nicht dein Login-Passwort. Ohne sie sind verschlüssel
 msgstr "Die Passphrase ist nicht dein Login-Passwort. Ohne sie sind verschlüsselte Chats und Post nicht lesbar."
 
 #: core/forms.py:181
-#: core/forms.py:358
-#: core/forms.py:653
-#: core/forms.py:690
+#: core/forms.py:359
+#: core/forms.py:654
+#: core/forms.py:691
 msgid "Die Passwörter stimmen nicht überein."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: core/forms.py:272
+#: core/forms.py:273
 msgid "Die Portangabe der Müllkalender-URL ist ungültig."
 msgstr "Die Portangabe der Müllkalender-URL ist ungültig."
 
@@ -1252,9 +1259,9 @@ msgid "Dieser Assistent läuft vollständig auf dem lokalen Wachenserver. Für W
 msgstr "Dieser Assistent läuft vollständig auf dem lokalen Wachenserver. Für Wachendaten, Konten und Anmeldung ist kein Internetzugang erforderlich."
 
 #: core/forms.py:173
-#: core/forms.py:350
-#: core/forms.py:634
-#: core/forms.py:727
+#: core/forms.py:351
+#: core/forms.py:635
+#: core/forms.py:728
 msgid "Dieser Benutzername ist bereits vergeben."
 msgstr "Dieser Benutzername ist bereits vergeben."
 
@@ -1298,7 +1305,7 @@ msgstr "Dringendes öffnen"
 msgid "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an."
 msgstr "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an."
 
-#: core/forms.py:614
+#: core/forms.py:615
 msgid "E-Mail (optional)"
 msgstr "E-Mail (optional)"
 
@@ -1355,6 +1362,10 @@ msgstr "Eine Oberfläche, vier Wachprofile."
 #: templates/core/privacy.html:179
 msgid "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
 msgstr "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
+
+#: templates/core/chat_signal.html:27
+msgid "Einladungslink ändern"
+msgstr "Einladungslink ändern"
 
 #: templates/core/team_invite_form.html:22
 msgid "Einmal-Link erzeugen"
@@ -1413,10 +1424,6 @@ msgstr "Empfänger und Text sind nötig."
 #: templates/core/secure_mail_detail.html:22
 msgid "Empfänger:"
 msgstr "Empfänger:"
-
-#: templates/core/more.html:21
-msgid "Ende-zu-Ende-Verschlüsselung"
-msgstr "Ende-zu-Ende-Verschlüsselung"
 
 #: templates/registration/mfa_manage.html:17
 msgid "Entfernen"
@@ -1561,7 +1568,7 @@ msgstr "Fehlerereignisse"
 msgid "Feiertag"
 msgstr "Feiertag"
 
-#: core/forms.py:581
+#: core/forms.py:582
 #: core/views.py:405
 msgid "Feuerwehr"
 msgstr "Feuerwehr"
@@ -1793,7 +1800,7 @@ msgstr "Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des V
 msgid "Gespeicherter Schlüsselumschlag ist beschädigt."
 msgstr "Gespeicherter Schlüsselumschlag ist beschädigt."
 
-#: core/forms.py:328
+#: core/forms.py:329
 msgid "Gewünschte Wache"
 msgstr "Gewünschte Wache"
 
@@ -1900,7 +1907,7 @@ msgstr "Hilfe-Artikelstand"
 msgid "Hinweis %(item.label)s"
 msgstr "Hinweis %(item.label)s"
 
-#: core/forms.py:335
+#: core/forms.py:336
 msgid "Hinweis an die Verwaltung"
 msgstr "Hinweis an die Verwaltung"
 
@@ -2082,7 +2089,7 @@ msgstr "Inventar"
 msgid "JPEG, PNG oder WebP · max. 2 MiB"
 msgstr "JPEG, PNG oder WebP · max. 2 MiB"
 
-#: core/forms.py:381
+#: core/forms.py:382
 msgid "JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert."
 msgstr "JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert."
 
@@ -2090,7 +2097,7 @@ msgstr "JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert."
 msgid "Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte."
 msgstr "Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte."
 
-#: core/task_board.py:76
+#: core/task_board.py:84
 msgid "KW %(week)s"
 msgstr "KW %(week)s"
 
@@ -2330,7 +2337,7 @@ msgstr "Kurze Aushänge und Hinweise für die Wache"
 msgid "Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten."
 msgstr "Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten."
 
-#: core/forms.py:408
+#: core/forms.py:409
 #: templates/core/chat.html:48
 msgid "Kurze Nachricht"
 msgstr "Kurze Nachricht"
@@ -2500,7 +2507,7 @@ msgstr "Mit dem Abschluss wird genau eine Wache und genau ein Master-Admin angel
 msgid "Mitarbeiter-Aktivierungen"
 msgstr "Mitarbeiter-Aktivierungen"
 
-#: core/forms.py:601
+#: core/forms.py:602
 msgid "Mitarbeiterzahl"
 msgstr "Mitarbeiterzahl"
 
@@ -2578,19 +2585,19 @@ msgstr "Müllabfuhr (externe ICS-Quelle)"
 msgid "Müllkalender übernommen: %(count)s Termine."
 msgstr "Müllkalender übernommen: %(count)s Termine."
 
-#: core/forms.py:266
+#: core/forms.py:267
 msgid "Müllkalender-URLs brauchen einen Hostnamen."
 msgstr "Müllkalender-URLs brauchen einen Hostnamen."
 
-#: core/forms.py:268
+#: core/forms.py:269
 msgid "Müllkalender-URLs dürfen keine Zugangsdaten enthalten."
 msgstr "Müllkalender-URLs dürfen keine Zugangsdaten enthalten."
 
-#: core/forms.py:274
+#: core/forms.py:275
 msgid "Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden."
 msgstr "Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden."
 
-#: core/forms.py:262
+#: core/forms.py:263
 msgid "Müllkalender-URLs müssen mit https:// beginnen."
 msgstr "Müllkalender-URLs müssen mit https:// beginnen."
 
@@ -2603,8 +2610,8 @@ msgid "Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten
 msgstr "Nach der Anmeldung gibt ein Wachen-Admin den Zugang frei. Keine Patienten- oder Einsatzdaten eintragen."
 
 #: core/forms.py:161
-#: core/forms.py:613
-#: core/forms.py:704
+#: core/forms.py:614
+#: core/forms.py:705
 msgid "Nachname"
 msgstr "Nachname"
 
@@ -2629,7 +2636,7 @@ msgstr "Nachrichtenbereiche"
 msgid "Nachvollziehbarkeit"
 msgstr "Nachvollziehbarkeit"
 
-#: core/forms.py:597
+#: core/forms.py:598
 msgid "Name der Wache"
 msgstr "Name der Wache"
 
@@ -2687,7 +2694,7 @@ msgstr "Neues Konto"
 msgid "Neues Konto registrieren"
 msgstr "Neues Konto registrieren"
 
-#: core/forms.py:674
+#: core/forms.py:675
 msgid "Neues Passwort"
 msgstr "Neues Passwort"
 
@@ -2956,7 +2963,7 @@ msgstr "Organisationsaufgaben"
 msgid "Organisationseinheit"
 msgstr "Organisationseinheit"
 
-#: core/forms.py:599
+#: core/forms.py:600
 msgid "Organisationsprofil"
 msgstr "Organisationsprofil"
 
@@ -2968,7 +2975,7 @@ msgstr "Orientierungshilfe ohne Vollständigkeitsgarantie."
 msgid "Originalbetrag"
 msgstr "Originalbetrag"
 
-#: core/forms.py:604
+#: core/forms.py:605
 msgid "Ort"
 msgstr "Ort"
 
@@ -3075,8 +3082,8 @@ msgstr "Passphrase mindestens 10 Zeichen."
 msgid "Passphrasen stimmen nicht überein."
 msgstr "Passphrasen stimmen nicht überein."
 
-#: core/forms.py:338
-#: core/forms.py:615
+#: core/forms.py:339
+#: core/forms.py:616
 #: templates/core/account.html:56
 msgid "Passwort"
 msgstr "Passwort"
@@ -3085,9 +3092,9 @@ msgstr "Passwort"
 msgid "Passwort setzen und Konto aktivieren"
 msgstr "Passwort setzen und Konto aktivieren"
 
-#: core/forms.py:339
-#: core/forms.py:616
-#: core/forms.py:677
+#: core/forms.py:340
+#: core/forms.py:617
+#: core/forms.py:678
 msgid "Passwort wiederholen"
 msgstr "Passwort wiederholen"
 
@@ -3099,7 +3106,7 @@ msgstr "Passwort ändern"
 msgid "PayPal.me öffnen"
 msgstr "PayPal.me öffnen"
 
-#: core/forms.py:300
+#: core/forms.py:301
 msgid "PayPal.me-Links müssen mit https:// beginnen."
 msgstr "PayPal.me-Links müssen mit https:// beginnen."
 
@@ -3124,7 +3131,7 @@ msgstr "Persönlicher Zugang"
 msgid "Pinnwand"
 msgstr "Pinnwand"
 
-#: core/forms.py:582
+#: core/forms.py:583
 #: core/views.py:413
 msgid "Polizei"
 msgstr "Polizei"
@@ -3151,7 +3158,7 @@ msgstr "Poolgeräte ausgegeben"
 msgid "Post"
 msgstr "Post"
 
-#: core/forms.py:603
+#: core/forms.py:604
 msgid "Postleitzahl"
 msgstr "Postleitzahl"
 
@@ -3205,12 +3212,12 @@ msgstr "Profil"
 msgid "Profil speichern"
 msgstr "Profil speichern"
 
-#: core/forms.py:380
+#: core/forms.py:381
 #: templates/core/account.html:19
 msgid "Profilbild"
 msgstr "Profilbild"
 
-#: core/forms.py:383
+#: core/forms.py:384
 msgid "Profilbild entfernen"
 msgstr "Profilbild entfernen"
 
@@ -3365,7 +3372,7 @@ msgstr "Registrierung:"
 msgid "Restzeit"
 msgstr "Restzeit"
 
-#: core/forms.py:580
+#: core/forms.py:581
 #: core/views.py:397
 #: templates/core/vorfuehrung.html:45
 msgid "Rettungsdienst"
@@ -3402,7 +3409,7 @@ msgstr "Revisionsnummer"
 #: core/forms.py:146
 #: core/forms.py:168
 #: core/forms.py:190
-#: core/forms.py:706
+#: core/forms.py:707
 msgid "Rolle"
 msgstr "Rolle"
 
@@ -3568,6 +3575,23 @@ msgstr "Sicherheitsnummer deines Schlüssels"
 msgid "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 msgstr "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 
+#: templates/core/chat_signal.html:21
+msgid "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Metadaten. Den Einladungslink teile bitte nur innerhalb der Wache."
+msgstr "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Metadaten. Den Einladungslink teile bitte nur innerhalb der Wache."
+
+#: templates/core/chat_signal.html:11
+msgid "Signal-Gruppe"
+msgstr "Signal-Gruppe"
+
+#: templates/core/account.html:69
+#: templates/core/more.html:21
+msgid "Signal-Gruppe oder interner Chat"
+msgstr "Signal-Gruppe oder interner Chat"
+
+#: templates/core/chat_signal.html:17
+msgid "Signal-Gruppe öffnen"
+msgstr "Signal-Gruppe öffnen"
+
 #: templates/core/vorfuehrung.html:93
 msgid "Signiertes AAB, Play-interner Test"
 msgstr "Signiertes AAB, Play-interner Test"
@@ -3669,7 +3693,7 @@ msgstr "Status wurde aktualisiert."
 msgid "Store-Kandidat 1.0"
 msgstr "Store-Kandidat 1.0"
 
-#: core/forms.py:602
+#: core/forms.py:603
 msgid "Straße und Hausnummer"
 msgstr "Straße und Hausnummer"
 
@@ -3993,9 +4017,9 @@ msgid "Vorlage verwalten"
 msgstr "Vorlage verwalten"
 
 #: core/forms.py:160
-#: core/forms.py:324
-#: core/forms.py:612
-#: core/forms.py:703
+#: core/forms.py:325
+#: core/forms.py:613
+#: core/forms.py:704
 msgid "Vorname"
 msgstr "Vorname"
 
@@ -4055,14 +4079,6 @@ msgstr "Wache einrichten"
 msgid "Wache und Master-Admin einrichten"
 msgstr "Wache und Master-Admin einrichten"
 
-#: templates/core/more.html:21
-msgid "Wache · Privat · Post (E2EE)"
-msgstr "Wache · Privat · Post (E2EE)"
-
-#: templates/core/account.html:69
-msgid "Wache, Privat und Post"
-msgstr "Wache, Privat und Post"
-
 #: templates/core/more.html:20
 #: templates/core/wiki_detail.html:20
 #: templates/core/wiki_index.html:4
@@ -4073,6 +4089,8 @@ msgstr "Wachen-Wiki"
 #: templates/core/account.html:69
 #: templates/core/chat.html:3
 #: templates/core/chat.html:7
+#: templates/core/chat_signal.html:3
+#: templates/core/chat_signal.html:6
 #: templates/core/more.html:21
 msgid "Wachenchat"
 msgstr "Wachenchat"
@@ -4178,7 +4196,7 @@ msgstr "Weitere Bereiche"
 msgid "Wero öffnen"
 msgstr "Wero öffnen"
 
-#: core/forms.py:306
+#: core/forms.py:307
 msgid "Wero-Links müssen mit https:// beginnen."
 msgstr "Wero-Links müssen mit https:// beginnen."
 
@@ -4279,7 +4297,7 @@ msgstr "Wiki-Revisionen dürfen nicht verändert werden."
 msgid "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 msgstr "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 
-#: core/forms.py:595
+#: core/forms.py:596
 msgid "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."
 msgstr "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."
 
@@ -4323,13 +4341,17 @@ msgstr "Zahlungswege"
 msgid "Zeit"
 msgstr "Zeit"
 
-#: core/forms.py:606
+#: core/forms.py:607
 msgid "Zeitzone"
 msgstr "Zeitzone"
 
 #: templates/registration/qr_confirm.html:20
 msgid "Zielkonto"
 msgstr "Zielkonto"
+
+#: templates/core/chat_signal.html:31
+msgid "Zu den Einstellungen"
+msgstr "Zu den Einstellungen"
 
 #: templates/core/activate_account.html:12
 msgid "Zu viele Aktivierungsversuche. Bitte warte eine Minute und versuche es erneut."
