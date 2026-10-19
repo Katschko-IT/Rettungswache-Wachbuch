@@ -2,20 +2,23 @@
 {% load i18n %}
 {% block title %}{% translate "Kalender" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
-  <div><p class="context-line">{% translate "Wachenorganisation" %}</p><h1>{% translate "Kalender" %}</h1><p class="lead">{% translate "Wachentermine" %}{% if holidays_enabled %} {% translate "und gesetzliche Feiertage (NRW)" %}{% endif %} – {% translate "keine Dienstplanung." %}</p></div>
+<header class="page-heading calendar-heading">
+  <h1>{% translate "Kalender" %}</h1>
+  {% if can_create %}
   <div class="form-actions">
-    {% if can_create %}<a class="button secondary" href="{% url 'calendar_feed_manage' %}">{% translate "Abo-Links" %}</a><a class="button primary" href="{% url 'calendar_create' %}">{% translate "Termin anlegen" %}</a>{% endif %}
+    <a class="button secondary" href="{% url 'calendar_feed_manage' %}">{% translate "Abo-Links" %}</a>
+    <a class="button primary" href="{% url 'calendar_create' %}">{% translate "Termin anlegen" %}</a>
   </div>
+  {% endif %}
 </header>
 <section class="section-block flush">
   <p><a class="text-action" href="{% url 'calendar_feed_ics' %}">{% translate "Gesamten Kalender als ICS" %}</a></p>
   <div class="agenda">
     {% for event in page_obj %}
-      <article class="agenda-row {% if event.kind == 'holiday' %}agenda-holiday{% elif event.kind == 'waste' %}agenda-waste{% endif %}">
+      <article class="agenda-row {% if event.kind == 'holiday' %}agenda-holiday{% elif event.kind == 'waste' %}agenda-waste{% elif event.kind == 'birthday' %}agenda-holiday{% endif %}">
         <time datetime="{{ event.starts_at|date:'c' }}"><strong>{{ event.starts_at|date:"d.m." }}</strong><span>{% if event.all_day %}{% translate "ganztägig" %}{% else %}{{ event.starts_at|date:"H:i" }}{% endif %}</span></time>
         <div>
-          <h2>{{ event.title }}{% if event.kind == 'holiday' %} <span class="status-label neutral">{% translate "Feiertag" %}</span>{% elif event.kind == 'waste' %} <span class="status-label neutral">{% translate "Müll" %}</span>{% endif %}</h2>
+          <h2>{{ event.title }}{% if event.kind == 'holiday' %} <span class="status-label neutral">{% translate "Feiertag" %}</span>{% elif event.kind == 'waste' %} <span class="status-label neutral">{% translate "Müll" %}</span>{% elif event.kind == 'birthday' %} <span class="status-label neutral">{% translate "Geburtstag" %}</span>{% endif %}</h2>
           {% if event.description %}<p>{{ event.description|linebreaksbr }}</p>{% endif %}
           {% if event.kind == 'event' %}
             <small>{% translate "Bis" %} {{ event.ends_at|date:"d.m.Y H:i" }}</small>

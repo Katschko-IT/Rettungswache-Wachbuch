@@ -187,9 +187,8 @@ def parse_ics(payload):
 
 
 @transaction.atomic
-def sync_station_waste(station):
-    """Loescht alte Abfuhrtermine der Wache und ersetzt sie durch den ICS-Import."""
-    payload = fetch_waste_calendar(station.waste_calendar_url)
+def store_station_waste(station, payload):
+    """Ersetzt die Abfuhrtermine der Wache durch einen geparsten ICS-Inhalt."""
     events = parse_ics(payload)
     WasteCollection.objects.filter(station=station).delete()
     for title, starts_at, ends_at in events:
@@ -200,3 +199,10 @@ def sync_station_waste(station):
             ends_at=ends_at,
         )
     return len(events)
+
+
+@transaction.atomic
+def sync_station_waste(station):
+    """Loescht alte Abfuhrtermine der Wache und ersetzt sie durch den ICS-Import."""
+    payload = fetch_waste_calendar(station.waste_calendar_url)
+    return store_station_waste(station, payload)

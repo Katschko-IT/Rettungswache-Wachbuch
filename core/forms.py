@@ -237,6 +237,15 @@ class StationSettingsForm(forms.ModelForm):
             "waste_calendar_url": "Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
         }
 
+    waste_calendar_file = forms.FileField(
+        label="Müllkalender-Datei (ICS)",
+        required=False,
+        help_text=(
+            "ICS-Datei aus dem Abfuhrkalender deiner Kommune. Wird beim Speichern "
+            "eingelesen und ersetzt die bisherigen Termine. Alternative zur URL."
+        ),
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["organization_profile"].required = False
@@ -271,11 +280,18 @@ class StationSettingsForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get("waste_calendar_enabled") and not cleaned.get("waste_calendar_url"):
-            self.add_error(
-                "waste_calendar_url",
-                "Für den Müllkalender-Fallback wird eine HTTPS-ICS-URL benötigt.",
-            )
+        if cleaned.get("waste_calendar_enabled"):
+            has_url = bool(cleaned.get("waste_calendar_url"))
+            has_file = bool(cleaned.get("waste_calendar_file"))
+            already_imported = getattr(self.instance, "pk", None) and self.instance.waste_collections.exists()
+            if not (has_url or has_file or already_imported):
+                self.add_error(
+                    "waste_calendar_url",
+                    "Müllkalender braucht eine HTTPS-ICS-URL oder eine hochgeladene ICS-Datei.",
+                )
+        upload = cleaned.get("waste_calendar_file")
+        if upload is not None and upload.size > 1_048_576:
+            self.add_error("waste_calendar_file", "Die ICS-Datei darf höchstens 1 MB groß sein.")
         return cleaned
 
     def clean_paypal_me_url(self):

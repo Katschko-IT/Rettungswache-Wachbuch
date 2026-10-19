@@ -176,16 +176,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* Der Wachenname steht mittig in der Kopfzeile, ohne die Navigation zu
    verschieben. Auf schmalen Anzeigen tritt er zurück, statt umzubrechen. */
-.brand-word {
-  display: inline-flex;
-  align-items: baseline;
+.calendar-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: .75rem;
 }
 
-.brand-word strong {
-  font-size: 1.32rem;
-  font-weight: 700;
-  letter-spacing: .015em;
-  line-height: 1;
+.calendar-heading h1 {
+  margin: 0;
+}
+
+.brand-logo {
+  display: block;
+  height: 2.6rem;
+  width: auto;
 }
 
 .header-station {
@@ -1244,6 +1250,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     width: min(100% - 1.25rem, var(--content));
   }
   .header-inner { min-height: 3.5rem; }
+  .brand-logo { height: 2.1rem; }
   .header-station { display: none; }
   .brand small, .identity strong { display: none; }
   .identity span { max-width: 11rem; color: rgba(255, 255, 255, .88); }
@@ -1444,10 +1451,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
   margin: .5rem 0 1rem;
 }
 .passkey-login { margin-top: 1.5rem; }
-.agenda-holiday { background: var(--primary-container); }
-.agenda-holiday h2, .agenda-holiday strong { color: var(--brand-deep); }
-.agenda-waste { background: #f8f4e8; }
-.agenda-waste h2, .agenda-waste strong { color: #6b5d2b; }
+/* Kalenderquellen auf einen Blick unterscheidbar: Feiertag, Müll, Geburtstag. */
+.agenda-holiday { background: #fdf1f1; box-shadow: inset 4px 0 0 #c0392b; }
+.agenda-holiday h2, .agenda-holiday strong { color: #8a2222; }
+.agenda-waste { background: #eef7f0; box-shadow: inset 4px 0 0 #2e7d4f; }
+.agenda-waste h2, .agenda-waste strong { color: #1f5d3a; }
+.agenda-birthday { background: #f6f0fb; box-shadow: inset 4px 0 0 #7c4dbd; }
+.agenda-birthday h2, .agenda-birthday strong { color: #4f2c86; }
 
 /* Organisationsprofile: gleiche Informationsarchitektur, eigene visuelle Akzente. */
 .profile-rescue {

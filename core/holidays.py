@@ -106,6 +106,47 @@ def is_upcoming_agenda_item(item, *, now=None, today=None):
     return item.starts_at >= now
 
 
+def _birthday_entries(station, window_start, window_end):
+    """Freiwillig sichtbare Geburtstage als jaehrliche Kalendereintraege."""
+    from .models import BirthdayPreference
+
+    entries = []
+    if not getattr(station, "birthdays_enabled", True):
+        return entries
+    first_day = timezone.localtime(window_start).date()
+    last_day = timezone.localtime(window_end).date()
+    preferences = (
+        BirthdayPreference.objects.filter(
+            station=station,
+            is_visible=True,
+            day__isnull=False,
+            month__isnull=False,
+        )
+        .select_related("user")
+        .order_by("month", "day")
+    )
+    for preference in preferences:
+        for year in range(first_day.year, last_day.year + 1):
+            try:
+                day = date(year, preference.month, preference.day)
+            except ValueError:
+                # 29. Februar in einem Nicht-Schaltjahr.
+                day = date(year, 2, 28)
+            if not (first_day <= day <= last_day):
+                continue
+            name = preference.user.first_name or preference.user.username
+            starts_at = timezone.make_aware(datetime.combine(day, time.min))
+            entries.append(AgendaEntry(
+                starts_at=starts_at,
+                ends_at=starts_at + timedelta(days=1),
+                title=f"Geburtstag: {name}",
+                kind="birthday",
+                description="",
+                all_day=True,
+            ))
+    return entries
+
+
 def station_agenda(station, events, *, past_days=1, future_days=400):
     """Merge station events, NRW holidays and waste collections into one agenda."""
     now = timezone.now()
@@ -134,6 +175,8 @@ def station_agenda(station, events, *, past_days=1, future_days=400):
                 description="Gesetzlicher Feiertag in Nordrhein-Westfalen",
                 all_day=True,
             ))
+    birthday_items = _birthday_entries(station, window_start, window_end)
+    items.extend(birthday_items)
     if getattr(station, "waste_calendar_enabled", False) and station.waste_collections.exists():
         for waste in station.waste_collections.all():
             ends_at = waste.ends_at or (waste.starts_at + timedelta(hours=1))

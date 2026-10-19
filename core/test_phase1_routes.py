@@ -240,6 +240,9 @@ class TaskEditRouteTests(BasePhase1RoutesTestCase):
         post_data = {
             "title": "Wache gründlich fegen und lüften",
             "band": StationTask.Band.DAILY,
+            "repeat": StationTask.Repeat.DAILY,
+            "repeat_interval": 1,
+            "use_band_color": "on",
             "notes": "Besonders Flurbereich beachten",
             "sort_order": 15,
             "is_active": "on",
@@ -268,6 +271,9 @@ class TaskEditRouteTests(BasePhase1RoutesTestCase):
         post_data = {
             "title": "Aufgabe durch Admin geändert",
             "band": StationTask.Band.DAILY,
+            "repeat": StationTask.Repeat.DAILY,
+            "repeat_interval": 1,
+            "use_band_color": "on",
             "sort_order": 5,
             "is_active": "on",
         }
