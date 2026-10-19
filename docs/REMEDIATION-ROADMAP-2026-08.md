@@ -117,8 +117,8 @@ Noch offen/zu vertiefen:
    Formatprüfung und breitere Regelmenge bleiben wegen des bestehenden Altbestands
    ein separater Folge-Schritt.
 2. Ein reproduzierbarer Python-Dependency-Scan ist umgesetzt: `pip-audit` wird
-   als CI-Werkzeug ueber `requirements-audit.lock` mit SHA256-Hashes installiert und
-   mit `--strict` gegen die CI-Umgebung ausgefuehrt. Container-Scan sowie
+   als CI-Werkzeug über `requirements-audit.lock` mit SHA256-Hashes installiert und
+   mit `--strict` gegen die CI-Umgebung ausgeführt. Container-Scan sowie
    CodeQL/SAST, Secret-Scanning und SBOM-/Provenance-Artefakte bleiben getrennte
    Folge-Gates; dieser Schritt behauptet deren Abdeckung nicht.
 3. Der CI-Docker-Job scannt das gebaute Server-Image nun mit einer auf Commit-SHA

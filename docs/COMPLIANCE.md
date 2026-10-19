@@ -1,6 +1,6 @@
-# Compliance: DSGVO, Cookies, AI Act, NRW oeffentlicher Dienst
+# Compliance: DSGVO, Cookies, AI Act, NRW öffentlicher Dienst
 
-Stand: 31. Juli 2026. Technische und organisatorische Orientierung fuer Betreiber.
+Stand: 31. Juli 2026. Technische und organisatorische Orientierung für Betreiber.
 Keine Rechtsberatung.
 
 ## Kurzfazit
@@ -20,20 +20,20 @@ Technisch umgesetzt oder vorbereitet:
 
 - Zweckbindung: Wachenorganisation, keine Patienten-/Einsatzakte
 - Datenminimierung: Geburtstage ohne Jahr, Audit ohne Fachfreitexte
-- Integritaet: Append-only-Kasse, Revisionshistorie, DB-Rechte
+- Integrität: Append-only-Kasse, Revisionshistorie, DB-Rechte
 - Vertraulichkeit: TLS-Proxy (TLS 1.3 / BSI TR-02102-2), sichere Cookies, CSP,
   Rollenisolation, E2EE mit AES-256-GCM (siehe [`CRYPTO-BSI.md`](CRYPTO-BSI.md))
-- Passwoerter: Argon2id; TOTP-Geheimnisse AES-256-GCM at rest
+- Passwörter: Argon2id; TOTP-Geheimnisse AES-256-GCM at rest
 - Betroffenenrechte: organisatorisch in der Go-live-Checkliste; technisch
   Austrittsbereinigung (Geburtstage), Feed-Retention und optionale Audit-Fristen
-  vorbereitet; weitere Fristen nach Freigabe schaerfen
+  vorbereitet; weitere Fristen nach Freigabe schärfen
 
 Verantwortliche Stelle, Rechtsgrundlagen je Modul, VVT (Art. 30) und ggf. DSFA
-muessen vor Pilotbetrieb freigegeben sein.
+müssen vor Pilotbetrieb freigegeben sein.
 
 ## Cookies und TDDDG (vormals TTDSG)
 
-§ 25 TDDDG verlangt Einwilligung fuer nicht notwendige Zugriffe auf Endgeraete.
+§ 25 TDDDG verlangt Einwilligung für nicht notwendige Zugriffe auf Endgeräte.
 Dieses Produkt setzt absichtlich **keine** Analyse-, Marketing- oder Social-
 Cookies. Notwendige Cookies:
 
@@ -42,35 +42,35 @@ Cookies. Notwendige Cookies:
 | `rwsth_session` | Anmeldung / Sitzung | nein (technisch notwendig) |
 | `rwsth_csrf` | CSRF-Schutz | nein (technisch notwendig) |
 
-Transparenz: Seite `/datenschutz/`. Kein Cookie-Banner fuer Opt-in-Tracking.
+Transparenz: Seite `/datenschutz/`. Kein Cookie-Banner für Opt-in-Tracking.
 PWA-Service-Worker und lokaler Installationshinweis speichern keine Werbe-IDs.
-Werden spaeter Analyse-Tools eingefuehrt, ist vorher ein Consent-Banner und eine
-Rechtspruefung noetig.
+Werden später Analyse-Tools eingeführt, ist vorher ein Consent-Banner und eine
+Rechtsprüfung nötig.
 
 ## EU-KI-Verordnung (AI Act)
 
 - Das Wachbuch ist klassische SSR-/PWA-Software ohne eingebettetes Modell, das
-  ueber Personen inferiert.
-- Es erzeugt keine Rankings, Scores oder Verhaltensprofile von Beschaeftigten.
-- Externe KI-Werkzeuge in der **Entwicklung** (z. B. Coding-Assistenten) gehoeren
-  nicht zum betriebenen Produkt; der Betreiber bleibt fuer eigene KI-Einsaetze
+  über Personen inferiert.
+- Es erzeugt keine Rankings, Scores oder Verhaltensprofile von Beschäftigten.
+- Externe KI-Werkzeuge in der **Entwicklung** (z. B. Coding-Assistenten) gehören
+  nicht zum betriebenen Produkt; der Betreiber bleibt für eigene KI-Einsätze
   verantwortlich.
 - Verboten im Betrieb: Audit- oder Aufgabendaten als Social Scoring oder zur
-  heimlichen Leistungsueberwachung zu nutzen.
+  heimlichen Leistungsüberwachung zu nutzen.
 
-Aendert sich das Produkt (z. B. KI-gestuetzte Schichtvorschlaege), ist eine neue
-AI-Act- und Datenschutzpruefung erforderlich.
+Ändert sich das Produkt (z. B. KI-gestützte Schichtvorschläge), ist eine neue
+AI-Act- und Datenschutzprüfung erforderlich.
 
-## Oeffentlicher Dienst NRW
+## Öffentlicher Dienst NRW
 
-Fuer kommunale oder landesnahe Rettungsdienststellen typischerweise relevant:
+Für kommunale oder landesnahe Rettungsdienststellen typischerweise relevant:
 
-- DSG NRW und spezielle Regelungen fuer oeffentliche Stellen
+- DSG NRW und spezielle Regelungen für öffentliche Stellen
 - LPVG NRW § 72: Mitbestimmung bei technischen Einrichtungen, die geeignet sind,
-  Verhalten oder Leistung zu ueberwachen (Login, Audit, Zeitstempel)
-- keine Gemeinschaftskonten; persoenliche Konten und Rollenmodell
-- Auskunfts-, Berichtigungs- und Loeschprozesse organisatorisch festlegen
-- Loeschfristen je Datenart (Uebergaben, Audit, Kasse, Aufgaben) freigeben
+  Verhalten oder Leistung zu überwachen (Login, Audit, Zeitstempel)
+- keine Gemeinschaftskonten; persönliche Konten und Rollenmodell
+- Auskunfts-, Berichtigungs- und Löschprozesse organisatorisch festlegen
+- Löschfristen je Datenart (Übergaben, Audit, Kasse, Aufgaben) freigeben
 
 Die Anwendung ersetzt weder Personalratsbeteiligung noch behördliche Freigaben.
 
@@ -79,7 +79,7 @@ Die Anwendung ersetzt weder Personalratsbeteiligung noch behördliche Freigaben.
 - Canonical Version: [`core/version.py`](../core/version.py) (`APP_VERSION`)
 - Override: Umgebungsvariable `APP_VERSION`
 - Anzeige: Footer und JSON-Feld `version` unter `/healthz/`
-- Aenderungen: [`CHANGELOG.md`](../CHANGELOG.md) nach Keep-a-Changelog / SemVer
+- Änderungen: [`CHANGELOG.md`](../CHANGELOG.md) nach Keep-a-Changelog / SemVer
 - Image-Label: `org.opencontainers.image.version` im Dockerfile
 
 Empfohlene Nummernkreise:
@@ -91,21 +91,21 @@ Empfohlene Nummernkreise:
 
 ## Updates und Rollback
 
-Siehe ausfuehrlichen Ablauf in [`OPERATIONS.md`](OPERATIONS.md). Mindeststandard:
+Siehe ausführlichen Ablauf in [`OPERATIONS.md`](OPERATIONS.md). Mindeststandard:
 
 1. Changelog und Migrationshinweise lesen
 2. Backup + Restore-Test
-3. Abhaengigkeiten/Image-Digest pruefen und scannen
+3. Abhängigkeiten/Image-Digest prüfen und scannen
 4. Staging oder Wartungsfenster
 5. `docker compose up -d --build`, Healthcheck inkl. Versionsfeld
-6. Fachsmoke: Login, Uebergabe, Tagesaufgaben, optional Feeds
-7. Bei Stoerung: vorheriges Image + Dump-Restore, keine manuellen Tabellenfixes
+6. Fachsmoke: Login, Übergabe, Tagesaufgaben, optional Feeds
+7. Bei Störung: vorheriges Image + Dump-Restore, keine manuellen Tabellenfixes
 
-## Betreiber-Checkliste (Ergaenzung)
+## Betreiber-Checkliste (Ergänzung)
 
 - [ ] Verantwortliche Stelle und anwendbares Recht (DSG NRW / BDSG / Kirche) bestimmt
 - [ ] VVT und Betroffeneninformation freigegeben
 - [ ] Cookie-/Datenschutzseite verlinkt und inhaltlich angepasst
-- [ ] AI-Act-Pruefung dokumentiert (Produkt ohne KI-System)
+- [ ] AI-Act-Prüfung dokumentiert (Produkt ohne KI-System)
 - [ ] Personalvertretung zu Login/Audit/Aufgaben beteiligt
 - [ ] Versions- und Updateprozess im Betriebshandbuch verankert

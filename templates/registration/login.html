@@ -1,25 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Anmelden | {{ app_name }}{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Anmelden" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <section class="access-panel">
-  <p class="context-line">Persönlicher Zugang</p>
-  <h1>Anmelden</h1>
+  <p class="context-line">{% translate "Persönlicher Zugang" %}</p>
+  <h1>{% translate "Anmelden" %}</h1>
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}
     {{ form.as_p }}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-    <button class="button primary" type="submit">Anmelden</button>
+    <button class="button primary" type="submit">{% translate "Anmelden" %}</button>
   </form>
-  <p class="hint">Für die Anmeldung werden ausschließlich technisch notwendige Sicherheitscookies verwendet. <a href="{% url 'privacy' %}">Datenschutz- und Cookie-Informationen</a></p>
+  <p class="hint">{% translate "Für die Anmeldung werden ausschließlich technisch notwendige Sicherheitscookies verwendet." %} <a href="{% url 'privacy' %}">{% translate "Datenschutz- und Cookie-Informationen" %}</a></p>
   {% if registration_enabled %}
-  <p><a class="text-action" href="{% url 'register' %}">Neues Konto registrieren</a></p>
+  <p><a class="text-action" href="{% url 'register' %}">{% translate "Neues Konto registrieren" %}</a></p>
   {% endif %}
   {% if webauthn_enabled %}
   <div class="passkey-login">
-    <p class="lead">Oder mit Passkey</p>
-    <button type="button" class="button secondary" data-passkey-login>Passkey verwenden</button>
+    <p class="lead">{% translate "Oder mit Passkey" %}</p>
+    <button type="button" class="button secondary" data-passkey-login>{% translate "Passkey verwenden" %}</button>
     <p class="hint" data-passkey-login-status hidden></p>
+  </div>
+  {% endif %}
+  {% if qr_login_enabled %}
+  <div class="qr-login-action">
+    <p class="lead">{% translate "Oder mit Smartphone" %}</p>
+    <a class="button secondary" href="{% url 'qr_login_wait' %}">{% translate "Mit QR-Code anmelden" %}</a>
+    <p class="hint"><a class="text-action" href="{% url 'qr_login_manual' %}">{% translate "Keine Kamera? Manuellen Code eingeben" %}</a></p>
   </div>
   {% endif %}
 </section>

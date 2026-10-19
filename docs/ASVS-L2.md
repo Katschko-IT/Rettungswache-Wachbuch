@@ -1,7 +1,7 @@
 # ASVS 5.0 Level 2 – Abdeckungsmatrix (Wachbuch)
 
-Stand: 31. Juli 2026. Interne technische Selbsteinschaetzung, kein Zertifikat und
-keine Ersatzpruefung durch unabhaengige Stelle.
+Stand: 31. Juli 2026. Interne technische Selbsteinschätzung, kein Zertifikat und
+keine Ersatzprüfung durch unabhängige Stelle.
 
 Referenz: [OWASP ASVS 5.0](https://owasp.org/www-project-application-security-verification-standard/).
 
@@ -99,9 +99,9 @@ Legende: **OK** umgesetzt / **Teil** teilweise / **Offen** geplant / **n/a** nic
 | Healthcheck ohne Secrets | OK | `/healthz/` |
 | Dependency-Scanning in CI | Teil | Image-Scan in Workflows/Doku |
 
-## Offene L2-Luecken vor oeffentlichem DNS
+## Offene L2-Luecken vor öffentlichem DNS
 
-1. Unabhaengige ASVS-L2-Pruefung und Lasttest
+1. Unabhängige ASVS-L2-Pruefung und Lasttest
 2. Zentrales Monitoring/Alerting und Incident-Runbook-Probe
 3. Passwort-Reset-Prozess organisatorisch festziehen
 4. Audit-Export / Offline-Archiv

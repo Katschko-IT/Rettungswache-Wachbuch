@@ -10,6 +10,7 @@
   <div class="form-actions">
     <a class="button primary" href="{% url 'team_user_create' %}">Benutzer anlegen</a>
     <a class="button secondary" href="{% url 'team_create' %}">Zugang freigeben{% if pending_count %} ({{ pending_count }}){% endif %}</a>
+    <a class="button secondary" href="{% url 'team_invites' %}">Offene Aktivierungen</a>
   </div>
 </header>
 

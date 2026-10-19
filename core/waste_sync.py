@@ -38,27 +38,27 @@ def fetch_waste_calendar(url):
     """
     parsed = urlparse(url)
     if parsed.scheme != "https":
-        raise ValueError("Muellkalender-URL muss HTTPS verwenden.")
+        raise ValueError("Müllkalender-URL muss HTTPS verwenden.")
     if not parsed.hostname:
-        raise ValueError("Muellkalender-URL hat keinen Hostnamen.")
+        raise ValueError("Müllkalender-URL hat keinen Hostnamen.")
     if parsed.username or parsed.password:
-        raise ValueError("Muellkalender-URL darf keine Zugangsdaten enthalten.")
+        raise ValueError("Müllkalender-URL darf keine Zugangsdaten enthalten.")
     try:
         port = parsed.port
     except ValueError as exc:
-        raise ValueError("Die Portangabe der Muellkalender-URL ist ungueltig.") from exc
+        raise ValueError("Die Portangabe der Müllkalender-URL ist ungültig.") from exc
     if port not in {None, 443}:
-        raise ValueError("Muellkalender-URL darf nur HTTPS-Port 443 verwenden.")
+        raise ValueError("Müllkalender-URL darf nur HTTPS-Port 443 verwenden.")
     host = parsed.hostname.lower()
     if host not in settings.FEED_ALLOWED_HOSTS:
-        raise ValueError("Muellkalender-Host ist nicht in FEED_ALLOWED_HOSTS freigegeben.")
+        raise ValueError("Müllkalender-Host ist nicht in FEED_ALLOWED_HOSTS freigegeben.")
 
     resolved = socket.getaddrinfo(parsed.hostname, 443, type=socket.SOCK_STREAM)
     addresses = list(dict.fromkeys(item[4][0] for item in resolved))
     if not addresses:
-        raise ValueError("Muellkalender-Host konnte nicht aufgeloest werden.")
+        raise ValueError("Müllkalender-Host konnte nicht aufgelöst werden.")
     if any(not ipaddress.ip_address(value).is_global for value in addresses):
-        raise ValueError("Muellkalender-URL zeigt auf private oder nicht globale Adressen.")
+        raise ValueError("Müllkalender-URL zeigt auf private oder nicht globale Adressen.")
 
     target = parsed.path or "/"
     if parsed.query:
@@ -94,19 +94,19 @@ def fetch_waste_calendar(url):
             continue
         try:
             if 300 <= response.status < 400:
-                raise ValueError("Weiterleitungen sind fuer Muellkalender deaktiviert.")
+                raise ValueError("Weiterleitungen sind für Müllkalender deaktiviert.")
             if response.status >= 400:
-                raise ValueError(f"Muellkalender-Quelle antwortet mit HTTP {response.status}.")
+                raise ValueError(f"Müllkalender-Quelle antwortet mit HTTP {response.status}.")
             content = bytearray()
             for chunk in response.stream(64 * 1024):
                 content.extend(chunk)
                 if len(content) > _WASTE_MAX_BYTES:
-                    raise ValueError("Muellkalender-Quelle ueberschreitet das Groessenlimit (1 MB).")
+                    raise ValueError("Müllkalender-Quelle überschreitet das Größenlimit (1 MB).")
             return bytes(content)
         finally:
             response.release_conn()
             pool.close()
-    raise ValueError(f"Muellkalender-Quelle ist nicht erreichbar: {connection_error}")
+    raise ValueError(f"Müllkalender-Quelle ist nicht erreichbar: {connection_error}")
 
 
 _VEVENT_RE = re.compile(r"BEGIN:VEVENT(?P<body>.*?)\r?\nEND:VEVENT", re.IGNORECASE | re.DOTALL)

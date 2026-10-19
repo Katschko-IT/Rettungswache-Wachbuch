@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -257,11 +258,28 @@ def service_worker(request):
 
 @require_GET
 def privacy_notice(request):
+    session_cookie_age = int(getattr(settings, "SESSION_COOKIE_AGE", 1209600))
+    csrf_cookie_age = int(getattr(settings, "CSRF_COOKIE_AGE", 31449600))
+
+
     return render(request, "core/privacy.html", {
-        "session_cookie": settings.SESSION_COOKIE_NAME,
-        "csrf_cookie": settings.CSRF_COOKIE_NAME,
-        "session_age_hours": settings.SESSION_COOKIE_AGE // 3600,
-        "csrf_age_days": settings.CSRF_COOKIE_AGE // 86400,
+        "session_cookie": getattr(settings, "SESSION_COOKIE_NAME", "sessionid"),
+        "session_cookie_name": getattr(settings, "SESSION_COOKIE_NAME", "sessionid"),
+        "session_cookie_secure": bool(getattr(settings, "SESSION_COOKIE_SECURE", False)),
+        "session_cookie_httponly": bool(getattr(settings, "SESSION_COOKIE_HTTPONLY", True)),
+        "session_cookie_samesite": getattr(settings, "SESSION_COOKIE_SAMESITE", "Lax") or "nicht gesetzt (Browserstandard)",
+        "session_cookie_age": session_cookie_age,
+        "session_exact_hours": session_cookie_age // 3600 if session_cookie_age and session_cookie_age % 3600 == 0 else None,
+        "session_expire_at_browser_close": bool(getattr(settings, "SESSION_EXPIRE_AT_BROWSER_CLOSE", False)),
+
+        "csrf_use_sessions": bool(getattr(settings, "CSRF_USE_SESSIONS", False)),
+        "csrf_cookie": getattr(settings, "CSRF_COOKIE_NAME", "csrftoken"),
+        "csrf_cookie_name": getattr(settings, "CSRF_COOKIE_NAME", "csrftoken"),
+        "csrf_cookie_secure": bool(getattr(settings, "CSRF_COOKIE_SECURE", False)),
+        "csrf_cookie_httponly": bool(getattr(settings, "CSRF_COOKIE_HTTPONLY", False)),
+        "csrf_cookie_samesite": getattr(settings, "CSRF_COOKIE_SAMESITE", "Lax") or "nicht gesetzt (Browserstandard)",
+        "csrf_cookie_age": csrf_cookie_age,
+        "csrf_exact_days": csrf_cookie_age // 86400 if csrf_cookie_age and csrf_cookie_age % 86400 == 0 else None,
     })
 
 
@@ -1103,6 +1121,9 @@ def membership_update(request, pk):
                 membership.role = form.cleaned_data["role"]
                 membership.is_active = form.cleaned_data["is_active"]
                 membership.save(update_fields=["role", "is_active"])
+                if before["role"] != membership.role or before["is_active"] != membership.is_active:
+                    from .qr_login import revoke_open_requests_for_user
+                    revoke_open_requests_for_user(membership.user)
                 if was_active and not membership.is_active:
                     clear_birthday_on_exit(membership.user, membership.station, request.user)
                 audit(request.user, request.membership.station, "membership.updated", membership, {
@@ -1178,7 +1199,7 @@ def mfa_verify(request):
         if device and verify_totp(device, form.cleaned_data["token"]):
             from django.contrib.auth import login
 
-            login(request, user, backend="axes.backends.AxesStandaloneBackend")
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             next_url = request.session.pop("mfa_next", None) or reverse("landing")
             request.session.pop("mfa_pending_user_id", None)
             request.session.pop("mfa_failures", None)
@@ -1189,9 +1210,9 @@ def mfa_verify(request):
             request.session.pop("mfa_pending_user_id", None)
             request.session.pop("mfa_next", None)
             request.session.pop("mfa_failures", None)
-            messages.error(request, "Zu viele Fehlversuche. Bitte erneut anmelden.")
+            messages.error(request, _("Zu viele Fehlversuche. Bitte erneut anmelden."))
             return redirect("login")
-        form.add_error("token", "Code ungültig oder abgelaufen.")
+        form.add_error("token", _("Code ungültig oder abgelaufen."))
     return render(request, "registration/mfa_verify.html", {
         "form": form,
         "has_totp": has_totp,
@@ -1219,9 +1240,9 @@ def mfa_setup(request):
     form = TotpConfirmForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         if confirm_device(device, form.cleaned_data["token"]):
-            messages.success(request, "Zwei-Faktor-Authentifizierung ist aktiv.")
+            messages.success(request, _("Zwei-Faktor-Authentifizierung ist aktiv."))
             return redirect("mfa_setup")
-        form.add_error("token", "Code ungültig. Bitte erneut scannen und prüfen.")
+        form.add_error("token", _("Code ungültig. Bitte erneut scannen und prüfen."))
         device = TotpDevice.objects.get(pk=device.pk)
     return render(request, "registration/mfa_setup.html", {
         "form": form,
@@ -1237,12 +1258,12 @@ def mfa_disable(request):
     if not mfa_enabled() or not request.user.is_authenticated:
         return redirect("login")
     if mfa_required():
-        messages.error(request, "MFA ist für diese Installation vorgeschrieben.")
+        messages.error(request, _("MFA ist für diese Installation vorgeschrieben."))
         return redirect("mfa_setup")
     from .mfa import disable_all_mfa
 
     disable_all_mfa(request.user)
-    messages.success(request, "Zwei-Faktor-Authentifizierung wurde deaktiviert.")
+    messages.success(request, _("Zwei-Faktor-Authentifizierung wurde deaktiviert."))
     return redirect("more")
 
 

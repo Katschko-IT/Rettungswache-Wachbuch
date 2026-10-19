@@ -19,7 +19,7 @@
   {% if current_membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>Wachenchat</strong><span>Wache · Privat · Post (E2EE)</span></a><a href="{% url 'crypto_setup' %}"><strong>Chat-Schlüssel</strong><span>Ende-zu-Ende-Verschlüsselung</span></a>{% endif %}
   <a href="{% url 'account_home' %}"><strong>Mein Konto</strong><span>Profilbild, Passwort und Zwei-Faktor</span></a>
   <a href="{% url 'api_tokens_manage' %}"><strong>App-Tokens / API</strong><span>Anbindung Open-Source-Apps (iOS/Android)</span></a>
-  {% if current_membership.role == 'admin' %}<a href="{% url 'team' %}"><strong>Team &amp; Rollen</strong><span>Als Master-Admin Nutzer anlegen und freigeben</span></a><a href="{% url 'station_settings' %}"><strong>Einstellungen</strong><span>Name und Module der Wache verwalten</span></a>{% endif %}
+  {% if current_membership.role == 'admin' %}<a href="{% url 'team' %}"><strong>Team &amp; Rollen</strong><span>Als Master-Admin Nutzer anlegen und freigeben</span></a><a href="{% url 'team_invites' %}"><strong>Mitarbeiter-Aktivierungen</strong><span>Einmal-Links und QR-Codes für persönliche Konten</span></a><a href="{% url 'station_settings' %}"><strong>Einstellungen</strong><span>Name und Module der Wache verwalten</span></a>{% endif %}
   {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}<a href="{% url 'audit_log' %}"><strong>Audit</strong><span>Änderungen nachvollziehen</span></a>{% endif %}
   {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>Zwei-Faktor / Passkeys</strong><span>Authenticator-App und Passkeys</span></a>{% endif %}
   {% if web_push_enabled %}<a href="{% url 'push_settings' %}"><strong>Push-Benachrichtigungen</strong><span>Nur dringende Übergaben</span></a>{% endif %}

@@ -25,32 +25,32 @@ Zuordnung gängiger Verfahren für selbst gehostete Wachbuch-Instanzen
 
 ## Chat / Privat / Post
 
-- Der Browser verschluesselt Nachrichten vor dem Versand.
+- Der Browser verschlüsselt Nachrichten vor dem Versand.
 - Der Server speichert Ciphertext und Key-Wraps (`A256GCM+ECDH-ES`).
-- Private Keys liegen passphrase-umschlossen auf dem Server; der entschluesselte
+- Private Keys liegen passphrase-umschlossen auf dem Server; der entschlüsselte
   Private Key liegt nach Freigabe nur in `sessionStorage` des Browsers.
 - Ein passiver Datenbank- oder Backupzugriff liefert keine Klartexte ohne die
-  Passphrase beziehungsweise den entschluesselten privaten Schluessel.
-- Rollen und Admin-Oberflaechen erhalten keine Funktion zum Entschluesseln
+  Passphrase beziehungsweise den entschlüsselten privaten Schlüssel.
+- Rollen und Admin-Oberflächen erhalten keine Funktion zum Entschlüsseln
   fremder Nachrichten.
 
 ## Bedrohungsmodell und klare Grenze
 
-Die heutige Web-PWA ist **nicht** gegen einen aktiv boeswilligen oder vollstaendig
+Die heutige Web-PWA ist **nicht** gegen einen aktiv böswilligen oder vollständig
 kompromittierten Anwendungsserver abgesichert. Der Server liefert JavaScript,
-Schluesselverzeichnis und Weboberflaeche aus. Ein Angreifer mit Kontrolle ueber
-diese Auslieferung koennte zukuenftigen Clientcode oder oeffentliche Schluessel
-veraendern.
+Schlüsselverzeichnis und Weboberfläche aus. Ein Angreifer mit Kontrolle über
+diese Auslieferung könnte zukünftigen Clientcode oder öffentliche Schlüssel
+verändern.
 
 Nicht vorhanden sind derzeit:
 
-- gegenseitig gepruefte Sicherheitsnummern/Fingerprints
-- Key Transparency oder extern nachvollziehbares Schluesselverzeichnis
-- unabhaengig ausgelieferter und reproduzierbar signierter Client als
+- gegenseitig geprüfte Sicherheitsnummern/Fingerprints
+- Key Transparency oder extern nachvollziehbares Schlüsselverzeichnis
+- unabhängig ausgelieferter und reproduzierbar signierter Client als
   zwingender Kommunikationsweg
-- kryptografische Warnung bei jedem unerwarteten Schluesselwechsel
+- kryptografische Warnung bei jedem unerwarteten Schlüsselwechsel
 
-Daher lautet das belastbare Schutzversprechen: **clientseitig verschluesselte
+Daher lautet das belastbare Schutzversprechen: **clientseitig verschlüsselte
 Speicherung gegen passive Einsicht in Datenbank und Backups**, nicht Schutz vor
 einem aktiv kompromittierten Serverbetreiber. Folgearbeit steht als R-020 in der
 [`REMEDIATION-ROADMAP-2026-08.md`](REMEDIATION-ROADMAP-2026-08.md).

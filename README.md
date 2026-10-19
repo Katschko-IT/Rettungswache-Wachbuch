@@ -1,23 +1,36 @@
-# Rettungswache-Wachbuch
+# Rettungswache-Wachbuch (Wachwerk)
 
-[![CI](https://github.com/Darkspike1988/Rettungswache-Wachbuch/actions/workflows/ci.yml/badge.svg)](https://github.com/Darkspike1988/Rettungswache-Wachbuch/actions/workflows/ci.yml)
+[![CI](https://github.com/Katschko-IT/Rettungswache-Wachbuch/actions/workflows/ci.yml/badge.svg)](https://github.com/Katschko-IT/Rettungswache-Wachbuch/actions/workflows/ci.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License:AGPL_v3-blue.svg)](LICENSE)
 
-Ein selbst gehostetes, mobiles **Wachbuch** fuer die interne Organisation einer
-Rettungswache (Repository: Rettungswache-Wachbuch). Die Anwendung ist kein
+Ein selbst gehostetes, mobiles **Wachbuch** für die interne Organisation einer
+Rettungswache. Die Anwendung organisiert den Wachenalltag und ist **kein**
 Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.
+
+[Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) ·
+[Quellcode der Webseite](site/index.html). Die Projektseite ist statisch, ohne
+JavaScript und ohne externe Ressourcen. Veröffentlichung und Konfiguration sind in
+[`site/README.md`](site/README.md) beschrieben.
 
 ## Funktionen
 
-- versionierte Uebergaben mit Prioritaet und Status
-- einfacher Wachenkalender
-- freiwillige Geburtstagsanzeige ohne Geburtsjahr
-- unveraenderliches Kaffeekassen-Ledger mit Korrekturbuchungen
-- optionale offizielle RSS- und Verkehrsquellen
-- stationsbezogene Rollen und nachvollziehbare Audit-Ereignisse
-- lokaler Login mit persoenlichen Konten
-- installierbare PWA fuer Handy und Wachenterminals
-- responsive App-Shell mit Offline-Hinweis fuer gelesene Seiten
+- versionierte Schichtübergaben mit Kategorie, Priorität, Status und Revisionen
+- Tagesaufgaben nach täglicher Routine, Wochentag und Zusatzaufgaben
+- Checklisten mit Einzelpunkten, Wiederholungsplan und Abschlussvermerk
+- Wachenkalender mit Terminen, Feiertagen und ICS-Abo
+- Kaffeekasse als fortlaufendes Ledger mit Korrekturbuchungen
+- Pinnwand für interne Aushänge
+- Mängel mit Statusworkflow und optionalem Foto, Fahrzeuge/Geräte mit
+  Bereitschaftsstatus, Inventar mit Ausgabe und Rückgabe
+- stationsbezogene Rollen (Mitglied, Schichtleitung, Kassenwart, Master-Admin,
+  Auditor), Einladungen, Aktivierung und Audit-Verlauf
+- lokaler Login mit persönlichen Konten, optional TOTP und Passkeys
+- QR-Login: Bestätigung einer Browsersitzung auf dem Mitarbeitergerät, kurzlebig
+  und an Wache sowie Browsersitzung gebunden
+- Erstinstallations-Assistent für Wachenname, Anschrift, Zeitzone und Module
+- versionierte JSON-API und quelloffener Flutter-Client
+- installierbare PWA für Handy und Wachenterminal; optionale WebPush-Benachrichtigung
+- tägliche lokale PostgreSQL-Dumps mit Wiederherstellungsprobe
 
 ## Stack
 
@@ -26,30 +39,33 @@ Ein Docker-Compose-Projekt startet alles:
 | Dienst | Aufgabe |
 | --- | --- |
 | `db` | PostgreSQL 17 mit getrennten App-/Feed-Rollen |
+| `redis` | Cache und Rate-Limit-Zähler |
 | `migrate` | einmalige Schema- und Bootstrap-Migration |
 | `web` | Gunicorn/Django hinter Loopback-Port |
 | `feed-worker` | periodischer Abruf freigegebener HTTPS-Quellen |
-| `backup` | taegliche lokale PostgreSQL-Dumps |
+| `push-worker` | Versand von WebPush-Nachrichten aus der Outbox |
+| `backup` | tägliche lokale PostgreSQL-Dumps, `restore-test` für die Probe |
 
-Authentifizierung laeuft ausschliesslich ueber lokale Django-Konten. TLS und
-Netzfreigabe liegen beim Reverse-Proxy vor dem Container. Die Oberflaeche kann
-ueber den Browser als App installiert werden; Schreibvorgänge brauchen weiterhin
-eine aktive Verbindung.
+Authentifizierung läuft ausschließlich über lokale Django-Konten. TLS und
+Netzfreigabe liegen beim Reverse-Proxy vor dem Container. Die Oberfläche kann über
+den Browser als App installiert werden; Schreibvorgänge brauchen eine Verbindung
+zum Wachenserver.
 
 ## Schnellstart mit Docker
 
 Voraussetzungen sind Docker Engine mit Compose v2 und ein freier lokaler Port.
+Dokumentierter Mindestrahmen: 1 vCPU, 1 GB RAM, rund 1 GB freier Speicher; für den
+Dauerbetrieb mit Backups und mehreren Geräten sind 2 vCPU und 2 GB RAM sinnvoll.
 
 ```bash
-git clone https://github.com/Darkspike1988/Rettungswache-Wachbuch.git
+git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
 cd Rettungswache-Wachbuch
 cp .env.example .env
 ```
 
-In `.env` muessen alle Platzhalter durch unabhaengige Zufallswerte ersetzt
-werden. Geeignete Werte erzeugt beispielsweise `openssl rand -hex 32`. Das
-Backup-Verzeichnis muss fuer den PostgreSQL-Benutzer im Container schreibbar
-sein:
+In `.env` müssen alle Platzhalter durch unabhängige Zufallswerte ersetzt werden.
+Geeignete Werte erzeugt beispielsweise `openssl rand -hex 32`. Das Backup-Verzeichnis
+muss für den PostgreSQL-Benutzer im Container schreibbar sein:
 
 ```bash
 sudo chown 70:70 backups
@@ -58,32 +74,40 @@ docker compose exec web python manage.py createsuperuser
 docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 ```
 
-Danach ist die oeffentliche Startseite unter `http://127.0.0.1:8090/` und die
-Anmeldung unter `/anmelden/` erreichbar. Die Vorführung liegt unter
-`/vorfuehrung/`. Die Fachfunktionen (Uebersicht, Uebergaben usw.) stehen erst
-nach Login mit aktiver Mitgliedschaft bereit. Der
-Port bindet absichtlich nur an Loopback. `SECURE_COOKIES=false` ist
-ausschliesslich fuer diesen lokalen HTTP-Schnellstart vorgesehen.
+Danach ist die Startseite unter `http://127.0.0.1:8090/` und die Anmeldung unter
+`/anmelden/` erreichbar. Der Port bindet absichtlich nur an Loopback.
+`SECURE_COOKIES=false` ist ausschließlich für diesen lokalen HTTP-Schnellstart
+vorgesehen.
 
-Weitere Teamkonten legt der **Master-Admin** unter `/team/anlegen/` an und gibt sie
-sofort der Wache frei. Optional kann `REGISTRATION_ENABLED=true` eine oeffentliche
-Kontoanfrage erlauben; Freigabe bleibt beim Master-Admin unter `/team/`.
-Technische Systemkonten bleiben unter `/django-admin/`. `createsuperuser` erzeugt
-einen globalen technischen Administrator; die stationsbezogene Master-Admin-Rolle
-allein vergibt keine Django-Superuser-Rechte.
+### Erstinstallation
 
-### Demo-Modus (Musterdaten)
+`SETUP_BOOTSTRAP_TOKEN` einmalig außerhalb der Anwendung setzen und `/setup/`
+aufrufen. Der Assistent führt durch Wachenname, Anschrift, Zeitzone, Rollen und
+Module; ohne Token existiert die Route nicht. Nach Abschluss den Token wieder
+entfernen. Details: [`docs/PILOT-HTTPS-LOCAL.md`](docs/PILOT-HTTPS-LOCAL.md).
 
-Zum lokalen Testen und Vorführen in `.env` setzen:
+Weitere Teamkonten legt der **Master-Admin** unter `/team/anlegen/` an oder per
+Einladung; Freigaben bleiben stationsbezogen. Optional kann
+`REGISTRATION_ENABLED=true` eine öffentliche Kontoanfrage erlauben; die Freigabe
+bleibt beim Master-Admin. Technische Systemkonten bleiben unter `/django-admin/`.
+`createsuperuser` erzeugt einen globalen technischen Administrator; die
+stationsbezogene Master-Admin-Rolle allein vergibt keine Django-Superuser-Rechte.
+
+### Test- und Vorführdaten (nur lokal)
+
+Für lokale Tests befüllt `load_demo_data` eine separate Testdatenbank mit fiktiven
+Konten, Übergaben, Terminen und Buchungen. Die Daten sind synthetisch und dürfen
+nicht in einer Produktivinstanz verwendet werden:
 
 ```bash
-DEMO_MODE=true
-MFA_ENABLED=false
-DEFAULT_STATION_NAME=Demo-Wache Musterstadt
+DEMO_MODE=true python manage.py migrate
+DEMO_MODE=true python manage.py load_demo_data --reset
 ```
 
-Beim Start befüllt `migrate` automatisch Demo-Konten (`demo-admin`, `demo-schicht`, …)
-mit Passwort `Demo-Passwort-12345`. Details: [`docs/DEMO.md`](docs/DEMO.md).
+Der Demo-Modus ist eine reine Testfunktion, keine Produkteigenschaft. In einer
+Produktivinstanz bleibt `DEMO_MODE=false`; die Kennzeichnung der Testdaten erfolgt
+über eigene Testkonten und eine separate Datenbank. Details:
+[`docs/DEMO.md`](docs/DEMO.md).
 
 Tests:
 
@@ -91,9 +115,35 @@ Tests:
 docker compose exec web python manage.py test --settings=config.test_settings
 ```
 
+## Anmeldung per QR-Code
+
+Der Browser zeigt unter `/anmelden/qr/` eine kurzlebige Anfrage. Ein bereits
+angemeldetes Mitarbeitergerät bestätigt sie mit frischer Anmeldung, TOTP oder
+Passkey. Der QR-Code enthält kein Passwort und kein dauerhaftes Token; das Secret
+liegt nur im URL-Fragment, der Server speichert einen Hash. Bestätigen darf nur eine
+aktive Mitgliedschaft derselben Wache. Der QR-Login ersetzt keine
+Zwei-Faktor-Anmeldung, sondern verlagert die Bestätigung auf das Gerät.
+Verbindlicher Vertrag: [`docs/QR-LOGIN-SECURITY-CONTRACT.md`](docs/QR-LOGIN-SECURITY-CONTRACT.md).
+
+## Lokaler Betrieb und WAN-Ausfall
+
+Der Wachenserver ist die Autorität: Anmeldung, Rollen, Formulare und Assets werden
+lokal ausgeliefert. Es gibt im geprüften Kernpfad keine Cloud-Anmeldung, kein CDN,
+keinen externen Font- oder Telemetrie-Aufruf.
+
+| Szenario | Verhalten |
+| --- | --- |
+| WAN-Ausfall, LAN und Server erreichbar | Kernbetrieb funktioniert; durch Tests mit blockierten externen Socket-, DNS- und URL-Aufrufen belegt |
+| Handy ohne Netz oder Server aus | **nicht umgesetzt**: keine Client-Datenbank, keine Outbox, keine Offline-Anmeldung; die PWA zeigt eine Offline-Seite |
+
+Der Entwurf in [`docs/CLIENT-OFFLINE-CONTRACT.md`](docs/CLIENT-OFFLINE-CONTRACT.md)
+ist **keine Funktion** und enthält offene Fachentscheidungen. Aussagen über einen
+„Offline-Betrieb des Clients“ wären derzeit falsch. Details:
+[`docs/OFFLINE-BETRIEB.md`](docs/OFFLINE-BETRIEB.md).
+
 ## Reverse-Proxy mit TLS
 
-Fuer Handys oder gemeinsame Wachenterminals steht vor dem Loopback-Port ein
+Für Handys oder gemeinsame Wachenterminale steht vor dem Loopback-Port ein
 Reverse-Proxy mit TLS. In `.env` dann mindestens:
 
 ```dotenv
@@ -107,60 +157,88 @@ Details stehen in [`docs/OPERATIONS.md`](docs/OPERATIONS.md).
 
 ## Administration
 
-Stations-Master-Admins koennen unter `/einstellungen/` den Namen der Wache und
-die sichtbaren Module selbst festlegen. Unter `/team/` legen sie Nutzer an und
-verwalten Freigaben sowie Rollen. Technische Administratoren konfigurieren unter
-`/django-admin/` Systemkonten und externe Quellen. Fachliche Datensaetze sind
-dort bewusst nur lesbar, damit Versionierung und Audit nicht umgangen werden.
+Stations-Master-Admins legen unter `/einstellungen/` den Namen der Wache und die
+sichtbaren Module fest. Unter `/team/` verwalten sie Nutzer, Einladungen, Freigaben
+und Rollen. Technische Administratoren konfigurieren unter `/django-admin/`
+Systemkonten und externe Quellen. Fachliche Datensätze sind dort bewusst nur
+lesbar, damit Versionierung und Audit nicht umgangen werden.
 
 ## Externe Quellen
 
-Zulaessige Quellhosts werden zuerst kommasepariert mit `FEED_ALLOWED_HOSTS` in
-`.env` freigegeben (Feeds und optionaler Muellkalender). Anschliessend koennen HTTPS-RSS-Quellen unter
-`/django-admin/core/feedsource/` angelegt werden. Der CSV-Importer unterstuetzt
+Zulässige Quellhosts werden zuerst kommasepariert mit `FEED_ALLOWED_HOSTS` in `.env`
+freigegeben (Feeds und optionaler Müllkalender). Anschließend können HTTPS-RSS-Quellen
+unter `/django-admin/core/feedsource/` angelegt werden. Der CSV-Importer unterstützt
 das dokumentierte Bielefelder Verkehrsmeldungsformat. Private Zieladressen,
-Weiterleitungen, andere Ports und Antworten ueber 2 MB werden abgewiesen.
-Bei einem Upgrade von Version 0.2 muessen die Hosts bereits vorhandener Quellen
-vor dem Neustart explizit in diese Liste uebernommen werden.
+Weiterleitungen, andere Ports und Antworten über 2 MB werden abgewiesen. Bei einem
+Upgrade von Version 0.2 müssen die Hosts bereits vorhandener Quellen vor dem Neustart
+explizit in diese Liste übernommen werden.
 
-## Datenschutz
+## Datenschutz und Datengrenzen
 
-Nicht in das Wachbuch gehoeren:
+Nicht in das Wachbuch gehören:
 
 - Patienten-, Gesundheits-, Einsatz- oder Alarmierungsdaten
-- Krankheitsgruende, Leistungsbewertungen oder private Konflikte
+- Krankheitsgründe, Leistungsbewertungen oder private Konflikte
 - gemeinsam genutzte Konten
 
-Ein technischer Betrieb ersetzt keine Datenschutzpruefung, Mitbestimmung,
-Loeschfristen oder organisatorische Freigabe. Details stehen in
-[`docs/SECURITY-PRIVACY.md`](docs/SECURITY-PRIVACY.md).
+Ein technischer Betrieb ersetzt keine Datenschutzprüfung, Mitbestimmung,
+Löschfristen oder organisatorische Freigabe. Details stehen in
+[`docs/SECURITY-PRIVACY.md`](docs/SECURITY-PRIVACY.md) und
+[`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
+
+## Projektstand
+
+Dieser **Zwischenrelease 0.17.0** dient Entwicklung, Erprobung und Präsentation.
+Er ist keine Produktionsfreigabe. Die vorhandenen Module werden automatisiert
+geprüft; automatisierte Tests ersetzen keine reale Geräte- und Betriebsabnahme.
+
+Das Sprachfundament für Deutsch und Englisch umfasst Anmeldung, Einrichtung und
+Fehler-/Validierungsmeldungen. Fachmodule, JavaScript/Admin sowie die öffentliche
+Projektseite sind noch nicht vollständig zweisprachig. Ein integriertes Hilfe-,
+Wiki- und Diagnosezentrum gehört nicht zu diesem Release.
+
+Vor einem Produktivbetrieb bleiben reale Abnahmen offen: Hardware- und Netzbetrieb in
+der Wache, TLS/Reverse-Proxy im Dauerbetrieb, Passkeys und WebPush auf echten Geräten,
+ICS-Abruf gegen einen echten Fremdhost, Wiederherstellung mit echten Backup-Daten,
+Datenschutzfolgenabschätzung und Mitbestimmung sowie eine unabhängige
+Sicherheitsprüfung. Diese Seite und die Projektwebseite sind **keine
+Produktionsfreigabe** und keine Compliance-Bestätigung. Übersicht:
+[`docs/GO-LIVE-CHECKLIST.md`](docs/GO-LIVE-CHECKLIST.md).
 
 ## Dokumentation
 
+- [Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) · [Quellseite](site/index.html)
+- [Releaseumfang und Grenzen](docs/RELEASE-0.17.0.md)
 - [Architektur](docs/ARCHITECTURE.md)
-- [API fuer Mobile-/Drittclients](docs/API.md)
+- [Betrieb, Backup und Updates](docs/OPERATIONS.md)
+- [Lokaler Betrieb ohne WAN](docs/OFFLINE-BETRIEB.md)
+- [API für Mobile-/Drittclients](docs/API.md)
 - [Krypto nach BSI TR-02102](docs/CRYPTO-BSI.md)
+- [QR-Login-Sicherheitsvertrag](docs/QR-LOGIN-SECURITY-CONTRACT.md)
 - [AGPL-Client iOS/Android](docs/CLIENT.md) → [Wachbuch-Client](https://github.com/darkspike1988/Wachbuch-Client)
 - [Android-APK installieren](clients/wachbuch-mobile/docs/INSTALL-ANDROID.md) (`./clients/wachbuch-mobile/scripts/build-apk.sh`)
-- Sync: `./scripts/publish-mobile-client-repo.sh` / `./scripts/pull-mobile-client-repo.sh`
-- [Betrieb, Backup und Updates](docs/OPERATIONS.md)
 - [Datenschutz und Sicherheit](docs/SECURITY-PRIVACY.md)
-- [Compliance: DSGVO, Cookies, AI Act, NRW](docs/COMPLIANCE.md)
-- [Test- und Go-live-Checkliste](docs/GO-LIVE-CHECKLIST.md)
-- [Recherche und Quellen](docs/RESEARCH.md)
-- [Audit und Folgeplan](docs/AUDIT-2026-07.md)
-- [Wandbausteine Tagesaufgaben](docs/WALL-BLOCKS.md)
-- [Roadmap](docs/ROADMAP.md)
 - [Designregeln](docs/DESIGN-SYSTEM.md)
+
+## Weiterentwicklung
+
+Dieser Zwischenrelease enthält die Erstinstallation mit Wachendaten und
+persönlichen Mitarbeiterkonten, einen wiederholbaren QR-Login mit Gerätebestätigung,
+kontrollierte Wetterabfragen und Tests des lokalen Betriebs ohne Internet.
+Die Projektwebseite zeigt echte Aufnahmen der Anwendung mit synthetischen Daten.
+
+Für Beiträge gelten gezielte Regressionstests, die vollständige Django-Suite,
+Migrationprüfungen sowie die statischen Tests unter `site/tests/`. Testdatenbanken,
+Zugangsdaten und lokale Arbeitsprotokolle gehören nicht in Veröffentlichungen.
 
 ## Mitwirken
 
-Beitraege sind willkommen. Vor einem Pull Request bitte
-[`CONTRIBUTING.md`](CONTRIBUTING.md) und fuer vertrauliche Meldungen
+Beiträge sind willkommen. Vor einem Pull Request bitte
+[`CONTRIBUTING.md`](CONTRIBUTING.md) und für vertrauliche Meldungen
 [`SECURITY.md`](SECURITY.md) beachten.
 
 ## Lizenz
 
-Copyright (C) 2026 Darkspike1988. Veroeffentlicht unter der GNU Affero General
-Public License v3.0 oder spaeter. Wer eine geaenderte Fassung als Netzwerkdienst
-betreibt, muss den Benutzern den zugehoerigen Quellcode anbieten.
+Copyright (C) 2026 Darkspike1988. Veröffentlicht unter der GNU Affero General
+Public License v3.0 oder später. Wer eine geänderte Fassung als Netzwerkdienst
+betreibt, muss den Benutzern den zugehörigen Quellcode anbieten.

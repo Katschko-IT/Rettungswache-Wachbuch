@@ -4,8 +4,8 @@
 
 1. Einen Fork oder Branch anlegen.
 2. Keine echten Wach-, Mitarbeiter-, Einsatz- oder Zugangsdaten verwenden.
-3. Aenderungen klein halten und durch Tests absichern.
-4. Vor dem Pull Request Tests und Docker-Build ausfuehren.
+3. Änderungen klein halten und durch Tests absichern.
+4. Vor dem Pull Request Tests und Docker-Build ausführen.
 
 ```bash
 docker compose build web
@@ -27,15 +27,15 @@ flutter analyze
 
 Der Client spricht nur `/api/v1/` an; siehe [`docs/CLIENT.md`](docs/CLIENT.md).
 
-Pull Requests sollen Zweck, Verhaltensaenderung, Tests und moegliche
-Datenschutz- oder Migrationsfolgen beschreiben. Neue Abhaengigkeiten brauchen
-eine Begruendung und kompatible Lizenz (Server und Client: AGPL-kompatibel).
+Pull Requests sollen Zweck, Verhaltensänderung, Tests und mögliche
+Datenschutz- oder Migrationsfolgen beschreiben. Neue Abhängigkeiten brauchen
+eine Begründung und kompatible Lizenz (Server und Client: AGPL-kompatibel).
 
-## Abhaengigkeiten und Hashes
+## Abhängigkeiten und Hashes
 
-`requirements.txt` fuehrt die direkten Produktionsabhaengigkeiten.
-`requirements.lock` enthaelt die aufgeloesten direkten und transitiven
-Abhaengigkeiten mit SHA256-Hashes und ist der Installationsweg in CI und im
+`requirements.txt` führt die direkten Produktionsabhängigkeiten.
+`requirements.lock` enthält die aufgelösten direkten und transitiven
+Abhängigkeiten mit SHA256-Hashes und ist der Installationsweg in CI und im
 Docker-Builder:
 
 ```bash
@@ -44,13 +44,13 @@ pip install --require-hashes -r requirements.lock   # Installation mit Hash-Veri
 docker build --tag rettungswache-wachbuch:test .  # Builder erzwingt denselben Lockfile-Pfad
 ```
 
-Fuer reproduzierbare CI-Qualitaetswerkzeuge gilt derselbe Fail-Closed-Grundsatz:
-`requirements-ci.in` beschreibt Ruff; `requirements-ci.lock` enthaelt die
-aufgeloeste Version und SHA256-Hashes. Der separate Audit-Scanner steht in
+Für reproduzierbare CI-Qualitätswerkzeuge gilt derselbe Fail-Closed-Grundsatz:
+`requirements-ci.in` beschreibt Ruff; `requirements-ci.lock` enthält die
+aufgelöste Version und SHA256-Hashes. Der separate Audit-Scanner steht in
 `requirements-audit.in`/`requirements-audit.lock`, damit seine transitiven
-Werkzeuge die Produktions-/Lint-Umgebung nicht veraendern. Die CI verwendet
-Ruff fuer den E4/E7/E9-Baseline-Gate und `pip-audit` fuer den reproduzierbaren
-Dependency-Vulnerability-Scan. Die vollstaendige Formatpruefung und eine
+Werkzeuge die Produktions-/Lint-Umgebung nicht verändern. Die CI verwendet
+Ruff für den E4/E7/E9-Baseline-Gate und `pip-audit` für den reproduzierbaren
+Dependency-Vulnerability-Scan. Die vollständige Formatpruefung und eine
 breitere Regelmenge bleiben wegen des bestehenden Altbestands bewusst separate
 Folge-Schritte.
 
@@ -66,11 +66,11 @@ ruff check config core --select E4,E7,E9 --output-format=concise
 ```
 
 Die CI verweigert die Installation, wenn ein Paket oder Hash in der Lock-Datei
-fehlt oder nicht zum heruntergeladenen Artefakt passt. Bei jeder Aenderung an
+fehlt oder nicht zum heruntergeladenen Artefakt passt. Bei jeder Änderung an
 `requirements.txt` die Lock-Datei neu erzeugen, die Hash-Verifikation lokal
-pruefen und beide Dateien committen.
+prüfen und beide Dateien committen.
 
 ## Datenschutz
 
-Issues, Tests, Screenshots und Commits duerfen keine personenbezogenen Daten,
+Issues, Tests, Screenshots und Commits dürfen keine personenbezogenen Daten,
 Session-Cookies, `.env`-Inhalte, Datenbank-Dumps oder Tailnet-Details enthalten.

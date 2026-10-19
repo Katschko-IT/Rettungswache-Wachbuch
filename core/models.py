@@ -42,6 +42,16 @@ class Station(models.Model):
     iban = models.CharField(max_length=34, blank=True, default="", verbose_name="IBAN")
     bic = models.CharField(max_length=12, blank=True, default="", verbose_name="BIC")
     payment_note = models.TextField(blank=True, default="", verbose_name="Zahlungshinweis")
+    employee_count = models.PositiveSmallIntegerField(
+        null=True, blank=True, verbose_name="Mitarbeiterzahl"
+    )
+    street = models.CharField(max_length=120, blank=True, default="", verbose_name="Straße und Hausnummer")
+    postal_code = models.CharField(max_length=10, blank=True, default="", verbose_name="Postleitzahl")
+    city = models.CharField(max_length=80, blank=True, default="", verbose_name="Ort")
+    latitude = models.FloatField(null=True, blank=True, verbose_name="Breitengrad")
+    longitude = models.FloatField(null=True, blank=True, verbose_name="Längengrad")
+    timezone_name = models.CharField(max_length=40, default="Europe/Berlin", verbose_name="Zeitzone")
+    weather_enabled = models.BooleanField(default=False, verbose_name="Wettervorhersage aktiviert")
 
     class Meta:
         ordering = ["name"]
@@ -144,11 +154,11 @@ class HandoverRevision(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Uebergaberevisionen duerfen nicht veraendert werden.")
+            raise ValidationError("Übergaberevisionen dürfen nicht verändert werden.")
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Uebergaberevisionen duerfen nicht geloescht werden.")
+        raise ValidationError("Übergaberevisionen dürfen nicht gelöscht werden.")
 
 
 class CalendarEvent(models.Model):
@@ -205,17 +215,17 @@ class BirthdayPreference(models.Model):
 
     def clean(self):
         if self.is_visible and (not self.day or not self.month):
-            raise ValidationError("Fuer die Anzeige werden Tag und Monat benoetigt.")
+            raise ValidationError("Für die Anzeige werden Tag und Monat benötigt.")
         if self.day and not 1 <= self.day <= 31:
-            raise ValidationError({"day": "Ungueltiger Tag."})
+            raise ValidationError({"day": "Ungültiger Tag."})
         if self.month and not 1 <= self.month <= 12:
-            raise ValidationError({"month": "Ungueltiger Monat."})
+            raise ValidationError({"month": "Ungültiger Monat."})
         if self.day and self.month:
             try:
                 # Schaltjahr, damit der 29. Februar zulaessig bleibt.
                 date(2000, self.month, self.day)
             except ValueError as exc:
-                raise ValidationError("Tag und Monat ergeben kein gueltiges Datum.") from exc
+                raise ValidationError("Tag und Monat ergeben kein gültiges Datum.") from exc
 
 
 class CoffeeEntry(models.Model):
@@ -243,7 +253,7 @@ class CoffeeEntry(models.Model):
     def clean(self):
         if self.correction_of:
             if self.correction_of.station_id != self.station_id:
-                raise ValidationError("Die Korrektur muss zur gleichen Wache gehoeren.")
+                raise ValidationError("Die Korrektur muss zur gleichen Wache gehören.")
             if self.correction_of.member_id != self.member_id:
                 raise ValidationError("Die Korrektur muss dieselbe Person betreffen.")
             if self.amount_cents != -self.correction_of.amount_cents:
@@ -253,12 +263,12 @@ class CoffeeEntry(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Kassenbuchungen duerfen nicht veraendert werden.")
+            raise ValidationError("Kassenbuchungen dürfen nicht verändert werden.")
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Kassenbuchungen duerfen nicht geloescht werden.")
+        raise ValidationError("Kassenbuchungen dürfen nicht gelöscht werden.")
 
     @property
     def amount_euros(self):
@@ -318,7 +328,7 @@ class StationTask(models.Model):
             if self.weekday is None or not 0 <= self.weekday <= 6:
                 raise ValidationError({"weekday": "Wochentagsaufgaben brauchen einen Wochentag."})
         elif self.weekday is not None:
-            raise ValidationError({"weekday": "Nur Wochentagsaufgaben duerfen einen Wochentag haben."})
+            raise ValidationError({"weekday": "Nur Wochentagsaufgaben dürfen einen Wochentag haben."})
 
     def applies_to_date(self, work_date):
         if not self.is_active:
@@ -384,9 +394,9 @@ class FeedSource(models.Model):
         try:
             port = parsed.port
         except ValueError as exc:
-            raise ValidationError({"url": "Die Portangabe ist ungueltig."}) from exc
+            raise ValidationError({"url": "Die Portangabe ist ungültig."}) from exc
         if parsed.scheme != "https" or port not in {None, 443}:
-            raise ValidationError({"url": "Quellen muessen HTTPS auf Port 443 verwenden."})
+            raise ValidationError({"url": "Quellen müssen HTTPS auf Port 443 verwenden."})
         if parsed.hostname not in settings.FEED_ALLOWED_HOSTS:
             raise ValidationError({
                 "url": "Der Host muss zuerst in FEED_ALLOWED_HOSTS freigegeben werden."
@@ -608,10 +618,24 @@ class UserProfile(models.Model):
     """Personal extras for /konto/. Avatar bytes only – no general uploads."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    # Bevorzugte UI-Sprache (ISO-639-1); leer = Systemstandard.
+    language = models.CharField(
+        max_length=8,
+        blank=True,
+        default="",
+        help_text="Bevorzugte UI-Sprache (ISO-639-1); leer = Systemstandard.",
+    )
     avatar = models.BinaryField(null=True, blank=True, editable=False)
     avatar_content_type = models.CharField(max_length=32, blank=True, default="")
     avatar_updated_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        if self.language:
+            valid_codes = {code for code, _ in settings.LANGUAGES}
+            if self.language not in valid_codes:
+                raise ValidationError({"language": f"Ungültige Sprache '{self.language}'."})
 
     def __str__(self):
         return f"Profil {self.user_id}"
@@ -1042,3 +1066,157 @@ class AppVersion(models.Model):
             result.append(current_entry)
 
         return result
+
+
+class InstallationSetup(models.Model):
+    """Singleton guard for the one-time first installation.
+
+    The row is created lazily. ``completed_at`` is claimed with a conditional
+    UPDATE inside the same transaction that creates station and admin user, so
+    a second concurrent completion cannot create a second installation.
+    """
+
+    singleton = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    station = models.OneToOneField(
+        Station,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="installation_setup",
+    )
+    completed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    # SHA-256 hex of the bootstrap token that completed the setup. The raw
+    # token is never stored, logged or rendered.
+    bootstrap_fingerprint = models.CharField(max_length=64, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(singleton=1), name="installation_setup_singleton"),
+        ]
+
+    def __str__(self):
+        return "Erstinstallation abgeschlossen" if self.completed_at else "Erstinstallation offen"
+
+
+class EmployeeActivation(models.Model):
+    """One-time, expiring, revocable account activation for one employee.
+
+    Only the SHA-256 hash of the raw token is persisted. Consumption is an
+    atomic conditional UPDATE, so replay and parallel double-use both fail.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="employee_activations")
+    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="employee_activations")
+    token_hash = models.CharField(max_length=64, unique=True)
+    # Only invitable roles are valid here; ``consume_activation`` also enforces
+    # this whitelist so a tampered row can never grant admin/auditor rights.
+    role = models.CharField(
+        max_length=20,
+        choices=[
+            (Membership.Role.MEMBER, Membership.Role.MEMBER.label),
+            (Membership.Role.SHIFT_LEAD, Membership.Role.SHIFT_LEAD.label),
+            (Membership.Role.CASHIER, Membership.Role.CASHIER.label),
+        ],
+        default=Membership.Role.MEMBER,
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(used_at__isnull=True, revoked_at__isnull=True),
+                name="unique_open_activation_per_user",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Aktivierung {self.user_id} ({self.station_id})"
+
+    @property
+    def is_open(self):
+        from django.utils import timezone as _tz
+
+        return (
+            self.used_at is None
+            and self.revoked_at is None
+            and self.expires_at > _tz.now()
+        )
+
+
+class QrLoginRequest(models.Model):
+    class State(models.TextChoices):
+        CREATED = "created", "Erstellt"
+        SCANNED = "scanned", "Gescannt"
+        APPROVED = "approved", "Freigegeben"
+        DENIED = "denied", "Abgelehnt"
+        EXPIRED = "expired", "Abgelaufen"
+        REVOKED = "revoked", "Widerrufen"
+        CONSUMED = "consumed", "Verbraucht"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    secret_hash = models.CharField(max_length=64)
+    manual_code_hash = models.CharField(max_length=64, unique=True)
+    browser_session_hash = models.CharField(max_length=64)
+    browser_nonce_hash = models.CharField(max_length=64)
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="qr_login_requests")
+    origin = models.CharField(max_length=255)
+    state = models.CharField(max_length=16, choices=State.choices, default=State.CREATED)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    approved_at = models.DateTimeField(null=True, blank=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="approved_qr_logins"
+    )
+    approved_session_hash = models.CharField(max_length=64, blank=True, default="")
+    attempts = models.PositiveSmallIntegerField(default=0)
+    check_word = models.CharField(max_length=32)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["state", "expires_at"]),
+            models.Index(fields=["expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"QR-Login {self.id} ({self.state})"
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+
+class QrTotpUse(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="qr_totp_uses")
+    time_step = models.BigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "time_step"], name="unique_user_totp_step"),
+        ]
+
+    def __str__(self):
+        return f"QrTotpUse {self.user_id}:{self.time_step}"

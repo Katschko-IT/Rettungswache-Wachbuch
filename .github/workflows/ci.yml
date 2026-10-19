@@ -19,7 +19,7 @@ jobs:
     env:
       REDIS_URL: ""
       REDIS_HOST: ""
-    runs-on: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && fromJSON('["self-hosted","Linux","X64","org-linux"]') || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: astral-sh/setup-uv@v3
@@ -47,6 +47,8 @@ jobs:
         run: |
           node --check core/static/core/app.js
           node --check core/static/core/json_data.js
+      - name: Check i18n catalogs and checked-in .mo files
+        run: python scripts/i18n_catalog.py check
       - name: Test fail-closed Dependabot gate offline on every PR
         run: bash scripts/tests/test_check_dependabot_alerts.sh
       - name: Check migrations
@@ -80,6 +82,10 @@ jobs:
         run: |
           test -z "$(docker run --rm --entrypoint sh rettungswache-wachbuch:test -c \
             'find /app -type f \( -name "*.dump" -o -name "*.sqlite3" -o -name "*.pyc" \) -print')"
+      - name: Verify language catalogs ship in the image
+        run: |
+          docker run --rm --entrypoint python rettungswache-wachbuch:test -c \
+            "import gettext; g = gettext.GNUTranslations(open('/app/locale/en/LC_MESSAGES/django.mo','rb')); assert g.gettext('Anmelden') == 'Sign in', g.gettext('Anmelden')"
       - name: Scan container image for HIGH/CRITICAL vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:

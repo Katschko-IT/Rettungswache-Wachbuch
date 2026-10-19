@@ -1,6 +1,15 @@
 from django.urls import path
 
-from . import account_views, community_views, secure_views, views, wachalltag_media, wachalltag_web
+from . import (
+    account_views,
+    community_views,
+    i18n_views,
+    secure_views,
+    setup_views,
+    views,
+    wachalltag_media,
+    wachalltag_web,
+)
 
 
 urlpatterns = [
@@ -8,6 +17,10 @@ urlpatterns = [
     path("vorfuehrung/", views.vorfuehrung, name="vorfuehrung"),
     path("demo-einstieg/", views.demo_login, name="demo_login"),
     path("zugang/", views.access, name="access"),
+    path("sprache/", i18n_views.set_language, name="set_language"),
+    path("setup/", setup_views.setup_wizard, name="setup_wizard"),
+    path("setup/wetter/", setup_views.setup_weather_preview, name="setup_weather_preview"),
+    path("aktivieren/<str:token>/", setup_views.activate_account, name="activate_account"),
     path("uebersicht/", views.dashboard, name="dashboard"),
     path("uebergaben/", views.handover_list, name="handover_list"),
     path("uebergaben/neu/", views.handover_create, name="handover_create"),
@@ -59,6 +72,9 @@ urlpatterns = [
     path("team/anlegen/", views.team_user_create, name="team_user_create"),
     path("team/freigeben/", views.team_create, name="team_create"),
     path("team/registrierung/<int:pk>/ablehnen/", community_views.registration_reject, name="registration_reject"),
+    path("team/einladungen/", setup_views.team_invites, name="team_invites"),
+    path("team/einladungen/neu/", setup_views.team_invite_create, name="team_invite_create"),
+    path("team/einladungen/<int:pk>/widerrufen/", setup_views.team_invite_revoke, name="team_invite_revoke"),
     path("team/<int:pk>/", views.membership_update, name="membership_update"),
     path("einstellungen/", views.station_settings, name="station_settings"),
     path("audit/", views.audit_log, name="audit_log"),

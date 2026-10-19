@@ -1,0 +1,89 @@
+# Nginx TLS-Reverse-Proxy Konfigurationstemplate für den lokalen Wachbuch-Pilotbetrieb.
+#
+# WICHTIGER HINWEIS ZUM DATENSCHUTZ / LOGGING:
+# Das Access-Log eines externen Reverse-Proxies (wie Nginx) ist NICHT automatisch
+# anwendungsseitig redigiert!
+# Anfragen an Pfade wie /aktivieren/<token>/ enthalten im Standard-Access-Log das
+# Einmal-Aktivierungstoken im Klartext im Request-Pfad.
+# Für den sicheren Pilotbetrieb muss entweder:
+# 1) Das Access-Log für sensible Pfadmuster selektiv abgeschaltet werden (siehe unten),
+# 2) Ein angepasstes Logformat bzw. Filtermodul verwendet werden, oder
+# 3) Im lokalen Pilot-Test das Access-Log minimiert / deaktiviert werden.
+#
+# Platzhalter zur Ersetzung vor Inbetriebnahme (z. B. via envsubst):
+#   ${PILOT_HOST} - Hostname oder lokale IP (z. B. pilot.local oder 127.0.0.1)
+#   ${PILOT_CERT} - Pfad zum TLS-Zertifikat (z. B. /etc/ssl/certs/pilot.crt)
+#   ${PILOT_KEY}  - Pfad zum privaten TLS-Schlüssel (z. B. /etc/ssl/private/pilot.key)
+#
+# Keine Cloud-/CDN-Abhängigkeiten. Lokales TLS, Proxy zu Gunicorn/Django auf Port 8000.
+
+upstream django_upstream {
+    server 127.0.0.1:8000;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name ${PILOT_HOST};
+
+    # Lokaler Redirect auf HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${PILOT_HOST};
+
+    ssl_certificate ${PILOT_CERT};
+    ssl_certificate_key ${PILOT_KEY};
+
+    # TLS-Sicherheitsparameter (BSI TR-02102 konform)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5:!3DES;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Maximale Request-Body-Größe analog Django DATA_UPLOAD_MAX_MEMORY_SIZE
+    client_max_body_size 5M;
+
+    # Statische Assets (Pfad beim Erzeugen setzen; nicht Teil des Repositories)
+    location /static/ {
+        alias ${PILOT_STATIC_ROOT};
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Sensibler Aktivierungspfad: Access-Log unterdrücken, um Token-Leaks im Proxy-Log zu verhindern
+    location ^~ /aktivieren/ {
+        access_log off;
+
+        proxy_pass http://django_upstream;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Correlation-ID $http_x_correlation_id;
+
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_redirect off;
+    }
+
+    # Standard-Proxy-Konfiguration
+    location / {
+        proxy_pass http://django_upstream;
+        proxy_http_version 1.1;
+
+        # Pflicht-Header für Django Security & Audit
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Correlation-ID $http_x_correlation_id;
+
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_redirect off;
+    }
+}

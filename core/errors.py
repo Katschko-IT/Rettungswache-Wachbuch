@@ -13,11 +13,30 @@ from typing import Any, Mapping, Optional
 
 from django.conf import settings
 from django.http import HttpRequest, JsonResponse
+from django.utils.translation import gettext_lazy as _
 
 CORRELATION_HEADER = "HTTP_X_CORRELATION_ID"
 RESPONSE_CORRELATION_HEADER = "X-Correlation-ID"
 
 CORRELATION_ID_PATTERN = re.compile(r"^[A-Za-z0-9_\-]{1,128}$")
+
+# One-time activation tokens must never reach any log sink. The trailing slash
+# is optional: a request without it is redirected later, but may still be
+# logged by error handling or by a different middleware order.
+_ACTIVATION_PATH = re.compile(
+    r"(/aktivieren/)(?!\[redacted\])[^/\s?#\"'<>,\;)\]}]+([,;)\]}]?)"
+)
+
+
+def redact_request_path(path: str) -> str:
+    """Remove one-time activation tokens from a request path.
+
+    Trailing punctuation is preserved so surrounding log text stays readable.
+    """
+    return _ACTIVATION_PATH.sub(
+        lambda match: f"{match.group(1)}[redacted]{match.group(2)}", path or ""
+    )
+
 
 REQUEST_ATTR_CORRELATION_ID = "correlation_id"
 
@@ -33,14 +52,14 @@ ERROR_CODE_MFA_REQUIRED = "mfa_required"
 ERROR_CODE_MFA_SETUP_REQUIRED = "mfa_setup_required"
 
 ERROR_CODES: dict[str, dict[str, Any]] = {
-    ERROR_CODE_VALIDATION: {"status": 400, "label": "Ungueltige Anfrage."},
-    ERROR_CODE_AUTH_REQUIRED: {"status": 401, "label": "Anmeldung erforderlich."},
-    ERROR_CODE_FORBIDDEN: {"status": 403, "label": "Zugriff verweigert."},
-    ERROR_CODE_NOT_FOUND: {"status": 404, "label": "Nicht gefunden."},
-    ERROR_CODE_RATE_LIMIT: {"status": 429, "label": "Zu viele Anfragen."},
-    ERROR_CODE_SERVER_ERROR: {"status": 500, "label": "Serverfehler."},
-    ERROR_CODE_MFA_REQUIRED: {"status": 403, "label": "Zwei-Faktor-Anmeldung erforderlich."},
-    ERROR_CODE_MFA_SETUP_REQUIRED: {"status": 403, "label": "Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden."},
+    ERROR_CODE_VALIDATION: {"status": 400, "label": _("Ungültige Anfrage.")},
+    ERROR_CODE_AUTH_REQUIRED: {"status": 401, "label": _("Anmeldung erforderlich.")},
+    ERROR_CODE_FORBIDDEN: {"status": 403, "label": _("Zugriff verweigert.")},
+    ERROR_CODE_NOT_FOUND: {"status": 404, "label": _("Nicht gefunden.")},
+    ERROR_CODE_RATE_LIMIT: {"status": 429, "label": _("Zu viele Anfragen.")},
+    ERROR_CODE_SERVER_ERROR: {"status": 500, "label": _("Serverfehler.")},
+    ERROR_CODE_MFA_REQUIRED: {"status": 403, "label": _("Zwei-Faktor-Anmeldung erforderlich.")},
+    ERROR_CODE_MFA_SETUP_REQUIRED: {"status": 403, "label": _("Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden.")},
 }
 
 
@@ -73,7 +92,7 @@ def status_for_code(code: str) -> int:
 
 def label_for_code(code: str) -> str:
     entry = ERROR_CODES.get(code)
-    return str(entry["label"]) if entry else ERROR_CODES[ERROR_CODE_SERVER_ERROR]["label"]
+    return str(entry["label"]) if entry else str(ERROR_CODES[ERROR_CODE_SERVER_ERROR]["label"])
 
 
 def build_error_payload(
@@ -135,7 +154,9 @@ def json_error(
 
 def log_exception(request, *, exc=None, message: str = "unhandled_exception") -> str:
     correlation_id = correlation_id_for_request(request)
-    path = (getattr(request, "path", "") if request is not None else "") or ""
+    path = redact_request_path(
+        (getattr(request, "path", "") if request is not None else "") or ""
+    )
     method = (getattr(request, "method", "") if request is not None else "") or ""
     logger.error(
         "unhandled_exception message=%s method=%s path=%s correlation_id=%s",
@@ -170,6 +191,7 @@ __all__ = [
     "build_error_payload",
     "json_error",
     "log_exception",
+    "redact_request_path",
 ]
 
 

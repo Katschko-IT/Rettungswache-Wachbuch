@@ -60,7 +60,7 @@ def vapid_public_key():
 def _build_payload(handover):
     url = reverse("handover_detail", args=[handover.pk])
     return json.dumps({
-        "title": "Dringende Uebergabe",
+        "title": "Dringende Übergabe",
         "body": handover.title[:120],
         "url": url,
     })

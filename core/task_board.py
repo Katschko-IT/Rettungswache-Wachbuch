@@ -38,7 +38,7 @@ DEFAULT_TASKS = (
         "Individuelle Aufgabe",
         StationTask.Band.EXTRA,
         None,
-        "Frei nutzbar fuer einmalige Wachenaufgaben ohne Patientendaten.",
+        "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten.",
         20,
     ),
 )

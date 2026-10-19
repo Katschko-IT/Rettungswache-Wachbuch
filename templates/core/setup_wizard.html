@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Erstinstallation" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Erstinstallation" %}</p>
+  <h1>{% translate "Wache und Master-Admin einrichten" %}</h1>
+  <p class="lead">{% translate "Alle Angaben werden lokal gespeichert. Der Abschluss ist einmalig und atomar; ein zweiter Abschluss ist nicht möglich." %}</p>
+</header>
+
+{% if weather_error %}<div class="alert alert-error" role="alert">{{ weather_error }}</div>{% endif %}
+
+<form method="post" action="{% url 'setup_wizard' %}" class="form-card">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <section class="section-block">
+    <h2>{% translate "Wachendaten" %}</h2>
+    {% for field in form %}
+      {% if field.name == "station_name" or field.name == "organization_profile" or field.name == "employee_count" or field.name == "street" or field.name == "postal_code" or field.name == "city" or field.name == "timezone_name" or field.name == "weather_enabled" %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+          {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+        </p>
+      {% endif %}
+    {% endfor %}
+    {% if weather_preview %}
+      <div class="alert" role="status">
+        <strong>{% blocktranslate with label=weather_preview.label %}Wettervorschau ({{ label }}){% endblocktranslate %}</strong>
+        {% if weather_preview.stale %}<span> {% blocktranslate with date=weather_preview.fetched_at age=weather_preview.age_minutes %}Zwischengespeichert vom {{ date }} – Alter: {{ age }} Minuten, bitte als veraltet behandeln.{% endblocktranslate %}</span>{% else %}<span> {% blocktranslate with date=weather_preview.fetched_at age=weather_preview.age_minutes %}Abgerufen am {{ date }} (Alter: {{ age }} Minuten).{% endblocktranslate %}</span>{% endif %}
+        <table class="data-table">
+          <caption>{% translate "Nächste fünf lokale Tage am Wachenstandort (Open-Meteo)" %}</caption>
+          <thead><tr><th>{% translate "Datum" %}</th><th>{% translate "Min." %}</th><th>{% translate "Max." %}</th><th>{% translate "Niederschlag" %}</th></tr></thead>
+          <tbody>
+            {% for day in weather_preview.days %}
+              <tr><td>{{ day.date }}</td><td>{{ day.temperature_min }} °C</td><td>{{ day.temperature_max }} °C</td><td>{{ day.precipitation_mm }} mm</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+    <p class="help-text">{% translate "Wetter ist optional. Ohne Einwilligung wird die Anschrift nicht an einen externen Dienst übermittelt; die Installation funktioniert auch bei fehlendem Internet vollständig." %}</p>
+    <p>
+      <label><input type="checkbox" name="geo_consent" value="1"> {% translate "Ich bin einverstanden, dass die Anschrift einmalig an Open-Meteo übermittelt wird, um Koordinaten und eine 5-Tage-Vorhersage zu laden." %}</label>
+    </p>
+    <button class="button secondary" type="submit" formaction="{% url 'setup_weather_preview' %}">{% translate "Wetter prüfen (optional)" %}</button>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Master-Admin-Konto" %}</h2>
+    {% for field in form %}
+      {% if field.name == "admin_username" or field.name == "admin_first_name" or field.name == "admin_last_name" or field.name == "admin_email" or field.name == "password1" or field.name == "password2" or field.name == "bootstrap_token" %}
+        {% if field.name != "bootstrap_token" %}
+          <p>
+            {{ field.label_tag }}
+            {{ field }}
+            {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+          </p>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  </section>
+
+  <p class="help-text">{% translate "Mit dem Abschluss wird genau eine Wache und genau ein Master-Admin angelegt. Weitere Mitarbeiterkonten erhalten anschließend persönliche Einmal-Aktivierungslinks." %}</p>
+  <button class="button primary" type="submit">{% translate "Erstinstallation abschließen" %}</button>
+</form>
+{% endblock %}

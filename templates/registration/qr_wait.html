@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}QR-Code Anmeldung | {{ app_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/qr_login.css' %}">
+{% endblock %}
+{% block content %}
+<section class="access-panel qr-wait-panel" data-qr-wait-container data-start-url="{% url 'qr_login_start' %}" data-login-id="{{ login_id }}">
+  <p class="context-line">Schnellanmeldung</p>
+  <h1>Mit QR-Code anmelden</h1>
+  <p class="lead">Scannen Sie diesen Code mit der Kamera Ihres bereits angemeldeten Dienstgeräts.</p>
+
+  <div class="qr-box">
+    <div class="qr-placeholder" data-qr-placeholder>QR-Code wird geladen...</div>
+    <img class="qr-code-img" data-qr-image alt="QR-Code zur Anmeldung" hidden>
+  </div>
+
+  <div class="qr-meta-card">
+    <div class="qr-meta-item">
+      <span class="qr-meta-label">Prüfwort</span>
+      <strong class="qr-meta-value" data-check-word>—</strong>
+    </div>
+    <div class="qr-meta-item">
+      <span class="qr-meta-label">Manueller Code</span>
+      <strong class="qr-meta-value qr-manual-code" data-manual-code>—</strong>
+    </div>
+    <div class="qr-meta-item">
+      <span class="qr-meta-label">Gültig für</span>
+      <span class="qr-meta-value"><span data-countdown>120</span> s</span>
+    </div>
+  </div>
+
+  <div class="qr-status-region" role="status" aria-live="polite" data-status-message>
+    Warte auf Initialisierung...
+  </div>
+
+  <div class="qr-actions">
+    <button type="button" class="button secondary" data-retry-button hidden>Erneut versuchen</button>
+  </div>
+
+  <p class="hint">
+    Keine Kamera? Öffnen Sie auf Ihrem Smartphone <code>/anmelden/qr/</code> und geben Sie den manuellen Code ein.
+  </p>
+  <p class="hint">
+    <a class="text-action" href="{% url 'login' %}">Zurück zur normalen Anmeldung mit Passwort</a>
+  </p>
+</section>
+<script src="{% static 'core/qr_login.js' %}" defer></script>
+{% endblock %}

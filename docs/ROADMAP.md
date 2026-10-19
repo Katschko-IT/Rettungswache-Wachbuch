@@ -6,36 +6,36 @@ Stand: 3. August 2026.
 
 Die verbindliche Folgeplanung aus der Review vom 3. August 2026 steht in
 [`REMEDIATION-ROADMAP-2026-08.md`](REMEDIATION-ROADMAP-2026-08.md).
-Arbeitsregeln fuer weitere Coding-Agenten stehen in [`../AGENTS.md`](../AGENTS.md).
+Arbeitsregeln für weitere Coding-Agenten stehen in [`../AGENTS.md`](../AGENTS.md).
 
 Aktueller Stand der ersten Welle:
 
-- [~] CSP-kompatible Empfaengerauswahl fuer verschluesselte Post
+- [~] CSP-kompatible Empfängerauswahl für verschlüsselte Post
 - [x] sichere JSON-Einbettung ohne `|safe`/`innerHTML`
 - [x] Sicherheitsregressionstests
 - [x] E2EE-Texte an das reale Vertrauensmodell angepasst
-- [~] Race-Condition-Schutz fuer Tagesaufgaben
+- [~] Race-Condition-Schutz für Tagesaufgaben
 - [x] scheme-relative Redirects blockiert
 - [~] vierteilige Hauptnavigation, Fokus- und mobile Wochenansicht verbessert
 - [ ] Least-Privilege-Backuprolle
 - [ ] gemeinsames Rate Limiting hinter explizit vertrautem Proxy
-- [~] CI-Baseline; weitere Supply-Chain-Gates, Push-Outbox und zugaenglicher Entsperrdialog offen
+- [~] CI-Baseline; weitere Supply-Chain-Gates, Push-Outbox und zugänglicher Entsperrdialog offen
 - [ ] externe ASVS-, Penetrations-, Last-, Restore- und Accessibility-Abnahme
 
 `[~]` bedeutet: Code ist im Review-Branch umgesetzt, die in der Detail-Roadmap
 genannte Browser-, Parallelitaets- oder manuelle UX-Abnahme steht noch aus.
-Django- und Docker-CI waren auf Commit `6af6689` (Run 59) gruen.
+Django- und Docker-CI waren auf Commit `6af6689` (Run 59) grün.
 
 ## Erreicht (Basis bis 0.14.2)
 
-- Docker, lokaler Login, Rollen, Uebergaben, Tagesaufgaben, Geburtstage, Kasse-Ledger
-- PWA, oeffentliche Startseite, persoenlicher Bereich, Wachenchat
+- Docker, lokaler Login, Rollen, Übergaben, Tagesaufgaben, Geburtstage, Kasse-Ledger
+- PWA, öffentliche Startseite, persönlicher Bereich, Wachenchat
 - Master-Admin legt Nutzer an/gibt frei; optionale Selbstregistrierung
-- Profilbild, Passwort und Zwei-Faktor im persoenlichen Bereich
-- clientseitig verschluesselte Speicherung fuer Wachenchat, private Chats und
+- Profilbild, Passwort und Zwei-Faktor im persönlichen Bereich
+- clientseitig verschlüsselte Speicherung für Wachenchat, private Chats und
   interne Post; Webclient und Server bleiben Teil des Vertrauensmodells
 - Krypto an BSI TR-02102 angelehnt (AES-256-GCM, ECDH P-256, Argon2id, TLS 1.3)
-- **API-Fundament** `/api/v1/` mit App-Tokens fuer Mobile-Clients
+- **API-Fundament** `/api/v1/` mit App-Tokens für Mobile-Clients
 - **AGPL Flutter-Client** https://github.com/darkspike1988/Wachbuch-Client (Spiegel `clients/wachbuch-mobile/`)
 - **Android-APK** sideloadbar (Phone/Tablet-Layout, FOSS-Build)
 - Mobile-Onboarding: Server-Adresse/QR -> Login; Play-Richtlinien-Doku; Repos aufeinander abgestimmt
@@ -43,10 +43,10 @@ Django- und Docker-CI waren auf Commit `6af6689` (Run 59) gruen.
 - gesetzliche Feiertage NRW im fortlaufenden Kalender/ICS (`holidays_enabled`)
 - Compliance- und ASVS-L2-Matrix dokumentiert
 
-## Naechste Fachbausteine (Fahrplan)
+## Nächste Fachbausteine (Fahrplan)
 
-Priorisierte Umsetzung der noch offenen Wuensche. Keine Kalenderzeit-Schaetzung;
-Reihenfolge nach Nutzen und Abhaengigkeiten. Sicherheits- und Betriebsblocker aus
+Priorisierte Umsetzung der noch offenen Wuensche. Keine Kalenderzeit-Schätzung;
+Reihenfolge nach Nutzen und Abhängigkeiten. Sicherheits- und Betriebsblocker aus
 der Remediation-Roadmap haben Vorrang vor neuen Fachmodulen.
 
 ### 0. Wachalltag-Kern aus dem RETTpro-Vergleich — teilweise umgesetzt
@@ -55,7 +55,7 @@ der Remediation-Roadmap haben Vorrang vor neuen Fachmodulen.
 Open-Source-Bausteine zu einem klaren stationsbezogenen Lagebild verbinden.
 
 **Sofort umgesetzt:** Das Dashboard zeigt jetzt neben Übergaben und Terminen auch
-offene Mängel, eingeschränkte/ausser Betrieb befindliche Assets und ausgeliehenes
+offene Mängel, eingeschränkte/außer Betrieb befindliche Assets und ausgeliehenes
 Inventar. Die Zählung nutzt die vorhandenen Modelle, bleibt stationsisoliert und
 legt keinen zweiten Erfassungsweg an.
 
@@ -86,7 +86,7 @@ fachlicher Nutzen, aber hohe Datenschutz- und Abnahme-Komplexität.
 ### 1. Kaffeekasse: Zahlungsweg-Hinweise (PayPal.me, Wero, IBAN) — umgesetzt
 
 **Ziel:** Beim Kassenstand klar zeigen, wohin freiwillig eingezahlt werden kann –
-ohne Zahlungsabwicklung oder Gebuehrenlogik im Produkt.
+ohne Zahlungsabwicklung oder Gebührenlogik im Produkt.
 
 | Schritt | Inhalt | Status |
 | --- | --- | --- |
@@ -98,10 +98,10 @@ ohne Zahlungsabwicklung oder Gebuehrenlogik im Produkt.
 
 **Nicht im Scope:** automatischer Abgleich mit PayPal/Wero, QR-Payment-API, SEPA-Mandate.
 
-### 2. Fortlaufender Kalender: Feiertage (NRW) + Muellkalender
+### 2. Fortlaufender Kalender: Feiertage (NRW) + Müllkalender
 
 **Ziel:** Der Wachenkalender zeigt neben eigenen Terminen gesetzliche Feiertage
-(NRW) und spaeter Abfuhrtermine; alles auch als iCal/Abo.
+(NRW) und später Abfuhrtermine; alles auch als iCal/Abo.
 
 | Schritt | Inhalt |
 | --- | --- |
@@ -113,8 +113,8 @@ ohne Zahlungsabwicklung oder Gebuehrenlogik im Produkt.
 | 2.5 | Token-Abo analog Wachenkalender |
 | 2.6 | Dashboard: naechste Abfuhren; Kennzeichnung externe Quelle |
 
-**Abhaengigkeit Muell:** Freigabe der Datenquelle. Fallback: manuelle ICS-URL
-pro Station. Feiertage sind unabhaengig davon nutzbar.
+**Abhängigkeit Müll:** Freigabe der Datenquelle. Fallback: manuelle ICS-URL
+pro Station. Feiertage sind unabhängig davon nutzbar.
 
 ### 3. Empfohlene Reihenfolge
 
@@ -129,17 +129,17 @@ pro Station. Feiertage sind unabhaengig davon nutzbar.
 7. Review-Remediation Wave 3 und formale Produktionsfreigabe
 ```
 
-### 4. Bewusst weiterhin ausserhalb
+### 4. Bewusst weiterhin außerhalb
 
 - Patientendaten, Einsatz-/Alarmierung, Dienstplanung
 - allgemeine Datei-Uploads (Ausnahme: kleines Profilbild im Konto)
-- Messenger ausserhalb von Wachenchat / Privat / interner Post
-- automatische Zahlungseinzuege und Banking-APIs
+- Messenger außerhalb von Wachenchat / Privat / interner Post
+- automatische Zahlungseinzüge und Banking-APIs
 - volles CalDAV-Serverprodukt (ICS-Abo bleibt der Weg)
 
 ## Phase 1 - geschlossener Test (Betrieb)
 
-- reale Arbeitsablaeufe mit Testdaten
+- reale Arbeitsabläufe mit Testdaten
 - MFA/Passkeys und Push im Team erproben
 - Remediation Wave 0–2 und ASVS-Matrix abarbeiten
 - Backup/Restore und Updates testen
@@ -148,14 +148,14 @@ pro Station. Feiertage sind unabhaengig davon nutzbar.
 
 - Datenschutz-/Mitbestimmung, MFA-Pflicht ggf. aktivieren
 - Audit-Export, Barrierearmut / Wachenterminals
-- Muellkalender-Quelle schriftlich freigeben
+- Müllkalender-Quelle schriftlich freigeben
 - erste AGPL-Mobile-Clients gegen `/api/v1/`
 
 ## Phase 3 - Produktion
 
 - Remediation Wave 3
-- unabhaengige ASVS-L2-Pruefung und Lasttest
-- Go-live-Checkliste; erst danach oeffentlicher DNS-Name
+- unabhängige ASVS-L2-Pruefung und Lasttest
+- Go-live-Checkliste; erst danach öffentlicher DNS-Name
 
 Siehe auch [`AUDIT-2026-07.md`](AUDIT-2026-07.md), [`COMPLIANCE.md`](COMPLIANCE.md),
 [`ASVS-L2.md`](ASVS-L2.md) und

@@ -7,61 +7,190 @@
   <p class="lead">Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen.</p>
 </header>
 
-<section class="content-flow narrow prose">
-  <h2>Verantwortung und Zweck der Anwendung</h2>
-  <p>Wachbuch ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachbuch-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen.</p>
-  <p>Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung.</p>
+<div class="narrow">
+  <aside class="privacy-blocker-warning" role="alert" aria-label="Veröffentlichungsblocker">
+    <p class="blocker-title"><strong>Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe</strong></p>
+    <p>Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt <strong>keine</strong> rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden.</p>
+  </aside>
 
-  <h2>Datenschutzbeauftragte / Datenschutzkontakte</h2>
-  {% if public_data_protection_officers %}
-    <p>Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:</p>
-    <div class="content-flow">
-      {% for contact in public_data_protection_officers %}
-        <article class="card">
-          <h3>{{ contact.display_name }}</h3>
-          <p><strong>{{ contact.station.name }}</strong>{% if contact.organization %}<br>{{ contact.organization }}{% endif %}</p>
-          <p><a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% if contact.phone %}<br><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}</p>
-          {% if contact.postal_address %}<p>{{ contact.postal_address|linebreaksbr }}</p>{% endif %}
-          {% if contact.is_external %}<p><small>Externer Datenschutzkontakt</small></p>{% endif %}
-        </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p><strong>Noch kein veröffentlichter Datenschutzkontakt hinterlegt.</strong> Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen.</p>
-  {% endif %}
-  <p>Interne Notizen aus der Verwaltung werden auf dieser Seite technisch nicht ausgegeben.</p>
+  <nav class="toc" aria-label="Inhaltsverzeichnis">
+    <h2 class="toc-title">Inhaltsverzeichnis</h2>
+    <ol class="toc-list">
+      <li><a href="#verantwortung">1. Verantwortung &amp; Kontakt</a></li>
+      <li><a href="#verbindungsdaten">2. Verbindungsdaten beim Aufruf</a></li>
+      <li><a href="#demokonten">3. Demokonten &amp; fiktive Inhalte</a></li>
+      <li><a href="#cookies">4. Cookies &amp; Browser-Speicherung</a></li>
+      <li><a href="#hosting">5. Hosting &amp; Empfänger</a></li>
+      <li><a href="#sicherheit">6. Zugriffe &amp; Sicherheit</a></li>
+      <li><a href="#loeschung">7. Speicherdauer, Reset &amp; Löschung</a></li>
+      <li><a href="#rechte">8. Betroffenenrechte &amp; Aufsichtsbehörde</a></li>
+      <li><a href="#dienstbetrieb">9. Späterer Dienstbetrieb</a></li>
+      <li><a href="#aenderungen">10. Stand, Version &amp; Revisionsverlauf</a></li>
+    </ol>
+  </nav>
+</div>
 
-  <h2>Cookies und lokale Speicherung (TDDDG / DSGVO)</h2>
-  <p>Die Anwendung setzt nach aktuellem Produktstand keine Analyse-, Marketing-, Tracking- oder Drittanbieter-Cookies. Die hier beschriebenen Speicherungen dienen ausschließlich Anmeldung, Formularschutz und ausdrücklich angeforderten App-/Offline-Funktionen. Für unbedingt erforderliche Speicherungen sieht <a href="https://www.gesetze-im-internet.de/ttdsg/__25.html" rel="noopener noreferrer">§ 25 Abs. 2 Nr. 2 TDDDG</a> eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies erneut bewerten, sobald weitere Dienste, SDKs oder Cookies ergänzt werden.</p>
-  <dl class="summary-list">
-    <div><dt>{{ session_cookie }}</dt><dd>Sitzungs-Cookie für Anmeldung und angemeldete Nutzung. Secure, HttpOnly, SameSite=Lax{% if session_age_hours %}; maximale technische Speicherdauer {{ session_age_hours }} Stunden{% endif %}.</dd></div>
-    <div><dt>{{ csrf_cookie }}</dt><dd>Sicherheits-Cookie zum Schutz von Formularen vor websiteübergreifenden Anfragen (CSRF). Secure, HttpOnly, SameSite=Lax{% if csrf_age_days %}; maximale technische Speicherdauer {{ csrf_age_days }} Tage{% endif %}.</dd></div>
-  </dl>
-  <p>Zusätzlich kann der Browser technisch erforderliche PWA-Daten und einen Lese-Cache des Service Workers lokal speichern. Diese Funktionen enthalten keine Werbe-ID und dürfen nicht für Tracking zweckentfremdet werden.</p>
+<div class="content-flow narrow prose">
+  <section id="verantwortung" class="privacy-section">
+    <h2>1. Verantwortung und Kontakt</h2>
+    <p>Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachwerk-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen.</p>
+    <p><strong>Status für diese Demonstration:</strong> Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt.</p>
+    <p>Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung.</p>
 
-  <h2>Kategorien personenbezogener Daten</h2>
-  <p>Je nach aktivierten Modulen können insbesondere Benutzerkonto, Rollen-/Wachenzuordnung, organisatorische Übergaben und Aufgaben, Quittierungen, Audit-Ereignisse, freiwillig sichtbare Geburtstagsangaben sowie Inventar-/Gerätebewegungen verarbeitet werden. Inhalte sind auf das für den Wachbetrieb erforderliche Maß zu begrenzen.</p>
-  <p>Mängelfotos dürfen keine Patienten-, Einsatz- oder sonstigen sachfremden sensiblen Inhalte zeigen. Betreiber müssen hierzu organisatorische Vorgaben und Löschfristen festlegen.</p>
+    <h3>Datenschutzbeauftragte / Datenschutzkontakte</h3>
+    {% if public_data_protection_officers %}
+      <p>Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:</p>
+      <div class="content-flow">
+        {% for contact in public_data_protection_officers %}
+          <article class="card">
+            <h4>{{ contact.display_name }}</h4>
+            <p><strong>{{ contact.station.name }}</strong>{% if contact.organization %}<br>{{ contact.organization }}{% endif %}</p>
+            <p><a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% if contact.phone %}<br><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>{% endif %}</p>
+            {% if contact.postal_address %}<p>{{ contact.postal_address|linebreaksbr }}</p>{% endif %}
+            {% if contact.is_external %}<p><small>Externer Datenschutzkontakt</small></p>{% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p><strong>Noch kein veröffentlichter Datenschutzkontakt hinterlegt.</strong> Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen.</p>
+    {% endif %}
+    <p>Interne Notizen aus der Verwaltung werden auf dieser Seite technisch nicht ausgegeben.</p>
+  </section>
 
-  <h2>Beschäftigtendaten und öffentlicher Dienst</h2>
-  <p>Login, Rollen, Audit-Ereignisse und optionale Organisationsmodule können Beschäftigtendaten darstellen. Rechtsgrundlage und Beteiligungsrechte hängen vom konkreten Betreiber ab. Für öffentliche Stellen sind insbesondere die jeweils anwendbaren Datenschutz-, Personalvertretungs- und Dienstvereinbarungsregelungen zu prüfen. Auswertungen zur individuellen Leistungs- oder Verhaltenskontrolle sind produktseitig nicht vorgesehen und organisatorisch zu untersagen.</p>
+  <section id="verbindungsdaten" class="privacy-section">
+    <h2>2. Welche echten Daten beim Besuch anfallen</h2>
+    <p>Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:</p>
+    <ul>
+      <li>IP-Adresse des anfragenden Geräts</li>
+      <li>Datum und Uhrzeit des Abrufs</li>
+      <li>HTTP-Anfragemethode, Pfad und Protokoll</li>
+      <li>HTTP-Statuscode der Serverantwort</li>
+      <li>Übertragene Datenmenge</li>
+      <li>User-Agent (Browsertyp, Betriebssystem) und Referrer-URL (sofern vom Browser übermittelt)</li>
+    </ul>
+    <p><strong>Zweck:</strong> Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz).</p>
+    <p>Verbindliche Fristen für die Aufbewahrung und Rotation dieser Server-Logs müssen durch den Betreiber im Löschkonzept festgelegt werden. Standard-Logfristen werden nicht erfunden.</p>
+  </section>
 
-  <h2>Sicherheit der Verarbeitung</h2>
-  <p>Produktive Verbindungen sind über TLS abzusichern. Wachbuch unterstützt MFA/WebAuthn, rollen- und stationsbezogene Zugriffe, Secure-/HttpOnly-Cookies, Auditierung sowie verschlüsselte Speicherung ausgewählter Geheimnisse. Der Betreiber ist zusätzlich für Reverse Proxy/TLS-Konfiguration, Schlüsselverwaltung, verschlüsselte Datenträger und Backups, Patchmanagement, Wiederherstellungstests, MDM/Endgeräteschutz und Incident Response verantwortlich.</p>
-  <p>Die technische Sicherheitsdokumentation orientiert sich an den jeweils referenzierten BSI-Empfehlungen; daraus folgt keine BSI-Zertifizierung des Produkts.</p>
+  <section id="demokonten" class="privacy-section">
+    <h2>3. Demokonten und fiktive Inhalte</h2>
+    {% if demo_mode %}
+    <p>Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium.</p>
+    {% else %}
+    <p>Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden.</p>
+    {% endif %}
+    <p><strong>Wichtiger Hinweis:</strong> Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten.</p>
+    <p>Bereitgestellte Demokonten sind gemeinsame synthetische Testzugänge und stellen keine persönlichen dienstlichen Nutzerkonten dar. Eingaben in einer gemeinsamen Sandbox können für andere Tester sichtbar sein. Sollten versehentlich schutzwürdige Daten eingegeben worden sein, ist unverzüglich der Testbetrieb zu kontaktieren, damit die betroffenen Datensätze kontrolliert beseitigt werden können.</p>
+  </section>
 
-  <h2>Speicherdauer und Löschung</h2>
-  <p>Wachbuch stellt technische Aufbewahrungs- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen, dokumentieren und regelmäßig überprüfen.</p>
+  <section id="cookies" class="privacy-section">
+    <h2>4. Cookies und Browser-Speicherung (TDDDG / DSGVO)</h2>
+    <p>Die Anwendung setzt nach aktuellem Produktstand keine Analyse-, Marketing-, Tracking- oder Drittanbieter-Cookies. Die hier beschriebenen Speicherungen dienen ausschließlich Anmeldung, Formularschutz und ausdrücklich angeforderten App-/Offline-Funktionen. Für unbedingt erforderliche Speicherungen sieht <a href="https://www.gesetze-im-internet.de/ttdsg/__25.html" rel="noopener noreferrer">§ 25 Abs. 2 Nr. 2 TDDDG</a> eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies erneut bewerten, sobald weitere Dienste, SDKs oder Cookies ergänzt werden.</p>
 
-  <h2>Betroffenenrechte</h2>
-  <p>Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch und weitere Betroffenenrechte sind gegenüber der verantwortlichen Betreiberstelle geltend zu machen. Die konkrete Art.-13-/Art.-14-Information des Betreibers muss Kontaktweg, Rechtsgrundlagen, Empfänger, Fristen und die zuständige Aufsichtsbehörde benennen.</p>
+    <dl class="summary-list">
+      <div>
+        <dt>{{ session_cookie }} (Name: <code>{{ session_cookie_name }}</code>)</dt>
+        <dd>
+          Sitzungs-Cookie für Anmeldung und authentifizierte Nutzung.
+          <ul class="cookie-attributes">
+            <li><strong>Secure:</strong> {% if session_cookie_secure %}True (nur über HTTPS übertragen){% else %}False (Übertragung nicht auf HTTPS beschränkt){% endif %}</li>
+            <li><strong>HttpOnly:</strong> {% if session_cookie_httponly %}True (für clientseitige Skripte unzugänglich){% else %}False (für JavaScript lesbar){% endif %}</li>
+            <li><strong>SameSite:</strong> SameSite={{ session_cookie_samesite }}</li>
+            <li><strong>Gültigkeit:</strong>
+              {% if session_expire_at_browser_close %}
+                Sitzungscookie ohne persistentes Ablaufdatum (SESSION_EXPIRE_AT_BROWSER_CLOSE=True). Die Browser-Sitzungswiederherstellung kann es über einen Neustart hinaus erhalten. Serverseitige Standardfrist: {{ session_cookie_age }} Sekunden.
+              {% else %}
+                Konfigurierte Standardfrist: {{ session_cookie_age }} Sekunden{% if session_exact_hours %} ({{ session_exact_hours }} Stunden){% endif %}. Verlängerung oder abweichende Laufzeiten einzelner Sitzungen sind möglich.
+              {% endif %}
+            </li>
+          </ul>
+        </dd>
+      </div>
 
-  <h2>EU-KI-Verordnung (AI Act)</h2>
-  <p>Dieses Wachbuch enthält im Produktumfang kein KI-System zur Inferenz oder automatisierten Entscheidung über Beschäftigte. Werden zukünftig KI-Funktionen integriert, sind Datenschutz-, Informationssicherheits- und AI-Act-Bewertung vor Aktivierung neu durchzuführen.</p>
+      <div>
+        {% if csrf_use_sessions %}
+          <dt>CSRF-Schutz (sitzungsbasiert)</dt>
+          <dd>
+            Der CSRF-Schutz erfolgt sitzungsbasiert über die Session (CSRF_USE_SESSIONS=True); es wird kein separates CSRF-Cookie im Browser abgelegt.
+          </dd>
+        {% else %}
+          <dt>{{ csrf_cookie }} (Name: <code>{{ csrf_cookie_name }}</code>)</dt>
+          <dd>
+            Sicherheits-Cookie zum Schutz vor websiteübergreifenden Anfragen (CSRF).
+            <ul class="cookie-attributes">
+              <li><strong>Secure:</strong> {% if csrf_cookie_secure %}True (nur über HTTPS übertragen){% else %}False (Übertragung nicht auf HTTPS beschränkt){% endif %}</li>
+              <li><strong>HttpOnly:</strong> {% if csrf_cookie_httponly %}True (für clientseitige Skripte unzugänglich){% else %}False (für JavaScript lesbar){% endif %}</li>
+              <li><strong>SameSite:</strong> SameSite={{ csrf_cookie_samesite }}</li>
+              <li><strong>Gültigkeit:</strong> Konfigurierte Standardfrist: {{ csrf_cookie_age }} Sekunden{% if csrf_exact_days %} ({{ csrf_exact_days }} Tage){% endif %}; erneutes Setzen kann die Frist verlängern.</li>
+            </ul>
+          </dd>
+        {% endif %}
+      </div>
+    </dl>
 
-  <h2>Version {{ app_version }}</h2>
-  <p>Die laufende Produktversion erscheint im Fußbereich und unter <code>/healthz/</code>. Änderungsprotokoll, Sicherheits- und Betriebsdokumentation sind Bestandteil der administrativen Freigabe.</p>
+    <p>Zusätzlich kann der Browser technisch erforderliche PWA-Daten und einen Lese-Cache des Service Workers lokal speichern. Diese Funktionen enthalten keine Werbe-ID und dürfen nicht für Tracking zweckentfremdet werden.</p>
+    <p>Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches.</p>
+  </section>
 
-  <p><a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a> <a class="button primary" href="{% url 'login' %}">Anmelden</a></p>
-</section>
+  <section id="hosting" class="privacy-section">
+    <h2>5. Hosting, Empfänger und Übermittlungen</h2>
+    <p>Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen.</p>
+    <p>Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Source Sans 3) und Stylesheets werden lokal vom selben Server ausgeliefert.</p>
+  </section>
+
+  <section id="sicherheit" class="privacy-section">
+    <h2>6. Zugriffe, Sicherheit und ihre Grenzen</h2>
+    <p>Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:</p>
+    <ul>
+      <li>Verpflichtende Transportverschlüsselung (TLS) für alle Produktivumgebungen.</li>
+      <li>Strikte rollen- und stationsbezogene Zugriffskontrolle (RBAC und Stationsisolation).</li>
+      <li>Content Security Policy (CSP) ohne <code>unsafe-inline</code> und ohne <code>unsafe-eval</code>.</li>
+      <li>Schutz sensibler Kommunikationsbereiche (z. B. persönliche Nachrichten/Chat) durch clientseitige Ende-zu-Ende-Verschlüsselung (AES-256-GCM mit ECDH P-256).</li>
+    </ul>
+    <p><strong>Grenzen des Vertrauensmodells:</strong> Bei einer Web-PWA bleiben der ausgelieferte Webclient und der Server Teil des Vertrauensmodells. Der Schutz gespeicherter Daten gegen unbefugte Dritte ersetzt keine Absicherung gegen einen kompromittierten Server. Aus den referenzierten Sicherheitsmaßnahmen folgt keine BSI-Zertifizierung des Produkts und keine Garantie absoluter Sicherheit.</p>
+  </section>
+
+  <section id="loeschung" class="privacy-section">
+    <h2>7. Speicherdauer, Reset und Löschung</h2>
+    <p>Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen.</p>
+    <p>Ein kontrollierter Neuaufbau der getrennten Demo ist vorgesehen; ein automatischer Reset, seine Häufigkeit und seine Wirksamkeit sind noch nicht nachgewiesen. Das erneute Einspielen von Seed-Daten allein beweist keine Löschung vorhandener Eingaben. Fachliche Revisions-, Kassen- und Auditzeilen bleiben append-only; Korrekturen erfolgen durch neue Buchungs- oder Revisionssätze. Für versehentlich eingegebene Echtdaten sind Sperrung, Kontaktkette, Vorfallbewertung und kontrollierte Entfernung einschließlich geschützter Log- und Sicherungsreste vor Start festzulegen. Ein serverseitiger Reset entfernt keine lokalen Browser-Caches auf fremden Endgeräten.</p>
+  </section>
+
+  <section id="rechte" class="privacy-section">
+    <h2>8. Betroffenenrechte und Beschwerdeweg</h2>
+    <p>Betroffene Personen haben bei Vorliegen der gesetzlichen Voraussetzungen nach Art. 15–22 DSGVO folgende Rechte gegenüber dem Verantwortlichen:</p>
+    <ul>
+      <li>Recht auf Auskunft (Art. 15 DSGVO)</li>
+      <li>Recht auf Berichtigung unrichtiger Daten (Art. 16 DSGVO)</li>
+      <li>Recht auf Löschung (Art. 17 DSGVO)</li>
+      <li>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+      <li>Recht auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
+      <li>Recht auf Widerspruch nach Art. 21 DSGVO bei Verarbeitung auf Grundlage von Art. 6 Abs. 1 Buchst. e oder f, unter den jeweiligen gesetzlichen Voraussetzungen.</li>
+    </ul>
+    <p>Bei einwilligungsbasierter Verarbeitung besteht ein Widerrufsrecht für die Zukunft; dies unterstellt nicht, dass der Demobesuch eine Einwilligung erfordert. Es besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde nach Art. 77 DSGVO. Die konkrete Art.-13-/Art.-14-Information des Betreibers muss Kontaktweg, Rechtsgrundlagen, Empfänger, Fristen und die tatsächlich zuständige Aufsichtsbehörde benennen.</p>
+  </section>
+
+  <section id="dienstbetrieb" class="privacy-section">
+    <h2>9. Späterer dienstlicher Einsatz – klar getrennte Information</h2>
+    <p>Dieser Abschnitt dient ausschließlich der Information über künftige Voraussetzungen und ist <strong>keine</strong> bereits wirksame Beschäftigtendatenschutz-Information:</p>
+    <p>Ein späterer regulärer Betrieb für eine Rettungswache erfordert:</p>
+    <ul>
+      <li>Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber.</li>
+      <li>Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbarem Landesdatenschutzrecht, BDSG oder kirchlichem Datenschutzrecht).</li>
+      <li>Die Beteiligung der zuständigen Personalvertretung / des Betriebsrats sowie den Abschluss erforderlicher Dienst- oder Betriebsvereinbarungen.</li>
+      <li>Ein verbindliches Rollen-, Berechtigungs- und Löschkonzept.</li>
+    </ul>
+    <p>Auswertungen zur individuellen Leistungs- oder Verhaltenskontrolle von Beschäftigten sind produktseitig nicht vorgesehen und organisatorisch zu untersagen.</p>
+  </section>
+
+  <section id="aenderungen" class="privacy-section">
+    <h2>10. Stand, Version und Revisionsverlauf</h2>
+    <p><strong>EU-KI-Verordnung (AI Act):</strong> Dieses Wachbuch enthält im Produktumfang kein KI-System zur Inferenz oder automatisierten Entscheidung über Beschäftigte. Werden zukünftig KI-Funktionen integriert, sind Datenschutz-, Informationssicherheits- und AI-Act-Bewertung vor Aktivierung neu durchzuführen.</p>
+    <p><strong>Laufende Version:</strong> Version {{ app_version }}</p>
+    <p><strong>Stand dieser technischen Dokumentation:</strong> 16. Oktober 2026 (Demo- und Prüfstand).</p>
+    <p>Änderungsprotokoll, Sicherheits- und Betriebsdokumentation sind Bestandteil der administrativen Freigabe.</p>
+
+    <p><a class="button secondary" href="{% url 'landing' %}">Zur Startseite</a> <a class="button primary" href="{% url 'login' %}">Anmelden</a></p>
+  </section>
+</div>
 {% endblock %}

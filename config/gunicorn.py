@@ -94,3 +94,6 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 # Then uncomment the following:
 # from gunicorn_prometheus import PrometheusMetrics
 # metrics = PrometheusMetrics(worker=workers, worker_class=worker_class)
+
+# Redact one-time activation tokens from access-log atoms.
+logger_class = "core.gunicorn_logging.RedactingGunicornLogger"

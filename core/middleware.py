@@ -18,6 +18,7 @@ from .errors import (
     RESPONSE_CORRELATION_HEADER,
     correlation_id_for_request,
     log_exception,
+    redact_request_path,
 )
 
 
@@ -99,7 +100,7 @@ class CorrelationIdMiddleware:
         self._logger.info(
             "request_started method=%s path=%s correlation_id=%s",
             request.method or "",
-            request.path or "",
+            redact_request_path(request.path),
             correlation_id,
             extra={"correlation_id": correlation_id},
         )
