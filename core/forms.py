@@ -210,6 +210,7 @@ class StationSettingsForm(forms.ModelForm):
             "pinboard_enabled",
             "holidays_enabled",
             "checklists_enabled",
+            "traffic_enabled",
             "waste_calendar_enabled",
             "waste_calendar_url",
             "signal_group_url",

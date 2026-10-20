@@ -178,6 +178,77 @@
     });
   }
 
+  function formatPeriod(start, end) {
+    function short(value) {
+      var parts = String(value || "").split("-");
+      return parts.length === 3 ? parts[2] + "." + parts[1] + "." : "";
+    }
+    var from = short(start);
+    var to = short(end);
+    if (from && to && start !== end) {
+      return from + " – " + to;
+    }
+    return from || to;
+  }
+
+  function renderTraffic(root, traffic) {
+    var section = root.querySelector("[data-display-traffic-section]");
+    var list = root.querySelector("[data-display-traffic]");
+    if (!section || !list) {
+      return;
+    }
+    var items = (traffic && traffic.items) || [];
+    list.textContent = "";
+    if (!items.length) {
+      show(section, false);
+      return;
+    }
+    items.forEach(function (entry) {
+      var item = document.createElement("li");
+      item.className = "display-traffic-item";
+      if (entry.closed) {
+        item.className += " is-closed";
+      } else if (entry.restricted) {
+        item.className += " is-restricted";
+      }
+
+      var source = document.createElement("span");
+      source.className = "display-traffic-source";
+      source.textContent = entry.source || "";
+      if (entry.closed) {
+        var badge = document.createElement("span");
+        badge.className = "display-traffic-badge";
+        badge.textContent = list.getAttribute("data-closed-label") || "Gesperrt";
+        source.appendChild(badge);
+      }
+
+      var title = document.createElement("strong");
+      title.className = "display-traffic-title";
+      title.textContent = entry.title || "";
+
+      var meta = document.createElement("span");
+      meta.className = "display-traffic-meta";
+      var bits = [];
+      if (entry.section) {
+        bits.push(entry.section);
+      }
+      var period = formatPeriod(entry.starts_at, entry.ends_at);
+      if (period) {
+        bits.push(period);
+      }
+      if (typeof entry.distance_km === "number") {
+        bits.push(Math.round(entry.distance_km) + " km");
+      }
+      meta.textContent = bits.join(" · ");
+
+      item.appendChild(source);
+      item.appendChild(title);
+      item.appendChild(meta);
+      list.appendChild(item);
+    });
+    show(section, true);
+  }
+
   function renderUrgent(root, count) {
     var block = root.querySelector("[data-display-urgent-block]");
     var value = root.querySelector("[data-display-urgent]");
@@ -194,6 +265,7 @@
       renderTasks(root, payload.tasks);
       renderWeather(root, payload.weather);
       renderBirthdays(root, payload.birthdays);
+      renderTraffic(root, payload.traffic);
       renderUrgent(root, payload.urgent_handovers);
     });
   }

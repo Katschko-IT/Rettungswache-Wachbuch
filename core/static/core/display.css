@@ -52,7 +52,7 @@
   z-index: 2;
   display: grid;
   grid-template-columns: 1.35fr 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   gap: clamp(1rem, 2.2vw, 2.4rem);
   padding: clamp(1.6rem, 3.2vw, 3.6rem);
   height: 100vh;
@@ -244,6 +244,72 @@
   gap: 0.4rem;
   color: var(--display-dim);
   font-size: clamp(0.95rem, 1.35vw, 1.35rem);
+}
+
+.display-traffic-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-top: 1px solid var(--display-line);
+  padding-top: 0.9rem;
+}
+
+.display-traffic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem 1.4rem;
+}
+
+.display-traffic-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding-left: 0.65rem;
+  border-left: 3px solid var(--display-line);
+  min-width: 0;
+}
+
+.display-traffic-item.is-closed {
+  border-left-color: #ff6b6b;
+}
+
+.display-traffic-item.is-restricted {
+  border-left-color: #ffb347;
+}
+
+.display-traffic-source {
+  font-size: 0.7em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 247, 251, 0.55);
+}
+
+.display-traffic-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.08rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(255, 107, 107, 0.9);
+  color: #1a0f12;
+  font-size: 0.85em;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.display-traffic-title {
+  font-size: clamp(0.95rem, 1.1vw, 1.2rem);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.display-traffic-meta {
+  font-size: clamp(0.78rem, 0.92vw, 0.98rem);
+  color: var(--display-dim);
 }
 
 .display-footer {
