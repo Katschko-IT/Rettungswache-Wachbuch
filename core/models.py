@@ -77,6 +77,9 @@ class Station(models.Model):
     longitude = models.FloatField(null=True, blank=True, verbose_name="Längengrad")
     timezone_name = models.CharField(max_length=40, default="Europe/Berlin", verbose_name="Zeitzone")
     weather_enabled = models.BooleanField(default=False, verbose_name="Wettervorhersage aktiviert")
+    traffic_enabled = models.BooleanField(
+        default=False, verbose_name="Verkehrslage (Baustellen und Sperrungen)"
+    )
 
     class Meta:
         ordering = ["name"]

@@ -41,6 +41,13 @@
     <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
   </section>
 
+  {% if display_station.traffic_enabled %}
+  <section class="display-traffic-strip" data-display-traffic-section hidden>
+    <h2 class="display-heading">{% translate "Baustellen und Sperrungen" %}</h2>
+    <ul class="display-traffic-list" data-display-traffic data-closed-label="{% translate 'Gesperrt' %}"></ul>
+  </section>
+  {% endif %}
+
   <footer class="display-footer">
     <p class="display-urgent" data-display-urgent-block hidden>
       <span class="display-urgent-count" data-display-urgent>0</span>

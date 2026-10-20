@@ -108,6 +108,17 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001 - Wetter ist optional
             weather = None
 
+    # Verkehr ist optional und darf die Anzeige nie blockieren: Schlägt eine
+    # Quelle fehl, bleibt die Liste leer statt die ganze Anzeige zu kippen.
+    traffic = None
+    if getattr(station, "traffic_enabled", False):
+        try:
+            from .traffic import traffic_payload
+
+            traffic = traffic_payload(station)
+        except Exception:  # noqa: BLE001 - Verkehr ist optional
+            traffic = None
+
     return {
         "station": station.name,
         "date": day.isoformat(),
@@ -117,4 +128,5 @@ def display_payload(station) -> dict:
         "urgent_handovers": urgent,
         "birthdays": birthdays,
         "weather": weather,
+        "traffic": traffic,
     }
