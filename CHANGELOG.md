@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.21.0 - 2026-10-20
+
+Pilotstand mit Verkehrslage auf dem Wachen-Display. Keine Produktionsfreigabe.
+
+- Verkehrslage: Das Display zeigt Baustellen und Sperrungen rund um die Wache
+  in einer eigenen Leiste – mit Quelle, Abschnitt, Zeitraum von Anfang bis Ende
+  und Entfernung in Kilometern. Vollsperrungen tragen ein rotes Kennzeichen,
+  Einschränkungen eine orange Kante.
+- Quellen ohne Schlüssel: Autobahn GmbH (A2/A33 im Umkreis), Gemeinde
+  Steinhagen (Straßenbau im Ortsgebiet), Kreis Gütersloh (Bauabschnitte an
+  Kreisstraßen) und die Bevölkerungswarnungen des BBK.
+- Zeiträume werden aus dem Fließtext gelesen, weil die Quellen keine
+  strukturierten Datumsfelder liefern; Jahreswechsel und Tagesüberlauf sind
+  berücksichtigt.
+- Fällt eine Quelle aus, zeigt die Anzeige die übrigen Quellen. Es werden keine
+  Ersatzdaten erfunden. Ergebnisse werden zehn Minuten zwischengespeichert.
+- Einschaltbar über die Wachen-Einstellungen (Verkehrslage).
+- Tests: 22 neue Prüfungen für Parser, Sperrerkennung, Radiusfilter,
+  Quellenausfall und Zwischenspeicher (Gesamt 790).
+
 ## 0.20.0 - 2026-10-20
 
 Pilotstand mit Wachen-Display für Monitor und Fernseher. Keine
