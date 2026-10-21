@@ -36,3 +36,16 @@ Zusätzlich entdeckte die gegenseitige Endprüfung zwei weitere echte Lücken (f
 - Die Modelle haben keine Tests ausgeführt; alle Testläufe sind Parent-Läufe in No-Network-Containern mit synthetischen SQLite-Fixtures.
 - Die Gegenprüfungen bezogen sich auf die tatsächlich gelieferten Dateien, nicht auf das gesamte Repository.
 - Kein Commit, kein Push, kein Deploy. Änderungen liegen ausschließlich im Arbeitsbaum `/opt/data/workspace/wachwerk-remediation-integration-20261021`.
+
+## Abhängigkeitskorrektur für den CI-Audit
+
+Der CI-Job `django` scheiterte nicht an diesen Änderungen, sondern am `pip-audit`-Schritt mit neun gemeldeten Schwachstellen in `certifi` und `Pillow`. Dieselbe Prüfung war auf `main` bereits rot.
+
+- `certifi` 2026.7.22 → **2026.10.19** (behebt PYSEC-2026-4320)
+- `Pillow` 12.3.0 → **13.0.0** (behebt acht CVE-2026-Einträge, darunter CVE-2026-112395/112397/112400/112404/112895/112896/112897/112899)
+- `requirements.lock` und `requirements-audit.lock` gezielt aktualisiert; übrige Pins unverändert.
+- Zwei fehlerhafte Hash-Zeilenumbrüche im bestehenden `requirements.lock` repariert (fehlender Backslash), die eine Neukompilierung mit `uv` verhinderten.
+
+Nachweis: `pip-audit --strict --requirement requirements.lock` meldet **„No known vulnerabilities found"** (Exit 0), mit `--require-hashes` aus `requirements-audit.lock` installiert. Docker-Build erfolgreich; Vollsuite im gebauten Image mit Pillow 13: **838 Tests grün (4 skipped)**.
+
+Hinweis: Eine vollständige Neukompilierung des Locks würde zusätzlich `packaging` entfernen und `typing-extensions` ergänzen (veraltete Resolver-Altlast). Diese Änderung ist absichtlich nicht enthalten, um den PR auf die Sicherheitskorrektur zu begrenzen.
