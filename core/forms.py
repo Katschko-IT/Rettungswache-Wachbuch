@@ -196,7 +196,43 @@ class MembershipEditForm(forms.Form):
         self.fields["is_active"].initial = membership.is_active
 
 
-class StationSettingsForm(forms.ModelForm):
+class TrafficConfigMixin:
+    """Gemeinsame Prüfung der Verkehrs-Einstellungen (Einstellungen und Ersteinrichtung)."""
+
+    def clean_traffic_roads(self):
+        from .traffic import MAX_ROADS, parse_roads
+
+        value = self.cleaned_data.get("traffic_roads") or ""
+        try:
+            roads = parse_roads(value)
+        except ValueError:
+            raise forms.ValidationError(
+                _("Nur Kennungen wie A2, A33 oder B61 (höchstens %(max)s), durch Komma getrennt.")
+                % {"max": MAX_ROADS}
+            )
+        return ", ".join(roads)
+
+    def clean_traffic_warning_areas(self):
+        from .traffic import MAX_WARNING_AREAS, parse_areas
+
+        value = self.cleaned_data.get("traffic_warning_areas") or ""
+        areas = parse_areas(value)
+        if len([p for p in value.split(",") if p.strip()]) > MAX_WARNING_AREAS:
+            raise forms.ValidationError(
+                _("Höchstens %(max)s Gebiete, durch Komma getrennt.") % {"max": MAX_WARNING_AREAS}
+            )
+        return ", ".join(areas)
+
+    def clean_traffic_radius_km(self):
+        value = self.cleaned_data.get("traffic_radius_km")
+        if value is None:
+            return getattr(getattr(self, "instance", None), "traffic_radius_km", None) or 25
+        if not 1 <= value <= 200:
+            raise forms.ValidationError(_("Der Umkreis muss zwischen 1 und 200 km liegen."))
+        return value
+
+
+class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
     class Meta:
         model = Station
         fields = [
@@ -211,6 +247,12 @@ class StationSettingsForm(forms.ModelForm):
             "holidays_enabled",
             "checklists_enabled",
             "traffic_enabled",
+            "traffic_roads",
+            "traffic_radius_km",
+            "traffic_warning_areas",
+            "traffic_local_sources",
+            "latitude",
+            "longitude",
             "waste_calendar_enabled",
             "waste_calendar_url",
             "signal_group_url",
@@ -228,8 +270,12 @@ class StationSettingsForm(forms.ModelForm):
             "iban": "IBAN",
             "bic": "BIC",
             "payment_note": "Zahlungshinweis",
+            "latitude": "Breitengrad der Wache",
+            "longitude": "Längengrad der Wache",
         }
         help_texts = {
+            "latitude": "Dezimalgrad, z. B. 52.0200. Für Verkehrslage und Wetter; nur zusammen mit dem Längengrad.",
+            "longitude": "Dezimalgrad, z. B. 8.4200.",
             "paypal_me_url": "Vollständige https://paypal.me/…-URL.",
             "wero_link": "Vollständige https://…-URL zum Wero-Profil.",
             "iban": "Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige.",
@@ -252,6 +298,7 @@ class StationSettingsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["organization_profile"].required = False
         self.fields["organization_profile"].widget.attrs["required"] = "required"
+        self.fields["traffic_radius_km"].required = False
 
     def clean_organization_profile(self):
         return self.cleaned_data.get("organization_profile") or self.instance.organization_profile
@@ -280,8 +327,26 @@ class StationSettingsForm(forms.ModelForm):
             )
         return value
 
+    def clean_latitude(self):
+        value = self.cleaned_data.get("latitude")
+        if value is not None and not -90 <= value <= 90:
+            raise forms.ValidationError(_("Der Breitengrad muss zwischen -90 und 90 liegen."))
+        return value
+
+    def clean_longitude(self):
+        value = self.cleaned_data.get("longitude")
+        if value is not None and not -180 <= value <= 180:
+            raise forms.ValidationError(_("Der Längengrad muss zwischen -180 und 180 liegen."))
+        return value
+
     def clean(self):
         cleaned = super().clean()
+        if (cleaned.get("latitude") is None) != (cleaned.get("longitude") is None):
+            self.add_error("longitude", _("Breiten- und Längengrad nur gemeinsam angeben."))
+        if cleaned.get("traffic_enabled") and cleaned.get("traffic_roads") and (
+            cleaned.get("latitude") is None or cleaned.get("longitude") is None
+        ) and "latitude" not in self.errors and "longitude" not in self.errors:
+            self.add_error("latitude", _("Autobahnen im Umkreis brauchen Koordinaten der Wache."))
         if cleaned.get("waste_calendar_enabled"):
             has_url = bool(cleaned.get("waste_calendar_url"))
             has_file = bool(cleaned.get("waste_calendar_file"))
@@ -587,7 +652,7 @@ def _translated_profile_choices():
     return [(value, labels[value]) for value in Station.Profile.values]
 
 
-class SetupWizardForm(forms.Form):
+class SetupWizardForm(TrafficConfigMixin, forms.Form):
     """First-installation data. The bootstrap token is only used on step 1."""
 
     bootstrap_token = forms.CharField(
@@ -610,6 +675,24 @@ class SetupWizardForm(forms.Form):
         initial="Europe/Berlin",
     )
     weather_enabled = forms.BooleanField(label=_("5-Tage-Wetter am Wachenstandort anzeigen"), required=False)
+    traffic_enabled = forms.BooleanField(
+        label=_("Verkehrslage (Baustellen und Sperrungen) anzeigen"), required=False
+    )
+    traffic_roads = forms.CharField(
+        label=_("Autobahnen und Bundesstraßen"),
+        max_length=60,
+        required=False,
+        help_text=_("Kommagetrennt, z. B. A2, A33. Benötigt Koordinaten (Wetter prüfen) oder spätere Eingabe unter Einstellungen."),
+    )
+    traffic_radius_km = forms.IntegerField(
+        label=_("Umkreis in km"), min_value=1, max_value=200, initial=25, required=False
+    )
+    traffic_warning_areas = forms.CharField(
+        label=_("Gebiete für Bevölkerungswarnungen"),
+        max_length=200,
+        required=False,
+        help_text=_("Kommagetrennte Orts- oder Kreisnamen. Leer: Ort der Wache."),
+    )
     admin_username = forms.CharField(label=_("Benutzername des Master-Admins"), max_length=150)
     admin_first_name = forms.CharField(label=_("Vorname"), max_length=150, required=False)
     admin_last_name = forms.CharField(label=_("Nachname"), max_length=150, required=False)

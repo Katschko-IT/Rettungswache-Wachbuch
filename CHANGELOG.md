@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Verkehrslage individualisierbar: Straßen, Umkreis, Warngebiete (BBK),
+  kommunale Quellen und Koordinaten der Wache sind unter Einstellungen und in
+  der Ersteinrichtung konfigurierbar. Der feste Standort-Fallback und die
+  festen Warngebiete entfallen; bestehende Wachen mit Verkehrslage behalten
+  ihre bisherigen Werte (Migration 0043). Weiterleitungen externer Quellen
+  werden nicht mehr gefolgt. Zeitstempel sind zeitzonenbewusst.
+
 ## 0.21.0 - 2026-10-20
 
 Pilotstand mit Verkehrslage auf dem Wachen-Display. Keine Produktionsfreigabe.

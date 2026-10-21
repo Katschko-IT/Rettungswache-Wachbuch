@@ -123,6 +123,27 @@ class SetupWizardTests(TestCase):
             )
 
     @override_settings(SETUP_BOOTSTRAP_TOKEN=BOOTSTRAP)
+    def test_traffic_settings_are_stored_and_validated(self):
+        self.client.post(reverse("setup_wizard"), {"bootstrap_token": BOOTSTRAP})
+        bad = self.client.post(
+            reverse("setup_wizard"), setup_payload(traffic_enabled="on", traffic_roads="A2/x")
+        )
+        self.assertEqual(bad.status_code, 200)
+        self.assertEqual(Station.objects.count(), 0)
+        self.client.post(
+            reverse("setup_wizard"),
+            setup_payload(
+                traffic_enabled="on", traffic_roads="a7, b61", traffic_radius_km="30",
+                traffic_warning_areas="Hamburg",
+            ),
+        )
+        station = Station.objects.get()
+        self.assertTrue(station.traffic_enabled)
+        self.assertEqual(station.traffic_roads, "A7, B61")
+        self.assertEqual(station.traffic_radius_km, 30)
+        self.assertEqual(station.traffic_warning_areas, "Hamburg")
+
+    @override_settings(SETUP_BOOTSTRAP_TOKEN=BOOTSTRAP)
     def test_setup_route_is_gone_after_completion_even_with_token(self):
         self.client.post(reverse("setup_wizard"), {"bootstrap_token": BOOTSTRAP})
         self.client.post(reverse("setup_wizard"), setup_payload())

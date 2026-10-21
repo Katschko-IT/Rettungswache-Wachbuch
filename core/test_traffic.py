@@ -233,6 +233,9 @@ class TrafficPayloadTests(TestCase):
             slug="steinhagen-traffic",
             latitude=52.02,
             longitude=8.42,
+            traffic_roads="A2, A33",
+            traffic_local_sources=True,
+            traffic_warning_areas="Steinhagen",
         )
 
     def test_merges_sources_and_marks_closed_first(self):
@@ -288,3 +291,104 @@ class NoRedirectTests(TestCase):
         self.assertTrue(
             any(isinstance(h, traffic._NoRedirect) for h in traffic._OPENER.handlers)
         )
+
+
+class TrafficCustomizationTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def _station(self, **kwargs):
+        defaults = dict(name="Wache X", slug="wache-x", latitude=50.0, longitude=8.0)
+        defaults.update(kwargs)
+        return Station.objects.create(**defaults)
+
+    def test_parse_roads_validates(self):
+        self.assertEqual(traffic.parse_roads("a2, B61 a2"), ("A2", "B61"))
+        for bad in ("A2/../x", "X1", "A", "A1234", "A1,A2,A3,A4,A5,A6,A7"):
+            with self.assertRaises(ValueError):
+                traffic.parse_roads(bad)
+
+    def test_no_hardcoded_sources_by_default(self):
+        station = self._station()
+        with mock.patch("core.traffic.fetch_autobahn") as autobahn, \
+             mock.patch("core.traffic.fetch_steinhagen") as stein, \
+             mock.patch("core.traffic.fetch_kreis_guetersloh") as kreis, \
+             mock.patch("core.traffic.fetch_nina_warnings", return_value=[]):
+            payload = traffic.traffic_payload(station)
+        autobahn.assert_not_called()
+        stein.assert_not_called()
+        kreis.assert_not_called()
+        self.assertEqual(payload["items"], [])
+
+    def test_roads_radius_and_origin_come_from_station(self):
+        station = self._station(traffic_roads="A7", traffic_radius_km=40)
+        with mock.patch("core.traffic.fetch_autobahn", return_value=[]) as autobahn, \
+             mock.patch("core.traffic.fetch_nina_warnings", return_value=[]):
+            traffic.traffic_payload(station)
+        autobahn.assert_called_once_with((50.0, 8.0), roads=("A7",), radius_km=40.0)
+
+    def test_no_coordinates_skips_autobahn(self):
+        station = self._station(latitude=None, longitude=None, traffic_roads="A2")
+        with mock.patch("core.traffic.fetch_autobahn") as autobahn, \
+             mock.patch("core.traffic.fetch_nina_warnings", return_value=[]):
+            traffic.traffic_payload(station)
+        autobahn.assert_not_called()
+
+    def test_cache_invalidated_by_config_change(self):
+        station = self._station(traffic_roads="A2")
+        with mock.patch("core.traffic.fetch_autobahn", return_value=[]) as autobahn, \
+             mock.patch("core.traffic.fetch_nina_warnings", return_value=[]):
+            traffic.traffic_payload(station)
+            station.traffic_roads = "A7"
+            traffic.traffic_payload(station)
+        self.assertEqual(autobahn.call_count, 2)
+
+    def test_nina_filter_uses_configured_areas_and_drops_unscoped(self):
+        data = [
+            {"i18nTitle": {"de": "Hier"}, "regionName": "Kreis Musterstadt"},
+            {"i18nTitle": {"de": "Anderswo"}, "regionName": "Bielefeld"},
+            {"i18nTitle": {"de": "Ohne Gebiet"}},
+        ]
+        with mock.patch("core.traffic._fetch_json_list", return_value=data):
+            result = traffic.fetch_nina_warnings(("Musterstadt",))
+            self.assertEqual([w["title"] for w in result], ["Hier"])
+            self.assertEqual(traffic.fetch_nina_warnings(()), [])
+
+    def test_warning_areas_default_to_city(self):
+        station = self._station(city="Musterstadt")
+        self.assertEqual(traffic.warning_areas_for(station), ("Musterstadt",))
+
+
+class TrafficSettingsFormTests(TestCase):
+    def _form(self, **overrides):
+        from core.forms import StationSettingsForm
+
+        station = Station.objects.create(name="Form", slug="form-t")
+        data = {"name": "Form", "organization_profile": station.organization_profile}
+        data.update(overrides)
+        return StationSettingsForm(data, instance=station)
+
+    def test_valid_customization_is_normalised(self):
+        form = self._form(
+            traffic_enabled="on", traffic_roads="a7 , b61", traffic_radius_km="30",
+            traffic_warning_areas=" Hamburg ,Altona", latitude="53.5", longitude="10.0",
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["traffic_roads"], "A7, B61")
+        self.assertEqual(form.cleaned_data["traffic_warning_areas"], "Hamburg, Altona")
+
+    def test_rejects_bad_road_and_coordinates(self):
+        form = self._form(traffic_roads="A2/../x", traffic_radius_km="500", latitude="95", longitude="8")
+        self.assertFalse(form.is_valid())
+        for name in ("traffic_roads", "traffic_radius_km", "latitude"):
+            self.assertIn(name, form.errors)
+
+    def test_roads_without_coordinates_rejected(self):
+        form = self._form(traffic_enabled="on", traffic_roads="A2")
+        self.assertFalse(form.is_valid())
+        self.assertIn("latitude", form.errors)
+
+    def test_single_coordinate_rejected(self):
+        form = self._form(latitude="52")
+        self.assertFalse(form.is_valid())
+        self.assertIn("longitude", form.errors)
