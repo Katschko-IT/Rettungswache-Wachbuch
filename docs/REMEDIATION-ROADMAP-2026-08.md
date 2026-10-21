@@ -297,7 +297,11 @@ eine Schätzung, keine Messung.
 
 #### Wave 2b – Code und Doku (ohne externe Abhängigkeit)
 
-### [ ] R-025 Verkehrslage: Datenschutz, Betrieb, Robustheit
+### [~] R-025 Verkehrslage: Datenschutz, Betrieb, Robustheit
+
+Erledigt: Datenschutzseite (Abschnitt 5, DE/EN), `SECURITY-PRIVACY.md` und
+`OPERATIONS.md` beschreiben die Quellen. Offen: VVT-Vorlage, Ausfallanzeige,
+Format-Regressionstests mit Beispiel-HTML.
 
 - Externe Quellen in Datenschutzseite, VVT, `SECURITY-PRIVACY.md` und
   `OPERATIONS.md` dokumentieren (Zweck, übermittelte Daten = nur Serveranfrage,
@@ -313,7 +317,10 @@ eine Schätzung, keine Messung.
 - Entscheidung zu `urgent_defects_count` (anzeigen oder entfernen) und zum
   Schreibzugriff bei GET in `ensure_default_station_tasks`.
 
-### [ ] R-027 Doku- und Roadmap-Konsolidierung
+### [~] R-027 Doku- und Roadmap-Konsolidierung
+
+Begonnen: `docs/ROADMAP.md` Backuprolle/Rate Limiting korrigiert. Offen:
+`WAVE-3-READINESS.md`, Funktionsmatrix, README auf 0.21.0.
 
 - `docs/ROADMAP.md`, `WAVE-3-READINESS.md`, Funktionsmatrix und README auf
   0.21.0 bringen; erledigte Punkte als `[x]` markieren, Doppelungen zu

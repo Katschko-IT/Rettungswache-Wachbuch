@@ -82,6 +82,25 @@ Vor dem Upgrade einer 0.2-Installation müssen die Hosts aller bestehenden
 Quellen aus dem Django-Admin in `FEED_ALLOWED_HOSTS` übernommen werden. Eine
 leere Allowlist deaktiviert Abrufe absichtlich.
 
+## Verkehrslage (optional)
+
+Je Wache unter Einstellungen aktivierbar (`traffic_enabled`); Straßen, Umkreis,
+Warngebiete, kommunale Quellen und Koordinaten sind dort bzw. in der
+Ersteinrichtung konfigurierbar. Es gibt keine festen Standort- oder Regionswerte.
+
+- Der Server ruft die Quellen selbst ab (Autobahn GmbH, optional Gemeinde
+  Steinhagen und Kreis Gütersloh, BBK-Warnungen) und cached das Ergebnis zehn
+  Minuten je Konfiguration. Es werden keine Personen- oder Wachendaten gesendet.
+- Zugelassen sind nur die festen HTTPS-Hosts in `core/traffic.py`
+  (`ALLOWED_HOSTS`); Weiterleitungen werden nicht verfolgt. Neue Quellen
+  erfordern eine Codeänderung, keine Konfiguration.
+- Autobahnen benötigen Koordinaten der Wache; ohne Koordinaten werden sie
+  übersprungen. Ohne Warngebiete werden keine BBK-Warnungen abgerufen, außer der
+  Ort der Wache ist gesetzt.
+- Ausfall einer Quelle verkleinert nur die Liste; eine Ausfallanzeige existiert
+  noch nicht (Roadmap R-025). Die kommunalen Quellen werten HTML aus und können
+  bei Layoutänderungen der Seiten leer werden.
+
 ## Push-Outbox
 
 Dringende Übergaben schreiben innerhalb der Handover-Transaktion einen

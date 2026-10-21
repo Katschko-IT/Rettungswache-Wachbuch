@@ -42,6 +42,9 @@ Dieses Dokument ist keine Rechtsberatung.
   Teil des Vertrauensmodells; ein aktiv kompromittierter Server ist ohne
   unabhängige Schlüsselverifikation nicht durch das heutige Modell abgedeckt
 - Login-Passwörter mit **Argon2id**; TOTP-Geheimnisse AES-256-GCM at rest
+- optionale Verkehrslage: nur serverseitige Abrufe öffentlicher Quellen über eine
+  feste HTTPS-Allowlist (Port 443, keine Redirects), ohne Personen- oder
+  Wachendaten im Request; Details in [`OPERATIONS.md`](OPERATIONS.md)
 - Krypto-Zuordnung und Bedrohungsmodell: [`CRYPTO-BSI.md`](CRYPTO-BSI.md)
 - sichere Session-Cookies, CSRF-Schutz, CSP (`connect-src` nur `'self'` und
   Hosts aus `PUSH_ALLOWED_ENDPOINT_HOSTS`) und restriktive Browser-Header
