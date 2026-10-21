@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -38,7 +39,8 @@ from .services import audit
 
 def _json_body(request):
     try:
-        return json.loads(request.body.decode("utf-8") or "{}")
+        data = json.loads(request.body.decode("utf-8") or "{}")
+        return data if isinstance(data, dict) else None
     except (UnicodeDecodeError, json.JSONDecodeError):
         return None
 
@@ -54,12 +56,21 @@ def crypto_setup(request):
     identity = _require_crypto(request.user)
     if request.method == "POST" and request.headers.get("Content-Type", "").startswith("application/json"):
         body = _json_body(request)
-        if not body:
+        if not body or not isinstance(body, dict):
             return JsonResponse({"ok": False, "error": "Ungültige Anfrage."}, status=400)
+        raw_iterations = body.get("kdf_iterations")
+        if raw_iterations is None or raw_iterations == "":
+            iterations = 210_000
+        else:
+            if isinstance(raw_iterations, float) and not math.isfinite(raw_iterations):
+                return JsonResponse({"ok": False, "error": "KDF-Iterationen ungültig."}, status=400)
+            try:
+                iterations = int(raw_iterations)
+            except (TypeError, ValueError, OverflowError):
+                return JsonResponse({"ok": False, "error": "KDF-Iterationen ungültig."}, status=400)
         public_jwk = body.get("public_jwk")
         wrapped = body.get("wrapped_private_jwk")
         salt = body.get("kdf_salt")
-        iterations = int(body.get("kdf_iterations") or 210_000)
         if not isinstance(public_jwk, dict) or public_jwk.get("kty") != "EC" or public_jwk.get("crv") != "P-256":
             return JsonResponse({"ok": False, "error": "Öffentlicher Schlüssel ungültig."}, status=400)
         if not isinstance(wrapped, str) or len(wrapped) < 32 or len(wrapped) > 8000:

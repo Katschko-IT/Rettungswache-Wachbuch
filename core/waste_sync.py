@@ -16,6 +16,7 @@ import re
 import socket
 from datetime import datetime, timezone as datetime_timezone
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import certifi
 import urllib3
@@ -110,7 +111,7 @@ def fetch_waste_calendar(url):
 
 
 _VEVENT_RE = re.compile(r"BEGIN:VEVENT(?P<body>.*?)\r?\nEND:VEVENT", re.IGNORECASE | re.DOTALL)
-_LINE_RE = re.compile(r"(?P<name>[A-Z0-9-]+)(?:;[^:\r\n]*)?:(?P<value>.*)")
+_LINE_RE = re.compile(r"(?P<name>[A-Z0-9-]+)(?P<params>;[^:\r\n]*)?:(?P<value>.*)")
 
 
 def _unfold(text):
@@ -126,8 +127,14 @@ def _unfold(text):
     return out
 
 
-def _parse_ics_date(value):
-    """Parse DTSTART/DTEND Werte. Liefert einen bewussten datetime oder ``None``."""
+def _parse_ics_date(value, tzid=None, tzid_present=False):
+    """Parse DTSTART/DTEND Werte. Liefert einen bewussten datetime oder ``None``.
+
+    ``tzid_present`` gibt an, ob der Parameter TZID im ICS-Eintrag explizit
+    vorhanden war. Ist er vorhanden, aber leer oder unbekannt, wird ein
+    ``ValueError`` ausgeloest, damit keine stillschweigende lokale Zeit
+    verwendet wird.
+    """
     value = (value or "").strip()
     if not value:
         return None
@@ -140,6 +147,14 @@ def _parse_ics_date(value):
             dt = datetime.strptime(value, "%Y%m%dT%H%M%S")
         except ValueError:
             return None
+        if tzid_present:
+            if not tzid:
+                raise ValueError("Leere Zeitzone im TZID-Parameter.")
+            try:
+                zone = ZoneInfo(tzid)
+            except ZoneInfoNotFoundError:
+                raise ValueError(f"Unbekannte Zeitzone: {tzid}")
+            return dt.replace(tzinfo=zone)
         return timezone.make_aware(dt)
     if len(value) == 8:
         try:
@@ -178,9 +193,27 @@ def parse_ics(payload):
             if name == "SUMMARY":
                 title = value
             elif name == "DTSTART":
-                starts_at = _parse_ics_date(value)
+                tzid = None
+                tzid_present = False
+                params = line_match.groupdict().get("params")
+                if params:
+                    for param in params.split(";"):
+                        if param.upper().startswith("TZID="):
+                            tzid_present = True
+                            tzid = param[5:].strip('"')
+                            break
+                starts_at = _parse_ics_date(value, tzid, tzid_present)
             elif name == "DTEND":
-                ends_at = _parse_ics_date(value)
+                tzid = None
+                tzid_present = False
+                params = line_match.groupdict().get("params")
+                if params:
+                    for param in params.split(";"):
+                        if param.upper().startswith("TZID="):
+                            tzid_present = True
+                            tzid = param[5:].strip('"')
+                            break
+                ends_at = _parse_ics_date(value, tzid, tzid_present)
         if title and starts_at:
             results.append((title[:200], starts_at, ends_at))
     return results
