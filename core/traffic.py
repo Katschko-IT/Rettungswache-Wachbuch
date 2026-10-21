@@ -104,6 +104,16 @@ class TrafficItem:
 # --------------------------------------------------------------------------- #
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Weiterleitungen werden nie gefolgt (Allowlist darf nicht umgangen werden)."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
 def _guarded_request(url: str, *, accept: str) -> bytes:
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme != "https" or (parsed.hostname or "").lower() not in ALLOWED_HOSTS:
@@ -112,7 +122,7 @@ def _guarded_request(url: str, *, accept: str) -> bytes:
         url, headers={"User-Agent": USER_AGENT, "Accept": accept}
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+        with _OPENER.open(request, timeout=TIMEOUT_SECONDS) as response:
             status = getattr(response, "status", 200)
             if status != 200:
                 raise TrafficUnavailable(f"HTTP {status}")
@@ -592,7 +602,7 @@ def _guarded_request_nina():
         raise TrafficUnavailable("Nicht erlaubte Warnquelle.")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+        with _OPENER.open(request, timeout=TIMEOUT_SECONDS) as response:
             if getattr(response, "status", 200) != 200:
                 raise TrafficUnavailable("Warnquelle antwortet nicht.")
             raw = response.read(MAX_RESPONSE_BYTES + 1)

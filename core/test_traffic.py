@@ -275,3 +275,16 @@ class TrafficPayloadTests(TestCase):
             traffic.traffic_payload(self.station)
             traffic.traffic_payload(self.station)
         self.assertEqual(autobahn.call_count, 1)
+
+
+class NoRedirectTests(TestCase):
+    def test_redirect_wird_nicht_gefolgt(self):
+        handler = traffic._NoRedirect()
+        self.assertIsNone(
+            handler.redirect_request(None, None, 302, "Found", {}, "https://evil.example/")
+        )
+
+    def test_opener_nutzt_no_redirect_handler(self):
+        self.assertTrue(
+            any(isinstance(h, traffic._NoRedirect) for h in traffic._OPENER.handlers)
+        )
