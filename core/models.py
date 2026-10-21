@@ -80,6 +80,15 @@ class Station(models.Model):
     traffic_enabled = models.BooleanField(
         default=False, verbose_name="Verkehrslage (Baustellen und Sperrungen)"
     )
+    dwd_alerts_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Amtliche DWD-Wetterwarnungen",
+        help_text=(
+            "Ruft Warnungen über Bright Sky ab. Dabei wird die auf zwei "
+            "Nachkommastellen gerundete Koordinate der Wache übermittelt. "
+            "Benötigt Koordinaten der Wache."
+        ),
+    )
     traffic_roads = models.CharField(
         max_length=60,
         blank=True,

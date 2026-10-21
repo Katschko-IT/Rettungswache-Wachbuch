@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- DWD-Wetterwarnungen (Bright Sky) als optionale Quelle je Wache, in
+  Einstellungen und Ersteinrichtung aktivierbar (Standard aus; Migration 0044).
+  Anzeige auf der Wandanzeige inkl. Ausfallhinweis. Es wird nur die gerundete
+  Koordinate übermittelt.
+
 ## 0.22.0 - 2026-10-21
 
 Pilotstand. Keine Produktionsfreigabe.

@@ -101,6 +101,18 @@ Ersteinrichtung konfigurierbar. Es gibt keine festen Standort- oder Regionswerte
   noch nicht (Roadmap R-025). Die kommunalen Quellen werten HTML aus und können
   bei Layoutänderungen der Seiten leer werden.
 
+## DWD-Wetterwarnungen (optional)
+
+Je Wache unter Einstellungen (`dwd_alerts_enabled`, Standard aus) oder in der
+Ersteinrichtung aktivierbar. Der Server fragt `api.brightsky.dev/alerts` mit der
+auf zwei Nachkommastellen gerundeten Wachenkoordinate ab (kein API-Schlüssel),
+cached zehn Minuten (bei Fehlern eine Minute) und zeigt die Warnungen auf der
+Wandanzeige; ein Ausfall wird als „Warnquelle nicht erreichbar“ angezeigt. Es
+gelten dieselben Grenzen wie bei der Verkehrslage (HTTPS-Allowlist, keine
+Redirects, begrenzte Antwortgröße). Ohne Koordinaten der Wache findet kein Abruf
+statt. Das Antwortformat wurde ohne Live-Zugriff nach der Bright-Sky-Dokumentation
+umgesetzt und ist vor dem Pilot gegen den echten Dienst zu prüfen.
+
 ## Push-Outbox
 
 Dringende Übergaben schreiben innerhalb der Handover-Transaktion einen

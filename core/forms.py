@@ -247,6 +247,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "holidays_enabled",
             "checklists_enabled",
             "traffic_enabled",
+            "dwd_alerts_enabled",
             "traffic_roads",
             "traffic_radius_km",
             "traffic_warning_areas",
@@ -347,6 +348,10 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             cleaned.get("latitude") is None or cleaned.get("longitude") is None
         ) and "latitude" not in self.errors and "longitude" not in self.errors:
             self.add_error("latitude", _("Autobahnen im Umkreis brauchen Koordinaten der Wache."))
+        if cleaned.get("dwd_alerts_enabled") and (
+            cleaned.get("latitude") is None or cleaned.get("longitude") is None
+        ) and "latitude" not in self.errors and "longitude" not in self.errors:
+            self.add_error("dwd_alerts_enabled", _("DWD-Warnungen brauchen Koordinaten der Wache."))
         if cleaned.get("waste_calendar_enabled"):
             has_url = bool(cleaned.get("waste_calendar_url"))
             has_file = bool(cleaned.get("waste_calendar_file"))
@@ -677,6 +682,11 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
     weather_enabled = forms.BooleanField(label=_("5-Tage-Wetter am Wachenstandort anzeigen"), required=False)
     traffic_enabled = forms.BooleanField(
         label=_("Verkehrslage (Baustellen und Sperrungen) anzeigen"), required=False
+    )
+    dwd_alerts_enabled = forms.BooleanField(
+        label=_("Amtliche DWD-Wetterwarnungen anzeigen"),
+        required=False,
+        help_text=_("Überträgt die gerundete Koordinate der Wache an Bright Sky. Benötigt Koordinaten (Wetter prüfen) oder spätere Eingabe unter Einstellungen."),
     )
     traffic_roads = forms.CharField(
         label=_("Autobahnen und Bundesstraßen"),

@@ -47,6 +47,7 @@ ALLOWED_HOSTS = {
     "www.kreis-guetersloh.de",
     "kreis-guetersloh.de",
     "warnung.bund.de",
+    "api.brightsky.dev",
 }
 
 # Autobahnen im Einzugsbereich der Wache (A2 Bielefeld/Gütersloh, A33 Bielefeld).

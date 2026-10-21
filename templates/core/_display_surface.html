@@ -41,6 +41,14 @@
     <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
   </section>
 
+  {% if display_station.dwd_alerts_enabled %}
+  <section class="display-traffic-strip display-alerts" data-display-alerts-section hidden>
+    <h2 class="display-heading">{% translate "Wetterwarnungen (DWD)" %}</h2>
+    <ul class="display-traffic-list" data-display-alerts></ul>
+    <p class="display-traffic-meta" data-display-alerts-note data-failed-label="{% translate 'Warnquelle nicht erreichbar' %}" hidden></p>
+  </section>
+  {% endif %}
+
   {% if display_station.traffic_enabled %}
   <section class="display-traffic-strip" data-display-traffic-section hidden>
     <h2 class="display-heading">{% translate "Baustellen und Sperrungen" %}</h2>

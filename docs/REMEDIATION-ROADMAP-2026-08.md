@@ -297,6 +297,13 @@ eine Schätzung, keine Messung.
 
 #### Wave 2b – Code und Doku (ohne externe Abhängigkeit)
 
+### [~] R-031 Weitere öffentliche Datenquellen
+
+Umgesetzt: DWD-Warnungen über Bright Sky (Schalter je Wache, Wizard und
+Einstellungen, Wandanzeige). Offen: Format gegen den Live-Dienst prüfen,
+Anzeige im Dashboard, VVT-Vorlage, Pegelonline, Open-Meteo Luftqualität/Pollen
+und Sonnenzeiten, Schulferien. Nicht geplant: Mobilithek, Overpass, Müllkalender-API.
+
 ### [~] R-025 Verkehrslage: Datenschutz, Betrieb, Robustheit
 
 Erledigt (0.22.0): Datenschutzseite (Abschnitt 5, DE/EN), `SECURITY-PRIVACY.md`

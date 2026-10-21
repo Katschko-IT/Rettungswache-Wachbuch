@@ -302,6 +302,7 @@ def setup_weather_preview(request):
             "timezone_name",
             "weather_enabled",
             "traffic_enabled",
+            "dwd_alerts_enabled",
             "traffic_roads",
             "traffic_radius_km",
             "traffic_warning_areas",
