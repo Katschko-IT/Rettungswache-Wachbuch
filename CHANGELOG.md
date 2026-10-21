@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Darstellung: Übersicht und Wandanzeige passen sich großen Bildschirmen
+  (ab 100rem/140rem breiter und größere Schrift), Ultrawide, niedrigen und
+  Hochkant-Monitoren an.
+
 - Verkehrslage individualisierbar: Straßen, Umkreis, Warngebiete (BBK),
   kommunale Quellen und Koordinaten der Wache sind unter Einstellungen und in
   der Ersteinrichtung konfigurierbar. Der feste Standort-Fallback und die
