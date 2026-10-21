@@ -299,9 +299,10 @@ eine Schätzung, keine Messung.
 
 ### [~] R-025 Verkehrslage: Datenschutz, Betrieb, Robustheit
 
-Erledigt: Datenschutzseite (Abschnitt 5, DE/EN), `SECURITY-PRIVACY.md` und
-`OPERATIONS.md` beschreiben die Quellen. Offen: VVT-Vorlage, Ausfallanzeige,
-Format-Regressionstests mit Beispiel-HTML.
+Erledigt (0.22.0): Datenschutzseite (Abschnitt 5, DE/EN), `SECURITY-PRIVACY.md`
+und `OPERATIONS.md` beschreiben die Quellen; Display zeigt nicht erreichbare
+Quellen; Format-Tests mit Beispiel-HTML. Offen: VVT-Vorlage, Ausfallanzeige in
+den Einstellungen.
 
 - Externe Quellen in Datenschutzseite, VVT, `SECURITY-PRIVACY.md` und
   `OPERATIONS.md` dokumentieren (Zweck, übermittelte Daten = nur Serveranfrage,

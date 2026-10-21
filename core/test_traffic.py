@@ -392,3 +392,30 @@ class TrafficSettingsFormTests(TestCase):
         form = self._form(latitude="52")
         self.assertFalse(form.is_valid())
         self.assertIn("longitude", form.errors)
+
+
+class TrafficFailureAndFormatTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_failed_sources_are_reported(self):
+        station = Station.objects.create(
+            name="Ausfall", slug="ausfall", traffic_local_sources=True
+        )
+        with mock.patch("core.traffic.fetch_steinhagen", side_effect=traffic.TrafficUnavailable("x")), \
+             mock.patch("core.traffic.fetch_kreis_guetersloh", return_value=[]), \
+             mock.patch("core.traffic.fetch_nina_warnings", return_value=[]):
+            payload = traffic.traffic_payload(station)
+        self.assertEqual(payload["failed_sources"], ["Gemeinde Steinhagen"])
+
+    def test_layout_change_yields_no_items_without_crash(self):
+        html = "<html><body><div class='neu'><p>Völlig anderes Layout</p></div></body></html>"
+        with mock.patch("core.traffic._fetch_html", return_value=html):
+            self.assertEqual(traffic.fetch_steinhagen(), [])
+            self.assertEqual(traffic.fetch_kreis_guetersloh(), [])
+
+    def test_known_html_sample_still_parses(self):
+        with mock.patch("core.traffic._fetch_html", return_value=STEINHAGEN_HTML):
+            items = traffic.fetch_steinhagen()
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].title, "Straßenbauarbeiten Kuhweg")

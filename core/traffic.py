@@ -685,7 +685,7 @@ def traffic_payload(station, *, limit: int = 6) -> dict:
     abgesichert; ein Ausfall verkleinert die Liste, statt die Anzeige zu kippen.
     """
     if station is None:
-        return {"items": [], "warnings": [], "sources": [], "updated_at": None}
+        return {"items": [], "warnings": [], "sources": [], "failed_sources": [], "updated_at": None}
 
     origin = _origin(station)
     try:
@@ -704,6 +704,7 @@ def traffic_payload(station, *, limit: int = 6) -> dict:
 
     collected: list[TrafficItem] = []
     active_sources: list[str] = []
+    failed_sources: list[str] = []
 
     loaders = []
     if roads and origin is not None:
@@ -721,6 +722,7 @@ def traffic_payload(station, *, limit: int = 6) -> dict:
         try:
             found = loader()
         except TrafficUnavailable:
+            failed_sources.append(label)
             continue
         if found:
             active_sources.append(label)
@@ -732,6 +734,7 @@ def traffic_payload(station, *, limit: int = 6) -> dict:
         "total": len(collected),
         "warnings": fetch_nina_warnings(areas),
         "sources": active_sources,
+        "failed_sources": failed_sources,
         "updated_at": timezone.now().isoformat(timespec="seconds"),
     }
     cache.set(cache_key, payload, CACHE_SECONDS)

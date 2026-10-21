@@ -198,9 +198,17 @@
       return;
     }
     var items = (traffic && traffic.items) || [];
+    var failed = (traffic && traffic.failed_sources) || [];
+    var note = root.querySelector("[data-display-traffic-note]");
     list.textContent = "";
+    if (note) {
+      note.textContent = failed.length
+        ? (note.getAttribute("data-prefix") || "Quelle nicht erreichbar") + ": " + failed.join(", ")
+        : "";
+      show(note, failed.length > 0);
+    }
     if (!items.length) {
-      show(section, false);
+      show(section, failed.length > 0);
       return;
     }
     items.forEach(function (entry) {
