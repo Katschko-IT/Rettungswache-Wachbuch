@@ -119,6 +119,15 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001 - Verkehr ist optional
             traffic = None
 
+    alerts = None
+    if getattr(station, "dwd_alerts_enabled", False):
+        try:
+            from .alerts import alerts_payload
+
+            alerts = alerts_payload(station)
+        except Exception:  # noqa: BLE001 - Warnungen sind optional
+            alerts = None
+
     return {
         "station": station.name,
         "date": day.isoformat(),
@@ -129,4 +138,5 @@ def display_payload(station) -> dict:
         "birthdays": birthdays,
         "weather": weather,
         "traffic": traffic,
+        "alerts": alerts,
     }

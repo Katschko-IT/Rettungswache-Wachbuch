@@ -17,8 +17,8 @@ Aktueller Stand der ersten Welle:
 - [~] Race-Condition-Schutz für Tagesaufgaben
 - [x] scheme-relative Redirects blockiert
 - [~] vierteilige Hauptnavigation, Fokus- und mobile Wochenansicht verbessert
-- [ ] Least-Privilege-Backuprolle
-- [ ] gemeinsames Rate Limiting hinter explizit vertrautem Proxy
+- [~] Least-Privilege-Backuprolle (Offsite-Ziel/Restore-Nachweis: R-017)
+- [x] gemeinsames Rate Limiting hinter explizit vertrautem Proxy (R-011)
 - [~] CI-Baseline; weitere Supply-Chain-Gates, Push-Outbox und zugänglicher Entsperrdialog offen
 - [ ] externe ASVS-, Penetrations-, Last-, Restore- und Accessibility-Abnahme
 

@@ -1303,6 +1303,16 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .week-task.is-done button { opacity: .72; }
 .week-task button strong { font-size: .9rem; line-height: 1.25; }
 
+@media (min-width: 100rem) {
+  :root { --content: 84rem; }
+  html { font-size: 112.5%; }
+}
+
+@media (min-width: 140rem) {
+  :root { --content: 100rem; }
+  html { font-size: 125%; }
+}
+
 @media (display-mode: standalone) {
   .site-footer { display: none; }
   .app-header { padding-top: .15rem; }

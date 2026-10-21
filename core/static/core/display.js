@@ -198,9 +198,17 @@
       return;
     }
     var items = (traffic && traffic.items) || [];
+    var failed = (traffic && traffic.failed_sources) || [];
+    var note = root.querySelector("[data-display-traffic-note]");
     list.textContent = "";
+    if (note) {
+      note.textContent = failed.length
+        ? (note.getAttribute("data-prefix") || "Quelle nicht erreichbar") + ": " + failed.join(", ")
+        : "";
+      show(note, failed.length > 0);
+    }
     if (!items.length) {
-      show(section, false);
+      show(section, failed.length > 0);
       return;
     }
     items.forEach(function (entry) {
@@ -249,6 +257,41 @@
     show(section, true);
   }
 
+  function renderAlerts(root, alerts) {
+    var section = root.querySelector("[data-display-alerts-section]");
+    var list = root.querySelector("[data-display-alerts]");
+    var note = root.querySelector("[data-display-alerts-note]");
+    if (!section || !list) {
+      return;
+    }
+    var items = (alerts && alerts.items) || [];
+    var failed = Boolean(alerts && alerts.failed);
+    list.textContent = "";
+    items.forEach(function (entry) {
+      var item = document.createElement("li");
+      item.className = "display-traffic-item";
+      if (entry.severity === "severe" || entry.severity === "extreme") {
+        item.className += " is-closed";
+      } else if (entry.severity === "moderate") {
+        item.className += " is-restricted";
+      }
+      var title = document.createElement("strong");
+      title.className = "display-traffic-title";
+      title.textContent = entry.title || "";
+      var meta = document.createElement("span");
+      meta.className = "display-traffic-meta";
+      meta.textContent = formatPeriod(entry.starts_at, entry.ends_at);
+      item.appendChild(title);
+      item.appendChild(meta);
+      list.appendChild(item);
+    });
+    if (note) {
+      note.textContent = failed ? (note.getAttribute("data-failed-label") || "") : "";
+      show(note, failed);
+    }
+    show(section, items.length > 0 || failed);
+  }
+
   function renderUrgent(root, count) {
     var block = root.querySelector("[data-display-urgent-block]");
     var value = root.querySelector("[data-display-urgent]");
@@ -266,6 +309,7 @@
       renderWeather(root, payload.weather);
       renderBirthdays(root, payload.birthdays);
       renderTraffic(root, payload.traffic);
+      renderAlerts(root, payload.alerts);
       renderUrgent(root, payload.urgent_handovers);
     });
   }

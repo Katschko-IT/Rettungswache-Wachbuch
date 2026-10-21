@@ -389,6 +389,30 @@
   outline-offset: 2px;
 }
 
+/* Ultrawide (21:9 und breiter): Uhr nicht über die Höhe hinauswachsen lassen. */
+@media (min-aspect-ratio: 2/1) {
+  .display-clock { font-size: clamp(4rem, 9vh, 9rem); }
+  .display-grid { grid-template-columns: 1.6fr 1fr 1fr; }
+}
+
+/* Niedrige Anzeigen (z. B. 1280x720 oder Letterbox): Abstände verdichten. */
+@media (max-height: 760px) and (min-width: 901px) {
+  .display-grid {
+    gap: clamp(0.6rem, 1.4vw, 1.2rem);
+    padding: clamp(1rem, 2vw, 2rem);
+  }
+  .display-clock { font-size: clamp(3rem, 14vh, 7rem); }
+}
+
+/* Hochkant-Monitore: Spalten untereinander, Wandanzeige bleibt ohne Scrollen nutzbar. */
+@media (orientation: portrait) and (min-width: 600px) {
+  .display-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto repeat(3, minmax(0, 1fr)) auto auto;
+  }
+  .display-clock { font-size: clamp(4rem, 16vw, 10rem); }
+}
+
 @media (max-width: 900px) {
   .display-body { overflow: auto; }
   .display-grid {

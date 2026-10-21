@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+- DWD-Wetterwarnungen (Bright Sky) als optionale Quelle je Wache, in
+  Einstellungen und Ersteinrichtung aktivierbar (Standard aus; Migration 0044).
+  Anzeige auf der Wandanzeige inkl. Ausfallhinweis. Es wird nur die gerundete
+  Koordinate übermittelt.
+
+## 0.22.0 - 2026-10-21
+
+Pilotstand. Keine Produktionsfreigabe.
+
+- Darstellung: Übersicht und Wandanzeige passen sich großen Bildschirmen
+  (ab 100rem/140rem breiter und größere Schrift), Ultrawide, niedrigen und
+  Hochkant-Monitoren an.
+- Verkehrslage individualisierbar: Straßen, Umkreis, Warngebiete (BBK),
+  kommunale Quellen und Koordinaten der Wache sind unter Einstellungen und in
+  der Ersteinrichtung konfigurierbar. Der feste Standort-Fallback und die
+  festen Warngebiete entfallen; bestehende Wachen mit Verkehrslage behalten
+  ihre bisherigen Werte (Migration 0043). Weiterleitungen externer Quellen
+  werden nicht mehr gefolgt. Zeitstempel sind zeitzonenbewusst.
+- Verkehrslage: Das Display nennt nicht erreichbare Quellen; Datenschutzseite
+  und Betriebsdoku beschreiben die externen Quellen.
+
 ## 0.21.0 - 2026-10-20
 
 Pilotstand mit Verkehrslage auf dem Wachen-Display. Keine Produktionsfreigabe.

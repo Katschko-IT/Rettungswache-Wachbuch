@@ -80,6 +80,36 @@ class Station(models.Model):
     traffic_enabled = models.BooleanField(
         default=False, verbose_name="Verkehrslage (Baustellen und Sperrungen)"
     )
+    dwd_alerts_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Amtliche DWD-Wetterwarnungen",
+        help_text=(
+            "Ruft Warnungen über Bright Sky ab. Dabei wird die auf zwei "
+            "Nachkommastellen gerundete Koordinate der Wache übermittelt. "
+            "Benötigt Koordinaten der Wache."
+        ),
+    )
+    traffic_roads = models.CharField(
+        max_length=60,
+        blank=True,
+        default="",
+        verbose_name="Autobahnen und Bundesstraßen",
+        help_text="Kommagetrennt, z. B. A2, A33. Benötigt Koordinaten der Wache.",
+    )
+    traffic_radius_km = models.PositiveSmallIntegerField(
+        default=25, verbose_name="Umkreis in km"
+    )
+    traffic_warning_areas = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        verbose_name="Gebiete für Bevölkerungswarnungen",
+        help_text="Kommagetrennte Orts- oder Kreisnamen. Leer: Ort der Wache.",
+    )
+    traffic_local_sources = models.BooleanField(
+        default=False,
+        verbose_name="Kommunale Quellen Steinhagen und Kreis Gütersloh",
+    )
 
     class Meta:
         ordering = ["name"]

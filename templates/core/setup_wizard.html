@@ -49,6 +49,21 @@
   </section>
 
   <section class="section-block">
+    <h2>{% translate "Verkehrslage (optional)" %}</h2>
+    <p class="help-text">{% translate "Alle Werte lassen sich später unter Einstellungen ändern. Kommunale Quellen sind nur dort wählbar." %}</p>
+    {% for field in form %}
+      {% if field.name == "traffic_enabled" or field.name == "dwd_alerts_enabled" or field.name == "traffic_roads" or field.name == "traffic_radius_km" or field.name == "traffic_warning_areas" %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+          {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+        </p>
+      {% endif %}
+    {% endfor %}
+  </section>
+
+  <section class="section-block">
     <h2>{% translate "Master-Admin-Konto" %}</h2>
     {% for field in form %}
       {% if field.name == "admin_username" or field.name == "admin_first_name" or field.name == "admin_last_name" or field.name == "admin_email" or field.name == "password1" or field.name == "password2" or field.name == "bootstrap_token" %}
