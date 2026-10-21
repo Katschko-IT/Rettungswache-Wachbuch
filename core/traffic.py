@@ -104,16 +104,52 @@ class TrafficItem:
 # --------------------------------------------------------------------------- #
 
 
-def _guarded_request(url: str, *, accept: str) -> bytes:
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Verhindert automatische HTTP-Weiterleitungen im urllib-Transport."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+    def http_error_301(self, req, fp, code, msg, headers):
+        raise urllib.error.HTTPError(req.full_url, code, "HTTP-Redirects sind nicht erlaubt.", headers, fp)
+
+    http_error_302 = http_error_301
+    http_error_303 = http_error_301
+    http_error_307 = http_error_301
+    http_error_308 = http_error_301
+
+
+def _build_opener() -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(_NoRedirectHandler)
+
+
+def _urlopen(request: urllib.request.Request, timeout: float = TIMEOUT_SECONDS):
+    opener = _build_opener()
+    return opener.open(request, timeout=timeout)
+
+
+def _validate_traffic_url(url: str, allowed_hosts: set[str], error_label: str) -> None:
     parsed = urllib.parse.urlparse(url)
-    if parsed.scheme != "https" or (parsed.hostname or "").lower() not in ALLOWED_HOSTS:
-        raise TrafficUnavailable("Nicht erlaubte Verkehrsquelle.")
+    if parsed.scheme != "https" or (parsed.hostname or "").lower() not in allowed_hosts:
+        raise TrafficUnavailable(f"Nicht erlaubte {error_label}.")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise TrafficUnavailable("Ungültiger Port.") from exc
+    if port not in (None, 443):
+        raise TrafficUnavailable("Nicht erlaubter Port.")
+    if parsed.username or parsed.password or "@" in (parsed.netloc or ""):
+        raise TrafficUnavailable("Benutzerdaten in URL nicht erlaubt.")
+
+
+def _guarded_request(url: str, *, accept: str) -> bytes:
+    _validate_traffic_url(url, ALLOWED_HOSTS, "Verkehrsquelle")
     request = urllib.request.Request(
         url, headers={"User-Agent": USER_AGENT, "Accept": accept}
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            status = getattr(response, "status", 200)
+        with _urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            status = getattr(response, "status", getattr(response, "code", 200))
             if status != 200:
                 raise TrafficUnavailable(f"HTTP {status}")
             raw = response.read(MAX_RESPONSE_BYTES + 1)
@@ -585,15 +621,14 @@ def fetch_nina_warnings(limit: int = 5) -> list[dict]:
     return warnings
 
 
-def _guarded_request_nina():
+def _guarded_request_nina() -> list:
     url = "https://warnung.bund.de/api31/mowas/mapData.json"
-    parsed = urllib.parse.urlparse(url)
-    if parsed.scheme != "https" or (parsed.hostname or "").lower() != "warnung.bund.de":
-        raise TrafficUnavailable("Nicht erlaubte Warnquelle.")
+    _validate_traffic_url(url, {"warnung.bund.de"}, "Warnquelle")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            if getattr(response, "status", 200) != 200:
+        with _urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            status = getattr(response, "status", getattr(response, "code", 200))
+            if status != 200:
                 raise TrafficUnavailable("Warnquelle antwortet nicht.")
             raw = response.read(MAX_RESPONSE_BYTES + 1)
     except TrafficUnavailable:

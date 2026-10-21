@@ -270,6 +270,18 @@ böswilligen Serverbetreiber erwogen werden.
   Web-QR und Web-Key-Change bleiben offen. Die bloße Gleichheit vom Server
   gelieferter Fingerprint-Strings ist kein unabhängiger Schlüsselnachweis.
 
+## Nachprüfung 2026-10 – Server 0.21.0
+
+Separate Reparatur der von Large 4 gemeldeten und durch Gemini/DeepSeek
+gegengeprüften Fälle; keine pauschale Produktions- oder Sicherheitsfreigabe.
+Details und Abnahmebelege: `docs/REVIEW-REMEDIATION-2026-10.md`.
+
+- [~] L4-R1: HTTP-Weiterleitungen der Verkehrs-/NINA-Fetcher blockieren; URL-Port und Userinfo prüfen.
+- [~] L4-R2: Web-Krypto-Setup weist nicht-objektförmiges JSON und nicht konvertierbare KDF-Iterationen mit 400 statt 500 zurück.
+- [~] L4-R3: Upload-Fehlermeldung nennt das tatsächliche 5-MiB-Eingabelimit, ohne das 2-MiB-Bildbereinigungsziel zu ändern.
+- [~] L4-R4: Ungültige RSS-Artikel-URLs/Ports verwerfen statt Quellenimport abzubrechen.
+- [~] L4-R5: ICS-TZID einschließlich quoted IANA-Zone beachten; unbekannte Zone nicht still durch Ortszeit ersetzen.
+
 ## Agenten-Handoff
 
 Bei jeder Fortsetzung zuerst `AGENTS.md`, diese Roadmap, `docs/API.md` und `docs/CLIENT.md` lesen. Keine Mobile-Änderung im historischen Server-Mirror beginnen. Sicherheits- oder Betriebsänderungen erhalten eine Roadmap-ID bzw. einen klar abgegrenzten PR mit Ursache, Risiko, Umsetzung, negativen Tests, Betriebsauswirkung, Rollback und verbleibenden Grenzen.

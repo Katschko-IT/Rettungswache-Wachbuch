@@ -804,7 +804,7 @@ def defect_attachments(request, pk):
     except (binascii.Error, ValueError):
         return base._json_error(request, "Bilddaten sind kein gueltiges Base64.", status=422)
     if not raw or len(raw) > MAX_ATTACHMENT_BYTES:
-        return base._json_error(request, "Bild darf maximal 2 MiB gross sein.", status=413)
+        return base._json_error(request, "Bild darf maximal 5 MiB gross sein.", status=413)
     if not _image_is_decodable(raw, content_type):
         return base._json_error(request, "Datei ist kein gueltiges oder unterstuetztes Bild.", status=415)
     with transaction.atomic():

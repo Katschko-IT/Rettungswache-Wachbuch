@@ -150,11 +150,17 @@ def sync_rss(source, payload):
 
 
 def safe_item_url(value):
-    parsed = urlparse(value)
+    if not isinstance(value, str):
+        return ""
+    try:
+        parsed = urlparse(value)
+        port = parsed.port
+    except ValueError:
+        return ""
     if (
         parsed.scheme == "https"
         and parsed.hostname in settings.FEED_ALLOWED_HOSTS
-        and parsed.port in {None, 443}
+        and port in {None, 443}
     ):
         return value[:600]
     return ""
