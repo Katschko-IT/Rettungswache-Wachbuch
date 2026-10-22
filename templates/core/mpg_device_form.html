@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Medizinproduktebuch" %}</p>
+  <h1>{{ title }}</h1>
+  <p class="lead">{% translate "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses aktive Medizinprodukt." %}</p>
+</header>
+
+<form method="post" class="form-card" style="max-width: 760px;">
+  {% csrf_token %}
+  
+  {% if form.non_field_errors %}
+    <div class="alert danger" style="margin-bottom: 1rem;">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📋 {% translate "Gerätestammdaten & Identifikation" %}</legend>
+    
+    <div style="margin-bottom: 1rem;">
+      <label for="{{ form.name.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Gerätebezeichnung*" %}:
+      </label>
+      {{ form.name }}
+      <small style="color: var(--text-muted); display: block;">{% translate "z. B. corpuls3 Defibrillator / Monitor oder WEINMANN MEDUMAT Standard²" %}</small>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.category.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Kategorie:" %}
+        </label>
+        {{ form.category }}
+      </div>
+      <div>
+        <label for="{{ form.risk_class.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Risikoklasse gem. EU-MDR:" %}
+        </label>
+        {{ form.risk_class }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.manufacturer.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Hersteller:" %}
+        </label>
+        {{ form.manufacturer }}
+      </div>
+      <div>
+        <label for="{{ form.model_type.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Typ / Modell:" %}
+        </label>
+        {{ form.model_type }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.serial_number.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Seriennummer (SN):" %}
+        </label>
+        {{ form.serial_number }}
+      </div>
+      <div>
+        <label for="{{ form.inventory_number.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Inventarnummer / Barcode:" %}
+        </label>
+        {{ form.inventory_number }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.udi_di.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "UDI-DI (GS1-GTIN):" %}
+        </label>
+        {{ form.udi_di }}
+        <small style="color: var(--text-muted); display: block;">{% translate "Einmalige Gerätekennung aus dem 2D-DataMatrix-Code" %}</small>
+      </div>
+      <div>
+        <label for="{{ form.ce_notified_body.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "CE-Kennnr.:" %}
+        </label>
+        {{ form.ce_notified_body }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div>
+        <label for="{{ form.year_of_manufacture.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Baujahr:" %}
+        </label>
+        {{ form.year_of_manufacture }}
+      </div>
+      <div>
+        <label for="{{ form.acquired_at.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Anschaffungsdatum:" %}
+        </label>
+        {{ form.acquired_at }}
+      </div>
+    </div>
+
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📍 {% translate "Standort & Betriebsstatus" %}</legend>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.location.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Standort / Fahrzeug:" %}
+        </label>
+        {{ form.location }}
+        <small style="color: var(--text-muted); display: block;">{% translate "z. B. RTW 01/83-01, NEF oder Med-Lager" %}</small>
+      </div>
+      <div>
+        <label for="{{ form.current_status.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Aktueller Status:" %}
+        </label>
+        {{ form.current_status }}
+      </div>
+    </div>
+
+    <div>
+      <label for="{{ form.status_note.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Statusbemerkung:" %}
+      </label>
+      {{ form.status_note }}
+    </div>
+
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">⏱️ {% translate "Gesetzliche Prüffristen (STK / MTK / DGUV V3)" %}</legend>
+    
+    <div style="display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+      <label style="display: flex; align-items: center; gap: 0.4rem;">
+        {{ form.is_anlage_1 }} <strong>{% translate "Anlage 1 (STK-Pflicht)" %}</strong>
+      </label>
+      <label style="display: flex; align-items: center; gap: 0.4rem;">
+        {{ form.is_anlage_2 }} <strong>{% translate "Anlage 2 (MTK-Pflicht)" %}</strong>
+      </label>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.stk_interval_months.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "STK-Intervall (Monate):" %}
+        </label>
+        {{ form.stk_interval_months }}
+      </div>
+      <div>
+        <label for="{{ form.next_stk_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Nächste STK:" %}
+        </label>
+        {{ form.next_stk_date }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.mtk_interval_months.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "MTK-Intervall (Monate):" %}
+        </label>
+        {{ form.mtk_interval_months }}
+      </div>
+      <div>
+        <label for="{{ form.next_mtk_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Nächste MTK:" %}
+        </label>
+        {{ form.next_mtk_date }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div>
+        <label for="{{ form.dguv_interval_months.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "DGUV V3 Intervall (M):" %}
+        </label>
+        {{ form.dguv_interval_months }}
+      </div>
+      <div>
+        <label for="{{ form.next_dguv_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Nächste DGUV V3:" %}
+        </label>
+        {{ form.next_dguv_date }}
+      </div>
+    </div>
+
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📖 {% translate "Bedienungsanleitung & Notizen" %}</legend>
+    
+    <div style="margin-bottom: 1rem;">
+      <label for="{{ form.manual_url.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Link zur Online-Gebrauchsanweisung:" %}
+      </label>
+      {{ form.manual_url }}
+      <small style="color: var(--text-muted); display: block;">{% translate "z. B. Hersteller-Download-Link oder Intranet-PDF" %}</small>
+    </div>
+
+    <div>
+      <label for="{{ form.notes.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Interne Notizen / Historie:" %}
+      </label>
+      {{ form.notes }}
+    </div>
+
+  </fieldset>
+
+  <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+    <a class="button secondary" href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">
+      {% translate "Abbrechen" %}
+    </a>
+    <button type="submit" class="button">
+      {{ action_label }}
+    </button>
+  </div>
+
+</form>
+{% endblock %}

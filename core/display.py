@@ -162,6 +162,32 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001
             news = []
 
+    mpg_alerts = []
+    if getattr(station, "mpg_enabled", False):
+        try:
+            from .mpg_models import MedicalDevice
+
+            for dev in MedicalDevice.objects.filter(station=station).exclude(
+                current_status=MedicalDevice.Status.DECOMMISSIONED
+            ):
+                urg = dev.urgency
+                if dev.current_status == MedicalDevice.Status.OOB:
+                    mpg_alerts.append({
+                        "name": dev.name[:45],
+                        "label": "Außer Betrieb (Gesperrt)",
+                        "level": "overdue",
+                        "color": "rose",
+                    })
+                elif urg["level"] in ("overdue", "critical"):
+                    mpg_alerts.append({
+                        "name": dev.name[:45],
+                        "label": urg["label"],
+                        "level": urg["level"],
+                        "color": urg["color"],
+                    })
+        except Exception:  # noqa: BLE001
+            mpg_alerts = []
+
     return {
         "station": station.name,
         "date": day.isoformat(),
@@ -174,4 +200,5 @@ def display_payload(station) -> dict:
         "traffic": traffic,
         "pinboard": pinboard,
         "news": news,
+        "mpg_alerts": mpg_alerts[:5],
     }

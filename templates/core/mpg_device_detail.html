@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ device.name }} | {% translate "MPG Gerätebuch" %}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% url 'mpg_dashboard' %}">← {% translate "Zurück zur MPG-Übersicht" %}</a>
+</nav>
+
+<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+      <span class="badge" style="background: var(--bg-hover);">{{ device.get_category_display }}</span>
+      <span class="badge" style="background: var(--bg-hover);">{{ device.get_risk_class_display }}</span>
+      {% if device.is_anlage_1 %}<span class="badge" style="background: #e0e7ff; color: #3730a3;">Anlage 1 (STK)</span>{% endif %}
+      {% if device.is_anlage_2 %}<span class="badge" style="background: #e0f2fe; color: #0369a1;">Anlage 2 (MTK)</span>{% endif %}
+    </div>
+    <h1>{{ device.name }}</h1>
+    <p class="lead" style="margin-bottom: 0;">
+      📍 <strong>{{ device.location }}</strong>
+      {% if device.manufacturer %} &middot; {{ device.manufacturer }}{% endif %}
+      {% if device.model_type %} &middot; Typ: {{ device.model_type }}{% endif %}
+      {% if device.serial_number %} &middot; SN: {{ device.serial_number }}{% endif %}
+      {% if device.inventory_number %} &middot; Inv.-Nr: {{ device.inventory_number }}{% endif %}
+    </p>
+  </div>
+  <div class="page-actions-bar" style="margin: 0;">
+    {% if can_manage %}
+      <a class="button secondary" href="{% url 'mpg_device_edit' device.slug %}">
+        ✏️ {% translate "Bearbeiten" %}
+      </a>
+    {% endif %}
+    <a class="button secondary" href="#qr-card">
+      📱 {% translate "QR-Code" %}
+    </a>
+  </div>
+</header>
+
+<!-- Hero-Banner: Status & Fristenampel -->
+{% with urg=device.urgency %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  
+  <!-- Betriebsstatus Kachel -->
+  <div class="kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <span class="kpi-label">{% translate "Aktueller Betriebsstatus" %}</span>
+    <div style="margin: 0.5rem 0;">
+      {% if device.current_status == 'ready' %}
+        <span class="status-label status-done" style="font-size: 1.1rem; padding: 0.4rem 0.8rem;">✅ {% translate "Einsatzklar" %}</span>
+      {% elif device.current_status == 'limited' %}
+        <span class="status-label status-waiting" style="font-size: 1.1rem; padding: 0.4rem 0.8rem;">⚠️ {% translate "Eingeschränkt" %}</span>
+      {% elif device.current_status == 'maintenance' %}
+        <span class="status-label status-in_progress" style="font-size: 1.1rem; padding: 0.4rem 0.8rem;">🛠️ {% translate "In Wartung / STK" %}</span>
+      {% elif device.current_status == 'oob' %}
+        <span class="status-label status-open" style="font-size: 1.1rem; padding: 0.4rem 0.8rem; background: #ef4444; color: white;">⛔ {% translate "Außer Betrieb (Gesperrt)" %}</span>
+      {% endif %}
+    </div>
+    {% if device.status_note %}
+      <small style="color: var(--text-muted);">{{ device.status_note }}</small>
+    {% else %}
+      <small style="color: var(--text-muted);">{% translate "Keine Einschränkungen vermerkt" %}</small>
+    {% endif %}
+  </div>
+
+  <!-- Gesetzliche Fristen Kachel -->
+  <div class="kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <span class="kpi-label">{% translate "Prüffristen-Status" %}</span>
+    <div style="margin: 0.5rem 0;">
+      {% if urg.level == 'overdue' %}
+        <span style="font-size: 1.25rem; font-weight: bold; color: #dc2626;">🔴 {{ urg.label }}</span>
+      {% elif urg.level == 'critical' %}
+        <span style="font-size: 1.25rem; font-weight: bold; color: #ea580c;">🟠 {{ urg.label }}</span>
+      {% elif urg.level == 'warning' %}
+        <span style="font-size: 1.25rem; font-weight: bold; color: #ca8a04;">🟡 {{ urg.label }}</span>
+      {% else %}
+        <span style="font-size: 1.25rem; font-weight: bold; color: #16a34a;">🟢 {{ urg.label }}</span>
+      {% endif %}
+    </div>
+    <small style="color: var(--text-muted);">
+      {% if urg.due_date %}
+        {% translate "Fälligkeitsdatum:" %} <strong>{{ urg.due_date|date:"d.m.Y" }}</strong>
+      {% else %}
+        {% translate "Keine Prüftermine hinterlegt" %}
+      {% endif %}
+    </small>
+  </div>
+
+  <!-- Befähigung gem. § 11 MPBetreibV -->
+  <div class="kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+    <span class="kpi-label">{% translate "Deine Anwender-Einweisung (§ 11)" %}</span>
+    <div style="margin: 0.5rem 0;">
+      {% if is_user_trained %}
+        <span style="color: #16a34a; font-weight: bold; font-size: 1.05rem;">
+          ✅ {% translate "Du bist eingewiesen" %}
+        </span>
+      {% else %}
+        <span style="color: #ea580c; font-weight: bold; font-size: 1.05rem;">
+          ⚠️ {% translate "Keine Einweisung dokumentiert" %}
+        </span>
+      {% endif %}
+    </div>
+    <small style="color: var(--text-muted);">
+      {% if is_user_trained %}
+        {% translate "Befähigung im digitalen Gerätepass gültig" %}
+      {% else %}
+        {% translate "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!" %}
+      {% endif %}
+    </small>
+  </div>
+
+</div>
+{% endwith %}
+
+<!-- Schnell-Aktionen Leiste -->
+<div class="page-actions-bar" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.75rem;">
+  <!-- Express 1-Tap Check -->
+  <form method="post" action="{% url 'mpg_routine_check' device.slug %}" style="display: inline; margin: 0;">
+    {% csrf_token %}
+    <input type="hidden" name="quick_pass" value="1">
+    <button type="submit" class="button" style="background: #16a34a; border-color: #16a34a; color: white;">
+      ✅ {% translate "Funktionskontrolle OK (1-Tap)" %}
+    </button>
+  </form>
+
+  <button type="button" class="button secondary" onclick="document.getElementById('check-modal').style.display='flex'">
+    🔍 {% translate "Check mit Details" %}
+  </button>
+
+  <button type="button" class="button secondary" onclick="document.getElementById('defect-modal').style.display='flex'" style="color: #dc2626;">
+    ⚠️ {% translate "Mangel melden / Sperren" %}
+  </button>
+
+  {% if can_manage %}
+    <button type="button" class="button secondary" onclick="document.getElementById('maint-modal').style.display='flex'">
+      🛠️ {% translate "Wartung / STK eintragen" %}
+    </button>
+    <button type="button" class="button secondary" onclick="document.getElementById('training-modal').style.display='flex'">
+      🎓 {% translate "Einweisung dokumentieren" %}
+    </button>
+  {% endif %}
+
+  {% if device.manual_url %}
+    <a href="{{ device.manual_url }}" target="_blank" rel="noopener" class="button secondary">
+      📖 {% translate "Bedienungsanleitung (PDF/Web)" %}
+    </a>
+  {% endif %}
+</div>
+
+<!-- Tabs / Sektionen Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+  
+  <!-- MPBetreibV Stammdaten -->
+  <section class="section-block">
+    <h2>📑 {% translate "Medizinproduktebuch-Stammdaten" %}</h2>
+    <table class="table-compact" style="width: 100%; font-size: 0.9rem;">
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Hersteller:" %}</th><td>{{ device.manufacturer|default:"-" }}</td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Modell / Typ:" %}</th><td>{{ device.model_type|default:"-" }}</td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Seriennummer:" %}</th><td><code>{{ device.serial_number|default:"-" }}</code></td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Inventarnummer:" %}</th><td><code>{{ device.inventory_number|default:"-" }}</code></td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "UDI-DI (GTIN):" %}</th><td><code>{{ device.udi_di|default:"-" }}</code></td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "CE-Kennnummer:" %}</th><td>{{ device.ce_notified_body|default:"-" }}</td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Baujahr / Anschaffung:" %}</th><td>{{ device.year_of_manufacture|default:"-" }}{% if device.acquired_at %} ({{ device.acquired_at|date:"d.m.Y" }}){% endif %}</td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "STK-Intervall:" %}</th><td>{{ device.stk_interval_months }} {% translate "Monate" %}</td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Nächste STK:" %}</th><td><strong>{{ device.next_stk_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>
+      {% if device.is_anlage_2 %}<tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Nächste MTK:" %}</th><td><strong>{{ device.next_mtk_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>{% endif %}
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Nächste DGUV V3:" %}</th><td><strong>{{ device.next_dguv_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>
+      <tr><th style="text-align: left; padding: 0.4rem 0;">{% translate "Letzter Funktionscheck:" %}</th><td>{{ device.last_routine_check|date:"d.m.Y H:i"|default:"-" }}</td></tr>
+    </table>
+    {% if device.notes %}
+      <div style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-hover); border-radius: 6px; font-size: 0.85rem;">
+        <strong>{% translate "Notiz:" %}</strong> {{ device.notes }}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Revisionssichere Wartungshistorie -->
+  <section class="section-block">
+    <h2>🛠️ {% translate "Prüfprotokolle (STK / MTK / DGUV)" %}</h2>
+    <div class="item-list">
+      {% for log in maint_logs %}
+        <div class="list-row">
+          <span class="row-content">
+            <strong>{{ log.get_kind_display }}</strong>
+            <small>{{ log.performed_at|date:"d.m.Y" }} &middot; Prüfer: {{ log.performed_by }} &middot; Erfasst von: {{ log.created_by.first_name|default:log.created_by.username }}</small>
+            {% if log.findings %}
+              <div style="font-size: 0.85rem; margin-top: 0.25rem;">{{ log.findings }}</div>
+            {% endif %}
+          </span>
+          <span class="badge" style="{% if log.passed %}background: #dcfce7; color: #166534;{% else %}background: #fee2e2; color: #991b1b;{% endif %}">
+            {% if log.passed %}✅ Bestanden{% else %}❌ Mängel{% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <p class="empty-state small">{% translate "Keine Prüfprotokolle hinterlegt." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+  
+  <!-- Protokoll der täglichen Funktionskontrollen -->
+  <section class="section-block">
+    <h2>🔍 {% translate "Funktionskontrollen (Schicht-Checks)" %}</h2>
+    <div class="item-list">
+      {% for check in routine_checks %}
+        <div class="list-row">
+          <span class="row-content">
+            <strong>{{ check.checked_at|date:"d.m.Y H:i" }}</strong> &middot; {{ check.performed_by.get_full_name|default:check.performed_by.username }}
+            <small>
+              Akku: {% if check.battery_ok %}OK{% else %}Fehler{% endif %} &middot;
+              Sicht: {% if check.visual_ok %}OK{% else %}Fehler{% endif %} &middot;
+              Funktion: {% if check.function_ok %}OK{% else %}Fehler{% endif %}
+              {% if check.notes %}&middot; {{ check.notes }}{% endif %}
+            </small>
+          </span>
+          <span class="badge" style="{% if check.passed %}background: #dcfce7; color: #166534;{% else %}background: #fee2e2; color: #991b1b;{% endif %}">
+            {% if check.passed %}Bestanden{% else %}Nicht bestanden{% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <p class="empty-state small">{% translate "Noch keine Funktionskontrollen erfasst." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Einweisungsliste & Gerätepass -->
+  <section class="section-block">
+    <h2>🎓 {% translate "Eingewiesenes Personal gem. § 11 MPBetreibV" %} ({{ trainings|length }})</h2>
+    <div class="item-list">
+      {% for t in trainings %}
+        <div class="list-row">
+          <span class="row-content">
+            <strong>{{ t.trainee.get_full_name|default:t.trainee.username }}</strong>
+            <small>{% translate "Eingewiesen am:" %} {{ t.trained_at|date:"d.m.Y" }} &middot; Einweiser: {{ t.instructor }}</small>
+            {% if t.notes %}<small>{{ t.notes }}</small>{% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <p class="empty-state small">{% translate "Bisher keine Einweisungen für dieses Gerät dokumentiert." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+
+<!-- QR-Code Plakette & Aufkleber-Druckansicht -->
+<section id="qr-card" class="section-block" style="margin-top: 2rem; background: var(--bg-card); border: 2px dashed var(--border-color); padding: 1.5rem; text-align: center;">
+  <h2>📱 {% translate "Wetterfester QR-Code für Geräteaufkleber" %}</h2>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">
+    {% translate "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät." %}
+  </p>
+  <div style="margin: 1rem auto; display: inline-block; padding: 1rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <img src="{{ device_qr_url }}" alt="QR-Code {{ device.name }}" style="width: 180px; height: 180px; display: block;">
+    <div style="margin-top: 0.5rem; font-weight: bold; color: black; font-size: 0.85rem;">{{ device.name }}</div>
+    <div style="font-size: 0.75rem; color: #555;">{{ device.location }} &middot; Inv: {{ device.inventory_number|default:device.slug }}</div>
+  </div>
+  <div>
+    <button type="button" class="button secondary" onclick="window.print()">
+      🖨️ {% translate "Etikett drucken" %}
+    </button>
+  </div>
+</section>
+
+<!-- MODALS -->
+
+<!-- Modal: Detaillierte Funktionskontrolle -->
+<div id="check-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 500px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0;">🔍 {% translate "Funktionskontrolle dokumentieren" %}</h3>
+    <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label><input type="checkbox" name="passed" checked> <strong>{% translate "Funktionskontrolle bestanden" %}</strong></label>
+      </div>
+      <div style="margin-bottom: 0.5rem;">
+        <label><input type="checkbox" name="battery_ok" checked> {% translate "Energieversorgung / Akkus geladen" %}</label>
+      </div>
+      <div style="margin-bottom: 0.5rem;">
+        <label><input type="checkbox" name="visual_ok" checked> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label><input type="checkbox" name="function_ok" checked> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Bemerkungen / Feststellungen:" %}</label>
+        <input type="text" name="notes" placeholder="{% translate 'Optional' %}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('check-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Speichern" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Mangel melden & Sperren -->
+<div id="defect-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 500px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0; color: #dc2626;">⚠️ {% translate "Gerätemangel melden & Gerät sperren" %}</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted);">
+      {% translate "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'." %}
+    </p>
+    <form method="post" action="{% url 'mpg_device_defect' device.slug %}">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Titel des Mangels:" %}</label>
+        <input type="text" name="title" value="Defekt an {{ device.name }}" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Dringlichkeit:" %}</label>
+        <select name="priority" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+          <option value="urgent">🚨 {% translate "Dringend (Sofort außer Betrieb)" %}</option>
+          <option value="important">⚠️ {% translate "Wichtig" %}</option>
+          <option value="normal">📋 {% translate "Normal" %}</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Fehlerbeschreibung:" %}</label>
+        <textarea name="description" rows="3" required placeholder="{% translate 'Was genau ist defekt? Fehlermeldung auf Display?' %}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;"></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('defect-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button" style="background: #dc2626; border-color: #dc2626; color: white;">{% translate "Mangel melden & Sperren" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Wartung / STK eintragen -->
+{% if can_manage %}
+<div id="maint-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 520px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0;">🛠️ {% translate "Prüfung / STK dokumentieren" %}</h3>
+    <form method="post" action="{% url 'mpg_maintenance_create' device.slug %}">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Prüfungsart:" %}</label>
+          {{ maint_form.kind }}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Prüfdatum:" %}</label>
+          {{ maint_form.performed_at }}
+        </div>
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Prüfer / Fachbetrieb:" %}</label>
+        {{ maint_form.performed_by }}
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Ergebnis:" %}</label>
+          {{ maint_form.passed }} {% translate "Bestanden" %}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Nächste Fälligkeit:" %}</label>
+          {{ maint_form.next_due_date }}
+        </div>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Befund / Bemerkungen:" %}</label>
+        {{ maint_form.findings }}
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('maint-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Wartung buchen" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Einweisung dokumentieren -->
+<div id="training-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 540px; width: 100%; padding: 1.5rem; max-height: 90vh; overflow-y: auto;">
+    <h3 style="margin-top: 0;">🎓 {% translate "Einweisung gem. § 10 MPBetreibV" %}</h3>
+    
+    <details style="margin-bottom: 1rem; padding: 0.5rem; background: var(--bg-hover); border-radius: 6px;">
+      <summary style="font-weight: bold; cursor: pointer;">👥 {% translate "Gruppenschulung (Mehrere Mitarbeiter auf einmal)" %}</summary>
+      <form method="post" action="{% url 'mpg_training_create' device.slug %}" style="margin-top: 0.75rem;">
+        {% csrf_token %}
+        <div style="margin-bottom: 0.75rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
+          {{ group_training_form.instructor }}
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Datum:" %}</label>
+          {{ group_training_form.trained_at }}
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Mitarbeiter auswählen:" %}</label>
+          <div style="max-height: 140px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 6px;">
+            {{ group_training_form.trainees }}
+          </div>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          {{ group_training_form.notes }}
+        </div>
+        <button type="submit" class="button">{% translate "Gruppe einweisen" %}</button>
+      </form>
+    </details>
+
+    <h4 style="margin-top: 0.5rem;">👤 {% translate "Einzelschulung erfassen" %}</h4>
+    <form method="post" action="{% url 'mpg_training_create' device.slug %}">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Mitarbeiter:" %}</label>
+        {{ training_form.trainee }}
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Einweiser:" %}</label>
+          {{ training_form.instructor }}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Schulungsdatum:" %}</label>
+          {{ training_form.trained_at }}
+        </div>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Notiz / Zertifikat-Nr:" %}</label>
+        {{ training_form.notes }}
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('training-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Einweisung speichern" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
