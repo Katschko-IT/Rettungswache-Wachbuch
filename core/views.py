@@ -1242,6 +1242,7 @@ def station_settings(request):
     if request.method == "POST":
         post_data = request.POST.copy()
         post_data.setdefault("organization_profile", station.organization_profile)
+        post_data.setdefault("holiday_state", getattr(station, "holiday_state", "NW") or "NW")
     else:
         post_data = None
     form = StationSettingsForm(post_data, request.FILES or None, instance=station)
@@ -1253,8 +1254,12 @@ def station_settings(request):
             changed_fields = [
                 field for field in form.changed_data if field in model_fields
             ]
+            if hasattr(form, "_geocoded_coords"):
+                for coord_field in ("latitude", "longitude"):
+                    if coord_field not in changed_fields:
+                        changed_fields.append(coord_field)
             # form.initial keeps values from before ModelForm._post_clean mutated instance.
-            before = {field: form.initial.get(field) for field in changed_fields}
+            before = {field: form.initial.get(field, getattr(station, field, None)) for field in changed_fields}
             saved = form.save()
             after = {field: getattr(saved, field) for field in changed_fields}
             audit(request.user, station, "station.settings_updated", saved, {

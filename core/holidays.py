@@ -53,22 +53,120 @@ def _easter_sunday(year):
     return date(year, month, day)
 
 
-def nrw_holidays_for_year(year):
-    """Gesetzliche Feiertage in Nordrhein-Westfalen."""
+GERMAN_STATES = {
+    "BW": "Baden-Württemberg",
+    "BY": "Bayern",
+    "BE": "Berlin",
+    "BB": "Brandenburg",
+    "HB": "Bremen",
+    "HH": "Hamburg",
+    "HE": "Hessen",
+    "MV": "Mecklenburg-Vorpommern",
+    "NI": "Niedersachsen",
+    "NW": "Nordrhein-Westfalen",
+    "RP": "Rheinland-Pfalz",
+    "SL": "Saarland",
+    "SN": "Sachsen",
+    "ST": "Sachsen-Anhalt",
+    "SH": "Schleswig-Holstein",
+    "TH": "Thüringen",
+}
+
+STATE_ALIASES = {
+    "NRW": "NW",
+    "DE-BW": "BW",
+    "DE-BY": "BY",
+    "DE-BE": "BE",
+    "DE-BB": "BB",
+    "DE-HB": "HB",
+    "DE-HH": "HH",
+    "DE-HE": "HE",
+    "DE-MV": "MV",
+    "DE-NI": "NI",
+    "DE-NW": "NW",
+    "DE-RP": "RP",
+    "DE-SL": "SL",
+    "DE-SN": "SN",
+    "DE-ST": "ST",
+    "DE-SH": "SH",
+    "DE-TH": "TH",
+}
+
+
+def normalize_state(code: str | None) -> str:
+    """Normalize a state code into a 2-letter uppercase key from GERMAN_STATES."""
+    if not code:
+        return "NW"
+    code = str(code).strip().upper()
+    if code in GERMAN_STATES:
+        return code
+    if code in STATE_ALIASES:
+        return STATE_ALIASES[code]
+    return "NW"
+
+
+def _buss_und_bettag(year: int) -> date:
+    """Mittwoch vor dem 23. November (zwischen 16. und 22. November)."""
+    d = date(year, 11, 22)
+    while d.weekday() != 2:
+        d -= timedelta(days=1)
+    return d
+
+
+def holidays_for_year(year: int, state: str = "NW") -> list[Holiday]:
+    """Gesetzliche Feiertage für ein deutsches Bundesland in einem Kalenderjahr."""
+    norm_state = normalize_state(state)
     easter = _easter_sunday(year)
-    return [
+
+    # Bundesweite gesetzliche Feiertage (in allen 16 Ländern)
+    holidays = [
         Holiday(date(year, 1, 1), "Neujahr"),
         Holiday(easter - timedelta(days=2), "Karfreitag"),
         Holiday(easter + timedelta(days=1), "Ostermontag"),
         Holiday(date(year, 5, 1), "Tag der Arbeit"),
         Holiday(easter + timedelta(days=39), "Christi Himmelfahrt"),
         Holiday(easter + timedelta(days=50), "Pfingstmontag"),
-        Holiday(easter + timedelta(days=60), "Fronleichnam"),
         Holiday(date(year, 10, 3), "Tag der Deutschen Einheit"),
-        Holiday(date(year, 11, 1), "Allerheiligen"),
         Holiday(date(year, 12, 25), "1. Weihnachtstag"),
         Holiday(date(year, 12, 26), "2. Weihnachtstag"),
     ]
+
+    # Länderspezifische gesetzliche Feiertage
+    if norm_state in {"BW", "BY", "ST"}:
+        holidays.append(Holiday(date(year, 1, 6), "Heilige Drei Könige"))
+
+    if norm_state in {"BE", "MV"}:
+        holidays.append(Holiday(date(year, 3, 8), "Internationaler Frauentag"))
+
+    if norm_state == "BB":
+        holidays.append(Holiday(easter, "Ostersonntag"))
+        holidays.append(Holiday(easter + timedelta(days=49), "Pfingstsonntag"))
+
+    if norm_state in {"BW", "BY", "HE", "NW", "RP", "SL"}:
+        holidays.append(Holiday(easter + timedelta(days=60), "Fronleichnam"))
+
+    if norm_state in {"BY", "SL"}:
+        holidays.append(Holiday(date(year, 8, 15), "Mariä Himmelfahrt"))
+
+    if norm_state == "TH":
+        holidays.append(Holiday(date(year, 9, 20), "Weltkindertag"))
+
+    if norm_state in {"BB", "HB", "HH", "MV", "NI", "SN", "ST", "SH", "TH"}:
+        holidays.append(Holiday(date(year, 10, 31), "Reformationstag"))
+
+    if norm_state in {"BW", "BY", "NW", "RP", "SL"}:
+        holidays.append(Holiday(date(year, 11, 1), "Allerheiligen"))
+
+    if norm_state == "SN":
+        holidays.append(Holiday(_buss_und_bettag(year), "Buß- und Bettag"))
+
+    holidays.sort(key=lambda h: h.day)
+    return holidays
+
+
+def nrw_holidays_for_year(year):
+    """Gesetzliche Feiertage in Nordrhein-Westfalen (Abwärtskompatibilität)."""
+    return holidays_for_year(year, state="NW")
 
 
 def _as_date(value):
@@ -79,20 +177,21 @@ def _as_date(value):
     return value.date()
 
 
-def holidays_between(start, end, region="nrw"):
+def holidays_between(start, end, region="NW"):
     start = _as_date(start)
     end = _as_date(end)
     if start > end:
         return []
     items = []
+    norm_state = normalize_state(region)
     for year in range(start.year, end.year + 1):
-        for holiday in nrw_holidays_for_year(year):
+        for holiday in holidays_for_year(year, state=norm_state):
             if start <= holiday.day <= end:
                 items.append(holiday)
     return items
 
 
-def upcoming_holidays(days_ahead=366, region="nrw"):
+def upcoming_holidays(days_ahead=366, region="NW"):
     today = timezone.localdate()
     return holidays_between(today, today + timedelta(days=days_ahead), region=region)
 
@@ -166,13 +265,16 @@ def station_agenda(station, events, *, past_days=1, future_days=400):
             all_day=False,
         ))
     if getattr(station, "holidays_enabled", True):
-        for holiday in holidays_between(window_start, window_end):
+        state_code = getattr(station, "holiday_state", "NW") or "NW"
+        state_key = normalize_state(state_code)
+        state_name = GERMAN_STATES.get(state_key, "Nordrhein-Westfalen")
+        for holiday in holidays_between(window_start, window_end, region=state_key):
             items.append(AgendaEntry(
                 starts_at=holiday.starts_at,
                 ends_at=holiday.ends_at,
                 title=holiday.title,
                 kind="holiday",
-                description="Gesetzlicher Feiertag in Nordrhein-Westfalen",
+                description=f"Gesetzlicher Feiertag in {state_name}",
                 all_day=True,
             ))
     birthday_items = _birthday_entries(station, window_start, window_end)
