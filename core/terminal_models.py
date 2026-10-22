@@ -1,8 +1,9 @@
 """Wachenterminal: ein fest registrierter Touch-Bildschirm auf der Wache.
 
-Auf dem Terminal meldet sich jede Person mit ihrem eigenen Konto und einer
-persönlichen PIN an. Die PIN gilt nur zusammen mit einem registrierten Terminal
-(Gerätegeheimnis als HttpOnly-Cookie) und nie im Internet oder in der App.
+Der Bildschirm zeigt gesperrt das Wachen-Display. Mit dem gemeinsamen
+vierstelligen Wachen-Code öffnet er den Alltagsmodus. Der Code gilt nur auf
+registrierten Terminals (Gerätegeheimnis als HttpOnly-Cookie). Einträge im
+Alltagsmodus stehen unter dem Dienstkonto „Wachenterminal“ der Wache.
 """
 from __future__ import annotations
 
@@ -20,6 +21,9 @@ class StationTerminal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
+    # Fehlversuche mit dem Wachen-Code an diesem Gerät (aufeinanderfolgend).
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["station", "label"]
@@ -32,24 +36,23 @@ class StationTerminal(models.Model):
         return self.revoked_at is None and self.station.is_active
 
 
-class TerminalPin(models.Model):
-    membership = models.OneToOneField(Membership, on_delete=models.CASCADE, related_name="terminal_pin")
-    pin_hash = models.CharField(max_length=128)
-    # Von Wachleitung vergebene PIN: beim ersten Anmelden selbst ändern.
-    must_change = models.BooleanField(default=True)
-    failed_attempts = models.PositiveSmallIntegerField(default=0)
-    locked_until = models.DateTimeField(null=True, blank=True)
+class StationTerminalCode(models.Model):
+    """Gemeinsamer vierstelliger Code einer Wache und ihr Terminal-Dienstkonto."""
+
+    station = models.OneToOneField(Station, on_delete=models.CASCADE, related_name="terminal_code")
+    code_hash = models.CharField(max_length=128)
+    service_user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="terminal_station_code")
     set_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="set_terminal_pins"
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="set_terminal_codes"
     )
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
-        return f"Terminal-PIN für {self.membership}"
+        return f"Wachen-Code {self.station}"
 
 
 class TerminalPairing(models.Model):
-    """Einmalcode, mit dem ein Handy am Terminal ein App-Token erhält."""
+    """Einmalcode, mit dem ein Handy ein persönliches App-Token erhält."""
 
     membership = models.ForeignKey(Membership, on_delete=models.CASCADE, related_name="terminal_pairings")
     code_hash = models.CharField(max_length=64, unique=True)

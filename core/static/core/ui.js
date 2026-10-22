@@ -18,8 +18,10 @@
  *   data-confirm="Frage?"          Formular nur nach Bestätigung absenden
  *   data-scanner                   Kamera-Scanner im Modal (siehe unten)
  *   data-filter-input="selector"   Live-Filter über Karten (Seite „Mehr“)
- *   data-pin-pad="input-id"        Ziffernblock für ein PIN-Feld (Wachenterminal)
+ *   data-pin-pad="input-id"        Ziffernblock für ein Code-Feld (Wachenterminal)
  *     data-pin-key="7|back|clear"  … Taste; bei voller Länge wird abgesendet
+ *   data-pin-dots="input-id"       Punkte-Anzeige der eingegebenen Ziffern
+ *   data-lock-screen               Sperrbildschirm: Antippen öffnet [data-unlock-panel]
  *   data-idle-logout="120"         sendet dieses Formular nach N Sekunden ohne
  *                                  Eingabe ab; Restzeit in [data-idle-countdown]
  */
@@ -332,6 +334,87 @@
     });
   }
 
+  function setupPinDots(dots) {
+    var input = document.getElementById(dots.getAttribute("data-pin-dots") || "");
+    if (!input) {
+      return;
+    }
+    var marks = dots.querySelectorAll("span");
+    function render() {
+      Array.prototype.forEach.call(marks, function (mark, index) {
+        mark.classList.toggle("is-filled", index < input.value.length);
+      });
+    }
+    input.addEventListener("input", render);
+    render();
+  }
+
+  function setupLockScreen(body) {
+    var panel = document.querySelector("[data-unlock-panel]");
+    if (!panel) {
+      return;
+    }
+    var input = panel.querySelector("input[name=code]");
+    var closeTimer = null;
+    function scheduleClose() {
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(close, 20000);
+    }
+    function open() {
+      if (!panel.hidden) {
+        scheduleClose();
+        return;
+      }
+      panel.hidden = false;
+      panel.classList.remove("has-error");
+      if (input) {
+        input.value = "";
+        input.dispatchEvent(new Event("input"));
+      }
+      scheduleClose();
+    }
+    function close() {
+      panel.hidden = true;
+      window.clearTimeout(closeTimer);
+      if (input) {
+        input.value = "";
+        input.dispatchEvent(new Event("input"));
+      }
+    }
+    body.addEventListener("click", function (event) {
+      if (panel.hidden && !event.target.closest("[data-unlock-panel], .terminal-app-qr")) {
+        open();
+      }
+    });
+    each("[data-unlock-close]", document, function (button) {
+      button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        close();
+      });
+    });
+    panel.addEventListener("click", scheduleClose);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        close();
+        return;
+      }
+      if (!/^[0-9]$/.test(event.key) && event.key !== "Backspace") {
+        return;
+      }
+      open();
+      var key = event.key === "Backspace" ? "back" : event.key;
+      var button = panel.querySelector('[data-pin-key="' + key + '"]');
+      if (button && document.activeElement !== input) {
+        event.preventDefault();
+        button.click();
+      }
+    });
+    if (!panel.hidden) {
+      // Nach einem Fehlversuch: Feld leeren, Panel offen lassen.
+      scheduleClose();
+    }
+  }
+
   function setupIdleLogout(form) {
     var seconds = parseInt(form.getAttribute("data-idle-logout"), 10);
     if (!seconds || seconds < 10) {
@@ -363,6 +446,8 @@
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);
     each("[data-pin-pad]", document, setupPinPad);
+    each("[data-pin-dots]", document, setupPinDots);
+    each("[data-lock-screen]", document, setupLockScreen);
     each("form[data-idle-logout]", document, setupIdleLogout);
   }
 

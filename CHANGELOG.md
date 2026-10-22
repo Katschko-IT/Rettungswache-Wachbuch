@@ -31,10 +31,14 @@ Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
   auf; freigegeben wird nach Abschluss aller verknüpften Mängel durch
   Schichtleitung/Admin. Der Status im Medizinproduktebuch und unter „Geräte &
   Fahrzeuge“ ist identisch. Migration `0052_mpg_device_locks`.
-- Wachenterminal: Touch-Bildschirm auf der Wache mit persönlicher 6-stelliger
-  PIN (nur an registrierten Terminals), Kachelmenü für den Wachalltag,
-  Abmeldung nach Inaktivität, gesperrte Konto-/Team-/Chat-Bereiche, Kopplung
-  der App per QR-Code ohne Passwort (`/api/v1/token/kopplung/`). Aus, bis
+- Wachenterminal: Touch-Bildschirm auf der Wache. Gesperrt läuft das
+  Wachen-Display; Antippen öffnet einen runden Ziffernblock für den
+  gemeinsamen vierstelligen Wachen-Code (nur an registrierten Terminals,
+  stufenweise Sperre nach Fehlversuchen). Der Alltagsmodus zeigt Übergaben,
+  Termine, Müllabfuhr, Wetter, Tages-, Wochen- und Monatsaufgaben und erreicht
+  nur Alltagsbereiche; Einträge stehen unter dem Dienstkonto „Wachenterminal“.
+  Sperren nach Inaktivität. Admins verbinden Handys der Besatzung per
+  Einmal-QR mit dem persönlichen Konto (`/api/v1/token/kopplung/`). Aus, bis
   `TERMINAL_ENABLED=true`. Migration `0053_wachenterminal`.
 - Raspberry Pi 4 als Wachen-Server: `deploy/pi/` (eigenes WLAN, lokales
   Zertifikat mit Fingerabdruck im Verbindungs-QR, TLS-Proxy, Speichergrenzen,

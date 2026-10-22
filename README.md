@@ -169,10 +169,11 @@ ist **keine Funktion** und enthält offene Fachentscheidungen. Aussagen über ei
 
 Ein Raspberry Pi 4 (4 GB) kann das Wachbuch direkt auf der Wache betreiben: Er
 spannt ein eigenes WLAN auf, ein Touch-Bildschirm daran ist das
-**Wachenterminal**. Jede Person meldet sich dort mit ihrem eigenen Konto und einer
-persönlichen 6-stelligen PIN an und wird nach Inaktivität automatisch abgemeldet.
-Handys verbinden die App per QR-Code über das WLAN, ohne Passwort und ohne
-Zertifikat auf dem Handy zu installieren.
+**Wachenterminal**. Gesperrt zeigt es das Wachen-Display; Antippen öffnet einen
+runden Ziffernblock für den vierstelligen Wachen-Code. Danach zeigt es alles für
+den Tagesablauf (Übergaben, Kalender, Müll, Wetter, Tages-, Wochen- und
+Monatsaufgaben) und sperrt sich nach Inaktivität wieder. Handys verbinden die App
+per QR-Code über das WLAN, ohne Passwort und ohne Zertifikat auf dem Handy.
 
 ```bash
 sudo WLAN_SSID="Wachbuch RW1" deploy/pi/setup-pi.sh

@@ -1,15 +1,15 @@
-"""Wachenterminal: Ruhebildschirm, PIN-Anmeldung, Kachelmenü und Verwaltung."""
+"""Wachenterminal: Sperrbildschirm, Wachen-Code, Alltagsmodus und Verwaltung."""
 from __future__ import annotations
 
 import io
 import secrets
+from datetime import timedelta
 from urllib.parse import urlencode, urlparse
 
 import qrcode
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django.contrib.auth.hashers import check_password
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -20,31 +20,31 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from . import rate_limit
 from .access import get_membership, membership_required
 from .display import display_payload
-from .models import Membership
+from .models import HandoverEntry, Membership
 from .services import audit
+from .task_board import day_board, month_tasks, week_board
 from .terminal import (
     COOKIE_NAME,
     SESSION_LAST_SEEN,
     SESSION_TERMINAL,
-    TERMINAL_FAILURES_PER_10_MIN,
+    code_problem,
     create_pairing,
     end_terminal_session,
-    generate_pin,
+    generate_code,
     hash_secret,
     idle_seconds,
-    is_pin_session,
+    is_open_mode,
+    is_service_user,
     local_cert_fingerprint,
-    pin_locked,
-    pin_problem,
-    set_pin,
+    set_station_code,
     terminal_enabled,
     terminal_for_request,
-    verify_pin,
+    terminal_locked,
+    verify_code,
 )
-from .terminal_models import StationTerminal, TerminalPin
+from .terminal_models import StationTerminal, StationTerminalCode
 
 ADMIN_ROLES = {Membership.Role.ADMIN}
-PIN_MANAGER_ROLES = {Membership.Role.ADMIN, Membership.Role.SHIFT_LEAD}
 
 
 def _require_enabled():
@@ -92,7 +92,7 @@ def _qr_png(payload: str) -> HttpResponse:
     return response
 
 
-# ---- Gerät registrieren ----------------------------------------------------
+# ---- Gerät registrieren und verwalten --------------------------------------
 
 
 @require_GET
@@ -143,26 +143,65 @@ def terminal_admin(request):
             )
             audit(request.user, station, "terminal.created", terminal, {"label": terminal.label})
             request.session["terminal_new_url"] = request.build_absolute_uri(reverse("terminal_start", args=[raw]))
-        elif action == "revoke":
+        elif action in {"revoke", "unlock"}:
             terminal = get_object_or_404(StationTerminal, pk=request.POST.get("terminal_id"), station=station)
-            if terminal.revoked_at is None:
+            if action == "revoke" and terminal.revoked_at is None:
                 terminal.revoked_at = timezone.now()
                 terminal.save(update_fields=["revoked_at"])
                 audit(request.user, station, "terminal.revoked", terminal, {})
-            messages.success(request, "Terminal widerrufen.")
+                messages.success(request, "Terminal widerrufen.")
+            elif action == "unlock":
+                StationTerminal.objects.filter(pk=terminal.pk).update(failed_attempts=0, locked_until=None)
+                audit(request.user, station, "terminal.unlocked", terminal, {})
+                messages.success(request, "Sperre aufgehoben.")
+        elif action == "set-code":
+            code = request.POST.get("code", "")
+            if code != request.POST.get("code_repeat", ""):
+                messages.error(request, "Die beiden Eingaben stimmen nicht überein.")
+            elif problem := code_problem(code):
+                messages.error(request, problem)
+            else:
+                set_station_code(station, code, set_by=request.user)
+                audit(request.user, station, "terminal.code_changed", station, {})
+                messages.success(request, "Wachen-Code gespeichert.")
+        elif action == "generate-code":
+            code = generate_code()
+            set_station_code(station, code, set_by=request.user)
+            audit(request.user, station, "terminal.code_changed", station, {"generated": True})
+            request.session["terminal_new_code"] = code
+        elif action == "pair-member":
+            member = get_object_or_404(
+                Membership.objects.select_related("user"),
+                pk=request.POST.get("membership_id"),
+                station=station,
+                is_active=True,
+                user__is_active=True,
+            )
+            if is_service_user(member.user):
+                raise Http404
+            request.session["terminal_pair_link"] = connect_link(request, pair=create_pairing(member))
+            request.session["terminal_pair_name"] = member.user.get_full_name() or member.user.username
+            audit(request.user, station, "terminal.pairing_created", member, {"by_admin": True})
         return redirect("terminal_admin")
+    code_record = StationTerminalCode.objects.filter(station=station).select_related("set_by").first()
+    service_user_id = code_record.service_user_id if code_record else None
     members = (
         Membership.objects.filter(station=station, is_active=True, user__is_active=True)
-        .select_related("user", "terminal_pin")
+        .exclude(user_id=service_user_id)
+        .select_related("user")
         .order_by("user__last_name", "user__first_name", "user__username")
     )
+    pair_name = request.session.pop("terminal_pair_name", "")
     return render(
         request,
         "core/terminal_admin.html",
         {
             "terminals": StationTerminal.objects.filter(station=station).select_related("created_by"),
+            "now": timezone.now(),
             "new_url": request.session.pop("terminal_new_url", ""),
-            "new_pin": request.session.pop("terminal_new_pin", None),
+            "new_code": request.session.pop("terminal_new_code", ""),
+            "code_record": code_record,
+            "pair_name": pair_name,
             "members": members,
             "idle_seconds": idle_seconds(),
             "cert_fingerprint": local_cert_fingerprint(),
@@ -170,47 +209,52 @@ def terminal_admin(request):
     )
 
 
-@membership_required(PIN_MANAGER_ROLES)
-@require_POST
-def terminal_pin_issue(request, membership_id: int):
-    """Vergibt eine zufällige Start-PIN (einmalig angezeigt) oder entfernt sie."""
-    _require_enabled()
-    station = request.membership.station
-    member = get_object_or_404(Membership, pk=membership_id, station=station, is_active=True)
-    if request.membership.role != Membership.Role.ADMIN and member.role == Membership.Role.ADMIN:
-        messages.error(request, "Die PIN von Admins vergeben nur Admins.")
-        return redirect("terminal_admin" if request.membership.role == Membership.Role.ADMIN else "team")
-    if request.POST.get("action") == "remove":
-        TerminalPin.objects.filter(membership=member).delete()
-        audit(request.user, station, "terminal.pin_removed", member, {})
-        messages.success(request, "Terminal-PIN entfernt.")
-    else:
-        pin = generate_pin()
-        set_pin(member, pin, set_by=request.user, must_change=True)
-        audit(request.user, station, "terminal.pin_issued", member, {})
-        name = member.user.get_full_name() or member.user.username
-        request.session["terminal_new_pin"] = {"name": name, "pin": pin}
-    target = request.POST.get("next") or ""
-    if target == "team":
-        return redirect("team")
-    return redirect("terminal_admin")
+# ---- Sperrbildschirm -------------------------------------------------------
 
 
-# ---- Ruhebildschirm und Anmeldung -----------------------------------------
-
-
-@require_GET
+@require_http_methods(["GET", "POST"])
 @never_cache
 def terminal_home(request):
+    """Sperrbildschirm: Wachen-Display, Antippen öffnet den Ziffernblock."""
     terminal, error = _terminal_or_403(request)
     if error:
         return error
-    if request.user.is_authenticated and is_pin_session(request):
+    if request.user.is_authenticated and is_open_mode(request):
         return redirect("terminal_menu")
+    error_text = ""
+    status = 200
+    if request.method == "POST":
+        code_set = StationTerminalCode.objects.filter(station=terminal.station).select_related("service_user").first()
+        if terminal_locked(terminal):
+            error_text = "Zu viele Fehlversuche. Gesperrt bis {}.".format(
+                timezone.localtime(terminal.locked_until).strftime("%H:%M")
+            )
+        elif code_set is None:
+            error_text = "Noch kein Wachen-Code festgelegt. Ein Admin legt ihn unter Team → Wachenterminal fest."
+        elif verify_code(terminal, request.POST.get("code", "")):
+            if request.user.is_authenticated:
+                logout(request)
+            login(request, code_set.service_user, backend="django.contrib.auth.backends.ModelBackend")
+            request.session[SESSION_TERMINAL] = terminal.pk
+            request.session[SESSION_LAST_SEEN] = timezone.now().timestamp()
+            request.session.set_expiry(idle_seconds() + 60)
+            StationTerminal.objects.filter(pk=terminal.pk).update(last_used_at=timezone.now())
+            audit(code_set.service_user, terminal.station, "terminal.unlocked_by_code", terminal, {})
+            return redirect("terminal_menu")
+        else:
+            audit(None, terminal.station, "terminal.code_failed", terminal, {"failures": terminal.failed_attempts})
+            if terminal_locked(terminal):
+                error_text = "Zu viele Fehlversuche. Gesperrt bis {}.".format(
+                    timezone.localtime(terminal.locked_until).strftime("%H:%M")
+                )
+            else:
+                error_text = "Falscher Code."
+        status = 400
     return render(
         request,
         "core/terminal_home.html",
-        {"terminal": terminal, "display_station": terminal.station},
+        {"terminal": terminal, "display_station": terminal.station, "error_text": error_text},
+        status=status,
     )
 
 
@@ -237,148 +281,80 @@ def terminal_connect_qr(request):
     return _qr_png(connect_link(request))
 
 
-@require_GET
-@never_cache
-def terminal_people(request):
-    terminal, error = _terminal_or_403(request)
-    if error:
-        return error
-    members = (
-        Membership.objects.filter(
-            station=terminal.station,
-            is_active=True,
-            user__is_active=True,
-            terminal_pin__isnull=False,
-        )
-        .select_related("user")
-        .order_by("user__first_name", "user__last_name", "user__username")
-    )
-    return render(request, "core/terminal_people.html", {"terminal": terminal, "members": members})
-
-
-@require_http_methods(["GET", "POST"])
-@never_cache
-def terminal_pin_login(request, membership_id: int):
-    terminal, error = _terminal_or_403(request)
-    if error:
-        return error
-    member = get_object_or_404(
-        Membership.objects.select_related("user", "terminal_pin"),
-        pk=membership_id,
-        station=terminal.station,
-        is_active=True,
-        user__is_active=True,
-        terminal_pin__isnull=False,
-    )
-    record = member.terminal_pin
-    error_text = ""
-    if request.method == "POST":
-        allowed = rate_limit.consume(
-            "terminal_pin", f"terminal:{terminal.pk}", limit=TERMINAL_FAILURES_PER_10_MIN, window_seconds=600
-        )
-        if not allowed:
-            error_text = "Zu viele Versuche an diesem Terminal. Bitte einige Minuten warten."
-        elif pin_locked(record):
-            error_text = "PIN vorübergehend gesperrt. Bitte später erneut versuchen oder die Wachleitung fragen."
-        elif verify_pin(record, request.POST.get("pin", "")):
-            if request.user.is_authenticated:
-                logout(request)
-            login(request, member.user, backend="django.contrib.auth.backends.ModelBackend")
-            request.session[SESSION_TERMINAL] = terminal.pk
-            request.session[SESSION_LAST_SEEN] = timezone.now().timestamp()
-            request.session.set_expiry(idle_seconds() + 60)
-            StationTerminal.objects.filter(pk=terminal.pk).update(last_used_at=timezone.now())
-            audit(member.user, terminal.station, "terminal.login", terminal, {})
-            if record.must_change:
-                return redirect("terminal_pin_change")
-            return redirect("terminal_menu")
-        else:
-            audit(member.user, terminal.station, "terminal.login_failed", terminal, {})
-            error_text = (
-                "PIN falsch. Nach mehreren Fehlversuchen wird die PIN gesperrt."
-                if not pin_locked(record)
-                else "PIN falsch. Die PIN ist jetzt vorübergehend gesperrt."
-            )
-    return render(
-        request,
-        "core/terminal_pin.html",
-        {"terminal": terminal, "member": member, "error_text": error_text, "pin_length": 6},
-        status=400 if error_text else 200,
-    )
-
-
 @require_POST
 def terminal_logout(request):
     _require_enabled()
     return end_terminal_session(request)
 
 
-# ---- Nach der Anmeldung ----------------------------------------------------
-
-
-def _pin_session_membership(request):
-    terminal = terminal_for_request(request)
-    if terminal is None or not request.user.is_authenticated:
-        return None, None
-    membership = get_membership(request.user)
-    if membership is None or membership.station_id != terminal.station_id:
-        return terminal, None
-    return terminal, membership
+# ---- Alltagsmodus ----------------------------------------------------------
 
 
 @require_GET
 @never_cache
 def terminal_menu(request):
+    """Startseite nach dem Entsperren: alles für den Tagesablauf auf einen Blick."""
     _require_enabled()
-    terminal, membership = _pin_session_membership(request)
-    if terminal is None:
-        return redirect("login")
-    if membership is None:
-        return end_terminal_session(request)
-    return render(
-        request,
-        "core/terminal_menu.html",
-        {"terminal": terminal, "station": membership.station},
-    )
-
-
-@require_http_methods(["GET", "POST"])
-@never_cache
-def terminal_pin_change(request):
-    """Eigene PIN festlegen – am Terminal oder im normalen Konto."""
-    _require_enabled()
-    if not request.user.is_authenticated:
-        return redirect(f"{reverse('login')}?next={reverse('terminal_pin_change')}")
+    terminal = terminal_for_request(request)
+    if terminal is None or not request.user.is_authenticated:
+        return redirect("terminal_home" if terminal else "login")
     membership = get_membership(request.user)
-    if membership is None:
-        return redirect("access")
-    record = TerminalPin.objects.filter(membership=membership).first()
-    needs_current = record is not None and not record.must_change and not is_pin_session(request)
-    error_text = ""
-    if request.method == "POST":
-        new_pin = request.POST.get("new_pin", "")
-        if needs_current and not check_password(request.POST.get("current_pin", ""), record.pin_hash):
-            error_text = "Die bisherige PIN stimmt nicht."
-        elif new_pin != request.POST.get("new_pin_repeat", ""):
-            error_text = "Die beiden PIN-Eingaben stimmen nicht überein."
-        elif problem := pin_problem(new_pin):
-            error_text = problem
-        else:
-            set_pin(membership, new_pin, set_by=request.user, must_change=False)
-            audit(request.user, membership.station, "terminal.pin_changed", membership, {})
-            messages.success(request, "Deine Terminal-PIN ist gespeichert.")
-            return redirect("terminal_menu" if is_pin_session(request) else "account_home")
-    return render(
-        request,
-        "core/terminal_pin_change.html",
-        {
-            "error_text": error_text,
-            "needs_current": needs_current,
-            "forced": bool(record and record.must_change),
-            "pin_session": is_pin_session(request),
-        },
-        status=400 if error_text else 200,
+    if membership is None or membership.station_id != terminal.station_id:
+        return end_terminal_session(request)
+    station = membership.station
+    payload = display_payload(station)
+    today = timezone.localdate()
+    context = {
+        "terminal": terminal,
+        "station": station,
+        "today": today,
+        "weather": payload["weather"],
+        "events": payload["events"],
+        "waste": _upcoming_waste(station, today),
+        "handovers": _open_handovers(station),
+        "urgent_handovers": payload["urgent_handovers"],
+    }
+    if station.tasks_enabled:
+        board = day_board(station, today)
+        week = week_board(station, today)
+        context.update({
+            "day_board": board,
+            "week_columns": week["columns"],
+            "week_label": week["week_label"],
+            "month_items": month_tasks(station, today),
+        })
+    return render(request, "core/terminal_menu.html", context)
+
+
+def _open_handovers(station, limit: int = 6):
+    """Offene Übergaben: dringend zuerst, sonst die neuesten."""
+    rank = {HandoverEntry.Priority.URGENT: 0, HandoverEntry.Priority.IMPORTANT: 1}
+    items = list(
+        HandoverEntry.objects.filter(station=station)
+        .exclude(status=HandoverEntry.Status.DONE)
+        .order_by("-created_at")[:40]
     )
+    items.sort(key=lambda item: rank.get(item.priority, 2))
+    return items[:limit]
+
+
+def _upcoming_waste(station, today, days: int = 7):
+    if not station.waste_calendar_enabled:
+        return None
+    from datetime import datetime
+
+    from .models import WasteCollection
+
+    tz = timezone.get_current_timezone()
+    start = datetime.combine(today, datetime.min.time(), tzinfo=tz)
+    return list(
+        WasteCollection.objects.filter(
+            station=station, starts_at__gte=start, starts_at__lt=start + timedelta(days=days)
+        ).order_by("starts_at")[:6]
+    )
+
+
+# ---- Handy koppeln (persönliches Konto, nicht am Terminal) ----------------
 
 
 @require_http_methods(["GET", "POST"])
@@ -389,26 +365,21 @@ def terminal_pair(request):
     if not request.user.is_authenticated:
         return redirect(f"{reverse('login')}?next={reverse('terminal_pair')}")
     membership = get_membership(request.user)
-    if membership is None:
+    if membership is None or is_service_user(request.user):
         return redirect("access")
     if request.method == "POST":
         raw = create_pairing(membership)
         request.session["terminal_pair_link"] = connect_link(request, pair=raw)
         audit(request.user, membership.station, "terminal.pairing_created", membership, {})
         return redirect("terminal_pair")
-    link = request.session.get("terminal_pair_link", "")
-    return render(
-        request,
-        "core/terminal_pair.html",
-        {"has_code": bool(link), "pin_session": is_pin_session(request)},
-    )
+    return render(request, "core/terminal_pair.html", {"has_code": bool(request.session.get("terminal_pair_link"))})
 
 
 @require_GET
 @never_cache
 def terminal_pair_qr(request):
     _require_enabled()
-    if not request.user.is_authenticated:
+    if not request.user.is_authenticated or is_open_mode(request):
         raise Http404
     link = request.session.pop("terminal_pair_link", "")
     if not link:

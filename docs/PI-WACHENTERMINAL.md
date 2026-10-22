@@ -1,10 +1,11 @@
 # Raspberry Pi als Wachen-Server mit Touch-Terminal
 
 Ein Raspberry Pi 4 (4 GB) betreibt das Wachbuch direkt auf der Wache. Er spannt
-ein eigenes WLAN auf. Ein Touch-Bildschirm am Pi ist das **Wachenterminal**: Die
-Besatzung erledigt dort Übernahme, Desinfektion, Mängel, Material und Checklisten
-ohne Handy. Wer möchte, verbindet zusätzlich die Wachbuch-App auf dem eigenen
-Handy über dasselbe WLAN.
+ein eigenes WLAN auf. Ein Touch-Bildschirm am Pi ist das **Wachenterminal**:
+Gesperrt zeigt es das Wachen-Display; mit dem gemeinsamen vierstelligen
+Wachen-Code öffnet es alles für den Tagesablauf (Übergaben, Kalender, Müll, Wetter,
+Tages-, Wochen- und Monatsaufgaben) – ohne Handy. Wer möchte, verbindet
+zusätzlich die Wachbuch-App auf dem eigenen Handy über dasselbe WLAN.
 
 ```
                  WLAN „Wachbuch“ (WPA2, Geräte untereinander getrennt)
@@ -52,46 +53,57 @@ Handy über dasselbe WLAN.
    Der Kiosk-Browser öffnet den Registrierungslink einmal und löscht ihn danach.
 
 Weitere Terminals (z. B. ein Tablet an der Wand) registriert ein Admin unter
-**Team → Wachenterminals & PINs**; den angezeigten Link einmal auf dem Gerät öffnen.
+**Team → Wachenterminal**; den angezeigten Link einmal auf dem Gerät öffnen.
 
-## 3. Personal einmal erfassen
+## 3. Wachen-Code und Besatzung
 
-1. **Team → Benutzer anlegen** (Name, Benutzername, Rolle).
-2. **Team → Wachenterminals & PINs → Start-PIN vergeben.** Die 6-stellige PIN wird
-   einmal angezeigt und persönlich weitergegeben.
-3. Beim ersten Anmelden am Terminal legt die Person ihre eigene PIN fest.
-4. Handy (freiwillig): am Terminal **„Handy mit meinem Konto verbinden“** tippen und den
-   QR-Code mit der Wachbuch-App scannen. Die App ist danach ohne Passwort angemeldet.
-
-Ein Passwort braucht nur, wer das Wachbuch auch im Browser am eigenen Gerät nutzt.
+1. **Team → Wachenterminal → Wachen-Code**: vierstelligen Code festlegen oder
+   zufällig erzeugen lassen und persönlich an die Besatzung weitergeben (nicht aushängen).
+2. Einträge im Alltagsmodus stehen unter dem Dienstkonto **„Wachenterminal“**.
+   Wer etwas persönlich verantworten muss (Medizingeräte-Kontrollen,
+   Fahrzeugübernahme und Desinfektion, Lesebestätigungen), nutzt das eigene Konto
+   am Handy oder Rechner.
+3. Handys verbinden (freiwillig): **Team → Wachenterminal → Handy-QR zeigen** bei der
+   Person, die den Code mit der Wachbuch-App scannt. Die App ist danach ohne Passwort
+   mit dem **eigenen** Konto angemeldet. Alternativ unter Konto → „Handy verbinden“.
 
 ## 4. Bedienung am Terminal
 
-- **Ruhebildschirm**: das Wachen-Display (Uhr, Termine, Aufgaben, Fahrzeugstatus,
-  Prüffristen) und unten „Antippen zum Anmelden“ sowie der QR-Code zum Verbinden der App.
-- **Anmelden**: Namen antippen, PIN über den Ziffernblock eingeben.
-- **Kachelmenü**: Fahrzeug übernehmen/desinfizieren, Übergabebuch, Mangel melden,
-  Medizingeräte prüfen, Material, Aufgaben, Checklisten, Dienstanweisungen, Termine.
-- **Abmelden**: Taste „Abmelden“ oder automatisch nach 2 Minuten ohne Eingabe
+- **Sperrbildschirm**: das Wachen-Display (Uhr, Termine, Aufgaben, Müllabfuhr,
+  Fahrzeugstatus, Prüffristen), unten „Zum Entsperren antippen“, rechts der QR-Code
+  zum Verbinden der App.
+- **Entsperren**: irgendwo antippen, der runde Ziffernblock erscheint; vier Ziffern
+  eingeben. Ein falscher Code lässt die Punkte wackeln.
+- **Alltagsmodus (Startseite)**: Wetter, offene Übergaben, heutige Termine,
+  Müllabfuhr der nächsten 7 Tage, Tagesaufgaben zum Abhaken, Wochenübersicht und
+  Monatsaufgaben; Kacheln für Übergabe schreiben, Übergabebuch, Kalender,
+  Tagesaufgaben, Wochenplan, Mangel melden, Checklisten, Pinnwand, Neuigkeiten.
+- **Sperren**: Taste „Sperren“ oder automatisch nach 2 Minuten ohne Eingabe
   (`TERMINAL_IDLE_SECONDS`). Die Restzeit steht oben im Balken.
+
+Bewusst **nicht** im Alltagsmodus: Fuhrpark, Medizingeräte, Lager, Dienstanweisungen
+(persönliche Verantwortung), Verwaltung von Aufgaben, Team, Einstellungen, Konto,
+Chat und Post.
 
 ## 5. Sicherheitsmodell
 
 | Schutz | Umsetzung |
 | --- | --- |
-| PIN gilt nur am Terminal | Anmeldung braucht das Gerätegeheimnis (HttpOnly-Cookie, `SameSite=Strict`, gespeichert nur als SHA-256) **und** die PIN. Über App oder Internet gibt es keine PIN-Anmeldung. |
-| Durchprobieren | 5 Fehlversuche sperren die PIN 15 Minuten; zusätzlich höchstens 20 Versuche je Terminal in 10 Minuten. Keine Folgen wie 123456 oder 111111. |
-| Gemeinsamer Bildschirm | Abmeldung nach Inaktivität (Server und Browser), `Clear-Site-Data` beim Abmelden, kein Seitencache (`Cache-Control: no-store`), kein Service Worker. |
-| Eingeschränkte Bereiche | PIN-Sitzungen erreichen nur Alltagsbereiche. Konto, Team, Einstellungen, Audit, Auswertungen, Chat/Post (Ende-zu-Ende-Schlüssel gehören nicht auf ein geteiltes Gerät), Push-Einstellungen und App-Tokens nur am eigenen Gerät. |
-| Nachvollziehbarkeit | Jede Person arbeitet unter dem eigenen Konto; Audit `terminal.login`, `terminal.login_failed`, `terminal.pin_*`, `terminal.created/revoked`. |
-| Verlust/Diebstahl | Terminal unter **Team → Wachenterminals** widerrufen: alle Sitzungen enden sofort. |
+| Code gilt nur am Terminal | Entsperren braucht das Gerätegeheimnis (HttpOnly-Cookie, `SameSite=Strict`, gespeichert nur als SHA-256) **und** den Wachen-Code. Über App oder Internet gibt es keinen Code-Zugang. |
+| Durchprobieren | Nach je 5 Fehlversuchen sperrt das Terminal: 1 min, 5 min, 30 min, danach jeweils 24 h. Alle 10.000 Codes durchzuprobieren dauert damit Monate. Admins sehen die Sperre und können sie aufheben. Keine Folgen wie 1234 oder 1111. |
+| Gemeinsamer Bildschirm | Sperren nach Inaktivität (Server und Browser), `Clear-Site-Data` beim Sperren, kein Seitencache (`Cache-Control: no-store`), kein Service Worker. |
+| Eingeschränkte Bereiche | Der Alltagsmodus erreicht nur die oben genannten Bereiche; alles andere leitet zur Startseite zurück. |
+| Dienstkonto | „Wachenterminal“ hat kein Passwort, kann kein App-Token erhalten, bleibt Rolle „Mitglied“ und funktioniert nur zusammen mit einem registrierten Terminal. |
+| Nachvollziehbarkeit | Audit `terminal.unlocked_by_code`, `terminal.code_failed`, `terminal.code_changed`, `terminal.created/revoked/unlocked`. Personenbezogen ist im Alltagsmodus nur das Terminal, nicht die Person. |
+| Verlust/Diebstahl | Terminal unter **Team → Wachenterminal** widerrufen; Code ändern, wenn er die Wache verlassen hat. |
 | WLAN | WPA2-PSK (CCMP), AP-Isolation; das WLAN-Passwort liegt in `/etc/wachbuch/wlan-psk`. |
 | TLS ohne Internet | Eigenes Zertifikat. Die App vertraut genau diesem Zertifikat über den Fingerabdruck im QR-Code (kein Installieren einer Zertifizierungsstelle auf den Handys). Der Kiosk-Browser vertraut ihm über `--ignore-certificate-errors-spki-list`. |
-| Kopplung Handy | Kopplungscode nur aus einer angemeldeten Sitzung, 120 s gültig, genau einmal einlösbar, gespeichert nur als Hash; das Handy erhält ein normales App-Token (90 Tage, widerrufbar unter Konto → App-Tokens). |
+| Kopplung Handy | Kopplungscode nur aus einer persönlichen Sitzung oder von Admins, 120 s gültig, genau einmal einlösbar, gespeichert nur als Hash; das Handy erhält ein persönliches App-Token (90 Tage, widerrufbar unter Konto → App-Tokens). Für das Dienstkonto gibt es keine Kopplung. |
 
-Die PIN ersetzt am Terminal die Zwei-Faktor-Anmeldung: Der zweite Faktor ist das
-registrierte Gerät auf der Wache. Admins erledigen Verwaltungsaufgaben am eigenen
-Gerät mit Passwort und MFA.
+**Abwägung:** Ein gemeinsamer Code ist schneller als persönliche Anmeldungen, macht
+Einträge aber nicht einer Person zuordenbar. Für Übergaben, Aufgaben und Hinweise ist
+das auf Wunsch der Wache so gewollt; für alles mit persönlicher Verantwortung bleibt
+der Bereich am Terminal gesperrt.
 
 ## 6. App im WLAN der Wache
 

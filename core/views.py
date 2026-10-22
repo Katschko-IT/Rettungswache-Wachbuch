@@ -1197,6 +1197,11 @@ def membership_update(request, pk):
         )
         if membership.user_id == request.user.id and removes_admin:
             form.add_error("role", "Die eigene Master-Admin-Rolle kann hier nicht entzogen werden.")
+        from .terminal import is_service_user
+
+        if is_service_user(membership.user) and new_role != Membership.Role.MEMBER:
+            # Das Dienstkonto des Wachenterminals bleibt immer einfaches Mitglied.
+            form.add_error("role", "Das Wachenterminal-Konto bleibt Mitglied.")
         with transaction.atomic():
             if not form.errors:
                 membership = Membership.objects.select_for_update().get(pk=membership.pk)

@@ -4,24 +4,41 @@
   <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/terminal.css' %}">
 </head>
-<body class="display-body terminal-idle">
+<body class="display-body terminal-idle" data-lock-screen>
   <div class="display-surface" data-display-root data-display-overlay="false" data-no-escape data-stream-url="none" data-data-url="{% url 'terminal_data' %}">
     {% include "core/_display_surface.html" %}
   </div>
 
-  <nav class="terminal-dock" aria-label="{% translate 'Wachenterminal' %}">
-    {% if messages %}
-      <ul class="terminal-messages">
-        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-    <a class="terminal-cta" href="{% url 'terminal_people' %}">👆 {% translate "Antippen zum Anmelden" %}</a>
-    <figure class="terminal-app-qr">
-      <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="132" height="132">
-      <figcaption>{% translate "App verbinden: im WLAN der Wache scannen" %}</figcaption>
-    </figure>
-  </nav>
+  <button type="button" class="terminal-unlock-hint" data-unlock-open>
+    <span class="terminal-lock-icon" aria-hidden="true">🔒</span>
+    {% translate "Zum Entsperren antippen" %}
+  </button>
+  <figure class="terminal-app-qr">
+    <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="96" height="96">
+    <figcaption>{% translate "App verbinden" %}</figcaption>
+  </figure>
+
+  <div class="terminal-unlock{% if error_text %} has-error{% endif %}" data-unlock-panel role="dialog" aria-modal="true" aria-labelledby="terminal-unlock-title"{% if not error_text %} hidden{% endif %}>
+    <form method="post" class="terminal-unlock-inner" autocomplete="off">
+      {% csrf_token %}
+      <p class="terminal-unlock-station">{{ terminal.station.name }}</p>
+      <h1 id="terminal-unlock-title">{% translate "Wachen-Code eingeben" %}</h1>
+      <input id="terminal-code" class="visually-hidden" type="password" name="code" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="{% translate 'Wachen-Code' %}">
+      <div class="terminal-dots" data-pin-dots="terminal-code" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <p class="terminal-unlock-error" role="alert">{{ error_text }}</p>
+      <div class="terminal-keypad" data-pin-pad="terminal-code" data-pin-autosubmit>
+        {% for key in "123456789" %}<button type="button" data-pin-key="{{ key }}">{{ key }}</button>{% endfor %}
+        <span class="terminal-key-spacer" aria-hidden="true"></span>
+        <button type="button" data-pin-key="0">0</button>
+        <button type="button" class="terminal-key-text" data-pin-key="back" aria-label="{% translate 'Letzte Ziffer löschen' %}">⌫</button>
+      </div>
+      <button type="button" class="terminal-unlock-cancel" data-unlock-close>{% translate "Abbrechen" %}</button>
+    </form>
+  </div>
 
   <script src="{% static 'core/display.js' %}" defer></script>
+  <script src="{% static 'core/ui.js' %}" defer></script>
 </body>
 </html>

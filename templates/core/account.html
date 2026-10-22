@@ -67,7 +67,6 @@
     <a href="{% url 'crypto_setup' %}"><strong>{% translate "Chat-Schlüssel (E2EE)" %}</strong><span>{% translate "Damit Admin und Server keine Klartexte lesen" %}</span></a>
     <a href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens" %}</strong><span>{% translate "Zugang für die Wachbuch-App (iOS/Android)" %}</span></a>
     {% if terminal_feature and membership %}
-      <a href="{% url 'terminal_pin_change' %}"><strong>{% translate "Terminal-PIN" %}</strong><span>{% translate "PIN für die Anmeldung am Touch-Bildschirm der Wache" %}</span></a>
       <a href="{% url 'terminal_pair' %}"><strong>{% translate "Handy verbinden" %}</strong><span>{% translate "App per QR-Code ohne Passwort anmelden" %}</span></a>
     {% endif %}
     {% if membership and membership.role != 'auditor' and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}

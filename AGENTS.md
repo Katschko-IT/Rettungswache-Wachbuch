@@ -51,6 +51,11 @@ Status in der Remediation-Roadmap:
 - Benutzerkontrollierte Daten dürfen nie mit `|safe`, `innerHTML` oder
   ähnlichen HTML-Sinks in die Seite gelangen. Für JSON `json_script` nutzen.
 - Keine gemeinsam genutzten Konten; keine Umgehung von MFA/Rollen im Mobile-API.
+  Einzige, vom Betreiber entschiedene Ausnahme: das Dienstkonto „Wachenterminal“
+  (`core/terminal.py`) – ohne Passwort und App-Token, nur an registrierten
+  Terminals, Rolle Mitglied, beschränkt auf die Alltagsbereiche des
+  Terminal-Modus. Es darf nicht erweitert werden (keine Medizingeräte,
+  Fahrzeugübernahme, Lesebestätigungen, Verwaltung).
 - E2EE-Aussagen müssen das reale Vertrauensmodell nennen: gespeicherter
   Ciphertext ist geschützt, der ausgelieferte Webclient und Server bleiben
   bei der Web-PWA Teil des Vertrauensmodells.

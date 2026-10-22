@@ -12,7 +12,7 @@
     <a class="button primary" href="{% url 'team_user_create' %}">{% translate "Benutzer anlegen" %}</a>
     <a class="button secondary" href="{% url 'team_create' %}">{% translate "Zugang freigeben" %}{% if pending_count %} ({{ pending_count }}){% endif %}</a>
     <a class="button secondary" href="{% url 'team_invites' %}">{% translate "Offene Aktivierungen" %}</a>
-    {% if terminal_feature %}<a class="button secondary" href="{% url 'terminal_admin' %}">{% translate "Wachenterminals & PINs" %}</a>{% endif %}
+    {% if terminal_feature %}<a class="button secondary" href="{% url 'terminal_admin' %}">{% translate "Wachenterminal" %}</a>{% endif %}
   </div>
 </header>
 

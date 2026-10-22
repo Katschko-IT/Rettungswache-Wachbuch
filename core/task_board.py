@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import calendar
 from datetime import date, timedelta
 
 from django.db import transaction
@@ -193,6 +194,28 @@ def week_board(station, any_day: date):
         "weekday_rows": weekday_rows,
         "extras": extras,
     }
+
+
+def month_tasks(station, any_day: date):
+    """Monatliche Aufgaben im Monat von ``any_day`` mit Termin und Erledigt-Status."""
+    first = any_day.replace(day=1)
+    last_day = calendar.monthrange(first.year, first.month)[1]
+    days = [first + timedelta(days=offset) for offset in range(last_day)]
+    tasks = StationTask.objects.filter(
+        station=station, is_active=True, repeat=StationTask.Repeat.MONTHLY
+    ).order_by("month_day", "sort_order", "title")
+    done_map = completions_for_dates(station, days)
+    items = []
+    for task in tasks:
+        for day in days:
+            if task.applies_to_date(day):
+                items.append({
+                    "task": task,
+                    "date": day,
+                    "completion": done_map.get((task.pk, day)),
+                    "urgency": task.get_urgency(day),
+                })
+    return items
 
 
 def toggle_task_completion(*, task, membership, work_date: date, mark_done: bool):
