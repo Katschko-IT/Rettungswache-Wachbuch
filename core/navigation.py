@@ -19,6 +19,11 @@ CATALOG = {
     "pinboard": (_("Pinnwand"), "pinboard", "pinboard_enabled", ("pinboard",)),
     "defects": (_("Mängel"), "defects_web", None, ("defect",)),
     "assets": (_("Geräte"), "assets_inventory_web", None, ("asset",)),
+    "mpg": (_("MPG & Geräte"), "mpg_dashboard", "mpg_enabled", ("mpg",)),
+    "warehouse": (_("Lager & Material"), "warehouse_dashboard", "warehouse_enabled", ("warehouse", "lager")),
+    "fleet": (_("Fuhrpark"), "fleet_dashboard", "fleet_enabled", ("fleet", "fuhrpark")),
+    "display": (_("Wachen-Display"), "display_home", "display_enabled", ("display",)),
+    "orga": (_("Organisation"), "orga_dashboard", "orga_enabled", ("orga",)),
     "reports": (_("Auswertung"), "wachalltag_reports_web", None, ("wachalltag_reports",)),
     "coffee": (_("Kaffeekasse"), "coffee", "coffee_enabled", ("coffee",)),
     "birthdays": (_("Geburtstage"), "birthdays", "birthdays_enabled", ("birthday",)),
@@ -37,6 +42,11 @@ DEFAULT_PRIMARY = ("overview", "handovers", "calendar", "more", "help")
 
 # Bausteine der Seite „Mehr“ in ihrer Standardreihenfolge.
 MORE_ITEMS = (
+    ("mpg", _("MPG & Medizingeräte")),
+    ("warehouse", _("Lager & Material")),
+    ("fleet", _("Fuhrpark & Fahrzeuge")),
+    ("display", _("Wachen-Display")),
+    ("orga", _("Organisation & Desk")),
     ("defects", _("Mängel")),
     ("assets", _("Geräte & Status")),
     ("reports", _("Auswertung")),

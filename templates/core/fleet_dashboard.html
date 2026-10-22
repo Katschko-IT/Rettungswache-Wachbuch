@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Fuhrpark & Fahrzeuge" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Flottenmanagement & Einsatzbereitschaft" %}</p>
+  <h1>{% translate "Fuhrpark & Fahrzeuge" %}</h1>
+  <p class="lead">{% translate "Statusübersicht aller Rettungsmittel (RTW, KTW, NEF), Fristen und Fahrzeugmängel." %}</p>
+</header>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-value">{{ kpis.total }}</span>
+    <span class="kpi-label">{% translate "Fahrzeuge gesamt" %}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-value text-success">{{ kpis.ready }}</span>
+    <span class="kpi-label">{% translate "Einsatzklar" %}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-value text-warning">{{ kpis.limited }}</span>
+    <span class="kpi-label">{% translate "Bedingt einsatzklar" %}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-value text-danger">{{ kpis.workshop }}</span>
+    <span class="kpi-label">{% translate "In Werkstatt" %}</span>
+  </div>
+  {% if kpis.open_defects %}
+    <div class="kpi-card">
+      <span class="kpi-value text-danger">{{ kpis.open_defects }}</span>
+      <span class="kpi-label">{% translate "Fahrzeugmängel" %}</span>
+    </div>
+  {% endif %}
+</div>
+
+<div class="page-actions-bar">
+  <a class="button secondary" href="{% url 'assets_inventory_web' %}">
+    <span class="icon" aria-hidden="true">🚑</span> {% translate "Fahrzeug erfassen / bearbeiten" %}
+  </a>
+  <a class="button secondary" href="{% url 'defect_create_web' %}">
+    <span class="icon" aria-hidden="true">⚠️</span> {% translate "Fahrzeugmangel melden" %}
+  </a>
+</div>
+
+{% if vehicle_defects %}
+<section class="section-block">
+  <h2>{% translate "Aktuelle Fahrzeugmängel" %}</h2>
+  <div class="item-list">
+    {% for defect in vehicle_defects %}
+      <div class="list-row priority-{{ defect.priority }}">
+        <span class="status-label status-{{ defect.status }}">{{ defect.get_status_display }}</span>
+        <span class="row-content">
+          <strong><a href="{% url 'defect_detail_web' defect.pk %}">{{ defect.title }}</a></strong>
+          <small>{{ defect.created_at|date:"d.m.Y H:i" }} · {{ defect.created_by.first_name|default:defect.created_by.username }}</small>
+        </span>
+        <span class="badge priority-badge">{{ defect.get_priority_display }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Einsatzmittel der Wache" %}</h2>
+  <div class="item-list">
+    {% for item in vehicles %}
+      <div class="list-row">
+        <span class="status-label status-{{ item.status }}">{{ item.get_status_display }}</span>
+        <span class="row-content">
+          <strong>{{ item.label }}</strong>
+          <small>{% translate "Kennung:" %} {{ item.asset_id }}{% if item.note %} · {{ item.note }}{% endif %}</small>
+        </span>
+        <span class="row-meta">
+          <small>{{ item.updated_at|date:"d.m.Y H:i" }}</small>
+        </span>
+      </div>
+    {% empty %}
+      <p class="empty-state">{% translate "Noch keine Fahrzeuge im System hinterlegt. Über 'Fahrzeug erfassen' können Einsatzmittel angelegt werden." %}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

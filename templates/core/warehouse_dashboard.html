@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Lager & Materialwirtschaft" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Materialwirtschaft & Bestandsführung" %}</p>
+  <h1>{% translate "Lager & Material" %}</h1>
+  <p class="lead">{% translate "Verbrauchsmaterial, Notfallkoffer, Pool-Equipment und Ausleihvorgänge auf einen Blick." %}</p>
+</header>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-value">{{ kpis.total }}</span>
+    <span class="kpi-label">{% translate "Artikel & Poolobjekte" %}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-value text-success">{{ kpis.available }}</span>
+    <span class="kpi-label">{% translate "Verfügbar im Lager" %}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-value text-warning">{{ kpis.checked_out }}</span>
+    <span class="kpi-label">{% translate "Aktuell ausgegeben" %}</span>
+  </div>
+</div>
+
+<div class="page-actions-bar">
+  <a class="button secondary" href="{% url 'assets_inventory_web' %}">
+    <span class="icon" aria-hidden="true">📦</span> {% translate "Material erfassen / ausgeben" %}
+  </a>
+</div>
+
+{% if checked_out %}
+<section class="section-block">
+  <h2>{% translate "Aktuelle Ausleihen & Fahrzeug-Handlager" %}</h2>
+  <div class="item-list">
+    {% for item in checked_out %}
+      <div class="list-row">
+        <span class="status-label">{% translate "Ausgegeben" %}</span>
+        <span class="row-content">
+          <strong>{{ item.label }}</strong>
+          <small>{% translate "bei" %} {{ item.holder.first_name|default:item.holder.username }} {% translate "seit" %} {{ item.checked_out_at|date:"d.m. H:i" }}{% if item.note %} · {{ item.note }}{% endif %}</small>
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Lagerbestand Wache" %}</h2>
+  <div class="item-list">
+    {% for item in items %}
+      <div class="list-row">
+        <span class="status-label">{% if item.holder %}{% translate "Ausgegeben" %}{% else %}{% translate "Auf Lager" %}{% endif %}</span>
+        <span class="row-content">
+          <strong>{{ item.label }}</strong>
+          <small>{{ item.get_kind_display }} · ID: {{ item.item_id }}{% if item.note %} · {{ item.note }}{% endif %}</small>
+        </span>
+        {% if item.holder %}
+          <span class="row-meta"><small>{{ item.holder.first_name|default:item.holder.username }}</small></span>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="empty-state">{% translate "Noch keine Lagerartikel oder Poolobjekte erfasst." %}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

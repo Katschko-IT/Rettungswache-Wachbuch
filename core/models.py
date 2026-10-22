@@ -60,6 +60,11 @@ class Station(models.Model):
         verbose_name="Bundesland für Feiertage",
     )
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
+    mpg_enabled = models.BooleanField(default=True, verbose_name="MPG & Medizingeräte aktiviert")
+    warehouse_enabled = models.BooleanField(default=True, verbose_name="Lager & Materialwirtschaft aktiviert")
+    fleet_enabled = models.BooleanField(default=True, verbose_name="Fuhrpark & Fahrzeuge aktiviert")
+    display_enabled = models.BooleanField(default=True, verbose_name="Wachen-Display aktiviert")
+    orga_enabled = models.BooleanField(default=True, verbose_name="Organisation & Desk aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")
     more_order = models.CharField(

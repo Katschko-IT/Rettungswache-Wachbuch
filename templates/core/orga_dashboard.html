@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Organisation & Desk" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Wachorganisation & Wissensmanagement" %}</p>
+  <h1>{% translate "Organisation & Desk" %}</h1>
+  <p class="lead">{% translate "Dienstanweisungen, Wachen-Wiki, Termine und wichtige Kontakte an einem Ort." %}</p>
+</header>
+
+<div class="page-actions-bar">
+  <a class="button secondary" href="{% url 'wiki_index' %}">
+    <span class="icon" aria-hidden="true">📖</span> {% translate "Wachen-Wiki & SOPs" %}
+  </a>
+  <a class="button secondary" href="{% url 'calendar' %}">
+    <span class="icon" aria-hidden="true">📅</span> {% translate "Terminkalender" %}
+  </a>
+  <a class="button secondary" href="{% url 'pinboard' %}">
+    <span class="icon" aria-hidden="true">📌</span> {% translate "Pinnwand" %}
+  </a>
+</div>
+
+{% if events %}
+<section class="section-block">
+  <h2>{% translate "Anstehende Wachentermine" %}</h2>
+  <div class="item-list">
+    {% for event in events %}
+      <div class="list-row">
+        <span class="row-date"><small>{{ event.starts_at|date:"d.m. H:i" }}</small></span>
+        <span class="row-content">
+          <strong>{{ event.title }}</strong>
+          {% if event.description %}<small>{{ event.description|truncatewords:15 }}</small>{% endif %}
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Aktuelle Dienstanweisungen & SOPs" %}</h2>
+  <div class="item-list">
+    {% for article in articles %}
+      <div class="list-row">
+        <span class="row-content">
+          <strong><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></strong>
+          <small>{% translate "Aktualisiert am" %} {{ article.updated_at|date:"d.m.Y" }} · Rev. {{ article.current_revision_number }}</small>
+        </span>
+      </div>
+    {% empty %}
+      <p class="empty-state">{% translate "Noch keine Wiki-Artikel oder Dienstanweisungen angelegt." %}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
