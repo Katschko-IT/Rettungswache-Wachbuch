@@ -2,6 +2,11 @@
 
 Stand: 3. August 2026.
 
+## Review 22. Oktober 2026
+
+Zwei-Repo-Review mit Debugging der Fachmodule aus 0.23.0 (CSP, API-Vertrag,
+CI-Gates): [`REVIEW-2026-10-22.md`](REVIEW-2026-10-22.md), Roadmap-ID R-025.
+
 ## Sicherheits-, Betriebs- und Design-Remediation
 
 Die verbindliche Folgeplanung aus der Review vom 3. August 2026 steht in

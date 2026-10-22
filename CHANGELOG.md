@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased – Review und Debugging 2026-10-22
+
+Fehlerbehebungen für 0.23.0 nach dem Zwei-Repo-Review (R-025, Details in
+`docs/REVIEW-2026-10-22.md`). Keine Produktionsfreigabe.
+
+- Fachmodule funktionieren unter der eigenen CSP: Modals, Scanner, Live-Suche,
+  Filter, Druck und Löschrückfragen laufen über `core/static/core/ui.js`;
+  Layout liegt in `core/static/core/modules.css`. Die Reihenfolge der
+  Navigationsleiste greift jetzt auch im Browser.
+- Scanner öffnen nur Adressen derselben Origin; Kamera nur auf den
+  Scanner-Seiten erlaubt.
+- Wachen-Display: Livestream endet nach fünf Minuten oder bei Widerruf.
+- Fahrzeug-Auto-Freigabe nach Einwirkzeit atomar und im Audit-Log.
+- Geocoding fällt bei Netzausfall sofort auf Standardkoordinaten zurück.
+- API: Fehlercodes `conflict`, `payload_too_large`,
+  `unsupported_media_type`; Token-Widerruf auch ohne aktive Mitgliedschaft;
+  PDF-Anhänge für Mängel.
+- „Mehr“: deaktivierte Module erscheinen nicht mehr (auch nicht im Quelltext),
+  Texte ohne Einsatz-/Leitstellen-Versprechen.
+- Englischer Katalog vollständig; zerlegte Sätze als `blocktranslate`.
+- Tests laufen ohne externe Netzverbindungen (`core/test_runner.py`).
+- Client-Spiegel `clients/wachbuch-mobile/` auf den aktuellen Client-Stand
+  gebracht.
+
 ## 0.23.0 - 2026-10-22
 
 Großes Modul- und Automatisierungs-Release für den Rettungsdienstbetrieb. Neue Fachmodule (Fuhrpark, Lager, MPG, Organisation, Wachen-Display), intelligente Daten-Automatisierung und komplett überarbeitetes „Mehr“-Menü. Keine Produktionsfreigabe.
