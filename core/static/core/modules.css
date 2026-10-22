@@ -50,6 +50,148 @@ body.has-open-modal { overflow: hidden; }
 
 .more-search-hint { color: var(--muted); }
 
+/* --- Komponenten-Vokabular der Fachmodule ----------------------------- */
+/* Die Modul-Templates nutzen diese Klassen; sie sind hier auf die Tokens
+   aus app.css abgebildet, damit alle Seiten gleich aussehen. */
+
+.button:not(.primary):not(.secondary) {
+  color: var(--on-primary);
+  background: var(--brand);
+}
+.button:not(.primary):not(.secondary):hover { background: var(--brand-deep); }
+.button.small {
+  min-height: 2.25rem;
+  padding: .35rem .75rem;
+  font-size: .9rem;
+}
+.button .icon, .icon { margin-right: .35rem; }
+
+.page-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+
+.breadcrumb-nav, .breadcrumbs { margin: 0 0 1rem; font-size: .92rem; }
+.breadcrumb-nav a, .breadcrumbs a { font-weight: 650; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: .75rem;
+  margin: 0 0 1.5rem;
+}
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+.kpi-card.border-danger { border-left-color: var(--danger); }
+.kpi-card.border-warning { border-left-color: var(--warning); }
+.kpi-card.border-success { border-left-color: var(--success); }
+.kpi-value { font-size: 1.75rem; font-weight: 800; line-height: 1.1; }
+.kpi-label { color: var(--muted); font-size: .85rem; font-weight: 600; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warning { color: var(--warning); }
+.text-muted, .subtitle { color: var(--muted); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .15rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: .45rem;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.alert, .callout {
+  margin: 0 0 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--info);
+  border-radius: var(--radius);
+  background: var(--info-soft);
+}
+.alert-warning, .alert.warning { border-left-color: var(--warning); background: var(--warning-soft); }
+.alert-error, .alert-danger, .alert.danger { border-left-color: var(--danger); background: var(--danger-soft); }
+.alert-success, .alert.success { border-left-color: var(--success); background: var(--success-soft); }
+
+.status-label.status-done { color: var(--priority-done); background: var(--success-soft); }
+.status-label.status-waiting { color: #92400e; background: var(--warning-soft); }
+.status-label.status-in_progress { color: var(--info); background: var(--info-soft); }
+.status-label.status-open { color: var(--danger); background: var(--danger-soft); }
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin: 0 0 1.25rem;
+}
+.search-form input[type="search"], .search-form input[type="text"] { flex: 1 1 14rem; }
+
+.form-input, .form-select {
+  width: 100%;
+  min-height: var(--touch);
+  padding: .55rem .75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: .6rem;
+  background: var(--surface);
+  color: var(--text);
+}
+.form-error { margin: .25rem 0 0; color: var(--danger); font-size: .88rem; }
+
+.table-responsive { width: 100%; overflow-x: auto; }
+.data-table, .table, .table-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .95rem;
+}
+.data-table th, .data-table td,
+.table th, .table td,
+.table-compact th, .table-compact td {
+  padding: .6rem .7rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.table-compact th, .table-compact td { padding: .4rem .5rem; }
+.data-table th, .table th, .table-compact th {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.page-header { margin: 0 0 1.5rem; }
+.markdown-body { max-width: 72ch; line-height: 1.6; }
+
+/* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein,
+   statt in der schmalen Etikett-Spalte umzubrechen. */
+.list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* Übersicht: Karten mit Handlungsbedarf hervorheben. */
+.operations-summary .quick-actions a.has-attention { border-left-color: var(--warning); }
+
 /* --- Aus früheren style-Attributen übernommene Regeln -------------------- */
 
 /*
@@ -195,7 +337,7 @@ body.has-open-modal { overflow: hidden; }
 .ms-8356dd1 { font-size: 0.8rem !important; text-transform: uppercase !important; color: var(--muted) !important; font-weight: bold !important; }
 .ms-8536bed { padding: 1rem !important; border-bottom: 1px solid var(--line) !important; display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: wrap !important; gap: 1rem !important; }
 .ms-8580457 { margin-top: 1.5rem !important; margin-bottom: 1rem !important; }
-.ms-8767760 { padding: 1rem !important; border-bottom: 1px solid var(--line) !important; display: flex !important; flex-direction: column !important; gap: 0.75rem !important; }
+.ms-8767760 { padding: 1rem !important; border-bottom: 1px solid var(--line) !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 0.75rem !important; }
 .ms-87983a4 { margin-top: 0.5rem !important; padding-top: 0.5rem !important; border-top: 1px solid var(--line) !important; }
 .ms-8949c34 { padding: 0.6rem !important; text-align: left !important; position: sticky !important; left: 0 !important; background: var(--surface-soft) !important; z-index: 10 !important; min-width: 180px !important; }
 .ms-89be969 { background: var(--surface) !important; padding: 1.25rem !important; border-radius: 8px !important; border: 1px solid var(--line) !important; }

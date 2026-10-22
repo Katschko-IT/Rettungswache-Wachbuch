@@ -51,6 +51,7 @@ MORE_ITEMS = (
     ("assets", _("Geräte & Status")),
     ("reports", _("Auswertung")),
     ("tasks", _("Tagesaufgaben")),
+    ("calendar", _("Wachenkalender")),
     ("birthdays", _("Geburtstage")),
     ("coffee", _("Kaffeekasse")),
     ("feeds", _("Meldungen & Verkehr")),

@@ -5,9 +5,9 @@
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Medizinproduktebuch gem. MPDG & MPBetreibV" %}</p>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Medizinprodukte" %}</p>
     <h1>{% translate "MPG & Medizingeräte" %}</h1>
-    <p class="lead">{% translate "Bestandsverzeichnis (§ 14), sicherheitstechnische Kontrollen (STK § 11), messtechnische Kontrollen (MTK § 14) und digitaler Gerätepass." %}</p>
+    <p class="lead">{% translate "Bestandsverzeichnis, sicherheits- und messtechnische Kontrollen (STK/MTK), Funktionskontrollen und Einweisungen nach MPBetreibV." %}</p>
   </div>
   <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}

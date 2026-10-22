@@ -5,9 +5,9 @@
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Fuhrpark, Einsatzbereitschaft & Hygiene" %}</p>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Fuhrpark" %}</p>
     <h1>{% translate "Fuhrpark & Fahrzeuge" %}</h1>
-    <p class="lead">{% translate "Taktischer BOS-Status, 3-Minuten Express-Schichtübernahme, StVZO § 29 HU / UVV-Fristen und RKI/VAH-Desinfektionsbuch mit Sperrtimer." %}</p>
+    <p class="lead">{% translate "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV." %}</p>
   </div>
   <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}

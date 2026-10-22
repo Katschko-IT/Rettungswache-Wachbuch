@@ -5,9 +5,9 @@
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Materialwirtschaft & Verfallsradar" %}</p>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Material" %}</p>
     <h1>{% translate "Lager & Material" %}</h1>
-    <p class="lead">{% translate "FEFO-Prinzip (First Expired, First Out), dynamische Kühlketten-Haltbarkeit und Chargenüberwachung." %}</p>
+    <p class="lead">{% translate "Bestand nach Lagerort, Chargen mit Verfallsdatum (was zuerst abläuft, wird zuerst verbraucht) und Mindestbestände." %}</p>
   </div>
   <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}

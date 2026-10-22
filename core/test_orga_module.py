@@ -54,6 +54,15 @@ class OrgaModuleTests(TestCase):
         self.assertFalse(SOPDocument.objects.filter(station=self.station).exists())
         self.assertFalse(StationContact.objects.filter(station=self.station).exists())
 
+    def test_unread_sop_is_not_shown_as_acknowledged(self):
+        resp = self.client.get(reverse("orga_dashboard"))
+        self.assertContains(resp, "Quittierung nötig")
+        self.assertNotContains(resp, "✅ Quittiert")
+        sop = SOPDocument.objects.get(slug="sop-test-01")
+        self.client.post(reverse("sop_acknowledge", args=[sop.slug]))
+        resp = self.client.get(reverse("orga_dashboard"))
+        self.assertContains(resp, "✅ Quittiert")
+
     def test_dashboard_lists_station_sops(self):
         resp = self.client.get(reverse("orga_dashboard"))
         self.assertContains(resp, "SOP-MED-01")

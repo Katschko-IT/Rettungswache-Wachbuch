@@ -84,6 +84,7 @@ def orga_dashboard(request):
             "sops": display_sops,
             "all_sops_count": len(sops_list),
             "unack_count": len(unack_sops),
+            "unack_ids": {s.id for s in unack_sops},
             "ack_count": len(ack_sops),
             "filter_mode": filter_mode,
             "query": query,

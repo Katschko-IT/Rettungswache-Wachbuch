@@ -15,8 +15,7 @@
 </header>
 
 <nav class="quick-actions" aria-label="{% translate 'Schnellzugriff' %}">
-  <a href="{% url 'handover_create' %}"><strong>{% translate "Neue Übergabe" %}</strong><span>{% translate "Für die nächste Schicht festhalten" %}</span></a>
-  <a href="{% url 'handover_list' %}?ansicht=dringend"><strong>{% translate "Dringendes öffnen" %}</strong><span>{{ urgent_count }} {% translate "offene Punkte" %}</span></a>
+  <a href="{% url 'handover_list' %}?ansicht=dringend"><strong>{% translate "Dringendes öffnen" %}</strong><span>{% if urgent_count == 1 %}{% translate "1 offener Punkt" %}{% else %}{{ urgent_count }} {% translate "offene Punkte" %}{% endif %}</span></a>
   {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} {% translate "erledigt · Wandtafel" %}</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>{% translate "Kalender" %}</strong><span>{% translate "Nächste Wachentermine" %}</span></a>{% endif %}
 </nav>
 
@@ -26,7 +25,7 @@
     <span class="context-line">{% translate "Nur offene stationsbezogene Punkte" %}</span>
   </div>
   <div class="quick-actions">
-    {% for card in dashboard_cards %}<a href="{% url card.url_name %}"><strong>{{ card.value }} {{ card.title }}</strong><span>{{ card.subtitle }}</span></a>{% endfor %}
+    {% for card in dashboard_cards %}<a href="{{ card.href }}"{% if card.attention %} class="has-attention"{% endif %}><strong>{{ card.value }} {{ card.title }}</strong><span>{{ card.subtitle }}</span></a>{% endfor %}
   </div>
 </section>
 

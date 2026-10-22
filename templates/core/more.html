@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% translate "Wachenzentrale & Alle Module" %} | {{ app_name }}{% endblock %}
+{% block title %}{% translate "Alle Bereiche" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="more-hub-container">
@@ -8,8 +8,8 @@
   <header class="page-heading heading-with-action ms-4d1411d">
     <div>
       <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Modulübersicht" %}</p>
-      <h1>{% translate "Wachenzentrale & Alle Module" %}</h1>
-      <p class="lead">{% translate "Alle Module, Fachbereiche und Einstellungen dieser Wache auf einen Blick." %}</p>
+      <h1>{% translate "Alle Bereiche" %}</h1>
+      <p class="lead">{% translate "Alle Module und Einstellungen dieser Wache. Häufig genutzte Bereiche lassen sich in die Leiste holen." %}</p>
     </div>
     {% if current_membership.role == 'admin' %}
       <div>
@@ -27,11 +27,12 @@
     <small id="more-search-hint" class="more-search-hint" hidden>{% translate "Escape zum Zurücksetzen" %}</small>
   </div>
 
+  {% if current_membership.role != 'auditor' %}
   {# KATEGORIE 1: Rettungsdienst-Fachmodule #}
   <section class="more-category-block" data-filter-group data-category="fachmodule">
     <div class="more-category-header">
       <h2 class="more-category-title">
-        <span>🚑</span> {% translate "Rettungsdienst-Fachmodule" %}
+        <span>🚑</span> {% translate "Fachmodule" %}
       </h2>
       <span class="more-category-count">{% translate "Kernmodule" %}</span>
     </div>
@@ -46,7 +47,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "MPG & Medizingeräte" %}</strong>
-            <span class="more-card-desc">{% translate "Medizinproduktebuch nach MPBetreibV, STK/MTK-Fristenampel, QR-Selbsttest & Einweisungsmatrix." %}</span>
+            <span class="more-card-desc">{% translate "Gerätebuch, Prüffristen (STK/MTK), Funktionskontrollen und Einweisungen." %}</span>
           </div>
         </a>
       {% endif %}
@@ -60,7 +61,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Lager & Material" %}</strong>
-            <span class="more-card-desc">{% translate "FEFO-Apothekenlager, Kühlketten-Timer (2–8 °C), Mindestbestands-Bestellschein & 1-Scan Aufrüstung." %}</span>
+            <span class="more-card-desc">{% translate "Bestand, Chargen und Verfallsdaten, Mindestbestände und Bestellvorschlag." %}</span>
           </div>
         </a>
       {% endif %}
@@ -74,7 +75,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Fuhrpark & Fahrzeuge" %}</strong>
-            <span class="more-card-desc">{% translate "Taktischer BOS-Status, O₂-Druck (bar), Tank, VAH-Desinfektion mit Timer-Freigabe & UVV/10g-Tragentisch." %}</span>
+            <span class="more-card-desc">{% translate "Fahrzeugstatus, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen." %}</span>
           </div>
         </a>
       {% endif %}
@@ -88,7 +89,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Organisation & Desk" %}</strong>
-            <span class="more-card-desc">{% translate "Dienstanweisungen, Hygienepläne, SOPs mit SHA-256 Integrität, Lesequittierung & Notfall-Kurzwahlliste." %}</span>
+            <span class="more-card-desc">{% translate "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache." %}</span>
           </div>
         </a>
       {% endif %}
@@ -128,7 +129,7 @@
         </div>
         <div>
           <strong class="more-card-title">{% translate "Mängel & Werkstatt" %}</strong>
-          <span class="more-card-desc">{% translate "Mängel mit Priorität, Fristen, Fotos, Fahrzeug-Werkstattstatus und Eigentümer erfassen." %}</span>
+          <span class="more-card-desc">{% translate "Mängel mit Priorität, Frist, Foto und verantwortlicher Person erfassen." %}</span>
         </div>
       </a>
 
@@ -140,7 +141,7 @@
         </div>
         <div>
           <strong class="more-card-title">{% translate "Geräte & Poolbestand" %}</strong>
-          <span class="more-card-desc">{% translate "Bereitschaftsstatus von Einsatzgeräten, Schlüsselkästen und Poolmaterial verwalten." %}</span>
+          <span class="more-card-desc">{% translate "Status von Geräten, Schlüsseln und Poolmaterial; Ausgabe und Rückgabe." %}</span>
         </div>
       </a>
 
@@ -153,7 +154,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Tagesaufgaben" %}</strong>
-            <span class="more-card-desc">{% translate "Digitale Wandtafel: Grüne tägliche Routine, gelbe Wochentage und blaue Zusatzaufgaben." %}</span>
+            <span class="more-card-desc">{% translate "Digitale Wandtafel mit täglichen, wöchentlichen und zusätzlichen Aufgaben." %}</span>
           </div>
         </a>
       {% endif %}
@@ -166,7 +167,7 @@
         </div>
         <div>
           <strong class="more-card-title">{% translate "Auswertung & Kennzahlen" %}</strong>
-          <span class="more-card-desc">{% translate "Offene Mängel, fällige Checks, Einsatzklar-Quote und Erledigungsstatistiken." %}</span>
+          <span class="more-card-desc">{% translate "Offene Mängel, fällige Prüfungen und Erledigungsquote als Übersicht und CSV." %}</span>
         </div>
       </a>
 
@@ -203,7 +204,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Wachenkalender" %}</strong>
-            <span class="more-card-desc">{% translate "Schulungen, Wachtermine, Feiertage aller Bundesländer & ICS-Kalenderabo." %}</span>
+            <span class="more-card-desc">{% translate "Termine der Wache, Feiertage und Kalender-Abo für das Handy." %}</span>
           </div>
         </a>
       {% endif %}
@@ -231,7 +232,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Kaffeekasse" %}</strong>
-            <span class="more-card-desc">{% translate "Digitales Saldo-Ledger, Einzahlungen und Strichlistenbuchungen." %}</span>
+            <span class="more-card-desc">{% translate "Kassenstand, Einzahlungen und Buchungen der Gemeinschaftskasse." %}</span>
           </div>
         </a>
       {% endif %}
@@ -245,7 +246,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Geburtstage" %}</strong>
-            <span class="more-card-desc">{% translate "Freiwillige Team-Geburtstagsübersicht und Jubiläen." %}</span>
+            <span class="more-card-desc">{% translate "Freiwillig eingetragene Geburtstage im Team." %}</span>
           </div>
         </a>
       {% endif %}
@@ -283,7 +284,7 @@
         </div>
         <div>
           <strong class="more-card-title">{% translate "Wachen-Wiki" %}</strong>
-          <span class="more-card-desc">{% translate "Dauerhafte Nachschlagewerke, Ortskunde, Verfahrensanweisungen & Hausordnung." %}</span>
+          <span class="more-card-desc">{% translate "Dauerhafte Hinweise und Abläufe der Wache zum Nachschlagen." %}</span>
         </div>
       </a>
 
@@ -318,6 +319,8 @@
     </div>
   </section>
 
+  {% endif %}
+
   {# KATEGORIE 4: Wachenverwaltung & Sicherheit #}
   <section class="more-category-block" data-filter-group data-category="verwaltung">
     <div class="more-category-header">
@@ -336,7 +339,7 @@
         </div>
         <div>
           <strong class="more-card-title">{% translate "Mein Konto" %}</strong>
-          <span class="more-card-desc">{% translate "Passwort ändern, Profilbild, Notfallkontakt und Anmeldehistorie." %}</span>
+          <span class="more-card-desc">{% translate "Passwort, Profilbild, Zwei-Faktor und persönliche Einstellungen." %}</span>
         </div>
       </a>
 
@@ -370,7 +373,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Team & Rollen" %}</strong>
-            <span class="more-card-desc">{% translate "Mitarbeiterkonten verwalten, Wachleiter, Schichtleiter und Rollenrechte zuweisen." %}</span>
+            <span class="more-card-desc">{% translate "Konten anlegen, freigeben und Rollen zuweisen." %}</span>
           </div>
         </a>
 
@@ -381,7 +384,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Mitarbeiter-Aktivierungen" %}</strong>
-            <span class="more-card-desc">{% translate "Einladungslinks und QR-Codes zur sicheren Erstregistrierung neuer Kollegen." %}</span>
+            <span class="more-card-desc">{% translate "Persönliche Aktivierungslinks und QR-Codes für neue Kolleginnen und Kollegen." %}</span>
           </div>
         </a>
 
@@ -392,7 +395,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Darstellung & Leiste" %}</strong>
-            <span class="more-card-desc">{% translate "Reihenfolge der oberen Menüleiste und der Module unter Mehr individuell anpassen." %}</span>
+            <span class="more-card-desc">{% translate "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge." %}</span>
           </div>
         </a>
 
@@ -403,7 +406,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Wacheneinstellungen" %}</strong>
-            <span class="more-card-desc">{% translate "Wachenname, Standortanschrift, Wetter-Koordinaten und Modulschalter steuern." %}</span>
+            <span class="more-card-desc">{% translate "Name, Anschrift, Wetter und welche Module die Wache nutzt." %}</span>
           </div>
         </a>
       {% endif %}
@@ -429,7 +432,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Zwei-Faktor / Passkeys" %}</strong>
-            <span class="more-card-desc">{% translate "Authenticator-Apps (TOTP) und biometrische FIDO2/Passkey-Sicherheit." %}</span>
+            <span class="more-card-desc">{% translate "Anmeldung zusätzlich mit Authenticator-App oder Passkey absichern." %}</span>
           </div>
         </a>
       {% endif %}
@@ -442,7 +445,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Push-Mitteilungen" %}</strong>
-            <span class="more-card-desc">{% translate "Direkte Benachrichtigungen auf Smartphone oder Desktop bei dringenden Schichtmeldungen." %}</span>
+            <span class="more-card-desc">{% translate "Benachrichtigung auf Handy oder PC bei dringenden Übergaben." %}</span>
           </div>
         </a>
       {% endif %}
@@ -455,7 +458,7 @@
           </div>
           <div>
             <strong class="more-card-title">{% translate "Technische Verwaltung" %}</strong>
-            <span class="more-card-desc">{% translate "Django-Backend-Administration für Serveradministratoren." %}</span>
+            <span class="more-card-desc">{% translate "Technische Verwaltung für Serveradministratoren." %}</span>
           </div>
         </a>
       {% endif %}

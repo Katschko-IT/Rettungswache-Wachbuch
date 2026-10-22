@@ -484,16 +484,34 @@ def dashboard(request):
     profile = dashboard_profile(station)
     card_definitions = {
         "defects": ("defects_web", _("Mängel"), _("offen"), operations["defects_count"]),
-        "assets": ("assets_inventory_web", profile["asset_label"], _("nicht bereit"), operations["asset_attention_count"]),
+        # Mit Fuhrpark-/MPG-Modul haben Fahrzeuge und Medizingeräte eigene
+        # Karten; die Gerätekarte meint dann nur noch die übrige Ausstattung.
+        "assets": (
+            "assets_inventory_web",
+            _("Ausstattung") if (station.fleet_enabled or station.mpg_enabled) else profile["asset_label"],
+            _("nicht bereit"),
+            operations["asset_attention_count"],
+        ),
         "loans": ("assets_inventory_web", _("Inventar"), _("ausgegeben"), operations["inventory_loans_count"]),
         "checklists": ("checklists", _("Checklisten"), _("fällig oder überfällig"), operations["due_checklists_count"]),
         "tasks": ("tasks_today", profile["task_label"], _("heute erledigt"), f'{operations["task_done"]}/{operations["task_total"]}'),
     }
     dashboard_cards = [
-        {"url_name": card_definitions[key][0], "title": card_definitions[key][1], "subtitle": card_definitions[key][2], "value": card_definitions[key][3]}
+        {
+            "href": reverse(card_definitions[key][0]),
+            "title": card_definitions[key][1],
+            "subtitle": card_definitions[key][2],
+            "value": card_definitions[key][3],
+            "attention": key in {"defects", "assets", "checklists"} and bool(card_definitions[key][3]),
+        }
         for key in profile["cards"]
         if (key not in {"checklists", "tasks"} or (key == "checklists" and station.checklists_enabled) or (key == "tasks" and station.tasks_enabled))
     ]
+    # Fachmodule (Fahrzeuge, Medizingeräte, Material, Dienstanweisungen) melden
+    # ihren Handlungsbedarf hier, damit die Übersicht das ganze Lagebild zeigt.
+    from .module_overview import module_attention_cards
+
+    dashboard_cards.extend(module_attention_cards(station, request.user))
     context = {
         "dashboard_profile": profile,
         "dashboard_cards": dashboard_cards,

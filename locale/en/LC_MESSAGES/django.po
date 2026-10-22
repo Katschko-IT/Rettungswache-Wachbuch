@@ -51,6 +51,10 @@ msgstr ", otherwise you can neither send nor read new messages."
 msgid "/anmelden/qr/"
 msgstr "/anmelden/qr/"
 
+#: templates/core/dashboard.html:18
+msgid "1 offener Punkt"
+msgstr "1 open item"
+
 #: templates/core/privacy.html:20
 msgid "1. Verantwortung &amp; Kontakt"
 msgstr "1. Responsibility &amp; contact"
@@ -269,7 +273,7 @@ msgstr "AdBlue (%)"
 msgid "Administration"
 msgstr "Administration"
 
-#: templates/core/more.html:327
+#: templates/core/more.html:330
 msgid "Administration & Profil"
 msgstr "Administration & profile"
 
@@ -392,6 +396,11 @@ msgstr "All information is stored locally. Completion is one-time and atomic; co
 msgid "Alle Artikel"
 msgstr "All items"
 
+#: templates/core/more.html:3
+#: templates/core/more.html:11
+msgid "Alle Bereiche"
+msgstr "All areas"
+
 #: templates/core/warehouse_reorder.html:78
 msgid "Alle Bestände im grünen Bereich!"
 msgstr "All stock levels in the green!"
@@ -424,8 +433,12 @@ msgid "Alle Kategorien"
 msgstr "All categories"
 
 #: templates/core/more.html:12
-msgid "Alle Module, Fachbereiche und Einstellungen dieser Wache auf einen Blick."
-msgstr "All modules, departments and settings of this station at a glance."
+msgid "Alle Module und Einstellungen dieser Wache. Häufig genutzte Bereiche lassen sich in die Leiste holen."
+msgstr "All modules and settings of this station. Frequently used areas can be pinned to the bar."
+
+#: templates/core/landing.html:98
+msgid "Alle Skripte und Schriften lokal, keine externen CDNs"
+msgstr "All scripts and fonts served locally, no external CDNs"
 
 #: templates/core/news_detail.html:49
 msgid "Alle haben gelesen – die Neuigkeit liegt im Archiv."
@@ -443,6 +456,10 @@ msgstr "Disable all second factors"
 #: core/views.py:432
 msgid "Alle Übergaben"
 msgstr "All handovers"
+
+#: templates/core/landing.html:40
+msgid "Alles, was eine Schicht braucht"
+msgstr "Everything a shift needs"
 
 #: core/forms.py:676
 msgid "Allgemein"
@@ -521,7 +538,7 @@ msgid "Anhang hinzufügen"
 msgstr "Add attachment"
 
 #: core/news_views.py:84
-#: core/views.py:649
+#: core/views.py:667
 msgid "Anhang wurde hinzugefügt."
 msgstr "Attachment added."
 
@@ -557,7 +574,7 @@ msgstr "Create and approve"
 #: core/test_i18n_phase1.py:73
 #: core/test_i18n_phase1.py:74
 #: templates/base.html:52
-#: templates/core/landing.html:11
+#: templates/core/landing.html:14
 #: templates/core/privacy.html:194
 #: templates/core/vorfuehrung.html:128
 #: templates/errors/403.html:11
@@ -609,6 +626,10 @@ msgstr "Sign-in was rejected on the mobile device."
 msgid "Anmeldung wurde widerrufen."
 msgstr "Sign-in was revoked."
 
+#: templates/core/more.html:435
+msgid "Anmeldung zusätzlich mit Authenticator-App oder Passkey absichern."
+msgstr "Protect sign-in with an authenticator app or passkey."
+
 #: templates/core/pinboard.html:33
 msgid "Anpinnen"
 msgstr "Pin"
@@ -629,7 +650,7 @@ msgstr "Contact person"
 msgid "Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."
 msgstr "Upcoming municipal waste collections (residual, paper, organic, recycling)."
 
-#: templates/core/landing.html:18
+#: templates/core/landing.html:33
 #: templates/core/vorfuehrung.html:150
 msgid "Antonio Batinic / Pexels"
 msgstr "Antonio Batinic / Pexels"
@@ -646,14 +667,14 @@ msgstr "App token generated. Please copy now – it will only be displayed once.
 msgid "App-Token wurde widerrufen."
 msgstr "App token was revoked."
 
-#: core/navigation.py:64
+#: core/navigation.py:65
 #: templates/core/account.html:68
 #: templates/core/api_tokens.html:3
 #: templates/core/api_tokens.html:8
 msgid "App-Tokens"
 msgstr "App tokens"
 
-#: templates/core/more.html:349
+#: templates/core/more.html:352
 msgid "App-Tokens / API"
 msgstr "App tokens / API"
 
@@ -689,6 +710,7 @@ msgstr "Archived"
 msgid "Art der Desinfektion"
 msgstr "Type of disinfection"
 
+#: core/module_overview.py:75
 #: core/wiki_models.py:129
 msgid "Artikel"
 msgstr "Article"
@@ -725,16 +747,12 @@ msgstr "Assets operational"
 msgid "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:"
 msgstr "Even a demonstration with fictional operational content processes real connection data. Which details permanently end up in access or error logs depends on the actual configuration of the application, the reverse proxy, and the hosting. Prior to publication, an inventory is required for the following possible data fields; the list is not a statement that all fields are logged:"
 
-#: core/navigation.py:69
+#: core/navigation.py:70
 #: templates/base.html:79
 #: templates/core/audit_log.html:3
 #: templates/core/audit_log.html:5
 msgid "Audit"
 msgstr "Audit"
-
-#: templates/core/landing.html:29
-msgid "Audit &amp; Privacy"
-msgstr "Audit &amp; privacy"
 
 #: templates/core/vorfuehrung.html:106
 msgid "Audit append-only"
@@ -744,7 +762,7 @@ msgstr "Audit append-only"
 msgid "Audit-Ereignisse, horizontal scrollbar auf kleinen Bildschirmen"
 msgstr "Audit events, horizontally scrollable on small screens"
 
-#: templates/core/more.html:418
+#: templates/core/more.html:421
 msgid "Audit-Logbuch"
 msgstr "Audit log"
 
@@ -756,19 +774,19 @@ msgstr "Body manufacturer"
 msgid "Aufgabe anlegen"
 msgstr "Create task"
 
-#: core/views.py:932
+#: core/views.py:950
 msgid "Aufgabe wurde als erledigt markiert."
 msgstr "Task was marked as completed."
 
-#: core/views.py:966
+#: core/views.py:984
 msgid "Aufgabe wurde angelegt."
 msgstr "Task was created."
 
-#: core/views.py:988
+#: core/views.py:1006
 msgid "Aufgabe wurde gespeichert."
 msgstr "Task was saved."
 
-#: core/views.py:934
+#: core/views.py:952
 msgid "Aufgabe wurde wieder geöffnet."
 msgstr "Task was reopened."
 
@@ -806,15 +824,15 @@ msgstr "Issued"
 msgid "Aushang anlegen"
 msgstr "Create notice"
 
-#: core/views.py:1452
+#: core/views.py:1470
 msgid "Aushang wurde aktualisiert."
 msgstr "Notice was updated."
 
-#: core/views.py:1428
+#: core/views.py:1446
 msgid "Aushang wurde angelegt."
 msgstr "Notice was created."
 
-#: core/views.py:1477
+#: core/views.py:1495
 msgid "Aushang wurde archiviert."
 msgstr "Notice was archived."
 
@@ -825,6 +843,10 @@ msgstr "Notices"
 #: core/wiki_forms.py:16
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Descriptive title of the entry (max. 160 characters)."
+
+#: core/views.py:491
+msgid "Ausstattung"
+msgstr "Equipment"
 
 #: templates/core/orga_dashboard.html:79
 msgid "Ausstehende Kenntnisnahme"
@@ -837,7 +859,7 @@ msgstr "Pending acknowledgement"
 msgid "Auswertung"
 msgstr "Evaluation"
 
-#: templates/core/more.html:168
+#: templates/core/more.html:169
 msgid "Auswertung & Kennzahlen"
 msgstr "Analytics & key figures"
 
@@ -848,10 +870,6 @@ msgstr "Evaluations for individual performance or behavior control of employees 
 #: templates/core/account.html:66
 msgid "Authenticator und Passkeys verwalten"
 msgstr "Manage authenticator and passkeys"
-
-#: templates/core/more.html:432
-msgid "Authenticator-Apps (TOTP) und biometrische FIDO2/Passkey-Sicherheit."
-msgstr "Authenticator apps (TOTP) and biometric FIDO2/passkey security."
 
 #: templates/core/api_tokens.html:9
 msgid "Authorization: Token …"
@@ -976,6 +994,10 @@ msgstr "Remark / reason for transport"
 msgid "Bemerkungen / Feststellungen:"
 msgstr "Remarks / findings:"
 
+#: templates/core/more.html:448
+msgid "Benachrichtigung auf Handy oder PC bei dringenden Übergaben."
+msgstr "Notifications on phone or PC for urgent handovers."
+
 #: templates/core/push_settings.html:3
 msgid "Benachrichtigungen"
 msgstr "Notifications"
@@ -1031,10 +1053,6 @@ msgstr "Already acknowledged"
 msgid "Bereits registriert? Anmelden"
 msgstr "Already registered? Log in"
 
-#: templates/core/more.html:143
-msgid "Bereitschaftsstatus von Einsatzgeräten, Schlüsselkästen und Poolmaterial verwalten."
-msgstr "Manage readiness of operational equipment, key boxes and pool equipment."
-
 #: templates/core/privacy.html:72
 msgid "Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz)."
 msgstr "Provision of the network connection, stability, troubleshooting, as well as detection and defense against malicious attacks (e.g., rate limiting and brute-force protection)."
@@ -1047,9 +1065,17 @@ msgstr "Career fire department"
 msgid "Beschreibung"
 msgstr "Description"
 
+#: templates/core/warehouse_dashboard.html:10
+msgid "Bestand nach Lagerort, Chargen mit Verfallsdatum (was zuerst abläuft, wird zuerst verbraucht) und Mindestbestände."
+msgstr "Stock per location, batches with expiry dates (first expired, first out) and minimum stock levels."
+
 #: templates/core/warehouse_item_detail.html:44
 msgid "Bestand nach Lagerorten (Fahrzeuge, Schränke, Koffer)"
 msgstr "Stock by storage location (vehicles, cabinets, cases)"
+
+#: templates/core/more.html:64
+msgid "Bestand, Chargen und Verfallsdaten, Mindestbestände und Bestellvorschlag."
+msgstr "Stock, batches and expiry dates, minimum stock and reorder proposal."
 
 #: templates/core/mpg_device_detail.html:384
 msgid "Bestanden"
@@ -1063,9 +1089,13 @@ msgstr "Stock control & minimum quantities"
 msgid "Bestandsverzeichnis (CSV)"
 msgstr "Inventory register (CSV)"
 
+#: templates/core/landing.html:62
+msgid "Bestandsverzeichnis, STK-/MTK-Fristen, Funktionskontrollen und Einweisungsnachweise."
+msgstr "Device inventory, STK/MTK deadlines, function checks and instruction records."
+
 #: templates/core/mpg_dashboard.html:10
-msgid "Bestandsverzeichnis (§ 14), sicherheitstechnische Kontrollen (STK § 11), messtechnische Kontrollen (MTK § 14) und digitaler Gerätepass."
-msgstr "Inventory register (§ 14), safety checks (STK § 11), metrological checks (MTK § 14) and digital device passport."
+msgid "Bestandsverzeichnis, sicherheits- und messtechnische Kontrollen (STK/MTK), Funktionskontrollen und Einweisungen nach MPBetreibV."
+msgstr "Device inventory, safety and metrological inspections (STK/MTK), function checks and instructions under MPBetreibV."
 
 #: templates/core/team_form.html:9
 msgid "Bestehende Konten ohne aktive Mitgliedschaft einer Wache zuordnen. Neue Nutzer legst du unter „Benutzer anlegen“ an."
@@ -1226,7 +1256,7 @@ msgid "Bitte ein Bild wählen oder Entfernen markieren."
 msgstr "Please select an image or check Remove."
 
 #: core/news_views.py:64
-#: core/views.py:623
+#: core/views.py:641
 msgid "Bitte eine Datei auswählen."
 msgstr "Please choose a file."
 
@@ -1362,6 +1392,10 @@ msgstr "Batches & storage"
 msgid "Chargen nach FEFO-Priorität (First Expired, First Out)"
 msgstr "Batches by FEFO priority (First Expired, First Out)"
 
+#: templates/core/landing.html:67
+msgid "Chargen und Verfall nach FEFO, Mindestbestände und ein fertiger Bestellvorschlag."
+msgstr "Batches and expiry by FEFO, minimum stock and a ready-made reorder proposal."
+
 #: templates/core/warehouse_item_detail.html:152
 msgid "Chargennummer (Lot):"
 msgstr "Batch number (lot):"
@@ -1400,17 +1434,17 @@ msgstr "Check"
 msgid "Check mit Details"
 msgstr "Check with details"
 
-#: core/views.py:1032
+#: core/views.py:1050
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
 #: core/navigation.py:31
-#: core/navigation.py:57
-#: core/views.py:489
+#: core/navigation.py:58
+#: core/views.py:496
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
-#: templates/core/more.html:181
+#: templates/core/more.html:182
 #: templates/core/vorfuehrung.html:65
 msgid "Checklisten"
 msgstr "Checklists"
@@ -1427,11 +1461,11 @@ msgstr "Client-side encryption"
 msgid "Cockpit & Schichtübernahme"
 msgstr "Cockpit & shift takeover"
 
-#: core/views.py:1325
+#: core/views.py:1343
 msgid "Code ungültig oder abgelaufen."
 msgstr "Code invalid or expired."
 
-#: core/views.py:1355
+#: core/views.py:1373
 msgid "Code ungültig. Bitte erneut scannen und prüfen."
 msgstr "Code invalid. Please scan again and verify."
 
@@ -1463,17 +1497,17 @@ msgstr "To help us assist you: Contact logbook support and share the correlation
 msgid "Danke – alle haben gelesen. Die Neuigkeit ist im Archiv."
 msgstr "Thank you – everyone has read it. The item is archived."
 
-#: core/navigation.py:67
+#: core/navigation.py:68
 #: templates/core/presentation.html:3
 #: templates/core/presentation.html:7
 msgid "Darstellung"
 msgstr "Layout"
 
-#: templates/core/more.html:394
+#: templates/core/more.html:397
 msgid "Darstellung & Leiste"
 msgstr "Display & bar"
 
-#: core/views.py:1227
+#: core/views.py:1245
 msgid "Darstellung gespeichert."
 msgstr "Layout saved."
 
@@ -1505,17 +1539,29 @@ msgstr "You set the password yourself. The link is valid once and expires on %(d
 msgid "Das Wachbuch ist nur für Wachenorganisation, Material, Fahrzeuge und offene Aufgaben vorgesehen. Patienten- und Einsatzdokumentation bleibt im freigegebenen Fachverfahren."
 msgstr "The watch log is only intended for station organization, equipment, vehicles, and open tasks. Patient and incident documentation remains in the approved specialized system."
 
+#: templates/core/landing.html:90
+msgid "Das Wachbuch organisiert den Wachalltag. Patienten-, Einsatz-, Alarmierungs- und Dienstplandaten gehören bewusst nicht hinein. Das hält den Datenschutz überschaubar und die Bedienung einfach."
+msgstr "The station log organises everyday station work. Patient, mission, alerting and duty roster data deliberately stay out. That keeps data protection manageable and the app simple."
+
 #: templates/core/privacy.html:39
 msgid "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung."
 msgstr "The watch log supports the internal organization of a station, in particular handovers, appointments, tasks, checklists, defects, equipment/vehicle status, inventory, team roles, and audit. Patient, incident, dispatch, ePCR, and comparable specialized medical data explicitly do not belong in this application."
 
+#: templates/core/landing.html:4
+msgid "Das digitale Wachbuch"
+msgstr "The digital station log"
+
+#: templates/core/landing.html:11
+msgid "Das digitale Wachbuch für Rettungswache, Feuerwehr und Behörden."
+msgstr "The digital station log for EMS stations, fire services and public agencies."
+
 #: core/news_views.py:68
-#: core/views.py:627
+#: core/views.py:645
 msgid "Datei darf maximal 5 MiB groß sein."
 msgstr "File may be at most 5 MiB."
 
 #: core/news_views.py:72
-#: core/views.py:633
+#: core/views.py:651
 msgid "Datei ist kein gültiges Bild und kein lesbares PDF."
 msgstr "The file is not a valid image and not a readable PDF."
 
@@ -1527,12 +1573,15 @@ msgstr "File or request is too large."
 msgid "Dateityp wird nicht unterstützt."
 msgstr "File type is not supported."
 
+#: templates/core/landing.html:27
+msgid "Daten bleiben auf eurem Server"
+msgstr "Data stays on your own server"
+
 #: core/diagnostics_models.py:27
 #: templates/core/system_status.html:24
 msgid "Datenbank"
 msgstr "Database"
 
-#: templates/core/landing.html:14
 #: templates/core/vorfuehrung.html:116
 msgid "Datenschutz"
 msgstr "Privacy"
@@ -1586,9 +1635,9 @@ msgstr "Date:"
 msgid "Dauerhaft"
 msgstr "Permanent"
 
-#: templates/core/more.html:286
-msgid "Dauerhafte Nachschlagewerke, Ortskunde, Verfahrensanweisungen & Hausordnung."
-msgstr "Permanent reference works, local knowledge, procedures & house rules."
+#: templates/core/more.html:287
+msgid "Dauerhafte Hinweise und Abläufe der Wache zum Nachschlagen."
+msgstr "Permanent notes and procedures of the station for reference."
 
 #: templates/core/push_settings.html:14
 msgid "Deaktivieren"
@@ -1602,12 +1651,16 @@ msgstr "Your profile picture"
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Your user instruction (§ 11)"
 
-#: templates/core/landing.html:45
+#: templates/core/landing.html:18
+msgid "Demo ausprobieren"
+msgstr "Try the demo"
+
+#: templates/core/landing.html:131
 #: templates/core/vorfuehrung.html:133
 msgid "Demo starten"
 msgstr "Start demo"
 
-#: templates/core/landing.html:40
+#: templates/core/landing.html:126
 msgid "Demo-Modus"
 msgstr "Demo mode"
 
@@ -1615,7 +1668,7 @@ msgstr "Demo mode"
 msgid "Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz."
 msgstr "Demo mode with a sample station, or your instance behind your own proxy. Watch log remains a station log – and does not become one for operations."
 
-#: templates/core/landing.html:41
+#: templates/core/landing.html:127
 msgid "Demo-Zugang"
 msgstr "Demo access"
 
@@ -1643,6 +1696,10 @@ msgstr "CSRF protection is session-based via the session (CSRF_USE_SESSIONS=True
 msgid "Der Code ist nur für diese eine Anmeldung und etwa zwei Minuten gültig. Er ist kein Passwort und wird nicht gespeichert."
 msgstr "The code is only valid for this single login and for approximately two minutes. It is not a password and is not stored."
 
+#: templates/core/landing.html:114
+msgid "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto."
+msgstr "The setup wizard guides you through name, modules and the first admin account."
+
 #: core/wiki_views.py:135
 msgid "Der Hinweis konnte aufgrund eines gleichzeitigen Schreibkonflikts nicht angelegt werden. Bitte versuchen Sie es erneut."
 msgstr "The note could not be created because of a simultaneous write conflict. Please try again."
@@ -1655,10 +1712,6 @@ msgstr "The note was modified in the meantime (currently revision %(rev)s). Your
 #: templates/core/chat_signal.html:39
 msgid "Der Link zur Signal-Gruppe wird in den Einstellungen hinterlegt und gilt für alle Mitglieder dieser Wache."
 msgstr "The link to the Signal group is stored in the settings and applies to all members of this station."
-
-#: templates/core/landing.html:35
-msgid "Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat."
-msgstr "The master admin creates users and approves station access. After that: password, two-factor authentication, and profile picture under My account; short messages in station chat."
 
 #: core/forms.py:165
 msgid "Der Nutzer sollte das Passwort danach unter Mein Konto ändern."
@@ -1699,6 +1752,10 @@ msgstr "The cache resides in the process. It is empty after a restart and is not
 #: templates/core/crypto_setup.html:9
 msgid "Der private Schlüssel wird mit deiner Passphrase umschlossen gespeichert und erst im Browser entsperrt. Das schützt gespeicherte Daten und Backups; ausgelieferter Webclient und Server bleiben Teil des Vertrauensmodells."
 msgstr "The private key is stored wrapped with your passphrase and only unlocked in the browser. This protects stored data and backups; delivered web client and server remain part of the trust model."
+
+#: templates/core/landing.html:145
+msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
+msgstr "The complete source code is licensed under AGPL-3.0. Every station can review, run and improve it."
 
 #: templates/core/fleet_dashboard.html:35
 msgid "Desinfektion (Gesperrt)"
@@ -1804,9 +1861,17 @@ msgstr "The formal operator identity and serviceable address have not yet been a
 msgid "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:"
 msgstr "The technical protection concept includes the following measures; their effective configuration in specific operations must be verified separately:"
 
+#: core/module_overview.py:90
+msgid "Dienstanweisung"
+msgstr "Work instruction"
+
 #: templates/core/sop_form.html:13
 msgid "Dienstanweisung mit Versionsstand und Freigabevermerk (z. B. ÄLRD, MPBetreibV, DIN EN ISO 9001)."
 msgstr "Work instruction with version status and approval note (e.g. ÄLRD, MPBetreibV, DIN EN ISO 9001)."
+
+#: core/module_overview.py:90
+msgid "Dienstanweisungen"
+msgstr "Work instructions"
 
 #: templates/core/orga_dashboard.html:100
 msgid "Dienstanweisungen & Heilkunde-SOPs"
@@ -1816,29 +1881,29 @@ msgstr "Work instructions & medical SOPs"
 msgid "Dienstanweisungen & QM"
 msgstr "Work instructions & QM"
 
-#: templates/core/orga_dashboard.html:8
-msgid "Dienstanweisungen & Wachen-Desk"
-msgstr "Work instructions & station desk"
-
 #: templates/core/orga_dashboard.html:68
 msgid "Dienstanweisungen aktiv"
 msgstr "Active work instructions"
 
-#: templates/core/more.html:91
-msgid "Dienstanweisungen, Hygienepläne, SOPs mit SHA-256 Integrität, Lesequittierung & Notfall-Kurzwahlliste."
-msgstr "Work instructions, hygiene plans, SOPs with SHA-256 integrity, read acknowledgement & emergency speed-dial list."
+#: templates/core/more.html:92
+msgid "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache."
+msgstr "Work instructions with read confirmation and the station phone book."
+
+#: templates/core/landing.html:72
+msgid "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender."
+msgstr "Versioned work instructions with read confirmation, wiki, news and station calendar."
 
 #: core/views.py:426
 msgid "Dienststellen-Aufgaben"
 msgstr "Department tasks"
 
-#: core/views.py:923
+#: core/views.py:941
 msgid "Diese Aufgabe gilt nicht für den gewählten Tag."
 msgstr "This task does not apply to the selected day."
 
-#: core/views.py:817
-#: core/views.py:839
-#: core/views.py:825
+#: core/views.py:835
+#: core/views.py:857
+#: core/views.py:843
 msgid "Diese Buchung wurde bereits korrigiert."
 msgstr "This entry has already been corrected."
 
@@ -1850,7 +1915,7 @@ msgstr "This documentation is purely technical preliminary information for the W
 msgid "Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium."
 msgstr "This instance is configured in demo mode. Only synthetic stations, persons, and operations may be used for the demonstration. The demo switch alone does not guarantee a fictional dataset; data verification is a separate release criterion."
 
-#: templates/core/landing.html:42
+#: templates/core/landing.html:128
 msgid "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin."
 msgstr "This instance is populated with fictional sample data. One click is all it takes – you are logged in directly as demo admin."
 
@@ -1917,9 +1982,9 @@ msgstr "This QR code leads directly to this mobile device cockpit. Print it and 
 msgid "Dieses Wachbuch enthält im Produktumfang kein KI-System zur Inferenz oder automatisierten Entscheidung über Beschäftigte. Werden zukünftig KI-Funktionen integriert, sind Datenschutz-, Informationssicherheits- und AI-Act-Bewertung vor Aktivierung neu durchzuführen."
 msgstr "This watch log does not include any AI system in its product scope for inference or automated decision-making concerning employees. If AI features are integrated in the future, data protection, information security, and AI Act assessments must be carried out anew prior to activation."
 
-#: templates/core/more.html:156
-msgid "Digitale Wandtafel: Grüne tägliche Routine, gelbe Wochentage und blaue Zusatzaufgaben."
-msgstr "Digital whiteboard: green daily routine, yellow weekdays and blue additional tasks."
+#: templates/core/more.html:157
+msgid "Digitale Wandtafel mit täglichen, wöchentlichen und zusätzlichen Aufgaben."
+msgstr "Digital task board with daily, weekly and additional tasks."
 
 #: templates/core/mpg_geraetepass.html:12
 msgid "Digitaler Gerätepass & Einweisungen"
@@ -1929,15 +1994,7 @@ msgstr "Digital device passport & instructions"
 msgid "Digitaler Gerätepass & Einweisungsmatrix"
 msgstr "Digital device passport & instruction matrix"
 
-#: templates/core/more.html:234
-msgid "Digitales Saldo-Ledger, Einzahlungen und Strichlistenbuchungen."
-msgstr "Digital balance ledger, deposits and tally sheet bookings."
-
-#: templates/core/more.html:445
-msgid "Direkte Benachrichtigungen auf Smartphone oder Desktop bei dringenden Schichtmeldungen."
-msgstr "Direct notifications on smartphone or desktop for urgent shift reports."
-
-#: templates/core/more.html:313
+#: templates/core/more.html:314
 msgid "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgstr "Direct team coordination and optional Signal group integration."
 
@@ -1945,13 +2002,9 @@ msgstr "Direct team coordination and optional Signal group integration."
 msgid "Display-Konfiguration: %(label)s"
 msgstr "Display configuration: %(label)s"
 
-#: templates/core/more.html:361
+#: templates/core/more.html:364
 msgid "Display-Tokens"
 msgstr "Display tokens"
-
-#: templates/core/more.html:458
-msgid "Django-Backend-Administration für Serveradministratoren."
-msgstr "Django backend administration for server administrators."
 
 #: templates/core/vorfuehrung.html:104
 msgid "Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache."
@@ -1986,7 +2039,7 @@ msgstr "Urgent – immediately"
 msgid "Dringende Übergaben"
 msgstr "Urgent handovers"
 
-#: templates/core/dashboard.html:19
+#: templates/core/dashboard.html:18
 msgid "Dringendes öffnen"
 msgstr "Open urgent items"
 
@@ -2107,10 +2160,6 @@ msgstr "Unit"
 msgid "Einladungslink ändern"
 msgstr "Change invitation link"
 
-#: templates/core/more.html:384
-msgid "Einladungslinks und QR-Codes zur sicheren Erstregistrierung neuer Kollegen."
-msgstr "Invitation links and QR codes for secure first-time registration of new colleagues."
-
 #: templates/core/team_invite_form.html:22
 msgid "Einmal-Link erzeugen"
 msgstr "Generate one-time link"
@@ -2152,13 +2201,13 @@ msgstr "Resources"
 msgid "Einstellung speichern"
 msgstr "Save setting"
 
-#: core/navigation.py:68
+#: core/navigation.py:69
 #: templates/core/station_settings.html:3
 #: templates/core/station_settings.html:8
 msgid "Einstellungen"
 msgstr "Settings"
 
-#: core/views.py:1276
+#: core/views.py:1294
 msgid "Einstellungen wurden gespeichert."
 msgstr "Settings were saved."
 
@@ -2264,7 +2313,7 @@ msgid "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und
 msgstr "Automatically detects SecurPharm 2D codes (PZN, lot no., expiry date) and standard barcodes (EAN/GTIN)."
 
 #: core/news_views.py:66
-#: core/views.py:625
+#: core/views.py:643
 msgid "Erlaubt sind JPEG, PNG, WebP und PDF."
 msgstr "Only JPEG, PNG, WebP and PDF are allowed."
 
@@ -2364,22 +2413,19 @@ msgstr "External calendar apps"
 msgid "Externer Datenschutzkontakt"
 msgstr "External data protection contact"
 
-#: templates/core/more.html:63
-msgid "FEFO-Apothekenlager, Kühlketten-Timer (2–8 °C), Mindestbestands-Bestellschein & 1-Scan Aufrüstung."
-msgstr "FEFO pharmacy storage, cold chain timer (2–8 °C), minimum stock order form & 1-scan restocking."
-
 #: templates/core/warehouse_dashboard.html:25
 msgid "FEFO-Bestand (CSV)"
 msgstr "FEFO stock (CSV)"
 
-#: templates/core/warehouse_dashboard.html:10
-msgid "FEFO-Prinzip (First Expired, First Out), dynamische Kühlketten-Haltbarkeit und Chargenüberwachung."
-msgstr "FEFO principle (First Expired, First Out), dynamic cold chain shelf life and batch monitoring."
+#: templates/core/more.html:35
+msgid "Fachmodule"
+msgstr "Specialist modules"
 
 #: templates/core/fleet_vehicle_form.html:64
 msgid "Fahrgestell-Hersteller"
 msgstr "Chassis manufacturer"
 
+#: core/module_overview.py:37
 #: templates/core/fleet_dashboard.html:230
 msgid "Fahrzeug"
 msgstr "Vehicle"
@@ -2416,9 +2462,17 @@ msgstr "Vehicle file / special features"
 msgid "Fahrzeugcheck"
 msgstr "Vehicle check"
 
+#: core/module_overview.py:37
+msgid "Fahrzeuge"
+msgstr "Vehicles"
+
 #: templates/core/assets_inventory.html:11
 msgid "Fahrzeuge & Geräte"
 msgstr "Vehicles & devices"
+
+#: templates/core/landing.html:56
+msgid "Fahrzeuge & Hygiene"
+msgstr "Vehicles & hygiene"
 
 #: templates/core/fleet_dashboard.html:47
 msgid "Fahrzeuge gesamt"
@@ -2433,9 +2487,17 @@ msgstr "Vehicles/equipment"
 msgid "Fahrzeugstammdaten & Kennzeichnung"
 msgstr "Vehicle master data & identification"
 
+#: templates/core/more.html:78
+msgid "Fahrzeugstatus, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen."
+msgstr "Vehicle status, check at shift start, disinfection and inspection deadlines."
+
 #: templates/core/fleet_vehicle_form.html:49
 msgid "Fahrzeugtyp"
 msgstr "Vehicle type"
+
+#: templates/core/landing.html:57
+msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
+msgstr "Vehicle check, disinfection log with contact time and deadlines for MOT and UVV."
 
 #: templates/core/privacy.html:98
 #: templates/core/privacy.html:123
@@ -2468,13 +2530,17 @@ msgid "Fehlerereignisse"
 msgstr "Error events"
 
 #: templates/core/calendar.html:21
-#: templates/core/dashboard.html:61
+#: templates/core/dashboard.html:60
 msgid "Feiertag"
 msgstr "Public holiday"
 
 #: core/forms.py:241
 msgid "Feiertage im Kalender"
 msgstr "\\\"Public holidays in calendar\\\""
+
+#: templates/core/more.html:398
+msgid "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
+msgstr "Choose which areas appear in the bar and in which order."
 
 #: core/forms.py:674
 #: core/views.py:414
@@ -2501,7 +2567,7 @@ msgstr "Progress of daily tasks"
 msgid "Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar."
 msgstr "Photo only on the defect, no general archive. Pools and keys traceable."
 
-#: templates/core/landing.html:18
+#: templates/core/landing.html:33
 #: templates/core/vorfuehrung.html:150
 msgid "Foto:"
 msgstr "Photo:"
@@ -2526,6 +2592,10 @@ msgstr "Approved by"
 msgid "Freitext, z. B. Verwendungszweck oder Ansprechpartner."
 msgstr "\\\"Free text, e.g. payment reference or contact person.\\\""
 
+#: templates/core/more.html:249
+msgid "Freiwillig eingetragene Geburtstage im Team."
+msgstr "Birthdays the team chose to share."
+
 #: templates/core/birthday_settings.html:6
 msgid "Freiwillig und widerrufbar"
 msgstr "Voluntary and revocable"
@@ -2537,10 +2607,6 @@ msgstr "Voluntary display"
 #: templates/core/vorfuehrung.html:47
 msgid "Freiwillige Feuerwehr"
 msgstr "Volunteer fire department"
-
-#: templates/core/more.html:248
-msgid "Freiwillige Team-Geburtstagsübersicht und Jubiläen."
-msgstr "Voluntary team birthday overview and anniversaries."
 
 #: templates/core/birthdays.html:6
 msgid "Freiwillige Teamfunktion"
@@ -2564,13 +2630,14 @@ msgid "Fristen fällig"
 msgstr "Deadlines due"
 
 #: core/navigation.py:24
+#: templates/core/fleet_dashboard.html:8
 msgid "Fuhrpark"
 msgstr "Fleet"
 
 #: core/forms.py:238
 #: core/navigation.py:47
 #: templates/core/fleet_dashboard.html:9
-#: templates/core/more.html:76
+#: templates/core/more.html:77
 msgid "Fuhrpark & Fahrzeuge"
 msgstr "Fleet & vehicles"
 
@@ -2581,10 +2648,6 @@ msgstr "Fleet & hygiene"
 #: templates/core/fleet_dashboard.html:52
 msgid "Fuhrpark Ansicht"
 msgstr "Fleet view"
-
-#: templates/core/fleet_dashboard.html:8
-msgid "Fuhrpark, Einsatzbereitschaft & Hygiene"
-msgstr "Fleet, operational readiness & hygiene"
 
 #: templates/core/fleet_dashboard.html:19
 msgid "Fuhrpark-Akte (CSV)"
@@ -2671,6 +2734,10 @@ msgstr "For the department"
 msgid "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen."
 msgstr "Hosting with Hetzner is planned for the demonstration, but has not yet been confirmed here as an actual deployment. The specific service, contracting party, server location, administrative access, and any required data processing agreement under Art. 28 GDPR must be determined and documented prior to release. A German server location is not claimed without proof. Other recipients as well as possible third-country transfers must be included in the assessment."
 
+#: templates/core/landing.html:89
+msgid "Für die Wache – nicht für den Einsatz"
+msgstr "For the station – not for missions"
+
 #: templates/core/vorfuehrung.html:27
 msgid "Für die Wache. Nicht für den Einsatz."
 msgstr "For the station. Not for operations."
@@ -2686,10 +2753,6 @@ msgstr "For the next shift handover"
 #: core/views.py:407
 msgid "Für die nächste Schicht"
 msgstr "For the next shift"
-
-#: templates/core/dashboard.html:18
-msgid "Für die nächste Schicht festhalten"
-msgstr "Record for the next shift"
 
 #: core/views.py:431
 msgid "Für die nächste Übergabe"
@@ -2735,7 +2798,7 @@ msgstr "GTIN / barcode (EAN):"
 #: templates/core/account.html:71
 #: templates/core/calendar.html:21
 #: templates/core/calendar.html:29
-#: templates/core/dashboard.html:61
+#: templates/core/dashboard.html:60
 msgid "Geburtstag"
 msgstr "Birthday"
 
@@ -2745,14 +2808,14 @@ msgstr "Set birthday"
 
 #: core/display_views.py:303
 #: core/navigation.py:29
-#: core/navigation.py:54
+#: core/navigation.py:55
 #: templates/core/birthdays.html:3
 #: templates/core/birthdays.html:6
-#: templates/core/more.html:247
+#: templates/core/more.html:248
 msgid "Geburtstage"
 msgstr "Birthdays"
 
-#: core/views.py:756
+#: core/views.py:774
 msgid "Geburtstagseinstellung wurde gespeichert."
 msgstr "Birthday setting was saved."
 
@@ -2768,7 +2831,7 @@ msgstr "Offsetting entry"
 msgid "Gegenbuchung erfassen"
 msgstr "Record offsetting entry"
 
-#: core/views.py:841
+#: core/views.py:859
 msgid "Gegenbuchung wurde erfasst."
 msgstr "Offsetting entry was recorded."
 
@@ -2809,7 +2872,7 @@ msgstr "Device"
 msgid "Geräte"
 msgstr "Equipment"
 
-#: templates/core/more.html:142
+#: templates/core/more.html:143
 msgid "Geräte & Poolbestand"
 msgstr "Devices & pool stock"
 
@@ -2838,6 +2901,10 @@ msgstr "Equipment/vehicles"
 #: templates/core/mpg_device_form.html:30
 msgid "Gerätebezeichnung*"
 msgstr "Device name*"
+
+#: templates/core/more.html:50
+msgid "Gerätebuch, Prüffristen (STK/MTK), Funktionskontrollen und Einweisungen."
+msgstr "Device log, inspection deadlines (STK/MTK), function checks and instructions."
 
 #: core/task_board.py:19
 msgid "Gerätekontrolle"
@@ -2954,6 +3021,10 @@ msgstr "Reason"
 #: templates/core/warehouse_recall.html:55
 msgid "Grund:"
 msgstr "Reason:"
+
+#: templates/core/landing.html:87
+msgid "Grundsätze"
+msgstr "Principles"
 
 #: templates/core/mpg_device_detail.html:429
 msgid "Gruppe einweisen"
@@ -3197,29 +3268,29 @@ msgstr "In progress"
 msgid "In Desinfektion"
 msgstr "In disinfection"
 
-#: templates/core/dashboard.html:63
+#: templates/core/dashboard.html:62
 msgid "In Kalender speichern"
 msgstr "Save to calendar"
 
-#: templates/core/more.html:45
-#: templates/core/more.html:59
-#: templates/core/more.html:73
-#: templates/core/more.html:87
-#: templates/core/more.html:101
-#: templates/core/more.html:127
-#: templates/core/more.html:139
-#: templates/core/more.html:152
-#: templates/core/more.html:165
-#: templates/core/more.html:178
-#: templates/core/more.html:202
-#: templates/core/more.html:216
-#: templates/core/more.html:230
-#: templates/core/more.html:244
-#: templates/core/more.html:270
-#: templates/core/more.html:282
-#: templates/core/more.html:295
-#: templates/core/more.html:309
-#: templates/core/more.html:335
+#: templates/core/more.html:46
+#: templates/core/more.html:60
+#: templates/core/more.html:74
+#: templates/core/more.html:88
+#: templates/core/more.html:102
+#: templates/core/more.html:128
+#: templates/core/more.html:140
+#: templates/core/more.html:153
+#: templates/core/more.html:166
+#: templates/core/more.html:179
+#: templates/core/more.html:203
+#: templates/core/more.html:217
+#: templates/core/more.html:231
+#: templates/core/more.html:245
+#: templates/core/more.html:271
+#: templates/core/more.html:283
+#: templates/core/more.html:296
+#: templates/core/more.html:310
+#: templates/core/more.html:338
 msgid "In Leiste"
 msgstr "In bar"
 
@@ -3243,6 +3314,10 @@ msgstr "In the app, first confirm this server address (tap or scan QR), then use
 msgid "In dieser Ansicht gibt es keine Übergaben."
 msgstr "There are no handovers in this view."
 
+#: templates/core/landing.html:105
+msgid "In drei Schritten startklar"
+msgstr "Ready in three steps"
+
 #: templates/core/tasks_manage.html:24
 #: templates/core/team.html:38
 msgid "Inaktiv"
@@ -3257,7 +3332,7 @@ msgid "Individuelle Aufgabe"
 msgstr "Individual task"
 
 #: templates/core/handover_detail.html:15
-#: templates/core/more.html:262
+#: templates/core/more.html:263
 msgid "Information"
 msgstr "Information"
 
@@ -3294,6 +3369,10 @@ msgstr "Hand over to Wachbuch"
 msgid "Installation"
 msgstr "Installation"
 
+#: templates/core/landing.html:82
+msgid "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android über die versionierte API."
+msgstr "Installable as a web app, plus open-source apps for iOS and Android via the versioned API."
+
 #: templates/core/vorfuehrung.html:77
 msgid "Installierbar, offline lesbar"
 msgstr "Installable, readable offline"
@@ -3326,7 +3405,7 @@ msgstr "Internal station workflows without case or operational data."
 msgid "Intervall"
 msgstr "Interval"
 
-#: core/views.py:488
+#: core/views.py:495
 msgid "Inventar"
 msgstr "Inventory"
 
@@ -3363,6 +3442,10 @@ msgstr "JPEG, PNG, WebP or PDF, at most %(max_upload_mb)s MB."
 msgid "Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte."
 msgstr "Each domain query remains tied to its own station. Auditors without free text."
 
+#: templates/core/landing.html:41
+msgid "Jede Wache schaltet nur die Module ein, die sie wirklich nutzt. Die Oberfläche bleibt dadurch übersichtlich."
+msgstr "Each station enables only the modules it actually uses, which keeps the interface clear."
+
 #: templates/core/mpg_dashboard.html:182
 msgid "Jetzt erstes Gerät registrieren"
 msgstr "Register first device now"
@@ -3372,11 +3455,11 @@ msgid "KW %(week)s"
 msgstr "CW %(week)s"
 
 #: core/navigation.py:28
-#: core/navigation.py:55
+#: core/navigation.py:56
 #: templates/core/coffee.html:3
 #: templates/core/coffee.html:6
 #: templates/core/coffee_form.html:4
-#: templates/core/more.html:233
+#: templates/core/more.html:234
 msgid "Kaffeekasse"
 msgstr "Coffee fund"
 
@@ -3384,14 +3467,10 @@ msgstr "Coffee fund"
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
 #: templates/core/calendar_form.html:6
-#: templates/core/dashboard.html:20
-#: templates/core/dashboard.html:53
+#: templates/core/dashboard.html:19
+#: templates/core/dashboard.html:52
 msgid "Kalender"
 msgstr "Calendar"
-
-#: templates/core/landing.html:27
-msgid "Kalender, Chat &amp; Team"
-msgstr "Calendar, chat &amp; team"
 
 #: templates/core/calendar_feed.html:3
 #: templates/core/calendar_feed.html:8
@@ -3444,13 +3523,17 @@ msgstr "Cash fund, checklists, and handovers are corrected by new entries, not b
 msgid "Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen"
 msgstr "Cash log, horizontally scrollable on small screens"
 
-#: core/views.py:801
+#: core/views.py:819
 msgid "Kassenbuchung wurde erfasst."
 msgstr "Cash entry was recorded."
 
 #: templates/core/coffee.html:31
 msgid "Kassenbuchungen"
 msgstr "Cash log entries"
+
+#: templates/core/more.html:235
+msgid "Kassenstand, Einzahlungen und Buchungen der Gemeinschaftskasse."
+msgstr "Balance, deposits and entries of the shared fund."
 
 #: templates/core/defect_form.html:17
 #: templates/core/handover_form.html:10
@@ -3579,6 +3662,10 @@ msgstr "No speed-dial contacts stored."
 msgid "Keine Termine"
 msgstr "No appointments"
 
+#: templates/core/landing.html:26
+msgid "Keine Tracking-Cookies"
+msgstr "No tracking cookies"
+
 #: templates/core/wiki_index.html:75
 msgid "Keine Treffer für diese Suche."
 msgstr "No results for this search."
@@ -3599,12 +3686,12 @@ msgstr "No active permission for this station."
 msgid "Keine aktiven Checklisten vorhanden."
 msgstr "No active checklists available."
 
-#: templates/core/dashboard.html:46
+#: templates/core/dashboard.html:45
 msgid "Keine aktiven Übergaben."
 msgstr "No active handovers."
 
 #: templates/core/calendar.html:37
-#: templates/core/dashboard.html:66
+#: templates/core/dashboard.html:65
 #: templates/core/orga_dashboard.html:199
 msgid "Keine anstehenden Termine."
 msgstr "No upcoming events."
@@ -3633,7 +3720,7 @@ msgstr "No additional tasks."
 msgid "Kenntnisnahme quittiert"
 msgstr "Acknowledgement confirmed"
 
-#: templates/core/more.html:36
+#: templates/core/more.html:37
 msgid "Kernmodule"
 msgstr "Core modules"
 
@@ -3658,7 +3745,7 @@ msgstr "Colleague"
 msgid "Kollegen"
 msgstr "Colleagues"
 
-#: templates/core/more.html:260
+#: templates/core/more.html:261
 msgid "Kommunikation & Wissen"
 msgstr "Communication & knowledge"
 
@@ -3679,7 +3766,7 @@ msgstr "Configuration: %(label)s"
 msgid "Konfigurierte Standardfrist:"
 msgstr "Configured default deadline:"
 
-#: templates/core/more.html:299
+#: templates/core/more.html:300
 msgid "Konfigurierte offizielle Quellen, MoWaS-Warnungen und lokale Verkehrslage."
 msgstr "Configured official sources, MoWaS warnings and local traffic situation."
 
@@ -3698,6 +3785,10 @@ msgstr "Add contact"
 #: templates/core/orga_dashboard.html:174
 msgid "Kontakt wirklich löschen?"
 msgstr "Really delete contact?"
+
+#: templates/core/more.html:376
+msgid "Konten anlegen, freigeben und Rollen zuweisen."
+msgstr "Create and approve accounts and assign roles."
 
 #: templates/registration/mfa_manage.html:6
 #: templates/registration/mfa_setup.html:6
@@ -3779,7 +3870,7 @@ msgstr "Short notices for station organization."
 msgid "Kurze Aushänge und Hinweise – keine Einsatz- oder Personendaten."
 msgstr "Short notices and notes – no operational or personal data."
 
-#: templates/core/more.html:220
+#: templates/core/more.html:221
 msgid "Kurze Aushänge, Schichthinweise und Ankündigungen für die Wachmannschaft."
 msgstr "Short notices, shift notes and announcements for the station crew."
 
@@ -3810,7 +3901,8 @@ msgstr "Refrigerated medicine (2–8 °C in the fridge)"
 
 #: core/navigation.py:23
 #: core/navigation.py:46
-#: templates/core/more.html:62
+#: templates/core/landing.html:66
+#: templates/core/more.html:63
 #: templates/core/warehouse_dashboard.html:3
 #: templates/core/warehouse_dashboard.html:9
 #: templates/core/warehouse_item_detail.html:3
@@ -3909,7 +4001,7 @@ msgstr "MFA"
 msgid "MFA einrichten"
 msgstr "Set up MFA"
 
-#: core/views.py:1371
+#: core/views.py:1389
 msgid "MFA ist für diese Installation vorgeschrieben."
 msgstr "MFA is required for this installation."
 
@@ -3922,7 +4014,7 @@ msgid "MPG & Geräte"
 msgstr "MPG & devices"
 
 #: core/navigation.py:45
-#: templates/core/more.html:48
+#: templates/core/more.html:49
 #: templates/core/mpg_dashboard.html:3
 #: templates/core/mpg_dashboard.html:9
 msgid "MPG & Medizingeräte"
@@ -4003,6 +4095,10 @@ msgstr "Master admin"
 msgid "Master-Admin-Konto"
 msgstr "Master admin account"
 
+#: templates/core/warehouse_dashboard.html:8
+msgid "Material"
+msgstr "Supplies"
+
 #: templates/core/warehouse_dashboard.html:83
 msgid "Materialbestand & FEFO-Verfallsstatus"
 msgstr "Material stock & FEFO expiry status"
@@ -4023,10 +4119,6 @@ msgstr "Record material consumption"
 msgid "Materialwirtschaft & Beschaffung"
 msgstr "Materials management & procurement"
 
-#: templates/core/warehouse_dashboard.html:8
-msgid "Materialwirtschaft & Verfallsradar"
-msgstr "Materials management & expiry radar"
-
 #: templates/core/setup_wizard.html:35
 msgid "Max."
 msgstr "Max."
@@ -4035,9 +4127,22 @@ msgstr "Max."
 msgid "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 msgstr "Max. days unrefrigerated at room temperature (e.g. on the RTW):"
 
+#: core/module_overview.py:56
+msgid "Medizingerät"
+msgstr "Medical device"
+
+#: core/module_overview.py:56
+#: templates/core/landing.html:61
+msgid "Medizingeräte"
+msgstr "Medical devices"
+
 #: templates/core/fleet_vehicle_detail.html:217
 msgid "Medizingeräte Selbsttests (Corpuls/Medumat) OK"
 msgstr "Medical device self-tests (Corpuls/Medumat) OK"
+
+#: templates/core/mpg_dashboard.html:8
+msgid "Medizinprodukte"
+msgstr "Medical devices"
 
 #: templates/core/mpg_dashboard.html:98
 msgid "Medizinprodukte & Prüffristen-Ampel"
@@ -4046,14 +4151,6 @@ msgstr "Medical devices & inspection deadline traffic light"
 #: templates/core/mpg_device_form.html:11
 msgid "Medizinproduktebuch"
 msgstr "Medical device log"
-
-#: templates/core/mpg_dashboard.html:8
-msgid "Medizinproduktebuch gem. MPDG & MPBetreibV"
-msgstr "Medical device log per MPDG & MPBetreibV"
-
-#: templates/core/more.html:49
-msgid "Medizinproduktebuch nach MPBetreibV, STK/MTK-Fristenampel, QR-Selbsttest & Einweisungsmatrix."
-msgstr "Medical device log per MPBetreibV, STK/MTK deadline traffic light, QR self-test & instruction matrix."
 
 #: templates/core/mpg_device_detail.html:157
 msgid "Medizinproduktebuch-Stammdaten"
@@ -4067,15 +4164,15 @@ msgstr "Medical technology & workshop"
 msgid "Mehr"
 msgstr "More"
 
-#: core/views.py:629
+#: core/views.py:647
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "No more attachments are possible."
 
 #: core/navigation.py:33
-#: core/navigation.py:63
+#: core/navigation.py:64
 #: templates/core/account.html:3
 #: templates/core/account.html:7
-#: templates/core/more.html:338
+#: templates/core/more.html:341
 msgid "Mein Konto"
 msgstr "My account"
 
@@ -4103,13 +4200,13 @@ msgstr "Issues a warning when undercut"
 msgid "Meldungen"
 msgstr "Alerts"
 
-#: core/navigation.py:56
+#: core/navigation.py:57
 #: templates/core/feeds.html:3
 msgid "Meldungen & Verkehr"
 msgstr "Reports & traffic"
 
 #: templates/core/feeds.html:5
-#: templates/core/more.html:298
+#: templates/core/more.html:299
 msgid "Meldungen &amp; Verkehr"
 msgstr "Reports &amp; traffic"
 
@@ -4154,6 +4251,10 @@ msgstr "Minimal technical information for station administration. No logs, paths
 msgid "Mir zuordnen"
 msgstr "Assign to me"
 
+#: templates/core/landing.html:110
+msgid "Mit Docker Compose auf einem eigenen Server oder einem Mini-PC in der Wache."
+msgstr "With Docker Compose on your own server or a mini PC at the station."
+
 #: templates/registration/mfa_verify.html:19
 msgid "Mit Passkey bestätigen"
 msgstr "Confirm with passkey"
@@ -4179,8 +4280,8 @@ msgstr "Employee"
 msgid "Mitarbeiter auswählen:"
 msgstr "Select employee:"
 
-#: core/navigation.py:66
-#: templates/core/more.html:383
+#: core/navigation.py:67
+#: templates/core/more.html:386
 msgid "Mitarbeiter-Aktivierungen"
 msgstr "Employee activations"
 
@@ -4191,10 +4292,6 @@ msgstr "Employee acknowledgement log (audit trail)"
 #: templates/core/mpg_device_detail.html:437
 msgid "Mitarbeiter:"
 msgstr "Employee:"
-
-#: templates/core/more.html:373
-msgid "Mitarbeiterkonten verwalten, Wachleiter, Schichtleiter und Rollenrechte zuweisen."
-msgstr "Manage staff accounts, assign station managers, shift leaders and role permissions."
 
 #: core/forms.py:694
 msgid "Mitarbeiterzahl"
@@ -4209,7 +4306,7 @@ msgstr "Create employee access"
 msgid "Mitglied bearbeiten"
 msgstr "Edit member"
 
-#: core/views.py:1196
+#: core/views.py:1214
 msgid "Mitgliedschaft wurde aktualisiert."
 msgstr "Membership was updated."
 
@@ -4301,7 +4398,7 @@ msgstr "Monthly vehicle inspection"
 msgid "Musik"
 msgstr "Music"
 
-#: templates/core/landing.html:40
+#: templates/core/landing.html:126
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
@@ -4314,7 +4411,11 @@ msgstr "Sample data for testing – not for production use."
 msgid "Mängel"
 msgstr "Defects"
 
-#: templates/core/more.html:130
+#: templates/core/landing.html:51
+msgid "Mängel & Ausstattung"
+msgstr "Defects & equipment"
+
+#: templates/core/more.html:131
 msgid "Mängel & Werkstatt"
 msgstr "Defects & workshop"
 
@@ -4326,9 +4427,13 @@ msgstr "Defects &amp; equipment"
 msgid "Mängel filtern"
 msgstr "Filter defects"
 
-#: templates/core/more.html:131
-msgid "Mängel mit Priorität, Fristen, Fotos, Fahrzeug-Werkstattstatus und Eigentümer erfassen."
-msgstr "Record defects with priority, deadlines, photos, vehicle workshop status and owner."
+#: templates/core/landing.html:52
+msgid "Mängel mit Frist, Foto und Verantwortlichen; Status von Geräten, Schlüsseln und Poolmaterial."
+msgstr "Defects with deadline, photo and owner; status of devices, keys and pool equipment."
+
+#: templates/core/more.html:132
+msgid "Mängel mit Priorität, Frist, Foto und verantwortlicher Person erfassen."
+msgstr "Record defects with priority, deadline, photo and responsible person."
 
 #: templates/core/vorfuehrung.html:46
 msgid "Mängel, Pools, Quittierung – feldlesbar, nicht bunt."
@@ -4339,7 +4444,7 @@ msgid "Mängelliste"
 msgstr "Defect list"
 
 #: templates/core/calendar.html:21
-#: templates/core/dashboard.html:61
+#: templates/core/dashboard.html:60
 msgid "Müll"
 msgstr "Waste"
 
@@ -4351,7 +4456,7 @@ msgstr "Waste collection"
 msgid "Müllabfuhr (externe ICS-Quelle)"
 msgstr "Waste collection (external ICS source)"
 
-#: core/views.py:1278
+#: core/views.py:1296
 msgid "Müllkalender übernommen: %(count)s Termine."
 msgstr "Waste calendar imported: %(count)s dates."
 
@@ -4422,9 +4527,13 @@ msgstr "Messages are encrypted in the browser; the database stores only cipherte
 msgid "Nachrichtenbereiche"
 msgstr "Message areas"
 
-#: templates/core/more.html:419
+#: templates/core/more.html:422
 msgid "Nachvollziehbare Protokollierung der Änderungen für Prüfer und QM."
 msgstr "Traceable logging of changes for auditors and QM."
+
+#: templates/core/landing.html:97
+msgid "Nachvollziehbares Audit-Log für Prüfer und QM"
+msgstr "Traceable audit log for auditors and QM"
 
 #: templates/core/audit_log.html:5
 msgid "Nachvollziehbarkeit"
@@ -4441,6 +4550,10 @@ msgstr "\\\"Name of organizational unit\\\""
 #: core/forms.py:690
 msgid "Name der Wache"
 msgstr "Station name"
+
+#: templates/core/more.html:409
+msgid "Name, Anschrift, Wetter und welche Module die Wache nutzt."
+msgstr "Name, address, weather and which modules the station uses."
 
 #: templates/core/station_settings.html:9
 msgid "Name, Organisationsprofil und sichtbare Module dieser Organisationseinheit festlegen."
@@ -4486,10 +4599,6 @@ msgstr "Publish new version"
 #: templates/core/sop_revision_form.html:31
 msgid "Neue Versionsnummer*"
 msgstr "New version number*"
-
-#: templates/core/dashboard.html:18
-msgid "Neue Übergabe"
-msgstr "New handover"
 
 #: templates/core/display_tokens.html:124
 msgid "Neuen Bildschirm-Link erzeugen"
@@ -4560,8 +4669,8 @@ msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
 #: core/navigation.py:17
-#: core/navigation.py:60
-#: templates/core/more.html:273
+#: core/navigation.py:61
+#: templates/core/more.html:274
 #: templates/core/news_index.html:3
 #: templates/core/news_index.html:7
 msgid "Neuigkeiten"
@@ -4749,7 +4858,7 @@ msgstr "Visible only once"
 msgid "Nur für dringende Übergaben dieser Wache. Kein Tracking, keine Werbung."
 msgstr "Only for urgent handovers of this station. No tracking, no ads."
 
-#: templates/core/dashboard.html:26
+#: templates/core/dashboard.html:25
 msgid "Nur offene stationsbezogene Punkte"
 msgstr "Only open station-related items"
 
@@ -4784,7 +4893,7 @@ msgstr "Next MTK:"
 msgid "Nächste STK:"
 msgstr "Next STK:"
 
-#: templates/core/dashboard.html:52
+#: templates/core/dashboard.html:51
 msgid "Nächste Termine"
 msgstr "Upcoming events"
 
@@ -4792,7 +4901,7 @@ msgstr "Upcoming events"
 msgid "Nächste UVV (DGUV V70)"
 msgstr "Next UVV (DGUV V70)"
 
-#: templates/core/dashboard.html:20
+#: templates/core/dashboard.html:19
 msgid "Nächste Wachentermine"
 msgstr "Upcoming station events"
 
@@ -4889,9 +4998,9 @@ msgstr "Open device defects (station routine escalation)"
 msgid "Offene Migrationen"
 msgstr "Pending migrations"
 
-#: templates/core/more.html:169
-msgid "Offene Mängel, fällige Checks, Einsatzklar-Quote und Erledigungsstatistiken."
-msgstr "Open defects, due checks, ready-for-duty rate and completion statistics."
+#: templates/core/more.html:170
+msgid "Offene Mängel, fällige Prüfungen und Erledigungsquote als Übersicht und CSV."
+msgstr "Open defects, due checks and completion rate as overview and CSV."
 
 #: templates/core/defects.html:10
 msgid "Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten."
@@ -4926,28 +5035,41 @@ msgstr "Without JavaScript, all slides appear one below the other. Music is only
 msgid "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterdienst übermittelt. Die Wachendaten werden ausschließlich lokal gespeichert."
 msgstr "Without explicit consent, the address is not transmitted to the weather service. Station data is stored exclusively locally."
 
+#: templates/core/landing.html:10
+msgid "Open Source · selbst gehostet · AGPL-3.0"
+msgstr "Open source · self-hosted · AGPL-3.0"
+
 #: templates/core/mpg_device_detail.html:317
 msgid "Optional"
 msgstr "Optional"
+
+#: templates/core/landing.html:96
+msgid "Optional Zwei-Faktor-Anmeldung und Passkeys"
+msgstr "Optional two-factor sign-in and passkeys"
 
 #: core/forms.py:263
 msgid "Optional, 8 oder 11 Zeichen."
 msgstr "\\\"Optional, 8 or 11 characters.\\\""
 
 #: core/navigation.py:26
+#: templates/core/orga_dashboard.html:8
 msgid "Organisation"
 msgstr "Organization"
 
 #: core/forms.py:240
 #: core/navigation.py:49
-#: templates/core/more.html:90
+#: templates/core/more.html:91
 #: templates/core/orga_dashboard.html:3
 msgid "Organisation & Desk"
 msgstr "Organization & desk"
 
 #: templates/core/orga_dashboard.html:9
-msgid "Organisation & SOP-Desk"
-msgstr "Organization & SOP desk"
+msgid "Organisation & Dienstanweisungen"
+msgstr "Organisation & work instructions"
+
+#: templates/core/landing.html:71
+msgid "Organisation & Wissen"
+msgstr "Organisation & knowledge"
 
 #: templates/core/vorfuehrung.html:41
 msgid "Organisationen"
@@ -5126,9 +5248,9 @@ msgstr "Repeat password"
 msgid "Passwort ändern"
 msgstr "Change password"
 
-#: templates/core/more.html:339
-msgid "Passwort ändern, Profilbild, Notfallkontakt und Anmeldehistorie."
-msgstr "Change password, profile picture, emergency contact and login history."
+#: templates/core/more.html:342
+msgid "Passwort, Profilbild, Zwei-Faktor und persönliche Einstellungen."
+msgstr "Password, profile picture, two-factor and personal settings."
 
 #: templates/core/fleet_vehicle_detail.html:221
 msgid "Patientenraum & Fahrerkabine einsatzklar/sauber"
@@ -5151,7 +5273,19 @@ msgstr "PayPal.me links must start with https://."
 msgid "Person"
 msgstr "Person"
 
-#: templates/core/more.html:350
+#: templates/core/landing.html:118
+msgid "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei."
+msgstr "Personal activation links or QR codes; station management approves access."
+
+#: templates/core/more.html:387
+msgid "Persönliche Aktivierungslinks und QR-Codes für neue Kolleginnen und Kollegen."
+msgstr "Personal activation links and QR codes for new colleagues."
+
+#: templates/core/landing.html:95
+msgid "Persönliche Konten statt Sammel-Login, mit Rollen je Wache"
+msgstr "Personal accounts instead of shared logins, with roles per station"
+
+#: templates/core/more.html:353
 msgid "Persönliche Zugangs-Tokens für die quelloffene Wachbuch-App (iOS/Android)."
 msgstr "Personal access tokens for the open-source Wachbuch app (iOS/Android)."
 
@@ -5173,8 +5307,8 @@ msgid "Pflichtquittierung für Wachpersonal aktivieren"
 msgstr "Enable mandatory acknowledgement for station staff"
 
 #: core/navigation.py:19
-#: core/navigation.py:59
-#: templates/core/more.html:219
+#: core/navigation.py:60
+#: templates/core/more.html:220
 #: templates/core/pinboard.html:3
 #: templates/core/pinboard.html:6
 #: templates/core/pinboard_form.html:7
@@ -5304,14 +5438,18 @@ msgstr "Inspector / specialist company:"
 msgid "Prüffrist fällig (HU/UVV)"
 msgstr "Inspection due (HU/UVV)"
 
+#: core/module_overview.py:57
+msgid "Prüffrist fällig oder gesperrt"
+msgstr "inspection due or locked"
+
 #: templates/core/mpg_device_detail.html:66
 msgid "Prüffristen-Status"
 msgstr "Inspection deadline status"
 
-#: core/navigation.py:58
+#: core/navigation.py:59
 #: templates/core/checklist_schedules.html:3
 #: templates/core/checklist_schedules.html:7
-#: templates/core/more.html:191
+#: templates/core/more.html:192
 msgid "Prüfintervalle"
 msgstr "Inspection intervals"
 
@@ -5352,7 +5490,7 @@ msgstr "Push could not be activated."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
-#: core/navigation.py:71
+#: core/navigation.py:72
 #: templates/core/account.html:70
 #: templates/core/push_settings.html:7
 msgid "Push-Benachrichtigungen"
@@ -5362,7 +5500,7 @@ msgstr "Push notifications"
 msgid "Push-Benachrichtigungen deaktiviert."
 msgstr "Push notifications disabled."
 
-#: templates/core/more.html:444
+#: templates/core/more.html:447
 msgid "Push-Mitteilungen"
 msgstr "Push notifications"
 
@@ -5434,6 +5572,10 @@ msgstr "Print QR sticker"
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Source code (AGPL-3.0)"
 
+#: templates/core/landing.html:147
+msgid "Quellcode auf GitHub"
+msgstr "Source code on GitHub"
+
 #: templates/core/feeds.html:9
 msgid "Quelle derzeit gestört"
 msgstr "Source currently disrupted"
@@ -5445,6 +5587,10 @@ msgstr "Source: %(source)s · Article revision %(revision)s · Manifest %(manife
 #: templates/core/feeds.html:9
 msgid "Quellen und Aktualität"
 msgstr "Sources and timeliness"
+
+#: templates/core/landing.html:144
+msgid "Quelloffen und nachprüfbar"
+msgstr "Open and verifiable"
 
 #: templates/core/orga_dashboard.html:126
 #: templates/core/sop_detail.html:147
@@ -5515,7 +5661,7 @@ msgstr "Legal notices"
 msgid "Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbarem Landesdatenschutzrecht, BDSG oder kirchlichem Datenschutzrecht)."
 msgstr "Legal basis reviews for all modules (specifically under applicable state data protection law, BDSG, or church data protection law)."
 
-#: templates/core/landing.html:13
+#: templates/core/landing.html:23
 #: templates/registration/register.html:3
 #: templates/registration/register.html:7
 msgid "Registrieren"
@@ -5524,10 +5670,6 @@ msgstr "Register"
 #: templates/core/account.html:14
 msgid "Registrierung:"
 msgstr "Registration:"
-
-#: templates/core/more.html:395
-msgid "Reihenfolge der oberen Menüleiste und der Module unter Mehr individuell anpassen."
-msgstr "Customize the order of the top menu bar and of the modules under More."
 
 #: templates/registration/qr_confirm.html:32
 msgid "Restzeit"
@@ -5539,11 +5681,7 @@ msgstr "Remaining time"
 msgid "Rettungsdienst"
 msgstr "Rescue service"
 
-#: templates/core/more.html:34
-msgid "Rettungsdienst-Fachmodule"
-msgstr "EMS specialist modules"
-
-#: templates/core/landing.html:17
+#: templates/core/landing.html:32
 msgid "Rettungswagen-Flotte des Rettungsdienstes an einer Wache"
 msgstr "Ambulance fleet of the emergency medical service at a station"
 
@@ -5610,6 +5748,10 @@ msgstr "Role"
 msgid "Rollen &amp; Station"
 msgstr "Roles &amp; station"
 
+#: templates/core/landing.html:28
+msgid "Rollen, Zwei-Faktor und Audit-Log"
+msgstr "Roles, two-factor and audit log"
+
 #: core/diagnostics_models.py:77
 msgid "Routenname muss dem Muster ^[A-Za-z0-9_.:-]{1,120}$ entsprechen."
 msgstr "Route name must match the pattern ^[A-Za-z0-9_.:-]{1,120}$."
@@ -5668,6 +5810,10 @@ msgstr "Schema:"
 #: templates/core/vorfuehrung.html:45
 msgid "Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks."
 msgstr "Shift handover, vehicle status, recurring checks."
+
+#: templates/core/landing.html:47
+msgid "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
+msgstr "Shift handovers with priority and acknowledgement, digital task board and recurring checklists."
 
 #: templates/core/fleet_vehicle_detail.html:231
 msgid "Schichtübernahme bestätigen"
@@ -5736,10 +5882,6 @@ msgstr "Quick access"
 msgid "Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich."
 msgstr "Write operations such as new handovers, status changes, or cash book entries are not possible offline."
 
-#: templates/core/more.html:206
-msgid "Schulungen, Wachtermine, Feiertage aller Bundesländer & ICS-Kalenderabo."
-msgstr "Training sessions, station appointments, public holidays of all federal states & ICS calendar subscription."
-
 #: templates/core/mpg_device_detail.html:446
 #: templates/core/mpg_geraetepass.html:38
 msgid "Schulungsdatum:"
@@ -5783,6 +5925,10 @@ msgstr "Seconds"
 msgid "Selbst gehostet. Nachvollziehbar. Ohne Tracking."
 msgstr "Self-hosted. Traceable. Without tracking."
 
+#: templates/core/landing.html:109
+msgid "Selbst hosten"
+msgstr "Self-host"
+
 #: templates/core/mpg_device_detail.html:313
 msgid "Selbsttest / Gerätestart fehlerfrei"
 msgstr "Self-test / device start without errors"
@@ -5811,7 +5957,11 @@ msgstr "Server"
 msgid "Serverfehler."
 msgstr "Server error."
 
-#: templates/core/more.html:362
+#: templates/core/landing.html:93
+msgid "Sicher im Betrieb"
+msgstr "Secure in operation"
+
+#: templates/core/more.html:365
 msgid "Sichere Zugangs-Links für Wachenmonitore und Wand-TVs erzeugen und widerrufen."
 msgstr "Generate and revoke secure access links for station monitors and wall TVs."
 
@@ -5990,11 +6140,15 @@ msgstr "Status"
 msgid "Status aktualisieren"
 msgstr "Update status"
 
+#: templates/core/fleet_dashboard.html:10
+msgid "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV."
+msgstr "Status of all vehicles, check at shift start, disinfection with contact time and deadlines for MOT and UVV."
+
 #: templates/core/privacy.html:38
 msgid "Status für diese Demonstration:"
 msgstr "Status for this demonstration:"
 
-#: core/views.py:689
+#: core/views.py:707
 msgid "Status konnte nicht aktualisiert werden."
 msgstr "Status could not be updated."
 
@@ -6002,7 +6156,11 @@ msgstr "Status could not be updated."
 msgid "Status setzen"
 msgstr "Set status"
 
-#: core/views.py:687
+#: templates/core/more.html:144
+msgid "Status von Geräten, Schlüsseln und Poolmaterial; Ausgabe und Rückgabe."
+msgstr "Status of devices, keys and pool equipment; issue and return."
+
+#: core/views.py:705
 msgid "Status wurde aktualisiert."
 msgstr "Status was updated."
 
@@ -6031,7 +6189,7 @@ msgstr "\\\"Station street and house number for weather lookup.\\\""
 msgid "Strikte rollen- und stationsbezogene Zugriffskontrolle (RBAC und Stationsisolation)."
 msgstr "Strict role- and station-based access control (RBAC and station isolation)."
 
-#: templates/core/more.html:182
+#: templates/core/more.html:183
 msgid "Strukturierte Prüflisten für Schichtübernahmen und Wachenrundgänge."
 msgstr "Structured checklists for shift takeovers and station rounds."
 
@@ -6100,9 +6258,8 @@ msgstr "Days"
 
 #: core/navigation.py:53
 #: templates/core/_display_surface.html:35
-#: templates/core/dashboard.html:20
-#: templates/core/landing.html:26
-#: templates/core/more.html:155
+#: templates/core/dashboard.html:19
+#: templates/core/more.html:156
 #: templates/core/task_form.html:7
 #: templates/core/tasks_today.html:3
 #: templates/core/tasks_today.html:8
@@ -6113,14 +6270,6 @@ msgstr "Daily tasks"
 #: core/display_views.py:289
 msgid "Tagesaufgaben & Fortschritt"
 msgstr "Daily tasks & progress"
-
-#: templates/core/fleet_dashboard.html:10
-msgid "Taktischer BOS-Status, 3-Minuten Express-Schichtübernahme, StVZO § 29 HU / UVV-Fristen und RKI/VAH-Desinfektionsbuch mit Sperrtimer."
-msgstr "Tactical BOS status, 3-minute express shift takeover, StVZO § 29 HU / UVV deadlines and RKI/VAH disinfection log with lock timer."
-
-#: templates/core/more.html:77
-msgid "Taktischer BOS-Status, O₂-Druck (bar), Tank, VAH-Desinfektion mit Timer-Freigabe & UVV/10g-Tragentisch."
-msgstr "Tactical BOS status, O₂ pressure (bar), tank, VAH disinfection with timer release & UVV/10g stretcher table."
 
 #: templates/core/fleet_vehicle_form.html:84
 msgid "Taktischer Status"
@@ -6135,14 +6284,18 @@ msgstr "Fuel (%)"
 msgid "Team"
 msgstr "Team"
 
-#: core/navigation.py:65
-#: templates/core/more.html:372
+#: core/navigation.py:66
+#: templates/core/more.html:375
 msgid "Team & Rollen"
 msgstr "Team & roles"
 
 #: templates/core/team.html:8
 msgid "Team &amp; Rollen"
 msgstr "Team &amp; roles"
+
+#: templates/core/landing.html:117
+msgid "Team einladen"
+msgstr "Invite the team"
 
 #: core/forms.py:118
 msgid "Teammitglied"
@@ -6152,10 +6305,14 @@ msgstr "Team member"
 msgid "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen."
 msgstr "Technical product information for operators and users. The specific operator must supplement this information with its complete data subject information under Art. 13/14 GDPR."
 
-#: core/navigation.py:72
-#: templates/core/more.html:457
+#: core/navigation.py:73
+#: templates/core/more.html:460
 msgid "Technische Verwaltung"
 msgstr "Technical administration"
+
+#: templates/core/more.html:461
+msgid "Technische Verwaltung für Serveradministratoren."
+msgstr "Technical administration for server administrators."
 
 #: core/task_board.py:27
 msgid "Technischer Fahrzeugcheck"
@@ -6172,13 +6329,13 @@ msgstr "Phone book entries"
 msgid "Termin anlegen"
 msgstr "Create appointment"
 
-#: core/views.py:728
+#: core/views.py:746
 msgid "Termin wurde angelegt."
 msgstr "Event was created."
 
-#: templates/core/landing.html:27
-msgid "Termine, Wachenchat und Freigaben"
-msgstr "Appointments, station chat, and approvals"
+#: templates/core/more.html:207
+msgid "Termine der Wache, Feiertage und Kalender-Abo für das Handy."
+msgstr "Station appointments, public holidays and a calendar subscription for your phone."
 
 #: templates/core/vorfuehrung.html:85
 msgid "TestFlight-fähig, VoiceOver-tauglich"
@@ -6471,13 +6628,17 @@ msgstr "Release blocker"
 msgid "Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe"
 msgstr "Release blocker: technical information incomplete pending operator approval"
 
-#: templates/core/display.html:20
+#: templates/core/display.html:21
 msgid "Vollbild starten"
 msgstr "Start full screen"
 
-#: templates/core/more.html:105
+#: templates/core/more.html:106
 msgid "Vollbild-Monitor für die Fahrzeughalle: Fahrzeugstatus, Wetter, Hinweise und Fristen."
 msgstr "Full-screen monitor for the vehicle bay: vehicle status, weather, notes and deadlines."
+
+#: templates/core/landing.html:77
+msgid "Vollbildanzeige für Monitor oder Fernseher: Termine, Fristen, Wetter und dringende Hinweise."
+msgstr "Full-screen view for monitor or TV: appointments, deadlines, weather and urgent notes."
 
 #: core/forms.py:260
 msgid "Vollständige https://paypal.me/…-URL."
@@ -6514,10 +6675,14 @@ msgid "Vorführen. Pilotieren. Selbst hosten."
 msgstr "Demonstrate. Pilot. Self-host."
 
 #: templates/base.html:105
-#: templates/core/landing.html:12
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
 msgstr "Demonstration"
+
+#: templates/core/landing.html:21
+#: templates/core/landing.html:148
+msgid "Vorführung ansehen"
+msgstr "View the presentation"
 
 #: templates/core/vorfuehrung.html:15
 msgid "Vorführungsfolien"
@@ -6567,13 +6732,13 @@ msgstr "Early warning ≤ 60 days"
 #: templates/core/checklists.html:7
 #: templates/core/defect_form.html:7
 #: templates/core/defects.html:8
-#: templates/core/more.html:119
+#: templates/core/more.html:120
 #: templates/core/vorfuehrung.html:53
 #: templates/core/wachalltag_reports.html:7
 msgid "Wachalltag"
 msgstr "Daily watch routine"
 
-#: templates/core/dashboard.html:25
+#: templates/core/dashboard.html:24
 msgid "Wachalltag im Blick"
 msgstr "Daily watch routine at a glance"
 
@@ -6581,7 +6746,7 @@ msgstr "Daily watch routine at a glance"
 msgid "Wachaufgaben"
 msgstr "Station tasks"
 
-#: templates/core/more.html:117
+#: templates/core/more.html:118
 msgid "Wachbetrieb & Alltagsorganisation"
 msgstr "Station operations & daily organization"
 
@@ -6616,6 +6781,7 @@ msgstr "Station"
 msgid "Wache %(station_name)s wurde eingerichtet. Bitte jetzt mit dem Master-Admin-Konto anmelden."
 msgstr "Station %(station_name)s has been set up. Please sign in now with the master admin account."
 
+#: templates/core/landing.html:113
 #: templates/core/setup_token.html:7
 msgid "Wache einrichten"
 msgstr "Set up station"
@@ -6627,10 +6793,11 @@ msgstr "Set up station and master admin"
 #: core/forms.py:239
 #: core/navigation.py:25
 #: core/navigation.py:48
-#: templates/core/display.html:9
+#: templates/core/display.html:10
 #: templates/core/display_tokens.html:3
 #: templates/core/display_tokens.html:7
-#: templates/core/more.html:104
+#: templates/core/landing.html:76
+#: templates/core/more.html:105
 msgid "Wachen-Display"
 msgstr "Station display"
 
@@ -6642,8 +6809,8 @@ msgstr "Station instruction matrix (compliance overview)"
 msgid "Wachen-Ticker & Pinnwand"
 msgstr "Station ticker & bulletin board"
 
-#: core/navigation.py:61
-#: templates/core/more.html:285
+#: core/navigation.py:62
+#: templates/core/more.html:286
 #: templates/core/wiki_detail.html:20
 #: templates/core/wiki_index.html:4
 #: templates/core/wiki_index.html:10
@@ -6655,13 +6822,13 @@ msgid "Wachen-Wiki & Dokumente"
 msgstr "Station wiki & documents"
 
 #: core/navigation.py:32
-#: core/navigation.py:62
+#: core/navigation.py:63
 #: templates/core/account.html:69
 #: templates/core/chat.html:3
 #: templates/core/chat.html:7
 #: templates/core/chat_signal.html:3
 #: templates/core/chat_signal.html:6
-#: templates/core/more.html:312
+#: templates/core/more.html:313
 msgid "Wachenchat"
 msgstr "Station chat"
 
@@ -6669,31 +6836,23 @@ msgstr "Station chat"
 msgid "Wachendaten"
 msgstr "Station data"
 
-#: templates/core/more.html:405
+#: templates/core/more.html:408
 msgid "Wacheneinstellungen"
 msgstr "Station settings"
 
-#: templates/core/more.html:205
+#: core/navigation.py:54
+#: templates/core/more.html:206
 msgid "Wachenkalender"
 msgstr "Station calendar"
-
-#: templates/core/more.html:406
-msgid "Wachenname, Standortanschrift, Wetter-Koordinaten und Modulschalter steuern."
-msgstr "Control station name, location address, weather coordinates and module switches."
 
 #: templates/core/tasks_manage.html:8
 #: templates/core/wiki_index.html:9
 msgid "Wachenorganisation"
 msgstr "Station organization"
 
-#: templates/core/more.html:325
+#: templates/core/more.html:328
 msgid "Wachenverwaltung & Sicherheit"
 msgstr "Station management & security"
-
-#: templates/core/more.html:3
-#: templates/core/more.html:11
-msgid "Wachenzentrale & Alle Module"
-msgstr "Station hub & all modules"
 
 #: templates/core/calendar_feed.html:16
 msgid "Wachkalender"
@@ -6702,10 +6861,6 @@ msgstr "Watch calendar"
 #: templates/core/orga_dashboard.html:236
 msgid "Wachleitung & Desinfektor"
 msgstr "Station management & disinfector"
-
-#: templates/core/landing.html:8
-msgid "Wachorganisation für den öffentlichen Dienst – klar, mobil, selbst gehostet."
-msgstr "Station organization for the public sector – clear, mobile, self-hosted."
 
 #: templates/core/vorfuehrung.html:20
 msgid "Wachorganisation, die im Schichtalltag lesbar bleibt."
@@ -6722,10 +6877,6 @@ msgstr "Wachwerk is a self-hosted organizational application. The controller wit
 #: templates/core/privacy.html:156
 msgid "Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen."
 msgstr "Wachwerk provides technical deletion and cleanup mechanisms, but does not determine legally permissible periods across the board. Prior to production operations, the operator must define an approved deletion and retention concept for each data class."
-
-#: templates/core/landing.html:26
-msgid "Wandbogen digital mit Grün, Gelb und Blau"
-msgstr "Digital wall sheet with green, yellow, and blue"
 
 #: templates/core/vorfuehrung.html:63
 msgid "Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen."
@@ -6767,14 +6918,11 @@ msgstr "Why are incident data not allowed here?"
 msgid "Was die Schicht wirklich braucht."
 msgstr "What the shift really needs."
 
-#: templates/core/landing.html:23
-msgid "Was die Web-App leistet"
-msgstr "What the web app provides"
-
 #: templates/core/mpg_device_detail.html:350
 msgid "Was genau ist defekt? Fehlermeldung auf Display?"
 msgstr "What exactly is defective? Error message on the display?"
 
+#: templates/core/landing.html:81
 #: templates/core/vorfuehrung.html:69
 msgid "Web und Apps"
 msgstr "Web and apps"
@@ -6797,6 +6945,10 @@ msgstr "Next"
 #: templates/registration/qr_manual.html:24
 msgid "Weiter zur Bestätigung"
 msgstr "Proceed to confirmation"
+
+#: templates/core/landing.html:133
+msgid "Weitere Rollen zum Ausprobieren:"
+msgstr "More roles to try:"
 
 #: templates/core/fleet_dashboard.html:56
 msgid "Werkstatt / Ausfall"
@@ -6886,7 +7038,7 @@ msgstr "Important (repair promptly)"
 msgid "Wichtig – zeitnah"
 msgstr "Important – prompt"
 
-#: templates/core/more.html:274
+#: templates/core/more.html:275
 msgid "Wichtige Wachenmitteilungen lesen und Kenntnisnahme quittieren."
 msgstr "Read important station announcements and acknowledge them."
 
@@ -6928,7 +7080,7 @@ msgstr "Repeat"
 msgid "Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen."
 msgstr "Recurring, acknowledged, auditable. No silent changes."
 
-#: templates/core/more.html:192
+#: templates/core/more.html:193
 msgid "Wiederkehrende Kontrollen täglich, wöchentlich oder monatlich planen."
 msgstr "Schedule recurring checks daily, weekly or monthly."
 
@@ -7053,7 +7205,7 @@ msgstr "Too many requests in a short time. Please wait a moment and try again."
 msgid "Zu viele Anfragen."
 msgstr "Too many requests."
 
-#: core/views.py:1323
+#: core/views.py:1341
 msgid "Zu viele Fehlversuche. Bitte erneut anmelden."
 msgstr "Too many failed attempts. Please sign in again."
 
@@ -7075,10 +7227,6 @@ msgstr "Access active"
 #: templates/core/team_form.html:16
 msgid "Zugang freigeben"
 msgstr "Grant access"
-
-#: templates/core/landing.html:34
-msgid "Zugang nach Login und Freigabe"
-msgstr "Access after login and approval"
 
 #: templates/core/access.html:7
 msgid "Zugang wartet auf Freigabe"
@@ -7309,12 +7457,12 @@ msgstr "Additional tasks"
 msgid "Zweck:"
 msgstr "Purpose:"
 
-#: core/navigation.py:70
+#: core/navigation.py:71
 msgid "Zwei-Faktor"
 msgstr "Two-factor"
 
 #: templates/core/account.html:66
-#: templates/core/more.html:431
+#: templates/core/more.html:434
 msgid "Zwei-Faktor / Passkeys"
 msgstr "Two-factor / Passkeys"
 
@@ -7338,11 +7486,11 @@ msgstr "Two-factor authentication must be set up first."
 msgid "Zwei-Faktor-Authentifizierung"
 msgstr "Two-factor authentication"
 
-#: core/views.py:1353
+#: core/views.py:1371
 msgid "Zwei-Faktor-Authentifizierung ist aktiv."
 msgstr "Two-factor authentication is active."
 
-#: core/views.py:1376
+#: core/views.py:1394
 msgid "Zwei-Faktor-Authentifizierung wurde deaktiviert."
 msgstr "Two-factor authentication was disabled."
 
@@ -7382,7 +7530,7 @@ msgstr "active handovers"
 msgid "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 msgstr "displayed. The server only stores a hash of the token. Role:"
 
-#: core/views.py:488
+#: core/views.py:495
 msgid "ausgegeben"
 msgstr "issued"
 
@@ -7420,7 +7568,7 @@ msgstr "an exception to the consent requirement applies. The operator must re-ev
 msgid "erledigt"
 msgstr "completed"
 
-#: templates/core/dashboard.html:20
+#: templates/core/dashboard.html:19
 msgid "erledigt · Wandtafel"
 msgstr "completed · wall board"
 
@@ -7428,22 +7576,18 @@ msgstr "completed · wall board"
 msgid "erreichbar"
 msgstr "reachable"
 
-#: core/views.py:489
+#: core/views.py:496
 msgid "fällig oder überfällig"
 msgstr "due or overdue"
 
 #: templates/core/calendar.html:19
-#: templates/core/dashboard.html:58
+#: templates/core/dashboard.html:57
 msgid "ganztägig"
 msgstr "all-day"
 
-#: core/views.py:490
+#: core/views.py:497
 msgid "heute erledigt"
 msgstr "completed today"
-
-#: templates/core/landing.html:28
-msgid "iOS &amp; Android"
-msgstr "iOS &amp; Android"
 
 #: templates/core/vorfuehrung.html:82
 msgid "iOS / iPadOS"
@@ -7475,21 +7619,17 @@ msgstr "with attachment"
 msgid "mit der Anzeige auf dem anderen Bildschirm. Stimmen sie nicht überein, brechen Sie ab."
 msgstr "with the display on the other screen. If they do not match, cancel."
 
-#: templates/core/landing.html:29
-msgid "nachvollziehbar, ohne Tracking-Cookies"
-msgstr "traceable, without tracking cookies"
-
-#: templates/core/landing.html:28
-msgid "native Apps als mobile Schnittstelle über die versionierte API"
-msgstr "native apps as a mobile interface via the versioned API"
-
 #: templates/core/system_status.html:40
 msgid "nein"
 msgstr "no"
 
-#: core/views.py:487
+#: core/views.py:492
 msgid "nicht bereit"
 msgstr "not ready"
+
+#: core/module_overview.py:38
+msgid "nicht einsatzbereit · %(due)s Fristen fällig"
+msgstr "not ready · %(due)s deadlines due"
 
 #: templates/core/system_status.html:29
 #: templates/core/system_status.html:31
@@ -7522,7 +7662,7 @@ msgstr "open"
 msgid "offene Mängel"
 msgstr "open defects"
 
-#: templates/core/dashboard.html:19
+#: templates/core/dashboard.html:18
 msgid "offene Punkte"
 msgstr "open items"
 
@@ -7550,14 +7690,18 @@ msgstr "and enter the manual code."
 msgid "und ohne"
 msgstr "and without"
 
-#: templates/core/landing.html:25
-msgid "versioniert, priorisiert, stationsbezogen"
-msgstr "versioned, prioritized, station-specific"
+#: core/module_overview.py:76
+msgid "unter Mindestbestand · %(expiring)s Chargen verfallen bald"
+msgstr "below minimum stock · %(expiring)s batches expire soon"
 
 #: templates/core/checklists.html:24
 #: templates/core/task_row.html:21
 msgid "von"
 msgstr "from"
+
+#: core/module_overview.py:91
+msgid "von dir noch nicht quittiert"
+msgstr "not yet acknowledged by you"
 
 #: templates/core/api_tokens.html:35
 msgid "widerrufen"
@@ -7672,11 +7816,11 @@ msgstr "Edit handover"
 msgid "Übergabe korrigieren"
 msgstr "Correct handover"
 
-#: core/views.py:607
+#: core/views.py:625
 msgid "Übergabe wurde angelegt."
 msgstr "Handover was created."
 
-#: core/views.py:672
+#: core/views.py:690
 msgid "Übergabe wurde korrigiert (neue Revision)."
 msgstr "Handover was corrected (new revision)."
 
@@ -7687,11 +7831,14 @@ msgstr "Handover list"
 #: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
-#: templates/core/landing.html:25
 #: templates/core/offline.html:12
 #: templates/core/vorfuehrung.html:62
 msgid "Übergaben"
 msgstr "Handovers"
+
+#: templates/core/landing.html:46
+msgid "Übergaben & Aufgaben"
+msgstr "Handovers & tasks"
 
 #: templates/core/handover_list.html:10
 msgid "Übergaben filtern"
@@ -7709,9 +7856,9 @@ msgstr "Handovers, tasks, and team roles for rescue stations, fire departments, 
 msgid "Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team."
 msgstr "Handovers, defects, checklists, equipment, keys, calendar, cash fund, team."
 
-#: templates/core/landing.html:9
-msgid "Übergaben, Tagesaufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Kein Einsatzleit-, Dienstplan- oder Patientensystem."
-msgstr "Handovers, daily tasks, and team roles for rescue stations, fire departments, and comparable services. No dispatch, shift scheduling, or patient system."
+#: templates/core/landing.html:12
+msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
+msgstr "Handovers, defects, vehicles, medical devices, supplies and work instructions in one place – in the browser, as an app and on the monitor in the vehicle bay."
 
 #: core/navigation.py:13
 #: templates/core/dashboard.html:3

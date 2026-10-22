@@ -5,8 +5,8 @@
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Dienstanweisungen & Wachen-Desk" %}</p>
-    <h1>{% translate "Organisation & SOP-Desk" %}</h1>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Organisation" %}</p>
+    <h1>{% translate "Organisation & Dienstanweisungen" %}</h1>
     <p class="lead">{% translate "Versionierte Dienstanweisungen (SOPs), Lesequittierungen und Notfall-Telefonliste." %}</p>
   </div>
   <div class="page-actions-bar ms-2a0ca83">
@@ -121,7 +121,7 @@
           {% if sop.requires_acknowledgment %}
             {% if sop.latest_revision %}
               <div>
-                {% if sop.id in ack_ids or not sop in unack_sops %}
+                {% if sop.id not in unack_ids %}
                   <span class="badge text-success ms-9e899b4">
                     ✅ {% translate "Quittiert" %}
                   </span>
