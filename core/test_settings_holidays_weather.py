@@ -17,7 +17,7 @@ from core.holidays import (
     station_agenda,
 )
 from core.models import AuditEvent, Membership, Station, User
-from core.weather import WeatherUnavailable
+from core.weather import WeatherServiceUnreachable, WeatherUnavailable
 
 
 class NavMonitorButtonRemovalTests(TestCase):
@@ -233,7 +233,8 @@ class StationSettingsHolidaysAndWeatherTests(TestCase):
         self.assertEqual(self.station.street, "Hauptstr. 10")
         self.assertEqual(self.station.city, "Berlin")
 
-    def test_station_settings_saves_cleanly_with_fictional_test_address(self):
+    @mock.patch("core.weather._fetch_json", side_effect=WeatherServiceUnreachable("offline"))
+    def test_station_settings_saves_cleanly_with_fictional_test_address(self, _fetch):
         response = self.client.post(reverse("station_settings"), {
             "name": "Wache Alpha",
             "organization_profile": "rescue",
@@ -306,14 +307,18 @@ class CombinedGeocodingTests(TestCase):
         self.assertEqual(result["longitude"], 8.0498)
         self.assertIn("Osnabrück", result["label"])
 
-    def test_short_city_name_is_not_rejected(self):
+    @mock.patch("core.weather._fetch_json")
+    def test_short_city_name_is_not_rejected(self, mock_fetch):
         from core.weather import geocode
+
+        mock_fetch.return_value = [{"lat": "50.9384", "lon": "6.9600", "display_name": "Köln"}]
 
         result = geocode("Köln")
         self.assertAlmostEqual(result["latitude"], 50.9384, places=1)
         self.assertAlmostEqual(result["longitude"], 6.96, places=1)
 
-    def test_fictional_address_uses_fallback_coordinates(self):
+    @mock.patch("core.weather._fetch_json", side_effect=WeatherServiceUnreachable("offline"))
+    def test_fictional_address_uses_fallback_coordinates(self, mock_fetch):
         from core.weather import geocode
 
         # 12345 matches Berlin PLZ prefix -> falls back to Berlin coordinates
@@ -321,4 +326,13 @@ class CombinedGeocodingTests(TestCase):
         self.assertEqual(result["latitude"], 52.52)
         self.assertEqual(result["longitude"], 13.405)
         self.assertIn("Standardkoordinaten", result["label"])
+        # WAN-Ausfall: je Dienst genau ein Versuch statt eines Timeouts pro Kandidat.
+        self.assertEqual(mock_fetch.call_count, 2)
+
+    @mock.patch("core.weather._fetch_json", side_effect=WeatherServiceUnreachable("offline"))
+    def test_offline_without_fallback_raises(self, _fetch):
+        from core.weather import geocode
+
+        with self.assertRaises(WeatherUnavailable):
+            geocode("Musterstraße 12, 12345 Musterstadt", allow_fallback=False)
 
