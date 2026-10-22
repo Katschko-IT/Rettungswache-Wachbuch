@@ -280,3 +280,37 @@ class DisplayManagementTests(TestCase):
         url = reverse("display_token_configure", args=[foreign.pk])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_display_tokens_view_shows_module_blocks(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("display_tokens"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Modulare Bausteine")
+        self.assertIn("module_rows", response.context)
+        self.assertIn("positions", response.context)
+        self.assertGreaterEqual(len(response.context["module_rows"]), 8)
+
+    def test_display_tokens_view_saves_default_modules(self):
+        self.client.force_login(self.admin)
+        token = DisplayToken.objects.create(
+            station=self.station,
+            label="Hauptmonitor",
+            token_hash=hashlib.sha256(b"h").hexdigest(),
+            created_by=self.admin,
+        )
+        post_data = {
+            "action": "save_modules",
+            "mod_clock_enabled": "1",
+            "mod_clock_pos": "top_center",
+            "mod_clock_header": "Hauptuhr",
+            "mod_weather_enabled": "1",
+            "mod_weather_pos": "top_right",
+        }
+        response = self.client.post(reverse("display_tokens"), post_data)
+        self.assertRedirects(response, reverse("display_tokens"))
+        token.refresh_from_db()
+        modules = {m["id"]: m for m in token.layout_config["modules"]}
+        self.assertEqual(modules["clock"]["position"], "top_center")
+        self.assertEqual(modules["clock"]["header"], "Hauptuhr")
+        self.assertTrue(modules["clock"]["enabled"])
+        self.assertFalse(modules["tasks"]["enabled"])

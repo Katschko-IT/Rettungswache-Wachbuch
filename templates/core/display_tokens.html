@@ -5,32 +5,84 @@
 <a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu Einstellungen" %}</a>
 <header class="page-heading narrow">
   <h1>{% translate "Wachen-Display" %}</h1>
-  <p class="lead">{% translate "Ein Display-Link zeigt Uhrzeit, Termine, Aufgaben, Wetter und Geburtstage im Vollbild auf einem Monitor. Der Link gilt nur für diese Wache und lässt sich jederzeit widerrufen." %}</p>
+  <p class="lead">{% translate "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen." %}</p>
 </header>
 
 <section class="content-flow narrow">
   {% if new_url %}
     <div class="callout" role="status">
-      <h2>{% translate "Neuer Display-Link" %}</h2>
-      <p>{% translate "Dieser Link wird nur jetzt angezeigt. Kopiere ihn auf das Anzeigegerät." %}</p>
+      <h2>{% translate "Neuer Display-Link erzeugt" %}</h2>
+      <p>{% translate "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des Monitors:" %}</p>
       <p class="token-value"><a href="{{ new_url }}">{{ new_url }}</a></p>
     </div>
   {% endif %}
 
+  <!-- Sektion 1: Modulare Bausteine & Zonen nach MagicMirror-Prinzip -->
   <section class="section-block">
-    <h2>{% translate "Neuen Link erzeugen" %}</h2>
-    <form method="post" action="{% url 'display_token_create' %}" class="content-flow">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+      <h2>{% translate "Modulare Bausteine & Bildschirmzonen" %}</h2>
+      <span class="status-label neutral">
+        {% blocktranslate with active=active_modules_count total=module_rows|length %}{{ active }}/{{ total }} Bausteine aktiv{% endblocktranslate %}
+      </span>
+    </div>
+    <p class="helptext">
+      {% translate "Wähle aus, welche Bausteine auf den Wandmonitoren sichtbar sein sollen, in welche Bildschirmzone sie gehören und gib ihnen bei Bedarf eine eigene Überschrift." %}
+    </p>
+
+    <form method="post" class="card" style="margin-top: 1rem;">
       {% csrf_token %}
-      <label for="display-label">{% translate "Bezeichnung" %}</label>
-      <input id="display-label" name="label" maxlength="80" placeholder="{% translate 'z. B. Aufenthaltsraum' %}">
-      <div class="form-actions">
-        <button class="button primary" type="submit">{% translate "Link erzeugen" %}</button>
+      <input type="hidden" name="action" value="save_modules">
+
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 70px; text-align: center;">{% translate "Aktiv" %}</th>
+              <th>{% translate "Baustein / Modul" %}</th>
+              <th>{% translate "Bildschirm-Zone" %}</th>
+              <th>{% translate "Eigener Titel" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in module_rows %}
+            <tr>
+              <td style="text-align: center; vertical-align: middle;">
+                <input type="checkbox" name="mod_{{ row.id }}_enabled" value="1" id="chk_def_{{ row.id }}"
+                  {% if row.enabled %}checked{% endif %}>
+              </td>
+              <td style="vertical-align: middle;">
+                <label for="chk_def_{{ row.id }}">
+                  <span style="font-size: 1.15rem; margin-right: 0.35rem;">{{ row.icon }}</span>
+                  <strong>{{ row.name }}</strong>
+                </label>
+                {% if row.desc %}<br><small class="text-muted">{{ row.desc }}</small>{% endif %}
+              </td>
+              <td style="vertical-align: middle;">
+                <select name="mod_{{ row.id }}_pos" class="form-select">
+                  {% for p_key, p_label in positions %}
+                  <option value="{{ p_key }}" {% if row.position == p_key %}selected{% endif %}>{{ p_label }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td style="vertical-align: middle;">
+                <input type="text" name="mod_{{ row.id }}_header" class="form-input" 
+                  value="{{ row.header }}" placeholder="{% translate 'Standard-Titel' %}" maxlength="80">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-actions" style="margin-top: 1.25rem;">
+        <button type="submit" class="button primary">{% translate "Modul-Konfiguration für Wachen-Display speichern" %}</button>
       </div>
     </form>
   </section>
 
+  <!-- Sektion 2: Vorhandene Monitore & Bildschirme -->
   <section class="section-block">
-    <h2>{% translate "Vorhandene Links" %}</h2>
+    <h2>{% translate "Verbundene Monitore & Bildschirm-Links" %}</h2>
     {% if tokens %}
       <ul class="token-list">
         {% for token in tokens %}
@@ -44,7 +96,7 @@
             </div>
             {% if token.is_active %}
               <div class="token-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-                <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% translate "Anpassen" %}</a>
+                <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% translate "Individuell anpassen" %}</a>
                 <form method="post" action="{% url 'display_token_revoke' token.pk %}">
                   {% csrf_token %}
                   <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
@@ -57,20 +109,21 @@
         {% endfor %}
       </ul>
     {% else %}
-      <p class="helptext">{% translate "Noch kein Display-Link angelegt." %}</p>
+      <p class="helptext">{% translate "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm." %}</p>
     {% endif %}
   </section>
 
+  <!-- Sektion 3: Neuen Wandmonitor anbinden -->
   <section class="section-block">
-    <h2>{% translate "Was die Anzeige zeigt" %}</h2>
-    <ul class="helptext">
-      <li>{% translate "Uhrzeit, Datum und Wachenname" %}</li>
-      <li>{% translate "Heutige Termine und Abfuhrtermine" %}</li>
-      <li>{% translate "Anzahl offener Tagesaufgaben" %}</li>
-      <li>{% translate "Wetter, sofern aktiviert" %}</li>
-      <li>{% translate "Geburtstage nur mit Einwilligung, ohne Jahr" %}</li>
-      <li>{% translate "Anzahl dringender Übergaben – ohne Titel oder Personenbezug" %}</li>
-    </ul>
+    <h2>{% translate "Neuen Monitor verbinden" %}</h2>
+    <form method="post" action="{% url 'display_token_create' %}" class="content-flow">
+      {% csrf_token %}
+      <label for="display-label">{% translate "Bezeichnung des Monitors" %}</label>
+      <input id="display-label" name="label" maxlength="80" placeholder="{% translate 'z. B. Aufenthaltsraum, Fahrzeughalle, Wachleitung' %}">
+      <div class="form-actions">
+        <button class="button primary" type="submit">{% translate "Neuen Bildschirm-Link erzeugen" %}</button>
+      </div>
+    </form>
   </section>
 </section>
 {% endblock %}

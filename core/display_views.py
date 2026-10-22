@@ -5,11 +5,13 @@ import hashlib
 import secrets
 from functools import wraps
 
+from django.contrib import messages
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -144,6 +146,85 @@ def _app_version() -> str:
 
 # --- Verwaltung in den Einstellungen -------------------------------------
 
+AVAILABLE_MODULES = [
+    {
+        "id": "clock",
+        "name": _("Uhrzeit & Datum"),
+        "icon": "⏰",
+        "default_pos": "top_left",
+        "desc": _("Große Digitaluhr, Wochentag, formatiertes Datum und Stationsname."),
+    },
+    {
+        "id": "weather",
+        "name": _("Wettervorhersage"),
+        "icon": "🌤️",
+        "default_pos": "top_right",
+        "desc": _("5-Tage-Wetter via Open-Meteo & OpenStreetMap mit Piktogramm, Min/Max und Regenmenge."),
+    },
+    {
+        "id": "events",
+        "name": _("Heutige Termine"),
+        "icon": "📅",
+        "default_pos": "middle_left",
+        "desc": _("Kalendertermine, Schichtbeginn und Einsätze des aktuellen Tages."),
+    },
+    {
+        "id": "waste",
+        "name": _("Müllabfuhr"),
+        "icon": "🗑️",
+        "default_pos": "middle_left",
+        "desc": _("Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."),
+    },
+    {
+        "id": "tasks",
+        "name": _("Tagesaufgaben & Fortschritt"),
+        "icon": "✅",
+        "default_pos": "middle_center",
+        "desc": _("Offene Aufgaben mit Erledigungsquote und grafischem Fortschrittsbalken."),
+    },
+    {
+        "id": "traffic",
+        "name": _("Verkehrslage & Sperrungen"),
+        "icon": "🚦",
+        "default_pos": "middle_right",
+        "desc": _("Lokale Baustellen, Sperrungen und Verkehrseinschränkungen im Wachbereich."),
+    },
+    {
+        "id": "birthdays",
+        "name": _("Geburtstage"),
+        "icon": "🎂",
+        "default_pos": "middle_right",
+        "desc": _("Datenschutzkonforme Geburtstagsanzeige von Teammitgliedern (nur mit Einwilligung)."),
+    },
+    {
+        "id": "pinboard_news",
+        "name": _("Wachen-Ticker & Pinnwand"),
+        "icon": "📌",
+        "default_pos": "bottom_bar",
+        "desc": _("Laufband im Fußbereich für aktuelle Wachenaushänge und Neuigkeiten."),
+    },
+    {
+        "id": "urgent_handovers",
+        "name": _("Dringende Übergaben"),
+        "icon": "🚨",
+        "default_pos": "bottom_bar",
+        "desc": _("Akute Alarmierungshinweise und Übergaben im Fußbereich."),
+    },
+]
+
+ALL_POSITIONS = [
+    ("top_left", _("Oben links")),
+    ("top_center", _("Oben Mitte")),
+    ("top_right", _("Oben rechts")),
+    ("middle_left", _("Mitte links")),
+    ("middle_center", _("Mitte Zentrum")),
+    ("middle_right", _("Mitte rechts")),
+    ("bottom_left", _("Unten links")),
+    ("bottom_center", _("Unten Mitte")),
+    ("bottom_right", _("Unten rechts")),
+    ("bottom_bar", _("Fußzeile / Ticker")),
+]
+
 
 @membership_required({Membership.Role.ADMIN})
 @require_http_methods(["GET", "POST"])
@@ -151,31 +232,6 @@ def configure_display_token(request, pk: int):
     """Erlaubt Admins, Module und Positionen eines Bildschirms frei einzustellen."""
     membership = get_membership(request.user)
     token = get_object_or_404(DisplayToken, pk=pk, station=membership.station)
-
-    AVAILABLE_MODULES = [
-        {"id": "clock", "name": "Uhrzeit & Datum", "default_pos": "top_left"},
-        {"id": "weather", "name": "Wettervorhersage", "default_pos": "top_right"},
-        {"id": "events", "name": "Heutige Termine", "default_pos": "middle_left"},
-        {"id": "waste", "name": "Müllabfuhr", "default_pos": "middle_left"},
-        {"id": "tasks", "name": "Tagesaufgaben & Fortschritt", "default_pos": "middle_center"},
-        {"id": "traffic", "name": "Verkehrslage & Sperrungen", "default_pos": "middle_right"},
-        {"id": "birthdays", "name": "Geburtstage", "default_pos": "middle_right"},
-        {"id": "pinboard_news", "name": "Pinnwand & Wachen-Ticker", "default_pos": "bottom_bar"},
-        {"id": "urgent_handovers", "name": "Dringende Übergaben / Warnungen", "default_pos": "bottom_bar"},
-    ]
-
-    ALL_POSITIONS = [
-        ("top_left", "Oben links"),
-        ("top_center", "Oben Mitte"),
-        ("top_right", "Oben rechts"),
-        ("middle_left", "Mitte links"),
-        ("middle_center", "Mitte Zentrum"),
-        ("middle_right", "Mitte rechts"),
-        ("bottom_left", "Unten links"),
-        ("bottom_center", "Unten Mitte"),
-        ("bottom_right", "Unten rechts"),
-        ("bottom_bar", "Fußzeile / Ticker"),
-    ]
 
     config = token.layout_config or DEFAULT_DISPLAY_CONFIG
     modules_map = {m["id"]: m for m in config.get("modules", [])}
@@ -199,6 +255,7 @@ def configure_display_token(request, pk: int):
         current_config["modules"] = updated_modules
         token.layout_config = current_config
         token.save(update_fields=["layout_config"])
+        messages.success(request, _("Konfiguration für '%(label)s' gespeichert.") % {"label": token.label})
         return redirect("display_tokens")
 
     module_rows = []
@@ -207,6 +264,8 @@ def configure_display_token(request, pk: int):
         module_rows.append({
             "id": mod["id"],
             "name": mod["name"],
+            "icon": mod.get("icon", "📦"),
+            "desc": mod.get("desc", ""),
             "enabled": current.get("enabled", True) if current else (mod["id"] != "pinboard_news"),
             "position": current.get("position", mod["default_pos"]) if current else mod["default_pos"],
             "header": current.get("header", "") if current else "",
@@ -229,10 +288,12 @@ def create_display_token(request):
     """Erzeugt einen neuen Display-Link; das Klartext-Token wird einmalig gezeigt."""
     membership = get_membership(request.user)
     raw = secrets.token_urlsafe(32)
+    cached_config = cache.get(f"station_display_config:{membership.station_id}")
     DisplayToken.objects.create(
         station=membership.station,
         label=(request.POST.get("label") or "Wandmonitor")[:80],
         token_hash=_hash(raw),
+        layout_config=cached_config or DEFAULT_DISPLAY_CONFIG,
         created_by=request.user,
     )
     url = request.build_absolute_uri(reverse("display_start", args=[raw]))
@@ -241,14 +302,66 @@ def create_display_token(request):
 
 
 @membership_required({Membership.Role.ADMIN})
-@require_GET
+@require_http_methods(["GET", "POST"])
 def display_tokens(request):
+    """Zentrale Übersicht für Wandmonitore und modulare MagicMirror-Bausteine."""
     membership = get_membership(request.user)
     tokens = DisplayToken.objects.filter(station=membership.station).select_related("created_by")
     new_url = request.session.pop("display_new_url", "")
+
+    # Ermitteln der aktuellen Standard-Konfiguration
+    first_active_token = tokens.filter(revoked_at__isnull=True).first()
+    cached_config = cache.get(f"station_display_config:{membership.station_id}")
+    config = (
+        (first_active_token.layout_config if first_active_token and first_active_token.layout_config else None)
+        or cached_config
+        or DEFAULT_DISPLAY_CONFIG
+    )
+    modules_map = {m["id"]: m for m in config.get("modules", [])}
+
+    if request.method == "POST" and request.POST.get("action") == "save_modules":
+        updated_modules = []
+        for mod in AVAILABLE_MODULES:
+            mod_id = mod["id"]
+            enabled = request.POST.get(f"mod_{mod_id}_enabled") == "1"
+            position = request.POST.get(f"mod_{mod_id}_pos", mod["default_pos"])
+            header = (request.POST.get(f"mod_{mod_id}_header") or "").strip()[:80]
+            updated_modules.append({
+                "id": mod_id,
+                "module": mod_id,
+                "position": position,
+                "enabled": enabled,
+                "header": header,
+                "config": {},
+            })
+        new_config = {"version": 1, "theme": "dark", "modules": updated_modules}
+        # Auf alle aktiven Tokens der Station anwenden
+        DisplayToken.objects.filter(station=membership.station, revoked_at__isnull=True).update(
+            layout_config=new_config
+        )
+        cache.set(f"station_display_config:{membership.station_id}", new_config, 86400 * 30)
+        messages.success(request, _("Modul- und Baustein-Konfiguration für Wachen-Display erfolgreich gespeichert."))
+        return redirect("display_tokens")
+
+    module_rows = []
+    for mod in AVAILABLE_MODULES:
+        current = modules_map.get(mod["id"])
+        module_rows.append({
+            "id": mod["id"],
+            "name": mod["name"],
+            "icon": mod.get("icon", "📦"),
+            "desc": mod.get("desc", ""),
+            "enabled": current.get("enabled", True) if current else (mod["id"] != "pinboard_news"),
+            "position": current.get("position", mod["default_pos"]) if current else mod["default_pos"],
+            "header": current.get("header", "") if current else "",
+        })
+
     return render(request, "core/display_tokens.html", {
         "tokens": tokens,
         "new_url": new_url,
+        "positions": ALL_POSITIONS,
+        "module_rows": module_rows,
+        "active_modules_count": sum(1 for r in module_rows if r["enabled"]),
     })
 
 
