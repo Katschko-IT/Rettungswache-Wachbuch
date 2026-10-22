@@ -388,7 +388,11 @@ class _OverviewTab extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: modules.entries.map((entry) {
+                // Nur echte Modulschalter; Zusatzangaben wie `holiday_state`
+                // (Bundesland) sind keine An/Aus-Werte.
+                children: modules.entries
+                    .where((entry) => entry.value is bool)
+                    .map((entry) {
                   final on = entry.value == true;
                   return Chip(
                     avatar: Icon(

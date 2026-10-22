@@ -395,11 +395,14 @@
   var sseSource = null;
   function initSSE() {
     if (!window.EventSource) return false;
+    // Flächen ohne Display-Token (z. B. Wachenterminal) fragen nur periodisch ab.
+    var streamUrl = roots[0] ? roots[0].getAttribute("data-stream-url") : null;
+    if (streamUrl === "none") return false;
     try {
       if (sseSource) {
         sseSource.close();
       }
-      sseSource = new EventSource("/display/stream/");
+      sseSource = new EventSource(streamUrl || "/display/stream/");
       sseSource.addEventListener("update", function (e) {
         try {
           var payload = JSON.parse(e.data);
@@ -413,6 +416,12 @@
         } catch (err) {}
       });
       sseSource.addEventListener("ping", function () {});
+      sseSource.addEventListener("revoked", function () {
+        // Zugang entzogen: Stream schließen, der nächste Abruf zeigt den Status.
+        sseSource.close();
+        sseSource = null;
+        schedulePoll(0);
+      });
       sseSource.onerror = function () {
         if (sseSource) {
           sseSource.close();
@@ -539,14 +548,18 @@
   }
 
   function init() {
+    // Nur wirklich sichtbare Flächen zählen: Ein verstecktes Overlay darf
+    // weder Daten abrufen noch einen Livestream (Server-Thread) öffnen.
     var visibleRoots = Array.prototype.slice.call(
-      document.querySelectorAll("[data-display-root]:not([hidden])")
-    );
+      document.querySelectorAll("[data-display-root]")
+    ).filter(function (el) {
+      return !el.closest("[hidden]");
+    });
 
     // Ereignisbehandlung immer registrieren – auch wenn das Overlay noch
     // verborgen ist und erst später per Monitor-Symbol geöffnet wird.
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && roots.length) {
         tickClock();
         poll();
         requestWakeLock();
@@ -582,11 +595,13 @@
         overlayRoot = visibleRoots[0];
       } else {
         initStandalone();
-        document.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && !document.fullscreenElement) {
-            window.location.href = "/uebersicht/";
-          }
-        });
+        if (!visibleRoots[0].hasAttribute("data-no-escape")) {
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !document.fullscreenElement) {
+              window.location.href = "/uebersicht/";
+            }
+          });
+        }
       }
       setBackground(roots[0]);
       tickClock();

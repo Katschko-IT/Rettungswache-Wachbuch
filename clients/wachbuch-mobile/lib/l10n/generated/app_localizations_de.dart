@@ -782,4 +782,132 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get pinboardCreated => 'Aushang wurde angelegt.';
+
+  @override
+  String get updateTitleAvailable => 'Neue Version verfügbar';
+
+  @override
+  String get updateTitleRequired => 'Wichtiges Update erforderlich';
+
+  @override
+  String updateCurrentVersion(Object version) {
+    return 'Aktuelle Version: $version';
+  }
+
+  @override
+  String updateNewVersion(Object version) {
+    return 'Neue Version: $version';
+  }
+
+  @override
+  String updateReleasedAt(Object date) {
+    return 'Veröffentlicht am: $date';
+  }
+
+  @override
+  String get updateWhatsNew => 'Was gibt es Neues?';
+
+  @override
+  String get updateRequiredNotice =>
+      'Dieses Update ist erforderlich, um die App weiter nutzen zu können.';
+
+  @override
+  String get updateForceExplanation =>
+      'Um die App weiter nutzen zu können, musst du auf die neueste Version updaten.';
+
+  @override
+  String updateRequiredVersion(Object version) {
+    return 'Erforderliche Version: $version';
+  }
+
+  @override
+  String get updateLater => 'Später erinnern';
+
+  @override
+  String get updateClose => 'Schließen';
+
+  @override
+  String get updateDownload => 'Update herunterladen';
+
+  @override
+  String get updateNow => 'Jetzt updaten';
+
+  @override
+  String updateVersionEntry(Object version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get keyVerifyTitle => 'Schlüssel verifizieren';
+
+  @override
+  String get keyVerifyExplanation =>
+      'Vergleiche den Fingerprint deines Schlüssels mit dem deiner Kolleginnen und Kollegen – persönlich oder per QR-Scan. Stimmen sie überein, ist der Schlüssel echt.';
+
+  @override
+  String get keyVerifyOwnKey => 'Dein Schlüssel';
+
+  @override
+  String get keyVerifyOwnTag => '(du)';
+
+  @override
+  String get keyVerifyVerifiedTag => 'verifiziert';
+
+  @override
+  String get keyVerifyScanAction => 'Per Scan verifizieren';
+
+  @override
+  String get keyVerifyScanTitle => 'Fingerprint scannen';
+
+  @override
+  String keyVerifyMatch(Object name) {
+    return 'Fingerprint stimmt mit $name überein.';
+  }
+
+  @override
+  String get keyVerifyNoMatch =>
+      'Kein Mitglied mit diesem Fingerprint gefunden.';
+
+  @override
+  String get keyVerifyCopied => 'Fingerprint kopiert.';
+
+  @override
+  String get keyVerifyShowQr => 'QR-Code anzeigen';
+
+  @override
+  String get keyVerifyConfirmAction => 'Als verifiziert markieren';
+
+  @override
+  String get keyVerifyRevoke => 'Verifizierung zurückziehen';
+
+  @override
+  String keyVerifyReverified(Object name) {
+    return 'Geänderter Schlüssel von $name erneut verifiziert.';
+  }
+
+  @override
+  String get keyVerifyChangedTag => 'Schlüssel geändert!';
+
+  @override
+  String keyVerifyChangedWarning(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verifizierte Schlüssel haben sich geändert',
+      one: '$count verifizierter Schlüssel hat sich geändert',
+    );
+    return '$_temp0. Bitte persönlich erneut prüfen.';
+  }
+
+  @override
+  String keyVerifyServerMismatch(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count vom Server gemeldete Fingerprints weichen vom Schlüssel ab',
+      one: '$count vom Server gemeldeter Fingerprint weicht vom Schlüssel ab',
+    );
+    return '$_temp0. Mögliche Server-Manipulation – nicht verifizieren.';
+  }
 }

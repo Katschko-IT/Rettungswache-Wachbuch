@@ -194,11 +194,11 @@ def display_payload(station) -> dict:
             from .fleet_models import Vehicle
 
             for v in Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign"):
-                v.check_and_release_disinfection()
                 fleet_vehicles.append({
                     "call_sign": v.call_sign[:30],
                     "license_plate": v.license_plate[:20],
                     "status": v.tactical_status,
+                    "awaiting_release": v.awaiting_crew_release,
                     "status_label": v.get_tactical_status_display(),
                     "is_locked": v.is_disinfection_locked,
                     "locked_until": timezone.localtime(v.disinfection_locked_until, tz).strftime("%H:%M") if v.disinfection_locked_until else None,

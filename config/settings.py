@@ -51,6 +51,7 @@ MIDDLEWARE = [
     "core.middleware.SecurityHeadersMiddleware",
     "core.middleware.ClientIPMiddleware",
     "axes.middleware.AxesMiddleware",
+    "core.terminal.TerminalMiddleware",
     # Muss nach der Korrelations-ID-Middleware stehen, damit die ID bereits
     # am Request haengt, wenn ein 5xx-Ereignis erfasst wird.
     "core.diagnostics.ErrorEventMiddleware",
@@ -183,6 +184,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context.current_membership",
                 "core.context.application_metadata",
+                "core.terminal.terminal_context",
             ],
         },
     }
@@ -284,7 +286,7 @@ DEFAULT_STATION_NAME = os.getenv("DEFAULT_STATION_NAME", "Rettungswache").strip(
 DEFAULT_STATION_SLUG = os.getenv("DEFAULT_STATION_SLUG", "rettungswache").strip()
 APP_NAME = os.getenv("APP_NAME", "Wachwerk").strip() or "Wachwerk"
 SOURCE_URL = os.getenv(
-    "SOURCE_URL", "https://github.com/Darkspike1988/Rettungswache-Wachbuch"
+    "SOURCE_URL", "https://github.com/Katschko-IT/Rettungswache-Wachbuch"
 ).strip()
 APP_VERSION = os.getenv("APP_VERSION", DEFAULT_APP_VERSION).strip()
 FEED_ALLOWED_HOSTS = {
@@ -326,6 +328,14 @@ QR_LOGIN_RATE_LIMITS = {
     "qr_exchange": (10, 60),
     "qr_manual": (10, 60),
 }
+# Wachenterminal: registrierter Touch-Bildschirm mit persönlicher PIN
+# (docs/PI-WACHENTERMINAL.md). Aus, solange der Betreiber es nicht einschaltet.
+TERMINAL_ENABLED = env_bool("TERMINAL_ENABLED", default=False)
+TERMINAL_IDLE_SECONDS = max(30, int(os.getenv("TERMINAL_IDLE_SECONDS", "120") or "120"))
+# SHA-256 des TLS-Zertifikats bei lokalem Betrieb mit eigenem Zertifikat (z. B.
+# Raspberry Pi mit eigenem WLAN). Die App erhält ihn über den Verbindungs-QR und
+# vertraut dann genau diesem Zertifikat. Leer bei öffentlich gültigem Zertifikat.
+LOCAL_TLS_CERT_SHA256 = os.getenv("LOCAL_TLS_CERT_SHA256", "").strip().lower().replace(":", "")
 WEBAUTHN_ENABLED = env_bool("WEBAUTHN_ENABLED", default=True)
 WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "").strip()
@@ -333,6 +343,13 @@ WEB_PUSH_ENABLED = env_bool("WEB_PUSH_ENABLED", default=False)
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "").strip()
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "").strip()
 VAPID_ADMIN_EMAIL = os.getenv("VAPID_ADMIN_EMAIL", "ops@localhost").strip() or "ops@localhost"
+# Optionales Push-Relay für die iOS-/Android-App (APNs/FCM-Schlüssel liegen
+# beim Relay-Betreiber, nicht auf dem Wachenserver). Leer = kein nativer Push;
+# die App erinnert dann lokal. Vertrag: docs/PUSH-RELAY.md.
+PUSH_RELAY_URL = os.getenv("PUSH_RELAY_URL", "").strip()
+PUSH_RELAY_TOKEN = os.getenv("PUSH_RELAY_TOKEN", "").strip()
+if PUSH_RELAY_URL and not PUSH_RELAY_URL.startswith("https://"):
+    raise ImproperlyConfigured("PUSH_RELAY_URL muss eine https://-Adresse sein.")
 # HTTPS host allowlist for browser push subscription endpoints (SSRF guard).
 # The same list feeds CSP ``connect-src`` (no scheme-wide ``https:``).
 # Entries match an exact host; entries starting with "." match that suffix

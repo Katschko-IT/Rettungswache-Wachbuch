@@ -28,20 +28,51 @@ class OrgaModuleTests(TestCase):
             is_active=True,
         )
         self.client.force_login(self.user)
+        sop = SOPDocument.objects.create(
+            station=self.station,
+            slug="sop-test-01",
+            doc_number="SOP-MED-01",
+            title="Test-Dienstanweisung",
+            status=SOPDocument.Status.ACTIVE,
+            requires_acknowledgment=True,
+            created_by=self.user,
+        )
+        SOPRevision.objects.create(
+            sop=sop,
+            version_label="1.0",
+            content_markdown="# Testinhalt",
+            change_summary="Erstfassung",
+            approved_by=self.user,
+        )
 
-    def test_dashboard_renders_and_seeds_defaults(self):
+    def test_dashboard_never_invents_sops_or_emergency_numbers(self):
+        SOPDocument.objects.all().delete()
         resp = self.client.get(reverse("orga_dashboard"))
         self.assertEqual(resp.status_code, 200)
+        # Kein Auto-Seeding: keine erfundenen medizinischen Anweisungen oder
+        # regional falschen Notrufnummern in einer echten Wache.
+        self.assertFalse(SOPDocument.objects.filter(station=self.station).exists())
+        self.assertFalse(StationContact.objects.filter(station=self.station).exists())
 
-        # Verified auto-seeding of emergency contacts and standard SOP
-        self.assertTrue(StationContact.objects.filter(station=self.station, is_speed_dial=True).exists())
-        self.assertTrue(SOPDocument.objects.filter(station=self.station, doc_number="SOP-MED-01").exists())
+    def test_unread_sop_is_not_shown_as_acknowledged(self):
+        resp = self.client.get(reverse("orga_dashboard"))
+        self.assertContains(resp, "Quittierung nötig")
+        self.assertNotContains(resp, "✅ Quittiert")
+        sop = SOPDocument.objects.get(slug="sop-test-01")
+        self.client.post(reverse("sop_acknowledge", args=[sop.slug]))
+        resp = self.client.get(reverse("orga_dashboard"))
+        self.assertContains(resp, "✅ Quittiert")
+
+    def test_dashboard_lists_station_sops(self):
+        resp = self.client.get(reverse("orga_dashboard"))
         self.assertContains(resp, "SOP-MED-01")
-        self.assertContains(resp, "Integrierte Leitstelle")
+
+    def test_archived_sop_is_not_pending_acknowledgment(self):
+        SOPDocument.objects.update(status=SOPDocument.Status.ARCHIVED)
+        resp = self.client.get(reverse("orga_dashboard") + "?filter=pending")
+        self.assertNotContains(resp, "SOP-MED-01")
 
     def test_sop_detail_and_acknowledgment(self):
-        # Trigger seeding first
-        self.client.get(reverse("orga_dashboard"))
         sop = SOPDocument.objects.get(station=self.station, doc_number="SOP-MED-01")
 
         self.assertFalse(sop.user_has_acknowledged(self.user))
@@ -53,7 +84,7 @@ class OrgaModuleTests(TestCase):
         # Quittieren
         ack_resp = self.client.post(reverse("sop_acknowledge", args=[sop.slug]), follow=True)
         self.assertEqual(ack_resp.status_code, 200)
-        self.assertContains(ack_resp, "Kenntnisnahme rechtssicher quittiert")
+        self.assertContains(ack_resp, "Kenntnisnahme quittiert")
 
         # Verification
         self.assertTrue(sop.user_has_acknowledged(self.user))
@@ -84,8 +115,7 @@ class OrgaModuleTests(TestCase):
         self.assertTrue(len(sop.latest_revision.content_hash) == 64)  # SHA-256 length
 
     def test_new_revision_requires_re_acknowledgment(self):
-        # Seed and acknowledge v1.0
-        self.client.get(reverse("orga_dashboard"))
+        # Acknowledge v1.0
         sop = SOPDocument.objects.get(station=self.station, doc_number="SOP-MED-01")
         self.client.post(reverse("sop_acknowledge", args=[sop.slug]))
         self.assertTrue(sop.user_has_acknowledged(self.user))
@@ -132,7 +162,6 @@ class OrgaModuleTests(TestCase):
         self.assertFalse(StationContact.objects.filter(pk=contact.pk).exists())
 
     def test_export_audit_csv(self):
-        self.client.get(reverse("orga_dashboard"))
         sop = SOPDocument.objects.get(station=self.station, doc_number="SOP-MED-01")
         self.client.post(reverse("sop_acknowledge", args=[sop.slug]))
 

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenterminal" %} | {{ app_name }}{% endblock %}
+{% block body_class %}terminal-open{% endblock %}
+{% block content %}
+<header class="terminal-cockpit-head">
+  <div>
+    <p class="terminal-cockpit-date">{{ today|date:"l, d. F Y" }}</p>
+    <h1>{{ station.name }}</h1>
+  </div>
+  <div class="terminal-weather">
+    {% if weather %}
+      <strong>{{ weather.max }}° / {{ weather.min }}°</strong>
+      <span>{{ weather.label }}{% if weather.precipitation %} · {{ weather.precipitation }} mm{% endif %}</span>
+    {% else %}
+      <span>{% translate "Wetter nicht eingerichtet" %}</span>
+    {% endif %}
+  </div>
+</header>
+
+<nav class="terminal-tiles" aria-label="{% translate 'Schnellzugriff' %}">
+  <a class="terminal-tile" href="{% url 'handover_create' %}"><span aria-hidden="true">📝</span>{% translate "Übergabe schreiben" %}</a>
+  <a class="terminal-tile" href="{% url 'handover_list' %}"><span aria-hidden="true">📋</span>{% translate "Übergabebuch" %}{% if urgent_handovers %} <em class="terminal-tile-badge">{{ urgent_handovers }} {% translate "dringend" %}</em>{% endif %}</a>
+  {% if station.calendar_enabled %}<a class="terminal-tile" href="{% url 'calendar' %}"><span aria-hidden="true">📅</span>{% translate "Kalender" %}</a>{% endif %}
+  {% if station.tasks_enabled %}
+    <a class="terminal-tile" href="{% url 'tasks_today' %}"><span aria-hidden="true">✅</span>{% translate "Tagesaufgaben" %}</a>
+    <a class="terminal-tile" href="{% url 'tasks_week' %}"><span aria-hidden="true">🗓️</span>{% translate "Wochenplan" %}</a>
+  {% endif %}
+  <a class="terminal-tile" href="{% url 'defect_create_web' %}"><span aria-hidden="true">⚠️</span>{% translate "Mangel melden" %}</a>
+  {% if station.checklists_enabled %}<a class="terminal-tile" href="{% url 'checklists' %}"><span aria-hidden="true">☑️</span>{% translate "Checklisten" %}</a>{% endif %}
+  {% if station.pinboard_enabled %}<a class="terminal-tile" href="{% url 'pinboard' %}"><span aria-hidden="true">📌</span>{% translate "Pinnwand" %}</a>{% endif %}
+  <a class="terminal-tile" href="{% url 'news_index' %}"><span aria-hidden="true">📰</span>{% translate "Neuigkeiten" %}</a>
+</nav>
+
+<div class="terminal-cockpit">
+  <section class="card terminal-card terminal-card-wide">
+    <div class="terminal-card-head">
+      <h2>{% translate "Offene Übergaben" %}</h2>
+      <a href="{% url 'handover_list' %}">{% translate "Alle" %}</a>
+    </div>
+    <div class="item-list">
+      {% for item in handovers %}
+        <a class="list-row handover-list-row" href="{% url 'handover_detail' item.pk %}">
+          <span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
+          <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small></span>
+          <time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:"d.m. H:i" }}</time>
+        </a>
+      {% empty %}
+        <p class="empty-state">{% translate "Keine offenen Übergaben." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card terminal-card">
+    <div class="terminal-card-head">
+      <h2>{% translate "Heute im Kalender" %}</h2>
+      {% if station.calendar_enabled %}<a href="{% url 'calendar' %}">{% translate "Kalender" %}</a>{% endif %}
+    </div>
+    <ul class="terminal-simple-list">
+      {% for event in events %}
+        <li><strong>{{ event.time }}</strong> {{ event.title }}</li>
+      {% empty %}
+        <li class="empty-state">{% translate "Keine Termine heute." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card terminal-card">
+    <div class="terminal-card-head"><h2>{% translate "Müllabfuhr" %}</h2></div>
+    {% if waste is None %}
+      <p class="empty-state">{% translate "Müllkalender ist nicht eingerichtet (Einstellungen → Module)." %}</p>
+    {% else %}
+      <ul class="terminal-simple-list">
+        {% for item in waste %}
+          <li><strong>{{ item.starts_at|date:"D d.m." }}</strong> {{ item.title }}</li>
+        {% empty %}
+          <li class="empty-state">{% translate "In den nächsten 7 Tagen keine Abholung." %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  {% if day_board %}
+    <section class="card terminal-card terminal-card-wide">
+      <div class="terminal-card-head">
+        <h2>{% translate "Tagesaufgaben" %} <small>{% blocktranslate with done=day_board.done_count total=day_board.total %}{{ done }} von {{ total }} erledigt{% endblocktranslate %}</small></h2>
+        <a href="{% url 'tasks_today' %}">{% translate "Alle" %}</a>
+      </div>
+      {% with work_date=day_board.work_date %}
+        {% for band, items in day_board.groups.items %}
+          {% for item in items %}{% include "core/task_row.html" %}{% endfor %}
+        {% endfor %}
+      {% endwith %}
+      {% if not day_board.total %}<p class="empty-state">{% translate "Heute keine Aufgaben." %}</p>{% endif %}
+    </section>
+
+    <section class="card terminal-card">
+      <div class="terminal-card-head">
+        <h2>{% translate "Diese Woche" %} <small>{{ week_label }}</small></h2>
+        <a href="{% url 'tasks_week' %}">{% translate "Wochenplan" %}</a>
+      </div>
+      <ul class="terminal-week">
+        {% for column in week_columns %}
+          <li{% if column.is_today %} class="is-today"{% endif %}>
+            <a href="{% url 'tasks_today' %}?tag={{ column.date|date:'Y-m-d' }}">
+              <strong>{{ column.date|date:"D" }}</strong>
+              <span>{{ column.done_count }}/{{ column.total }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card terminal-card">
+      <div class="terminal-card-head"><h2>{% translate "Monatsaufgaben" %} <small>{{ today|date:"F" }}</small></h2></div>
+      {% for item in month_items %}
+        <p class="terminal-month-date">{{ item.date|date:"l, d.m." }}</p>
+        {% with work_date=item.date %}{% include "core/task_row.html" %}{% endwith %}
+      {% empty %}
+        <p class="empty-state">{% translate "Keine monatlichen Aufgaben. Die Wachleitung legt sie unter Aufgaben → Verwaltung mit „Monatlich“ an." %}</p>
+      {% endfor %}
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -23,6 +23,10 @@ from .display_models import DEFAULT_DISPLAY_CONFIG, DisplayToken
 COOKIE_NAME = "rwsth_display"
 COOKIE_PATH = "/display/"
 MAX_FAILURES_PER_MINUTE = 10
+# Ein SSE-Stream belegt einen Worker-Thread. Nach dieser Laufzeit endet er,
+# EventSource verbindet sich selbst neu und Zugang wird dabei neu geprüft.
+STREAM_MAX_SECONDS = 300
+STREAM_RETRY_MS = 5000
 
 
 def _harden(response: HttpResponse) -> HttpResponse:
@@ -188,7 +192,9 @@ def display_stream(request):
         last_poll = time.time()
         last_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
-        for _ in range(3600):
+        started = time.time()
+        yield f"retry: {STREAM_RETRY_MS}\n\n"
+        while time.time() - started < STREAM_MAX_SECONDS:
             got_redis_msg = False
             if sub:
                 try:
@@ -206,6 +212,11 @@ def display_stream(request):
                 last_ping = now
 
             if got_redis_msg or (now - last_poll >= 30.0):
+                # Widerruf/Ablauf des Tokens bzw. Entzug der Mitgliedschaft
+                # beendet einen laufenden Stream, statt ihn weiterzubedienen.
+                if not _stream_still_authorized(request, station, token_record):
+                    yield "event: revoked\ndata: {}\n\n"
+                    return
                 payload = display_payload(station)
                 payload["app_version"] = _app_version()
                 payload["layout_config"] = (
@@ -223,6 +234,14 @@ def display_stream(request):
     response["Cache-Control"] = "no-cache, no-transform"
     response["X-Accel-Buffering"] = "no"
     return response
+
+
+def _stream_still_authorized(request, station, token_record) -> bool:
+    if token_record is not None:
+        fresh = DisplayToken.objects.filter(pk=token_record.pk).first()
+        return fresh is not None and fresh.is_active and fresh.station_id == station.id
+    membership = get_membership(request.user) if request.user.is_authenticated else None
+    return membership is not None and membership.station_id == station.id
 
 
 def _app_version() -> str:

@@ -214,7 +214,6 @@ class RepositoryCatalogTests(SimpleTestCase):
         identical_ok = {
             # Produkt-, Plattform- und Eigennamen
             "Android": "Plattformname",
-            "iOS &amp; Android": "Plattformnamen",
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
             "iOS / iPadOS": "Plattformnamen",
             "Web-PWA": "Produktbegriff",
@@ -262,6 +261,16 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Passkey": "Fachbegriff, identisch",
             "Passkeys": "Fachbegriff, identisch",
             "Passphrase": "Fachbegriff, identisch",
+            # Fachmodule (MPG/Lager): Normen, Kennungen und Lehnwoerter
+            "PZN": "Pharmazentralnummer, Kennung",
+            "Optional": "Lehnwort, identisch",
+            "Details": "Lehnwort, identisch",
+            "OK": "Lehnwort, identisch",
+            "Check": "Lehnwort, identisch",
+            "Normal": "Lehnwort, identisch",
+            "AdBlue": "Markenname",
+            "AdBlue (%)": "Markenname mit Einheit",
+            "UDI-DI (GTIN):": "Normkennung",
             # Platzhalterzeile ohne uebersetzbaren Text
             "%(category)s &middot; Version %(version)s": "nur Platzhalter und Produktwort",
         }

@@ -94,9 +94,9 @@ Für 1.0 vorhanden:
 
 Direkt verwendbare öffentliche Übergangs-URLs:
 
-- Datenschutz: `https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
-- Support: `https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/SUPPORT.md`
-- Marketing/Projekt: `https://github.com/darkspike1988/Wachbuch-Client`
+- Datenschutz: `https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
+- Support: `https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/SUPPORT.md`
+- Marketing/Projekt: `https://github.com/Katschko-IT/Wachbuch-Client`
 
 Eine eigene Domain kann diese URLs später ersetzen; die Store-Angaben und die In-App-Erklärung müssen dann synchron aktualisiert werden.
 

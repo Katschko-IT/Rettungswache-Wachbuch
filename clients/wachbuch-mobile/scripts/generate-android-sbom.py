@@ -140,7 +140,7 @@ def main() -> None:
     identity = "\n".join(component["purl"] for component in components)
     serial = uuid.uuid5(
         uuid.NAMESPACE_URL,
-        f"https://github.com/darkspike1988/Wachbuch-Client/{args.version}\n{identity}",
+        f"https://github.com/Katschko-IT/Wachbuch-Client/{args.version}\n{identity}",
     )
     bom = {
         "bomFormat": "CycloneDX",
@@ -158,7 +158,7 @@ def main() -> None:
             "properties": [
                 {
                     "name": "wachbuch:source-repository",
-                    "value": "https://github.com/darkspike1988/Wachbuch-Client",
+                    "value": "https://github.com/Katschko-IT/Wachbuch-Client",
                 }
             ],
         },

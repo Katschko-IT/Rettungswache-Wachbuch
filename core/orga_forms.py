@@ -32,8 +32,8 @@ class SOPDocumentForm(forms.ModelForm):
             "requires_acknowledgment",
         ]
         widgets = {
-            "valid_from": forms.DateInput(attrs={"type": "date"}),
-            "review_due_date": forms.DateInput(attrs={"type": "date"}),
+            "valid_from": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "review_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "doc_number": forms.TextInput(attrs={"placeholder": "z. B. SOP-MED-01"}),
             "title": forms.TextInput(attrs={"placeholder": "z. B. Invasive Notfallnarkose & RSI"}),
         }
@@ -72,7 +72,7 @@ class SOPRevisionForm(forms.ModelForm):
             "effective_date",
         ]
         widgets = {
-            "effective_date": forms.DateInput(attrs={"type": "date"}),
+            "effective_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "version_label": forms.TextInput(attrs={"placeholder": "z. B. 1.1 oder 2.0"}),
             "change_summary": forms.TextInput(attrs={"placeholder": "z. B. Dosisanpassung Rocuronium gem. S3-Leitlinie"}),
             "content_markdown": forms.Textarea(attrs={"rows": 12}),

@@ -2,26 +2,44 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wachbuch_mobile/l10n/generated/app_localizations.dart';
 import 'package:wachbuch_mobile/api/api_cache.dart';
 import 'package:wachbuch_mobile/api/client.dart';
 import 'package:wachbuch_mobile/api/server_address.dart';
 import 'package:wachbuch_mobile/api/server_links.dart';
+import 'package:wachbuch_mobile/api/server_trust.dart';
 import 'package:wachbuch_mobile/auth/session_store.dart';
 import 'package:wachbuch_mobile/demo/demo_api.dart';
 import 'package:wachbuch_mobile/demo/demo_profiles.dart';
 import 'package:wachbuch_mobile/screens/home_shell.dart';
 import 'package:wachbuch_mobile/screens/login_screen.dart';
 import 'package:wachbuch_mobile/screens/server_setup_screen.dart';
+import 'package:wachbuch_mobile/services/crew_reminder_service.dart';
+import 'package:wachbuch_mobile/services/update_service.dart';
 import 'package:wachbuch_mobile/theme/app_theme.dart';
-import 'package:wachbuch_mobile/theme/high_contrast_theme.dart';
 import 'package:wachbuch_mobile/theme/solar_theme.dart';
-
+import 'package:wachbuch_mobile/theme/high_contrast_theme.dart';
+import 'package:wachbuch_mobile/widgets/update_dialog.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize session store
   final store = SessionStore();
+  
+  // Initialize server links
   final links = AppLinksServerLinkSource();
+  
+  // Initialize theme controller
   final themeController = SolarThemeController.device();
+  
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+  
   runApp(
     WachbuchApp(
       store: store,
@@ -39,11 +57,15 @@ class WachbuchApp extends StatefulWidget {
     required this.store,
     this.linkSource = const NoopServerLinkSource(),
     this.themeController,
+    this.reminderSchedulerFactory,
   });
 
   final SessionStore store;
   final ServerLinkSource linkSource;
   final SolarThemeController? themeController;
+
+  /// Für Tests ersetzbar; Standard sind lokale Plattform-Benachrichtigungen.
+  final ReminderScheduler Function()? reminderSchedulerFactory;
 
   @override
   State<WachbuchApp> createState() => _WachbuchAppState();
@@ -57,15 +79,18 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   StreamSubscription<Uri>? _linkSubscription;
   ThemeMode _themeMode = ThemeMode.system;
   String? _sessionNotice;
+  CrewReminderService? _reminders;
+  Timer? _reminderTimer;
+  static const _reminderInterval = Duration(minutes: 3);
 
   @override
   void initState() {
     super.initState();
     final themeController = widget.themeController;
+    WidgetsBinding.instance.addObserver(this);
     if (themeController != null) {
       _themeMode = themeController.mode;
       themeController.addListener(_handleThemeChange);
-      WidgetsBinding.instance.addObserver(this);
       unawaited(themeController.refresh());
     }
     _bootstrap();
@@ -78,15 +103,66 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _checkForUpdates() async {
+    try {
+      final base = _serverUrl ?? '';
+      final updateService = UpdateService(baseUrl: base, client: ServerTrust.clientFor(base));
+      final updateInfo = await updateService.checkForUpdates();
+      
+      if (updateInfo != null && updateInfo.hasUpdate) {
+        // If this is a forced update, show blocking dialog
+        if (updateInfo.forceUpdate) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              showDialog(
+                context: _navigatorKey.currentContext!,
+                barrierDismissible: false,
+                builder: (context) => ForcedUpdateDialog(
+                  updateInfo: updateInfo,
+                  updateService: updateService,
+                ),
+              );
+            }
+          });
+        } else {
+          // For non-forced updates, show dialog after app loads
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              showDialog(
+                context: _navigatorKey.currentContext!,
+                builder: (context) => UpdateDialog(
+                  updateInfo: updateInfo,
+                  updateService: updateService,
+                ),
+              );
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to check for updates: $e');
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       final controller = widget.themeController;
       if (controller != null) unawaited(controller.refresh());
+      _startReminders();
+    } else if (state == AppLifecycleState.paused) {
+      // Im Hintergrund erinnern die bereits geplanten lokalen Benachrichtigungen.
+      _reminderTimer?.cancel();
+      _reminderTimer = null;
     }
   }
 
   Future<void> _bootstrap() async {
+    try {
+      await ServerTrust.load();
+    } catch (_) {
+      // Ohne gespeicherte Fingerabdrücke gilt die normale TLS-Prüfung.
+    }
     var url = await widget.store.readServerUrl();
     var token = await widget.store.readToken();
 
@@ -112,8 +188,11 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
     }
 
     final initialLink = await widget.linkSource.getInitialLink();
+    ServerLink? pairingLink;
     if (initialLink != null) {
-      final linkedUrl = _parseLink(initialLink);
+      final parsed = await _parseAndTrust(initialLink);
+      if (parsed?.pairingCode != null) pairingLink = parsed;
+      final linkedUrl = parsed?.url;
       if (linkedUrl != null && linkedUrl != url) {
         // During bootstrap `_api` does not exist yet, so clear the persisted
         // session cache directly before replacing a previously stored server.
@@ -153,14 +232,55 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
       _handleServerLink,
       onError: (_) {},
     );
+    _startReminders();
+    if (_serverUrl != null && _serverUrl!.isNotEmpty && !DemoService.isDemoUrl(_serverUrl!)) {
+      _checkForUpdates();
+    }
+    if (pairingLink != null) {
+      await _pairWith(pairingLink);
+    }
   }
 
-  String? _parseLink(Uri link) {
+  /// Liest einen Wachbuch-Link und merkt sich einen mitgelieferten
+  /// Zertifikats-Fingerabdruck für diesen Server.
+  Future<ServerLink?> _parseAndTrust(Uri link) async {
+    final ServerLink parsed;
     try {
-      return parseServerAddress(link.toString(), allowInsecure: kDebugMode);
+      parsed = parseServerLink(link.toString(), allowInsecure: kDebugMode);
     } on ArgumentError {
       return null;
     }
+    final pin = parsed.certSha256;
+    if (pin != null) {
+      await ServerTrust.remember(parsed.url, pin);
+    }
+    return parsed;
+  }
+
+  /// Kopplungs-QR vom Wachenterminal: Token holen und direkt anmelden.
+  Future<void> _pairWith(ServerLink link) async {
+    final code = link.pairingCode;
+    if (code == null) return;
+    final api = createWachbuchApi(link.url);
+    try {
+      final token = await api.exchangePairingCode(code);
+      await _onPaired(link.url, token);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _sessionNotice = 'Kopplung fehlgeschlagen: ${error.message} '
+            'Bitte am Wachenterminal einen neuen QR-Code erzeugen.';
+        if (_phase != _BootPhase.home) _phase = _BootPhase.login;
+      });
+    } finally {
+      api.close();
+    }
+  }
+
+  Future<void> _onPaired(String url, AuthToken token) async {
+    await _clearCurrentApiCache();
+    await widget.store.clearAll();
+    await _onLoggedIn(url, token.value, expiresAt: token.expiresAt);
   }
 
   Future<void> _clearCacheForSession(String baseUrl, String token) async {
@@ -216,8 +336,14 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   }
 
   Future<void> _handleServerLink(Uri link) async {
-    final url = _parseLink(link);
-    if (url == null) return;
+    final parsed = await _parseAndTrust(link);
+    if (parsed == null) return;
+    final url = parsed.url;
+    if (parsed.pairingCode != null) {
+      // Ausdrücklich gescannter Kopplungscode: Anmeldung mit diesem Konto.
+      await _pairWith(parsed);
+      return;
+    }
     if (_serverUrl == url && _phase == _BootPhase.home) {
       return;
     }
@@ -241,9 +367,10 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     _linkSubscription?.cancel();
+    _reminderTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     final themeController = widget.themeController;
     if (themeController != null) {
-      WidgetsBinding.instance.removeObserver(this);
       themeController.removeListener(_handleThemeChange);
       themeController.dispose();
     }
@@ -295,6 +422,37 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
       _phase = _BootPhase.home;
       _sessionNotice = null;
     });
+    _startReminders();
+  }
+
+  /// Startet den Abgleich der Fahrzeug-Erinnerungen für die aktuelle Sitzung.
+  void _startReminders() {
+    final api = _api;
+    if (api == null || api is DemoWachbuchApi || _phase != _BootPhase.home) {
+      return;
+    }
+    final token = api.token ?? '';
+    final reminders = _reminders?.api == api
+        ? _reminders!
+        : CrewReminderService(
+            api: api,
+            scheduler: widget.reminderSchedulerFactory?.call() ?? LocalNotificationScheduler(),
+            store: ReminderStore(
+              namespace: reminderIdFor('${api.baseUrl}|$token').toString(),
+            ),
+          );
+    _reminders = reminders;
+    unawaited(reminders.sync());
+    _reminderTimer?.cancel();
+    _reminderTimer = Timer.periodic(_reminderInterval, (_) => unawaited(reminders.sync()));
+  }
+
+  Future<void> _stopReminders() async {
+    _reminderTimer?.cancel();
+    _reminderTimer = null;
+    final reminders = _reminders;
+    _reminders = null;
+    if (reminders != null) await reminders.clear();
   }
 
   Future<void> _revokeCurrentTokenBestEffort() async {
@@ -308,6 +466,7 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   }
 
   Future<void> _logout({String? notice}) async {
+    await _stopReminders();
     await _revokeCurrentTokenBestEffort();
     await _clearCurrentApiCache();
     await widget.store.clearToken();
@@ -322,6 +481,7 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   }
 
   Future<void> _changeServer() async {
+    await _stopReminders();
     await _revokeCurrentTokenBestEffort();
     await _clearCurrentApiCache();
     await widget.store.clearAll();
@@ -345,6 +505,7 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
           store: widget.store,
           onServerReady: _onServerReady,
           onDemoReady: _onDemoReady,
+          onPaired: _onPaired,
         );
       case _BootPhase.login:
         home = LoginScreen(

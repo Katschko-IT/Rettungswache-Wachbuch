@@ -13,6 +13,7 @@ import 'package:wachbuch_mobile/models/defect.dart';
 import 'package:wachbuch_mobile/models/defect_attachment.dart';
 import 'package:wachbuch_mobile/models/handover_ack.dart';
 import 'package:wachbuch_mobile/models/inventory_item.dart';
+import 'package:wachbuch_mobile/models/crew_notice.dart';
 import 'package:wachbuch_mobile/models/kaffeekasse.dart';
 import 'package:wachbuch_mobile/models/kalender_entry.dart';
 import 'package:wachbuch_mobile/models/pinboard_note.dart';
@@ -277,6 +278,30 @@ class WachbuchApi {
     }, maxAttempts: 1);
   }
 
+  /// POST /api/v1/token/kopplung/ — Kopplungscode vom Wachenterminal
+  /// (Server ab 0.24.0) gegen ein App-Token tauschen. Der Code gilt einmal.
+  Future<AuthToken> exchangePairingCode(
+    String code, {
+    String label = 'Mobile App (Terminal-Kopplung)',
+  }) async {
+    final response = await _send(
+      _client.post(
+        _uri('/api/v1/token/kopplung/'),
+        headers: _headers(auth: false),
+        body: jsonEncode({'code': code, 'label': label}),
+      ),
+    );
+    final body = _decode(response);
+    final value = body['token'] as String?;
+    if (value == null || value.isEmpty) {
+      throw ApiException(response.statusCode, 'Kein Token in der Antwort.');
+    }
+    return AuthToken(
+      value: value,
+      expiresAt: _parseExpiresAt(body['expires_at']),
+    );
+  }
+
   /// DELETE /api/v1/token/ — revoke the current app token.
   ///
   /// 401 is treated as success so logout still completes after an already
@@ -301,6 +326,45 @@ class WachbuchApi {
   /// GET /api/v1/me/ with encrypted offline fallback.
   Future<Map<String, dynamic>> me() =>
       _getJson('/api/v1/me/', cacheKey: 'me');
+
+  /// GET /api/v1/fahrzeuge/sperren/ – laufende Desinfektionssperren der
+  /// Fahrzeuge, die die angemeldete Person besetzt. Ältere Server ohne diesen
+  /// Endpunkt liefern 404; dann gibt es schlicht nichts zu planen.
+  Future<List<VehicleLock>> vehicleLocks() async {
+    final body = await _getOptionalJson('/api/v1/fahrzeuge/sperren/');
+    return _readList(body)
+        .map(VehicleLock.fromJson)
+        .where((lock) => lock.lockedUntil != null && lock.key.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  /// GET /api/v1/benachrichtigungen/ – persönlicher Posteingang.
+  Future<List<CrewNotice>> crewNotices() async {
+    final body = await _getOptionalJson('/api/v1/benachrichtigungen/');
+    return _readList(body).map(CrewNotice.fromJson).toList(growable: false);
+  }
+
+  /// POST /api/v1/benachrichtigungen/{id}/gelesen/
+  Future<void> markCrewNoticeRead(int id) async {
+    await _withRetry(() async {
+      final response = await _send(
+        _client.post(
+          _uri('/api/v1/benachrichtigungen/$id/gelesen/'),
+          headers: _headers(),
+        ),
+      );
+      if (response.statusCode == 404) return;
+      _decode(response);
+    }, maxAttempts: 1);
+  }
+
+  Future<Map<String, dynamic>> _getOptionalJson(String path) async {
+    final response = await _send(_client.get(_uri(path), headers: _headers()));
+    if (response.statusCode == 404 || response.statusCode == 501) {
+      return const {'results': []};
+    }
+    return _decode(response);
+  }
 
   /// GET /api/v1/handovers/ with encrypted offline fallback.
   Future<List<Map<String, dynamic>>> handovers() async {
@@ -375,7 +439,16 @@ class WachbuchApi {
       );
       final body = _decode(response);
       if (body.isEmpty) return Checklist(id: id, title: '', completed: true);
-      return Checklist.fromJson({...body, 'id': body['checklist'] ?? id, 'completed': true});
+      // Antwort beschreibt den Abschluss, nicht die Liste: `created_at` ist
+      // der Abschlusszeitpunkt. Titel/Punkte ergänzt der Aufrufer.
+      final by = body['completed_by'];
+      return Checklist.fromJson({
+        ...body,
+        'id': body['checklist'] ?? id,
+        'completed': true,
+        'completed_at': body['created_at'] ?? body['completed_at'],
+        'last_completed_by': by is Map ? by['display_name'] : by,
+      });
     }, maxAttempts: 1);
   }
 
@@ -968,6 +1041,10 @@ String moduleLabel(String key, {String languageCode = 'de'}) {
     'feeds': 'Meldungen & Verkehr',
     'checklists': 'Checklisten',
     'messaging': 'Nachrichten',
+    'chat': 'Wachenchat',
+    'pinboard': 'Pinnwand',
+    'holidays': 'Feiertage',
+    'weather': 'Wetter',
     'tasks': 'Aufgaben',
     'defects': 'Mängel',
     'assets': 'Geräte',
@@ -982,6 +1059,10 @@ String moduleLabel(String key, {String languageCode = 'de'}) {
     'feeds': 'News & traffic',
     'checklists': 'Checklists',
     'messaging': 'Messages',
+    'chat': 'Station chat',
+    'pinboard': 'Pinboard',
+    'holidays': 'Public holidays',
+    'weather': 'Weather',
     'tasks': 'Tasks',
     'defects': 'Defects',
     'assets': 'Assets',

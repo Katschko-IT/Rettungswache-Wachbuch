@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Network: required for the self-hosted Wachbuch API. -->
+    <!-- POST_NOTIFICATIONS und VIBRATE ergänzt das Benachrichtigungs-Plugin
+         (Erinnerung „Einwirkzeit abgelaufen“ für die Besatzung). -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Optional foreground location, used locally for sunrise/sunset only. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -65,5 +67,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Lokale Erinnerung zur Fahrzeugfreigabe (Ende der Einwirkzeit). Ohne
+             Boot-Receiver: nach einem Neustart plant die App beim Öffnen neu. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
     </application>
 </manifest>

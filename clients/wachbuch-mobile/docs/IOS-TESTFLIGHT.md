@@ -107,11 +107,11 @@ Ein späterer Wechsel auf `flutter_secure_storage` 11.x bleibt ein separater Cha
 
 Öffentliche Datenschutzerklärung:
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
 
 Support:
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/SUPPORT.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/SUPPORT.md`
 
 Die wesentlichen Datenschutzinformationen sind zusätzlich bereits **vor der Anmeldung in der App erreichbar**.
 

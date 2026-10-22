@@ -10,3 +10,6 @@ MIDDLEWARE = [
     item for item in MIDDLEWARE  # noqa: F405
     if item != "whitenoise.middleware.WhiteNoiseMiddleware"
 ]
+
+# Tests laufen ohne Zugriff auf externe Hosts (siehe core/test_runner.py).
+TEST_RUNNER = "core.test_runner.HermeticDiscoverRunner"

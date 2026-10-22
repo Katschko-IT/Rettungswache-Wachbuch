@@ -194,6 +194,13 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
+      if (doc.body.hasAttribute("data-terminal-device")) {
+        // Wachenterminal: kein Offline-Seitencache auf einem gemeinsamen Gerät.
+        navigator.serviceWorker.getRegistrations()
+          .then((registrations) => registrations.forEach((registration) => registration.unregister()))
+          .catch(() => {});
+        return;
+      }
       navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {});
     });
   }

@@ -5,43 +5,43 @@
 {% block content %}
 <header class="page-heading heading-with-action">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Dienstanweisungen & Wachen-Desk" %}</p>
-    <h1>{% translate "Organisation & SOP-Desk" %}</h1>
-    <p class="lead">{% translate "Revisionssichere Dienstanweisungen (SOPs gem. § 2a/2c NotSanG & DIN EN ISO 9001), Mitarbeiter-Quittierungsbuch und Notfall-Telefonbuch." %}</p>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Organisation" %}</p>
+    <h1>{% translate "Organisation & Dienstanweisungen" %}</h1>
+    <p class="lead">{% translate "Versionierte Dienstanweisungen (SOPs), Lesequittierungen und Notfall-Telefonliste." %}</p>
   </div>
-  <div class="page-actions-bar" style="margin: 0;">
+  <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}
       <a class="button" href="{% url 'sop_create' %}">
         <span class="icon" aria-hidden="true">➕</span> {% translate "Neue SOP anlegen" %}
       </a>
-      <button type="button" class="button secondary" onclick="document.getElementById('contact-modal').style.display='flex'">
+      <button type="button" class="button secondary" data-modal-open="contact-modal">
         <span class="icon" aria-hidden="true">📞</span> {% translate "Kontakt hinzufügen" %}
       </button>
     {% endif %}
   </div>
 </header>
 
-<!-- Notfall-Schnellwahl (Speed Dial) Bar -->
-<section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-  <h2 style="font-size: 1.15rem; margin-top: 0; display: flex; align-items: center; gap: 0.5rem;">
+{# Notfall-Schnellwahl (Speed Dial) Bar #}
+<section class="section-block ms-59028bf">
+  <h2 class="ms-d9cad21">
     <span>⚡</span> {% translate "Notfall-Schnellwahl & Wichtige Kontakte" %}
   </h2>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+  <div class="ms-abb51de">
     {% for c in speed_dials %}
-      <div style="background: var(--bg-subtle, rgba(0,0,0,0.03)); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: 6px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="ms-89c6923">
         <div>
-          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: bold;">{{ c.get_category_display }}</span>
-          <h3 style="font-size: 0.95rem; margin: 0.2rem 0 0.4rem;">{{ c.name }}</h3>
+          <span class="ms-a9208cc">{{ c.get_category_display }}</span>
+          <h3 class="ms-44bda2b">{{ c.name }}</h3>
           {% if c.contact_person %}
-            <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">{{ c.contact_person }}</p>
+            <p class="ms-aaecb70">{{ c.contact_person }}</p>
           {% endif %}
         </div>
-        <div style="margin-top: 0.6rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <a href="tel:{{ c.phone_primary }}" class="button small" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+        <div class="ms-8afc490">
+          <a href="tel:{{ c.phone_primary }}" class="button small ms-b61023e">
             📞 {{ c.phone_primary }}
           </a>
           {% if c.phone_secondary %}
-            <a href="tel:{{ c.phone_secondary }}" class="button secondary small" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+            <a href="tel:{{ c.phone_secondary }}" class="button secondary small ms-b61023e">
               {{ c.phone_secondary }}
             </a>
           {% endif %}
@@ -53,7 +53,7 @@
   </div>
 </section>
 
-<!-- KPI Board SOP Quittierungsstatus -->
+{# KPI Board SOP Quittierungsstatus #}
 <div class="kpi-grid">
   <div class="kpi-card{% if unack_count %} border-danger{% endif %}">
     <span class="kpi-value text-danger">{{ unack_count }}</span>
@@ -73,17 +73,17 @@
   </div>
 </div>
 
-<!-- Filter & Suchleiste -->
-<nav class="filter-nav" aria-label="{% translate 'SOP Ansicht' %}" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+{# Filter & Suchleiste #}
+<nav class="filter-nav ms-8580457" aria-label="{% translate 'SOP Ansicht' %}">
   <a href="?filter=all{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Dienstanweisungen" %} ({{ all_sops_count }})</a>
   <a href="?filter=pending{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'pending' %}aria-current="page"{% endif %}>🚨 {% translate "Ausstehende Kenntnisnahme" %} ({{ unack_count }})</a>
   <a href="?filter=acknowledged{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'acknowledged' %}aria-current="page"{% endif %}>✅ {% translate "Von mir quittiert" %} ({{ ack_count }})</a>
 </nav>
 
-<form method="get" class="search-form" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+<form method="get" class="search-form ms-06174bc">
   <input type="hidden" name="filter" value="{{ filter_mode }}">
-  <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Titel, SOP-Nummer, Stichwort...' %}" style="flex: 1; min-width: 240px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px;">
-  <select name="cat" onchange="this.form.submit()" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+  <input class="ms-3069a23" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Titel, SOP-Nummer, Stichwort...' %}">
+  <select class="ms-1e5879f" name="cat" data-auto-submit>
     <option value="">{% translate "Alle Kategorien" %}</option>
     {% for cat_key, cat_label in categories %}
       <option value="{{ cat_key }}" {% if cat == cat_key %}selected{% endif %}>{{ cat_label }}</option>
@@ -95,38 +95,38 @@
   {% endif %}
 </form>
 
-<!-- SOP Übersicht -->
+{# SOP Übersicht #}
 <section class="section-block">
   <h2>📋 {% translate "Dienstanweisungen & Heilkunde-SOPs" %} ({{ sops|length }})</h2>
 
   <div class="item-list">
     {% for sop in sops %}
-      <div class="list-row" style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <div style="flex: 1; min-width: 260px;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span class="badge" style="background: var(--bg-hover); font-weight: bold;">{{ sop.doc_number }}</span>
+      <div class="list-row ms-8536bed">
+        <div class="ms-62fe895">
+          <div class="ms-756d4ee">
+            <span class="badge ms-fb59e5e">{{ sop.doc_number }}</span>
             <span class="badge">{{ sop.get_category_display }}</span>
-            <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">v{{ sop.current_version }}</span>
+            <span class="badge ms-d06573a">v{{ sop.current_version }}</span>
           </div>
-          <h3 style="margin: 0.35rem 0 0.2rem; font-size: 1.15rem;">
+          <h3 class="ms-14cdeed">
             <a href="{% url 'sop_detail' sop.slug %}">{{ sop.title }}</a>
           </h3>
-          <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">
+          <p class="ms-36bb07e">
             {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
             {% if sop.review_due_date %} &middot; {% translate "Review bis" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
           </p>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div class="ms-81b39e9">
           {% if sop.requires_acknowledgment %}
             {% if sop.latest_revision %}
               <div>
-                {% if sop.id in ack_ids or not sop in unack_sops %}
-                  <span class="badge text-success" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+                {% if sop.id not in unack_ids %}
+                  <span class="badge text-success ms-9e899b4">
                     ✅ {% translate "Quittiert" %}
                   </span>
                 {% else %}
-                  <span class="badge border-danger" style="color: #dc2626; font-weight: bold; padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+                  <span class="badge border-danger ms-7555dab">
                     ⚠️ {% translate "Quittierung nötig" %}
                   </span>
                 {% endif %}
@@ -134,7 +134,7 @@
             {% endif %}
           {% endif %}
 
-          <div style="display: flex; gap: 0.5rem;">
+          <div class="ms-b378622">
             <a href="{% url 'sop_detail' sop.slug %}" class="button secondary small">
               📖 {% translate "Öffnen & Lesen" %}
             </a>
@@ -155,25 +155,25 @@
   </div>
 </section>
 
-<!-- Vollständiges Telefonbuch & Termine Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-  <!-- Telefonbuch -->
+{# Vollständiges Telefonbuch & Termine Grid #}
+<div class="ms-d960d32">
+  {# Telefonbuch #}
   <section class="section-block">
-    <h2 style="font-size: 1.25rem; margin-top: 0;">📞 {% translate "Stations-Telefonbuch" %}</h2>
+    <h2 class="ms-e767ca2">📞 {% translate "Stations-Telefonbuch" %}</h2>
     <div class="item-list">
       {% for c in all_contacts %}
-        <div class="list-row" style="padding: 0.6rem 0.75rem;">
+        <div class="list-row ms-429f17b">
           <span class="row-content">
             <strong>{{ c.name }}</strong>
-            {% if c.contact_person %}<small style="display: block;">{{ c.contact_person }}</small>{% endif %}
-            {% if c.notes %}<small style="color: var(--text-muted);">{{ c.notes }}</small>{% endif %}
+            {% if c.contact_person %}<small class="ms-bd293c7">{{ c.contact_person }}</small>{% endif %}
+            {% if c.notes %}<small class="ms-3dca5e5">{{ c.notes }}</small>{% endif %}
           </span>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="ms-6450058">
             <a href="tel:{{ c.phone_primary }}" class="button secondary small">📞 {{ c.phone_primary }}</a>
             {% if can_manage %}
-              <form method="post" action="{% url 'contact_delete' c.pk %}" onsubmit="return confirm('Kontakt wirklich löschen?')">
+              <form method="post" action="{% url 'contact_delete' c.pk %}" data-confirm="{% translate 'Kontakt wirklich löschen?' %}">
                 {% csrf_token %}
-                <button type="submit" class="button secondary small" style="color: #ef4444; border-color: #ef4444;">&times;</button>
+                <button type="submit" class="button secondary small ms-55e9279">&times;</button>
               </form>
             {% endif %}
           </div>
@@ -184,15 +184,15 @@
     </div>
   </section>
 
-  <!-- Termine & Schreibtisch -->
+  {# Termine & Schreibtisch #}
   <section class="section-block">
-    <h2 style="font-size: 1.25rem; margin-top: 0;">📅 {% translate "Wachtermine & Schreibtisch" %}</h2>
+    <h2 class="ms-e767ca2">📅 {% translate "Wachtermine & Schreibtisch" %}</h2>
     <div class="item-list">
       {% for ev in events %}
-        <div class="list-row" style="padding: 0.6rem 0.75rem;">
+        <div class="list-row ms-429f17b">
           <span class="row-content">
             <strong>{{ ev.starts_at|date:"d.m.Y H:i" }} Uhr</strong>
-            <p style="margin: 0.15rem 0 0;">{{ ev.title }}</p>
+            <p class="ms-5dcdead">{{ ev.title }}</p>
           </span>
         </div>
       {% empty %}
@@ -201,13 +201,13 @@
     </div>
 
     {% if articles %}
-      <h3 style="font-size: 1.1rem; margin-top: 1.5rem;">📚 {% translate "Wachen-Wiki & Dokumente" %}</h3>
+      <h3 class="ms-1a1eca9">📚 {% translate "Wachen-Wiki & Dokumente" %}</h3>
       <div class="item-list">
         {% for a in articles %}
-          <div class="list-row" style="padding: 0.5rem 0.75rem;">
+          <div class="list-row ms-0fe06f3">
             <span class="row-content">
               <strong><a href="{% url 'wiki_detail' a.pk %}">{{ a.title }}</a></strong>
-              <small style="color: var(--text-muted); display: block;">{% translate "Zuletzt aktualisiert" %}: {{ a.updated_at|date:"d.m.Y" }}</small>
+              <small class="ms-b0a14b6">{% translate "Zuletzt aktualisiert" %}: {{ a.updated_at|date:"d.m.Y" }}</small>
             </span>
           </div>
         {% endfor %}
@@ -216,18 +216,18 @@
   </section>
 </div>
 
-<!-- Modal: Kontakt hinzufügen -->
-<div id="contact-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
-  <div style="background: var(--bg-card); max-width: 500px; width: 100%; border-radius: 8px; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0;">📞 {% translate "Neuen Kontakt anlegen" %}</h3>
-      <button type="button" class="button secondary small" onclick="document.getElementById('contact-modal').style.display='none'">&times;</button>
+{# Modal: Kontakt hinzufügen #}
+<div id="contact-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
+  <div class="ms-9a9bf8e">
+    <div class="ms-ded8eb6">
+      <h3 class="ms-2a0ca83">📞 {% translate "Neuen Kontakt anlegen" %}</h3>
+      <button type="button" class="button secondary small" data-modal-close>&times;</button>
     </div>
     <form method="post" action="{% url 'contact_create' %}">
       {% csrf_token %}
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Kategorie" %}</label>
-        <select name="category" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Kategorie" %}</label>
+        <select class="ms-ac90647" name="category">
           <option value="dispatch">{% translate "Leitstelle & Disposition" %}</option>
           <option value="hospital">{% translate "Kliniken (ZNA / CPU / Stroke)" %}</option>
           <option value="emergency">{% translate "Notarztdienst / LNA / OrgL" %}</option>
@@ -238,36 +238,36 @@
           <option value="other" selected>{% translate "Sonstige Kontakte" %}</option>
         </select>
       </div>
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Name / Einrichtung*" %}</label>
-        <input type="text" name="name" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Name / Einrichtung*" %}</label>
+        <input class="ms-ac90647" type="text" name="name" required>
       </div>
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Ansprechpartner" %}</label>
-        <input type="text" name="contact_person" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Ansprechpartner" %}</label>
+        <input class="ms-ac90647" type="text" name="contact_person">
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="ms-e8fa32b">
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Hauptrufnummer*" %}</label>
-          <input type="text" name="phone_primary" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+          <label class="ms-f0a8344">{% translate "Hauptrufnummer*" %}</label>
+          <input class="ms-ac90647" type="text" name="phone_primary" required>
         </div>
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Zweitnummer" %}</label>
-          <input type="text" name="phone_secondary" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+          <label class="ms-f0a8344">{% translate "Zweitnummer" %}</label>
+          <input class="ms-ac90647" type="text" name="phone_secondary">
         </div>
       </div>
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Zuständigkeit / Notiz" %}</label>
-        <input type="text" name="notes" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Zuständigkeit / Notiz" %}</label>
+        <input class="ms-ac90647" type="text" name="notes">
       </div>
-      <div style="margin-bottom: 1.25rem;">
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem;">
+      <div class="ms-c33bec6">
+        <label class="ms-3de17c7">
           <input type="checkbox" name="is_speed_dial" value="true">
           <span>⚡ {% translate "In Notfall-Schnellwahlleiste anzeigen" %}</span>
         </label>
       </div>
-      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-        <button type="button" class="button secondary" onclick="document.getElementById('contact-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+      <div class="ms-5a927fb">
+        <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
         <button type="submit" class="button">{% translate "Kontakt anlegen" %}</button>
       </div>
     </form>

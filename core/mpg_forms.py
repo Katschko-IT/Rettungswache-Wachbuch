@@ -40,10 +40,10 @@ class MedicalDeviceForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "acquired_at": forms.DateInput(attrs={"type": "date"}),
-            "next_stk_date": forms.DateInput(attrs={"type": "date"}),
-            "next_mtk_date": forms.DateInput(attrs={"type": "date"}),
-            "next_dguv_date": forms.DateInput(attrs={"type": "date"}),
+            "acquired_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_stk_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_mtk_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_dguv_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "notes": forms.Textarea(attrs={"rows": 3}),
             "status_note": forms.TextInput(attrs={"placeholder": "z. B. Akku schwach, STK fällig"}),
             "location": forms.TextInput(attrs={"placeholder": "z. B. RTW 01/83-01 oder Notfallrucksack"}),
@@ -52,6 +52,14 @@ class MedicalDeviceForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         self.station = station
         super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.current_status == MedicalDevice.Status.OOB:
+            # Gesperrte Geräte werden nur über „Gerät freigeben“ wieder einsatzklar.
+            field = self.fields["current_status"]
+            field.choices = [
+                choice for choice in field.choices
+                if choice[0] in {MedicalDevice.Status.OOB, MedicalDevice.Status.DECOMMISSIONED}
+            ]
+            field.help_text = "Gesperrt. Freigabe über „Gerät freigeben“ auf der Geräteseite."
 
     def clean(self):
         cleaned_data = super().clean()
@@ -81,18 +89,26 @@ class MaintenanceLogForm(forms.ModelForm):
             "findings",
         ]
         widgets = {
-            "performed_at": forms.DateInput(attrs={"type": "date"}),
-            "next_due_date": forms.DateInput(attrs={"type": "date"}),
+            "performed_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "findings": forms.Textarea(attrs={"rows": 3, "placeholder": "Befund, Prüfwerte, ausgetauschte Teile..."}),
             "performed_by": forms.TextInput(attrs={"placeholder": "Firma / Medizintechniker Name"}),
         }
 
 
 class DeviceRoutineCheckForm(forms.ModelForm):
+    # Ausdruck oder QR-Text eines Geräte-Selbsttests. Wird nur als Notiz
+    # gespeichert; das Ergebnis bestätigt die prüfende Person selbst.
+    selftest_protocol = forms.CharField(
+        required=False,
+        max_length=500,
+        label="Selbsttest-Protokoll (optional)",
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
+
     class Meta:
         model = DeviceRoutineCheck
         fields = [
-            "passed",
             "battery_ok",
             "visual_ok",
             "function_ok",
@@ -113,7 +129,7 @@ class DeviceTrainingRecordForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "trained_at": forms.DateInput(attrs={"type": "date"}),
+            "trained_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "instructor": forms.TextInput(attrs={"placeholder": "Name des Gerätebeauftragten / Herstellers"}),
             "notes": forms.TextInput(attrs={"placeholder": "z. B. Erstschulung oder Re-Zertifizierung"}),
         }
@@ -137,12 +153,12 @@ class GroupTrainingForm(forms.Form):
     )
     instructor = forms.CharField(
         max_length=140,
-        label="Gerätebeauftragter / Einweiser (§ 10 MPBetreibV)",
+        label="Gerätebeauftragter / Einweiser (§ 11 MPBetreibV)",
         widget=forms.TextInput(attrs={"placeholder": "z. B. Max Mustermann (MPG-Beauftragter)"}),
     )
     trained_at = forms.DateField(
         label="Schulungsdatum",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     notes = forms.CharField(
         max_length=300,

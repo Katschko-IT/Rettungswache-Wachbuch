@@ -2,7 +2,7 @@
 
 **Stand / Last updated:** 10. August 2026  
 **App:** Wachbuch für iOS und Android  
-**Quellcode:** https://github.com/darkspike1988/Wachbuch-Client
+**Quellcode:** https://github.com/Katschko-IT/Wachbuch-Client
 
 Wachbuch ist ein Open-Source-Client für selbst gehostete Wachbuch-Server. Die App ist weder eine offizielle Behörden-App noch ein Patienten-, Einsatzleit-, Alarmierungs- oder ePCR-System.
 
@@ -48,6 +48,10 @@ Die App weist darauf hin, keine Patienten-, Einsatz- oder vergleichbaren sensibl
 
 Wenn die Standortberechtigung erteilt wird, verwendet Wachbuch nur einen ungefähren Standort, um Sonnenaufgang und Sonnenuntergang für das lokale Erscheinungsbild zu berechnen. Dieser Standort wird nach aktuellem App-Konzept **nicht an den Wachbuch-Server, den App-Entwickler oder Werbedienste übertragen**. Wird die Berechtigung verweigert, verwendet die App das Systemdesign als Fallback.
 
+### Benachrichtigungen
+
+Mit erteilter Benachrichtigungsberechtigung erinnert die App die Besatzung, wenn die Einwirkzeit einer Fahrzeugdesinfektion abläuft. Die Erinnerung wird **lokal auf dem Gerät** geplant; Grundlage sind nur Funkrufname, Sperrzeit und ein kurzer Hinweistext vom eigenen Wachbuch-Server. Es werden keine Daten an den App-Entwickler oder an Werbedienste übertragen. Ohne Berechtigung erscheint der Hinweis nur in der App bzw. im Web.
+
 ## 6. Werbung, Tracking und Analyse
 
 Wachbuch enthält nach aktuellem Stand:
@@ -72,7 +76,7 @@ Produktive Serververbindungen müssen HTTPS verwenden. Die App trennt Offline-Ca
 
 ## 9. Drittanbieter-Komponenten
 
-Die App basiert auf Flutter und nutzt Open-Source-Pakete für unter anderem HTTPS-Kommunikation, Secure Storage, QR-Erkennung, Kamera-/Fotoauswahl, Konnektivitätsstatus und optionalen Standortzugriff. Die App integriert keine Werbe- oder Marketing-SDKs. Änderungen an Abhängigkeiten werden im Repository und in der automatisierten Dependency-Security-Prüfung nachvollzogen.
+Die App basiert auf Flutter und nutzt Open-Source-Pakete für unter anderem HTTPS-Kommunikation, Secure Storage, QR-Erkennung, Kamera-/Fotoauswahl, Konnektivitätsstatus, lokale Benachrichtigungen und optionalen Standortzugriff. Die App integriert keine Werbe- oder Marketing-SDKs. Änderungen an Abhängigkeiten werden im Repository und in der automatisierten Dependency-Security-Prüfung nachvollzogen.
 
 ## 10. Kinder und öffentliche soziale Funktionen
 
@@ -86,7 +90,7 @@ Wenn sich Datenverarbeitung, Berechtigungen oder integrierte Dienste wesentlich 
 
 Fragen zur mobilen Open-Source-App und zu dieser Erklärung können über das öffentliche Repository gestellt werden:
 
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues
 
 Fragen zu Daten auf einem konkreten Wachbuch-Server sind an den Betreiber dieses Servers zu richten.
 
@@ -103,4 +107,4 @@ Camera frames used for QR setup are processed for scanning and are not uploaded 
 The app contains no advertising, advertising SDK, cross-app tracking or external analytics/crash-tracking SDK. Account and server-side data deletion are controlled by the operator of the selected self-hosted server. Signing out or changing servers removes the associated local token and offline cache.
 
 Questions about the mobile app or this policy can be filed at:
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues

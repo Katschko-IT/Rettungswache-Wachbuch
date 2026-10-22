@@ -59,7 +59,10 @@ Harte Obergrenzen für einen späteren Scope:
 3. Sitzungsablauf (Session-Cookie ungültig/abgelaufen) sperrt den Cache: Er
    wird nicht angezeigt, sondern beim nächsten Online-Kontakt gelöscht.
 4. Ein „Benutzerwechsel“ ohne Logout ist unzulässig. Es gibt keine geteilten
-   Geräteprofile und keine Sammelkonten.
+   Geräteprofile und keine Sammelkonten. Davon getrennt: das Wachenterminal (Web,
+   Touch-Bildschirm der Wache) mit gemeinsamem Wachen-Code und Dienstkonto, nur
+   Alltagsbereiche, Sperren nach Inaktivität und Löschen von Cache und lokalem
+   Speicher (`docs/PI-WACHENTERMINAL.md`). Die App kennt kein Dienstkonto.
 5. Beim Öffnen der App prüft der Client zuerst die Online-Session. Ist sie
    nicht bestätigbar, gilt §5 (keine Offline-Authentifizierung).
 

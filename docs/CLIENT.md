@@ -6,8 +6,8 @@ Stand: 10. August 2026.
 
 | | |
 | --- | --- |
-| **Server** | https://github.com/darkspike1988/Rettungswache-Wachbuch · `0.16.x` |
-| **Client** | https://github.com/darkspike1988/Wachbuch-Client · `0.6.x` |
+| **Server** | https://github.com/Katschko-IT/Rettungswache-Wachbuch · `0.24.x` |
+| **Client** | https://github.com/Katschko-IT/Wachbuch-Client · `1.0.x` |
 | **API** | `/api/v1/` · OpenAPI `1.2.2` |
 | **Historischer Spiegel** | `clients/wachbuch-mobile/` – nicht als Quelle verwenden |
 

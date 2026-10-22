@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.templatetags.static import static
 from django.urls import include, path
+from django.utils.functional import lazy
+from django.views.generic import RedirectView
 
 from core import account_views, community_views, qr_login_views, secure_views
 from core.auth_views import PasswordLoginView
@@ -29,6 +32,8 @@ handler500 = "core.views.server_error"
 
 urlpatterns = [
     path("healthz/", healthz, name="healthz"),
+    # Browser fragen /favicon.ico ungefragt ab; ohne Route entstehen 404-Logzeilen.
+    path("favicon.ico", RedirectView.as_view(url=lazy(static, str)("core/icons/icon-192.png"), permanent=True)),
     path("manifest.webmanifest", web_manifest, name="web_manifest"),
     path("service-worker.js", service_worker, name="service_worker"),
     path("offline/", offline, name="offline"),

@@ -28,6 +28,7 @@ from .models import (
     StationTask,
     StationTaskCompletion,
 )
+from .demo_modules import reset_module_demo, seed_module_demo
 from .services import audit, handover_snapshot
 from .task_board import ensure_default_station_tasks
 
@@ -181,6 +182,7 @@ def reset_demo_data(station: Station):
         )
     ChecklistItem.objects.filter(checklist__station=station, checklist__title__startswith=DEMO_MARKER).delete()
     Checklist.objects.filter(station=station, title__startswith=DEMO_MARKER).delete()
+    reset_module_demo(station)
 
 
 def _ensure_users(station: Station, password: str) -> tuple[dict[str, User], int]:
@@ -376,8 +378,10 @@ def _seed_content(station: Station, users: dict[str, User]) -> int:
             defaults={"station": station, "completed_by": member, "note": DEMO_MARKER},
         )
 
+    seed_module_demo(station, users)
+
     audit(admin, station, "demo.seeded", station, {
-        "fields": ["handovers", "calendar", "coffee", "checklists", "chat"],
+        "fields": ["handovers", "calendar", "coffee", "checklists", "chat", "modules"],
         "marker": DEMO_MARKER,
     })
     return created

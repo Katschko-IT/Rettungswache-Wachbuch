@@ -2,7 +2,7 @@
 
 Stand: 20. August 2026 · Server **0.16.x** · OpenAPI **1.2.2**.
 
-Versionierte JSON-API unter `/api/v1/` für den AGPL-Client [Wachbuch-Client](https://github.com/darkspike1988/Wachbuch-Client) und kontrollierte Drittclients.
+Versionierte JSON-API unter `/api/v1/` für den AGPL-Client [Wachbuch-Client](https://github.com/Katschko-IT/Wachbuch-Client) und kontrollierte Drittclients.
 
 ## Grundsätze
 
@@ -150,3 +150,17 @@ Der offizielle Client darf erfolgreiche GET-Antworten verschlüsselt und an Serv
 - Backup/Restore vor Pilot-/Produktivbetrieb testen
 
 Siehe auch [`CLIENT.md`](CLIENT.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`ASVS-L2.md`](ASVS-L2.md) und `core/api/openapi_v1.yaml`.
+
+
+## Benachrichtigungen (ab 0.24.0)
+
+| Methode | Pfad | Zweck |
+| --- | --- | --- |
+| `GET` | `/api/v1/benachrichtigungen/` | persönlicher Posteingang: `unread_count`, `results[]` mit `id`, `kind`, `key`, `title`, `body`, `url`, `created_at`, `read` |
+| `POST` | `/api/v1/benachrichtigungen/<id>/gelesen/` | als gelesen markieren (nur eigene) |
+| `GET` | `/api/v1/fahrzeuge/sperren/` | laufende Desinfektionssperren der Fahrzeuge, die die Person besetzt: `vehicle_id`, `call_sign`, `locked_until` (ISO 8601), `key`, `title`, `body` – die App plant daraus eine lokale Erinnerung |
+| `POST`/`DELETE` | `/api/v1/push/geraete/` | APNs-/FCM-Token an- bzw. abmelden (`platform`, `token`, optional `app_version`) |
+
+Alle Endpunkte brauchen den Scope `read:me`. Fahrzeuge werden nie automatisch
+freigegeben; der Hinweis fordert die Besatzung zur Prüfung und Freigabe auf.
+Native Push-Zustellung: [`PUSH-RELAY.md`](PUSH-RELAY.md).

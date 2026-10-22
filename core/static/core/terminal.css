@@ -1,0 +1,389 @@
+/* Wachenterminal: Touch-Bildschirm auf der Wache (große Ziele, hoher Kontrast). */
+
+.terminal-root {
+  background: #0b1622;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- Sperrbildschirm: Wachen-Display, Antippen öffnet den Ziffernblock ---- */
+
+.terminal-unlock-hint {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: 1.6rem;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f4f7fb;
+  font: inherit;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  animation: terminal-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes terminal-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+.terminal-app-qr {
+  position: fixed;
+  z-index: 10;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  color: rgba(244, 247, 251, 0.75);
+  font-size: 0.8rem;
+  cursor: default;
+}
+
+.terminal-app-qr img {
+  background: #fff;
+  padding: 0.25rem;
+  border-radius: 0.6rem;
+}
+
+.terminal-unlock {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 14, 24, 0.55);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  cursor: default;
+  animation: terminal-fade-in 0.18s ease-out;
+}
+
+.terminal-unlock[hidden] {
+  display: none;
+}
+
+@keyframes terminal-fade-in {
+  from { opacity: 0; transform: scale(1.02); }
+  to { opacity: 1; transform: none; }
+}
+
+.terminal-unlock-inner {
+  display: grid;
+  justify-items: center;
+  gap: 1.1rem;
+  color: #fff;
+  text-align: center;
+}
+
+.terminal-unlock-station {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.terminal-unlock h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 1.1rem;
+  height: 1.1rem;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.terminal-dots span {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  transition: background 0.12s ease;
+}
+
+.terminal-dots span.is-filled {
+  background: #fff;
+}
+
+.terminal-unlock.has-error .terminal-dots {
+  animation: terminal-shake 0.42s ease-in-out;
+}
+
+@keyframes terminal-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-12px); }
+  40%, 80% { transform: translateX(12px); }
+}
+
+.terminal-unlock-error {
+  min-height: 1.4rem;
+  margin: 0;
+  color: #ffb4ab;
+  font-size: 1rem;
+}
+
+.terminal-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 5.4rem);
+  gap: 1.1rem 1.6rem;
+}
+
+.terminal-keypad button {
+  width: 5.4rem;
+  height: 5.4rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: inherit;
+  font-size: 2.2rem;
+  font-weight: 400;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.1s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.terminal-keypad button:active {
+  background: rgba(255, 255, 255, 0.45);
+  transform: scale(0.94);
+}
+
+.terminal-keypad .terminal-key-text {
+  background: transparent;
+  font-size: 1.7rem;
+}
+
+.terminal-key-spacer {
+  width: 5.4rem;
+}
+
+.terminal-unlock-cancel {
+  margin-top: 0.4rem;
+  padding: 0.6rem 1.4rem;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.terminal-keypad button:focus-visible,
+.terminal-unlock-hint:focus-visible,
+.terminal-unlock-cancel:focus-visible,
+.terminal-tile:focus-visible {
+  outline: 3px solid #ffd54f;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-unlock-hint,
+  .terminal-unlock,
+  .terminal-unlock.has-error .terminal-dots {
+    animation: none;
+  }
+}
+
+@media (max-height: 640px) {
+  .terminal-keypad {
+    grid-template-columns: repeat(3, 4.4rem);
+    gap: 0.8rem 1.2rem;
+  }
+  .terminal-keypad button,
+  .terminal-key-spacer {
+    width: 4.4rem;
+    height: 4.4rem;
+  }
+}
+
+/* ---- Alltagsmodus (innerhalb der normalen Oberfläche) ---- */
+
+.terminal-session-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #10233a;
+  color: #fff;
+}
+
+.terminal-session-bar form {
+  margin: 0;
+}
+
+.terminal-cockpit-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.terminal-cockpit-head h1 {
+  margin: 0;
+}
+
+.terminal-cockpit-date {
+  margin: 0;
+  color: var(--muted, #5b6b78);
+}
+
+.terminal-weather {
+  display: grid;
+  justify-items: end;
+  padding: 0.6rem 1rem;
+  border-radius: 1rem;
+  background: var(--primary-container, #dcebff);
+}
+
+.terminal-weather strong {
+  font-size: 1.6rem;
+}
+
+.terminal-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.terminal-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 6.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--brand, #0d47a1);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.terminal-tile span {
+  font-size: 1.9rem;
+}
+
+.terminal-tile-badge {
+  width: fit-content;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #b3261e;
+  font-size: 0.85rem;
+  font-style: normal;
+}
+
+.terminal-cockpit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.terminal-card-wide {
+  grid-column: 1 / -1;
+}
+
+.terminal-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.terminal-card-head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.terminal-card-head small {
+  font-weight: 400;
+  color: var(--muted, #5b6b78);
+}
+
+.terminal-simple-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.terminal-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.terminal-week a {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.2rem;
+  border-radius: 0.75rem;
+  background: var(--surface-soft, #eef3f8);
+  color: inherit;
+  text-decoration: none;
+}
+
+.terminal-week .is-today a {
+  background: var(--brand, #0d47a1);
+  color: #fff;
+}
+
+.terminal-month-date {
+  margin: 0.6rem 0 0;
+  color: var(--muted, #5b6b78);
+  font-size: 0.9rem;
+}
+
+.terminal-pair-card {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+}
+
+.terminal-pair-card img {
+  background: #fff;
+  padding: 0.5rem;
+}
+
+.terminal-pin-reveal {
+  font-size: 2.2rem;
+  letter-spacing: 0.4em;
+}

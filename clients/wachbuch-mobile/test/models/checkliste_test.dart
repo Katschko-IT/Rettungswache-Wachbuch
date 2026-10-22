@@ -2,6 +2,61 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wachbuch_mobile/models/checkliste.dart';
 
 void main() {
+  group('server payload (core/api checklists_api)', () {
+    test('reads string items and last completion', () {
+      final now = DateTime.now().toUtc();
+      final list = Checklist.fromJson({
+        'id': 4,
+        'title': 'Fahrzeugcheck',
+        'description': 'Morgens',
+        'items': ['Reifen', 'Licht', ''],
+        'last_completed_at': now.toIso8601String(),
+        'last_completed_by': 'Sandra',
+        'interval': '',
+        'due_next': null,
+        'overdue': false,
+      });
+
+      expect(list.items.map((item) => item.label), ['Reifen', 'Licht']);
+      expect(list.completedAt, isNotNull);
+      expect(list.completedBy, 'Sandra');
+      expect(list.completed, isTrue);
+    });
+
+    test('older completion of a daily list is not completed today', () {
+      final list = Checklist.fromJson({
+        'id': 5,
+        'title': 'Desinfektion',
+        'items': ['Trage'],
+        'last_completed_at': DateTime.now()
+            .subtract(const Duration(days: 2))
+            .toUtc()
+            .toIso8601String(),
+        'interval': 'daily',
+      });
+
+      expect(list.completed, isFalse);
+    });
+
+    test('overdue schedule is never shown as completed', () {
+      final list = Checklist.fromJson({
+        'id': 6,
+        'title': 'Wochencheck',
+        'items': ['Funk'],
+        'last_completed_at': DateTime.now().toUtc().toIso8601String(),
+        'interval': 'weekly',
+        'due_next': DateTime.now()
+            .subtract(const Duration(days: 1))
+            .toUtc()
+            .toIso8601String(),
+        'overdue': true,
+      });
+
+      expect(list.overdue, isTrue);
+      expect(list.completed, isFalse);
+    });
+  });
+
   group('Checklist', () {
     test('parses items, completion flag and completion object', () {
       final list = Checklist.fromJson({

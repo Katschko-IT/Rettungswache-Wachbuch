@@ -29,6 +29,7 @@ class Command(BaseCommand):
             f"GRANT USAGE, SELECT ON SEQUENCE core_feeditem_id_seq TO {feed_role}",
             f"GRANT SELECT, UPDATE ON core_pushoutbox TO {push_role}",
             f"GRANT SELECT, DELETE ON core_pushsubscription TO {push_role}",
+            f"GRANT SELECT, DELETE ON core_mobilepushdevice TO {push_role}",
             f"GRANT SELECT ON core_station TO {push_role}",
             f"GRANT INSERT ON core_auditevent TO {push_role}",
             f"GRANT USAGE, SELECT ON SEQUENCE core_auditevent_id_seq TO {push_role}",

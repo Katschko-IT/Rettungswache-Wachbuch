@@ -1,5 +1,74 @@
 # Changelog
 
+## 0.24.0 - 2026-10-22
+
+Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
+`docs/REVIEW-2026-10-22.md`). Keine Produktionsfreigabe.
+
+- Betrieb: Jede Seite lud bisher im Hintergrund die Display-Daten und hielt einen
+  Livestream (Server-Thread) offen; entfernt.
+- Datumsfelder in Bearbeitungsformularen erschienen leer und löschten beim
+  Speichern HU-/STK-/UVV-Fristen; behoben.
+- Sperr- und Exportzeiten werden in Ortszeit statt UTC angezeigt.
+- Die Orga-Seite legt keine medizinischen Muster-SOPs mit Dosierungen und keine
+  regional falschen Notrufnummern mehr an; der Fuhrpark erfindet keine Kennzeichen.
+- Dienstanweisungen wurden als „quittiert“ angezeigt, obwohl sie es nicht waren.
+- Fuhrpark: Fahrzeuge werden nach der Desinfektions-Einwirkzeit nicht mehr
+  automatisch auf Status 1 gesetzt. Die Besatzung (Schichtübernahme der letzten
+  24 h und die desinfizierende Person) wird benachrichtigt und gibt selbst frei.
+  Neuer Dienst `notify-worker`, persönlicher Posteingang („Für dich“), Web-Push
+  und App-Schnittstellen (`/api/v1/benachrichtigungen/`, `/api/v1/fahrzeuge/sperren/`,
+  `/api/v1/push/geraete/`); natives Push-Relay vorbereitet (`docs/PUSH-RELAY.md`).
+- Übersicht zeigt den Handlungsbedarf aller aktiven Fachmodule.
+- Modulseiten nutzen ein einheitliches Komponentenvokabular (Kacheln, Tabellen,
+  Hinweise, Buttons) und klare Beschreibungen.
+- Neue öffentliche Startseite mit allen Modulen, Grundsätzen und Einstiegsschritten.
+- Demo-Daten umfassen jetzt auch Fahrzeuge, Medizingeräte, Material und eine
+  Dienstanweisung.
+- Medizingeräte: Gescannte Selbsttest-Texte werden nicht mehr „ausgewertet“
+  (ein „OK“ im Text galt als bestandene Kontrolle). Jeder Prüfpunkt wird von der
+  prüfenden Person bestätigt. Eine bestandene Kontrolle hebt keine Sperre mehr
+  auf; freigegeben wird nach Abschluss aller verknüpften Mängel durch
+  Schichtleitung/Admin. Der Status im Medizinproduktebuch und unter „Geräte &
+  Fahrzeuge“ ist identisch. Migration `0052_mpg_device_locks`.
+- Wachenterminal: Touch-Bildschirm auf der Wache. Gesperrt läuft das
+  Wachen-Display; Antippen öffnet einen runden Ziffernblock für den
+  gemeinsamen vierstelligen Wachen-Code (nur an registrierten Terminals,
+  stufenweise Sperre nach Fehlversuchen). Der Alltagsmodus zeigt Übergaben,
+  Termine, Müllabfuhr, Wetter, Tages-, Wochen- und Monatsaufgaben und erreicht
+  nur Alltagsbereiche; Einträge stehen unter dem Dienstkonto „Wachenterminal“.
+  Sperren nach Inaktivität. Admins verbinden Handys der Besatzung per
+  Einmal-QR mit dem persönlichen Konto (`/api/v1/token/kopplung/`). Aus, bis
+  `TERMINAL_ENABLED=true`. Migration `0053_wachenterminal`.
+- Sperrbildschirm im iOS-Stil: große Uhr, Glas-Karten (Wetter, Übergaben,
+  Aufgaben, Termine, Müll) und Fahrzeug-Statuszeile; täglich wechselndes,
+  leicht unscharfes Rettungsdienst-Foto aus 36 frei lizenzierten Bildern
+  (CC0/CC BY/CC BY-SA, Wikimedia Commons; `docs/BILDNACHWEISE.md`,
+  `scripts/build_lockscreen_backgrounds.py`).
+- Raspberry Pi 4 als Wachen-Server: `deploy/pi/` (eigenes WLAN, lokales
+  Zertifikat mit Fingerabdruck im Verbindungs-QR, TLS-Proxy, Speichergrenzen,
+  Kiosk-Browser). arm64-Image jetzt mit QEMU gebaut; fehlende arm64-Hashes
+  für `multidict` ergänzt. Anleitung `docs/PI-WACHENTERMINAL.md`.
+
+- Fachmodule funktionieren unter der eigenen CSP: Modals, Scanner, Live-Suche,
+  Filter, Druck und Löschrückfragen laufen über `core/static/core/ui.js`;
+  Layout liegt in `core/static/core/modules.css`. Die Reihenfolge der
+  Navigationsleiste greift jetzt auch im Browser.
+- Scanner öffnen nur Adressen derselben Origin; Kamera nur auf den
+  Scanner-Seiten erlaubt.
+- Wachen-Display: Livestream endet nach fünf Minuten oder bei Widerruf.
+- Fahrzeug-Auto-Freigabe nach Einwirkzeit atomar und im Audit-Log.
+- Geocoding fällt bei Netzausfall sofort auf Standardkoordinaten zurück.
+- API: Fehlercodes `conflict`, `payload_too_large`,
+  `unsupported_media_type`; Token-Widerruf auch ohne aktive Mitgliedschaft;
+  PDF-Anhänge für Mängel.
+- „Mehr“: deaktivierte Module erscheinen nicht mehr (auch nicht im Quelltext),
+  Texte ohne Einsatz-/Leitstellen-Versprechen.
+- Englischer Katalog vollständig; zerlegte Sätze als `blocktranslate`.
+- Tests laufen ohne externe Netzverbindungen (`core/test_runner.py`).
+- Client-Spiegel `clients/wachbuch-mobile/` auf den aktuellen Client-Stand
+  gebracht.
+
 ## 0.23.0 - 2026-10-22
 
 Großes Modul- und Automatisierungs-Release für den Rettungsdienstbetrieb. Neue Fachmodule (Fuhrpark, Lager, MPG, Organisation, Wachen-Display), intelligente Daten-Automatisierung und komplett überarbeitetes „Mehr“-Menü. Keine Produktionsfreigabe.

@@ -20,28 +20,32 @@
   <link rel="apple-touch-icon" href="{% static 'core/icons/icon-192.png' %}">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'core/app.css' %}">
+  <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'core/crypto_unlock.css' %}">
+  {% if terminal_session %}<link rel="stylesheet" href="{% static 'core/terminal.css' %}">{% endif %}
   {% block extra_css %}{% endblock %}
 </head>
-<body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
+<body{% if terminal_device %} data-terminal-device{% endif %} class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#inhalt">{% translate "Zum Inhalt" %}</a>
   <header class="app-header">
     <div class="header-inner">
-      <a class="brand" href="{% if current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
+      <a class="brand" href="{% if terminal_open_mode %}{% url 'terminal_menu' %}{% elif current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
         <img class="brand-logo" src="{% static 'core/brand-wachwerk.png' %}" alt="{{ app_name }}" width="480" height="176" decoding="async">
       </a>
       {% if current_membership %}
-      <p class="header-station">{{ current_membership.station.name }} {{ current_membership.station.get_organization_profile_display }}</p>
+      <p class="header-station">{{ current_membership.station.name }}</p>
       {% endif %}
       {# Datenschutz und Vorführung stehen im Fußbereich. #}
-      {% if request.user.is_authenticated %}
+      {% if terminal_open_mode %}
+        {# Alltagsmodus: kein Konto-Menü, Sperren über die Terminal-Leiste. #}
+      {% elif request.user.is_authenticated %}
         <div class="account">
           <div class="identity">
             <strong><a class="account-link" href="{% url 'account_home' %}">{{ request.user.first_name|default:request.user.username }}</a></strong>
             {% if current_membership %}<span>{{ current_membership.get_role_display }}</span>{% endif %}
           </div>
-          <form class="logout-form" method="post" action="{% url 'logout' %}" data-clear-cache-on-submit>
+          <form class="logout-form" method="post" action="{% if terminal_session %}{% url 'terminal_logout' %}{% else %}{% url 'logout' %}{% endif %}" data-clear-cache-on-submit>
             {% csrf_token %}
             <button type="submit">{% translate "Abmelden" %}</button>
           </form>
@@ -56,7 +60,18 @@
 
   <div class="connection-chip" data-connection-chip hidden role="status"></div>
 
-  {% if current_membership and current_membership.role != 'auditor' %}
+  {% if terminal_session %}
+    <div class="terminal-session-bar" role="status">
+      <span>{% translate "Wachenterminal" %} · {% blocktranslate with seconds=terminal_idle_seconds %}Sperrt sich nach Inaktivität in <strong data-idle-countdown>{{ seconds }}</strong> s{% endblocktranslate %}</span>
+      {% if terminal_open_mode %}<a class="button secondary" href="{% url 'terminal_menu' %}">🏠 {% translate "Start" %}</a>{% endif %}
+      <form method="post" action="{% url 'terminal_logout' %}" data-idle-logout="{{ terminal_idle_seconds }}" data-clear-cache-on-submit>
+        {% csrf_token %}
+        <button type="submit" class="button primary">🔒 {% translate "Sperren" %}</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if current_membership and current_membership.role != 'auditor' and not terminal_session %}
     <div class="install-banner" data-install-banner hidden>
       <div>
         <strong>{% blocktranslate %}{{ app_name }} auf dem Gerät{% endblocktranslate %}</strong>
@@ -69,7 +84,7 @@
     </div>
   {% endif %}
 
-  {% if current_membership %}
+  {% if current_membership and not terminal_open_mode %}
     <nav class="app-nav" aria-label="{% translate 'Hauptnavigation' %}">
       <div class="nav-inner">
         {% if current_membership.role == 'auditor' %}
@@ -79,7 +94,7 @@
           </a>
         {% else %}
           {% for item in nav_conf.entries %}
-            <a style="order: {{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
+            <a data-order="{{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
               {% if item.key == 'overview' %}<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>{% endif %}
               <span>{{ item.label }}{% if item.key == 'handovers' and nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
             </a>
@@ -120,19 +135,11 @@
       </div>
     </form>
   </dialog>
-  {% if current_membership %}
-  <div class="display-overlay" hidden>
-    <div class="display-surface" data-display-root data-display-overlay="true" data-data-url="{% url 'display_data' %}">
-      {% include "core/_display_surface.html" %}
-    </div>
-  </div>
-  {% endif %}
-  <link rel="stylesheet" href="{% static 'core/display.css' %}">
   {% include "core/_js_i18n.html" %}
   <script src="{% static 'core/i18n.js' %}" defer></script>
   <script src="{% static 'core/json_data.js' %}" defer></script>
   <script src="{% static 'core/crypto_unlock.js' %}" defer></script>
   <script src="{% static 'core/app.js' %}" defer></script>
-  {% if current_membership %}<script src="{% static 'core/display.js' %}" defer></script>{% endif %}
+  <script src="{% static 'core/ui.js' %}" defer></script>
 </body>
 </html>

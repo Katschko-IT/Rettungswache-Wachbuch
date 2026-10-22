@@ -152,7 +152,7 @@ Server und Client besitzen denselben produktiven Kernvertrag für:
 
 ### [x] Mobile Source of Truth
 
-`darkspike1988/Wachbuch-Client` ist die kanonische Flutter-/iOS-/Android-Quelle. Der historische `clients/wachbuch-mobile/`-Spiegel im Server-Repo darf nicht zurückpubliziert werden; das frühere Force-Publish-Skript ist deaktiviert.
+`Katschko-IT/Wachbuch-Client` ist die kanonische Flutter-/iOS-/Android-Quelle. Der historische `clients/wachbuch-mobile/`-Spiegel im Server-Repo darf nicht zurückpubliziert werden; das frühere Force-Publish-Skript ist deaktiviert.
 
 ### [x] Request-Wiederholung / Datenintegrität
 
@@ -203,6 +203,37 @@ Umgesetzt:
 Nachweise: `makemigrations --check`, 269 Django-Tests (1 skipped),
 `check --deploy` ohne neue Fehler, GitHub-Jobs `django` und `docker` auf dem
 PR-Head grün.
+
+### [~] R-025 Zwei-Repo-Review und Debugging 2026-10-22
+
+Ursache: Die Fachmodule aus 0.23.0 (MPG, Lager, Fuhrpark, Orga, „Mehr“) kamen
+direkt auf `main`, ohne CI-Lauf. Der Django-Testclient ignoriert die CSP, daher
+blieben Inline-Skripte, `on…=`-Handler und `style`-Attribute unbemerkt, die der
+Browser unter `script-src 'self'; style-src 'self'` blockiert. Dazu rote
+CI-Gates (Ruff, i18n, sechs Tests) und zwei Brüche im Client-API-Vertrag.
+
+Umgesetzt (Details: [`REVIEW-2026-10-22.md`](REVIEW-2026-10-22.md)):
+
+- CSP-konforme Templates: Verhalten über `data-*` in `core/static/core/ui.js`,
+  Gestaltung in `modules.css`; Regressionstest `core/test_csp_templates.py`.
+- Scanner leiten nur noch auf dieselbe Origin; Kamera per Permissions-Policy
+  nur auf den drei Scanner-Seiten (`camera=(self)`).
+- Display-SSE: begrenzte Laufzeit, Widerruf beendet laufende Streams.
+- Fahrzeug-Auto-Freigabe atomar und auditiert.
+- Tests netzwerkdicht (`core/test_runner.py`), Geocoding fällt nur bei
+  Nichterreichbarkeit auf Standardkoordinaten zurück.
+- API: Fehlercodes für 409/413/415, Token-Widerruf ohne aktive Mitgliedschaft,
+  PDF-Anhänge über die API.
+- i18n-Katalog vollständig (DE/EN), zerstückelte Sätze als `blocktranslate`.
+- Client: Kaffeekasse/Checklisten lesen die echten Serverfelder.
+
+Nachweise: 935 Django-Tests grün (2 skipped), Ruff-Baseline, `node --check`,
+i18n-Check, `makemigrations --check`, `check --deploy`; Browserlauf
+(Playwright/Chromium) ohne CSP-Verstöße auf allen Modulseiten; Client
+`flutter analyze` ohne Befund, 314 Flutter-Tests grün.
+
+Offen bis `[x]`: GitHub-Jobs `django`/`docker` auf dem PR-Head, manuelle
+Prüfung der Scanner auf einem echten Gerät über HTTPS.
 
 ## Wave 3 – Pilot- und Produktionsabnahme
 

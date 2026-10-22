@@ -49,6 +49,10 @@ class WeatherUnavailable(Exception):
     """Raised when no real forecast can be produced or cached."""
 
 
+class WeatherServiceUnreachable(WeatherUnavailable):
+    """Dienst nicht erreichbar (Netz/Timeout) – im Gegensatz zu einer ungültigen Antwort."""
+
+
 @dataclass
 class Forecast:
     days: list[dict]
@@ -96,7 +100,7 @@ def _fetch_json(url: str, params: dict) -> dict | list:
     except WeatherUnavailable:
         raise
     except (urllib.error.URLError, OSError, ValueError) as exc:
-        raise WeatherUnavailable("Wetterdienst nicht erreichbar.") from exc
+        raise WeatherServiceUnreachable("Wetterdienst nicht erreichbar.") from exc
     if len(raw) > MAX_RESPONSE_BYTES:
         raise WeatherUnavailable("Antwort des Wetterdienstes ist zu groß.")
     try:
@@ -266,13 +270,11 @@ def _extract_candidates(address: str) -> list[str]:
 
 
 def _geocode_osm(query: str) -> dict | None:
-    try:
-        data = _fetch_json(
-            OSM_GEOCODE_URL,
-            {"q": query, "format": "json", "limit": 1, "addressdetails": 1},
-        )
-    except WeatherUnavailable:
-        return None
+    """Return a match, ``None`` for no match; raise when OSM is unreachable."""
+    data = _fetch_json(
+        OSM_GEOCODE_URL,
+        {"q": query, "format": "json", "limit": 1, "addressdetails": 1},
+    )
     if isinstance(data, list) and data:
         first = data[0]
         if isinstance(first, dict):
@@ -344,10 +346,19 @@ def geocode(
         raise WeatherUnavailable("Wetterdienst ist vorübergehend pausiert.")
 
     candidates = _extract_candidates(address)
+    network_failed = False
 
-    # 1. OpenStreetMap Nominatim für präzise Straßen- und Hausnummern-Auflösung
+    # 1. OpenStreetMap Nominatim für präzise Straßen- und Hausnummern-Auflösung.
+    #    Ist der Dienst nicht erreichbar, nicht jeden weiteren Kandidaten mit
+    #    eigenem Timeout probieren (WAN-Ausfall), sondern direkt weiter.
     for candidate in candidates:
-        loc = _geocode_osm(candidate)
+        try:
+            loc = _geocode_osm(candidate)
+        except WeatherServiceUnreachable:
+            network_failed = True
+            break
+        except WeatherUnavailable:
+            continue
         if loc:
             _record_success()
             return loc
@@ -356,18 +367,27 @@ def geocode(
     for candidate in candidates:
         try:
             loc = _geocode_open_meteo(candidate, language)
-            if loc:
-                _record_success()
-                return loc
+        except WeatherServiceUnreachable:
+            # WAN-Ausfall: auf Standardkoordinaten ausweichen statt zu scheitern.
+            network_failed = True
+            _record_failure()
+            if not allow_fallback:
+                raise
+            break
         except WeatherUnavailable:
+            # Ungültige Antwort ist kein Offline-Fall und wird gemeldet.
             _record_failure()
             raise
+        if loc:
+            _record_success()
+            return loc
 
     # 3. Bei unvollständigen/fiktiven Adressen oder Offline-Netz: Robuster Fallback
     if allow_fallback:
         state_key = (fallback_state or _guess_state_from_plz(address) or "").upper()
         coords = STATE_COORDINATES.get(state_key, DEFAULT_COORDINATES)
-        _record_success()
+        if not network_failed:
+            _record_success()
         return {
             "latitude": round(coords[0], 4),
             "longitude": round(coords[1], 4),

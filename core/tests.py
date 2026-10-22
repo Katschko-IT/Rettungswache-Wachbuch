@@ -121,8 +121,9 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.client.logout()
         response = self.client.get(reverse("landing"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "öffentlichen Dienst")
-        self.assertContains(response, "Kein Einsatzleit")
+        self.assertContains(response, "Rettungswache, Feuerwehr und Behörden")
+        self.assertContains(response, "nicht für den Einsatz")
+        self.assertContains(response, "Alarmierungs- und Dienstplandaten gehören bewusst nicht hinein")
         self.assertContains(response, "is-landing")
         self.assertNotContains(response, "Keine Patienten- oder Einsatzdaten.")
 
@@ -141,8 +142,8 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertNotContains(response, "brand-hero")
         self.assertContains(response, "landing-hero-art")
         self.assertContains(response, "Pexels")
-        self.assertContains(response, "Was die Web-App leistet")
-        self.assertContains(response, "native Apps als mobile Schnittstelle")
+        self.assertContains(response, "Alles, was eine Schicht braucht")
+        self.assertContains(response, "quelloffene Apps für iOS und Android")
         self.assertNotContains(response, "Zur Anmeldung")
 
     def test_demo_one_click_login_requires_demo_mode(self):
@@ -253,8 +254,8 @@ class SecurityAndAccessTests(PilotTestCase):
         self.assertContains(response, "Wachwerk")
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("vorfuehrung"))
-        self.assertContains(response, "Zugang nach Login und Freigabe")
-        self.assertContains(response, "Master-Admin")
+        self.assertContains(response, "In drei Schritten startklar")
+        self.assertContains(response, "Team einladen")
         self.assertNotContains(response, reverse("register"))
         self.assertNotContains(response, "Tailscale")
 
@@ -2674,6 +2675,7 @@ class DatabaseRoleLeastPrivilegeTests(TestCase):
             "GRANT USAGE ON SCHEMA public TO rwsth_app, rwsth_feed, rwsth_backup, rwsth_push",
             "GRANT SELECT, UPDATE ON core_pushoutbox TO rwsth_push",
             "GRANT SELECT, DELETE ON core_pushsubscription TO rwsth_push",
+            "GRANT SELECT, DELETE ON core_mobilepushdevice TO rwsth_push",
             "GRANT SELECT ON core_station TO rwsth_push",
             "GRANT INSERT ON core_auditevent TO rwsth_push",
             "GRANT USAGE, SELECT ON SEQUENCE core_auditevent_id_seq TO rwsth_push",

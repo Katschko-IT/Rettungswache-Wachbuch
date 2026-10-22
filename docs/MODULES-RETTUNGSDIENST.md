@@ -1,4 +1,4 @@
-# Rettungsdienst-Fachmodule & Automatisierungs-Architektur (v0.23.0)
+# Rettungsdienst-Fachmodule & Automatisierungs-Architektur (v0.24.0)
 
 Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen und Automatisierungsfunktionen der fünf Rettungsdienst-Fachmodule im Wachbuch sowie die Wachenzentrale („Mehr“-Menü).
 
@@ -41,7 +41,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Express-Schichtübernahme (3 Min.)**: Schnelle Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
-  - **Automatisierungs-Feature**: `Vehicle.check_and_release_disinfection()` hebt nach Ablauf der Einwirkzeit die Fahrzeugsperre automatisch auf und setzt das Fahrzeug zurück auf Status 1.
+  - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.
 - **Gesetzliche Fristen**:
   - Hauptuntersuchung gem. § 29 StVZO.
   - UVV-Prüfung gem. DGUV Vorschrift 70.
@@ -66,14 +66,25 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Stammdaten mit UDI-DI (GTIN), Seriennummer, Inventarnummer, CE-Kennnummer und Hersteller.
   - Klassifizierung nach Risikoklassen (I, IIa, IIb, III gem. MDR) und Kennzeichnung aktiver Medizinprodukte (Anlage 1 & Anlage 2 MPBetreibV).
 - **Prüffristen & Ampellogik**:
-  - STK (Sicherheitstechnische Kontrolle gem. § 11 MPBetreibV) max. alle 24 Monate.
-  - MTK (Messtechnische Kontrolle gem. § 14 MPBetreibV).
+  - STK (Sicherheitstechnische Kontrolle gem. § 12 MPBetreibV) max. alle 24 Monate.
+  - MTK (Messtechnische Kontrolle gem. § 15 MPBetreibV).
   - Ampel: Rot (<= 30 Tage / abgelaufen), Gelb (31–60 Tage), Grün (> 60 Tage).
-- **QR-Code Selbsttest-Ingest**:
-  - Scan des Ergebnis-Codes direkt vom Gerätedisplay (z. B. corpuls3 oder Weinmann MEDUMAT Transport).
-  - Automatische Auswertung aller Baugruppen, Akkus und Defi-Energie (200 J) mit direkter Speicherung im Prüfprotokoll.
-  - Automatische Sperre und Mängelticket-Erstellung bei Fehlermeldungen.
-- **Digitale Einweisungsmatrix (§ 10 MPBetreibV)**:
+- **Funktionskontrolle**:
+  - Die prüfende Person bestätigt Energieversorgung, Sichtprüfung und Selbsttest einzeln
+    (oder alle drei per Schnellkontrolle). Fehlt ein Punkt, ist die Kontrolle nicht bestanden.
+  - Ein Selbsttest-Ausdruck oder gescannter Gerätecode kann als Notiz angehängt werden. Er wird
+    **nicht** ausgewertet: Herstellerformate sind nicht dokumentiert, eine Heuristik würde
+    Kontrollen falsch als bestanden eintragen.
+- **Sperre und Freigabe** (`core/device_status.py`):
+  - „Mangel melden“ und eine nicht bestandene Kontrolle sperren das Gerät und legen einen mit
+    dem Gerät verknüpften Mangel an.
+  - Eine bestandene Kontrolle hebt keine Sperre auf. Freigeben darf nur Schichtleitung oder
+    Admin, erst wenn alle verknüpften Mängel erledigt sind; die Freigabe wird als
+    Funktionskontrolle dokumentiert (Audit `mpg.device_released`).
+  - Das Medizinproduktebuch ist führend. Ein gleichnamiges Gerät unter „Geräte & Fahrzeuge“
+    zeigt denselben Status; dort kann ein gesperrtes Gerät nicht vorbei an offenen Mängeln
+    freigegeben werden (Web und API, HTTP 409).
+- **Digitale Einweisungsmatrix (§ 11 MPBetreibV)**:
   - Dokumentation von Geräte-Erst- und Wiederholungseinweisungen inklusive Gruppenschulungen.
 
 ### 🏢 Organisation & Desk (`/orga/`)
@@ -94,20 +105,45 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Heutige Wachentermine und offene Tagesaufgaben mit Fortschrittsbalken.
   - Taktischer Status aller Rettungsmittel der Wache in Echtzeit.
   - MPG-Prüfungs- und Mängelwarnungen.
-  - Live-Verkehrslage und Katwarn-Feeds.
+  - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
 
 ---
 
 ## 3. Wachenzentrale („Mehr“-Menü)
 
-Das Menü `/mehr/` fungiert als zentrale Übersicht über alle 28 Module des Systems, aufgeteilt in vier logische Arbeitsbereiche:
+Die Seite `/mehr/` („Alle Bereiche“) zeigt alle für die Rolle erreichbaren Module in vier Gruppen; deaktivierte Module erscheinen nicht. Auditoren sehen nur Konto- und Audit-Bereiche.
 
-1. **🚑 Einsatz & Rettungsdienst-Fachmodule**: MPG, Lager, Fuhrpark, Organisation, Wachen-Display.
+1. **🚑 Fachmodule**: Medizingeräte, Lager & Material, Fuhrpark, Organisation, Wachen-Display.
 2. **📋 Wachbetrieb & Alltagsorganisation**: Mängel, Geräte & Pool, Tagesaufgaben, Auswertung, Checklisten, Prüfintervalle, Kalender, Pinnwand, Kaffeekasse, Geburtstage.
-3. **📢 Kommunikation & Wissen**: Neuigkeiten, Wachen-Wiki, Meldungen & Katwarn, Wachenchat.
+3. **📢 Kommunikation & Wissen**: Neuigkeiten, Wachen-Wiki, Meldungen & Verkehr, Wachenchat (Signal-Gruppe).
 4. **⚙️ Wachenverwaltung & Sicherheit**: Mein Konto, App-Tokens / API, Display-Tokens, Team & Rollen, Einladungen, Darstellung & Leiste, Wacheneinstellungen, Audit-Log, Zwei-Faktor / Passkeys, Push-Mitteilungen, Technische Verwaltung.
 
 **Features**:
 - **Live-Schnellsuche**: Sofortige Filterung aller Karten bei Eingabe eines Suchbegriffs (z. B. "O2", "SOP", "Mangel", "Reifen").
 - **Leisten-Synchronisation**: Module, die bereits in der oberen Kopfleiste angepinnt sind, tragen den Status-Badge `In Leiste`.
 - **Individuelle Leisten-Anpassung**: Über `/einstellungen/darstellung/` kann der Master-Admin per Drag-and-Drop festlegen, welche Module direkt in der Leiste verankert sind.
+
+
+---
+
+## 4. Änderungen in 0.24.0 (Review 2026-10-22)
+
+- Alle Modulseiten arbeiten unter der Content-Security-Policy: Verhalten über
+  `data-*`-Attribute in `core/static/core/ui.js`, Gestaltung in `modules.css`.
+- Kamera-Scanner leiten nur auf Adressen derselben Origin; die Kamera ist nur auf
+  MPG-, Lager- und Fuhrpark-Übersicht erlaubt.
+- Die Orga-Seite legt **keine** Muster-SOPs oder Notrufnummern mehr an. Der
+  Fuhrpark legt höchstens ein neutrales Desinfektionsmittel an (im Django-Admin
+  unter „Desinfektionsmittel“ pflegbar) und erfindet keine Kennzeichen.
+- Die Übersicht (`/uebersicht/`) zeigt den Handlungsbedarf der aktiven
+  Fachmodule (`core/module_overview.py`) und persönliche Hinweise („Für dich“).
+- Fahrzeuge werden nach der Einwirkzeit **nicht** automatisch freigegeben; die
+  Besatzung wird benachrichtigt und gibt selbst frei.
+- Medizingeräte: Die QR-„Auswertung“ von Selbsttests trug Kontrollen als
+  bestanden ein, sobald der Text z. B. „OK“ oder „CP3“ enthielt, und eine
+  Ein-Klick-Kontrolle hob Sperren trotz offener Mängel auf. Beides entfernt;
+  Sperre und Freigabe siehe oben. Paragrafenangaben auf die geltende
+  MPBetreibV (§ 11 Einweisung, § 12 STK, § 13 Medizinproduktebuch,
+  § 14 Bestandsverzeichnis, § 15 MTK) vereinheitlicht.
+- Demo-Daten (`load_demo_data`) enthalten Fahrzeuge, Medizingeräte, Material und
+  eine Dienstanweisung (`core/demo_modules.py`).

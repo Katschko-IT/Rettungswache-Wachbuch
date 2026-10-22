@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenterminal" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'team' %}">{% translate "Zurück zu Team & Rollen" %}</a>
+<header class="page-heading narrow">
+  <h1>{% translate "Wachenterminal" %}</h1>
+  <p class="lead">{% blocktranslate with seconds=idle_seconds %}Ein Wachenterminal ist ein Touch-Bildschirm auf der Wache. Gesperrt zeigt er das Wachen-Display; mit dem gemeinsamen vierstelligen Wachen-Code öffnet er den Alltagsmodus (Übergaben, Kalender, Aufgaben, Müll, Wetter, Mängel). Nach {{ seconds }} Sekunden ohne Eingabe sperrt er sich wieder.{% endblocktranslate %}</p>
+</header>
+
+<section class="content-flow narrow">
+  {% if new_url %}
+    <div class="callout" role="status">
+      <h2>{% translate "Neuer Terminal-Link" %}</h2>
+      <p>{% translate "Diesen Link einmal im Browser des Terminals öffnen. Er wird nur jetzt angezeigt und gilt, bis du das Terminal widerrufst." %}</p>
+      <p class="token-value">{{ new_url }}</p>
+    </div>
+  {% endif %}
+  {% if new_code %}
+    <div class="callout" role="status">
+      <h2>{% translate "Neuer Wachen-Code" %}</h2>
+      <p class="token-value terminal-pin-reveal">{{ new_code }}</p>
+      <p>{% translate "Der Code wird nur jetzt angezeigt. Persönlich an die Besatzung weitergeben, nicht aushängen." %}</p>
+    </div>
+  {% endif %}
+
+  <section class="section-block">
+    <h2>{% translate "Wachen-Code" %}</h2>
+    <p class="helptext">
+      {% if code_record %}
+        {% blocktranslate with date=code_record.updated_at|date:"d.m.Y H:i" %}Zuletzt geändert am {{ date }}.{% endblocktranslate %}
+      {% else %}
+        {% translate "Noch kein Code festgelegt: Das Terminal lässt sich erst danach entsperren." %}
+      {% endif %}
+      {% translate "Einträge im Alltagsmodus erscheinen unter „Wachenterminal“. Wer einen Eintrag persönlich verantworten muss (z. B. Medizingeräte, Fahrzeugübernahme), nutzt das eigene Konto." %}
+    </p>
+    <form method="post" class="card" autocomplete="off">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="set-code">
+      <label for="terminal-code-new">{% translate "Neuer Code (4 Ziffern)" %}</label>
+      <input id="terminal-code-new" type="password" name="code" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="4" required>
+      <label for="terminal-code-repeat">{% translate "Code wiederholen" %}</label>
+      <input id="terminal-code-repeat" type="password" name="code_repeat" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="4" required>
+      <p class="helptext">{% translate "Keine Folgen wie 1234 und nicht viermal dieselbe Ziffer. Nach Fehlversuchen sperrt sich das Terminal stufenweise (1 min bis 24 h)." %}</p>
+      <button type="submit" class="button primary">{% translate "Code speichern" %}</button>
+    </form>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="generate-code">
+      <button type="submit" class="button secondary">{% translate "Zufälligen Code erzeugen" %}</button>
+    </form>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Registrierte Terminals" %}</h2>
+    <ul class="list">
+      {% for terminal in terminals %}
+        <li class="list-row">
+          <div class="row-content">
+            <strong>{{ terminal.label }}</strong>
+            <small>
+              {% if terminal.revoked_at %}{% translate "widerrufen" %} {{ terminal.revoked_at|date:"d.m.Y H:i" }}
+              {% elif terminal.locked_until and terminal.locked_until > now %}{% translate "nach Fehlversuchen gesperrt bis" %} {{ terminal.locked_until|date:"d.m. H:i" }}
+              {% elif terminal.last_used_at %}{% translate "zuletzt aktiv" %} {{ terminal.last_used_at|date:"d.m.Y H:i" }}
+              {% else %}{% translate "noch nicht eingerichtet" %}{% endif %}
+            </small>
+          </div>
+          {% if not terminal.revoked_at %}
+            {% if terminal.locked_until and terminal.locked_until > now %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="unlock">
+                <input type="hidden" name="terminal_id" value="{{ terminal.pk }}">
+                <button type="submit" class="button secondary">{% translate "Sperre aufheben" %}</button>
+              </form>
+            {% endif %}
+            <form method="post" data-confirm="{% translate 'Terminal widerrufen? Es kann danach nicht mehr verwendet werden.' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="revoke">
+              <input type="hidden" name="terminal_id" value="{{ terminal.pk }}">
+              <button type="submit" class="button secondary">{% translate "Widerrufen" %}</button>
+            </form>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="list-row"><div class="row-content">{% translate "Noch kein Terminal registriert." %}</div></li>
+      {% endfor %}
+    </ul>
+    <form method="post" class="card">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+      <label for="terminal-label">{% translate "Bezeichnung" %}</label>
+      <input id="terminal-label" type="text" name="label" maxlength="80" value="{% translate 'Wachenterminal' %}" required>
+      <button type="submit" class="button primary">{% translate "Terminal registrieren" %}</button>
+    </form>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Handys der Besatzung verbinden" %}</h2>
+    <p class="helptext">{% translate "Erzeugt einen persönlichen QR-Code (2 Minuten gültig, einmalig). Die Person scannt ihn mit der Wachbuch-App und ist ohne Passwort mit ihrem eigenen Konto angemeldet." %}</p>
+    {% if pair_name %}
+      <div class="card terminal-pair-card">
+        <h3>{% blocktranslate with name=pair_name %}QR-Code für {{ name }}{% endblocktranslate %}</h3>
+        <img src="{% url 'terminal_pair_qr' %}" alt="{% translate 'Persönlicher Kopplungs-QR-Code' %}" width="280" height="280">
+      </div>
+    {% endif %}
+    <ul class="list">
+      {% for member in members %}
+        <li class="list-row">
+          <div class="row-content">
+            <strong>{{ member.user.get_full_name|default:member.user.username }}</strong>
+            <small>{{ member.get_role_display }}</small>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="pair-member">
+            <input type="hidden" name="membership_id" value="{{ member.pk }}">
+            <button type="submit" class="button secondary">{% translate "Handy-QR zeigen" %}</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "App im WLAN der Wache" %}</h2>
+    {% if cert_fingerprint %}
+      <p>{% translate "Der Verbindungs-QR enthält den Fingerabdruck des lokalen Zertifikats. Die App vertraut dann genau diesem Zertifikat, ohne dass auf den Handys etwas installiert werden muss." %}</p>
+      <p class="token-value">SHA-256 {{ cert_fingerprint }}</p>
+    {% else %}
+      <p>{% translate "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)." %}</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

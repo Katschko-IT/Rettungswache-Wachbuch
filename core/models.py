@@ -886,6 +886,12 @@ class PushOutbox(models.Model):
         null=True, blank=True,
         related_name="outbox_entries",
     )
+    # Native App-Geräte (über Push-Relay); genau eines von subscription/device.
+    device = models.ForeignKey(
+        "core.MobilePushDevice", on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="outbox_entries",
+    )
     payload = models.JSONField()
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     attempts = models.PositiveIntegerField(default=0)
@@ -1609,3 +1615,6 @@ from .diagnostics_models import ErrorEvent  # noqa: E402,F401
 
 # Widerrufbare Display-Zugaenge fuer Wandmonitore liegen in einem eigenen Modul.
 from .display_models import DisplayToken  # noqa: E402,F401
+
+# Wachenterminal (Touch-Bildschirm mit gemeinsamem Wachen-Code)
+from .terminal_models import StationTerminal, StationTerminalCode, TerminalPairing  # noqa: E402,F401

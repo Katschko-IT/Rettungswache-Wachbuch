@@ -484,17 +484,41 @@ def dashboard(request):
     profile = dashboard_profile(station)
     card_definitions = {
         "defects": ("defects_web", _("Mängel"), _("offen"), operations["defects_count"]),
-        "assets": ("assets_inventory_web", profile["asset_label"], _("nicht bereit"), operations["asset_attention_count"]),
+        # Mit Fuhrpark-/MPG-Modul haben Fahrzeuge und Medizingeräte eigene
+        # Karten; die Gerätekarte meint dann nur noch die übrige Ausstattung.
+        "assets": (
+            "assets_inventory_web",
+            _("Ausstattung") if (station.fleet_enabled or station.mpg_enabled) else profile["asset_label"],
+            _("nicht bereit"),
+            operations["asset_attention_count"],
+        ),
         "loans": ("assets_inventory_web", _("Inventar"), _("ausgegeben"), operations["inventory_loans_count"]),
         "checklists": ("checklists", _("Checklisten"), _("fällig oder überfällig"), operations["due_checklists_count"]),
         "tasks": ("tasks_today", profile["task_label"], _("heute erledigt"), f'{operations["task_done"]}/{operations["task_total"]}'),
     }
     dashboard_cards = [
-        {"url_name": card_definitions[key][0], "title": card_definitions[key][1], "subtitle": card_definitions[key][2], "value": card_definitions[key][3]}
+        {
+            "href": reverse(card_definitions[key][0]),
+            "title": card_definitions[key][1],
+            "subtitle": card_definitions[key][2],
+            "value": card_definitions[key][3],
+            "attention": key in {"defects", "assets", "checklists"} and bool(card_definitions[key][3]),
+        }
         for key in profile["cards"]
         if (key not in {"checklists", "tasks"} or (key == "checklists" and station.checklists_enabled) or (key == "tasks" and station.tasks_enabled))
     ]
+    # Fachmodule (Fahrzeuge, Medizingeräte, Material, Dienstanweisungen) melden
+    # ihren Handlungsbedarf hier, damit die Übersicht das ganze Lagebild zeigt.
+    from .module_overview import module_attention_cards
+
+    dashboard_cards.extend(module_attention_cards(station, request.user))
+    from .notification_models import UserNotification
+
+    my_notifications = list(
+        UserNotification.objects.filter(user=request.user, station=station, read_at__isnull=True)[:5]
+    )
     context = {
+        "my_notifications": my_notifications,
         "dashboard_profile": profile,
         "dashboard_cards": dashboard_cards,
         "open_handovers": active[:5],
@@ -1033,6 +1057,18 @@ def checklist_complete(request, pk):
     return redirect("checklists")
 
 
+@membership_required(CONTENT_ROLES)
+@require_POST
+def notification_read(request, pk):
+    """Persönlichen Hinweis als erledigt markieren (nur eigene Nachrichten)."""
+    from .notification_models import UserNotification
+
+    UserNotification.objects.filter(
+        pk=pk, user=request.user, station=request.membership.station, read_at__isnull=True,
+    ).update(read_at=timezone.now())
+    return redirect("dashboard")
+
+
 def more(request):
     return render(request, "core/more.html")
 
@@ -1161,6 +1197,11 @@ def membership_update(request, pk):
         )
         if membership.user_id == request.user.id and removes_admin:
             form.add_error("role", "Die eigene Master-Admin-Rolle kann hier nicht entzogen werden.")
+        from .terminal import is_service_user
+
+        if is_service_user(membership.user) and new_role != Membership.Role.MEMBER:
+            # Das Dienstkonto des Wachenterminals bleibt immer einfaches Mitglied.
+            form.add_error("role", "Das Wachenterminal-Konto bleibt Mitglied.")
         with transaction.atomic():
             if not form.errors:
                 membership = Membership.objects.select_for_update().get(pk=membership.pk)

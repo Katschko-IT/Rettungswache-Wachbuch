@@ -1,4 +1,5 @@
 {% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:'de' }}" class="display-root">
 <head>
   <meta charset="utf-8">
@@ -8,6 +9,7 @@
   <meta name="theme-color" content="#0b1622">
   <title>{{ display_station.name }} · {% translate "Wachen-Display" %}</title>
   <link rel="stylesheet" href="{% static 'core/display.css' %}">
+  <link rel="stylesheet" href="{% static 'core/modules.css' %}">
 </head>
 <body class="display-body">
   <div class="display-surface" data-display-root data-display-overlay="false" data-data-url="{% url 'display_data' %}">

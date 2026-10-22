@@ -7,6 +7,7 @@ from __future__ import annotations
 import csv
 from io import BytesIO
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -23,7 +24,9 @@ from .mpg_forms import (
     MaintenanceLogForm,
     MedicalDeviceForm,
 )
+from .device_status import ASSET_TO_DEVICE, DEVICE_TO_ASSET, mirror_to_asset, release_blockers
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
+from .services import audit
 from .wachalltag_models import Defect
 
 
@@ -34,23 +37,30 @@ def mpg_dashboard(request):
     """Cockpit für Medizinproduktebuch, STK/MTK-Prüffristen und Gerätestamm."""
     station = request.membership.station
 
-    # Legacy StationAsset(kind=DEVICE) nahtlos synchronisieren falls noch nicht im Medizinproduktebuch
+    # Geräte aus „Geräte & Fahrzeuge“ übernehmen. Das Medizinproduktebuch ist
+    # danach führend; der Status wird in beide Richtungen gespiegelt.
     from .wachalltag_models import StationAsset
+
+    known = {
+        device.slug: device
+        for device in MedicalDevice.objects.filter(
+            station=station,
+            slug__in=StationAsset.objects.filter(station=station, kind=StationAsset.Kind.DEVICE).values("asset_id"),
+        )
+    }
     for legacy in StationAsset.objects.filter(station=station, kind=StationAsset.Kind.DEVICE):
-        if not MedicalDevice.objects.filter(station=station, slug=legacy.asset_id).exists():
-            status_map = {
-                StationAsset.Status.READY: MedicalDevice.Status.READY,
-                StationAsset.Status.LIMITED: MedicalDevice.Status.LIMITED,
-                StationAsset.Status.OOB: MedicalDevice.Status.OOB,
-                StationAsset.Status.WORKSHOP: MedicalDevice.Status.MAINTENANCE,
-            }
+        device = known.get(legacy.asset_id)
+        if device is None:
             MedicalDevice.objects.create(
                 station=station,
                 slug=legacy.asset_id,
                 name=legacy.label,
                 location="Wache",
-                current_status=status_map.get(legacy.status, MedicalDevice.Status.READY),
+                current_status=ASSET_TO_DEVICE.get(legacy.status, MedicalDevice.Status.READY),
+                status_note=legacy.note[:300],
             )
+        elif DEVICE_TO_ASSET.get(device.current_status) != legacy.status:
+            mirror_to_asset(device)
 
     devices_qs = MedicalDevice.objects.filter(station=station).exclude(
         current_status=MedicalDevice.Status.DECOMMISSIONED
@@ -60,6 +70,7 @@ def mpg_dashboard(request):
     if query:
         devices_qs = devices_qs.filter(
             Q(name__icontains=query)
+            | Q(slug__iexact=query)
             | Q(model_type__icontains=query)
             | Q(serial_number__icontains=query)
             | Q(inventory_number__icontains=query)
@@ -233,18 +244,20 @@ def mpg_device_detail(request, slug: str):
     is_user_trained = device.trainings.filter(trainee=request.user).exists()
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
-    maint_form = MaintenanceLogForm()
-    check_form = DeviceRoutineCheckForm()
-    training_form = DeviceTrainingRecordForm(station=station)
-    group_training_form = GroupTrainingForm(station=station)
+    maint_form = MaintenanceLogForm(auto_id="maint_%s")
+    check_form = DeviceRoutineCheckForm(auto_id="check_%s")
+    training_form = DeviceTrainingRecordForm(station=station, auto_id="training_%s")
+    group_training_form = GroupTrainingForm(station=station, auto_id="group_%s")
 
     device_qr_url = request.build_absolute_uri(reverse("mpg_device_qr", args=[device.slug]))
+    blocking_defects = release_blockers(device) if device.current_status == MedicalDevice.Status.OOB else []
 
     return render(
         request,
         "core/mpg_device_detail.html",
         {
             "device": device,
+            "blocking_defects": blocking_defects,
             "maint_logs": maint_logs,
             "routine_checks": routine_checks,
             "trainings": trainings,
@@ -263,86 +276,96 @@ def mpg_device_detail(request, slug: str):
 @station_module_required("mpg_enabled")
 @require_POST
 def mpg_routine_check(request, slug: str):
-    """Tägliche Express-Funktionskontrolle erfassen."""
+    """Funktionskontrolle erfassen.
+
+    Jeder Prüfpunkt wird von der prüfenden Person bestätigt. Ein mitgeschickter
+    Selbsttest-Ausdruck (Scan oder Text) wird nur als Notiz gespeichert und
+    nicht automatisch ausgewertet.
+    """
     station = request.membership.station
     device = get_object_or_404(MedicalDevice, station=station, slug=slug)
+    was_locked = device.current_status == MedicalDevice.Status.OOB
 
-    qr_payload = request.POST.get("qr_payload", "").strip()
-    if qr_payload:
-        upper_qr = qr_payload.upper()
-        is_fail = any(tok in upper_qr for tok in ["FAIL", "ERR", "DEFEKT", "NOT OK", "ERROR"])
-        is_passed = not is_fail and any(tok in upper_qr for tok in ["PASS", "OK", "BESTANDEN", "ERFOLGREICH", "CP3", "MEDUMAT"])
-
-        details = []
-        if "CP3" in upper_qr or "CORPULS" in upper_qr:
-            details.append("corpuls3 Selbsttest")
-        elif "MEDUMAT" in upper_qr or "WEINMANN" in upper_qr:
-            details.append("MEDUMAT Funktionskontrolle")
-        else:
-            details.append("QR-Prüflauf")
-
-        if is_passed:
-            details.append("Alle Baugruppen bestanden")
-            check = DeviceRoutineCheck(
-                station=station,
-                device=device,
-                performed_by=request.user,
-                passed=True,
-                battery_ok=True,
-                visual_ok=True,
-                function_ok=True,
-                notes=f"Auto-QR ({', '.join(details)}): {qr_payload[:120]}",
-            )
-            check.save()
-            messages.success(request, f"✅ Automatischer Prüflauf für '{device.name}' erfolgreich eingelesen und dokumentiert.")
-        else:
-            details.append("FEHLER GEMELDET")
-            check = DeviceRoutineCheck(
-                station=station,
-                device=device,
-                performed_by=request.user,
-                passed=False,
-                battery_ok=True,
-                visual_ok=True,
-                function_ok=False,
-                notes=f"Auto-QR FEHLER ({', '.join(details)}): {qr_payload[:120]}",
-            )
-            check.save()
-            messages.warning(request, f"⚠️ Automatischer Prüflauf fehlgeschlagen! Gerät '{device.name}' wurde sofort gesperrt.")
-        return redirect("mpg_device_detail", slug=device.slug)
-
-    quick_pass = request.POST.get("quick_pass") == "1"
-    if quick_pass:
+    if request.POST.get("quick_pass") == "1":
         check = DeviceRoutineCheck(
             station=station,
             device=device,
             performed_by=request.user,
-            passed=True,
             battery_ok=True,
             visual_ok=True,
             function_ok=True,
-            notes="Express-Check: Einsatzklar",
+            notes="Schnellkontrolle: alle Prüfpunkte bestätigt",
         )
-        check.save()
-        messages.success(request, f"Funktionskontrolle für '{device.name}' erfolgreich bestätigt.")
     else:
         form = DeviceRoutineCheckForm(request.POST)
-        if form.is_valid():
-            check = form.save(commit=False)
-            check.station = station
-            check.device = device
-            check.performed_by = request.user
-            check.save()
-            if check.passed:
-                messages.success(request, f"Funktionskontrolle für '{device.name}' erfolgreich erfasst.")
-            else:
-                messages.warning(
-                    request,
-                    f"Funktionskontrolle NICHT bestanden! Gerät '{device.name}' wurde auf 'Außer Betrieb' gesetzt.",
-                )
-        else:
+        if not form.is_valid():
             messages.error(request, "Ungültige Eingaben bei der Funktionskontrolle.")
+            return redirect("mpg_device_detail", slug=device.slug)
+        check = form.save(commit=False)
+        check.station = station
+        check.device = device
+        check.performed_by = request.user
+        protocol = form.cleaned_data.get("selftest_protocol", "")
+        if protocol:
+            check.notes = f"{check.notes} | Selbsttest: {protocol}".strip(" |")[:300]
+    check.save()
+    audit(request.user, station, "mpg.routine_check", device, {"passed": check.passed})
 
+    if not check.passed:
+        messages.warning(
+            request,
+            f"Funktionskontrolle nicht bestanden. '{device.name}' ist gesperrt und ein Mangel wurde angelegt.",
+        )
+    elif was_locked:
+        messages.info(
+            request,
+            f"Kontrolle gespeichert. '{device.name}' bleibt gesperrt, bis die Schichtleitung es nach "
+            "Abschluss aller Mängel freigibt.",
+        )
+    else:
+        messages.success(request, f"Funktionskontrolle für '{device.name}' gespeichert.")
+    return redirect("mpg_device_detail", slug=device.slug)
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("mpg_enabled")
+@require_POST
+def mpg_device_release(request, slug: str):
+    """Gesperrtes Gerät nach Abschluss aller Mängel wieder freigeben."""
+    station = request.membership.station
+    device = get_object_or_404(MedicalDevice, station=station, slug=slug)
+    if request.membership.role not in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}:
+        messages.error(request, "Nur Schichtleitung oder Admin darf Geräte freigeben.")
+        return redirect("mpg_device_detail", slug=device.slug)
+    if device.current_status != MedicalDevice.Status.OOB:
+        messages.info(request, "Das Gerät ist nicht gesperrt.")
+        return redirect("mpg_device_detail", slug=device.slug)
+    blockers = release_blockers(device)
+    if blockers:
+        numbers = ", ".join(f"#{item.pk}" for item in blockers)
+        messages.error(request, f"Freigabe nicht möglich: offene Mängel {numbers}. Bitte zuerst abschließen.")
+        return redirect("mpg_device_detail", slug=device.slug)
+    confirmed = all(request.POST.get(name) == "on" for name in ("battery_ok", "visual_ok", "function_ok"))
+    if not confirmed:
+        messages.error(request, "Für die Freigabe müssen alle Prüfpunkte bestätigt sein.")
+        return redirect("mpg_device_detail", slug=device.slug)
+    note = (request.POST.get("notes") or "").strip()
+    with transaction.atomic():
+        DeviceRoutineCheck(
+            station=station,
+            device=device,
+            performed_by=request.user,
+            battery_ok=True,
+            visual_ok=True,
+            function_ok=True,
+            notes=f"Freigabe nach Sperre: {note}".strip(": ")[:300],
+        ).save()
+        device.refresh_from_db()
+        device.current_status = MedicalDevice.Status.READY
+        device.status_note = ""
+        device.save(update_fields=["current_status", "status_note", "updated_at"])
+        audit(request.user, station, "mpg.device_released", device, {"note": bool(note)})
+    messages.success(request, f"'{device.name}' ist wieder einsatzklar.")
     return redirect("mpg_device_detail", slug=device.slug)
 
 
@@ -376,7 +399,7 @@ def mpg_maintenance_create(request, slug: str):
 @station_module_required("mpg_enabled")
 @require_POST
 def mpg_training_create(request, slug: str):
-    """Geräteeinweisung (§ 10 MPBetreibV) für Einzelpersonen oder Gruppen speichern."""
+    """Geräteeinweisung (§ 11 MPBetreibV) für Einzelpersonen oder Gruppen speichern."""
     station = request.membership.station
     device = get_object_or_404(MedicalDevice, station=station, slug=slug)
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
@@ -447,9 +470,10 @@ def mpg_device_defect(request, slug: str):
     if priority not in Defect.Priority.values:
         priority = Defect.Priority.URGENT
 
-    # Mangel im Wachalltag anlegen
+    # Mangel im Wachalltag anlegen; er hält das Gerät gesperrt, bis er erledigt ist.
     defect = Defect.objects.create(
         station=station,
+        medical_device=device,
         title=title[:160],
         description=f"Standort: {device.location}\nSeriennummer: {device.serial_number}\n\n{description}".strip(),
         asset_ref=f"{device.name} ({device.inventory_number or device.serial_number})",
@@ -463,6 +487,7 @@ def mpg_device_defect(request, slug: str):
     device.current_status = MedicalDevice.Status.OOB
     device.status_note = f"Defekt gemeldet: {title}"
     device.save(update_fields=["current_status", "status_note", "updated_at"])
+    audit(request.user, station, "mpg.device_locked", device, {"defect_id": defect.pk})
 
     messages.warning(
         request,
@@ -594,7 +619,7 @@ def mpg_export_bestandsverzeichnis(request):
             d.next_stk_date.isoformat() if d.next_stk_date else "",
             d.next_mtk_date.isoformat() if d.next_mtk_date else "",
             d.next_dguv_date.isoformat() if d.next_dguv_date else "",
-            d.last_routine_check.strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
+            timezone.localtime(d.last_routine_check).strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
         ])
 
     return response

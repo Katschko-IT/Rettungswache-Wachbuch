@@ -14,31 +14,45 @@ JavaScript und ohne externe Ressourcen. Veröffentlichung und Konfiguration sind
 
 ## Funktionen
 
-### Rettungsdienst-Fachmodule & Wachenzentrale
-- **🚑 Fuhrpark & Hygiene**: Mobiles Fahrzeug-Cockpit mit taktischem BOS-Status (1–6), Füllständen (Kraftstoff %, AdBlue %, Sauerstoff O₂-Flaschendruck in bar), Express-Schichtübernahme (3 Min.), VAH-Wischdesinfektion mit automatischer Timer-Freigabe, Mängeleskalation in Werkstattstatus sowie Fristenüberwachung (HU § 29 StVZO, UVV DGUV 70, 10g-Tragentischprüfung nach DIN EN 1789).
-- **📦 Lager & Material (FEFO-Apotheke)**: Chargenverfolgung (Lot, PZN, GTIN), Verfallsüberwachung nach First-Expired-First-Out, dynamische Kühlketten-Regel (2–8 °C mit Out-of-Fridge Timer, z. B. 12 Wochen für Rocuronium), automatische Quarantäne bei BfArM-Rückrufen, 1-Scan Express-Umlagerung und automatischer Nachbestellschein mit Wachbuch-Tagesaufgabe.
-- **🩺 MPG & Medizingeräte**: Digitales Medizinproduktebuch nach § 13 MPBetreibV mit Risikoklassen (I bis III), automatischer STK/MTK-Fristenampel (Anlage 1 & 2), 1-Tap Funktionskontrollen, QR-Code-Selbsttest-Ingest (corpuls3 / Weinmann MEDUMAT) und digitaler § 10 MPBetreibV Einweisungsmatrix (inkl. Gruppenschulungen).
-- **🏢 Organisation & Desk**: Revisionssichere Dienstanweisungen, Hygienepläne und medizinische SOPs mit Versionskontrolle (`vX.Y`), SHA-256 Integritätsprüfung, persönlicher Mitarbeiter-Lesequittierung und Notfall-Kurzwahlliste.
-- **🖥️ Wachen-Display**: Vollbild-Dashboard für Monitore/TV in Fahrzeughalle und Bereitschaftsraum mit Live-Uhrzeit, Wetter, aktuellen Terminen, BOS-Fahrzeugstatus, MPG-Warnungen und konfigurierbarem Live-Ticker.
-- **🗂️ Moderne Wachenzentrale („Mehr“-Menü)**: 4-Kategorien-Hub (Fachmodule, Wachbetrieb, Kommunikation, Verwaltung) mit sofortiger Live-Schnellsuche für alle 28 Module.
+Jede Wache schaltet nur die Module ein, die sie nutzt. Die **Übersicht** zeigt
+anschließend gesammelt, wo Handlungsbedarf besteht: dringende Übergaben, offene
+Mängel, Fahrzeuge, die nicht einsatzbereit sind, fällige Medizingeräte,
+Unterschreitungen des Mindestbestands und ungelesene Dienstanweisungen.
 
-### Wachbuch & Kernfunktionen
-- versionierte Schichtübergaben mit Kategorie, Priorität, Status und Revisionen
-- Tagesaufgaben nach täglicher Routine, Wochentag und Zusatzaufgaben
-- Checklisten mit Einzelpunkten, Wiederholungsplan und Abschlussvermerk
-- Wachenkalender mit Terminen, Feiertagen aller 16 Bundesländer und ICS-Abo
-- Kaffeekasse als fortlaufendes Ledger mit Korrekturbuchungen
-- Pinnwand für interne Aushänge
-- Mängel mit Statusworkflow und optionalem Foto, Fahrzeuge/Geräte mit
-  Bereitschaftsstatus, Inventar mit Ausgabe und Rückgabe
-- stationsbezogene Rollen (Mitglied, Schichtleitung, Kassenwart, Master-Admin,
-  Auditor), Einladungen, Aktivierung und Audit-Verlauf
-- lokaler Login mit persönlichen Konten, optional TOTP und Passkeys
-- QR-Login: Bestätigung einer Browsersitzung auf dem Mitarbeitergerät, kurzlebig
-  und an Wache sowie Browsersitzung gebunden
-- Erstinstallations-Assistent für Wachenname, Anschrift, Zeitzone und Module
-- versionierte JSON-API und quelloffener Flutter-Client
-- installierbare PWA für Handy und Wachenterminal; optionale WebPush-Benachrichtigung
+### Wachalltag
+
+- **Übergaben** mit Kategorie, Priorität, Status, Quittierung und Revisionen
+- **Tagesaufgaben** als digitale Wandtafel (täglich, Wochentag, Zusatzaufgaben)
+- **Checklisten** mit Einzelpunkten, Prüfintervall und Abschlussvermerk
+- **Mängel** mit Frist, Foto und verantwortlicher Person; **Ausstattung**
+  (Geräte, Schlüssel, Pools) mit Ausgabe und Rückgabe
+- **Wachenkalender** mit Terminen, Feiertagen aller 16 Bundesländer und ICS-Abo
+- **Pinnwand, Neuigkeiten** mit Lesebestätigung, **Wachen-Wiki**
+- **Kaffeekasse** als fortlaufendes Ledger mit Korrekturbuchungen, Geburtstage
+
+### Fachmodule
+
+| Modul | Inhalt |
+| --- | --- |
+| 🚑 Fuhrpark | Fahrzeugstatus, Übernahme zu Schichtbeginn (Kilometer, Füllstände, Checkpunkte), Desinfektionsprotokoll mit Einwirkzeit-Sperre, Fristen für HU, UVV und Tragentisch, Fahrzeugmängel |
+| 🩺 Medizingeräte | Bestandsverzeichnis nach MPBetreibV, STK-/MTK-/DGUV-Fristen mit Ampel, Funktionskontrollen mit Sperre bis zur Freigabe, Wartungen und Einweisungsnachweise |
+| 📦 Lager & Material | Bestand je Lagerort, Chargen mit Verfallsdatum (First Expired, First Out), Kühlware mit verkürzter Haltbarkeit außerhalb des Kühlschranks, Mindestbestand, Bestellvorschlag, Sperren einer Charge nach Rückruf |
+| 📖 Organisation | Dienstanweisungen mit Versionen, SHA-256-Prüfsumme und persönlicher Lesebestätigung; Telefonbuch der Wache |
+| 🖥️ Wachen-Display | Vollbildanzeige für Monitor oder Fernseher über widerrufbare Display-Links |
+
+Mustertexte oder Telefonnummern legt die Anwendung **nicht** selbst an.
+Medizinische Inhalte und regionale Notrufnummern pflegt jede Wache eigenverantwortlich.
+
+### Team, Sicherheit und Betrieb
+
+- persönliche Konten mit stationsbezogenen Rollen (Mitglied, Schichtleitung,
+  Kassenwart, Master-Admin, Auditor), Einladungen und Aktivierungslinks
+- optional TOTP und Passkeys; QR-Login mit Bestätigung auf dem Mitarbeitergerät
+- Audit-Log, das Auditoren ohne fachliche Freitexte einsehen
+- strikte Content-Security-Policy, alle Skripte und Schriften lokal, keine Tracking-Cookies
+- Einrichtungsassistent, installierbare Web-App (PWA), optional WebPush
+- versionierte JSON-API (`/api/v1/`) für den quelloffenen
+  [Wachbuch-Client](https://github.com/Katschko-IT/Wachbuch-Client) (iOS/Android)
 - tägliche lokale PostgreSQL-Dumps mit Wiederherstellungsprobe
 
 ## Stack
@@ -52,7 +66,8 @@ Ein Docker-Compose-Projekt startet alles:
 | `migrate` | einmalige Schema- und Bootstrap-Migration |
 | `web` | Gunicorn/Django hinter Loopback-Port |
 | `feed-worker` | periodischer Abruf freigegebener HTTPS-Quellen |
-| `push-worker` | Versand von WebPush-Nachrichten aus der Outbox |
+| `notify-worker` | benachrichtigt die Besatzung, wenn Desinfektions-Einwirkzeiten ablaufen |
+| `push-worker` | Versand von Web-Push (und optional App-Push über ein Relay) aus der Outbox |
 | `backup` | tägliche lokale PostgreSQL-Dumps, `restore-test` für die Probe |
 
 Authentifizierung läuft ausschließlich über lokale Django-Konten. TLS und
@@ -150,6 +165,24 @@ ist **keine Funktion** und enthält offene Fachentscheidungen. Aussagen über ei
 „Offline-Betrieb des Clients“ wären derzeit falsch. Details:
 [`docs/OFFLINE-BETRIEB.md`](docs/OFFLINE-BETRIEB.md).
 
+## Raspberry Pi mit eigenem WLAN und Touch-Terminal
+
+Ein Raspberry Pi 4 (4 GB) kann das Wachbuch direkt auf der Wache betreiben: Er
+spannt ein eigenes WLAN auf, ein Touch-Bildschirm daran ist das
+**Wachenterminal**. Gesperrt zeigt es das Wachen-Display; Antippen öffnet einen
+runden Ziffernblock für den vierstelligen Wachen-Code. Danach zeigt es alles für
+den Tagesablauf (Übergaben, Kalender, Müll, Wetter, Tages-, Wochen- und
+Monatsaufgaben) und sperrt sich nach Inaktivität wieder. Handys verbinden die App
+per QR-Code über das WLAN, ohne Passwort und ohne Zertifikat auf dem Handy.
+
+```bash
+sudo WLAN_SSID="Wachbuch RW1" deploy/pi/setup-pi.sh
+```
+
+Hardware, Einrichtung, Sicherheitsmodell und Grenzen:
+[`docs/PI-WACHENTERMINAL.md`](docs/PI-WACHENTERMINAL.md). Die Hintergrundfotos des
+Sperrbildschirms stehen unter freien Lizenzen: [`docs/BILDNACHWEISE.md`](docs/BILDNACHWEISE.md).
+
 ## Reverse-Proxy mit TLS
 
 Für Handys oder gemeinsame Wachenterminale steht vor dem Loopback-Port ein
@@ -197,44 +230,36 @@ Löschfristen oder organisatorische Freigabe. Details stehen in
 
 ## Projektstand
 
-Dieser **Zwischenrelease 0.17.0** dient Entwicklung, Erprobung und Präsentation.
-Er ist keine Produktionsfreigabe. Die vorhandenen Module werden automatisiert
-geprüft; automatisierte Tests ersetzen keine reale Geräte- und Betriebsabnahme.
+Version **0.24.0** ist ein Pilotstand für Entwicklung, Erprobung und
+Präsentation, **keine Produktionsfreigabe**. Alle Seiten werden automatisiert und
+per Browserlauf über alle Rollen geprüft (siehe
+[`docs/REVIEW-2026-10-22.md`](docs/REVIEW-2026-10-22.md)); das ersetzt keine reale
+Geräte- und Betriebsabnahme.
 
-Das Sprachfundament für Deutsch und Englisch umfasst Anmeldung, Einrichtung und
-Fehler-/Validierungsmeldungen. Fachmodule, JavaScript/Admin sowie die öffentliche
-Projektseite sind noch nicht vollständig zweisprachig. Ein integriertes Hilfe-,
-Wiki- und Diagnosezentrum gehört nicht zu diesem Release.
-
-Vor einem Produktivbetrieb bleiben reale Abnahmen offen: Hardware- und Netzbetrieb in
-der Wache, TLS/Reverse-Proxy im Dauerbetrieb, Passkeys und WebPush auf echten Geräten,
-ICS-Abruf gegen einen echten Fremdhost, Wiederherstellung mit echten Backup-Daten,
-Datenschutzfolgenabschätzung und Mitbestimmung sowie eine unabhängige
-Sicherheitsprüfung. Diese Seite und die Projektwebseite sind **keine
-Produktionsfreigabe** und keine Compliance-Bestätigung. Übersicht:
+Vor einem Produktivbetrieb bleiben offen: Hardware- und Netzbetrieb in der Wache,
+TLS/Reverse-Proxy im Dauerbetrieb, Kamera-Scanner, Passkeys und WebPush auf echten
+Geräten, Wiederherstellung mit echten Backup-Daten, Datenschutzfolgenabschätzung
+und Mitbestimmung sowie eine unabhängige Sicherheitsprüfung. Übersicht:
 [`docs/GO-LIVE-CHECKLIST.md`](docs/GO-LIVE-CHECKLIST.md).
 
 ## Dokumentation
 
 - [Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) · [Quellseite](site/index.html)
-- [Releaseumfang und Grenzen](docs/RELEASE-0.17.0.md)
+- [Review und Debugging 2026-10-22](docs/REVIEW-2026-10-22.md)
+- [Roadmap](docs/ROADMAP.md) · [Remediation-Roadmap](docs/REMEDIATION-ROADMAP-2026-08.md)
+- [Fachmodule](docs/MODULES-RETTUNGSDIENST.md) · [Push-Relay für die App](docs/PUSH-RELAY.md)
 - [Architektur](docs/ARCHITECTURE.md)
 - [Betrieb, Backup und Updates](docs/OPERATIONS.md)
 - [Lokaler Betrieb ohne WAN](docs/OFFLINE-BETRIEB.md)
 - [API für Mobile-/Drittclients](docs/API.md)
 - [Krypto nach BSI TR-02102](docs/CRYPTO-BSI.md)
 - [QR-Login-Sicherheitsvertrag](docs/QR-LOGIN-SECURITY-CONTRACT.md)
-- [AGPL-Client iOS/Android](docs/CLIENT.md) → [Wachbuch-Client](https://github.com/darkspike1988/Wachbuch-Client)
+- [AGPL-Client iOS/Android](docs/CLIENT.md) → [Wachbuch-Client](https://github.com/Katschko-IT/Wachbuch-Client)
 - [Android-APK installieren](clients/wachbuch-mobile/docs/INSTALL-ANDROID.md) (`./clients/wachbuch-mobile/scripts/build-apk.sh`)
 - [Datenschutz und Sicherheit](docs/SECURITY-PRIVACY.md)
 - [Designregeln](docs/DESIGN-SYSTEM.md)
 
 ## Weiterentwicklung
-
-Dieser Zwischenrelease enthält die Erstinstallation mit Wachendaten und
-persönlichen Mitarbeiterkonten, einen wiederholbaren QR-Login mit Gerätebestätigung,
-kontrollierte Wetterabfragen und Tests des lokalen Betriebs ohne Internet.
-Die Projektwebseite zeigt echte Aufnahmen der Anwendung mit synthetischen Daten.
 
 Für Beiträge gelten gezielte Regressionstests, die vollständige Django-Suite,
 Migrationprüfungen sowie die statischen Tests unter `site/tests/`. Testdatenbanken,

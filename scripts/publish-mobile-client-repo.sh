@@ -7,7 +7,7 @@ cat >&2 <<'EOF'
 FEHLER: scripts/publish-mobile-client-repo.sh ist absichtlich deaktiviert.
 
 Quelle der Wahrheit fuer Flutter/iOS/Android ist:
-  https://github.com/darkspike1988/Wachbuch-Client
+  https://github.com/Katschko-IT/Wachbuch-Client
 
 Der Ordner clients/wachbuch-mobile/ im Server-Repo ist nur ein historischer
 Entwicklungs-Spiegel und darf den Standalone-Client nicht ueberschreiben.

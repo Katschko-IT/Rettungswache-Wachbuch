@@ -117,6 +117,8 @@ Das erzeugte `.aab` zunächst **manuell in den internen Play-Test-Track** hochla
 | `CAMERA` | QR-Scan und ausdrücklich ausgelöstes Mängelfoto | Serveradresse manuell; Mangel ohne Kamera möglich |
 | `ACCESS_COARSE_LOCATION` | lokale Sonnenaufgang-/Sonnenuntergangsberechnung | Systemtheme als Fallback |
 | `ACCESS_NETWORK_STATE` | Offline-/Online-Status | technische Netzwerkfunktion |
+| `POST_NOTIFICATIONS` | Erinnerung an die Besatzung, wenn die Desinfektions-Einwirkzeit abläuft | ohne Erlaubnis: Hinweis nur in der App und im Web |
+| `VIBRATE` | Vibration bei dieser Erinnerung | stumme Anzeige |
 
 Nicht vorgesehen sind Hintergrundstandort, Kontakte, Mikrofon, SMS/Anruflisten oder breite Datei-/Medienspeicherberechtigungen.
 
@@ -128,7 +130,7 @@ Android-Appdaten sind von Cloud-Backups und Geräteübertragungen ausgeschlossen
 
 Öffentliche Datenschutzerklärung:
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
 
 Die App zeigt die wesentlichen Datenschutzinformationen zusätzlich **vor dem Login** an.
 

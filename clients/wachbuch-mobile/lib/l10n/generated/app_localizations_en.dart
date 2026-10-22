@@ -779,4 +779,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pinboardCreated => 'Notice created.';
+
+  @override
+  String get updateTitleAvailable => 'New version available';
+
+  @override
+  String get updateTitleRequired => 'Important update required';
+
+  @override
+  String updateCurrentVersion(Object version) {
+    return 'Current version: $version';
+  }
+
+  @override
+  String updateNewVersion(Object version) {
+    return 'New version: $version';
+  }
+
+  @override
+  String updateReleasedAt(Object date) {
+    return 'Released on: $date';
+  }
+
+  @override
+  String get updateWhatsNew => 'What\'s new?';
+
+  @override
+  String get updateRequiredNotice =>
+      'This update is required to continue using the app.';
+
+  @override
+  String get updateForceExplanation =>
+      'To continue using the app, you need to update to the latest version.';
+
+  @override
+  String updateRequiredVersion(Object version) {
+    return 'Required version: $version';
+  }
+
+  @override
+  String get updateLater => 'Remind me later';
+
+  @override
+  String get updateClose => 'Close';
+
+  @override
+  String get updateDownload => 'Download update';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String updateVersionEntry(Object version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get keyVerifyTitle => 'Verify keys';
+
+  @override
+  String get keyVerifyExplanation =>
+      'Compare your key fingerprint with your colleagues\' — in person or by scanning a QR code. Matching fingerprints mean the key is genuine.';
+
+  @override
+  String get keyVerifyOwnKey => 'Your key';
+
+  @override
+  String get keyVerifyOwnTag => '(you)';
+
+  @override
+  String get keyVerifyVerifiedTag => 'verified';
+
+  @override
+  String get keyVerifyScanAction => 'Verify by scan';
+
+  @override
+  String get keyVerifyScanTitle => 'Scan fingerprint';
+
+  @override
+  String keyVerifyMatch(Object name) {
+    return 'Fingerprint matches $name.';
+  }
+
+  @override
+  String get keyVerifyNoMatch => 'No member with this fingerprint found.';
+
+  @override
+  String get keyVerifyCopied => 'Fingerprint copied.';
+
+  @override
+  String get keyVerifyShowQr => 'Show QR code';
+
+  @override
+  String get keyVerifyConfirmAction => 'Mark as verified';
+
+  @override
+  String get keyVerifyRevoke => 'Revoke verification';
+
+  @override
+  String keyVerifyReverified(Object name) {
+    return 'Changed key of $name verified again.';
+  }
+
+  @override
+  String get keyVerifyChangedTag => 'Key changed!';
+
+  @override
+  String keyVerifyChangedWarning(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verified keys have changed',
+      one: '$count verified key has changed',
+    );
+    return '$_temp0. Please compare again in person.';
+  }
+
+  @override
+  String keyVerifyServerMismatch(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count server-reported fingerprints disagree with the key',
+      one: '$count server-reported fingerprint disagrees with the key',
+    );
+    return '$_temp0. Possible server tampering – do not verify.';
+  }
 }

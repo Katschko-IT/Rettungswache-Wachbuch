@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wachbuch_mobile/api/client.dart';
 import 'package:wachbuch_mobile/api/server_address.dart';
+import 'package:wachbuch_mobile/api/server_trust.dart';
 import 'package:wachbuch_mobile/auth/session_store.dart';
 import 'package:wachbuch_mobile/demo/demo_api.dart';
 import 'package:wachbuch_mobile/demo/demo_profiles.dart';
@@ -19,12 +20,16 @@ class ServerSetupScreen extends StatefulWidget {
     required this.store,
     required this.onServerReady,
     this.onDemoReady,
+    this.onPaired,
     this.apiFactory = demoAwareApiFactory,
   });
 
   final SessionStore store;
   final Future<void> Function(String serverUrl) onServerReady;
   final Future<void> Function(DemoService service)? onDemoReady;
+
+  /// Kopplungs-QR vom Wachenterminal: Server und App-Token in einem Schritt.
+  final Future<void> Function(String serverUrl, AuthToken token)? onPaired;
   final WachbuchApiFactory apiFactory;
 
   @override
@@ -50,6 +55,10 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
         _addressCtrl.text = address;
         _error = null;
       });
+      // Ein Kopplungscode läuft nach 2 Minuten ab: direkt verbinden.
+      if (parseServerLink(address).pairingCode != null) {
+        await _confirm();
+      }
     }
   }
 
@@ -61,10 +70,22 @@ class _ServerSetupScreenState extends State<ServerSetupScreen> {
     });
     WachbuchApi? api;
     try {
-      final url = parseServerAddress(_addressCtrl.text);
+      final link = parseServerLink(_addressCtrl.text);
+      final url = link.url;
+      final pin = link.certSha256;
+      if (pin != null) {
+        await ServerTrust.remember(url, pin);
+      }
       api = widget.apiFactory(url);
       await api.discover();
-      await widget.onServerReady(url);
+      final code = link.pairingCode;
+      final onPaired = widget.onPaired;
+      if (code != null && onPaired != null) {
+        final token = await api.exchangePairingCode(code);
+        await onPaired(url, token);
+      } else {
+        await widget.onServerReady(url);
+      }
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.message);

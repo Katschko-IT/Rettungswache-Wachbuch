@@ -109,3 +109,8 @@ im Browser, TLS-Zertifikatsverteilung oder ein reales Gerät im Flugmodus.
 4. Serverseitige Uhrzeit muss für Ablauf/TOTP synchron sein.
 5. Wetter ist ein optionaler externer Dienst; seine Verfügbarkeit ist keine
    Betriebsvoraussetzung.
+
+## Raspberry Pi mit eigenem WLAN
+
+Einrichtung eines Pi als Wachen-Server mit eigenem WLAN, lokalem Zertifikat und
+Touch-Terminal: [`PI-WACHENTERMINAL.md`](PI-WACHENTERMINAL.md).

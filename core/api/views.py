@@ -30,10 +30,13 @@ from django.db.models import Sum
 from ..access import CONTENT_ROLES, get_membership
 from ..errors import (
     ERROR_CODE_AUTH_REQUIRED,
+    ERROR_CODE_CONFLICT,
     ERROR_CODE_FORBIDDEN,
     ERROR_CODE_NOT_FOUND,
+    ERROR_CODE_PAYLOAD_TOO_LARGE,
     ERROR_CODE_RATE_LIMIT,
     ERROR_CODE_SERVER_ERROR,
+    ERROR_CODE_UNSUPPORTED_MEDIA_TYPE,
     ERROR_CODE_VALIDATION,
     json_error,
     log_exception,
@@ -145,6 +148,9 @@ def _json_error(request, message, status=400, code=None, **extra):
         401: ERROR_CODE_AUTH_REQUIRED,
         403: ERROR_CODE_FORBIDDEN,
         404: ERROR_CODE_NOT_FOUND,
+        409: ERROR_CODE_CONFLICT,
+        413: ERROR_CODE_PAYLOAD_TOO_LARGE,
+        415: ERROR_CODE_UNSUPPORTED_MEDIA_TYPE,
         422: ERROR_CODE_VALIDATION,
         429: ERROR_CODE_RATE_LIMIT,
     }
@@ -278,7 +284,7 @@ def api_root(request):
         },
         "mobile_clients": {
             "status": "unified",
-            "repo": "https://github.com/darkspike1988/Wachbuch-Client",
+            "repo": "https://github.com/Katschko-IT/Wachbuch-Client",
             "notes": "Widerrufbare App-Tokens (wb_…) plus deutsche Alias-Pfade aus PR#12.",
         },
     })
@@ -291,6 +297,52 @@ def openapi_spec(request):
 
     path = Path(__file__).resolve().parent / "openapi_v1.yaml"
     return HttpResponse(path.read_text(encoding="utf-8"), content_type="application/yaml; charset=utf-8")
+
+
+@csrf_exempt
+@require_POST
+@api_rate_limit("token")
+def pairing_exchange(request):
+    """Kopplung am Wachenterminal: Einmalcode aus dem QR → App-Token.
+
+    Der Code entsteht nur in einer angemeldeten Sitzung (Terminal-PIN oder
+    Web), gilt 120 Sekunden und genau einmal (core/terminal.py).
+    """
+    from ..terminal import consume_pairing, terminal_enabled
+
+    if not terminal_enabled():
+        return _json_error(request, "Kopplung ist auf diesem Server nicht aktiviert.", status=404)
+    body = _parse_json(request) or {}
+    membership = consume_pairing(str(body.get("code") or ""))
+    if membership is None:
+        return _json_error(request, "Kopplungscode ist ungültig oder abgelaufen.", status=401)
+    user = membership.user
+    label = str(body.get("label") or "Mobile App (Terminal-Kopplung)").strip()[:120]
+    expires_at = default_token_expiry()
+    raw, token_hash, prefix = generate_api_token()
+    token = ApiToken.objects.create(
+        user=user,
+        label=label,
+        token_prefix=prefix,
+        token_hash=token_hash,
+        scopes=list(DEFAULT_MOBILE_SCOPES),
+        expires_at=expires_at,
+    )
+    audit(user, membership.station, "api.token_created", token, {
+        "fields": ["label", "scopes", "expires_at"],
+        "via": "terminal.pairing",
+    })
+    return JsonResponse({
+        "ok": True,
+        "token": raw,
+        "token_prefix": prefix,
+        "api_version": API_VERSION,
+        "expires_in": DEFAULT_TOKEN_TTL_DAYS * 24 * 3600,
+        "expires_at": expires_at.isoformat(),
+        "has_membership": True,
+        "station": membership.station.name,
+        "role": membership.role,
+    })
 
 
 @csrf_exempt
@@ -369,13 +421,22 @@ def obtain_token(request):
     })
 
 
-@api_token_required
 def revoke_current_token(request):
-    """Deactivate only the presented app token. Logout remains possible offline."""
-    token = request.api_token
+    """Deactivate only the presented app token. Logout remains possible offline.
+
+    Bewusst ohne Mitgliedschaftsprüfung: Auch wer keinen aktiven Wachenzugang
+    mehr hat, muss sein eigenes Token beim Abmelden widerrufen können.
+    """
+    raw = _extract_bearer_token(request)
+    if not raw:
+        return _json_error(request, "Authentifizierung erforderlich.", status=401)
+    token = resolve_api_token(raw)
+    if token is None:
+        return _json_error(request, "Ungültiges oder widerrufenes API-Token.", status=401)
+    membership = get_membership(token.user)
     updated = ApiToken.objects.filter(pk=token.pk, is_active=True).update(is_active=False)
     if updated:
-        audit(request.user, request.membership.station, "api.token_revoked", request.user, {
+        audit(token.user, membership.station if membership else None, "api.token_revoked", token.user, {
             "fields": ["is_active"],
             "via": "api.token",
             "token_prefix": token.token_prefix,

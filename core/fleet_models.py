@@ -101,19 +101,19 @@ class Vehicle(models.Model):
             return False
         return timezone.now() < self.disinfection_locked_until
 
-    def check_and_release_disinfection(self) -> bool:
-        """Prüft, ob die Einwirkzeit abgelaufen ist und hebt die Sperre automatisch auf."""
-        if (
+    @property
+    def awaiting_crew_release(self) -> bool:
+        """Einwirkzeit abgelaufen, Fahrzeug steht noch auf „Desinfektion“.
+
+        Bewusst keine automatische Freigabe: Die Besatzung prüft das Fahrzeug
+        und setzt den Status selbst; sie wird dazu benachrichtigt
+        (``core.crew_notifications``).
+        """
+        return (
             self.tactical_status == self.TacticalStatus.DISINFECTION
-            and self.disinfection_locked_until
+            and self.disinfection_locked_until is not None
             and timezone.now() >= self.disinfection_locked_until
-        ):
-            self.tactical_status = self.TacticalStatus.STATUS_1
-            self.status_note = "Desinfektion abgeschlossen (automatisch freigegeben)"
-            self.disinfection_locked_until = None
-            self.save(update_fields=["tactical_status", "status_note", "disinfection_locked_until", "updated_at"])
-            return True
-        return False
+        )
 
     @property
     def disinfection_remaining_seconds(self) -> int:
@@ -232,7 +232,7 @@ class DisinfectionProtocol(models.Model):
             lock_until = self.started_at + timedelta(minutes=self.exposure_minutes)
             self.vehicle.disinfection_locked_until = lock_until
             self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-            self.vehicle.status_note = f"Desinfektion läuft ({self.get_kind_display()}): Gesperrt bis {lock_until.strftime('%H:%M')} Uhr"
+            self.vehicle.status_note = f"Desinfektion läuft ({self.get_kind_display()}): Gesperrt bis {timezone.localtime(lock_until).strftime('%H:%M')} Uhr"
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
 
 

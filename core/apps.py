@@ -14,6 +14,7 @@ class CoreConfig(AppConfig):
         from . import warehouse_models  # noqa: F401
         from . import fleet_models  # noqa: F401
         from . import orga_models  # noqa: F401
+        from . import notification_models  # noqa: F401
         from . import image_privacy  # noqa: F401
         from . import checks  # noqa: F401
         from . import auth_session  # noqa: F401

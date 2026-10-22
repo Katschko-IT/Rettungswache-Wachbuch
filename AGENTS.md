@@ -51,6 +51,11 @@ Status in der Remediation-Roadmap:
 - Benutzerkontrollierte Daten dürfen nie mit `|safe`, `innerHTML` oder
   ähnlichen HTML-Sinks in die Seite gelangen. Für JSON `json_script` nutzen.
 - Keine gemeinsam genutzten Konten; keine Umgehung von MFA/Rollen im Mobile-API.
+  Einzige, vom Betreiber entschiedene Ausnahme: das Dienstkonto „Wachenterminal“
+  (`core/terminal.py`) – ohne Passwort und App-Token, nur an registrierten
+  Terminals, Rolle Mitglied, beschränkt auf die Alltagsbereiche des
+  Terminal-Modus. Es darf nicht erweitert werden (keine Medizingeräte,
+  Fahrzeugübernahme, Lesebestätigungen, Verwaltung).
 - E2EE-Aussagen müssen das reale Vertrauensmodell nennen: gespeicherter
   Ciphertext ist geschützt, der ausgelieferte Webclient und Server bleiben
   bei der Web-PWA Teil des Vertrauensmodells.
@@ -84,7 +89,13 @@ Für Frontend-Änderungen zusätzlich:
 ```bash
 node --check core/static/core/app.js
 node --check core/static/core/json_data.js
+node --check core/static/core/ui.js
 ```
+
+Templates enthalten keine Inline-Skripte, keine `on…=`-Handler und keine
+`style`-Attribute (CSP ohne `unsafe-inline`; geprüft durch
+`core/test_csp_templates.py`). Verhalten über `data-*`-Attribute in
+`core/static/core/ui.js`, Gestaltung über `app.css`/`modules.css`.
 
 Vor Produktion bleiben Browser-, Screenreader-, Last-, Restore- und externe
 Sicherheitstests gemaess Roadmap und Go-live-Checkliste erforderlich.

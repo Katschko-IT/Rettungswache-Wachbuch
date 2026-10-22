@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wachbuch_mobile/auth/session_store.dart';
 import 'package:wachbuch_mobile/demo/demo_profiles.dart';
@@ -39,6 +40,9 @@ class _MemorySessionStore extends SessionStore {
 }
 
 void main() {
+  // Die App liest beim Start gespeicherte Zertifikats-Fingerabdrücke.
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
+
   testWidgets('demo picker opens Feuerwehr profile without server login', (
     tester,
   ) async {

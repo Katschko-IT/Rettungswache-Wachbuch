@@ -17,98 +17,6 @@ from .orga_models import SOPDocument, SOPReceipt, SOPRevision, StationContact
 from .wiki_models import WikiArticle
 
 
-def _seed_orga_standards_if_empty(station, user):
-    """Initialisiert standardmäßige Notfallkontakte und Muster-SOPs."""
-    if not StationContact.objects.filter(station=station).exists():
-        StationContact.objects.bulk_create([
-            StationContact(
-                station=station,
-                name="Integrierte Leitstelle (ILS / Notruf 112)",
-                contact_person="Disponent / Lagedienst",
-                category=StationContact.Category.DISPATCH,
-                phone_primary="112",
-                phone_secondary="089 19222",
-                notes="24/7 Notrufannahme, Disposition und Schockraum-Voranmeldung",
-                is_speed_dial=True,
-                order_rank=1,
-            ),
-            StationContact(
-                station=station,
-                name="Giftnotrufzentrale (GIZ-Nord / München)",
-                contact_person="Toxikologische Beratung",
-                category=StationContact.Category.POISON,
-                phone_primary="0551 19240",
-                phone_secondary="089 19240",
-                notes="24h ärztliche toxikologische Beratung bei Vergiftungen",
-                is_speed_dial=True,
-                order_rank=2,
-            ),
-            StationContact(
-                station=station,
-                name="Ärztlicher Bereitschaftsdienst (KV 116 117)",
-                contact_person="Vermittlungszentrale",
-                category=StationContact.Category.EMERGENCY_SERVICES,
-                phone_primary="116117",
-                notes="Diensthabender Allgemeinarzt für nicht lebensbedrohliche Fälle",
-                is_speed_dial=True,
-                order_rank=3,
-            ),
-            StationContact(
-                station=station,
-                name="Krisenintervention & Notfallseelsorge (KIT / NFS)",
-                contact_person="Einsatzleiter KIT",
-                category=StationContact.Category.PSYCH,
-                phone_primary="089 12345670",
-                notes="Akutbetreuung von Angehörigen und Einsatzkräften (PSNV-E)",
-                is_speed_dial=True,
-                order_rank=4,
-            ),
-        ])
-
-    if not SOPDocument.objects.filter(station=station).exists():
-        sop1 = SOPDocument.objects.create(
-            station=station,
-            slug="sop-med-01-anaphylaxie",
-            doc_number="SOP-MED-01",
-            title="Anaphylaxie & Epinephrin-Frühgabe i.m.",
-            category=SOPDocument.Category.MED_HEILKUNDE,
-            status=SOPDocument.Status.ACTIVE,
-            current_version="1.0",
-            valid_from=timezone.localdate(),
-            requires_acknowledgment=True,
-            created_by=user,
-        )
-        content1 = """# SOP-MED-01: Anaphylaxie & Epinephrin-Frühgabe i.m.
-
-## 1. Indikation & Schweregrad
-- Akute allergische Reaktion mit respiratorischer oder kardiovaskulärer Beteiligung (Stufe II–IV nach Ring & Messmer).
-- **Leitsymptom**: Stridor, Bronchospasmus, Zungenschwellung, Hypotonie oder Bewusstseinstrübung.
-
-## 2. Dringlichkeitsmaßnahme
-1. **Sofortige Injektion von Epinephrin (Adrenalin) i.m.** in den mittleren anterolateralen Oberschenkel (*M. vastus lateralis*):
-   - **Erwachsene**: 0,5 mg i.m. (unverdünnt 1:1.000).
-   - **Kinder (6–12 Jahre)**: 0,3 mg i.m.
-   - **Kinder (< 6 Jahre)**: 0,15 mg i.m.
-2. Hochdosierte Sauerstoffgabe (12–15 l/min über Maske mit Reservoir).
-3. Zweite Dosis nach 5–10 Minuten bei fehlender klinischer Besserung.
-4. Anlage zweier großlumiger venöser Zugänge & kristalloide Volumentherapie.
-5. Notarzt nachfordern falls nicht bereits disponiert.
-
-## 3. Dokumentation
-- Exakter Injektionszeitpunkt, Vitalparameter vor/nach Gabe und Chargennummer des Epinephrins im Notfallprotokoll dokumentieren.
-"""
-        hash1 = hashlib.sha256(content1.strip().encode("utf-8")).hexdigest()
-        SOPRevision.objects.create(
-            sop=sop1,
-            version_label="1.0",
-            content_markdown=content1,
-            content_hash=hash1,
-            change_summary="Erstfassung gem. ERC-Leitlinie & ÄLRD-Freigabe",
-            approved_by=user,
-            effective_date=timezone.localdate(),
-        )
-
-
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("orga_enabled")
 @require_GET
@@ -117,7 +25,9 @@ def orga_dashboard(request):
     station = request.membership.station
     user = request.user
 
-    _seed_orga_standards_if_empty(station, user)
+    # Bewusst keine automatisch angelegten Muster-SOPs oder Notrufnummern:
+    # medizinische Inhalte und Telefonnummern muss jede Wache selbst
+    # freigeben bzw. für ihre Region pflegen (Demo-Daten siehe demo_modules).
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
@@ -142,7 +52,11 @@ def orga_dashboard(request):
     unack_sops = []
     ack_sops = []
     for s in sops_list:
-        if s.requires_acknowledgment and not s.user_has_acknowledged(user):
+        if (
+            s.status == SOPDocument.Status.ACTIVE
+            and s.requires_acknowledgment
+            and not s.user_has_acknowledged(user)
+        ):
             unack_sops.append(s)
         else:
             ack_sops.append(s)
@@ -170,6 +84,7 @@ def orga_dashboard(request):
             "sops": display_sops,
             "all_sops_count": len(sops_list),
             "unack_count": len(unack_sops),
+            "unack_ids": {s.id for s in unack_sops},
             "ack_count": len(ack_sops),
             "filter_mode": filter_mode,
             "query": query,
@@ -239,7 +154,7 @@ def sop_acknowledge(request, slug: str):
     )
 
     if created:
-        messages.success(request, f"Kenntnisnahme für '{sop.doc_number} (v{latest_revision.version_label})' rechtssicher quittiert.")
+        messages.success(request, f"Kenntnisnahme für '{sop.doc_number} (v{latest_revision.version_label})' quittiert.")
     else:
         messages.info(request, "Sie haben diese Version der Dienstanweisung bereits quittiert.")
 
@@ -428,7 +343,7 @@ def export_sop_receipts_csv(request, slug: str):
             r.revision.content_hash if r.revision else "",
             r.user.username,
             r.user.get_full_name(),
-            r.acknowledged_at.strftime("%Y-%m-%d %H:%M:%S"),
+            timezone.localtime(r.acknowledged_at).strftime("%Y-%m-%d %H:%M:%S"),
             r.ip_address or "",
             r.user_agent or "",
         ])

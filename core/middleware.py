@@ -52,6 +52,9 @@ def csp_connect_src(allowed_hosts=None):
     return " ".join(["'self'", *sorted(extra)])
 
 
+CAMERA_SCANNER_VIEWS = frozenset({"mpg_dashboard", "fleet_dashboard", "warehouse_dashboard"})
+
+
 class SecurityHeadersMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -71,8 +74,12 @@ class SecurityHeadersMiddleware:
             f"script-src 'self'; font-src 'self'; connect-src {csp_connect_src()}; "
             "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         )
+        # Kamera nur auf den Seiten mit optionalem Code-Scanner, und nur für
+        # die eigene Origin; überall sonst bleibt sie gesperrt.
+        match = getattr(request, "resolver_match", None)
+        camera = "(self)" if match and match.url_name in CAMERA_SCANNER_VIEWS else "()"
         response.headers["Permissions-Policy"] = (
-            "camera=(), microphone=(), geolocation=(), payment=(), usb=(), "
+            f"camera={camera}, microphone=(), geolocation=(), payment=(), usb=(), "
             "publickey-credentials-get=(self), publickey-credentials-create=(self)"
         )
         return response

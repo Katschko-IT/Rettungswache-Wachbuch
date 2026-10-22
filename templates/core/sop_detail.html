@@ -3,16 +3,16 @@
 {% block title %}{{ sop.doc_number }}: {{ sop.title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<p class="breadcrumbs" style="margin-bottom: 0.75rem;">
+<p class="breadcrumbs ms-9420460">
   <a href="{% url 'orga_dashboard' %}">&larr; {% translate "Zurück zur SOP-Übersicht" %}</a>
 </p>
 
-<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+<header class="page-heading heading-with-action ms-92cb257">
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ sop.get_category_display }}</p>
-    <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+    <h1 class="ms-8fe430e">
       <span>{{ sop.doc_number }}: {{ sop.title }}</span>
-      <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #2563eb; font-size: 1rem;">v{{ sop.current_version }}</span>
+      <span class="badge ms-8cd8b16">v{{ sop.current_version }}</span>
       {% if sop.status == 'active' %}
         <span class="badge text-success">{% translate "Gültig / In Kraft" %}</span>
       {% else %}
@@ -25,7 +25,7 @@
       &middot; {% translate "Erstellt von" %}: {{ sop.created_by.get_full_name|default:sop.created_by.username }}
     </p>
   </div>
-  <div class="page-actions-bar" style="margin: 0;">
+  <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}
       <a class="button secondary" href="{% url 'sop_edit' sop.slug %}">
         <span class="icon" aria-hidden="true">✏️</span> {% translate "Metadaten bearbeiten" %}
@@ -40,18 +40,18 @@
   </div>
 </header>
 
-<!-- Revisionssicherheits- & SHA-256 Prüfsummen-Banner -->
+{# Revisionssicherheits- & SHA-256 Prüfsummen-Banner #}
 {% if latest_revision %}
-<div style="background: var(--bg-card); border-left: 4px solid #2563eb; padding: 1rem 1.25rem; border-radius: 6px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+<div class="ms-a480ddf">
+  <div class="ms-fb4faf7">
     <div>
-      <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: bold;">
-        🛡️ {% translate "Revisionssichere QM-Prüfsumme (SHA-256 Hash)" %}
+      <span class="ms-8356dd1">
+        🛡️ {% translate "QM-Prüfsumme (SHA-256)" %}
       </span>
-      <div style="font-family: monospace; font-size: 0.95rem; font-weight: bold; word-break: break-all; margin-top: 0.2rem; color: var(--text-color);">
+      <div class="ms-1bba1bc">
         {{ latest_revision.content_hash }}
       </div>
-      <p style="margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--text-muted);">
+      <p class="ms-abd5bd0">
         {% translate "Freigegeben durch" %}: {{ latest_revision.approved_by.get_full_name|default:latest_revision.approved_by.username|default:"Wachleitung / QM" }} &middot; {{ latest_revision.effective_date|date:"d.m.Y" }}
         {% if latest_revision.change_summary %} &middot; <em>{{ latest_revision.change_summary }}</em>{% endif %}
       </p>
@@ -60,32 +60,32 @@
 </div>
 {% endif %}
 
-<!-- Mitarbeiter-Quittierungsbox -->
+{# Mitarbeiter-Quittierungsbox #}
 {% if sop.requires_acknowledgment %}
-<section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+<section class="section-block ms-a279de2">
   {% if has_acknowledged %}
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <span style="font-size: 2rem;">✅</span>
+    <div class="ms-bb9e8c0">
+      <span class="ms-355e22a">✅</span>
       <div>
-        <h3 style="margin: 0; color: #10b981;">{% translate "Kenntnisnahme rechtssicher quittiert" %}</h3>
-        <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted);">
-          {% translate "Sie haben diese Version (v" %}{{ latest_revision.version_label }}{% translate ") der Dienstanweisung gelesen und bestätigt. Ihr Eintrag ist manipulationssicher im Audit-Log archiviert." %}
+        <h3 class="ms-db31469">{% translate "Kenntnisnahme quittiert" %}</h3>
+        <p class="ms-a4d179d">
+          {% blocktranslate with version=latest_revision.version_label %}Du hast diese Version (v{{ version }}) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert.{% endblocktranslate %}
         </p>
       </div>
     </div>
   {% else %}
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div class="ms-b1b392f">
       <div>
-        <h3 style="margin: 0; color: #dc2626; display: flex; align-items: center; gap: 0.5rem;">
+        <h3 class="ms-db77fac">
           <span>⚠️</span> {% translate "Pflichtquittierung ausstehend" %}
         </h3>
-        <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted);">
+        <p class="ms-a4d179d">
           {% translate "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen." %}
         </p>
       </div>
       <form method="post" action="{% url 'sop_acknowledge' sop.slug %}">
         {% csrf_token %}
-        <button type="submit" class="button" style="background: #10b981; border-color: #10b981; color: white;">
+        <button type="submit" class="button ms-7ace0a4">
           ✍️ {% translate "Gelesen, verstanden & quittieren" %}
         </button>
       </form>
@@ -94,10 +94,10 @@
 </section>
 {% endif %}
 
-<!-- Volltext der Dienstanweisung -->
-<article class="section-block" style="background: var(--bg-card); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem; line-height: 1.6;">
+{# Volltext der Dienstanweisung #}
+<article class="section-block ms-a4934f8">
   {% if latest_revision %}
-    <div class="markdown-body" style="font-size: 1rem;">
+    <div class="markdown-body ms-b407bc0">
       {{ latest_revision.content_markdown|linebreaks }}
     </div>
   {% else %}
@@ -105,20 +105,20 @@
   {% endif %}
 </article>
 
-<!-- Versionshistorie & Audit Trail -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
-  <!-- Revisionshistorie -->
+{# Versionshistorie & Audit Trail #}
+<div class="ms-8dd4329">
+  {# Revisionshistorie #}
   <section class="section-block">
     <h3>🔄 {% translate "Revisions-Historie & Freigaben" %}</h3>
     <div class="item-list">
       {% for rev in all_revisions %}
-        <div class="list-row" style="padding: 0.75rem;">
+        <div class="list-row ms-9f10e42">
           <span class="row-content">
             <strong>v{{ rev.version_label }} &middot; {{ rev.created_at|date:"d.m.Y" }}</strong>
-            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+            <small class="ms-e62ef52">
               {{ rev.change_summary|default:"Keine Begründung angegeben" }}
             </small>
-            <small style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">
+            <small class="ms-3e5504f">
               Hash: {{ rev.content_hash|slice:":16" }}...
             </small>
           </span>
@@ -132,15 +132,15 @@
     </div>
   </section>
 
-  <!-- Quittierungsbuch (Audit Trail) -->
+  {# Quittierungsbuch (Audit Trail) #}
   <section class="section-block">
     <h3>📋 {% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h3>
     <div class="item-list">
       {% for rc in recent_receipts %}
-        <div class="list-row" style="padding: 0.75rem;">
+        <div class="list-row ms-9f10e42">
           <span class="row-content">
             <strong>{{ rc.user.get_full_name|default:rc.user.username }}</strong>
-            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+            <small class="ms-e62ef52">
               v{{ rc.revision.version_label }} &middot; {{ rc.acknowledged_at|date:"d.m.Y H:i" }} Uhr
             </small>
           </span>

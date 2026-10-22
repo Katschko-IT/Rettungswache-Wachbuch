@@ -49,6 +49,25 @@ class AuthState extends ChangeNotifier {
     return null;
   }
 
+  /// Stable server user id from `/me/` (`user.id`). Immutable per login.
+  int? get userId {
+    final raw = (_me?['user'] as Map?)?['id'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '');
+  }
+
+  /// Immutable local identity of the authenticated user, used to namespace
+  /// per-account local state (e.g. verified key fingerprints). Prefers the
+  /// stable numeric id, falls back to the username; `null` when unknown so
+  /// callers fail closed instead of writing under a shared namespace.
+  String? get accountKey {
+    final id = userId;
+    if (id != null) return id.toString();
+    final name = username;
+    if (name != null && name.isNotEmpty) return name;
+    return null;
+  }
+
   Future<void> reload() async {
     _loading = true;
     _error = null;

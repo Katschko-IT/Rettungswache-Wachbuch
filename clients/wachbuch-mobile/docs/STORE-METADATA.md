@@ -51,15 +51,15 @@ Wachbuch ist Open Source (AGPL-3.0-or-later). Es ist keine offizielle Behörden-
 ### Marketing-URL
 
 Bevorzugt eine eigene öffentliche Wachbuch-Seite. Bis dahin kann das öffentliche Repository verwendet werden:
-`https://github.com/darkspike1988/Wachbuch-Client`
+`https://github.com/Katschko-IT/Wachbuch-Client`
 
 ### Support-URL
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/SUPPORT.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/SUPPORT.md`
 
 ### Datenschutz-URL
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
 
 ## Apple App Store – English
 

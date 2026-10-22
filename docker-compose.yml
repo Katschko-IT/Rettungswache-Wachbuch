@@ -133,7 +133,7 @@ services:
       DEFAULT_STATION_NAME: ${DEFAULT_STATION_NAME:-Rettungswache}
       DEFAULT_STATION_SLUG: ${DEFAULT_STATION_SLUG:-rettungswache}
       APP_NAME: ${APP_NAME:-Wachbuch}
-      SOURCE_URL: ${SOURCE_URL:-https://github.com/Darkspike1988/Rettungswache-Wachbuch}
+      SOURCE_URL: ${SOURCE_URL:-https://github.com/Katschko-IT/Rettungswache-Wachbuch}
       FEED_ALLOWED_HOSTS: ${FEED_ALLOWED_HOSTS:-}
       RETENTION_FEED_DAYS: ${RETENTION_FEED_DAYS:-90}
       RETENTION_AUDIT_DAYS: ${RETENTION_AUDIT_DAYS:-0}
@@ -151,6 +151,10 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Wachenterminal und lokales Zertifikat (docs/PI-WACHENTERMINAL.md)
+      TERMINAL_ENABLED: ${TERMINAL_ENABLED:-false}
+      TERMINAL_IDLE_SECONDS: ${TERMINAL_IDLE_SECONDS:-120}
+      LOCAL_TLS_CERT_SHA256: ${LOCAL_TLS_CERT_SHA256:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -208,6 +212,30 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  notify-worker:
+    image: rettungswache-wachbuch:local
+    restart: unless-stopped
+    logging: *default-logging
+    # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
+    # Besatzung (kein automatischer Statuswechsel). Kein HTTP-Listener.
+    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30"]
+    healthcheck:
+      disable: true
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "false"
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${APP_DB_USER}
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      ALLOWED_HOSTS: localhost
+      WEB_PUSH_ENABLED: ${WEB_PUSH_ENABLED:-false}
+      PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      web:
+        condition: service_healthy
+
   push-worker:
     image: rettungswache-wachbuch:local
     restart: unless-stopped
@@ -225,6 +253,8 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
+      PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
+      PUSH_RELAY_TOKEN: ${PUSH_RELAY_TOKEN:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       web:

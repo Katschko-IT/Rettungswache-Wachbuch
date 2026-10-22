@@ -4,6 +4,7 @@ library;
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:wachbuch_mobile/models/crew_notice.dart';
 import 'package:wachbuch_mobile/api/api_cache.dart';
 import 'package:wachbuch_mobile/api/client.dart';
 import 'package:wachbuch_mobile/demo/demo_profiles.dart';
@@ -17,6 +18,7 @@ import 'package:wachbuch_mobile/models/kalender_entry.dart';
 import 'package:wachbuch_mobile/models/pinboard_note.dart';
 import 'package:wachbuch_mobile/models/report_stats.dart';
 import 'package:wachbuch_mobile/models/station_asset.dart';
+import 'package:wachbuch_mobile/api/server_trust.dart';
 
 const demoTokenPrefix = 'wb_demo_';
 const _maxAttachmentBytes = 2 * 1024 * 1024;
@@ -36,6 +38,8 @@ WachbuchApi createWachbuchApi(String baseUrl, {String? token}) {
   return WachbuchApi(
     baseUrl: baseUrl,
     token: token,
+    // Lokales Zertifikat (Fingerabdruck aus dem Verbindungs-QR) oder System-TLS.
+    client: ServerTrust.clientFor(baseUrl),
     cache: token == null || token.isEmpty
         ? null
         : SecureApiCache.forSession(baseUrl: baseUrl, token: token),
@@ -124,6 +128,16 @@ class DemoWachbuchApi extends WachbuchApi {
   int _nextAttachmentId = 1;
 
   bool get isDemo => true;
+
+  // Demo-Profile haben keine Fahrzeugsperren und keinen Posteingang.
+  @override
+  Future<List<VehicleLock>> vehicleLocks() async => const [];
+
+  @override
+  Future<List<CrewNotice>> crewNotices() async => const [];
+
+  @override
+  Future<void> markCrewNoticeRead(int id) async {}
 
   @override
   Future<Map<String, dynamic>> discover() async {

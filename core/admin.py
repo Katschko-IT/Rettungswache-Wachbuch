@@ -275,3 +275,15 @@ class AppVersionAdmin(admin.ModelAdmin):
             "fields": ("created_at", "updated_at")
         }),
     )
+
+
+from .fleet_models import DisinfectantMaster  # noqa: E402
+
+
+@admin.register(DisinfectantMaster)
+class DisinfectantMasterAdmin(admin.ModelAdmin):
+    """Desinfektionsmittel je Wache: Name, Wirkspektrum und Einwirkzeit."""
+
+    list_display = ("name", "station", "default_exposure_minutes", "is_vah_listed")
+    list_filter = ("station", "is_vah_listed")
+    search_fields = ("name", "manufacturer")

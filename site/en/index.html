@@ -116,6 +116,16 @@
           <p>Defects with status workflow and optional photo, vehicles and equipment with readiness status, inventory with issue and return. All station-specific.</p>
         </article>
         <article class="card">
+          <span class="card-tag">Modules</span>
+          <h3>Fleet, medical devices, supplies</h3>
+          <p>Enabled per station: vehicle checks and disinfection with contact time, medical devices with STK/MTK deadlines and instructions, supplies with batches, expiry dates and minimum stock. The overview shows what needs attention.</p>
+        </article>
+        <article class="card">
+          <span class="card-tag">Modules</span>
+          <h3>Work instructions and display</h3>
+          <p>Versioned work instructions with personal read confirmation, plus a full-screen view for the monitor in the vehicle bay.</p>
+        </article>
+        <article class="card">
           <span class="card-tag">Operations</span>
           <h3>Team, roles and audit</h3>
           <p>Create accounts, activate via invitation, assign roles and revoke access. Security-relevant changes end up in the audit trail.</p>
@@ -383,7 +393,7 @@ docker compose exec web python manage.py grant_station_admin BENUTZERNAME</code>
             <li>Roles, invitations, activation, audit, and station boundaries</li>
             <li>QR login with short-lived requests and station binding</li>
             <li>Setup wizard, local WAN outage operation, restart with persistent database</li>
-            <li>Interim release 0.17.0 for evaluation and presentation, no production approval</li>
+            <li>Pilot release 0.24.0 for evaluation and presentation, no production approval</li>
             <li>Interface predominantly in German; login and setup with de/en language foundation. Specialist modules and the application's project page not yet fully bilingual</li>
             <li>Integrated help, wiki, and diagnostic centre are not part of this release and are not publicly available.</li>
             <li>Touch targets, focus, and contrast are design specifications</li>
