@@ -413,6 +413,12 @@
         } catch (err) {}
       });
       sseSource.addEventListener("ping", function () {});
+      sseSource.addEventListener("revoked", function () {
+        // Zugang entzogen: Stream schließen, der nächste Abruf zeigt den Status.
+        sseSource.close();
+        sseSource = null;
+        schedulePoll(0);
+      });
       sseSource.onerror = function () {
         if (sseSource) {
           sseSource.close();

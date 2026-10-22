@@ -242,6 +242,22 @@ class FleetModuleTests(TestCase):
         self.assertIsNone(self.vehicle.disinfection_locked_until)
         self.assertIn("automatisch freigegeben", self.vehicle.status_note)
 
+    def test_auto_release_is_audited_exactly_once(self):
+        from core.models import AuditEvent
+
+        self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
+        self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
+        self.vehicle.save()
+        stale_copy = Vehicle.objects.get(pk=self.vehicle.pk)
+
+        self.assertTrue(self.vehicle.check_and_release_disinfection())
+        # Zweiter, paralleler Abruf mit veraltetem Objektstand gibt nicht erneut frei.
+        self.assertFalse(stale_copy.check_and_release_disinfection())
+        self.assertEqual(stale_copy.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        self.assertEqual(
+            AuditEvent.objects.filter(action="fleet.disinfection_auto_released").count(), 1
+        )
+
     def test_station_fleet_disabled_denied(self):
         self.station.fleet_enabled = False
         self.station.save()

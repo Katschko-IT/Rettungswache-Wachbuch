@@ -1,3 +1,6 @@
+import itertools
+import time
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -42,3 +45,31 @@ class DisplayStreamTests(TestCase):
     def test_notify_station_display_graceful(self):
         # Should not raise exception even without active Redis instance
         notify_station_display(self.station.id)
+
+    def test_stream_ends_when_membership_is_revoked(self):
+        from unittest import mock
+
+        resp = self.client.get(reverse("display_stream"))
+        iterator = iter(resp.streaming_content)
+        self.assertIn(b"event: update", next(iterator))
+        self.assertIn(b"retry:", next(iterator))
+        self.membership.is_active = False
+        self.membership.save(update_fields=["is_active"])
+        # Uhr vorspulen, damit der nächste Poll sofort fällig ist.
+        clock = itertools.count(int(time.time()) + 60, 31)
+        with mock.patch("time.time", side_effect=lambda: next(clock)), \
+                mock.patch("time.sleep"):
+            rest = b"".join(iterator)
+        self.assertIn(b"event: revoked", rest)
+        self.assertNotIn(b"event: update", rest)
+
+    def test_stream_has_bounded_lifetime(self):
+        from unittest import mock
+
+        resp = self.client.get(reverse("display_stream"))
+        clock = itertools.count(int(time.time()), 7)
+        with mock.patch("time.time", side_effect=lambda: next(clock)), \
+                mock.patch("time.sleep"):
+            chunks = list(resp.streaming_content)
+        # Endet von selbst statt eine Stunde lang einen Worker-Thread zu belegen.
+        self.assertLess(len(chunks), 200)
