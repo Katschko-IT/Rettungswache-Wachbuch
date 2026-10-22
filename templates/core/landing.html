@@ -1,54 +1,151 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
-{% block title %}{{ app_name }}{% endblock %}
+{% block title %}{{ app_name }} – {% translate "Das digitale Wachbuch" %}{% endblock %}
 {% block body_class %}is-landing{% endblock %}
 {% block content %}
-<section class="landing-hero">
-  <h1>{% translate "Wachorganisation für den öffentlichen Dienst – klar, mobil, selbst gehostet." %}</h1>
-  <p class="lead">{% translate "Übergaben, Tagesaufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Kein Einsatzleit-, Dienstplan- oder Patientensystem." %}</p>
-  <div class="form-actions landing-cta">
-    <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
-    <a class="button secondary" href="{% url 'vorfuehrung' %}">{% translate "Vorführung" %}</a>
-    {% if registration_enabled %}<a class="button secondary" href="{% url 'register' %}">{% translate "Registrieren" %}</a>{% endif %}
-    <a class="button secondary" href="{% url 'privacy' %}">{% translate "Datenschutz" %}</a>
+<section class="landing-hero" aria-labelledby="landing-title">
+  <div class="landing-hero-inner">
+    <div class="landing-hero-copy">
+      <p class="landing-kicker">{% translate "Open Source · selbst gehostet · AGPL-3.0" %}</p>
+      <h1 id="landing-title">{% translate "Das digitale Wachbuch für Rettungswache, Feuerwehr und Behörden." %}</h1>
+      <p class="lead">{% translate "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle." %}</p>
+      <div class="landing-cta">
+        <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+        {% if demo_mode %}
+          <form method="post" action="{% url 'demo_login' %}">
+            {% csrf_token %}
+            <button type="submit" class="button secondary">{% translate "Demo ausprobieren" %}</button>
+          </form>
+        {% else %}
+          <a class="button secondary" href="{% url 'vorfuehrung' %}">{% translate "Vorführung ansehen" %}</a>
+        {% endif %}
+        {% if registration_enabled %}<a class="button secondary" href="{% url 'register' %}">{% translate "Registrieren" %}</a>{% endif %}
+      </div>
+      <ul class="landing-trust">
+        <li>{% translate "Keine Tracking-Cookies" %}</li>
+        <li>{% translate "Daten bleiben auf eurem Server" %}</li>
+        <li>{% translate "Rollen, Zwei-Faktor und Audit-Log" %}</li>
+      </ul>
+    </div>
+    <figure class="landing-hero-figure">
+      <img class="landing-hero-art" src="{% static 'core/landing-hero.jpg' %}" alt="{% translate 'Rettungswagen-Flotte des Rettungsdienstes an einer Wache' %}" width="1600" height="1066" loading="eager" decoding="async">
+      <figcaption class="landing-hero-credit">{% translate "Foto:" %} <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">{% translate "Antonio Batinic / Pexels" %}</a></figcaption>
+    </figure>
   </div>
-  <figure class="landing-hero-figure">
-    <img class="landing-hero-art" src="{% static 'core/landing-hero.jpg' %}" alt="{% translate 'Rettungswagen-Flotte des Rettungsdienstes an einer Wache' %}" width="1600" height="1066" loading="eager">
-    <figcaption class="landing-hero-credit">{% translate "Foto:" %} <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">{% translate "Antonio Batinic / Pexels" %}</a></figcaption>
-  </figure>
 </section>
 
-<section class="landing-scope" aria-labelledby="landing-scope">
-  <h2 id="landing-scope">{% translate "Was die Web-App leistet" %}</h2>
-  <ul class="landing-points">
-    <li><strong>{% translate "Übergaben" %}</strong> – {% translate "versioniert, priorisiert, stationsbezogen" %}</li>
-    <li><strong>{% translate "Tagesaufgaben" %}</strong> – {% translate "Wandbogen digital mit Grün, Gelb und Blau" %}</li>
-    <li><strong>{% translate "Kalender, Chat &amp; Team" %}</strong> – {% translate "Termine, Wachenchat und Freigaben" %}</li>
-    <li><strong>{% translate "iOS &amp; Android" %}</strong> – {% translate "native Apps als mobile Schnittstelle über die versionierte API" %}</li>
-    <li><strong>{% translate "Audit &amp; Privacy" %}</strong> – {% translate "nachvollziehbar, ohne Tracking-Cookies" %}</li>
+<section class="landing-section" aria-labelledby="landing-features">
+  <header class="landing-section-head">
+    <h2 id="landing-features">{% translate "Alles, was eine Schicht braucht" %}</h2>
+    <p class="lead">{% translate "Jede Wache schaltet nur die Module ein, die sie wirklich nutzt. Die Oberfläche bleibt dadurch übersichtlich." %}</p>
+  </header>
+  <ul class="landing-features">
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">📋</span>
+      <h3>{% translate "Übergaben & Aufgaben" %}</h3>
+      <p>{% translate "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">⚠️</span>
+      <h3>{% translate "Mängel & Ausstattung" %}</h3>
+      <p>{% translate "Mängel mit Frist, Foto und Verantwortlichen; Status von Geräten, Schlüsseln und Poolmaterial." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">🚑</span>
+      <h3>{% translate "Fahrzeuge & Hygiene" %}</h3>
+      <p>{% translate "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">🩺</span>
+      <h3>{% translate "Medizingeräte" %}</h3>
+      <p>{% translate "Bestandsverzeichnis, STK-/MTK-Fristen, Funktionskontrollen und Einweisungsnachweise." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">📦</span>
+      <h3>{% translate "Lager & Material" %}</h3>
+      <p>{% translate "Chargen und Verfall nach FEFO, Mindestbestände und ein fertiger Bestellvorschlag." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">📖</span>
+      <h3>{% translate "Organisation & Wissen" %}</h3>
+      <p>{% translate "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">🖥️</span>
+      <h3>{% translate "Wachen-Display" %}</h3>
+      <p>{% translate "Vollbildanzeige für Monitor oder Fernseher: Termine, Fristen, Wetter und dringende Hinweise." %}</p>
+    </li>
+    <li class="landing-feature">
+      <span class="landing-feature-icon" aria-hidden="true">📱</span>
+      <h3>{% translate "Web und Apps" %}</h3>
+      <p>{% translate "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android über die versionierte API." %}</p>
+    </li>
   </ul>
 </section>
 
-<section class="landing-scope" aria-labelledby="landing-access">
-  <h2 id="landing-access">{% translate "Zugang nach Login und Freigabe" %}</h2>
-  <p class="lead">{% translate "Der Master-Admin legt Nutzer an und gibt den Wachenzugang frei. Danach: Passwort, Zwei-Faktor und Profilbild unter Mein Konto; kurze Nachrichten im Wachenchat." %}</p>
+<section class="landing-section landing-split" aria-label="{% translate 'Grundsätze' %}">
+  <div class="landing-panel">
+    <h2>{% translate "Für die Wache – nicht für den Einsatz" %}</h2>
+    <p>{% translate "Das Wachbuch organisiert den Wachalltag. Patienten-, Einsatz-, Alarmierungs- und Dienstplandaten gehören bewusst nicht hinein. Das hält den Datenschutz überschaubar und die Bedienung einfach." %}</p>
+  </div>
+  <div class="landing-panel">
+    <h2>{% translate "Sicher im Betrieb" %}</h2>
+    <ul class="landing-checks">
+      <li>{% translate "Persönliche Konten statt Sammel-Login, mit Rollen je Wache" %}</li>
+      <li>{% translate "Optional Zwei-Faktor-Anmeldung und Passkeys" %}</li>
+      <li>{% translate "Nachvollziehbares Audit-Log für Prüfer und QM" %}</li>
+      <li>{% translate "Alle Skripte und Schriften lokal, keine externen CDNs" %}</li>
+    </ul>
+  </div>
+</section>
+
+<section class="landing-section" aria-labelledby="landing-steps">
+  <header class="landing-section-head">
+    <h2 id="landing-steps">{% translate "In drei Schritten startklar" %}</h2>
+  </header>
+  <ol class="landing-steps">
+    <li>
+      <h3>{% translate "Selbst hosten" %}</h3>
+      <p>{% translate "Mit Docker Compose auf einem eigenen Server oder einem Mini-PC in der Wache." %}</p>
+    </li>
+    <li>
+      <h3>{% translate "Wache einrichten" %}</h3>
+      <p>{% translate "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto." %}</p>
+    </li>
+    <li>
+      <h3>{% translate "Team einladen" %}</h3>
+      <p>{% translate "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei." %}</p>
+    </li>
+  </ol>
 </section>
 
 {% if demo_mode %}
-<section class="landing-scope demo-accounts" aria-labelledby="landing-demo">
-  <p class="context-line">{% translate "Demo-Modus" %} &middot; {% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</p>
-  <h2 id="landing-demo">{% translate "Demo-Zugang" %}</h2>
-  <p class="lead">{% translate "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin." %}</p>
-  <form method="post" action="{% url 'demo_login' %}" class="form-actions">
-    {% csrf_token %}
-    <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
-  </form>
-  <ul class="landing-points">
-    {% for account in demo_accounts %}
-    <li><strong>{{ account.username }}</strong> – {{ account.label }}</li>
-    {% endfor %}
-  </ul>
+<section class="landing-section" aria-labelledby="landing-demo">
+  <div class="landing-panel landing-demo">
+    <p class="context-line">{% translate "Demo-Modus" %} &middot; {% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</p>
+    <h2 id="landing-demo">{% translate "Demo-Zugang" %}</h2>
+    <p>{% translate "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin." %}</p>
+    <form method="post" action="{% url 'demo_login' %}">
+      {% csrf_token %}
+      <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
+    </form>
+    <p class="landing-demo-hint">{% translate "Weitere Rollen zum Ausprobieren:" %}</p>
+    <ul class="landing-demo-accounts">
+      {% for account in demo_accounts %}
+      <li><strong>{{ account.username }}</strong> – {{ account.label }}</li>
+      {% endfor %}
+    </ul>
+  </div>
 </section>
 {% endif %}
+
+<section class="landing-section landing-closing" aria-labelledby="landing-closing">
+  <h2 id="landing-closing">{% translate "Quelloffen und nachprüfbar" %}</h2>
+  <p>{% translate "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern." %}</p>
+  <div class="landing-cta">
+    <a class="button primary" href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode auf GitHub" %}</a>
+    <a class="button secondary" href="{% url 'vorfuehrung' %}">{% translate "Vorführung ansehen" %}</a>
+  </div>
+</section>
 {% endblock %}

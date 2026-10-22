@@ -214,7 +214,6 @@ class RepositoryCatalogTests(SimpleTestCase):
         identical_ok = {
             # Produkt-, Plattform- und Eigennamen
             "Android": "Plattformname",
-            "iOS &amp; Android": "Plattformnamen",
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
             "iOS / iPadOS": "Plattformnamen",
             "Web-PWA": "Produktbegriff",
