@@ -95,7 +95,7 @@ class MPGModuleTests(TestCase):
         self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
 
     def test_routine_check_updates_status(self):
-        # 1-Tap Quick Pass
+        # Schnellkontrolle: alle Prüfpunkte bestätigt
         resp = self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
             data={"quick_pass": "1"},
@@ -105,14 +105,27 @@ class MPGModuleTests(TestCase):
         self.assertIsNotNone(self.device.last_routine_check)
         self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
 
-        # Failed routine check sets device to OOB
+        # Ein fehlender Prüfpunkt sperrt das Gerät und legt einen Mangel an
         resp_fail = self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"passed": "", "notes": "Defektes EKG-Kabel"},
+            data={"battery_ok": "on", "visual_ok": "on", "notes": "Defektes EKG-Kabel"},
         )
         self.assertEqual(resp_fail.status_code, 302)
         self.device.refresh_from_db()
         self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+        check = DeviceRoutineCheck.objects.filter(device=self.device).latest("checked_at")
+        self.assertFalse(check.passed)
+        defect = Defect.objects.get(medical_device=self.device)
+        self.assertEqual(defect.status, Defect.Status.OPEN)
+        self.assertIn("Selbsttest/Funktion", defect.description)
+
+    def test_passed_flag_cannot_contradict_check_items(self):
+        self.client.post(
+            reverse("mpg_routine_check", args=[self.device.slug]),
+            data={"passed": "on", "battery_ok": "on", "visual_ok": "on"},
+        )
+        check = DeviceRoutineCheck.objects.filter(device=self.device).latest("checked_at")
+        self.assertFalse(check.passed)
 
     def test_defect_escalation_creates_defect_and_locks_device(self):
         resp = self.client.post(
@@ -213,25 +226,146 @@ class MPGModuleTests(TestCase):
         self.assertEqual(alert["level"], "critical")
         self.assertIn("corpuls3", alert["name"])
 
-    def test_qr_selftest_ingest_pass_and_fail(self):
-        # 1. Successful corpuls3 self-test QR payload
-        resp_pass = self.client.post(
+    def test_selftest_protocol_is_stored_but_not_evaluated(self):
+        # Ein „PASS“ im gescannten Text ersetzt keine bestätigten Prüfpunkte.
+        self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"qr_payload": "CP3;SELFTEST:PASS;DEF:200J;BAT:98%"},
-            follow=True,
+            data={"selftest_protocol": "CP3;SELFTEST:PASS;DEF:200J;BAT:98%"},
         )
-        self.assertEqual(resp_pass.status_code, 200)
-        check_pass = DeviceRoutineCheck.objects.filter(device=self.device, passed=True).latest("checked_at")
-        self.assertTrue(check_pass.passed)
-        self.assertIn("corpuls3 Selbsttest", check_pass.notes)
+        check = DeviceRoutineCheck.objects.filter(device=self.device).latest("checked_at")
+        self.assertFalse(check.passed)
+        self.assertIn("CP3;SELFTEST:PASS", check.notes)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
 
-        # 2. Failed Weinmann MEDUMAT self-test QR payload
-        resp_fail = self.client.post(
-            reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"qr_payload": "WEINMANN;SELFTEST:FAIL;VALVE_ERROR"},
-            follow=True,
+        # Umgekehrt sperrt ein „FAIL“-Text kein Gerät, wenn alles bestätigt ist.
+        device = MedicalDevice.objects.create(station=self.station, slug="medumat", name="MEDUMAT")
+        self.client.post(
+            reverse("mpg_routine_check", args=[device.slug]),
+            data={
+                "battery_ok": "on",
+                "visual_ok": "on",
+                "function_ok": "on",
+                "selftest_protocol": "WEINMANN;SELFTEST:FAIL",
+            },
         )
-        self.assertEqual(resp_fail.status_code, 200)
-        check_fail = DeviceRoutineCheck.objects.filter(device=self.device, passed=False).latest("checked_at")
-        self.assertFalse(check_fail.passed)
-        self.assertIn("FEHLER GEMELDET", check_fail.notes)
+        device.refresh_from_db()
+        self.assertEqual(device.current_status, MedicalDevice.Status.READY)
+        self.assertIn("WEINMANN;SELFTEST:FAIL", device.routine_checks.get().notes)
+
+
+class MPGDeviceLockTests(TestCase):
+    """Eine Sperre endet nur durch Freigabe nach Abschluss aller Mängel."""
+
+    def setUp(self):
+        self.station = Station.objects.create(name="RW Sperre", slug="rw-sperre", mpg_enabled=True)
+        self.lead = User.objects.create_user(username="lead", password="x-test-pass-123")
+        Membership.objects.create(user=self.lead, station=self.station, role=Membership.Role.SHIFT_LEAD)
+        self.member = User.objects.create_user(username="member", password="x-test-pass-123")
+        Membership.objects.create(user=self.member, station=self.station, role=Membership.Role.MEMBER)
+        self.device = MedicalDevice.objects.create(station=self.station, slug="defi-1", name="Defi 1")
+
+    def _lock(self):
+        self.client.force_login(self.member)
+        self.client.post(
+            reverse("mpg_device_defect", args=[self.device.slug]),
+            data={"title": "Display dunkel", "description": "startet nicht", "priority": "urgent"},
+        )
+        self.device.refresh_from_db()
+        return Defect.objects.get(medical_device=self.device)
+
+    def _close(self, defect):
+        self.client.force_login(self.lead)
+        self.client.post(
+            reverse("defect_detail_web", args=[defect.pk]),
+            data={"action": "status", "status": Defect.Status.DONE},
+        )
+
+    def _release(self, user, **extra):
+        self.client.force_login(user)
+        data = {"battery_ok": "on", "visual_ok": "on", "function_ok": "on", "notes": "Akku getauscht"}
+        data.update(extra)
+        return self.client.post(reverse("mpg_device_release", args=[self.device.slug]), data=data)
+
+    def test_quick_check_does_not_lift_a_lock(self):
+        self._lock()
+        self.client.post(reverse("mpg_routine_check", args=[self.device.slug]), data={"quick_pass": "1"})
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+    def test_release_requires_closed_defects_and_lead(self):
+        defect = self._lock()
+        self._release(self.lead)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+        self._close(defect)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+        self._release(self.member)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+        self._release(self.lead, function_ok="")
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+        self._release(self.lead)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
+        release_check = self.device.routine_checks.latest("checked_at")
+        self.assertTrue(release_check.passed)
+        self.assertEqual(release_check.performed_by, self.lead)
+        self.assertIn("Akku getauscht", release_check.notes)
+
+    def test_edit_form_cannot_unlock(self):
+        self._lock()
+        self.client.force_login(self.lead)
+        form_data = {
+            "name": self.device.name,
+            "category": self.device.category,
+            "risk_class": self.device.risk_class,
+            "location": "Wache",
+            "current_status": MedicalDevice.Status.READY,
+            "stk_interval_months": 24,
+            "dguv_interval_months": 12,
+        }
+        resp = self.client.post(reverse("mpg_device_edit", args=[self.device.slug]), data=form_data)
+        self.assertEqual(resp.status_code, 200)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+    def test_status_is_mirrored_to_station_asset(self):
+        from core.wachalltag_models import StationAsset
+
+        asset = StationAsset.objects.create(
+            station=self.station, asset_id=self.device.slug, label="Defi 1", kind=StationAsset.Kind.DEVICE,
+        )
+        defect = self._lock()
+        asset.refresh_from_db()
+        self.assertEqual(asset.status, StationAsset.Status.OOB)
+
+        # Freigabe über „Geräte & Fahrzeuge“ ist bei offenem Mangel blockiert.
+        self.client.force_login(self.lead)
+        self.client.post(
+            reverse("assets_inventory_web"),
+            data={"action": "asset-status", "asset_id": asset.asset_id, "status": "ready"},
+        )
+        asset.refresh_from_db()
+        self.device.refresh_from_db()
+        self.assertEqual(asset.status, StationAsset.Status.OOB)
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+
+        self._close(defect)
+        self._release(self.lead)
+        asset.refresh_from_db()
+        self.assertEqual(asset.status, StationAsset.Status.READY)
+
+        # Werkstatt im Wachalltag erscheint im Medizinproduktebuch als Wartung.
+        self.client.post(
+            reverse("assets_inventory_web"),
+            data={"action": "asset-status", "asset_id": asset.asset_id, "status": "workshop"},
+        )
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.MAINTENANCE)

@@ -56,6 +56,12 @@
     </div>
     {% if device.status_note %}
       <small class="ms-3dca5e5">{{ device.status_note }}</small>
+      {% if blocking_defects %}
+        <small class="ms-3dca5e5">
+          {% translate "Offene Mängel:" %}
+          {% for defect in blocking_defects %}<a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+        </small>
+      {% endif %}
     {% else %}
       <small class="ms-3dca5e5">{% translate "Keine Einschränkungen vermerkt" %}</small>
     {% endif %}
@@ -84,7 +90,7 @@
     </small>
   </div>
 
-  {# Befähigung gem. § 11 MPBetreibV #}
+  {# Einweisung gem. § 11 MPBetreibV #}
   <div class="kpi-card ms-1eb1850">
     <span class="kpi-label">{% translate "Deine Anwender-Einweisung (§ 11)" %}</span>
     <div class="ms-aa2e952">
@@ -112,22 +118,24 @@
 
 {# Schnell-Aktionen Leiste #}
 <div class="page-actions-bar ms-179444b">
-  {# Express 1-Tap Check #}
-  <form class="ms-47dffa1" method="post" action="{% url 'mpg_routine_check' device.slug %}">
+  {# Schnellkontrolle: die Person bestätigt alle Prüfpunkte auf einmal #}
+  <form class="ms-47dffa1" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% translate 'Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?' %}">
     {% csrf_token %}
     <input type="hidden" name="quick_pass" value="1">
     <button type="submit" class="button ms-f7964be">
-      ✅ {% translate "Funktionskontrolle OK (1-Tap)" %}
+      ✅ {% translate "Alles geprüft, in Ordnung" %}
     </button>
   </form>
 
-  <button type="button" class="button secondary" data-modal-open="qr-selftest-modal">
-    📷 {% translate "Selbsttest scannen (corpuls3 / MEDUMAT)" %}
+  <button type="button" class="button secondary" data-modal-open="check-modal">
+    🔍 {% translate "Kontrolle mit Details" %}
   </button>
 
-  <button type="button" class="button secondary" data-modal-open="check-modal">
-    🔍 {% translate "Check mit Details" %}
-  </button>
+  {% if device.current_status == 'oob' and can_manage %}
+    <button type="button" class="button secondary" data-modal-open="release-modal">
+      🔓 {% translate "Gerät freigeben" %}
+    </button>
+  {% endif %}
 
   <button type="button" class="button secondary ms-1280362" data-modal-open="defect-modal">
     ⚠️ {% translate "Mangel melden / Sperren" %}
@@ -268,53 +276,30 @@
 
 {# MODALS #}
 
-{# Modal: QR-Selbsttest scannen (corpuls3 / MEDUMAT) #}
-<div id="qr-selftest-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">📷 {% translate "Geräte-Selbsttest scannen / erfassen" %}</h3>
-    <p class="ms-665382c">
-      {% translate "Scanne den Ergebnis-QR-Code auf dem Display des corpuls3 oder Weinmann MEDUMAT, oder füge den Prüfstring ein." %}
-    </p>
-    <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
-      {% csrf_token %}
-      <div class="ms-c2c0d0a">
-        <label class="ms-ed85dbf">
-          {% translate "QR-Payload / Prüfprotokoll:" %}
-        </label>
-        <textarea class="ms-9269ae1" name="qr_payload" rows="3" required autofocus placeholder="z. B. CP3;SELFTEST:PASS;DEF:200J;BAT:98% oder WEINMANN;OK"></textarea>
-        <small class="ms-236cf06">
-          {% translate "Wird automatisch auf PASS/FAIL ausgewertet und als MPG-Funktionskontrolle gespeichert." %}
-        </small>
-      </div>
-      <div class="ms-4c0715e">
-        <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Prüflauf importieren" %}</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 {# Modal: Detaillierte Funktionskontrolle #}
 <div id="check-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
   <div class="ms-bb3e000">
     <h3 class="ms-ec0f7ff">🔍 {% translate "Funktionskontrolle dokumentieren" %}</h3>
     <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label><input type="checkbox" name="passed" checked> <strong>{% translate "Funktionskontrolle bestanden" %}</strong></label>
+      <p class="ms-665382c">{% translate "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
+      <div class="ms-4d1411d">
+        <label><input type="checkbox" name="battery_ok"> {% translate "Energieversorgung / Akkus geladen" %}</label>
       </div>
       <div class="ms-4d1411d">
-        <label><input type="checkbox" name="battery_ok" checked> {% translate "Energieversorgung / Akkus geladen" %}</label>
-      </div>
-      <div class="ms-4d1411d">
-        <label><input type="checkbox" name="visual_ok" checked> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
+        <label><input type="checkbox" name="visual_ok"> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
       </div>
       <div class="ms-9420460">
-        <label><input type="checkbox" name="function_ok" checked> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
+        <label><input type="checkbox" name="function_ok"> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
       </div>
       <div class="ms-c2c0d0a">
-        <label class="ms-3a21370">{% translate "Bemerkungen / Feststellungen:" %}</label>
-        <input class="ms-ac90647" type="text" name="notes" placeholder="{% translate 'Optional' %}">
+        <label class="ms-3a21370" for="check_notes">{% translate "Bemerkungen / Feststellungen:" %}</label>
+        <input class="ms-ac90647" type="text" id="check_notes" name="notes" maxlength="200" placeholder="{% translate 'Optional' %}">
+      </div>
+      <div class="ms-c2c0d0a">
+        <label class="ms-3a21370" for="check_selftest">{% translate "Selbsttest-Protokoll (optional):" %}</label>
+        <textarea class="ms-ac90647" id="check_selftest" name="selftest_protocol" rows="2" maxlength="500" placeholder="{% translate 'Text vom Geräteausdruck oder gescannter QR-Inhalt' %}"></textarea>
+        <small class="ms-236cf06">{% translate "Wird nur als Notiz gespeichert und nicht ausgewertet." %}</small>
       </div>
       <div class="ms-4c0715e">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
@@ -324,12 +309,54 @@
   </div>
 </div>
 
+{% if device.current_status == 'oob' and can_manage %}
+{# Modal: Gerät nach Sperre freigeben #}
+<div id="release-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
+  <div class="ms-bb3e000">
+    <h3 class="ms-ec0f7ff">🔓 {% translate "Gerät freigeben" %}</h3>
+    {% if blocking_defects %}
+      <p class="ms-665382c">{% translate "Freigabe erst möglich, wenn alle Mängel erledigt sind:" %}</p>
+      <ul>
+        {% for defect in blocking_defects %}
+          <li><a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }} {{ defect.title }}</a></li>
+        {% endfor %}
+      </ul>
+      <div class="ms-4c0715e">
+        <button type="button" class="button secondary" data-modal-close>{% translate "Schließen" %}</button>
+      </div>
+    {% else %}
+      <p class="ms-665382c">{% translate "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert." %}</p>
+      <form method="post" action="{% url 'mpg_device_release' device.slug %}">
+        {% csrf_token %}
+        <div class="ms-4d1411d">
+          <label><input type="checkbox" name="battery_ok" required> {% translate "Energieversorgung / Akkus geladen" %}</label>
+        </div>
+        <div class="ms-4d1411d">
+          <label><input type="checkbox" name="visual_ok" required> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
+        </div>
+        <div class="ms-9420460">
+          <label><input type="checkbox" name="function_ok" required> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
+        </div>
+        <div class="ms-c2c0d0a">
+          <label class="ms-3a21370" for="release_notes">{% translate "Was wurde behoben?" %}</label>
+          <input class="ms-ac90647" type="text" id="release_notes" name="notes" maxlength="200">
+        </div>
+        <div class="ms-4c0715e">
+          <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
+          <button type="submit" class="button">{% translate "Freigeben" %}</button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 {# Modal: Mangel melden & Sperren #}
 <div id="defect-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
   <div class="ms-bb3e000">
     <h3 class="ms-a061319">⚠️ {% translate "Gerätemangel melden & Gerät sperren" %}</h3>
     <p class="ms-bd1289d">
-      {% translate "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'." %}
+      {% translate "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist." %}
     </p>
     <form method="post" action="{% url 'mpg_device_defect' device.slug %}">
       {% csrf_token %}
@@ -403,7 +430,7 @@
 {# Modal: Einweisung dokumentieren #}
 <div id="training-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
   <div class="ms-7a45f51">
-    <h3 class="ms-ec0f7ff">🎓 {% translate "Einweisung gem. § 10 MPBetreibV" %}</h3>
+    <h3 class="ms-ec0f7ff">🎓 {% translate "Einweisung gem. § 11 MPBetreibV" %}</h3>
     
     <details class="ms-ff29f3d">
       <summary class="ms-c7037fe">👥 {% translate "Gruppenschulung (Mehrere Mitarbeiter auf einmal)" %}</summary>

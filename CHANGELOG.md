@@ -25,6 +25,12 @@ Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
 - Neue öffentliche Startseite mit allen Modulen, Grundsätzen und Einstiegsschritten.
 - Demo-Daten umfassen jetzt auch Fahrzeuge, Medizingeräte, Material und eine
   Dienstanweisung.
+- Medizingeräte: Gescannte Selbsttest-Texte werden nicht mehr „ausgewertet“
+  (ein „OK“ im Text galt als bestandene Kontrolle). Jeder Prüfpunkt wird von der
+  prüfenden Person bestätigt. Eine bestandene Kontrolle hebt keine Sperre mehr
+  auf; freigegeben wird nach Abschluss aller verknüpften Mängel durch
+  Schichtleitung/Admin. Der Status im Medizinproduktebuch und unter „Geräte &
+  Fahrzeuge“ ist identisch. Migration `0052_mpg_device_locks`.
 
 - Fachmodule funktionieren unter der eigenen CSP: Modals, Scanner, Live-Suche,
   Filter, Druck und Löschrückfragen laufen über `core/static/core/ui.js`;

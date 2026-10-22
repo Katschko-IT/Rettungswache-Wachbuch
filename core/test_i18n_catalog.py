@@ -263,7 +263,6 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Passphrase": "Fachbegriff, identisch",
             # Fachmodule (MPG/Lager): Normen, Kennungen und Lehnwoerter
             "PZN": "Pharmazentralnummer, Kennung",
-            "MPBetreibV § 10 & § 11": "Normzitat",
             "Optional": "Lehnwort, identisch",
             "Details": "Lehnwort, identisch",
             "OK": "Lehnwort, identisch",

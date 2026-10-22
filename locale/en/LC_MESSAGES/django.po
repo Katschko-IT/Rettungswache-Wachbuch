@@ -194,11 +194,11 @@ msgstr "API root:"
 #: templates/core/handover_edit.html:17
 #: templates/core/handover_form.html:25
 #: templates/core/membership_form.html:4
-#: templates/core/mpg_device_detail.html:290
-#: templates/core/mpg_device_detail.html:320
-#: templates/core/mpg_device_detail.html:353
-#: templates/core/mpg_device_detail.html:396
-#: templates/core/mpg_device_detail.html:455
+#: templates/core/mpg_device_detail.html:305
+#: templates/core/mpg_device_detail.html:345
+#: templates/core/mpg_device_detail.html:380
+#: templates/core/mpg_device_detail.html:423
+#: templates/core/mpg_device_detail.html:482
 #: templates/core/mpg_device_form.html:223
 #: templates/core/news_form.html:26
 #: templates/core/orga_dashboard.html:270
@@ -272,6 +272,10 @@ msgstr "Administration"
 #: templates/core/more.html:330
 msgid "Administration & Profil"
 msgstr "Administration & profile"
+
+#: templates/core/mpg_device_detail.html:122
+msgid "Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
+msgstr "Battery, visual check and self-test checked and fine?"
 
 #: templates/core/audit_log.html:6
 msgid "Akteur"
@@ -452,6 +456,10 @@ msgstr "Disable all second factors"
 #: core/views.py:432
 msgid "Alle Übergaben"
 msgstr "All handovers"
+
+#: templates/core/mpg_device_detail.html:126
+msgid "Alles geprüft, in Ordnung"
+msgstr "All checked, fine"
 
 #: templates/core/landing.html:40
 msgid "Alles, was eine Schicht braucht"
@@ -904,7 +912,7 @@ msgstr "Narcotics seal intact & checked"
 msgid "Baujahr"
 msgstr "Year of manufacture"
 
-#: templates/core/mpg_device_detail.html:165
+#: templates/core/mpg_device_detail.html:173
 msgid "Baujahr / Anschaffung:"
 msgstr "Year of manufacture / purchase:"
 
@@ -938,15 +946,15 @@ msgstr "Edited by"
 msgid "Bedienungsanleitung & Notizen"
 msgstr "Operating manual & notes"
 
-#: templates/core/mpg_device_detail.html:147
+#: templates/core/mpg_device_detail.html:155
 msgid "Bedienungsanleitung (PDF/Web)"
 msgstr "Operating manual (PDF/web)"
 
-#: templates/core/mpg_device_detail.html:392
+#: templates/core/mpg_device_detail.html:419
 msgid "Befund / Bemerkungen:"
 msgstr "Findings / remarks:"
 
-#: templates/core/mpg_device_detail.html:103
+#: templates/core/mpg_device_detail.html:109
 msgid "Befähigung im digitalen Gerätepass gültig"
 msgstr "Qualification valid in digital device passport"
 
@@ -986,7 +994,7 @@ msgstr "Remark"
 msgid "Bemerkung / Transportgrund"
 msgstr "Remark / reason for transport"
 
-#: templates/core/mpg_device_detail.html:316
+#: templates/core/mpg_device_detail.html:296
 msgid "Bemerkungen / Feststellungen:"
 msgstr "Remarks / findings:"
 
@@ -1073,7 +1081,7 @@ msgstr "Stock by storage location (vehicles, cabinets, cases)"
 msgid "Bestand, Chargen und Verfallsdaten, Mindestbestände und Bestellvorschlag."
 msgstr "Stock, batches and expiry dates, minimum stock and reorder proposal."
 
-#: templates/core/mpg_device_detail.html:384
+#: templates/core/mpg_device_detail.html:411
 msgid "Bestanden"
 msgstr "Passed"
 
@@ -1207,7 +1215,7 @@ msgstr "To"
 msgid "Bisher keine Bewegungen."
 msgstr "No movements yet."
 
-#: templates/core/mpg_device_detail.html:244
+#: templates/core/mpg_device_detail.html:252
 msgid "Bisher keine Einweisungen für dieses Gerät dokumentiert."
 msgstr "No instructions documented for this device yet."
 
@@ -1368,7 +1376,7 @@ msgstr "Bundle de.wachbuch.wachbuchMobile"
 msgid "CE-Kennnr.:"
 msgstr "CE marking no.:"
 
-#: templates/core/mpg_device_detail.html:164
+#: templates/core/mpg_device_detail.html:172
 msgid "CE-Kennnummer:"
 msgstr "CE marking number:"
 
@@ -1429,10 +1437,6 @@ msgstr "Set up chat key"
 #: templates/core/mpg_dashboard.html:166
 msgid "Check"
 msgstr "Check"
-
-#: templates/core/mpg_device_detail.html:129
-msgid "Check mit Details"
-msgstr "Check with details"
 
 #: core/views.py:1056
 msgid "Checkliste wurde als erledigt vermerkt."
@@ -1627,7 +1631,7 @@ msgstr "Date / time"
 msgid "Datum und Uhrzeit des Abrufs"
 msgstr "Date and time of access"
 
-#: templates/core/mpg_device_detail.html:417
+#: templates/core/mpg_device_detail.html:444
 msgid "Datum:"
 msgstr "Date:"
 
@@ -1647,7 +1651,7 @@ msgstr "Deactivate"
 msgid "Dein Profilbild"
 msgstr "Your profile picture"
 
-#: templates/core/mpg_device_detail.html:89
+#: templates/core/mpg_device_detail.html:95
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Your user instruction (§ 11)"
 
@@ -1822,6 +1826,10 @@ msgstr "The database is currently busy. Please try again."
 msgid "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich."
 msgstr "Initial setup is already completed. Setting up again is not possible."
 
+#: templates/core/mpg_device_detail.html:328
+msgid "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert."
+msgstr "The release is recorded as a function check in your name."
+
 #: templates/core/coffee_correction.html:4
 msgid "Die Originalbuchung bleibt unverändert erhalten."
 msgstr "The original transaction remains unchanged."
@@ -1974,7 +1982,7 @@ msgstr "This link and the QR code will be"
 msgid "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des Monitors:"
 msgstr "This link is shown only once. Copy it to the monitor's browser:"
 
-#: templates/core/mpg_device_detail.html:255
+#: templates/core/mpg_device_detail.html:263
 msgid "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät."
 msgstr "This QR code leads directly to this mobile device cockpit. Print it and stick it on the device in a weatherproof way."
 
@@ -2022,7 +2030,7 @@ msgstr "Three interfaces, one contract"
 msgid "Dringend"
 msgstr "Urgent"
 
-#: templates/core/mpg_device_detail.html:343
+#: templates/core/mpg_device_detail.html:370
 msgid "Dringend (Sofort außer Betrieb)"
 msgstr "Urgent (out of service immediately)"
 
@@ -2047,11 +2055,11 @@ msgstr "Open urgent items"
 msgid "Dringlichkeit"
 msgstr "Urgency"
 
-#: templates/core/mpg_device_detail.html:341
+#: templates/core/mpg_device_detail.html:368
 msgid "Dringlichkeit:"
 msgstr "Urgency:"
 
-#: templates/core/mpg_device_detail.html:93
+#: templates/core/mpg_device_detail.html:99
 msgid "Du bist eingewiesen"
 msgstr "You have been instructed"
 
@@ -2143,12 +2151,12 @@ msgstr "A formal definition of responsibility by the governing body or operator.
 msgid "Eingeschränkt"
 msgstr "Restricted"
 
-#: templates/core/mpg_device_detail.html:239
+#: templates/core/mpg_device_detail.html:247
 #: templates/core/mpg_geraetepass.html:91
 msgid "Eingewiesen am:"
 msgstr "Instructed on:"
 
-#: templates/core/mpg_device_detail.html:233
+#: templates/core/mpg_device_detail.html:241
 msgid "Eingewiesenes Personal gem. § 11 MPBetreibV"
 msgstr "Instructed staff per § 11 MPBetreibV"
 
@@ -2211,27 +2219,31 @@ msgstr "Settings"
 msgid "Einstellungen wurden gespeichert."
 msgstr "Settings were saved."
 
-#: templates/core/mpg_device_detail.html:413
+#: templates/core/mpg_device_detail.html:440
 msgid "Einweiser / Gerätebeauftragter:"
 msgstr "Instructor / device officer:"
 
-#: templates/core/mpg_device_detail.html:442
+#: templates/core/mpg_device_detail.html:469
 #: templates/core/mpg_geraetepass.html:39
 #: templates/core/mpg_geraetepass.html:91
 msgid "Einweiser:"
 msgstr "Instructor:"
 
-#: templates/core/mpg_device_detail.html:141
+#: templates/core/mpg_device_detail.html:149
 msgid "Einweisung dokumentieren"
 msgstr "Document instruction"
 
-#: templates/core/mpg_device_detail.html:406
-msgid "Einweisung gem. § 10 MPBetreibV"
-msgstr "Instruction per § 10 MPBetreibV"
+#: templates/core/mpg_device_detail.html:433
+msgid "Einweisung gem. § 11 MPBetreibV"
+msgstr "Instruction per § 11 MPBetreibV"
 
-#: templates/core/mpg_device_detail.html:456
+#: templates/core/mpg_device_detail.html:483
 msgid "Einweisung speichern"
 msgstr "Save instruction"
+
+#: templates/core/mpg_geraetepass.html:11
+msgid "Einweisungen nach § 11 MPBetreibV"
+msgstr "Instructions per § 11 MPBetreibV"
 
 #: templates/core/fleet_dashboard.html:233
 msgid "Einwirkzeit"
@@ -2249,7 +2261,7 @@ msgstr "Contact time elapsed – release by the crew"
 msgid "Einzahlen an die Gemeinschaftskasse"
 msgstr "Deposit to community fund"
 
-#: templates/core/mpg_device_detail.html:433
+#: templates/core/mpg_device_detail.html:460
 msgid "Einzelschulung erfassen"
 msgstr "Record individual training"
 
@@ -2269,7 +2281,8 @@ msgstr "Recipient and text are required."
 msgid "Empfänger:"
 msgstr "Recipient:"
 
-#: templates/core/mpg_device_detail.html:307
+#: templates/core/mpg_device_detail.html:287
+#: templates/core/mpg_device_detail.html:332
 msgid "Energieversorgung / Akkus geladen"
 msgstr "Power supply / batteries charged"
 
@@ -2302,7 +2315,7 @@ msgstr "Corresponds to the laminated sheet on the wall. No duty scheduling and n
 msgid "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses aktive Medizinprodukt."
 msgstr "Record all mandatory information per MPBetreibV § 13 & § 14 for this active medical device."
 
-#: templates/core/mpg_device_detail.html:383
+#: templates/core/mpg_device_detail.html:410
 msgid "Ergebnis:"
 msgstr "Result:"
 
@@ -2382,9 +2395,9 @@ msgstr "Initial setup"
 msgid "Erstinstallation abschließen"
 msgstr "Complete initial setup"
 
-#: templates/core/mpg_device_detail.html:332
-msgid "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'."
-msgstr "Immediately creates a defect in the Wachbuch and sets this device to 'Out of service'."
+#: templates/core/mpg_device_detail.html:359
+msgid "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
+msgstr "Immediately creates a defect in the logbook and sets this device to 'Out of service'. It can only be released once the defect is resolved."
 
 #: templates/core/checklists.html:12
 msgid "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an."
@@ -2406,7 +2419,7 @@ msgstr "Escape to reset"
 msgid "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt."
 msgstr "Escalates immediately to the station defect board and notifies the workshop if urgent."
 
-#: templates/core/mpg_device_detail.html:264
+#: templates/core/mpg_device_detail.html:272
 msgid "Etikett drucken"
 msgstr "Print label"
 
@@ -2523,7 +2536,7 @@ msgstr "Color legend"
 msgid "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert."
 msgstr "Errors are traceably corrected by an offsetting entry."
 
-#: templates/core/mpg_device_detail.html:349
+#: templates/core/mpg_device_detail.html:376
 msgid "Fehlerbeschreibung:"
 msgstr "Fault description:"
 
@@ -2585,6 +2598,11 @@ msgstr "Freely usable for one-time station tasks without patient data."
 msgid "Freigabe erfolgt durch den Master-Admin."
 msgstr "Approval is granted by the master admin."
 
+#: templates/core/mpg_device_detail.html:318
+msgid "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
+msgstr "Release is only possible once all defects are resolved:"
+
+#: templates/core/mpg_device_detail.html:346
 #: templates/core/team.html:30
 msgid "Freigeben"
 msgstr "Approve"
@@ -2670,19 +2688,11 @@ msgstr "Locations in the system:"
 msgid "Funkrufname (OPTA)*"
 msgstr "Radio call sign (OPTA)*"
 
-#: templates/core/mpg_device_detail.html:120
-msgid "Funktionskontrolle OK (1-Tap)"
-msgstr "Function check OK (1 tap)"
-
-#: templates/core/mpg_device_detail.html:304
-msgid "Funktionskontrolle bestanden"
-msgstr "Function check passed"
-
-#: templates/core/mpg_device_detail.html:300
+#: templates/core/mpg_device_detail.html:282
 msgid "Funktionskontrolle dokumentieren"
 msgstr "Document function check"
 
-#: templates/core/mpg_device_detail.html:208
+#: templates/core/mpg_device_detail.html:216
 msgid "Funktionskontrollen (Schicht-Checks)"
 msgstr "Function checks (shift checks)"
 
@@ -2699,7 +2709,7 @@ msgstr "Due on"
 msgid "Fällig ≤ 30 Tage"
 msgstr "Due ≤ 30 days"
 
-#: templates/core/mpg_device_detail.html:80
+#: templates/core/mpg_device_detail.html:86
 msgid "Fälligkeitsdatum:"
 msgstr "Due date:"
 
@@ -2881,6 +2891,11 @@ msgstr "Checked – set status 1"
 msgid "Gerät"
 msgstr "Device"
 
+#: templates/core/mpg_device_detail.html:136
+#: templates/core/mpg_device_detail.html:316
+msgid "Gerät freigeben"
+msgstr "Release device"
+
 #: core/navigation.py:21
 msgid "Geräte"
 msgstr "Equipment"
@@ -2903,10 +2918,6 @@ msgstr "Devices in filter"
 msgid "Geräte-QR-Code scannen"
 msgstr "Scan device QR code"
 
-#: templates/core/mpg_device_detail.html:274
-msgid "Geräte-Selbsttest scannen / erfassen"
-msgstr "Scan / record device self-test"
-
 #: core/views.py:433
 msgid "Geräte/Fahrzeuge"
 msgstr "Equipment/vehicles"
@@ -2923,7 +2934,7 @@ msgstr "Device log, inspection deadlines (STK/MTK), function checks and instruct
 msgid "Gerätekontrolle"
 msgstr "Equipment check"
 
-#: templates/core/mpg_device_detail.html:330
+#: templates/core/mpg_device_detail.html:357
 msgid "Gerätemangel melden & Gerät sperren"
 msgstr "Report device defect & lock device"
 
@@ -3039,11 +3050,11 @@ msgstr "Reason:"
 msgid "Grundsätze"
 msgstr "Principles"
 
-#: templates/core/mpg_device_detail.html:429
+#: templates/core/mpg_device_detail.html:456
 msgid "Gruppe einweisen"
 msgstr "Instruct group"
 
-#: templates/core/mpg_device_detail.html:409
+#: templates/core/mpg_device_detail.html:436
 msgid "Gruppenschulung (Mehrere Mitarbeiter auf einmal)"
 msgstr "Group training (several employees at once)"
 
@@ -3095,6 +3106,10 @@ msgstr "HTTP status must be between 500 and 599."
 msgid "HTTP-Statuscode der Serverantwort"
 msgstr "HTTP status code of the server response"
 
+#: templates/core/mpg_device_detail.html:285
+msgid "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
+msgstr "Only tick what you checked yourself. If a tick is missing, the check counts as failed: the device is locked and a defect is created."
+
 #: templates/core/warehouse_dashboard.html:49
 msgid "Haltbar > 90 Tage"
 msgstr "Shelf life > 90 days"
@@ -3119,7 +3134,7 @@ msgstr "Main inspection (§ 29 StVZO)"
 msgid "Hersteller-MHD:"
 msgstr "Manufacturer expiry date:"
 
-#: templates/core/mpg_device_detail.html:159
+#: templates/core/mpg_device_detail.html:167
 #: templates/core/mpg_device_form.html:54
 msgid "Hersteller:"
 msgstr "Manufacturer:"
@@ -3430,7 +3445,7 @@ msgstr "Inventory"
 msgid "Inventarnummer / Barcode:"
 msgstr "Inventory number / barcode:"
 
-#: templates/core/mpg_device_detail.html:162
+#: templates/core/mpg_device_detail.html:170
 msgid "Inventarnummer:"
 msgstr "Inventory number:"
 
@@ -3614,11 +3629,11 @@ msgstr "No data available."
 msgid "Keine Dienstanweisungen für diesen Filter gefunden."
 msgstr "No work instructions found for this filter."
 
-#: templates/core/mpg_device_detail.html:60
+#: templates/core/mpg_device_detail.html:66
 msgid "Keine Einschränkungen vermerkt"
 msgstr "No restrictions noted"
 
-#: templates/core/mpg_device_detail.html:97
+#: templates/core/mpg_device_detail.html:103
 #: templates/core/mpg_geraetepass.html:95
 msgid "Keine Einweisung dokumentiert"
 msgstr "No instruction documented"
@@ -3663,11 +3678,11 @@ msgstr "Do not enter names, diagnoses, incident numbers, addresses, or medical r
 msgid "Keine Post."
 msgstr "No mail."
 
-#: templates/core/mpg_device_detail.html:197
+#: templates/core/mpg_device_detail.html:205
 msgid "Keine Prüfprotokolle hinterlegt."
 msgstr "No inspection reports stored."
 
-#: templates/core/mpg_device_detail.html:82
+#: templates/core/mpg_device_detail.html:88
 msgid "Keine Prüftermine hinterlegt"
 msgstr "No inspection dates stored"
 
@@ -3833,6 +3848,10 @@ msgstr "Create account and immediately assign to the station. The user changes p
 msgid "Konto-Links"
 msgstr "Account links"
 
+#: templates/core/mpg_device_detail.html:131
+msgid "Kontrolle mit Details"
+msgstr "Check with details"
+
 #: templates/core/handover_edit.html:7
 msgid "Kontrollierte Korrektur"
 msgstr "Controlled correction"
@@ -3982,7 +4001,7 @@ msgstr "Latest maintenance & STK inspections"
 msgid "Letzter Check:"
 msgstr "Last check:"
 
-#: templates/core/mpg_device_detail.html:170
+#: templates/core/mpg_device_detail.html:178
 msgid "Letzter Funktionscheck:"
 msgstr "Last function check:"
 
@@ -4021,10 +4040,6 @@ msgstr "Set up MFA"
 #: core/views.py:1407
 msgid "MFA ist für diese Installation vorgeschrieben."
 msgstr "MFA is required for this installation."
-
-#: templates/core/mpg_geraetepass.html:11
-msgid "MPBetreibV § 10 & § 11"
-msgstr "MPBetreibV § 10 & § 11"
 
 #: core/navigation.py:22
 msgid "MPG & Geräte"
@@ -4071,11 +4086,11 @@ msgstr "Create defect"
 msgid "Mangel erfassen"
 msgstr "Record defect"
 
-#: templates/core/mpg_device_detail.html:354
+#: templates/core/mpg_device_detail.html:381
 msgid "Mangel melden & Sperren"
 msgstr "Report defect & lock"
 
-#: templates/core/mpg_device_detail.html:133
+#: templates/core/mpg_device_detail.html:141
 msgid "Mangel melden / Sperren"
 msgstr "Report defect / lock"
 
@@ -4153,10 +4168,6 @@ msgstr "Medical device"
 msgid "Medizingeräte"
 msgstr "Medical devices"
 
-#: templates/core/fleet_vehicle_detail.html:226
-msgid "Medizingeräte Selbsttests (Corpuls/Medumat) OK"
-msgstr "Medical device self-tests (Corpuls/Medumat) OK"
-
 #: templates/core/mpg_dashboard.html:8
 msgid "Medizinprodukte"
 msgstr "Medical devices"
@@ -4169,7 +4180,7 @@ msgstr "Medical devices & inspection deadline traffic light"
 msgid "Medizinproduktebuch"
 msgstr "Medical device log"
 
-#: templates/core/mpg_device_detail.html:157
+#: templates/core/mpg_device_detail.html:165
 msgid "Medizinproduktebuch-Stammdaten"
 msgstr "Medical device log master data"
 
@@ -4293,7 +4304,7 @@ msgstr "Scan with the Signal app – or use the button."
 msgid "Mitarbeiter"
 msgstr "Employee"
 
-#: templates/core/mpg_device_detail.html:421
+#: templates/core/mpg_device_detail.html:448
 msgid "Mitarbeiter auswählen:"
 msgstr "Select employee:"
 
@@ -4306,7 +4317,7 @@ msgstr "Employee activations"
 msgid "Mitarbeiter-Quittierungsbuch (Audit Trail)"
 msgstr "Employee acknowledgement log (audit trail)"
 
-#: templates/core/mpg_device_detail.html:437
+#: templates/core/mpg_device_detail.html:464
 msgid "Mitarbeiter:"
 msgstr "Employee:"
 
@@ -4359,7 +4370,7 @@ msgstr "Connect mobile app"
 msgid "Mobiles Wachbuch für die interne Organisation einer Rettungswache."
 msgstr "Mobile logbook for internal organization of a rescue station."
 
-#: templates/core/mpg_device_detail.html:160
+#: templates/core/mpg_device_detail.html:168
 msgid "Modell / Typ:"
 msgstr "Model / type:"
 
@@ -4403,7 +4414,7 @@ msgstr "Freely combine modules and screen zones following the MagicMirror princi
 msgid "Modulübersicht"
 msgstr "Module overview"
 
-#: templates/core/mpg_device_detail.html:166
+#: templates/core/mpg_device_detail.html:174
 msgid "Monate"
 msgstr "Months"
 
@@ -4758,7 +4769,7 @@ msgstr "No disinfections logged yet."
 msgid "Noch keine Fahrzeuge oder Geräte angelegt."
 msgstr "No vehicles or equipment created yet."
 
-#: templates/core/mpg_device_detail.html:226
+#: templates/core/mpg_device_detail.html:234
 msgid "Noch keine Funktionskontrollen erfasst."
 msgstr "No function checks recorded yet."
 
@@ -4822,7 +4833,7 @@ msgstr "Nothing archived yet."
 msgid "Noch nichts gesendet."
 msgstr "Nothing sent yet."
 
-#: templates/core/mpg_device_detail.html:345
+#: templates/core/mpg_device_detail.html:372
 msgid "Normal"
 msgstr "Normal"
 
@@ -4846,11 +4857,11 @@ msgstr "Emergency speed dial & important contacts"
 msgid "Notiz (optional)"
 msgstr "Note (optional)"
 
-#: templates/core/mpg_device_detail.html:451
+#: templates/core/mpg_device_detail.html:478
 msgid "Notiz / Zertifikat-Nr:"
 msgstr "Note / certificate no.:"
 
-#: templates/core/mpg_device_detail.html:174
+#: templates/core/mpg_device_detail.html:182
 #: templates/core/warehouse_item_detail.html:197
 msgid "Notiz:"
 msgstr "Note:"
@@ -4883,7 +4894,7 @@ msgstr "Only open station-related items"
 msgid "Nur-Lese-ICS-Feed für Apple/Google/Outlook. Der Link ist geheim – bei Verlust widerrufen."
 msgstr "Read-only ICS feed for Apple/Google/Outlook. The link is secret – revoke if lost."
 
-#: templates/core/mpg_device_detail.html:169
+#: templates/core/mpg_device_detail.html:177
 #: templates/core/mpg_device_form.html:193
 msgid "Nächste DGUV V3:"
 msgstr "Next DGUV V3:"
@@ -4892,7 +4903,7 @@ msgstr "Next DGUV V3:"
 msgid "Nächste Fälligkeit"
 msgstr "Next due date"
 
-#: templates/core/mpg_device_detail.html:387
+#: templates/core/mpg_device_detail.html:414
 msgid "Nächste Fälligkeit:"
 msgstr "Next due date:"
 
@@ -4900,12 +4911,12 @@ msgstr "Next due date:"
 msgid "Nächste HU (§ 29 StVZO)*"
 msgstr "Next HU (§ 29 StVZO)*"
 
-#: templates/core/mpg_device_detail.html:168
+#: templates/core/mpg_device_detail.html:176
 #: templates/core/mpg_device_form.html:178
 msgid "Nächste MTK:"
 msgstr "Next MTK:"
 
-#: templates/core/mpg_device_detail.html:167
+#: templates/core/mpg_device_detail.html:175
 #: templates/core/mpg_device_form.html:163
 msgid "Nächste STK:"
 msgstr "Next STK:"
@@ -5019,6 +5030,10 @@ msgstr "Pending migrations"
 msgid "Offene Mängel, fällige Prüfungen und Erledigungsquote als Übersicht und CSV."
 msgstr "Open defects, due checks and completion rate as overview and CSV."
 
+#: templates/core/mpg_device_detail.html:61
+msgid "Offene Mängel:"
+msgstr "Open defects:"
+
 #: templates/core/defects.html:10
 msgid "Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten."
 msgstr "Open items with priority, responsibility, and deadline. No patient or incident data."
@@ -5056,7 +5071,7 @@ msgstr "Without explicit consent, the address is not transmitted to the weather 
 msgid "Open Source · selbst gehostet · AGPL-3.0"
 msgstr "Open source · self-hosted · AGPL-3.0"
 
-#: templates/core/mpg_device_detail.html:317
+#: templates/core/mpg_device_detail.html:297
 msgid "Optional"
 msgstr "Optional"
 
@@ -5443,11 +5458,11 @@ msgstr "Save profile picture"
 msgid "Profilbild, Passwort und Zwei-Faktor für"
 msgstr "Profile picture, password, and two-factor for"
 
-#: templates/core/mpg_device_detail.html:373
+#: templates/core/mpg_device_detail.html:400
 msgid "Prüfdatum:"
 msgstr "Inspection date:"
 
-#: templates/core/mpg_device_detail.html:378
+#: templates/core/mpg_device_detail.html:405
 msgid "Prüfer / Fachbetrieb:"
 msgstr "Inspector / specialist company:"
 
@@ -5459,7 +5474,7 @@ msgstr "Inspection due (HU/UVV)"
 msgid "Prüffrist fällig oder gesperrt"
 msgstr "inspection due or locked"
 
-#: templates/core/mpg_device_detail.html:66
+#: templates/core/mpg_device_detail.html:72
 msgid "Prüffristen-Status"
 msgstr "Inspection deadline status"
 
@@ -5470,19 +5485,15 @@ msgstr "Inspection deadline status"
 msgid "Prüfintervalle"
 msgstr "Inspection intervals"
 
-#: templates/core/mpg_device_detail.html:291
-msgid "Prüflauf importieren"
-msgstr "Import test run"
-
-#: templates/core/mpg_device_detail.html:181
+#: templates/core/mpg_device_detail.html:189
 msgid "Prüfprotokolle (STK / MTK / DGUV)"
 msgstr "Inspection reports (STK / MTK / DGUV)"
 
-#: templates/core/mpg_device_detail.html:364
+#: templates/core/mpg_device_detail.html:391
 msgid "Prüfung / STK dokumentieren"
 msgstr "Document inspection / STK"
 
-#: templates/core/mpg_device_detail.html:369
+#: templates/core/mpg_device_detail.html:396
 msgid "Prüfungsart:"
 msgstr "Inspection type:"
 
@@ -5568,10 +5579,6 @@ msgstr "QR code for the Signal group"
 #: core/templatetags/js_i18n.py:58
 msgid "QR-Login konnte nicht gestartet werden."
 msgstr "QR login could not be started."
-
-#: templates/core/mpg_device_detail.html:282
-msgid "QR-Payload / Prüfprotokoll:"
-msgstr "QR payload / test report:"
 
 #: templates/core/mpg_dashboard.html:25
 msgid "QR-Scanner"
@@ -5785,7 +5792,7 @@ msgstr "SOP view"
 msgid "STK-Intervall (Monate):"
 msgstr "STK interval (months):"
 
-#: templates/core/mpg_device_detail.html:166
+#: templates/core/mpg_device_detail.html:174
 msgid "STK-Intervall:"
 msgstr "STK interval:"
 
@@ -5807,10 +5814,6 @@ msgstr "Oxygen O₂"
 #: core/task_board.py:24
 msgid "Sauger und Tücher waschen"
 msgstr "Wash vacuum and cloths"
-
-#: templates/core/mpg_device_detail.html:276
-msgid "Scanne den Ergebnis-QR-Code auf dem Display des corpuls3 oder Weinmann MEDUMAT, oder füge den Prüfstring ein."
-msgstr "Scan the result QR code on the display of the corpuls3 or Weinmann MEDUMAT, or paste the test string."
 
 #: templates/registration/mfa_setup.html:8
 msgid "Scanne den Schlüssel in einer Authenticator-App (TOTP) und bestätige mit einem Code."
@@ -5837,6 +5840,7 @@ msgid "Schichtübernahme bestätigen"
 msgstr "Confirm shift takeover"
 
 #: templates/core/mpg_dashboard.html:248
+#: templates/core/mpg_device_detail.html:325
 #: templates/core/warehouse_dashboard.html:211
 msgid "Schließen"
 msgstr "Close"
@@ -5899,7 +5903,7 @@ msgstr "Quick access"
 msgid "Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich."
 msgstr "Write operations such as new handovers, status changes, or cash book entries are not possible offline."
 
-#: templates/core/mpg_device_detail.html:446
+#: templates/core/mpg_device_detail.html:473
 #: templates/core/mpg_geraetepass.html:38
 msgid "Schulungsdatum:"
 msgstr "Training date:"
@@ -5946,13 +5950,18 @@ msgstr "Self-hosted. Traceable. Without tracking."
 msgid "Selbst hosten"
 msgstr "Self-host"
 
-#: templates/core/mpg_device_detail.html:313
+#: templates/core/mpg_device_detail.html:293
+#: templates/core/mpg_device_detail.html:338
 msgid "Selbsttest / Gerätestart fehlerfrei"
 msgstr "Self-test / device start without errors"
 
-#: templates/core/mpg_device_detail.html:125
-msgid "Selbsttest scannen (corpuls3 / MEDUMAT)"
-msgstr "Scan self-test (corpuls3 / MEDUMAT)"
+#: templates/core/mpg_device_detail.html:300
+msgid "Selbsttest-Protokoll (optional):"
+msgstr "Self-test record (optional):"
+
+#: templates/core/fleet_vehicle_detail.html:226
+msgid "Selbsttests der Medizingeräte in Ordnung"
+msgstr "Medical device self-tests fine"
 
 #: core/templatetags/js_i18n.py:46
 msgid "Senden fehlgeschlagen."
@@ -5962,7 +5971,7 @@ msgstr "Sending failed."
 msgid "Seriennummer (SN):"
 msgstr "Serial number (SN):"
 
-#: templates/core/mpg_device_detail.html:161
+#: templates/core/mpg_device_detail.html:169
 msgid "Seriennummer:"
 msgstr "Serial number:"
 
@@ -6002,7 +6011,8 @@ msgstr "Safety inspection (SP)"
 msgid "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 msgstr "Only voluntarily shared days and months are visible."
 
-#: templates/core/mpg_device_detail.html:310
+#: templates/core/mpg_device_detail.html:290
+#: templates/core/mpg_device_detail.html:335
 msgid "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"
 msgstr "Visual inspection & completeness (cables, sensors)"
 
@@ -6069,7 +6079,7 @@ msgstr "Other contacts"
 #: templates/core/assets_inventory.html:23
 #: templates/core/checklist_schedules.html:22
 #: templates/core/defect_detail.html:27
-#: templates/core/mpg_device_detail.html:321
+#: templates/core/mpg_device_detail.html:306
 #: templates/core/pinboard_form.html:20
 #: templates/core/station_settings.html:25
 #: templates/core/task_form.html:23
@@ -6369,6 +6379,10 @@ msgstr "Text"
 msgid "Text / Handlungsanweisung (Markdown)"
 msgstr "Text / instructions (Markdown)"
 
+#: templates/core/mpg_device_detail.html:301
+msgid "Text vom Geräteausdruck oder gescannter QR-Inhalt"
+msgstr "Text from the device printout or scanned QR content"
+
 #: templates/core/help_index.html:33
 msgid "Themen"
 msgstr "Topics"
@@ -6391,7 +6405,7 @@ msgstr "Title"
 msgid "Titel der Dienstanweisung*"
 msgstr "Title of the work instruction*"
 
-#: templates/core/mpg_device_detail.html:337
+#: templates/core/mpg_device_detail.html:364
 msgid "Titel des Mangels:"
 msgstr "Title of the defect:"
 
@@ -6461,7 +6475,7 @@ msgstr "Daily, weekly, or monthly checks with next due date."
 msgid "UDI-DI (GS1-GTIN):"
 msgstr "UDI-DI (GS1 GTIN):"
 
-#: templates/core/mpg_device_detail.html:163
+#: templates/core/mpg_device_detail.html:171
 msgid "UDI-DI (GTIN):"
 msgstr "UDI-DI (GTIN):"
 
@@ -6683,7 +6697,7 @@ msgstr "From storage location:"
 msgid "Von mir quittiert"
 msgstr "Acknowledged by me"
 
-#: templates/core/mpg_device_detail.html:105
+#: templates/core/mpg_device_detail.html:111
 msgid "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 msgstr "Get instruction from the device officer before use!"
 
@@ -6919,11 +6933,11 @@ msgstr "Waiting for initialization..."
 msgid "Wartend"
 msgstr "Waiting"
 
-#: templates/core/mpg_device_detail.html:138
+#: templates/core/mpg_device_detail.html:146
 msgid "Wartung / STK eintragen"
 msgstr "Enter maintenance / STK"
 
-#: templates/core/mpg_device_detail.html:397
+#: templates/core/mpg_device_detail.html:424
 msgid "Wartung buchen"
 msgstr "Book maintenance"
 
@@ -6935,9 +6949,13 @@ msgstr "Why are incident data not allowed here?"
 msgid "Was die Schicht wirklich braucht."
 msgstr "What the shift really needs."
 
-#: templates/core/mpg_device_detail.html:350
+#: templates/core/mpg_device_detail.html:377
 msgid "Was genau ist defekt? Fehlermeldung auf Display?"
 msgstr "What exactly is defective? Error message on the display?"
+
+#: templates/core/mpg_device_detail.html:341
+msgid "Was wurde behoben?"
+msgstr "What was fixed?"
 
 #: templates/core/landing.html:81
 #: templates/core/vorfuehrung.html:69
@@ -7023,7 +7041,7 @@ msgstr "Check weather (optional)"
 msgid "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 msgstr "Weather: When the weather forecast is enabled, the address is automatically geocoded via OpenStreetMap and Open-Meteo and shown on the station display."
 
-#: templates/core/mpg_device_detail.html:253
+#: templates/core/mpg_device_detail.html:261
 msgid "Wetterfester QR-Code für Geräteaufkleber"
 msgstr "Weatherproof QR code for device stickers"
 
@@ -7043,7 +7061,7 @@ msgstr "Weather preview (%(label)s)"
 msgid "Wettervorschau passt nicht zur eingegebenen Anschrift."
 msgstr "The weather preview does not match the address entered."
 
-#: templates/core/mpg_device_detail.html:344
+#: templates/core/mpg_device_detail.html:371
 msgid "Wichtig"
 msgstr "Important"
 
@@ -7130,10 +7148,6 @@ msgstr "Wiki revisions must not be deleted."
 msgid "Wiki-Revisionen dürfen nicht verändert werden."
 msgstr "Wiki revisions must not be modified."
 
-#: templates/core/mpg_device_detail.html:286
-msgid "Wird automatisch auf PASS/FAIL ausgewertet und als MPG-Funktionskontrolle gespeichert."
-msgstr "Automatically evaluated as PASS/FAIL and saved as an MPG function check."
-
 #: templates/core/sop_form.html:102
 msgid "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen."
 msgstr "Automatically given a cryptographic SHA-256 checksum hash when saved."
@@ -7141,6 +7155,10 @@ msgstr "Automatically given a cryptographic SHA-256 checksum hash when saved."
 #: templates/registration/qr_confirm.html:48
 msgid "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 msgstr "Only prompted if no QR code was scanned."
+
+#: templates/core/mpg_device_detail.html:302
+msgid "Wird nur als Notiz gespeichert und nicht ausgewertet."
+msgstr "Stored as a note only, not evaluated."
 
 #: core/forms.py:688
 msgid "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."

@@ -1,6 +1,6 @@
 """Medizinproduktebuch- und MPG-Modelle gem. MPDG, MPBetreibV und DIN EN 62353.
 
-Rechtssichere Verwaltung von aktiven Medizinprodukten (Anlage 1 & 2),
+Verwaltung von aktiven Medizinprodukten (Anlage 1 & 2),
 sicherheitstechnischen Kontrollen (STK), messtechnischen Kontrollen (MTK),
 elektrischer Prüfung (DGUV V3), täglichen Funktionskontrollen und Einweisungsnachweisen
 (Gerätepass gem. § 11 MPBetreibV).
@@ -112,6 +112,14 @@ class MedicalDevice(models.Model):
         loc = f" [{self.location}]" if self.location else ""
         return f"{self.name}{loc}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is None or "current_status" in update_fields:
+            from .device_status import mirror_to_asset
+
+            mirror_to_asset(self)
+
     @property
     def urgency(self) -> dict:
         """Dynamische 4-Stufen Ampel (overdue, critical, warning, ok)."""
@@ -180,7 +188,7 @@ class MedicalDevice(models.Model):
 
 
 class MaintenanceLog(models.Model):
-    """Revisionssichere Dokumentation von STK, MTK, DGUV V3 und Reparaturen gem. § 13 MPBetreibV."""
+    """Dokumentation von STK (§ 12), MTK (§ 15), DGUV V3 und Reparaturen im Medizinproduktebuch (§ 13 MPBetreibV)."""
 
     class Kind(models.TextChoices):
         STK = "stk", "Sicherheitstechnische Kontrolle (STK)"
@@ -232,12 +240,12 @@ class MaintenanceLog(models.Model):
 
 
 class DeviceTrainingRecord(models.Model):
-    """Dokumentation von Einweisungen nach § 10 & § 11 MPBetreibV (Basis des digitalen Gerätepasses)."""
+    """Dokumentation von Einweisungen nach § 11 MPBetreibV (Basis des digitalen Gerätepasses)."""
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="device_trainings")
     device = models.ForeignKey(MedicalDevice, on_delete=models.CASCADE, related_name="trainings")
     trainee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_trainings")
-    instructor = models.CharField(max_length=140, verbose_name="Einweiser / Gerätebeauftragter (§ 10 MPBetreibV)")
+    instructor = models.CharField(max_length=140, verbose_name="Einweiser / Gerätebeauftragter (§ 11 MPBetreibV)")
     trained_at = models.DateField(default=timezone.localdate, verbose_name="Schulungsdatum")
     notes = models.CharField(max_length=300, blank=True, default="", verbose_name="Bemerkung")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -277,16 +285,41 @@ class DeviceRoutineCheck(models.Model):
 
     def save(self, *args, **kwargs):
         _require_same_station(self.device, self.station_id, "Funktionskontrolle")
+        # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
+        self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
         super().save(*args, **kwargs)
 
-        # Update last_routine_check on device
         self.device.last_routine_check = self.checked_at
-        if not self.passed:
-            self.device.current_status = MedicalDevice.Status.OOB
-            if self.notes and not self.device.status_note:
-                self.device.status_note = f"Funktionskontrolle nicht bestanden: {self.notes}"
-        elif self.device.current_status == MedicalDevice.Status.OOB:
-            self.device.current_status = MedicalDevice.Status.READY
-            self.device.status_note = ""
+        update_fields = ["last_routine_check", "updated_at"]
+        if not self.passed and self.device.current_status != MedicalDevice.Status.DECOMMISSIONED:
+            # Sperre mit Mangel; aufgehoben wird sie nur über die Freigabe
+            # (core/device_status.py). Eine bestandene Kontrolle hebt nichts auf.
+            from .wachalltag_models import Defect
 
-        self.device.save(update_fields=["last_routine_check", "current_status", "status_note", "updated_at"])
+            failed = [
+                label
+                for ok, label in (
+                    (self.battery_ok, "Energieversorgung"),
+                    (self.visual_ok, "Sichtprüfung/Zubehör"),
+                    (self.function_ok, "Selbsttest/Funktion"),
+                )
+                if not ok
+            ]
+            Defect.objects.create(
+                station_id=self.station_id,
+                medical_device=self.device,
+                title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
+                description=(
+                    f"Nicht in Ordnung: {', '.join(failed)}\n"
+                    f"Standort: {self.device.location}\n\n{self.notes}"
+                ).strip(),
+                asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
+                priority=Defect.Priority.URGENT,
+                status=Defect.Status.OPEN,
+                category=Defect.Category.DEVICE,
+                created_by=self.performed_by,
+            )
+            self.device.current_status = MedicalDevice.Status.OOB
+            self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
+            update_fields += ["current_status", "status_note"]
+        self.device.save(update_fields=update_fields)

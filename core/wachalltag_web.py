@@ -19,6 +19,7 @@ from django.views.decorators.http import require_http_methods
 from .access import CONTENT_ROLES, membership_required
 from .api.wachalltag import ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES, attachment_is_valid
 from .attachments import read_uploads
+from .device_status import IN_SERVICE, asset_release_blockers
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
@@ -176,6 +177,12 @@ def defect_detail(request, pk):
                         )
                         audit(request.user, station, "defect.status_changed", locked, {"from": previous, "to": status, "via": "web"})
                 messages.success(request, "Status aktualisiert.")
+                device = item.medical_device
+                if status == Defect.Status.DONE and device is not None and device.current_status == "oob":
+                    messages.info(
+                        request,
+                        f"'{device.name}' bleibt gesperrt, bis die Schichtleitung es im Medizinproduktebuch freigibt.",
+                    )
                 return redirect("defect_detail_web", pk=item.pk)
         elif action == "upload":
             upload = request.FILES.get("attachment")
@@ -255,8 +262,12 @@ def assets_inventory(request):
         elif action == "asset-status":
             asset = get_object_or_404(StationAsset, station=station, asset_id=request.POST.get("asset_id"))
             status = request.POST.get("status") or ""
+            blockers = asset_release_blockers(asset) if status in IN_SERVICE else []
             if status not in StationAsset.Status.values:
                 messages.error(request, "Ungültiger Asset-Status.")
+            elif blockers:
+                numbers = ", ".join(f"#{item.pk}" for item in blockers)
+                messages.error(request, f"Gerät bleibt gesperrt: offene Mängel {numbers}.")
             else:
                 previous = asset.status
                 asset.status = status

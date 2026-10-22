@@ -35,7 +35,7 @@ Unterschreitungen des Mindestbestands und ungelesene Dienstanweisungen.
 | Modul | Inhalt |
 | --- | --- |
 | 🚑 Fuhrpark | Fahrzeugstatus, Übernahme zu Schichtbeginn (Kilometer, Füllstände, Checkpunkte), Desinfektionsprotokoll mit Einwirkzeit-Sperre, Fristen für HU, UVV und Tragentisch, Fahrzeugmängel |
-| 🩺 Medizingeräte | Bestandsverzeichnis nach MPBetreibV, STK-/MTK-/DGUV-Fristen mit Ampel, Funktionskontrollen (auch per QR-Selbsttestcode), Wartungen und Einweisungsnachweise |
+| 🩺 Medizingeräte | Bestandsverzeichnis nach MPBetreibV, STK-/MTK-/DGUV-Fristen mit Ampel, Funktionskontrollen mit Sperre bis zur Freigabe, Wartungen und Einweisungsnachweise |
 | 📦 Lager & Material | Bestand je Lagerort, Chargen mit Verfallsdatum (First Expired, First Out), Kühlware mit verkürzter Haltbarkeit außerhalb des Kühlschranks, Mindestbestand, Bestellvorschlag, Sperren einer Charge nach Rückruf |
 | 📖 Organisation | Dienstanweisungen mit Versionen, SHA-256-Prüfsumme und persönlicher Lesebestätigung; Telefonbuch der Wache |
 | 🖥️ Wachen-Display | Vollbildanzeige für Monitor oder Fernseher über widerrufbare Display-Links |

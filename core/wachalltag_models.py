@@ -64,6 +64,15 @@ class Defect(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    # Gesperrtes Medizinprodukt: Solange der Mangel offen ist, bleibt das Gerät
+    # außer Betrieb (siehe core/device_status.py).
+    medical_device = models.ForeignKey(
+        "core.MedicalDevice",
+        on_delete=models.SET_NULL,
+        related_name="defects",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["status", "-priority", "due_at", "-updated_at"]
@@ -143,6 +152,14 @@ class StationAsset(models.Model):
 
     def __str__(self):
         return self.label
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is None or "status" in update_fields:
+            from .device_status import mirror_to_device
+
+            mirror_to_device(self)
 
 
 class AssetEvent(models.Model):

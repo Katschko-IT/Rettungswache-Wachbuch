@@ -71,6 +71,7 @@ urlpatterns = [
     path("mpg/d/<slug:slug>/wartung/", mpg_views.mpg_maintenance_create, name="mpg_maintenance_create"),
     path("mpg/d/<slug:slug>/schulung/", mpg_views.mpg_training_create, name="mpg_training_create"),
     path("mpg/d/<slug:slug>/mangel/", mpg_views.mpg_device_defect, name="mpg_device_defect"),
+    path("mpg/d/<slug:slug>/freigeben/", mpg_views.mpg_device_release, name="mpg_device_release"),
     path("mpg/d/<slug:slug>/qr.png", mpg_views.mpg_device_qr, name="mpg_device_qr"),
     path("lager/", warehouse_views.warehouse_dashboard, name="warehouse_dashboard"),
     path("lager/artikel/neu/", warehouse_views.item_create, name="warehouse_item_create"),

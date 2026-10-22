@@ -66,14 +66,25 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Stammdaten mit UDI-DI (GTIN), Seriennummer, Inventarnummer, CE-Kennnummer und Hersteller.
   - Klassifizierung nach Risikoklassen (I, IIa, IIb, III gem. MDR) und Kennzeichnung aktiver Medizinprodukte (Anlage 1 & Anlage 2 MPBetreibV).
 - **Prüffristen & Ampellogik**:
-  - STK (Sicherheitstechnische Kontrolle gem. § 11 MPBetreibV) max. alle 24 Monate.
-  - MTK (Messtechnische Kontrolle gem. § 14 MPBetreibV).
+  - STK (Sicherheitstechnische Kontrolle gem. § 12 MPBetreibV) max. alle 24 Monate.
+  - MTK (Messtechnische Kontrolle gem. § 15 MPBetreibV).
   - Ampel: Rot (<= 30 Tage / abgelaufen), Gelb (31–60 Tage), Grün (> 60 Tage).
-- **QR-Code Selbsttest-Ingest**:
-  - Scan des Ergebnis-Codes direkt vom Gerätedisplay (z. B. corpuls3 oder Weinmann MEDUMAT Transport).
-  - Automatische Auswertung aller Baugruppen, Akkus und Defi-Energie (200 J) mit direkter Speicherung im Prüfprotokoll.
-  - Automatische Sperre und Mängelticket-Erstellung bei Fehlermeldungen.
-- **Digitale Einweisungsmatrix (§ 10 MPBetreibV)**:
+- **Funktionskontrolle**:
+  - Die prüfende Person bestätigt Energieversorgung, Sichtprüfung und Selbsttest einzeln
+    (oder alle drei per Schnellkontrolle). Fehlt ein Punkt, ist die Kontrolle nicht bestanden.
+  - Ein Selbsttest-Ausdruck oder gescannter Gerätecode kann als Notiz angehängt werden. Er wird
+    **nicht** ausgewertet: Herstellerformate sind nicht dokumentiert, eine Heuristik würde
+    Kontrollen falsch als bestanden eintragen.
+- **Sperre und Freigabe** (`core/device_status.py`):
+  - „Mangel melden“ und eine nicht bestandene Kontrolle sperren das Gerät und legen einen mit
+    dem Gerät verknüpften Mangel an.
+  - Eine bestandene Kontrolle hebt keine Sperre auf. Freigeben darf nur Schichtleitung oder
+    Admin, erst wenn alle verknüpften Mängel erledigt sind; die Freigabe wird als
+    Funktionskontrolle dokumentiert (Audit `mpg.device_released`).
+  - Das Medizinproduktebuch ist führend. Ein gleichnamiges Gerät unter „Geräte & Fahrzeuge“
+    zeigt denselben Status; dort kann ein gesperrtes Gerät nicht vorbei an offenen Mängeln
+    freigegeben werden (Web und API, HTTP 409).
+- **Digitale Einweisungsmatrix (§ 11 MPBetreibV)**:
   - Dokumentation von Geräte-Erst- und Wiederholungseinweisungen inklusive Gruppenschulungen.
 
 ### 🏢 Organisation & Desk (`/orga/`)
@@ -128,5 +139,11 @@ Die Seite `/mehr/` („Alle Bereiche“) zeigt alle für die Rolle erreichbaren 
   Fachmodule (`core/module_overview.py`) und persönliche Hinweise („Für dich“).
 - Fahrzeuge werden nach der Einwirkzeit **nicht** automatisch freigegeben; die
   Besatzung wird benachrichtigt und gibt selbst frei.
+- Medizingeräte: Die QR-„Auswertung“ von Selbsttests trug Kontrollen als
+  bestanden ein, sobald der Text z. B. „OK“ oder „CP3“ enthielt, und eine
+  Ein-Klick-Kontrolle hob Sperren trotz offener Mängel auf. Beides entfernt;
+  Sperre und Freigabe siehe oben. Paragrafenangaben auf die geltende
+  MPBetreibV (§ 11 Einweisung, § 12 STK, § 13 Medizinproduktebuch,
+  § 14 Bestandsverzeichnis, § 15 MTK) vereinheitlicht.
 - Demo-Daten (`load_demo_data`) enthalten Fahrzeuge, Medizingeräte, Material und
   eine Dienstanweisung (`core/demo_modules.py`).

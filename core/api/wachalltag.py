@@ -27,6 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from core.access import CONTENT_ROLES
+from core.device_status import IN_SERVICE, asset_release_blockers
 from core.models import Checklist, HandoverEntry, Membership
 from core.services import audit
 from core.wachalltag_models import (
@@ -634,6 +635,9 @@ def asset_status(request, asset_id):
         item = StationAsset.objects.select_for_update().filter(station=station, asset_id=asset_id).first()
         if item is None:
             return base._json_error(request, "Asset nicht gefunden.", status=404)
+        if status in IN_SERVICE and (blockers := asset_release_blockers(item)):
+            numbers = ", ".join(f"#{defect.pk}" for defect in blockers)
+            return base._json_error(request, f"Geraet bleibt gesperrt: offene Maengel {numbers}.", status=409)
         previous = item.status
         item.status = status
         item.note = note

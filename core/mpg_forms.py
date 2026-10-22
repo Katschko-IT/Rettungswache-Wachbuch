@@ -52,6 +52,14 @@ class MedicalDeviceForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         self.station = station
         super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.current_status == MedicalDevice.Status.OOB:
+            # Gesperrte Geräte werden nur über „Gerät freigeben“ wieder einsatzklar.
+            field = self.fields["current_status"]
+            field.choices = [
+                choice for choice in field.choices
+                if choice[0] in {MedicalDevice.Status.OOB, MedicalDevice.Status.DECOMMISSIONED}
+            ]
+            field.help_text = "Gesperrt. Freigabe über „Gerät freigeben“ auf der Geräteseite."
 
     def clean(self):
         cleaned_data = super().clean()
@@ -89,10 +97,18 @@ class MaintenanceLogForm(forms.ModelForm):
 
 
 class DeviceRoutineCheckForm(forms.ModelForm):
+    # Ausdruck oder QR-Text eines Geräte-Selbsttests. Wird nur als Notiz
+    # gespeichert; das Ergebnis bestätigt die prüfende Person selbst.
+    selftest_protocol = forms.CharField(
+        required=False,
+        max_length=500,
+        label="Selbsttest-Protokoll (optional)",
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
+
     class Meta:
         model = DeviceRoutineCheck
         fields = [
-            "passed",
             "battery_ok",
             "visual_ok",
             "function_ok",
@@ -137,7 +153,7 @@ class GroupTrainingForm(forms.Form):
     )
     instructor = forms.CharField(
         max_length=140,
-        label="Gerätebeauftragter / Einweiser (§ 10 MPBetreibV)",
+        label="Gerätebeauftragter / Einweiser (§ 11 MPBetreibV)",
         widget=forms.TextInput(attrs={"placeholder": "z. B. Max Mustermann (MPG-Beauftragter)"}),
     )
     trained_at = forms.DateField(
