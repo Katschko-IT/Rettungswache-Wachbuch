@@ -1,9 +1,24 @@
 # Changelog
 
-## Unreleased – Review und Debugging 2026-10-22
+## 0.24.0 - 2026-10-22
 
-Fehlerbehebungen für 0.23.0 nach dem Zwei-Repo-Review (R-025, Details in
+Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
 `docs/REVIEW-2026-10-22.md`). Keine Produktionsfreigabe.
+
+- Betrieb: Jede Seite lud bisher im Hintergrund die Display-Daten und hielt einen
+  Livestream (Server-Thread) offen; entfernt.
+- Datumsfelder in Bearbeitungsformularen erschienen leer und löschten beim
+  Speichern HU-/STK-/UVV-Fristen; behoben.
+- Sperr- und Exportzeiten werden in Ortszeit statt UTC angezeigt.
+- Die Orga-Seite legt keine medizinischen Muster-SOPs mit Dosierungen und keine
+  regional falschen Notrufnummern mehr an; der Fuhrpark erfindet keine Kennzeichen.
+- Dienstanweisungen wurden als „quittiert“ angezeigt, obwohl sie es nicht waren.
+- Übersicht zeigt den Handlungsbedarf aller aktiven Fachmodule.
+- Modulseiten nutzen ein einheitliches Komponentenvokabular (Kacheln, Tabellen,
+  Hinweise, Buttons) und klare Beschreibungen.
+- Neue öffentliche Startseite mit allen Modulen, Grundsätzen und Einstiegsschritten.
+- Demo-Daten umfassen jetzt auch Fahrzeuge, Medizingeräte, Material und eine
+  Dienstanweisung.
 
 - Fachmodule funktionieren unter der eigenen CSP: Modals, Scanner, Live-Suche,
   Filter, Druck und Löschrückfragen laufen über `core/static/core/ui.js`;

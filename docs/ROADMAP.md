@@ -41,7 +41,7 @@ Django- und Docker-CI waren auf Commit `6af6689` (Run 59) grün.
   interne Post; Webclient und Server bleiben Teil des Vertrauensmodells
 - Krypto an BSI TR-02102 angelehnt (AES-256-GCM, ECDH P-256, Argon2id, TLS 1.3)
 - **API-Fundament** `/api/v1/` mit App-Tokens für Mobile-Clients
-- **AGPL Flutter-Client** https://github.com/darkspike1988/Wachbuch-Client (Spiegel `clients/wachbuch-mobile/`)
+- **AGPL Flutter-Client** https://github.com/Katschko-IT/Wachbuch-Client (Spiegel `clients/wachbuch-mobile/`)
 - **Android-APK** sideloadbar (Phone/Tablet-Layout, FOSS-Build)
 - Mobile-Onboarding: Server-Adresse/QR -> Login; Play-Richtlinien-Doku; Repos aufeinander abgestimmt
 - optionale MFA (TOTP/Passkeys), Web-Push, Wachen-ICS-Abos, Retention, Audit-Diffs

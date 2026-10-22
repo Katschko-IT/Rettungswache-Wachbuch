@@ -152,7 +152,7 @@ Server und Client besitzen denselben produktiven Kernvertrag für:
 
 ### [x] Mobile Source of Truth
 
-`darkspike1988/Wachbuch-Client` ist die kanonische Flutter-/iOS-/Android-Quelle. Der historische `clients/wachbuch-mobile/`-Spiegel im Server-Repo darf nicht zurückpubliziert werden; das frühere Force-Publish-Skript ist deaktiviert.
+`Katschko-IT/Wachbuch-Client` ist die kanonische Flutter-/iOS-/Android-Quelle. Der historische `clients/wachbuch-mobile/`-Spiegel im Server-Repo darf nicht zurückpubliziert werden; das frühere Force-Publish-Skript ist deaktiviert.
 
 ### [x] Request-Wiederholung / Datenintegrität
 

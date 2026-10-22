@@ -40,7 +40,7 @@
 
 ```bash
 # Repository klonen
-git clone https://github.com/darkspike1988/Rettungswache-Wachbuch.git
+git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
 cd Rettungswache-Wachbuch
 
 # Umgebungsvariablen kopieren
@@ -468,7 +468,7 @@ description: Selbstgehostetes Wachbuch für Rettungswachen
 replicaCount: 3
 
 image:
-  repository: ghcr.io/darkspike1988/rettungswache-wachbuch
+  repository: ghcr.io/katschko-it/rettungswache-wachbuch
   tag: latest
   pullPolicy: IfNotPresent
 

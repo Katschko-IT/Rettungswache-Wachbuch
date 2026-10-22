@@ -2,7 +2,7 @@
 
 Stand: 20. August 2026 · Server **0.16.x** · OpenAPI **1.2.2**.
 
-Versionierte JSON-API unter `/api/v1/` für den AGPL-Client [Wachbuch-Client](https://github.com/darkspike1988/Wachbuch-Client) und kontrollierte Drittclients.
+Versionierte JSON-API unter `/api/v1/` für den AGPL-Client [Wachbuch-Client](https://github.com/Katschko-IT/Wachbuch-Client) und kontrollierte Drittclients.
 
 ## Grundsätze
 

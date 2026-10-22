@@ -284,7 +284,7 @@ def api_root(request):
         },
         "mobile_clients": {
             "status": "unified",
-            "repo": "https://github.com/darkspike1988/Wachbuch-Client",
+            "repo": "https://github.com/Katschko-IT/Wachbuch-Client",
             "notes": "Widerrufbare App-Tokens (wb_…) plus deutsche Alias-Pfade aus PR#12.",
         },
     })

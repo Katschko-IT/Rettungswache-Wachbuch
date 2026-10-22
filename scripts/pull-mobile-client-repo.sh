@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Spiegelt https://github.com/darkspike1988/Wachbuch-Client nach clients/wachbuch-mobile/
+# Spiegelt https://github.com/Katschko-IT/Wachbuch-Client nach clients/wachbuch-mobile/
 # (Gegenstück zu publish-mobile-client-repo.sh).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DST="$ROOT/clients/wachbuch-mobile"
-REMOTE_URL="${MOBILE_REPO_URL:-https://github.com/darkspike1988/Wachbuch-Client.git}"
+REMOTE_URL="${MOBILE_REPO_URL:-https://github.com/Katschko-IT/Wachbuch-Client.git}"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/wachbuch-client-pull.XXXXXX")"
 
 cleanup() { rm -rf "$WORK"; }

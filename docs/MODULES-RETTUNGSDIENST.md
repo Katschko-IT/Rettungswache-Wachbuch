@@ -1,4 +1,4 @@
-# Rettungsdienst-Fachmodule & Automatisierungs-Architektur (v0.23.0)
+# Rettungsdienst-Fachmodule & Automatisierungs-Architektur (v0.24.0)
 
 Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen und Automatisierungsfunktionen der fünf Rettungsdienst-Fachmodule im Wachbuch sowie die Wachenzentrale („Mehr“-Menü).
 
@@ -41,7 +41,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Express-Schichtübernahme (3 Min.)**: Schnelle Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
-  - **Automatisierungs-Feature**: `Vehicle.check_and_release_disinfection()` hebt nach Ablauf der Einwirkzeit die Fahrzeugsperre automatisch auf und setzt das Fahrzeug zurück auf Status 1.
+  - **Automatisierungs-Feature**: `Vehicle.check_and_release_disinfection()` hebt nach Ablauf der Einwirkzeit die Fahrzeugsperre automatisch auf und setzt das Fahrzeug zurück auf Status 1. Die Freigabe ist ein bedingtes Update mit genau einem Audit-Ereignis (`fleet.disinfection_auto_released`). Ob ein Fahrzeug ohne Bestätigung der Besatzung freigegeben werden soll, ist eine offene Fachentscheidung (siehe `docs/REVIEW-2026-10-22.md`).
 - **Gesetzliche Fristen**:
   - Hauptuntersuchung gem. § 29 StVZO.
   - UVV-Prüfung gem. DGUV Vorschrift 70.
@@ -94,20 +94,37 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Heutige Wachentermine und offene Tagesaufgaben mit Fortschrittsbalken.
   - Taktischer Status aller Rettungsmittel der Wache in Echtzeit.
   - MPG-Prüfungs- und Mängelwarnungen.
-  - Live-Verkehrslage und Katwarn-Feeds.
+  - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
 
 ---
 
 ## 3. Wachenzentrale („Mehr“-Menü)
 
-Das Menü `/mehr/` fungiert als zentrale Übersicht über alle 28 Module des Systems, aufgeteilt in vier logische Arbeitsbereiche:
+Die Seite `/mehr/` („Alle Bereiche“) zeigt alle für die Rolle erreichbaren Module in vier Gruppen; deaktivierte Module erscheinen nicht. Auditoren sehen nur Konto- und Audit-Bereiche.
 
-1. **🚑 Einsatz & Rettungsdienst-Fachmodule**: MPG, Lager, Fuhrpark, Organisation, Wachen-Display.
+1. **🚑 Fachmodule**: Medizingeräte, Lager & Material, Fuhrpark, Organisation, Wachen-Display.
 2. **📋 Wachbetrieb & Alltagsorganisation**: Mängel, Geräte & Pool, Tagesaufgaben, Auswertung, Checklisten, Prüfintervalle, Kalender, Pinnwand, Kaffeekasse, Geburtstage.
-3. **📢 Kommunikation & Wissen**: Neuigkeiten, Wachen-Wiki, Meldungen & Katwarn, Wachenchat.
+3. **📢 Kommunikation & Wissen**: Neuigkeiten, Wachen-Wiki, Meldungen & Verkehr, Wachenchat (Signal-Gruppe).
 4. **⚙️ Wachenverwaltung & Sicherheit**: Mein Konto, App-Tokens / API, Display-Tokens, Team & Rollen, Einladungen, Darstellung & Leiste, Wacheneinstellungen, Audit-Log, Zwei-Faktor / Passkeys, Push-Mitteilungen, Technische Verwaltung.
 
 **Features**:
 - **Live-Schnellsuche**: Sofortige Filterung aller Karten bei Eingabe eines Suchbegriffs (z. B. "O2", "SOP", "Mangel", "Reifen").
 - **Leisten-Synchronisation**: Module, die bereits in der oberen Kopfleiste angepinnt sind, tragen den Status-Badge `In Leiste`.
 - **Individuelle Leisten-Anpassung**: Über `/einstellungen/darstellung/` kann der Master-Admin per Drag-and-Drop festlegen, welche Module direkt in der Leiste verankert sind.
+
+
+---
+
+## 4. Änderungen in 0.24.0 (Review 2026-10-22)
+
+- Alle Modulseiten arbeiten unter der Content-Security-Policy: Verhalten über
+  `data-*`-Attribute in `core/static/core/ui.js`, Gestaltung in `modules.css`.
+- Kamera-Scanner leiten nur auf Adressen derselben Origin; die Kamera ist nur auf
+  MPG-, Lager- und Fuhrpark-Übersicht erlaubt.
+- Die Orga-Seite legt **keine** Muster-SOPs oder Notrufnummern mehr an. Der
+  Fuhrpark legt höchstens ein neutrales Desinfektionsmittel an (im Django-Admin
+  unter „Desinfektionsmittel“ pflegbar) und erfindet keine Kennzeichen.
+- Die Übersicht (`/uebersicht/`) zeigt den Handlungsbedarf der aktiven
+  Fachmodule (`core/module_overview.py`).
+- Demo-Daten (`load_demo_data`) enthalten Fahrzeuge, Medizingeräte, Material und
+  eine Dienstanweisung (`core/demo_modules.py`).
