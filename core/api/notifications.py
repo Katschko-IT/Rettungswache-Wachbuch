@@ -22,6 +22,9 @@ def _notification_json(item):
     return {
         "id": item.pk,
         "kind": item.kind,
+        # Gleicher Schlüssel wie bei /fahrzeuge/sperren/: die App zeigt eine
+        # bereits lokal geplante Erinnerung nicht ein zweites Mal.
+        "key": item.dedupe_key,
         "title": item.title,
         "body": item.body,
         "url": item.url,

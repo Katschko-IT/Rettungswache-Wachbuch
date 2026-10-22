@@ -148,6 +148,8 @@ class CrewNotificationApiTests(TestCase):
         notify_ready_vehicles()
         data = self.client.get("/api/v1/benachrichtigungen/", **self.auth).json()
         self.assertEqual(data["unread_count"], 1)
+        locks_key = f"vehicle_ready:{self.vehicle.pk}:"
+        self.assertTrue(data["results"][0]["key"].startswith(locks_key))
         note_id = data["results"][0]["id"]
         read = self.client.post(f"/api/v1/benachrichtigungen/{note_id}/gelesen/", **self.auth)
         self.assertTrue(read.json()["read"])
