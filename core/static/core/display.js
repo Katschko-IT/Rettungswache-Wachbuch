@@ -336,7 +336,49 @@
     container.hidden = false;
   }
 
+  var audioCtx = null;
+  var lastUrgentHandovers = null;
+
+  function playAlarmGong() {
+    try {
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      var now = audioCtx.currentTime;
+      var osc1 = audioCtx.createOscillator();
+      var gain1 = audioCtx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(440, now);
+      gain1.gain.setValueAtTime(0.3, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+
+      var osc2 = audioCtx.createOscillator();
+      var gain2 = audioCtx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(880, now + 0.3);
+      gain2.gain.setValueAtTime(0.35, now + 0.3);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start(now + 0.3);
+      osc2.stop(now + 0.85);
+    } catch (e) {}
+  }
+
   function apply(payload) {
+    if (typeof payload.urgent_handovers === "number") {
+      if (lastUrgentHandovers !== null && payload.urgent_handovers > lastUrgentHandovers) {
+        playAlarmGong();
+      }
+      lastUrgentHandovers = payload.urgent_handovers;
+    }
     roots.forEach(function (root) {
       applyLayout(root, payload.layout_config);
       renderEvents(root, payload.events);
@@ -348,6 +390,40 @@
       renderUrgent(root, payload.urgent_handovers);
       renderPinboardNews(root, payload.pinboard, payload.news);
     });
+  }
+
+  var sseSource = null;
+  function initSSE() {
+    if (!window.EventSource) return false;
+    try {
+      if (sseSource) {
+        sseSource.close();
+      }
+      sseSource = new EventSource("/display/stream/");
+      sseSource.addEventListener("update", function (e) {
+        try {
+          var payload = JSON.parse(e.data);
+          apply(payload);
+          if (currentVersion && payload.app_version && payload.app_version !== currentVersion) {
+            window.setTimeout(function () {
+              window.location.reload();
+            }, 3000);
+          }
+          currentVersion = payload.app_version || currentVersion;
+        } catch (err) {}
+      });
+      sseSource.addEventListener("ping", function () {});
+      sseSource.onerror = function () {
+        if (sseSource) {
+          sseSource.close();
+          sseSource = null;
+        }
+        schedulePoll(POLL_INTERVAL_MS);
+      };
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function schedulePoll(delay) {
@@ -379,6 +455,9 @@
           }, 3000);
         }
         currentVersion = payload.app_version || currentVersion;
+        if (!sseSource) {
+          initSSE();
+        }
         schedulePoll(POLL_INTERVAL_MS);
       })
       .catch(function () {

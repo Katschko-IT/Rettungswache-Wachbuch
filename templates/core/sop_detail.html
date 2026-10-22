@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ sop.doc_number }}: {{ sop.title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<p class="breadcrumbs" style="margin-bottom: 0.75rem;">
+  <a href="{% url 'orga_dashboard' %}">&larr; {% translate "Zurück zur SOP-Übersicht" %}</a>
+</p>
+
+<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+  <div>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {{ sop.get_category_display }}</p>
+    <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+      <span>{{ sop.doc_number }}: {{ sop.title }}</span>
+      <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #2563eb; font-size: 1rem;">v{{ sop.current_version }}</span>
+      {% if sop.status == 'active' %}
+        <span class="badge text-success">{% translate "Gültig / In Kraft" %}</span>
+      {% else %}
+        <span class="badge">{{ sop.get_status_display }}</span>
+      {% endif %}
+    </h1>
+    <p class="lead">
+      {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
+      {% if sop.review_due_date %} &middot; {% translate "Revisionsprüfung fällig am" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
+      &middot; {% translate "Erstellt von" %}: {{ sop.created_by.get_full_name|default:sop.created_by.username }}
+    </p>
+  </div>
+  <div class="page-actions-bar" style="margin: 0;">
+    {% if can_manage %}
+      <a class="button secondary" href="{% url 'sop_edit' sop.slug %}">
+        <span class="icon" aria-hidden="true">✏️</span> {% translate "Metadaten bearbeiten" %}
+      </a>
+      <a class="button secondary" href="{% url 'sop_revision_create' sop.slug %}">
+        <span class="icon" aria-hidden="true">🔄</span> {% translate "Neue Version publizieren" %}
+      </a>
+    {% endif %}
+    <a class="button secondary" href="{% url 'sop_export_audit' sop.slug %}">
+      <span class="icon" aria-hidden="true">📥</span> {% translate "Quittierungs-Audit (CSV)" %}
+    </a>
+  </div>
+</header>
+
+<!-- Revisionssicherheits- & SHA-256 Prüfsummen-Banner -->
+{% if latest_revision %}
+<div style="background: var(--bg-card); border-left: 4px solid #2563eb; padding: 1rem 1.25rem; border-radius: 6px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: bold;">
+        🛡️ {% translate "Revisionssichere QM-Prüfsumme (SHA-256 Hash)" %}
+      </span>
+      <div style="font-family: monospace; font-size: 0.95rem; font-weight: bold; word-break: break-all; margin-top: 0.2rem; color: var(--text-color);">
+        {{ latest_revision.content_hash }}
+      </div>
+      <p style="margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--text-muted);">
+        {% translate "Freigegeben durch" %}: {{ latest_revision.approved_by.get_full_name|default:latest_revision.approved_by.username|default:"Wachleitung / QM" }} &middot; {{ latest_revision.effective_date|date:"d.m.Y" }}
+        {% if latest_revision.change_summary %} &middot; <em>{{ latest_revision.change_summary }}</em>{% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Mitarbeiter-Quittierungsbox -->
+{% if sop.requires_acknowledgment %}
+<section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+  {% if has_acknowledged %}
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <span style="font-size: 2rem;">✅</span>
+      <div>
+        <h3 style="margin: 0; color: #10b981;">{% translate "Kenntnisnahme rechtssicher quittiert" %}</h3>
+        <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted);">
+          {% translate "Sie haben diese Version (v" %}{{ latest_revision.version_label }}{% translate ") der Dienstanweisung gelesen und bestätigt. Ihr Eintrag ist manipulationssicher im Audit-Log archiviert." %}
+        </p>
+      </div>
+    </div>
+  {% else %}
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h3 style="margin: 0; color: #dc2626; display: flex; align-items: center; gap: 0.5rem;">
+          <span>⚠️</span> {% translate "Pflichtquittierung ausstehend" %}
+        </h3>
+        <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted);">
+          {% translate "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen." %}
+        </p>
+      </div>
+      <form method="post" action="{% url 'sop_acknowledge' sop.slug %}">
+        {% csrf_token %}
+        <button type="submit" class="button" style="background: #10b981; border-color: #10b981; color: white;">
+          ✍️ {% translate "Gelesen, verstanden & quittieren" %}
+        </button>
+      </form>
+    </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<!-- Volltext der Dienstanweisung -->
+<article class="section-block" style="background: var(--bg-card); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem; line-height: 1.6;">
+  {% if latest_revision %}
+    <div class="markdown-body" style="font-size: 1rem;">
+      {{ latest_revision.content_markdown|linebreaks }}
+    </div>
+  {% else %}
+    <p class="empty-state">{% translate "Für diese Dienstanweisung ist noch kein Textstand hinterlegt." %}</p>
+  {% endif %}
+</article>
+
+<!-- Versionshistorie & Audit Trail -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+  <!-- Revisionshistorie -->
+  <section class="section-block">
+    <h3>🔄 {% translate "Revisions-Historie & Freigaben" %}</h3>
+    <div class="item-list">
+      {% for rev in all_revisions %}
+        <div class="list-row" style="padding: 0.75rem;">
+          <span class="row-content">
+            <strong>v{{ rev.version_label }} &middot; {{ rev.created_at|date:"d.m.Y" }}</strong>
+            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+              {{ rev.change_summary|default:"Keine Begründung angegeben" }}
+            </small>
+            <small style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">
+              Hash: {{ rev.content_hash|slice:":16" }}...
+            </small>
+          </span>
+          {% if rev == latest_revision %}
+            <span class="badge text-success">{% translate "Aktuell" %}</span>
+          {% else %}
+            <span class="badge">{% translate "Archiv" %}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Quittierungsbuch (Audit Trail) -->
+  <section class="section-block">
+    <h3>📋 {% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h3>
+    <div class="item-list">
+      {% for rc in recent_receipts %}
+        <div class="list-row" style="padding: 0.75rem;">
+          <span class="row-content">
+            <strong>{{ rc.user.get_full_name|default:rc.user.username }}</strong>
+            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+              v{{ rc.revision.version_label }} &middot; {{ rc.acknowledged_at|date:"d.m.Y H:i" }} Uhr
+            </small>
+          </span>
+          <span class="badge text-success">{% translate "Quittiert" %}</span>
+        </div>
+      {% empty %}
+        <p class="empty-state">{% translate "Noch keine Quittierungen protokolliert." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

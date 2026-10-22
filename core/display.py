@@ -188,6 +188,39 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001
             mpg_alerts = []
 
+    fleet_vehicles = []
+    if getattr(station, "fleet_enabled", False):
+        try:
+            from .fleet_models import Vehicle
+
+            for v in Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign"):
+                fleet_vehicles.append({
+                    "call_sign": v.call_sign[:30],
+                    "license_plate": v.license_plate[:20],
+                    "status": v.tactical_status,
+                    "status_label": v.get_tactical_status_display(),
+                    "is_locked": v.is_disinfection_locked,
+                    "locked_until": timezone.localtime(v.disinfection_locked_until, tz).strftime("%H:%M") if v.disinfection_locked_until else None,
+                    "fuel": v.fuel_level_percent,
+                    "o2": v.o2_pressure_bar,
+                })
+        except Exception:  # noqa: BLE001
+            fleet_vehicles = []
+
+    warehouse_alerts = []
+    if getattr(station, "warehouse_enabled", False):
+        try:
+            from .warehouse_models import ItemBatch
+
+            for b in ItemBatch.objects.filter(item__station=station, is_recalled=True)[:3]:
+                warehouse_alerts.append({
+                    "item": b.item.name[:35],
+                    "batch": b.batch_number[:20],
+                    "reason": b.recall_reason[:40] or "Rückruf",
+                })
+        except Exception:  # noqa: BLE001
+            warehouse_alerts = []
+
     return {
         "station": station.name,
         "date": day.isoformat(),
@@ -201,4 +234,6 @@ def display_payload(station) -> dict:
         "pinboard": pinboard,
         "news": news,
         "mpg_alerts": mpg_alerts[:5],
+        "fleet_vehicles": fleet_vehicles,
+        "warehouse_alerts": warehouse_alerts,
     }

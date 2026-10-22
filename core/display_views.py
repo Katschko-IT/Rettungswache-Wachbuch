@@ -7,7 +7,7 @@ from functools import wraps
 
 from django.contrib import messages
 from django.core.cache import cache
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -133,6 +133,96 @@ def display_data(request):
     else:
         payload["layout_config"] = DEFAULT_DISPLAY_CONFIG
     return _harden(JsonResponse(payload))
+
+
+def notify_station_display(station_id: int):
+    """Signalisiert dem Wachen-Display via Redis Pub/Sub eine sofortige Aktualisierung."""
+    try:
+        from django.conf import settings
+
+        redis_url = getattr(settings, "REDIS_URL", None)
+        if redis_url:
+            import redis
+
+            r = redis.from_url(redis_url)
+            r.publish(f"station_display_{station_id}", "refresh")
+    except Exception:
+        pass
+
+
+@require_GET
+@never_cache
+def display_stream(request):
+    """Server-Sent Events (SSE) Live-Stream für Wandmonitore (< 100ms Latenz)."""
+    import json
+    import time
+    from django.conf import settings
+
+    station, token_record = _station_and_token_for_request(request)
+    if station is None:
+        return _harden(HttpResponse("kein Zugang", status=403, content_type="text/plain"))
+
+    def stream_generator():
+        payload = display_payload(station)
+        payload["app_version"] = _app_version()
+        if token_record and getattr(token_record, "layout_config", None):
+            payload["layout_config"] = token_record.layout_config
+        else:
+            payload["layout_config"] = DEFAULT_DISPLAY_CONFIG
+
+        yield f"event: update\ndata: {json.dumps(payload)}\n\n"
+
+        sub = None
+        redis_url = getattr(settings, "REDIS_URL", None)
+        if redis_url:
+            try:
+                import redis
+
+                r = redis.from_url(redis_url)
+                sub = r.pubsub(ignore_subscribe_messages=True)
+                sub.subscribe(f"station_display_{station.id}")
+            except Exception:
+                sub = None
+
+        last_ping = time.time()
+        last_poll = time.time()
+        last_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+        for _ in range(3600):
+            got_redis_msg = False
+            if sub:
+                try:
+                    msg = sub.get_message(timeout=1.0)
+                    if msg and msg.get("type") == "message":
+                        got_redis_msg = True
+                except Exception:
+                    time.sleep(1.0)
+            else:
+                time.sleep(1.0)
+
+            now = time.time()
+            if now - last_ping >= 15.0:
+                yield f'event: ping\ndata: {{"time": {int(now)}}}\n\n'
+                last_ping = now
+
+            if got_redis_msg or (now - last_poll >= 30.0):
+                payload = display_payload(station)
+                payload["app_version"] = _app_version()
+                payload["layout_config"] = (
+                    token_record.layout_config
+                    if (token_record and getattr(token_record, "layout_config", None))
+                    else DEFAULT_DISPLAY_CONFIG
+                )
+                current_h = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+                if got_redis_msg or current_h != last_hash:
+                    last_hash = current_h
+                    yield f"event: update\ndata: {json.dumps(payload)}\n\n"
+                last_poll = now
+
+    response = StreamingHttpResponse(stream_generator(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache, no-transform"
+    response["X-Accel-Buffering"] = "no"
+    return response
 
 
 def _app_version() -> str:
