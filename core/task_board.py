@@ -114,9 +114,33 @@ def day_board(station, work_date: date):
     done_count = 0
     for task in tasks:
         completion = done_map.get((task.pk, work_date))
+        if not completion and task.repeat == StationTask.Repeat.ONCE and task.due_date:
+            completion = task.completions.first()
         if completion:
             done_count += 1
-        groups[task.band].append({"task": task, "completion": completion})
+        groups[task.band].append({
+            "task": task,
+            "completion": completion,
+            "urgency": task.get_urgency(work_date),
+        })
+
+    def _urgency_sort_key(item):
+        is_done = 1 if item["completion"] else 0
+        urg = item["urgency"]
+        level_map = {
+            "overdue": 0,
+            "critical": 1,
+            "warning": 2,
+            "ok": 3,
+            "none": 4,
+        }
+        level_order = level_map.get(urg.get("level"), 4)
+        days = urg.get("days_left") if urg.get("days_left") is not None else 9999
+        return (is_done, level_order, days, item["task"].sort_order, item["task"].title)
+
+    for band in groups:
+        groups[band].sort(key=_urgency_sort_key)
+
     total = len(tasks)
     return {
         "work_date": work_date,
@@ -147,7 +171,13 @@ def week_board(station, any_day: date):
             if not task.applies_to_date(day):
                 continue
             completion = done_map.get((task.pk, day))
-            day_tasks.append({"task": task, "completion": completion})
+            if not completion and task.repeat == StationTask.Repeat.ONCE and task.due_date:
+                completion = task.completions.first()
+            day_tasks.append({
+                "task": task,
+                "completion": completion,
+                "urgency": task.get_urgency(day),
+            })
         columns.append({
             "date": day,
             "is_today": day == timezone.localdate(),

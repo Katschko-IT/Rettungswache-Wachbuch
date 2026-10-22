@@ -533,6 +533,7 @@ class StationTaskForm(forms.ModelForm):
             "month_day",
             "start_date",
             "end_date",
+            "due_date",
             "notes",
             "sort_order",
             "is_active",
@@ -546,6 +547,7 @@ class StationTaskForm(forms.ModelForm):
             "month_day": "Tag im Monat",
             "start_date": "Erster Termin",
             "end_date": "Letzter Termin",
+            "due_date": "Fälligkeits- / Ablaufdatum",
             "notes": "Hinweis",
             "sort_order": "Reihenfolge",
             "is_active": "Aktiv",
@@ -555,6 +557,7 @@ class StationTaskForm(forms.ModelForm):
             "color": "Hex-Wert, z. B. #1f7a4d. Leer lassen für die Bereichsfarbe.",
             "repeat": "Einmalig, täglich, wöchentlich oder monatlich.",
             "repeat_interval": "1 = jede Woche, 2 = jede zweite Woche, 3 = jede dritte Woche …",
+            "due_date": "Optionales Enddatum mit Ampel-Dringlichkeit (grün > 5 Tage, gelb ≤ 5 Tage, rot ≤ 2 Tage).",
         }
         field_order = [
             "title",
@@ -567,6 +570,7 @@ class StationTaskForm(forms.ModelForm):
             "month_day",
             "start_date",
             "end_date",
+            "due_date",
             "notes",
             "sort_order",
             "is_active",
@@ -578,6 +582,7 @@ class StationTaskForm(forms.ModelForm):
             }),
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "end_date": forms.DateInput(attrs={"type": "date"}),
+            "due_date": forms.DateInput(attrs={"type": "date"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -604,6 +609,7 @@ class StationTaskForm(forms.ModelForm):
             "month_day",
             "start_date",
             "end_date",
+            "due_date",
             "notes",
             "sort_order",
             "is_active",
@@ -614,16 +620,22 @@ class StationTaskForm(forms.ModelForm):
         cleaned = super().clean()
         repeat = cleaned.get("repeat") or StationTask.Repeat.DAILY
         days = cleaned.get("weekdays_selected") or []
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
+        due = cleaned.get("due_date")
         if repeat == StationTask.Repeat.WEEKLY and not days:
             self.add_error("weekdays_selected", "Bitte mindestens einen Wochentag wählen.")
         if repeat == StationTask.Repeat.MONTHLY and not cleaned.get("month_day"):
             self.add_error("month_day", "Bitte einen Tag im Monat angeben (1–31).")
-        if repeat == StationTask.Repeat.ONCE and not cleaned.get("start_date"):
+        if repeat == StationTask.Repeat.ONCE and not start and not due:
             self.add_error("start_date", "Einmalige Aufgaben brauchen ein Datum.")
-        start = cleaned.get("start_date")
-        end = cleaned.get("end_date")
+        if repeat == StationTask.Repeat.ONCE and not start and due:
+            cleaned["start_date"] = due
+            start = due
         if start and end and end < start:
             self.add_error("end_date", "Der letzte Termin liegt vor dem ersten.")
+        if start and due and due < start:
+            self.add_error("due_date", "Das Fälligkeitsdatum liegt vor dem ersten Termin.")
         if cleaned.get("use_band_color"):
             cleaned["color"] = ""
         color = (cleaned.get("color") or "").strip()

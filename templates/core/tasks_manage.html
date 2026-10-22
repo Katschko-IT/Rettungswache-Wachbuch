@@ -22,6 +22,7 @@
           <small>
             {% if task.weekday is not None %}{{ task.get_weekday_display }} · {% endif %}
             {% if task.is_active %}{% translate "Aktiv" %}{% else %}{% translate "Inaktiv" %}{% endif %}
+            {% if task.due_date %} · <span class="urgency-pill {{ task.urgency.badge_class }}"><span class="urgency-dot"></span>{{ task.urgency.label }} ({{ task.due_date|date:"d.m.Y" }})</span>{% endif %}
             {% if task.notes %} · {{ task.notes|truncatechars:80 }}{% endif %}
           </small>
         </span>

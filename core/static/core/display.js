@@ -135,6 +135,32 @@
       bar.style.width = percent + "%";
     }
     text(root, "[data-display-tasks-detail]", done + " von " + total + " erledigt");
+    var urgentEl = root.querySelector("[data-display-tasks-urgent]");
+    if (urgentEl) {
+      urgentEl.textContent = "";
+      if (tasks && Array.isArray(tasks.urgent_items) && tasks.urgent_items.length > 0) {
+        tasks.urgent_items.forEach(function (item) {
+          var row = document.createElement("div");
+          row.style.borderLeft = "3px solid " + (item.color || "#e11d48");
+          row.style.paddingLeft = "6px";
+          row.style.margin = "4px 0";
+          row.style.fontSize = "0.85rem";
+          var strong = document.createElement("strong");
+          strong.textContent = item.title;
+          var span = document.createElement("span");
+          span.style.color = item.color || "#e11d48";
+          span.style.fontWeight = "600";
+          span.style.marginLeft = "4px";
+          span.textContent = "(" + item.label + ")";
+          row.appendChild(strong);
+          row.appendChild(span);
+          urgentEl.appendChild(row);
+        });
+        show(urgentEl, true);
+      } else {
+        show(urgentEl, false);
+      }
+    }
   }
 
   function renderWeather(root, weather) {

@@ -545,6 +545,11 @@ class StationTask(models.Model):
         blank=True,
         help_text="Letzter möglicher Termin (optional).",
     )
+    due_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Fälligkeits- oder Ablaufdatum für Dringlichkeits-Ampel.",
+    )
     notes = models.CharField(max_length=240, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=100)
     is_active = models.BooleanField(default=True)
@@ -562,6 +567,8 @@ class StationTask(models.Model):
         # nur die Prüfung, die ohne Formularkontext immer gilt.
         if self.start_date and self.end_date and self.end_date < self.start_date:
             raise ValidationError({"end_date": "Der letzte Termin liegt vor dem ersten."})
+        if self.start_date and self.due_date and self.due_date < self.start_date:
+            raise ValidationError({"due_date": "Das Fälligkeitsdatum liegt vor dem ersten Termin."})
 
     def weekday_list(self):
         """Wochentage als Liste von 0 (Montag) bis 6 (Sonntag)."""
@@ -591,6 +598,15 @@ class StationTask(models.Model):
         interval = max(1, self.repeat_interval or 1)
         anchor = self.start_date
         if repeat == self.Repeat.ONCE:
+            if self.due_date:
+                if anchor:
+                    if anchor <= work_date <= self.due_date:
+                        return True
+                else:
+                    if work_date <= self.due_date:
+                        return True
+                if work_date > self.due_date:
+                    return not self.completions.filter(work_date__lte=work_date).exists()
             return anchor == work_date
         if repeat == self.Repeat.DAILY:
             if anchor is None:
@@ -615,6 +631,82 @@ class StationTask(models.Model):
             months = (work_date.year - anchor.year) * 12 + (work_date.month - anchor.month)
             return months >= 0 and months % interval == 0
         return True
+
+    def get_urgency(self, reference_date=None):
+        """
+        Berechnet die Dringlichkeits-Ampel bezogen auf ein Referenzdatum (Standard: heute).
+        Schwellenwerte:
+          - 'overdue' (Dunkelrot): Ablaufdatum überschritten (< 0 Tage)
+          - 'critical' (Rot): Fällig in 0 bis 2 Tagen (akut)
+          - 'warning' (Gelb): Fällig in 3 bis 5 Tagen (Vorwarnung)
+          - 'ok' (Grün): Mehr als 5 Tage Zeit (im Plan)
+          - 'none': Kein Ablaufdatum
+        """
+        if not self.due_date:
+            return {
+                "has_due": False,
+                "level": "none",
+                "badge_class": "",
+                "color": "",
+                "days_left": None,
+                "label": "",
+                "is_urgent": False,
+            }
+        ref = reference_date or timezone.localdate()
+        diff = (self.due_date - ref).days
+        if diff < 0:
+            days = abs(diff)
+            unit = "Tag" if days == 1 else "Tagen"
+            label = f"Seit {days} {unit} überfällig!"
+            return {
+                "has_due": True,
+                "level": "overdue",
+                "badge_class": "urgency-overdue",
+                "color": "#dc2626",
+                "days_left": diff,
+                "label": label,
+                "is_urgent": True,
+            }
+        elif diff <= 2:
+            if diff == 0:
+                label = "Heute fällig!"
+            elif diff == 1:
+                label = "Morgen fällig!"
+            else:
+                label = f"In {diff} Tagen fällig"
+            return {
+                "has_due": True,
+                "level": "critical",
+                "badge_class": "urgency-critical",
+                "color": "#e11d48",
+                "days_left": diff,
+                "label": label,
+                "is_urgent": True,
+            }
+        elif diff <= 5:
+            return {
+                "has_due": True,
+                "level": "warning",
+                "badge_class": "urgency-warning",
+                "color": "#d97706",
+                "days_left": diff,
+                "label": f"Fällig in {diff} Tagen",
+                "is_urgent": False,
+            }
+        else:
+            return {
+                "has_due": True,
+                "level": "ok",
+                "badge_class": "urgency-ok",
+                "color": "#16a34a",
+                "days_left": diff,
+                "label": f"Noch {diff} Tage",
+                "is_urgent": False,
+            }
+
+    @property
+    def urgency(self):
+        return self.get_urgency()
 
     @property
     def display_color(self):

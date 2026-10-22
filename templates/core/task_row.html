@@ -1,7 +1,20 @@
 {% load i18n %}
-<article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}"{% if item.task.color %} style="--band: {{ item.task.color }};"{% endif %}>
+<article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}{% if item.urgency.has_due and not item.completion %} {{ item.urgency.badge_class }}{% endif %}"{% if item.task.color %} style="--band: {{ item.task.color }};"{% endif %}>
   <div class="task-main">
     <span class="status-label {% if item.completion %}success{% else %}neutral{% endif %}">{% if item.completion %}{% translate "Erledigt" %}{% else %}{% translate "Offen" %}{% endif %}</span>
+    {% if item.urgency.has_due %}
+      {% if not item.completion %}
+        <span class="urgency-pill {{ item.urgency.badge_class }}" title="{% translate 'Fällig am' %} {{ item.task.due_date|date:'d.m.Y' }}">
+          <span class="urgency-dot" aria-hidden="true"></span>
+          {{ item.urgency.label }}
+        </span>
+      {% else %}
+        <span class="urgency-pill urgency-done" title="{% translate 'Fällig am' %} {{ item.task.due_date|date:'d.m.Y' }}">
+          <span class="urgency-dot" aria-hidden="true"></span>
+          {% translate "Frist" %}: {{ item.task.due_date|date:'d.m.Y' }}
+        </span>
+      {% endif %}
+    {% endif %}
     <div>
       <strong>{{ item.task.title }}</strong>
       {% if item.task.notes %}<small>{{ item.task.notes }}</small>{% endif %}

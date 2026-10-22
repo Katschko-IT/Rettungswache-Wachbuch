@@ -56,13 +56,27 @@ def display_payload(station) -> dict:
                 "title": item.title[:60],
             })
 
-    tasks = {"total": 0, "done": 0, "open": 0}
+    tasks = {"total": 0, "done": 0, "open": 0, "urgent_count": 0, "urgent_items": []}
     if station.tasks_enabled:
         board = day_board(station, day)
+        urgent_items = []
+        for grp in board["groups"].values():
+            for itm in grp:
+                if not itm.get("completion") and itm.get("urgency", {}).get("has_due"):
+                    urg = itm["urgency"]
+                    if urg.get("is_urgent") or urg.get("level") in ("overdue", "critical", "warning"):
+                        urgent_items.append({
+                            "title": itm["task"].title[:45],
+                            "label": urg["label"],
+                            "level": urg["level"],
+                            "color": urg["color"],
+                        })
         tasks = {
             "total": board["total"],
             "done": board["done_count"],
             "open": board["open_count"],
+            "urgent_count": len(urgent_items),
+            "urgent_items": urgent_items[:5],
         }
 
     urgent = (
