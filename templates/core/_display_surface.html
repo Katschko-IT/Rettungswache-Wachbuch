@@ -3,7 +3,7 @@
 <div class="display-vignette" aria-hidden="true"></div>
 
 <main class="display-grid" data-display-grid>
-  <!-- Region Top: Links (Uhr), Mitte (Station), Rechts (Wetter) -->
+  {# Region Top: Links (Uhr), Mitte (Station), Rechts (Wetter) #}
   <header class="display-header display-region region-top" data-region="top_left">
     <div class="display-clock-block" data-module-container="clock">
       <p class="display-clock" data-display-clock>--:--</p>
@@ -15,7 +15,7 @@
     <div class="display-region region-top-right" data-region="top_right"></div>
   </header>
 
-  <!-- Region Middle-Left -->
+  {# Region Middle-Left #}
   <section class="display-column display-column-wide display-region" data-region="middle_left">
     <div data-module-container="events">
       <h2 class="display-heading" data-module-heading="events">{% translate "Heute" %}</h2>
@@ -28,7 +28,7 @@
     </div>
   </section>
 
-  <!-- Region Middle-Center -->
+  {# Region Middle-Center #}
   <section class="display-column display-region" data-region="middle_center">
     {% if display_station.tasks_enabled %}
     <div data-module-container="tasks">
@@ -38,12 +38,12 @@
         <span class="display-progress-bar" data-display-progress></span>
       </div>
       <p class="display-sub" data-display-tasks-detail></p>
-      <div data-display-tasks-urgent class="display-tasks-urgent" style="margin-top: 0.5rem;" hidden></div>
+      <div data-display-tasks-urgent class="display-tasks-urgent ms-fc215b9" hidden></div>
     </div>
     {% endif %}
   </section>
 
-  <!-- Region Middle-Right -->
+  {# Region Middle-Right #}
   <section class="display-column display-region" data-region="middle_right">
     <div data-module-container="weather">
       <h2 class="display-heading" data-module-heading="weather">{% translate "Wetter" %}</h2>
@@ -59,7 +59,7 @@
     </div>
   </section>
 
-  <!-- Region Traffic Strip (optional) -->
+  {# Region Traffic Strip (optional) #}
   {% if display_station.traffic_enabled %}
   <section class="display-traffic-strip display-region" data-display-traffic-section data-region="middle_traffic" hidden>
     <div data-module-container="traffic">
@@ -69,7 +69,7 @@
   </section>
   {% endif %}
 
-  <!-- Region Bottom: Left, Center, Right, Bar -->
+  {# Region Bottom: Left, Center, Right, Bar #}
   <footer class="display-footer display-region" data-region="bottom_bar">
     <div data-module-container="urgent_handovers">
       <p class="display-urgent" data-display-urgent-block hidden>

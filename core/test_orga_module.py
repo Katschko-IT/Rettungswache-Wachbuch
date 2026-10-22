@@ -53,7 +53,7 @@ class OrgaModuleTests(TestCase):
         # Quittieren
         ack_resp = self.client.post(reverse("sop_acknowledge", args=[sop.slug]), follow=True)
         self.assertEqual(ack_resp.status_code, 200)
-        self.assertContains(ack_resp, "Kenntnisnahme rechtssicher quittiert")
+        self.assertContains(ack_resp, "Kenntnisnahme quittiert")
 
         # Verification
         self.assertTrue(sop.user_has_acknowledged(self.user))

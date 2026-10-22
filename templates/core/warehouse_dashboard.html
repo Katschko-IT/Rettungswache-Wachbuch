@@ -9,7 +9,7 @@
     <h1>{% translate "Lager & Material" %}</h1>
     <p class="lead">{% translate "FEFO-Prinzip (First Expired, First Out), dynamische Kühlketten-Haltbarkeit und Chargenüberwachung." %}</p>
   </div>
-  <div class="page-actions-bar" style="margin: 0;">
+  <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}
       <a class="button" href="{% url 'warehouse_item_create' %}">
         <span class="icon" aria-hidden="true">➕</span> {% translate "Neuer Artikel" %}
@@ -18,30 +18,30 @@
     <a class="button secondary" href="{% url 'warehouse_reorder_proposal' %}">
       <span class="icon" aria-hidden="true">📋</span> {% translate "Bestellschein" %}
     </a>
-    <a class="button secondary" href="{% url 'warehouse_batch_recall' %}" style="color: #dc2626;">
+    <a class="button secondary ms-1280362" href="{% url 'warehouse_batch_recall' %}">
       <span class="icon" aria-hidden="true">🚨</span> {% translate "BfArM-Rückruf-Filter" %}
     </a>
     <a class="button secondary" href="{% url 'warehouse_export_fefo' %}">
       <span class="icon" aria-hidden="true">📥</span> {% translate "FEFO-Bestand (CSV)" %}
     </a>
-    <button type="button" class="button secondary" onclick="document.getElementById('scanner-modal').style.display='flex'">
+    <button type="button" class="button secondary" data-modal-open="scanner-modal">
       <span class="icon" aria-hidden="true">📷</span> {% translate "GS1-Scanner" %}
     </button>
   </div>
 </header>
 
-<!-- 5-Stufen FEFO & Nachbestell-Radar KPI Board -->
+{# 5-Stufen FEFO & Nachbestell-Radar KPI Board #}
 <div class="kpi-grid">
   <div class="kpi-card{% if overdue_count or recalled_count %} border-danger{% endif %}">
     <span class="kpi-value text-danger">{{ overdue_count|add:recalled_count }}</span>
     <span class="kpi-label">{% translate "Abgelaufen / Gesperrt" %}</span>
   </div>
   <div class="kpi-card{% if critical_count %} border-warning{% endif %}">
-    <span class="kpi-value" style="color: #ea580c;">{{ critical_count }}</span>
+    <span class="kpi-value ms-f24f64e">{{ critical_count }}</span>
     <span class="kpi-label">{% translate "Verfällt ≤ 30 Tage" %}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value" style="color: #ca8a04;">{{ warning_count }}</span>
+    <span class="kpi-value ms-69caa73">{{ warning_count }}</span>
     <span class="kpi-label">{% translate "Vorwarnung 31–90 Tage" %}</span>
   </div>
   <div class="kpi-card">
@@ -49,13 +49,13 @@
     <span class="kpi-label">{% translate "Haltbar > 90 Tage" %}</span>
   </div>
   <div class="kpi-card{% if low_stock_count %} border-warning{% endif %}">
-    <span class="kpi-value" style="color: #2563eb;">{{ low_stock_count }}</span>
+    <span class="kpi-value ms-518b095">{{ low_stock_count }}</span>
     <span class="kpi-label">{% translate "Unter Mindestbestand" %}</span>
   </div>
 </div>
 
-<!-- Filter & Suchleiste -->
-<nav class="filter-nav" aria-label="{% translate 'Lageransicht' %}" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+{# Filter & Suchleiste #}
+<nav class="filter-nav ms-8580457" aria-label="{% translate 'Lageransicht' %}">
   <a href="?filter=all{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Artikel" %} ({{ items|length }})</a>
   <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}>🚨 {% translate "Akut fällig / Abgelaufen" %} ({{ overdue_count|add:critical_count }})</a>
   <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}>⚠️ {% translate "Vorwarnung 31–90 Tage" %} ({{ warning_count }})</a>
@@ -63,10 +63,10 @@
   <a href="?filter=recalled{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'recalled' %}aria-current="page"{% endif %}>⛔ {% translate "Gesperrte Rückrufe" %} ({{ recalled_count }})</a>
 </nav>
 
-<form method="get" class="search-form" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+<form method="get" class="search-form ms-06174bc">
   <input type="hidden" name="filter" value="{{ filter_mode }}">
-  <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Artikelname, PZN, GTIN, Lot-Nr...' %}" style="flex: 1; min-width: 240px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px;">
-  <select name="category" onchange="this.form.submit()" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+  <input class="ms-3069a23" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Artikelname, PZN, GTIN, Lot-Nr...' %}">
+  <select class="ms-1e5879f" name="category" data-auto-submit>
     <option value="">{% translate "Alle Kategorien" %}</option>
     {% for cat_key, cat_label in categories %}
       <option value="{{ cat_key }}" {% if category == cat_key %}selected{% endif %}>{{ cat_label }}</option>
@@ -78,68 +78,68 @@
   {% endif %}
 </form>
 
-<!-- Artikelliste mit FEFO-Status -->
+{# Artikelliste mit FEFO-Status #}
 <section class="section-block">
   <h2>📦 {% translate "Materialbestand & FEFO-Verfallsstatus" %}</h2>
   
   <div class="item-list">
     {% for item in items %}
       {% with eb=item.earliest_batch %}
-      <div class="list-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); {% if eb and eb.urgency.level == 'overdue' %}border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.04);{% elif eb and eb.urgency.level == 'critical' %}border-left: 4px solid #f97316; background: rgba(249, 115, 22, 0.04);{% elif eb and eb.urgency.level == 'warning' %}border-left: 4px solid #eab308;{% endif %}">
+      <div class="list-row module-row{% if eb and eb.urgency.level == 'overdue' %} module-row-overdue{% elif eb and eb.urgency.level == 'critical' %} module-row-critical{% elif eb and eb.urgency.level == 'warning' %} module-row-warning{% endif %}">
         
-        <div style="flex: 2; min-width: 220px;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <strong><a href="{% url 'warehouse_item_detail' item.slug %}" style="font-size: 1.05rem; text-decoration: none; color: var(--text-color);">{{ item.name }}</a></strong>
-            <span class="badge" style="font-size: 0.75rem; background: var(--bg-hover);">{{ item.get_category_display }}</span>
+        <div class="ms-50f3efa">
+          <div class="ms-756d4ee">
+            <strong><a class="ms-ec76253" href="{% url 'warehouse_item_detail' item.slug %}">{{ item.name }}</a></strong>
+            <span class="badge ms-8b85496">{{ item.get_category_display }}</span>
             {% if item.requires_cooling %}
-              <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem;">❄️ 2–8 °C{% if item.room_temp_max_days %} (RT max. {{ item.room_temp_max_days }}d){% endif %}</span>
+              <span class="badge ms-cde6877">❄️ 2–8 °C{% if item.room_temp_max_days %} (RT max. {{ item.room_temp_max_days }}d){% endif %}</span>
             {% endif %}
           </div>
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+          <small class="ms-236cf06">
             {% if item.pzn %}PZN: {{ item.pzn }} &middot; {% endif %}
             {% if item.gtin %}GTIN: {{ item.gtin }} &middot; {% endif %}
             {{ item.batches.count }} {% translate "aktive Charge(n)" %}
           </small>
         </div>
 
-        <!-- Bestandsanzeige -->
-        <div style="flex: 1.2; min-width: 140px;">
-          <div style="font-weight: bold; font-size: 1.1rem; {% if item.is_under_min_stock %}color: #dc2626;{% else %}color: #16a34a;{% endif %}">
+        {# Bestandsanzeige #}
+        <div class="ms-1e8ea8e">
+          <div class="stock-figure {% if item.is_under_min_stock %}stock-low{% else %}stock-ok{% endif %}">
             {{ item.total_stock }} {{ item.get_unit_display }}
           </div>
-          <small style="color: var(--text-muted);">
+          <small class="ms-3dca5e5">
             Min: {{ item.min_stock }} / Soll: {{ item.target_stock }}
             {% if item.is_under_min_stock %}
-              <span class="badge" style="background: #fee2e2; color: #991b1b; font-size: 0.7rem; margin-left: 0.25rem;">Bestellen</span>
+              <span class="badge ms-e0949c8">Bestellen</span>
             {% endif %}
           </small>
         </div>
 
-        <!-- Nächstes FEFO-Ablaufdatum -->
-        <div style="flex: 1.5; min-width: 180px;">
+        {# Nächstes FEFO-Ablaufdatum #}
+        <div class="ms-07f320a">
           {% if eb %}
             {% with urg=eb.urgency %}
               {% if urg.level == 'recalled' %}
-                <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 9999px;">{{ urg.label }}</span>
+                <span class="badge ms-af9a0a3">{{ urg.label }}</span>
               {% elif urg.level == 'overdue' %}
-                <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 9999px;">🔴 {{ urg.label }}</span>
+                <span class="badge ms-af9a0a3">🔴 {{ urg.label }}</span>
               {% elif urg.level == 'critical' %}
-                <span class="badge" style="background: #ffedd5; color: #9a3412; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 9999px;">🟠 {{ urg.label }}</span>
+                <span class="badge ms-28671ec">🟠 {{ urg.label }}</span>
               {% elif urg.level == 'warning' %}
-                <span class="badge" style="background: #fef9c3; color: #854d0e; font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 9999px;">🟡 {{ urg.label }}</span>
+                <span class="badge ms-d86b0ad">🟡 {{ urg.label }}</span>
               {% else %}
-                <span class="badge" style="background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 9999px;">🟢 {{ urg.label }}</span>
+                <span class="badge ms-0389136">🟢 {{ urg.label }}</span>
               {% endif %}
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+              <div class="ms-9ba66e9">
                 FEFO-Lot: <code>{{ eb.batch_number }}</code>
               </div>
             {% endwith %}
           {% else %}
-            <span style="color: var(--text-muted); font-size: 0.85rem;"><em>{% translate "Kein Bestand / Keine Charge" %}</em></span>
+            <span class="ms-351e7ae"><em>{% translate "Kein Bestand / Keine Charge" %}</em></span>
           {% endif %}
         </div>
 
-        <!-- Aktionen -->
+        {# Aktionen #}
         <div>
           <a href="{% url 'warehouse_item_detail' item.slug %}" class="button secondary small">
             {% translate "Chargen & Lager" %} →
@@ -160,8 +160,8 @@
   </div>
 </section>
 
-<!-- Buchungsjournal (Letzte Bewegungen) -->
-<section class="section-block" style="margin-top: 2rem;">
+{# Buchungsjournal (Letzte Bewegungen) #}
+<section class="section-block ms-daaaf95">
   <h3>📋 {% translate "Letzte Materialbewegungen (Audit-Journal)" %}</h3>
   <div class="item-list">
     {% for m in recent_movements %}
@@ -184,113 +184,33 @@
   </div>
 </section>
 
-<!-- Modal: Zero-Install GS1-DataMatrix Barcode-Scanner -->
-<div id="scanner-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
-  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 480px; width: 100%; padding: 1.5rem; position: relative;">
-    <h3 style="margin-top: 0;">📷 {% translate "GS1-DataMatrix / Barcode scannen" %}</h3>
-    <p style="font-size: 0.9rem; color: var(--text-muted);">
+{# Modal: Zero-Install GS1-DataMatrix Barcode-Scanner #}
+<div id="scanner-modal" class="wb-modal" hidden role="dialog" aria-modal="true" data-scanner data-scanner-gs1 data-scanner-search="{% url 'warehouse_dashboard' %}" data-scanner-formats="data_matrix,qr_code,ean_13,code_128" data-msg-active="{% translate 'Kamera aktiv - Barcode fokussieren' %}" data-msg-detected="{% translate 'Erkannt: ' %}" data-msg-manual="{% translate 'Kamera nicht verfügbar. Bitte manuell eingeben.' %}" data-msg-denied="{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}">
+  <div class="ms-988625a">
+    <h3 class="ms-ec0f7ff">📷 {% translate "GS1-DataMatrix / Barcode scannen" %}</h3>
+    <p class="ms-b2b8c2f">
       {% translate "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und Standard-Barcodes (EAN/GTIN)." %}
     </p>
 
-    <div style="background: #000; border-radius: 8px; overflow: hidden; height: 260px; position: relative; display: flex; align-items: center; justify-content: center;">
-      <video id="gs1-video" style="width: 100%; height: 100%; object-fit: cover;"></video>
-      <div id="gs1-status" style="position: absolute; bottom: 8px; color: white; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+    <div class="ms-f3972cb">
+      <video class="ms-b19d6a5" id="gs1-video" data-scanner-video muted></video>
+      <div class="ms-3694989" id="gs1-status" data-scanner-status role="status">
         {% translate "Kamera wird initialisiert..." %}
       </div>
     </div>
 
-    <div style="margin-top: 1rem;">
-      <label for="manual-pzn" style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 0.25rem;">{% translate "Manuelle PZN / Lot-Suche:" %}</label>
-      <div style="display: flex; gap: 0.5rem;">
-        <input type="text" id="manual-pzn" placeholder="z. B. PZN oder Lot-Nr." style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
-        <button type="button" class="button" onclick="window.location.href='?q=' + encodeURIComponent(document.getElementById('manual-pzn').value)">{% translate "Suchen" %}</button>
+    <div class="ms-a6cb65c">
+      <label class="ms-e575c43" for="manual-pzn">{% translate "Manuelle PZN / Lot-Suche:" %}</label>
+      <div class="ms-b378622">
+        <input class="ms-023bb84" type="text" id="manual-pzn" data-scanner-input placeholder="z. B. PZN oder Lot-Nr.">
+        <button type="button" class="button" data-scanner-submit>{% translate "Suchen" %}</button>
       </div>
     </div>
 
-    <div style="margin-top: 1.25rem; text-align: right;">
-      <button type="button" class="button secondary" onclick="closeGS1Scanner()">{% translate "Schließen" %}</button>
+    <div class="ms-c9c355d">
+      <button type="button" class="button secondary" data-modal-close>{% translate "Schließen" %}</button>
     </div>
   </div>
 </div>
 
-<script>
-let gs1Stream = null;
-
-function closeGS1Scanner() {
-  document.getElementById('scanner-modal').style.display = 'none';
-  if (gs1Stream) {
-    gs1Stream.getTracks().forEach(track => track.stop());
-    gs1Stream = null;
-  }
-}
-
-document.getElementById('scanner-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeGS1Scanner();
-});
-
-const gs1Observer = new MutationObserver(function(mutations) {
-  mutations.forEach(function(m) {
-    if (m.target.style.display === 'flex' && !gs1Stream) {
-      startGS1Camera();
-    }
-  });
-});
-gs1Observer.observe(document.getElementById('scanner-modal'), { attributes: true, attributeFilter: ['style'] });
-
-// Parser für GS1 Application Identifier (AI) Formate
-function parseGS1(raw) {
-  let gtin = '';
-  let lot = '';
-  let exp = '';
-  
-  if (raw.includes('(01)') || raw.startsWith('01')) {
-    const gtinMatch = raw.match(/\(01\)(\d{14})|01(\d{14})/);
-    if (gtinMatch) gtin = gtinMatch[1] || gtinMatch[2];
-  }
-  if (raw.includes('(17)') || raw.includes('17')) {
-    const expMatch = raw.match(/\(17\)(\d{6})|17(\d{6})/);
-    if (expMatch) exp = expMatch[1] || expMatch[2];
-  }
-  if (raw.includes('(10)')) {
-    const lotMatch = raw.match(/\(10\)([^\(\)]+)/);
-    if (lotMatch) lot = lotMatch[1];
-  }
-  return { gtin, lot, exp, raw };
-}
-
-async function startGS1Camera() {
-  const statusEl = document.getElementById('gs1-status');
-  const video = document.getElementById('gs1-video');
-  try {
-    gs1Stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    video.srcObject = gs1Stream;
-    video.setAttribute('playsinline', true);
-    await video.play();
-    statusEl.textContent = "{% translate 'Kamera aktiv - Barcode fokussieren' %}";
-
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats: ['data_matrix', 'qr_code', 'ean_13', 'code_128'] });
-      const interval = setInterval(async () => {
-        if (!gs1Stream) {
-          clearInterval(interval);
-          return;
-        }
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length > 0) {
-            clearInterval(interval);
-            const val = codes[0].rawValue;
-            const parsed = parseGS1(val);
-            const searchVal = parsed.gtin || parsed.lot || val;
-            statusEl.textContent = "{% translate 'Erkannt: ' %}" + searchVal;
-            window.location.href = '?q=' + encodeURIComponent(searchVal);
-          }
-        } catch (err) {}
-      }, 300);
-    }
-  } catch (err) {
-    statusEl.textContent = "{% translate 'Kamerazugriff nicht verfügbar.' %}";
-  }
-}
-</script>
 {% endblock %}

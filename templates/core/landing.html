@@ -37,6 +37,7 @@
 
 {% if demo_mode %}
 <section class="landing-scope demo-accounts" aria-labelledby="landing-demo">
+  <p class="context-line">{% translate "Demo-Modus" %} &middot; {% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</p>
   <h2 id="landing-demo">{% translate "Demo-Zugang" %}</h2>
   <p class="lead">{% translate "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin." %}</p>
   <form method="post" action="{% url 'demo_login' %}" class="form-actions">

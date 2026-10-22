@@ -60,6 +60,7 @@ def mpg_dashboard(request):
     if query:
         devices_qs = devices_qs.filter(
             Q(name__icontains=query)
+            | Q(slug__iexact=query)
             | Q(model_type__icontains=query)
             | Q(serial_number__icontains=query)
             | Q(inventory_number__icontains=query)

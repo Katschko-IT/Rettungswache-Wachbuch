@@ -47,6 +47,8 @@ jobs:
         run: |
           node --check core/static/core/app.js
           node --check core/static/core/json_data.js
+          node --check core/static/core/ui.js
+          node --check core/static/core/display.js
       - name: Check i18n catalogs and checked-in .mo files
         run: python scripts/i18n_catalog.py check
       - name: Test fail-closed Dependabot gate offline on every PR

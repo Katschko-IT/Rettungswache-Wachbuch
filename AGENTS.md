@@ -84,7 +84,13 @@ Für Frontend-Änderungen zusätzlich:
 ```bash
 node --check core/static/core/app.js
 node --check core/static/core/json_data.js
+node --check core/static/core/ui.js
 ```
+
+Templates enthalten keine Inline-Skripte, keine `on…=`-Handler und keine
+`style`-Attribute (CSP ohne `unsafe-inline`; geprüft durch
+`core/test_csp_templates.py`). Verhalten über `data-*`-Attribute in
+`core/static/core/ui.js`, Gestaltung über `app.css`/`modules.css`.
 
 Vor Produktion bleiben Browser-, Screenreader-, Last-, Restore- und externe
 Sicherheitstests gemaess Roadmap und Go-live-Checkliste erforderlich.

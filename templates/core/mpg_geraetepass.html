@@ -3,71 +3,71 @@
 {% block title %}{% translate "Digitaler Gerätepass & Einweisungsmatrix" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+<nav class="breadcrumb-nav ms-c2c0d0a">
   <a href="{% url 'mpg_dashboard' %}">← {% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 
 <header class="page-heading">
   <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "MPBetreibV § 10 & § 11" %}</p>
   <h1>{% translate "Digitaler Gerätepass & Einweisungen" %}</h1>
-  <p class="lead">{% translate "Rechtssicherer Nachweis über Anwender- und Multiplikatoreneinweisungen für das gesamte Wachenteam." %}</p>
+  <p class="lead">{% translate "Übersicht der dokumentierten Anwender- und Multiplikatoreneinweisungen des Wachenteams." %}</p>
 </header>
 
-<!-- Persönlicher Gerätepass -->
-<section class="section-block" style="margin-bottom: 2rem;">
+{# Persönlicher Gerätepass #}
+<section class="section-block ms-e705884">
   <h2>🪪 {% translate "Mein persönlicher Gerätepass" %} ({{ request.user.get_full_name|default:request.user.username }})</h2>
-  <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+  <p class="ms-9e7f8b2">
     {% translate "Für folgende Medizinprodukte ist deine ordnungsgemäße Einweisung im System hinterlegt:" %}
   </p>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+  <div class="ms-957df39">
     {% for t in my_trainings %}
-      <div class="kpi-card" style="border-left: 4px solid #16a34a; text-align: left;">
-        <div style="display: flex; justify-content: space-between; align-items: start;">
-          <strong style="font-size: 1.05rem;">
-            <a href="{% url 'mpg_device_detail' t.device.slug %}" style="text-decoration: none; color: inherit;">
+      <div class="kpi-card ms-5d2d94f">
+        <div class="ms-ed310ac">
+          <strong class="ms-98d7a3b">
+            <a class="ms-c52f902" href="{% url 'mpg_device_detail' t.device.slug %}">
               {{ t.device.name }}
             </a>
           </strong>
-          <span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.75rem;">✅ Gültig</span>
+          <span class="badge ms-f8e4950">✅ Gültig</span>
         </div>
-        <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+        <small class="ms-236cf06">
           {{ t.device.get_category_display }} &middot; 📍 {{ t.device.location }}
         </small>
-        <div style="font-size: 0.85rem; margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+        <div class="ms-2047041">
           <div>{% translate "Schulungsdatum:" %} <strong>{{ t.trained_at|date:"d.m.Y" }}</strong></div>
           <div>{% translate "Einweiser:" %} {{ t.instructor }}</div>
-          {% if t.notes %}<div style="color: var(--text-muted); font-size: 0.8rem;">{{ t.notes }}</div>{% endif %}
+          {% if t.notes %}<div class="ms-544c382">{{ t.notes }}</div>{% endif %}
         </div>
       </div>
     {% empty %}
-      <p class="empty-state" style="grid-column: 1 / -1;">
+      <p class="empty-state ms-a66f410">
         {% translate "Für deinen Benutzer sind aktuell keine Geräteeinweisungen eingetragen. Bitte wende dich an den MPG-Beauftragten deiner Wache." %}
       </p>
     {% endfor %}
   </div>
 </section>
 
-<!-- Wachen-Einweisungsmatrix -->
+{# Wachen-Einweisungsmatrix #}
 <section class="section-block">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
+  <div class="ms-12ce447">
     <h2>📊 {% translate "Wachen-Einweisungsmatrix (Compliance-Übersicht)" %}</h2>
-    <span class="badge" style="font-size: 0.85rem;">{{ devices|length }} {% translate "aktive Geräte" %}</span>
+    <span class="badge ms-ae1d0ea">{{ devices|length }} {% translate "aktive Geräte" %}</span>
   </div>
 
-  <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px;">
-    <table class="table-compact" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+  <div class="ms-48a9de0">
+    <table class="table-compact ms-70a53b7">
       <thead>
-        <tr style="background: var(--bg-hover); border-bottom: 2px solid var(--border-color);">
-          <th style="padding: 0.6rem; text-align: left; position: sticky; left: 0; background: var(--bg-hover); z-index: 10; min-width: 180px;">
+        <tr class="ms-59d0223">
+          <th class="ms-8949c34">
             {% translate "Mitarbeiter" %}
           </th>
-          <th style="padding: 0.6rem; text-align: center; min-width: 80px;">
+          <th class="ms-69e0cd2">
             {% translate "Quote" %}
           </th>
           {% for device in devices %}
-            <th style="padding: 0.6rem; text-align: center; min-width: 110px; border-left: 1px solid var(--border-color);" title="{{ device.name }} ({{ device.location }})">
-              <a href="{% url 'mpg_device_detail' device.slug %}" style="text-decoration: none; color: inherit;">
+            <th class="ms-969181d" title="{{ device.name }} ({{ device.location }})">
+              <a class="ms-c52f902" href="{% url 'mpg_device_detail' device.slug %}">
                 {{ device.name|truncatechars:18 }}
               </a>
             </th>
@@ -76,23 +76,23 @@
       </thead>
       <tbody>
         {% for row in matrix %}
-          <tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 0.6rem; font-weight: bold; position: sticky; left: 0; background: var(--bg-card); z-index: 5;">
+          <tr class="ms-4f4b83d">
+            <td class="ms-0b58f72">
               {{ row.user.get_full_name|default:row.user.username }}
             </td>
-            <td style="padding: 0.6rem; text-align: center;">
-              <span class="badge" style="{% if row.trained_count == total_devices_count %}background: #dcfce7; color: #166534;{% else %}background: var(--bg-hover);{% endif %}">
+            <td class="ms-f4b8c03">
+              <span class="badge {% if row.trained_count == total_devices_count %}badge-pass{% else %}badge-neutral{% endif %}">
                 {{ row.trained_count }} / {{ total_devices_count }}
               </span>
             </td>
             {% for item in row.items %}
-              <td style="padding: 0.6rem; text-align: center; border-left: 1px solid var(--border-color);">
+              <td class="ms-b9d958f">
                 {% if item.is_trained %}
-                  <span title="{% translate 'Eingewiesen am:' %} {{ item.record.trained_at|date:'d.m.Y' }} ({% translate 'Einweiser:' %} {{ item.record.instructor }})" style="color: #16a34a; font-size: 1.1rem; cursor: help;">
+                  <span class="ms-26ec8fb" title="{% translate 'Eingewiesen am:' %} {{ item.record.trained_at|date:'d.m.Y' }} ({% translate 'Einweiser:' %} {{ item.record.instructor }})">
                     ✅
                   </span>
                 {% else %}
-                  <span title="{% translate 'Keine Einweisung dokumentiert' %}" style="color: var(--text-muted); font-size: 1.1rem;">
+                  <span class="ms-33ca83a" title="{% translate 'Keine Einweisung dokumentiert' %}">
                     &ndash;
                   </span>
                 {% endif %}
@@ -101,7 +101,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="{{ devices|length|add:2 }}" style="padding: 1.5rem; text-align: center;">
+            <td class="ms-c00866f" colspan="{{ devices|length|add:2 }}">
               {% translate "Keine Daten vorhanden." %}
             </td>
           </tr>

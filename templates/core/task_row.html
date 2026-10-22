@@ -1,5 +1,5 @@
 {% load i18n %}
-<article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}{% if item.urgency.has_due and not item.completion %} {{ item.urgency.badge_class }}{% endif %}"{% if item.task.color %} style="--band: {{ item.task.color }};"{% endif %}>
+<article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}{% if item.urgency.has_due and not item.completion %} {{ item.urgency.badge_class }}{% endif %}"{% if item.task.color %} data-band="{{ item.task.color }}"{% endif %}>
   <div class="task-main">
     <span class="status-label {% if item.completion %}success{% else %}neutral{% endif %}">{% if item.completion %}{% translate "Erledigt" %}{% else %}{% translate "Offen" %}{% endif %}</span>
     {% if item.urgency.has_due %}

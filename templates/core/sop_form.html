@@ -3,39 +3,39 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+<nav class="breadcrumb-nav ms-c2c0d0a">
   <a href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}">&larr; {% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">
   <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Dienstanweisungen & QM" %}</p>
   <h1>{{ title }}</h1>
-  <p class="lead">{% translate "Rechtssichere Dienstanweisung gem. ÄLRD-Freigabe, MPBetreibV oder DIN EN ISO 9001." %}</p>
+  <p class="lead">{% translate "Dienstanweisung mit Versionsstand und Freigabevermerk (z. B. ÄLRD, MPBetreibV, DIN EN ISO 9001)." %}</p>
 </header>
 
-<form method="post" class="form-card" style="max-width: 760px;">
+<form method="post" class="form-card ms-c06a247">
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-    <div class="alert danger" style="margin-bottom: 1rem;">
+    <div class="alert danger ms-c2c0d0a">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
-  <!-- Stammdaten -->
-  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
-    <legend style="font-weight: bold; padding: 0 0.5rem;">📋 {% translate "Metadaten & Gültigkeit" %}</legend>
+  {# Stammdaten #}
+  <fieldset class="ms-a86218f">
+    <legend class="ms-99216e8">📋 {% translate "Metadaten & Gültigkeit" %}</legend>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
+    <div class="ms-a7375ee">
       <div>
-        <label for="{{ form.doc_number.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.doc_number.id_for_label }}">
           {% translate "Dokumentennummer*" %}:
         </label>
         {{ form.doc_number }}
         {% if form.doc_number.errors %}<div class="form-error">{{ form.doc_number.errors }}</div>{% endif %}
       </div>
       <div>
-        <label for="{{ form.title.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.title.id_for_label }}">
           {% translate "Titel der Dienstanweisung*" %}:
         </label>
         {{ form.title }}
@@ -43,69 +43,69 @@
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div class="ms-3a847b4">
       <div>
-        <label for="{{ form.category.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.category.id_for_label }}">
           {% translate "Kategorie" %}:
         </label>
         {{ form.category }}
       </div>
       <div>
-        <label for="{{ form.status.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.status.id_for_label }}">
           {% translate "Status" %}:
         </label>
         {{ form.status }}
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div class="ms-3a847b4">
       <div>
-        <label for="{{ form.valid_from.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.valid_from.id_for_label }}">
           {% translate "Gültig ab" %}:
         </label>
         {{ form.valid_from }}
       </div>
       <div>
-        <label for="{{ form.review_due_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.review_due_date.id_for_label }}">
           {% translate "Review fällig am (QM)" %}:
         </label>
         {{ form.review_due_date }}
       </div>
     </div>
 
-    <div style="margin-top: 0.5rem;">
-      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500;">
+    <div class="ms-fc215b9">
+      <label class="ms-05bac03">
         {{ form.requires_acknowledgment }}
         <span>✍️ {% translate "Pflichtquittierung für Wachpersonal aktivieren" %}</span>
       </label>
     </div>
   </fieldset>
 
-  <!-- Initialer Inhalt (nur bei Neuanlage) -->
+  {# Initialer Inhalt (nur bei Neuanlage) #}
   {% if not sop %}
-  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
-    <legend style="font-weight: bold; padding: 0 0.5rem;">📝 {% translate "Erstfassung / Inhalt (Version 1.0)" %}</legend>
+  <fieldset class="ms-a86218f">
+    <legend class="ms-99216e8">📝 {% translate "Erstfassung / Inhalt (Version 1.0)" %}</legend>
     
-    <div style="margin-bottom: 1rem;">
-      <label for="{{ form.initial_version.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+    <div class="ms-c2c0d0a">
+      <label class="ms-0ab77d1" for="{{ form.initial_version.id_for_label }}">
         {% translate "Start-Versionsnummer" %}:
       </label>
       {{ form.initial_version }}
     </div>
 
     <div>
-      <label for="{{ form.initial_content.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+      <label class="ms-0ab77d1" for="{{ form.initial_content.id_for_label }}">
         {% translate "Text / Handlungsanweisung (Markdown)" %}:
       </label>
       {{ form.initial_content }}
-      <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+      <small class="ms-236cf06">
         {% translate "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen." %}
       </small>
     </div>
   </fieldset>
   {% endif %}
 
-  <div class="form-actions" style="display: flex; gap: 1rem;">
+  <div class="form-actions ms-e3a0adb">
     <button type="submit" class="button">{{ action_label }}</button>
     <a href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}" class="button secondary">{% translate "Abbrechen" %}</a>
   </div>

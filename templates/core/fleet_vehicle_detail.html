@@ -3,20 +3,20 @@
 {% block title %}{{ vehicle.call_sign }} ({{ vehicle.license_plate }}) | {{ app_name }}{% endblock %}
 
 {% block content %}
-<p class="breadcrumbs" style="margin-bottom: 0.75rem;">
+<p class="breadcrumbs ms-9420460">
   <a href="{% url 'fleet_dashboard' %}">&larr; {% translate "Zurück zur Fuhrpark-Übersicht" %}</a>
 </p>
 
-<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+<header class="page-heading heading-with-action ms-92cb257">
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ vehicle.get_vehicle_type_display }}</p>
-    <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+    <h1 class="ms-8fe430e">
       <span>{{ vehicle.call_sign }}</span>
-      <span class="badge" style="font-size: 1rem; background: var(--bg-hover);">{{ vehicle.license_plate }}</span>
+      <span class="badge ms-d65a16b">{{ vehicle.license_plate }}</span>
     </h1>
     <p class="lead">{{ vehicle.chassis_manufacturer }} &middot; Aufbau: {{ vehicle.body_manufacturer }}{% if vehicle.year_of_manufacture %} &middot; Baujahr {{ vehicle.year_of_manufacture }}{% endif %}</p>
   </div>
-  <div class="page-actions-bar" style="margin: 0;">
+  <div class="page-actions-bar ms-2a0ca83">
     {% if can_manage %}
       <a class="button secondary" href="{% url 'fleet_vehicle_edit' vehicle.slug %}">
         <span class="icon" aria-hidden="true">✏️</span> {% translate "Fahrzeug bearbeiten" %}
@@ -28,300 +28,300 @@
   </div>
 </header>
 
-<!-- Desinfektions-Sperr-Banner falls aktiv -->
+{# Desinfektions-Sperr-Banner falls aktiv #}
 {% if vehicle.is_disinfection_locked %}
-<div class="alert alert-warning" style="background: rgba(139, 92, 246, 0.15); border: 2px solid #8b5cf6; color: #5b21b6; padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
-  <div style="display: flex; align-items: center; gap: 0.75rem;">
-    <span style="font-size: 2rem;">⏳</span>
+<div class="alert alert-warning ms-6ff3bac">
+  <div class="ms-bb9e8c0">
+    <span class="ms-355e22a">⏳</span>
     <div>
-      <h3 style="margin: 0 0 0.25rem; color: #5b21b6;">{% translate "DESINFEKTIONS-EINWIRKZEIT LÄUFT" %}</h3>
-      <p style="margin: 0; font-weight: 500;">
-        {% translate "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis" %} <strong>{{ vehicle.disinfection_locked_until|date:"H:i" }} Uhr</strong> {% translate "gesperrt. Eine Freigabe auf Status 1 oder 2 ist vor Ablauf der Einwirkzeit blockiert." %}
+      <h3 class="ms-b15edf5">{% translate "DESINFEKTIONS-EINWIRKZEIT LÄUFT" %}</h3>
+      <p class="ms-c472370">
+        {% blocktranslate with until=vehicle.disinfection_locked_until|date:"H:i" %}Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>{{ until }} Uhr</strong> gesperrt. Eine Freigabe auf Status 1 oder 2 ist vor Ablauf der Einwirkzeit blockiert.{% endblocktranslate %}
       </p>
     </div>
   </div>
 </div>
 {% endif %}
 
-<!-- Taktischer BOS-Status Changer -->
-<section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+{# Taktischer BOS-Status Changer #}
+<section class="section-block ms-59028bf">
+  <div class="ms-b1b392f">
     <div>
-      <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">{% translate "Aktueller Taktischer BOS-Status" %}</span>
-      <div style="font-size: 1.5rem; font-weight: bold; margin-top: 0.25rem;">
+      <span class="ms-a0b58dc">{% translate "Aktueller Taktischer BOS-Status" %}</span>
+      <div class="ms-24e190b">
         {% if vehicle.tactical_status == '1' %}
           <span class="text-success">🟢 {{ vehicle.get_tactical_status_display }}</span>
         {% elif vehicle.tactical_status == '2' %}
-          <span style="color: #0891b2;">🔵 {{ vehicle.get_tactical_status_display }}</span>
+          <span class="ms-a3361e8">🔵 {{ vehicle.get_tactical_status_display }}</span>
         {% elif vehicle.tactical_status == '3' or vehicle.tactical_status == '4' %}
-          <span style="color: #d97706;">🟡 {{ vehicle.get_tactical_status_display }}</span>
+          <span class="ms-5a2c8fa">🟡 {{ vehicle.get_tactical_status_display }}</span>
         {% elif vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
-          <span style="color: #7c3aed;">🟣 {{ vehicle.get_tactical_status_display }}</span>
+          <span class="ms-277c7e4">🟣 {{ vehicle.get_tactical_status_display }}</span>
         {% elif vehicle.tactical_status == 'workshop' %}
           <span class="text-danger">🔧 {{ vehicle.get_tactical_status_display }}</span>
         {% else %}
-          <span style="color: #64748b;">⚪ {{ vehicle.get_tactical_status_display }}</span>
+          <span class="ms-a6f4814">⚪ {{ vehicle.get_tactical_status_display }}</span>
         {% endif %}
       </div>
       {% if vehicle.status_note %}
-        <p style="margin: 0.25rem 0 0; font-size: 0.9rem; color: var(--text-muted); font-style: italic;">
+        <p class="ms-b2996c1">
           {{ vehicle.status_note }}
         </p>
       {% endif %}
     </div>
 
-    <!-- Status Change Schnell-Buttons -->
-    <form method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    {# Status Change Schnell-Buttons #}
+    <form class="ms-9cdc00f" method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
       {% csrf_token %}
-      <button type="submit" name="status" value="1" class="button secondary small" {% if vehicle.tactical_status == '1' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="1" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '1' %}disabled{% endif %}>
         🟢 1: Wache
       </button>
-      <button type="submit" name="status" value="2" class="button secondary small" {% if vehicle.tactical_status == '2' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="2" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '2' %}disabled{% endif %}>
         🔵 2: Funk
       </button>
-      <button type="submit" name="status" value="3" class="button secondary small" {% if vehicle.tactical_status == '3' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="3" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '3' %}disabled{% endif %}>
         🟡 3: Anfahrt
       </button>
-      <button type="submit" name="status" value="4" class="button secondary small" {% if vehicle.tactical_status == '4' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="4" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '4' %}disabled{% endif %}>
         📍 4: Einsatzort
       </button>
-      <button type="submit" name="status" value="disinfection" class="button secondary small" {% if vehicle.tactical_status == 'disinfection' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="disinfection" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == 'disinfection' %}disabled{% endif %}>
         🟣 Desinfektion
       </button>
-      <button type="submit" name="status" value="workshop" class="button secondary small" {% if vehicle.tactical_status == 'workshop' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="workshop" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == 'workshop' %}disabled{% endif %}>
         🔧 Werkstatt
       </button>
-      <button type="submit" name="status" value="6" class="button secondary small" {% if vehicle.tactical_status == '6' %}disabled style="opacity: 0.6;"{% endif %}>
+      <button type="submit" name="status" value="6" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '6' %}disabled{% endif %}>
         ⚪ 6: Außer Dienst
       </button>
     </form>
   </div>
 </section>
 
-<!-- Füllstände & Fristenübersicht Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-  <!-- Telemetrie / Füllstände -->
-  <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
-    <h3 style="margin-top: 0;">📊 {% translate "Füllstände & Telemetrie" %}</h3>
-    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+{# Füllstände & Fristenübersicht Grid #}
+<div class="ms-eac2322">
+  {# Telemetrie / Füllstände #}
+  <div class="ms-89be969">
+    <h3 class="ms-ec0f7ff">📊 {% translate "Füllstände & Telemetrie" %}</h3>
+    <div class="ms-bea22e2">
       <div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.25rem;">
+        <div class="ms-5666b94">
           <span>⛽ {% translate "Kraftstoff" %}:</span>
           <strong>{{ vehicle.fuel_level_percent }} %</strong>
         </div>
-        <div style="background: var(--border-color); height: 10px; border-radius: 5px; overflow: hidden;">
-          <div style="height: 100%; width: {{ vehicle.fuel_level_percent }}%; background: {% if vehicle.fuel_level_percent < 30 %}#ef4444{% elif vehicle.fuel_level_percent < 50 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+        <div class="ms-d4b471a">
+          <div class="gauge-fill {% if vehicle.fuel_level_percent < 30 %}gauge-red{% elif vehicle.fuel_level_percent < 50 %}gauge-amber{% else %}gauge-green{% endif %}" data-bar="{{ vehicle.fuel_level_percent }}"></div>
         </div>
       </div>
       <div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.25rem;">
+        <div class="ms-5666b94">
           <span>🫁 {% translate "Sauerstoff O₂" %}:</span>
           <strong>{{ vehicle.o2_pressure_bar }} bar</strong>
         </div>
-        <div style="background: var(--border-color); height: 10px; border-radius: 5px; overflow: hidden;">
-          <div style="height: 100%; width: {% widthratio vehicle.o2_pressure_bar 200 100 %}%; background: {% if vehicle.o2_pressure_bar < 100 %}#ef4444{% elif vehicle.o2_pressure_bar < 150 %}#f59e0b{% else %}#06b6d4{% endif %};"></div>
+        <div class="ms-d4b471a">
+          <div class="gauge-fill {% if vehicle.o2_pressure_bar < 100 %}gauge-red{% elif vehicle.o2_pressure_bar < 150 %}gauge-amber{% else %}gauge-cyan{% endif %}" data-bar="{% widthratio vehicle.o2_pressure_bar 200 100 %}"></div>
         </div>
       </div>
       <div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.25rem;">
+        <div class="ms-5666b94">
           <span>💧 {% translate "AdBlue" %}:</span>
           <strong>{{ vehicle.adblue_level_percent }} %</strong>
         </div>
-        <div style="background: var(--border-color); height: 10px; border-radius: 5px; overflow: hidden;">
-          <div style="height: 100%; width: {{ vehicle.adblue_level_percent }}%; background: {% if vehicle.adblue_level_percent < 25 %}#ef4444{% else %}#3b82f6{% endif %};"></div>
+        <div class="ms-d4b471a">
+          <div class="gauge-fill {% if vehicle.adblue_level_percent < 25 %}gauge-red{% else %}gauge-blue{% endif %}" data-bar="{{ vehicle.adblue_level_percent }}"></div>
         </div>
       </div>
-      <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; font-size: 0.9rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
-        <span style="color: var(--text-muted);">{% translate "Kilometerstand" %}:</span>
+      <div class="ms-1f96b21">
+        <span class="ms-3dca5e5">{% translate "Kilometerstand" %}:</span>
         <strong>{{ vehicle.current_mileage }} km</strong>
       </div>
     </div>
   </div>
 
-  <!-- Gesetzliche Fristen (§ 29 StVZO, UVV DGUV 70, Tragentisch) -->
-  <div style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
-    <h3 style="margin-top: 0;">🛡️ {% translate "Gesetzliche Fristen & Prüfungen" %}</h3>
-    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
-      <li style="display: flex; justify-content: space-between; align-items: center;">
+  {# Gesetzliche Fristen (§ 29 StVZO, UVV DGUV 70, Tragentisch) #}
+  <div class="ms-89be969">
+    <h3 class="ms-ec0f7ff">🛡️ {% translate "Gesetzliche Fristen & Prüfungen" %}</h3>
+    <ul class="ms-8afeede">
+      <li class="ms-f120801">
         <span>{% translate "Hauptuntersuchung (§ 29 StVZO)" %}:</span>
         <strong>{{ vehicle.next_hu_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
       </li>
-      <li style="display: flex; justify-content: space-between; align-items: center;">
+      <li class="ms-f120801">
         <span>{% translate "UVV-Prüfung (DGUV Vorschrift 70)" %}:</span>
         <strong>{{ vehicle.next_uvv_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
       </li>
-      <li style="display: flex; justify-content: space-between; align-items: center;">
+      <li class="ms-f120801">
         <span>{% translate "Tragentisch 10g (DIN EN 1789)" %}:</span>
         <strong>{{ vehicle.next_stretcher_service_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
       </li>
-      <li style="display: flex; justify-content: space-between; align-items: center;">
+      <li class="ms-f120801">
         <span>{% translate "Letzte Desinfektion" %}:</span>
         <strong>{{ vehicle.last_disinfection|date:"d.m.Y H:i"|default:"Kein Nachweis" }}</strong>
       </li>
-      <li style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
-        <span style="color: var(--text-muted);">{% translate "Gesamtstatus Fristenampel" %}:</span>
+      <li class="ms-87983a4">
+        <span class="ms-3dca5e5">{% translate "Gesamtstatus Fristenampel" %}:</span>
         {% if vehicle.urgency.level == 'overdue' %}
-          <span class="badge border-danger" style="color: #dc2626; font-weight: bold; margin-left: 0.5rem;">⛔ {{ vehicle.urgency.label }}</span>
+          <span class="badge border-danger ms-7c3dc80">⛔ {{ vehicle.urgency.label }}</span>
         {% elif vehicle.urgency.level == 'critical' %}
-          <span class="badge border-warning" style="color: #ea580c; font-weight: bold; margin-left: 0.5rem;">⚠️ {{ vehicle.urgency.label }}</span>
+          <span class="badge border-warning ms-78c9859">⚠️ {{ vehicle.urgency.label }}</span>
         {% elif vehicle.urgency.level == 'warning' %}
-          <span class="badge" style="color: #ca8a04; font-weight: bold; margin-left: 0.5rem;">⏳ {{ vehicle.urgency.label }}</span>
+          <span class="badge ms-e115a90">⏳ {{ vehicle.urgency.label }}</span>
         {% else %}
-          <span class="badge text-success" style="margin-left: 0.5rem;">✅ {{ vehicle.urgency.label }}</span>
+          <span class="badge text-success ms-b87ae90">✅ {{ vehicle.urgency.label }}</span>
         {% endif %}
       </li>
     </ul>
   </div>
 </div>
 
-<!-- Tabs für Express-Aktionen (Schichtübernahme, Desinfektion, Mangel) -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-  <!-- 3-Minuten Schichtübernahme -->
-  <section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
-    <h2 style="font-size: 1.25rem; margin-top: 0;">⏱️ {% translate "3-Minuten Schichtübernahme" %}</h2>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+{# Tabs für Express-Aktionen (Schichtübernahme, Desinfektion, Mangel) #}
+<div class="ms-6b52158">
+  {# 3-Minuten Schichtübernahme #}
+  <section class="section-block ms-89be969">
+    <h2 class="ms-e767ca2">⏱️ {% translate "3-Minuten Schichtübernahme" %}</h2>
+    <p class="ms-665382c">
       {% translate "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung." %}
     </p>
 
     <form method="post" action="{% url 'fleet_vehicle_handover_create' vehicle.slug %}">
       {% csrf_token %}
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="ms-e8fa32b">
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "km-Stand" %}</label>
+          <label class="ms-f0a8344">{% translate "km-Stand" %}</label>
           {{ handover_form.mileage }}
         </div>
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "O₂ Druck (bar)" %}</label>
+          <label class="ms-f0a8344">{% translate "O₂ Druck (bar)" %}</label>
           {{ handover_form.o2_pressure_bar }}
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="ms-e8fa32b">
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Tank (%)" %}</label>
+          <label class="ms-f0a8344">{% translate "Tank (%)" %}</label>
           {{ handover_form.fuel_percent }}
         </div>
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "AdBlue (%)" %}</label>
+          <label class="ms-f0a8344">{% translate "AdBlue (%)" %}</label>
           {{ handover_form.adblue_percent }}
         </div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 0.4rem; margin: 1rem 0; font-size: 0.875rem;">
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+      <div class="ms-f8c36c2">
+        <label class="ms-111ff30">
           {{ handover_form.btm_seal_intact }}
           <span>🛡️ {% translate "BTM-Plombe unversehrt & geprüft" %}</span>
         </label>
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <label class="ms-111ff30">
           {{ handover_form.medical_devices_checked }}
           <span>🩺 {% translate "Medizingeräte Selbsttests (Corpuls/Medumat) OK" %}</span>
         </label>
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <label class="ms-111ff30">
           {{ handover_form.vehicle_clean }}
           <span>✨ {% translate "Patientenraum & Fahrerkabine einsatzklar/sauber" %}</span>
         </label>
       </div>
 
-      <div style="margin-bottom: 1rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Bemerkung" %}</label>
+      <div class="ms-c2c0d0a">
+        <label class="ms-f0a8344">{% translate "Bemerkung" %}</label>
         {{ handover_form.notes }}
       </div>
 
-      <button type="submit" class="button" style="width: 100%;">
+      <button type="submit" class="button ms-16000cc">
         ✅ {% translate "Schichtübernahme bestätigen" %}
       </button>
     </form>
   </section>
 
-  <!-- RKI Desinfektionsprotokoll & Sperrtimer -->
-  <section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
-    <h2 style="font-size: 1.25rem; margin-top: 0;">🧼 {% translate "RKI-Desinfektionsprotokoll" %}</h2>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+  {# RKI Desinfektionsprotokoll & Sperrtimer #}
+  <section class="section-block ms-89be969">
+    <h2 class="ms-e767ca2">🧼 {% translate "RKI-Desinfektionsprotokoll" %}</h2>
+    <p class="ms-665382c">
       {% translate "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer." %}
     </p>
 
     <form method="post" action="{% url 'fleet_vehicle_disinfection_create' vehicle.slug %}">
       {% csrf_token %}
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
         {{ disinfection_form.disinfectant }}
       </div>
 
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Art der Desinfektion" %}</label>
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Art der Desinfektion" %}</label>
         {{ disinfection_form.kind }}
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="ms-e8fa32b">
         <div>
-          <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Einwirkzeit (Min)" %}</label>
+          <label class="ms-f0a8344">{% translate "Einwirkzeit (Min)" %}</label>
           {{ disinfection_form.exposure_minutes }}
         </div>
-        <div style="display: flex; align-items: flex-end; padding-bottom: 0.5rem;">
-          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem;">
+        <div class="ms-4107a1a">
+          <label class="ms-3de17c7">
             {{ disinfection_form.lock_timer_applied }}
             <span>⏳ {% translate "Sperrtimer aktivieren" %}</span>
           </label>
         </div>
       </div>
 
-      <div style="margin-bottom: 1rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Bemerkung / Transportgrund" %}</label>
+      <div class="ms-c2c0d0a">
+        <label class="ms-f0a8344">{% translate "Bemerkung / Transportgrund" %}</label>
         {{ disinfection_form.notes }}
       </div>
 
-      <button type="submit" class="button secondary" style="width: 100%; border-color: #8b5cf6; color: #7c3aed;">
+      <button type="submit" class="button secondary ms-d3c6298">
         🟣 {% translate "Desinfektion starten & Fahrzeug sperren" %}
       </button>
     </form>
   </section>
 
-  <!-- Mangel an Fahrzeug melden -->
-  <section class="section-block" style="background: var(--bg-card); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color);">
-    <h2 style="font-size: 1.25rem; margin-top: 0;">🔧 {% translate "Werkstattmangel melden" %}</h2>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+  {# Mangel an Fahrzeug melden #}
+  <section class="section-block ms-89be969">
+    <h2 class="ms-e767ca2">🔧 {% translate "Werkstattmangel melden" %}</h2>
+    <p class="ms-665382c">
       {% translate "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt." %}
     </p>
 
     <form method="post" action="{% url 'fleet_vehicle_defect_report' vehicle.slug %}">
       {% csrf_token %}
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Betreff des Mangels" %}</label>
-        <input type="text" name="title" value="Mangel an {{ vehicle.call_sign }}" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Betreff des Mangels" %}</label>
+        <input class="ms-ac90647" type="text" name="title" value="Mangel an {{ vehicle.call_sign }}" required>
       </div>
 
-      <div style="margin-bottom: 0.75rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Dringlichkeit" %}</label>
-        <select name="priority" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <div class="ms-9420460">
+        <label class="ms-f0a8344">{% translate "Dringlichkeit" %}</label>
+        <select class="ms-ac90647" name="priority">
           <option value="normal">{% translate "Normal (bei nächster Wartung)" %}</option>
           <option value="important" selected>{% translate "Wichtig (zeitnah instandsetzen)" %}</option>
           <option value="urgent">🚨 {% translate "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)" %}</option>
         </select>
       </div>
 
-      <div style="margin-bottom: 1rem;">
-        <label style="font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">{% translate "Genaue Beschreibung" %}</label>
-        <textarea name="description" rows="3" placeholder="{% translate 'Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit...' %}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;"></textarea>
+      <div class="ms-c2c0d0a">
+        <label class="ms-f0a8344">{% translate "Genaue Beschreibung" %}</label>
+        <textarea class="ms-ac90647" name="description" rows="3" placeholder="{% translate 'Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit...' %}"></textarea>
       </div>
 
-      <button type="submit" class="button secondary" style="width: 100%; border-color: #ef4444; color: #dc2626;">
+      <button type="submit" class="button secondary ms-5a2bcea">
         ⚠️ {% translate "Mangel erfassen" %}
       </button>
     </form>
   </section>
 </div>
 
-<!-- Protokoll-Historie: Schichtübernahmen & Desinfektionsbuch -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
-  <!-- Letzte Schichtübernahmen -->
+{# Protokoll-Historie: Schichtübernahmen & Desinfektionsbuch #}
+<div class="ms-8dd4329">
+  {# Letzte Schichtübernahmen #}
   <section class="section-block">
     <h3>📋 {% translate "Letzte Schichtübernahmen" %}</h3>
     <div class="item-list">
       {% for h in handovers %}
-        <div class="list-row" style="padding: 0.75rem;">
+        <div class="list-row ms-9f10e42">
           <span class="row-content">
             <strong>{{ h.performed_at|date:"d.m.Y H:i" }} Uhr &middot; {{ h.crew_member.get_full_name|default:h.crew_member.username }}</strong>
-            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+            <small class="ms-e62ef52">
               {{ h.mileage }} km &middot; ⛽ {{ h.fuel_percent }}% &middot; 🫁 {{ h.o2_pressure_bar }} bar &middot; 💧 {{ h.adblue_percent }}%
               {% if h.notes %}<br><em>{{ h.notes }}</em>{% endif %}
             </small>
@@ -334,20 +334,20 @@
     </div>
   </section>
 
-  <!-- RKI Desinfektionsbuch Historie -->
+  {# RKI Desinfektionsbuch Historie #}
   <section class="section-block">
     <h3>🧼 {% translate "Desinfektionsbuch-Historie" %}</h3>
     <div class="item-list">
       {% for d in disinfections %}
-        <div class="list-row" style="padding: 0.75rem;">
+        <div class="list-row ms-9f10e42">
           <span class="row-content">
             <strong>{{ d.started_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
-            <small style="display: block; color: var(--text-muted); margin-top: 0.2rem;">
+            <small class="ms-e62ef52">
               {{ d.get_kind_display }} &middot; Mittel: {{ d.disinfectant.name }} ({{ d.exposure_minutes }} Min)
               {% if d.notes %}<br><em>{{ d.notes }}</em>{% endif %}
             </small>
           </span>
-          <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #7c3aed;">{% translate "RKI-konform" %}</span>
+          <span class="badge ms-c8f60af">{% translate "RKI-konform" %}</span>
         </div>
       {% empty %}
         <p class="empty-state">{% translate "Noch keine Desinfektionen protokolliert." %}</p>

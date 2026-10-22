@@ -17,9 +17,9 @@
     </div>
   {% endif %}
 
-  <!-- Sektion 1: Modulare Bausteine & Zonen nach MagicMirror-Prinzip -->
+  {# Sektion 1: Modulare Bausteine & Zonen nach MagicMirror-Prinzip #}
   <section class="section-block">
-    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+    <div class="ms-3d1e2db">
       <h2>{% translate "Modulare Bausteine & Bildschirmzonen" %}</h2>
       <span class="status-label neutral">
         {% blocktranslate with active=active_modules_count total=module_rows|length %}{{ active }}/{{ total }} Bausteine aktiv{% endblocktranslate %}
@@ -29,7 +29,7 @@
       {% translate "Wähle aus, welche Bausteine auf den Wandmonitoren sichtbar sein sollen, in welche Bildschirmzone sie gehören und gib ihnen bei Bedarf eine eigene Überschrift." %}
     </p>
 
-    <form method="post" class="card" style="margin-top: 1rem;">
+    <form method="post" class="card ms-a6cb65c">
       {% csrf_token %}
       <input type="hidden" name="action" value="save_modules">
 
@@ -37,7 +37,7 @@
         <table class="table">
           <thead>
             <tr>
-              <th style="width: 70px; text-align: center;">{% translate "Aktiv" %}</th>
+              <th class="ms-f7fd355">{% translate "Aktiv" %}</th>
               <th>{% translate "Baustein / Modul" %}</th>
               <th>{% translate "Bildschirm-Zone" %}</th>
               <th>{% translate "Eigener Titel" %}</th>
@@ -46,25 +46,25 @@
           <tbody>
             {% for row in module_rows %}
             <tr>
-              <td style="text-align: center; vertical-align: middle;">
+              <td class="ms-184f191">
                 <input type="checkbox" name="mod_{{ row.id }}_enabled" value="1" id="chk_def_{{ row.id }}"
                   {% if row.enabled %}checked{% endif %}>
               </td>
-              <td style="vertical-align: middle;">
+              <td class="ms-55e7f2a">
                 <label for="chk_def_{{ row.id }}">
-                  <span style="font-size: 1.15rem; margin-right: 0.35rem;">{{ row.icon }}</span>
+                  <span class="ms-188820d">{{ row.icon }}</span>
                   <strong>{{ row.name }}</strong>
                 </label>
                 {% if row.desc %}<br><small class="text-muted">{{ row.desc }}</small>{% endif %}
               </td>
-              <td style="vertical-align: middle;">
+              <td class="ms-55e7f2a">
                 <select name="mod_{{ row.id }}_pos" class="form-select">
                   {% for p_key, p_label in positions %}
                   <option value="{{ p_key }}" {% if row.position == p_key %}selected{% endif %}>{{ p_label }}</option>
                   {% endfor %}
                 </select>
               </td>
-              <td style="vertical-align: middle;">
+              <td class="ms-55e7f2a">
                 <input type="text" name="mod_{{ row.id }}_header" class="form-input" 
                   value="{{ row.header }}" placeholder="{% translate 'Standard-Titel' %}" maxlength="80">
               </td>
@@ -74,13 +74,13 @@
         </table>
       </div>
 
-      <div class="form-actions" style="margin-top: 1.25rem;">
+      <div class="form-actions ms-0ea6527">
         <button type="submit" class="button primary">{% translate "Modul-Konfiguration für Wachen-Display speichern" %}</button>
       </div>
     </form>
   </section>
 
-  <!-- Sektion 2: Vorhandene Monitore & Bildschirme -->
+  {# Sektion 2: Vorhandene Monitore & Bildschirme #}
   <section class="section-block">
     <h2>{% translate "Verbundene Monitore & Bildschirm-Links" %}</h2>
     {% if tokens %}
@@ -95,7 +95,7 @@
               </p>
             </div>
             {% if token.is_active %}
-              <div class="token-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+              <div class="token-actions ms-522b387">
                 <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% translate "Individuell anpassen" %}</a>
                 <form method="post" action="{% url 'display_token_revoke' token.pk %}">
                   {% csrf_token %}
@@ -113,7 +113,7 @@
     {% endif %}
   </section>
 
-  <!-- Sektion 3: Neuen Wandmonitor anbinden -->
+  {# Sektion 3: Neuen Wandmonitor anbinden #}
   <section class="section-block">
     <h2>{% translate "Neuen Monitor verbinden" %}</h2>
     <form method="post" action="{% url 'display_token_create' %}" class="content-flow">

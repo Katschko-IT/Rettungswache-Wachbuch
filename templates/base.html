@@ -20,6 +20,7 @@
   <link rel="apple-touch-icon" href="{% static 'core/icons/icon-192.png' %}">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'core/app.css' %}">
+  <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'core/crypto_unlock.css' %}">
   {% block extra_css %}{% endblock %}
@@ -79,7 +80,7 @@
           </a>
         {% else %}
           {% for item in nav_conf.entries %}
-            <a style="order: {{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
+            <a data-order="{{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
               {% if item.key == 'overview' %}<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>{% endif %}
               <span>{{ item.label }}{% if item.key == 'handovers' and nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
             </a>
@@ -133,6 +134,7 @@
   <script src="{% static 'core/json_data.js' %}" defer></script>
   <script src="{% static 'core/crypto_unlock.js' %}" defer></script>
   <script src="{% static 'core/app.js' %}" defer></script>
+  <script src="{% static 'core/ui.js' %}" defer></script>
   {% if current_membership %}<script src="{% static 'core/display.js' %}" defer></script>{% endif %}
 </body>
 </html>

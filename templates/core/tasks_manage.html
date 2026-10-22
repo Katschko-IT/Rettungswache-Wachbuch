@@ -16,7 +16,7 @@
   <div class="item-list">
     {% for task in page_obj %}
       <a class="list-row" href="{% url 'task_edit' task.pk %}">
-        <span class="status-label {{ task.band_css }}"{% if task.color %} style="--band: {{ task.color }};"{% endif %}>{{ task.get_band_display }}</span>
+        <span class="status-label {{ task.band_css }}"{% if task.color %} data-band="{{ task.color }}"{% endif %}>{{ task.get_band_display }}</span>
         <span class="row-content">
           <strong>{{ task.title }}</strong>
           <small>

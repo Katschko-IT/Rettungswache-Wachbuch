@@ -3,7 +3,7 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+<nav class="breadcrumb-nav ms-c2c0d0a">
   <a href="{% url 'sop_detail' sop.slug %}">&larr; {% translate "Zurück zur SOP" %}</a>
 </nav>
 
@@ -13,53 +13,53 @@
   <p class="lead">{% translate "Veröffentlicht eine neue Version. Nach Freigabe müssen alle Mitarbeiter die neue Version erneut quittieren." %}</p>
 </header>
 
-<form method="post" class="form-card" style="max-width: 760px;">
+<form method="post" class="form-card ms-c06a247">
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-    <div class="alert danger" style="margin-bottom: 1rem;">
+    <div class="alert danger ms-c2c0d0a">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
-  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
-    <legend style="font-weight: bold; padding: 0 0.5rem;">🔄 {% translate "Revisions-Details & Inkrafttreten" %}</legend>
+  <fieldset class="ms-a86218f">
+    <legend class="ms-99216e8">🔄 {% translate "Revisions-Details & Inkrafttreten" %}</legend>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div class="ms-3a847b4">
       <div>
-        <label for="{{ form.version_label.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.version_label.id_for_label }}">
           {% translate "Neue Versionsnummer*" %}:
         </label>
         {{ form.version_label }}
-        <small style="color: var(--text-muted); display: block;">{% translate "Bisherige Version: v" %}{{ sop.current_version }}</small>
+        <small class="ms-b0a14b6">{% translate "Bisherige Version: v" %}{{ sop.current_version }}</small>
       </div>
       <div>
-        <label for="{{ form.effective_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        <label class="ms-0ab77d1" for="{{ form.effective_date.id_for_label }}">
           {% translate "Inkrafttreten*" %}:
         </label>
         {{ form.effective_date }}
       </div>
     </div>
 
-    <div style="margin-bottom: 1rem;">
-      <label for="{{ form.change_summary.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+    <div class="ms-c2c0d0a">
+      <label class="ms-0ab77d1" for="{{ form.change_summary.id_for_label }}">
         {% translate "Änderungsbegründung / Changelog*" %}:
       </label>
       {{ form.change_summary }}
     </div>
 
     <div>
-      <label for="{{ form.content_markdown.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+      <label class="ms-0ab77d1" for="{{ form.content_markdown.id_for_label }}">
         {% translate "Aktualisierter Volltext (Markdown)*" %}:
       </label>
       {{ form.content_markdown }}
-      <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+      <small class="ms-236cf06">
         {% translate "Ein neuer kryptographischer SHA-256 Prüfsummen-Hash wird automatisch generiert." %}
       </small>
     </div>
   </fieldset>
 
-  <div class="form-actions" style="display: flex; gap: 1rem;">
+  <div class="form-actions ms-e3a0adb">
     <button type="submit" class="button">{% translate "Revision freigeben & veröffentlichen" %}</button>
     <a href="{% url 'sop_detail' sop.slug %}" class="button secondary">{% translate "Abbrechen" %}</a>
   </div>

@@ -65,6 +65,7 @@ def fleet_dashboard(request):
     if query:
         vehicles_qs = vehicles_qs.filter(
             Q(call_sign__icontains=query)
+            | Q(slug__iexact=query)
             | Q(license_plate__icontains=query)
             | Q(chassis_manufacturer__icontains=query)
             | Q(body_manufacturer__icontains=query)

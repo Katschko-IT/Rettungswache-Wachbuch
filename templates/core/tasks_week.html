@@ -38,7 +38,7 @@
       </header>
       <div class="week-day-tasks">
         {% for item in column.tasks %}
-          <form method="post" action="{% url 'task_toggle' item.task.pk %}" class="week-task {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}"{% if item.task.color %} style="--band: {{ item.task.color }};"{% endif %}>
+          <form method="post" action="{% url 'task_toggle' item.task.pk %}" class="week-task {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}"{% if item.task.color %} data-band="{{ item.task.color }}"{% endif %}>
             {% csrf_token %}
             <input type="hidden" name="tag" value="{{ column.date|date:'Y-m-d' }}">
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
