@@ -64,6 +64,7 @@ void main() {
     expect(plist, contains('<key>NSCameraUsageDescription</key>'));
     expect(plist, contains('Mängelfotos'));
     expect(plist, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+    expect(plist, contains('<key>NSLocalNetworkUsageDescription</key>'));
     expect(plist, contains('<key>NSLocationWhenInUseUsageDescription</key>'));
     expect(plist, contains('Sonnenaufgang und Sonnenuntergang'));
     expect(plist, contains('<key>ITSAppUsesNonExemptEncryption</key>'));

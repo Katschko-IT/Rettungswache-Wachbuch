@@ -1,0 +1,27 @@
+{% include "core/_terminal_head.html" %}{% load i18n static %}
+  <title>{% translate "PIN eingeben" %} · {{ terminal.station.name }}</title>
+  <link rel="stylesheet" href="{% static 'core/terminal.css' %}">
+</head>
+<body class="terminal-body">
+  <header class="terminal-bar">
+    <a class="terminal-back" href="{% url 'terminal_people' %}">← {% translate "Andere Person" %}</a>
+    <h1>{{ member.user.get_full_name|default:member.user.username }}</h1>
+  </header>
+  <main class="terminal-main terminal-pin-main">
+    <form method="post" class="terminal-pin-form" autocomplete="off">
+      {% csrf_token %}
+      <label for="terminal-pin">{% translate "Deine PIN" %}</label>
+      <input id="terminal-pin" class="terminal-pin-input" type="password" name="pin" inputmode="numeric" pattern="[0-9]*" maxlength="{{ pin_length }}" autocomplete="off" required autofocus>
+      {% if error_text %}<p class="terminal-error" role="alert">{{ error_text }}</p>{% endif %}
+      <div class="terminal-keypad" data-pin-pad="terminal-pin" data-pin-autosubmit>
+        {% for key in "123456789" %}<button type="button" data-pin-key="{{ key }}">{{ key }}</button>{% endfor %}
+        <button type="button" data-pin-key="clear" aria-label="{% translate 'Eingabe löschen' %}">C</button>
+        <button type="button" data-pin-key="0">0</button>
+        <button type="button" data-pin-key="back" aria-label="{% translate 'Letzte Ziffer löschen' %}">⌫</button>
+      </div>
+      <button type="submit" class="terminal-submit">{% translate "Anmelden" %}</button>
+    </form>
+  </main>
+  <script src="{% static 'core/ui.js' %}" defer></script>
+</body>
+</html>

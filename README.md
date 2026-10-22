@@ -165,6 +165,22 @@ ist **keine Funktion** und enthält offene Fachentscheidungen. Aussagen über ei
 „Offline-Betrieb des Clients“ wären derzeit falsch. Details:
 [`docs/OFFLINE-BETRIEB.md`](docs/OFFLINE-BETRIEB.md).
 
+## Raspberry Pi mit eigenem WLAN und Touch-Terminal
+
+Ein Raspberry Pi 4 (4 GB) kann das Wachbuch direkt auf der Wache betreiben: Er
+spannt ein eigenes WLAN auf, ein Touch-Bildschirm daran ist das
+**Wachenterminal**. Jede Person meldet sich dort mit ihrem eigenen Konto und einer
+persönlichen 6-stelligen PIN an und wird nach Inaktivität automatisch abgemeldet.
+Handys verbinden die App per QR-Code über das WLAN, ohne Passwort und ohne
+Zertifikat auf dem Handy zu installieren.
+
+```bash
+sudo WLAN_SSID="Wachbuch RW1" deploy/pi/setup-pi.sh
+```
+
+Hardware, Einrichtung, Sicherheitsmodell und Grenzen:
+[`docs/PI-WACHENTERMINAL.md`](docs/PI-WACHENTERMINAL.md).
+
 ## Reverse-Proxy mit TLS
 
 Für Handys oder gemeinsame Wachenterminale steht vor dem Loopback-Port ein

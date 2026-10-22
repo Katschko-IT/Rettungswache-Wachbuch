@@ -300,6 +300,52 @@ def openapi_spec(request):
 
 
 @csrf_exempt
+@require_POST
+@api_rate_limit("token")
+def pairing_exchange(request):
+    """Kopplung am Wachenterminal: Einmalcode aus dem QR → App-Token.
+
+    Der Code entsteht nur in einer angemeldeten Sitzung (Terminal-PIN oder
+    Web), gilt 120 Sekunden und genau einmal (core/terminal.py).
+    """
+    from ..terminal import consume_pairing, terminal_enabled
+
+    if not terminal_enabled():
+        return _json_error(request, "Kopplung ist auf diesem Server nicht aktiviert.", status=404)
+    body = _parse_json(request) or {}
+    membership = consume_pairing(str(body.get("code") or ""))
+    if membership is None:
+        return _json_error(request, "Kopplungscode ist ungültig oder abgelaufen.", status=401)
+    user = membership.user
+    label = str(body.get("label") or "Mobile App (Terminal-Kopplung)").strip()[:120]
+    expires_at = default_token_expiry()
+    raw, token_hash, prefix = generate_api_token()
+    token = ApiToken.objects.create(
+        user=user,
+        label=label,
+        token_prefix=prefix,
+        token_hash=token_hash,
+        scopes=list(DEFAULT_MOBILE_SCOPES),
+        expires_at=expires_at,
+    )
+    audit(user, membership.station, "api.token_created", token, {
+        "fields": ["label", "scopes", "expires_at"],
+        "via": "terminal.pairing",
+    })
+    return JsonResponse({
+        "ok": True,
+        "token": raw,
+        "token_prefix": prefix,
+        "api_version": API_VERSION,
+        "expires_in": DEFAULT_TOKEN_TTL_DAYS * 24 * 3600,
+        "expires_at": expires_at.isoformat(),
+        "has_membership": True,
+        "station": membership.station.name,
+        "role": membership.role,
+    })
+
+
+@csrf_exempt
 @require_http_methods(["POST", "DELETE"])
 def token_endpoint(request):
     """POST mints a token; DELETE revokes the token presented in Authorization."""

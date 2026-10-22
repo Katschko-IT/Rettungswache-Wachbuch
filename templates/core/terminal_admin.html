@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenterminals" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'team' %}">{% translate "Zurück zu Team & Rollen" %}</a>
+<header class="page-heading narrow">
+  <h1>{% translate "Wachenterminals" %}</h1>
+  <p class="lead">{% blocktranslate with seconds=idle_seconds %}Ein Wachenterminal ist ein Touch-Bildschirm auf der Wache. Jede Person meldet sich dort mit ihrer eigenen PIN an und wird nach {{ seconds }} Sekunden ohne Eingabe automatisch abgemeldet. Konto-, Team- und Einstellungsseiten sowie der verschlüsselte Chat sind am Terminal gesperrt.{% endblocktranslate %}</p>
+</header>
+
+<section class="content-flow narrow">
+  {% if new_url %}
+    <div class="callout" role="status">
+      <h2>{% translate "Neuer Terminal-Link" %}</h2>
+      <p>{% translate "Diesen Link einmal im Browser des Terminals öffnen. Er wird nur jetzt angezeigt und gilt, bis du das Terminal widerrufst." %}</p>
+      <p class="token-value">{{ new_url }}</p>
+    </div>
+  {% endif %}
+  {% if new_pin %}
+    <div class="callout" role="status">
+      <h2>{% blocktranslate with name=new_pin.name %}Start-PIN für {{ name }}{% endblocktranslate %}</h2>
+      <p class="token-value terminal-pin-reveal">{{ new_pin.pin }}</p>
+      <p>{% translate "Persönlich weitergeben. Beim ersten Anmelden am Terminal wird eine eigene PIN festgelegt. Die Start-PIN wird nicht noch einmal angezeigt." %}</p>
+    </div>
+  {% endif %}
+
+  <section class="section-block">
+    <h2>{% translate "Registrierte Terminals" %}</h2>
+    <ul class="list">
+      {% for terminal in terminals %}
+        <li class="list-row">
+          <div class="row-content">
+            <strong>{{ terminal.label }}</strong>
+            <small>
+              {% if terminal.revoked_at %}{% translate "widerrufen" %} {{ terminal.revoked_at|date:"d.m.Y H:i" }}
+              {% elif terminal.last_used_at %}{% translate "zuletzt aktiv" %} {{ terminal.last_used_at|date:"d.m.Y H:i" }}
+              {% else %}{% translate "noch nicht eingerichtet" %}{% endif %}
+            </small>
+          </div>
+          {% if not terminal.revoked_at %}
+            <form method="post" data-confirm="{% translate 'Terminal widerrufen? Es kann danach nicht mehr verwendet werden.' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="revoke">
+              <input type="hidden" name="terminal_id" value="{{ terminal.pk }}">
+              <button type="submit" class="button secondary">{% translate "Widerrufen" %}</button>
+            </form>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="list-row"><div class="row-content">{% translate "Noch kein Terminal registriert." %}</div></li>
+      {% endfor %}
+    </ul>
+    <form method="post" class="card">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+      <label for="terminal-label">{% translate "Bezeichnung" %}</label>
+      <input id="terminal-label" type="text" name="label" maxlength="80" value="{% translate 'Wachenterminal' %}" required>
+      <button type="submit" class="button primary">{% translate "Terminal registrieren" %}</button>
+    </form>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "PINs der Besatzung" %}</h2>
+    <p class="helptext">{% translate "Eine Start-PIN ist zufällig, wird einmal angezeigt und muss beim ersten Anmelden geändert werden. Jede Person kann ihre PIN auch selbst im Konto festlegen." %}</p>
+    <ul class="list">
+      {% for member in members %}
+        <li class="list-row">
+          <div class="row-content">
+            <strong>{{ member.user.get_full_name|default:member.user.username }}</strong>
+            <small>{{ member.get_role_display }} ·
+              {% if member.terminal_pin %}
+                {% if member.terminal_pin.must_change %}{% translate "Start-PIN vergeben" %}{% else %}{% translate "eigene PIN gesetzt" %}{% endif %}
+              {% else %}{% translate "keine PIN" %}{% endif %}
+            </small>
+          </div>
+          <form method="post" action="{% url 'terminal_pin_issue' member.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="button secondary">{% if member.terminal_pin %}{% translate "Neue Start-PIN" %}{% else %}{% translate "Start-PIN vergeben" %}{% endif %}</button>
+          </form>
+          {% if member.terminal_pin %}
+            <form method="post" action="{% url 'terminal_pin_issue' member.pk %}" data-confirm="{% translate 'PIN entfernen? Die Person kann sich dann nicht mehr am Terminal anmelden.' %}">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="remove">
+              <button type="submit" class="button secondary">{% translate "PIN entfernen" %}</button>
+            </form>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "App im WLAN der Wache" %}</h2>
+    {% if cert_fingerprint %}
+      <p>{% translate "Der Verbindungs-QR enthält den Fingerabdruck des lokalen Zertifikats. Die App vertraut dann genau diesem Zertifikat, ohne dass auf den Handys etwas installiert werden muss." %}</p>
+      <p class="token-value">SHA-256 {{ cert_fingerprint }}</p>
+    {% else %}
+      <p>{% translate "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)." %}</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

@@ -7,7 +7,7 @@ msgstr "Project-Id-Version: Wachbuch\nReport-Msgid-Bugs-To: \nPOT-Creation-Date:
 msgid "%(active)s/%(total)s Bausteine aktiv"
 msgstr "%(active)s/%(total)s Bausteine aktiv"
 
-#: templates/base.html:63
+#: templates/base.html:75
 msgid "%(app_name)s auf dem Gerät"
 msgstr "%(app_name)s auf dem Gerät"
 
@@ -15,7 +15,7 @@ msgstr "%(app_name)s auf dem Gerät"
 msgid "%(category)s &middot; Version %(version)s"
 msgstr "%(category)s &middot; Version %(version)s"
 
-#: templates/base.html:85
+#: templates/base.html:97
 msgid "%(nav_urgent_count)s dringend"
 msgstr "%(nav_urgent_count)s dringend"
 
@@ -183,7 +183,7 @@ msgstr "API-Tokens brauchen einen aktiven Wachenzugang."
 msgid "API-Wurzel:"
 msgstr "API-Wurzel:"
 
-#: templates/base.html:119
+#: templates/base.html:131
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
@@ -229,14 +229,19 @@ msgstr "Abgelaufen / Gesperrt"
 msgid "Abgerufen am %(date)s (Alter: %(age)s Minuten)."
 msgstr "Abgerufen am %(date)s (Alter: %(age)s Minuten)."
 
-#: templates/core/team.html:31
+#: templates/core/team.html:32
 #: templates/registration/qr_confirm.html:83
 msgid "Ablehnen"
 msgstr "Ablehnen"
 
-#: templates/base.html:47
+#: templates/base.html:48
+#: templates/base.html:67
 msgid "Abmelden"
 msgstr "Abmelden"
+
+#: templates/base.html:63
+msgid "Abmeldung nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
+msgstr "Abmeldung nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
 
 #: templates/core/calendar_feed.html:17
 msgid "Abo-Link erzeugen"
@@ -296,7 +301,7 @@ msgstr "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitext
 #: templates/core/display_tokens.html:40
 #: templates/core/handover_list.html:11
 #: templates/core/tasks_manage.html:24
-#: templates/core/team.html:38
+#: templates/core/team.html:39
 #: templates/core/wiki_index.html:47
 msgid "Aktiv"
 msgstr "Aktiv"
@@ -473,7 +478,7 @@ msgstr "Allgemein"
 msgid "Alltag"
 msgstr "Alltag"
 
-#: templates/base.html:64
+#: templates/base.html:76
 msgid "Als App installieren für schnellen Zugriff auf der Wache."
 msgstr "Als App installieren für schnellen Zugriff auf der Wache."
 
@@ -500,6 +505,10 @@ msgstr "Alternativ oder zusätzlich einen Passkey dieses Geräts registrieren."
 #: templates/core/fleet_vehicle_form.html:39
 msgid "Amtliches Kennzeichen*"
 msgstr "Amtliches Kennzeichen*"
+
+#: templates/core/terminal_pin.html:7
+msgid "Andere Person"
+msgstr "Andere Person"
 
 #: templates/core/vorfuehrung.html:90
 msgid "Android"
@@ -577,9 +586,11 @@ msgstr "Anlegen und freigeben"
 
 #: core/test_i18n_phase1.py:73
 #: core/test_i18n_phase1.py:74
-#: templates/base.html:52
+#: templates/base.html:53
 #: templates/core/landing.html:14
 #: templates/core/privacy.html:194
+#: templates/core/terminal_people.html:2
+#: templates/core/terminal_pin.html:22
 #: templates/core/vorfuehrung.html:128
 #: templates/errors/403.html:11
 #: templates/registration/login.html:3
@@ -654,6 +665,10 @@ msgstr "Ansprechpartner"
 msgid "Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."
 msgstr "Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."
 
+#: templates/core/terminal_home.html:18
+msgid "Antippen zum Anmelden"
+msgstr "Antippen zum Anmelden"
+
 #: templates/core/landing.html:33
 #: templates/core/vorfuehrung.html:150
 msgid "Antonio Batinic / Pexels"
@@ -662,6 +677,18 @@ msgstr "Antonio Batinic / Pexels"
 #: templates/core/warehouse_reorder.html:18
 msgid "Apotheken-Bestellschein (CSV)"
 msgstr "Apotheken-Bestellschein (CSV)"
+
+#: templates/core/terminal_admin.html:93
+msgid "App im WLAN der Wache"
+msgstr "App im WLAN der Wache"
+
+#: templates/core/account.html:71
+msgid "App per QR-Code ohne Passwort anmelden"
+msgstr "App per QR-Code ohne Passwort anmelden"
+
+#: templates/core/terminal_home.html:21
+msgid "App verbinden: im WLAN der Wache scannen"
+msgstr "App verbinden: im WLAN der Wache scannen"
 
 #: core/account_views.py:376
 msgid "App-Token erzeugt. Bitte jetzt kopieren – es wird nur einmal angezeigt."
@@ -752,7 +779,7 @@ msgid "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbind
 msgstr "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbindungsdaten. Welche Angaben dauerhaft in Zugriffs- oder Fehlerprotokollen landen, hängt von der tatsächlichen Konfiguration der Anwendung, des Reverse Proxys und des Hostings ab. Vor Veröffentlichung ist für folgende mögliche Datenfelder eine Bestandsaufnahme erforderlich; die Liste ist keine Aussage, dass alle Felder protokolliert werden:"
 
 #: core/navigation.py:70
-#: templates/base.html:79
+#: templates/base.html:91
 #: templates/core/audit_log.html:3
 #: templates/core/audit_log.html:5
 msgid "Audit"
@@ -797,6 +824,10 @@ msgstr "Aufgabe wurde wieder geöffnet."
 #: core/navigation.py:16
 msgid "Aufgaben"
 msgstr "Aufgaben"
+
+#: templates/core/terminal_menu.html:22
+msgid "Aufgaben heute"
+msgstr "Aufgaben heute"
 
 #: templates/core/tasks_manage.html:3
 #: templates/core/tasks_manage.html:9
@@ -1161,6 +1192,7 @@ msgstr "Betroffene Personen haben bei Vorliegen der gesetzlichen Voraussetzungen
 #: templates/core/assets_inventory.html:32
 #: templates/core/assets_inventory.html:53
 #: templates/core/calendar_feed.html:16
+#: templates/core/terminal_admin.html:56
 msgid "Bezeichnung"
 msgstr "Bezeichnung"
 
@@ -1230,6 +1262,10 @@ msgstr "Bisher keine Materialbuchungen erfasst."
 #: templates/core/mpg_dashboard.html:202
 msgid "Bisher keine Wartungen eingetragen."
 msgstr "Bisher keine Wartungen eingetragen."
+
+#: templates/core/terminal_pin_change.html:18
+msgid "Bisherige PIN"
+msgstr "Bisherige PIN"
 
 #: templates/core/sop_revision_form.html:34
 msgid "Bisherige Version: v"
@@ -1449,6 +1485,7 @@ msgstr "Checkliste wurde als erledigt vermerkt."
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
 #: templates/core/more.html:182
+#: templates/core/terminal_menu.html:25
 #: templates/core/vorfuehrung.html:65
 msgid "Checklisten"
 msgstr "Checklisten"
@@ -1496,6 +1533,10 @@ msgstr "Damit Admin und Server keine Klartexte lesen"
 #: templates/errors/500.html:19
 msgid "Damit wir helfen können: Wende dich an den Wachbuch-Support und teile die obenstehende Korrelations-ID sowie ungefähr die durchgeführte Aktion."
 msgstr "Damit wir helfen können: Wende dich an den Wachbuch-Support und teile die obenstehende Korrelations-ID sowie ungefähr die durchgeführte Aktion."
+
+#: templates/core/terminal_pair.html:7
+msgid "Danach nutzt du die Wachbuch-App ohne Passwort. Das Handy muss im WLAN der Wache sein."
+msgstr "Danach nutzt du die Wachbuch-App ohne Passwort. Das Handy muss im WLAN der Wache sein."
 
 #: core/news_views.py:57
 msgid "Danke – alle haben gelesen. Die Neuigkeit ist im Archiv."
@@ -1590,7 +1631,7 @@ msgstr "Datenbank"
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
-#: templates/base.html:106
+#: templates/base.html:118
 msgid "Datenschutz & Cookies"
 msgstr "Datenschutz & Cookies"
 
@@ -1655,6 +1696,10 @@ msgstr "Dein Profilbild"
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Deine Anwender-Einweisung (§ 11)"
 
+#: templates/core/terminal_pin.html:13
+msgid "Deine PIN"
+msgstr "Deine PIN"
+
 #: templates/core/landing.html:18
 msgid "Demo ausprobieren"
 msgstr "Demo ausprobieren"
@@ -1700,6 +1745,10 @@ msgstr "Der CSRF-Schutz erfolgt sitzungsbasiert über die Session (CSRF_USE_SESS
 msgid "Der Code ist nur für diese eine Anmeldung und etwa zwei Minuten gültig. Er ist kein Passwort und wird nicht gespeichert."
 msgstr "Der Code ist nur für diese eine Anmeldung und etwa zwei Minuten gültig. Er ist kein Passwort und wird nicht gespeichert."
 
+#: templates/core/terminal_pair.html:18
+msgid "Der Code meldet das Handy mit deinem Konto an. Niemand anderen scannen lassen."
+msgstr "Der Code meldet das Handy mit deinem Konto an. Niemand anderen scannen lassen."
+
 #: templates/core/landing.html:114
 msgid "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto."
 msgstr "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto."
@@ -1744,6 +1793,10 @@ msgstr "Der Titel darf maximal 160 Zeichen lang sein."
 #: core/wiki_services.py:89
 msgid "Der Titel darf nicht leer sein."
 msgstr "Der Titel darf nicht leer sein."
+
+#: templates/core/terminal_admin.html:95
+msgid "Der Verbindungs-QR enthält den Fingerabdruck des lokalen Zertifikats. Die App vertraut dann genau diesem Zertifikat, ohne dass auf den Handys etwas installiert werden muss."
+msgstr "Der Verbindungs-QR enthält den Fingerabdruck des lokalen Zertifikats. Die App vertraut dann genau diesem Zertifikat, ohne dass auf den Handys etwas installiert werden muss."
 
 #: templates/core/chat_signal.html:13
 msgid "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert."
@@ -1853,6 +1906,10 @@ msgstr "Die Portangabe der Müllkalender-URL ist ungültig."
 msgid "Die Revisionsnummer muss mindestens 1 sein."
 msgstr "Die Revisionsnummer muss mindestens 1 sein."
 
+#: templates/core/terminal_pin_change.html:8
+msgid "Die Wachleitung hat dir eine Start-PIN gegeben. Lege jetzt deine eigene PIN fest."
+msgstr "Die Wachleitung hat dir eine Start-PIN gegeben. Lege jetzt deine eigene PIN fest."
+
 #: core/setup_views.py:259
 msgid "Die Wettervorschau ist nur sinnvoll, wenn die Wetteranzeige aktiviert ist. Bitte zuerst „5-Tage-Wetter … anzeigen“ auswählen."
 msgstr "Die Wettervorschau ist nur sinnvoll, wenn die Wetteranzeige aktiviert ist. Bitte zuerst „5-Tage-Wetter … anzeigen“ auswählen."
@@ -1892,6 +1949,10 @@ msgstr "Dienstanweisungen & QM"
 #: templates/core/orga_dashboard.html:68
 msgid "Dienstanweisungen aktiv"
 msgstr "Dienstanweisungen aktiv"
+
+#: templates/core/terminal_menu.html:28
+msgid "Dienstanweisungen lesen"
+msgstr "Dienstanweisungen lesen"
 
 #: templates/core/more.html:92
 msgid "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache."
@@ -1950,6 +2011,14 @@ msgstr "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinscha
 #: templates/core/vorfuehrung.html:94
 msgid "Dieselben Tokens wie die Web-PWA"
 msgstr "Dieselben Tokens wie die Web-PWA"
+
+#: templates/core/terminal_pair.html:15
+msgid "Diesen Code scannen. Er gilt 2 Minuten und nur einmal."
+msgstr "Diesen Code scannen. Er gilt 2 Minuten und nur einmal."
+
+#: templates/core/terminal_admin.html:15
+msgid "Diesen Link einmal im Browser des Terminals öffnen. Er wird nur jetzt angezeigt und gilt, bis du das Terminal widerrufst."
+msgstr "Diesen Link einmal im Browser des Terminals öffnen. Er wird nur jetzt angezeigt und gilt, bis du das Terminal widerrufst."
 
 #: templates/core/privacy.html:176
 msgid "Dieser Abschnitt dient ausschließlich der Information über künftige Voraussetzungen und ist"
@@ -2043,7 +2112,7 @@ msgid "Dringend – sofort"
 msgstr "Dringend – sofort"
 
 #: core/display_views.py:317
-#: templates/core/account.html:70
+#: templates/core/account.html:74
 msgid "Dringende Übergaben"
 msgstr "Dringende Übergaben"
 
@@ -2106,6 +2175,10 @@ msgstr "Eigener Titel"
 msgid "Ein QR-Code enthält nur diesen einmaligen Aktivierungslink, keine dauerhaften Zugangsdaten."
 msgstr "Ein QR-Code enthält nur diesen einmaligen Aktivierungslink, keine dauerhaften Zugangsdaten."
 
+#: templates/core/terminal_admin.html:8
+msgid "Ein Wachenterminal ist ein Touch-Bildschirm auf der Wache. Jede Person meldet sich dort mit ihrer eigenen PIN an und wird nach %(seconds)s Sekunden ohne Eingabe automatisch abgemeldet. Konto-, Team- und Einstellungsseiten sowie der verschlüsselte Chat sind am Terminal gesperrt."
+msgstr "Ein Wachenterminal ist ein Touch-Bildschirm auf der Wache. Jede Person meldet sich dort mit ihrer eigenen PIN an und wird nach %(seconds)s Sekunden ohne Eingabe automatisch abgemeldet. Konto-, Team- und Einstellungsseiten sowie der verschlüsselte Chat sind am Terminal gesperrt."
+
 #: core/wiki_models.py:112
 msgid "Ein Wiki-Artikel darf die zugeordnete Wache nicht wechseln."
 msgstr "Ein Wiki-Artikel darf die zugeordnete Wache nicht wechseln."
@@ -2142,9 +2215,17 @@ msgstr "Eine Neuigkeit wandert automatisch ins Archiv, sobald alle sie gelesen h
 msgid "Eine Oberfläche, vier Wachprofile."
 msgstr "Eine Oberfläche, vier Wachprofile."
 
+#: templates/core/terminal_admin.html:64
+msgid "Eine Start-PIN ist zufällig, wird einmal angezeigt und muss beim ersten Anmelden geändert werden. Jede Person kann ihre PIN auch selbst im Konto festlegen."
+msgstr "Eine Start-PIN ist zufällig, wird einmal angezeigt und muss beim ersten Anmelden geändert werden. Jede Person kann ihre PIN auch selbst im Konto festlegen."
+
 #: templates/core/privacy.html:179
 msgid "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
 msgstr "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
+
+#: templates/core/terminal_pin.html:18
+msgid "Eingabe löschen"
+msgstr "Eingabe löschen"
 
 #: templates/core/mpg_dashboard.html:154
 #: templates/core/mpg_device_detail.html:50
@@ -2295,7 +2376,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Entschlüsseln fehlgeschlagen."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:120
+#: templates/base.html:132
 msgid "Entsperren"
 msgstr "Entsperren"
 
@@ -2395,6 +2476,10 @@ msgstr "Erstinstallation"
 msgid "Erstinstallation abschließen"
 msgstr "Erstinstallation abschließen"
 
+#: templates/core/terminal_pair.html:23
+msgid "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
+msgstr "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
+
 #: templates/core/mpg_device_detail.html:359
 msgid "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 msgstr "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
@@ -2451,6 +2536,10 @@ msgstr "Fahrzeug"
 #: templates/core/fleet_vehicle_detail.html:22
 msgid "Fahrzeug bearbeiten"
 msgstr "Fahrzeug bearbeiten"
+
+#: templates/core/terminal_menu.html:11
+msgid "Fahrzeug übernehmen, desinfizieren, Status"
+msgstr "Fahrzeug übernehmen, desinfizieren, Status"
 
 #: templates/core/assets_inventory.html:8
 msgid "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick."
@@ -2556,6 +2645,10 @@ msgstr "Feiertag"
 msgid "Feiertage im Kalender"
 msgstr "Feiertage im Kalender"
 
+#: templates/core/terminal_pair.html:16
+msgid "Fertig: Die App ist mit deinem Konto angemeldet."
+msgstr "Fertig: Die App ist mit deinem Konto angemeldet."
+
 #: templates/core/more.html:398
 msgid "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
 msgstr "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
@@ -2603,7 +2696,7 @@ msgid "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 msgstr "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 
 #: templates/core/mpg_device_detail.html:346
-#: templates/core/team.html:30
+#: templates/core/team.html:31
 msgid "Freigeben"
 msgstr "Freigeben"
 
@@ -2623,7 +2716,7 @@ msgstr "Freiwillig eingetragene Geburtstage im Team."
 msgid "Freiwillig und widerrufbar"
 msgstr "Freiwillig und widerrufbar"
 
-#: templates/core/account.html:71
+#: templates/core/account.html:75
 msgid "Freiwillige Anzeige"
 msgstr "Freiwillige Anzeige"
 
@@ -2814,7 +2907,7 @@ msgid "GTIN / Barcode (EAN):"
 msgstr "GTIN / Barcode (EAN):"
 
 #: templates/core/_display_surface.html:58
-#: templates/core/account.html:71
+#: templates/core/account.html:75
 #: templates/core/calendar.html:21
 #: templates/core/calendar.html:29
 #: templates/core/dashboard.html:80
@@ -3011,7 +3104,7 @@ msgstr "Gewünschte Wache"
 msgid "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 msgstr "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 
-#: templates/base.html:114
+#: templates/base.html:126
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 
@@ -3110,6 +3203,10 @@ msgstr "HTTP-Statuscode der Serverantwort"
 msgid "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 msgstr "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 
+#: templates/core/terminal_menu.html:6
+msgid "Hallo %(name)s"
+msgstr "Hallo %(name)s"
+
 #: templates/core/warehouse_dashboard.html:49
 msgid "Haltbar > 90 Tage"
 msgstr "Haltbar > 90 Tage"
@@ -3118,7 +3215,20 @@ msgstr "Haltbar > 90 Tage"
 msgid "Halte die Kamera auf den QR-Code am Gerät oder gib den Geräteslug / Inventarnummer direkt ein."
 msgstr "Halte die Kamera auf den QR-Code am Gerät oder gib den Geräteslug / Inventarnummer direkt ein."
 
-#: templates/base.html:74
+#: templates/core/terminal_pair.html:6
+msgid "Handy mit deinem Konto verbinden"
+msgstr "Handy mit deinem Konto verbinden"
+
+#: templates/core/terminal_menu.html:34
+msgid "Handy mit meinem Konto verbinden"
+msgstr "Handy mit meinem Konto verbinden"
+
+#: templates/core/account.html:71
+#: templates/core/terminal_pair.html:3
+msgid "Handy verbinden"
+msgstr "Handy verbinden"
+
+#: templates/base.html:86
 msgid "Hauptnavigation"
 msgstr "Hauptnavigation"
 
@@ -3158,7 +3268,7 @@ msgid "Heutige Termine"
 msgstr "Heutige Termine"
 
 #: core/navigation.py:35
-#: templates/base.html:107
+#: templates/base.html:119
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -3351,7 +3461,7 @@ msgid "In drei Schritten startklar"
 msgstr "In drei Schritten startklar"
 
 #: templates/core/tasks_manage.html:24
-#: templates/core/team.html:38
+#: templates/core/team.html:39
 msgid "Inaktiv"
 msgstr "Inaktiv"
 
@@ -3409,7 +3519,7 @@ msgstr "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android ü
 msgid "Installierbar, offline lesbar"
 msgstr "Installierbar, offline lesbar"
 
-#: templates/base.html:67
+#: templates/base.html:79
 msgid "Installieren"
 msgstr "Installieren"
 
@@ -3601,6 +3711,10 @@ msgstr "Kein aktiver Bestand an Lagerorten mehr vorhanden."
 msgid "Kein einziger Artikel unterschreitet den Mindestbestand. Aktuell ist keine Nachbestellung erforderlich."
 msgstr "Kein einziger Artikel unterschreitet den Mindestbestand. Aktuell ist keine Nachbestellung erforderlich."
 
+#: templates/core/terminal_admin.html:98
+msgid "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)."
+msgstr "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)."
+
 #: templates/core/vorfuehrung.html:116
 msgid "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern."
 msgstr "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern."
@@ -3645,6 +3759,10 @@ msgstr "Keine Fahrzeuge für diesen Filter gefunden."
 #: templates/core/diagnostics_events.html:44
 msgid "Keine Fehlerereignisse im Aufbewahrungszeitraum."
 msgstr "Keine Fehlerereignisse im Aufbewahrungszeitraum."
+
+#: templates/core/terminal_pin_change.html:25
+msgid "Keine Folgen wie 123456 und nicht sechsmal dieselbe Ziffer. Nach fünf Fehlversuchen ist die PIN 15 Minuten gesperrt."
+msgstr "Keine Folgen wie 123456 und nicht sechsmal dieselbe Ziffer. Nach fünf Fehlversuchen ist die PIN 15 Minuten gesperrt."
 
 #: templates/registration/qr_manual.html:9
 msgid "Keine Kamera oder kein Zugriff auf den QR-Code? Geben Sie den 10-stelligen Code ein, der auf dem wartenden Bildschirm unter dem QR-Code angezeigt wird."
@@ -3997,6 +4115,10 @@ msgstr "Letzte Schichtübernahmen"
 msgid "Letzte Wartungen & STK-Prüfungen"
 msgstr "Letzte Wartungen & STK-Prüfungen"
 
+#: templates/core/terminal_pin.html:20
+msgid "Letzte Ziffer löschen"
+msgstr "Letzte Ziffer löschen"
+
 #: templates/core/mpg_dashboard.html:142
 msgid "Letzter Check:"
 msgstr "Letzter Check:"
@@ -4086,6 +4208,10 @@ msgstr "Mangel anlegen"
 msgid "Mangel erfassen"
 msgstr "Mangel erfassen"
 
+#: templates/core/terminal_menu.html:14
+msgid "Mangel melden"
+msgstr "Mangel melden"
+
 #: templates/core/mpg_device_detail.html:381
 msgid "Mangel melden & Sperren"
 msgstr "Mangel melden & Sperren"
@@ -4131,6 +4257,10 @@ msgstr "Master-Admin-Konto"
 msgid "Material"
 msgstr "Material"
 
+#: templates/core/terminal_menu.html:19
+msgid "Material entnehmen"
+msgstr "Material entnehmen"
+
 #: templates/core/warehouse_dashboard.html:83
 msgid "Materialbestand & FEFO-Verfallsstatus"
 msgstr "Materialbestand & FEFO-Verfallsstatus"
@@ -4167,6 +4297,10 @@ msgstr "Medizingerät"
 #: templates/core/landing.html:61
 msgid "Medizingeräte"
 msgstr "Medizingeräte"
+
+#: templates/core/terminal_menu.html:16
+msgid "Medizingeräte prüfen"
+msgstr "Medizingeräte prüfen"
 
 #: templates/core/mpg_dashboard.html:8
 msgid "Medizinprodukte"
@@ -4299,6 +4433,10 @@ msgstr "Mit dem Abschluss wird genau eine Wache und genau ein Master-Admin angel
 #: templates/core/chat_signal.html:18
 msgid "Mit der Signal-App scannen – oder den Button öffnen."
 msgstr "Mit der Signal-App scannen – oder den Button öffnen."
+
+#: templates/core/terminal_pin_change.html:10
+msgid "Mit dieser PIN meldest du dich am Wachenterminal an. Sie gilt nur an registrierten Terminals der Wache, nicht in der App oder im Internet."
+msgstr "Mit dieser PIN meldest du dich am Wachenterminal an. Sie gilt nur an registrierten Terminals der Wache, nicht in der App oder im Internet."
 
 #: templates/core/mpg_geraetepass.html:63
 msgid "Mitarbeiter"
@@ -4579,6 +4717,11 @@ msgstr "Name der Organisationseinheit"
 msgid "Name der Wache"
 msgstr "Name der Wache"
 
+#: templates/core/terminal_people.html:12
+#: templates/core/terminal_people.html:13
+msgid "Name suchen"
+msgstr "Name suchen"
+
 #: templates/core/more.html:409
 msgid "Name, Anschrift, Wetter und welche Module die Wache nutzt."
 msgstr "Name, Anschrift, Wetter und welche Module die Wache nutzt."
@@ -4604,6 +4747,14 @@ msgstr "Neue Charge einbuchen"
 msgid "Neue Nutzer anlegen und freigeben – Zugang bleibt stationsbezogen."
 msgstr "Neue Nutzer anlegen und freigeben – Zugang bleibt stationsbezogen."
 
+#: templates/core/terminal_pin_change.html:21
+msgid "Neue PIN (6 Ziffern)"
+msgstr "Neue PIN (6 Ziffern)"
+
+#: templates/core/terminal_pin_change.html:23
+msgid "Neue PIN wiederholen"
+msgstr "Neue PIN wiederholen"
+
 #: templates/core/crypto_setup.html:29
 msgid "Neue Passphrase"
 msgstr "Neue Passphrase"
@@ -4615,6 +4766,10 @@ msgstr "Neue Post"
 #: templates/core/orga_dashboard.html:15
 msgid "Neue SOP anlegen"
 msgstr "Neue SOP anlegen"
+
+#: templates/core/terminal_admin.html:78
+msgid "Neue Start-PIN"
+msgstr "Neue Start-PIN"
 
 #: templates/core/orga_dashboard.html:146
 msgid "Neue Version"
@@ -4661,6 +4816,10 @@ msgstr "Neuer Display-Link erzeugt"
 #: templates/core/team_invite_form.html:3
 msgid "Neuer Mitarbeiterzugang"
 msgstr "Neuer Mitarbeiterzugang"
+
+#: templates/core/terminal_admin.html:14
+msgid "Neuer Terminal-Link"
+msgstr "Neuer Terminal-Link"
 
 #: templates/core/fleet_dashboard.html:15
 msgid "Neues Fahrzeug anlegen"
@@ -4724,6 +4883,10 @@ msgstr "Noch kein Check erfasst"
 msgid "Noch kein Passkey hinterlegt."
 msgstr "Noch kein Passkey hinterlegt."
 
+#: templates/core/terminal_admin.html:50
+msgid "Noch kein Terminal registriert."
+msgstr "Noch kein Terminal registriert."
+
 #: templates/core/display_tokens.html:112
 msgid "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm."
 msgstr "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm."
@@ -4785,7 +4948,7 @@ msgstr "Noch keine Historie."
 msgid "Noch keine Kollegen mit Schlüsseln."
 msgstr "Noch keine Kollegen mit Schlüsseln."
 
-#: templates/core/team.html:38
+#: templates/core/team.html:39
 msgid "Noch keine Mitgliedschaften."
 msgstr "Noch keine Mitgliedschaften."
 
@@ -4832,6 +4995,10 @@ msgstr "Noch nichts archiviert."
 #: templates/core/secure_mail_inbox.html:43
 msgid "Noch nichts gesendet."
 msgstr "Noch nichts gesendet."
+
+#: templates/core/terminal_people.html:25
+msgid "Noch niemand hat eine Terminal-PIN. Die Wachleitung vergibt sie unter Team → Wachenterminals."
+msgstr "Noch niemand hat eine Terminal-PIN. Die Wachleitung vergibt sie unter Team → Wachenterminals."
 
 #: templates/core/mpg_device_detail.html:372
 msgid "Normal"
@@ -5038,7 +5205,7 @@ msgstr "Offene Mängel:"
 msgid "Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten."
 msgstr "Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten."
 
-#: templates/core/team.html:20
+#: templates/core/team.html:21
 msgid "Offene Registrierungen"
 msgstr "Offene Registrierungen"
 
@@ -5141,6 +5308,34 @@ msgstr "Ort der Wache für die Wetterabfrage."
 msgid "O₂ Druck (bar)"
 msgstr "O₂ Druck (bar)"
 
+#: templates/core/terminal_pin.html:2
+msgid "PIN eingeben"
+msgstr "PIN eingeben"
+
+#: templates/core/terminal_admin.html:84
+msgid "PIN entfernen"
+msgstr "PIN entfernen"
+
+#: templates/core/terminal_admin.html:81
+msgid "PIN entfernen? Die Person kann sich dann nicht mehr am Terminal anmelden."
+msgstr "PIN entfernen? Die Person kann sich dann nicht mehr am Terminal anmelden."
+
+#: templates/core/account.html:70
+msgid "PIN für die Anmeldung am Touch-Bildschirm der Wache"
+msgstr "PIN für die Anmeldung am Touch-Bildschirm der Wache"
+
+#: templates/core/terminal_pin_change.html:27
+msgid "PIN speichern"
+msgstr "PIN speichern"
+
+#: templates/core/terminal_menu.html:35
+msgid "PIN ändern"
+msgstr "PIN ändern"
+
+#: templates/core/terminal_admin.html:63
+msgid "PINs der Besatzung"
+msgstr "PINs der Besatzung"
+
 #: templates/core/warehouse_reorder.html:40
 msgid "PZN"
 msgstr "PZN"
@@ -5239,7 +5434,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys sind hier nicht verfügbar."
 
-#: templates/base.html:115
+#: templates/base.html:127
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -5305,6 +5500,10 @@ msgstr "PayPal.me-Links müssen mit https:// beginnen."
 msgid "Person"
 msgstr "Person"
 
+#: templates/core/terminal_admin.html:23
+msgid "Persönlich weitergeben. Beim ersten Anmelden am Terminal wird eine eigene PIN festgelegt. Die Start-PIN wird nicht noch einmal angezeigt."
+msgstr "Persönlich weitergeben. Beim ersten Anmelden am Terminal wird eine eigene PIN festgelegt. Die Start-PIN wird nicht noch einmal angezeigt."
+
 #: templates/core/landing.html:118
 msgid "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei."
 msgstr "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei."
@@ -5324,6 +5523,10 @@ msgstr "Persönliche Zugangs-Tokens für die quelloffene Wachbuch-App (iOS/Andro
 #: templates/core/account.html:6
 msgid "Persönlicher Bereich"
 msgstr "Persönlicher Bereich"
+
+#: templates/core/terminal_pair.html:12
+msgid "Persönlicher Kopplungs-QR-Code"
+msgstr "Persönlicher Kopplungs-QR-Code"
 
 #: templates/core/activate_account.html:6
 #: templates/registration/login.html:6
@@ -5519,7 +5722,7 @@ msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push konnte nicht deaktiviert werden."
 
 #: core/navigation.py:72
-#: templates/core/account.html:70
+#: templates/core/account.html:74
 #: templates/core/push_settings.html:7
 msgid "Push-Benachrichtigungen"
 msgstr "Push-Benachrichtigungen"
@@ -5543,6 +5746,10 @@ msgstr "QR-Code"
 #: templates/registration/qr_wait.html:4
 msgid "QR-Code Anmeldung"
 msgstr "QR-Code Anmeldung"
+
+#: templates/core/terminal_pair.html:24
+msgid "QR-Code anzeigen"
+msgstr "QR-Code anzeigen"
 
 #: templates/core/team_invite.html:19
 msgid "QR-Code für den einmaligen Aktivierungslink"
@@ -5576,6 +5783,10 @@ msgstr "QR-Code zur Anmeldung"
 msgid "QR-Code zur Signal-Gruppe"
 msgstr "QR-Code zur Signal-Gruppe"
 
+#: templates/core/terminal_home.html:20
+msgid "QR-Code: App mit dieser Wache verbinden"
+msgstr "QR-Code: App mit dieser Wache verbinden"
+
 #: core/templatetags/js_i18n.py:58
 msgid "QR-Login konnte nicht gestartet werden."
 msgstr "QR-Login konnte nicht gestartet werden."
@@ -5592,7 +5803,7 @@ msgstr "QR-Sticker"
 msgid "QR-Sticker drucken"
 msgstr "QR-Sticker drucken"
 
-#: templates/base.html:104
+#: templates/base.html:116
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Quellcode (AGPL-3.0)"
 
@@ -5690,6 +5901,10 @@ msgstr "Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbar
 #: templates/registration/register.html:7
 msgid "Registrieren"
 msgstr "Registrieren"
+
+#: templates/core/terminal_admin.html:28
+msgid "Registrierte Terminals"
+msgstr "Registrierte Terminals"
 
 #: templates/core/account.html:14
 msgid "Registrierung:"
@@ -5859,7 +6074,7 @@ msgstr "Schlüssel & Pools"
 msgid "Schlüssel einrichten"
 msgstr "Schlüssel einrichten"
 
-#: templates/base.html:113
+#: templates/base.html:125
 msgid "Schlüssel entsperren"
 msgstr "Schlüssel entsperren"
 
@@ -5896,6 +6111,7 @@ msgid "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung."
 msgstr "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung."
 
 #: templates/core/dashboard.html:17
+#: templates/core/terminal_menu.html:9
 msgid "Schnellzugriff"
 msgstr "Schnellzugriff"
 
@@ -6024,7 +6240,7 @@ msgstr "Signal ist quelloffen, verschlüsselt Ende-zu-Ende und speichert kaum Me
 msgid "Signal-Gruppe"
 msgstr "Signal-Gruppe"
 
-#: templates/core/account.html:69
+#: templates/core/account.html:73
 msgid "Signal-Gruppe oder interner Chat"
 msgstr "Signal-Gruppe oder interner Chat"
 
@@ -6099,7 +6315,7 @@ msgstr "Sprache"
 msgid "Sprache der Benutzeroberfläche. Die Auswahl gilt für dein Konto in diesem Browser."
 msgstr "Sprache der Benutzeroberfläche. Die Auswahl gilt für dein Konto in diesem Browser."
 
-#: templates/base.html:68
+#: templates/base.html:80
 msgid "Später"
 msgstr "Später"
 
@@ -6134,6 +6350,15 @@ msgstr "Standort & Betriebsstatus"
 #: templates/core/mpg_device_form.html:120
 msgid "Standort / Fahrzeug:"
 msgstr "Standort / Fahrzeug:"
+
+#: templates/core/terminal_admin.html:21
+msgid "Start-PIN für %(name)s"
+msgstr "Start-PIN für %(name)s"
+
+#: templates/core/terminal_admin.html:72
+#: templates/core/terminal_admin.html:78
+msgid "Start-PIN vergeben"
+msgstr "Start-PIN vergeben"
 
 #: templates/core/sop_form.html:91
 msgid "Start-Versionsnummer"
@@ -6359,6 +6584,31 @@ msgstr "Termin anlegen"
 #: core/views.py:752
 msgid "Termin wurde angelegt."
 msgstr "Termin wurde angelegt."
+
+#: templates/core/terminal_admin.html:58
+msgid "Terminal registrieren"
+msgstr "Terminal registrieren"
+
+#: templates/core/terminal_admin.html:41
+msgid "Terminal widerrufen? Es kann danach nicht mehr verwendet werden."
+msgstr "Terminal widerrufen? Es kann danach nicht mehr verwendet werden."
+
+#: templates/base.html:64
+msgid "Terminal-Menü"
+msgstr "Terminal-Menü"
+
+#: templates/core/account.html:70
+#: templates/core/terminal_pin_change.html:3
+msgid "Terminal-PIN"
+msgstr "Terminal-PIN"
+
+#: templates/core/terminal_pin_change.html:6
+msgid "Terminal-PIN festlegen"
+msgstr "Terminal-PIN festlegen"
+
+#: templates/core/terminal_menu.html:31
+msgid "Termine"
+msgstr "Termine"
 
 #: templates/core/more.html:207
 msgid "Termine der Wache, Feiertage und Kalender-Abo für das Handy."
@@ -6609,7 +6859,7 @@ msgstr "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
 msgid "Verschlüsselung"
 msgstr "Verschlüsselung"
 
-#: templates/base.html:108
+#: templates/base.html:120
 #: templates/core/handover_detail.html:44
 #: templates/core/privacy.html:190
 #: templates/core/system_status.html:12
@@ -6705,7 +6955,7 @@ msgstr "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 msgid "Vorführen. Pilotieren. Selbst hosten."
 msgstr "Vorführen. Pilotieren. Selbst hosten."
 
-#: templates/base.html:105
+#: templates/base.html:117
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
 msgstr "Vorführung"
@@ -6790,6 +7040,10 @@ msgstr "Wachbuch"
 msgid "Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem."
 msgstr "Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem."
 
+#: templates/core/terminal_pair.html:14
+msgid "Wachbuch-App öffnen und „QR-Code scannen“ wählen."
+msgstr "Wachbuch-App öffnen und „QR-Code scannen“ wählen."
+
 #: templates/core/vorfuehrung.html:10
 msgid "Wachbuch-Vorführung"
 msgstr "Wachbuch-Vorführung"
@@ -6854,7 +7108,7 @@ msgstr "Wachen-Wiki & Dokumente"
 
 #: core/navigation.py:32
 #: core/navigation.py:63
-#: templates/core/account.html:69
+#: templates/core/account.html:73
 #: templates/core/chat.html:3
 #: templates/core/chat.html:7
 #: templates/core/chat_signal.html:3
@@ -6880,6 +7134,23 @@ msgstr "Wachenkalender"
 #: templates/core/wiki_index.html:9
 msgid "Wachenorganisation"
 msgstr "Wachenorganisation"
+
+#: templates/base.html:63
+#: templates/core/terminal_admin.html:57
+#: templates/core/terminal_home.html:2
+#: templates/core/terminal_home.html:12
+#: templates/core/terminal_menu.html:3
+msgid "Wachenterminal"
+msgstr "Wachenterminal"
+
+#: templates/core/terminal_admin.html:3
+#: templates/core/terminal_admin.html:7
+msgid "Wachenterminals"
+msgstr "Wachenterminals"
+
+#: templates/core/team.html:15
+msgid "Wachenterminals & PINs"
+msgstr "Wachenterminals & PINs"
 
 #: templates/core/more.html:328
 msgid "Wachenverwaltung & Sicherheit"
@@ -6953,6 +7224,10 @@ msgstr "Was die Schicht wirklich braucht."
 msgid "Was genau ist defekt? Fehlermeldung auf Display?"
 msgstr "Was genau ist defekt? Fehlermeldung auf Display?"
 
+#: templates/core/terminal_menu.html:7
+msgid "Was möchtest du erledigen? Nach der Arbeit bitte abmelden."
+msgstr "Was möchtest du erledigen? Nach der Arbeit bitte abmelden."
+
 #: templates/core/mpg_device_detail.html:341
 msgid "Was wurde behoben?"
 msgstr "Was wurde behoben?"
@@ -6984,6 +7259,10 @@ msgstr "Weiter zur Bestätigung"
 #: templates/core/landing.html:133
 msgid "Weitere Rollen zum Ausprobieren:"
 msgstr "Weitere Rollen zum Ausprobieren:"
+
+#: templates/core/terminal_people.html:8
+msgid "Wer bist du?"
+msgstr "Wer bist du?"
 
 #: templates/core/fleet_dashboard.html:56
 msgid "Werkstatt / Ausfall"
@@ -7091,6 +7370,7 @@ msgstr "Widerrufbare Tokens für Open-Source-Apps (iOS/Android), analog zu Paper
 #: templates/core/display_tokens.html:102
 #: templates/core/display_tokens.html:106
 #: templates/core/team_invites.html:28
+#: templates/core/terminal_admin.html:45
 msgid "Widerrufen"
 msgstr "Widerrufen"
 
@@ -7188,7 +7468,7 @@ msgstr "Wochentag"
 msgid "Wochentagsaufgabe"
 msgstr "Wochentagsaufgabe"
 
-#: templates/core/team.html:27
+#: templates/core/team.html:28
 msgid "Wunsch:"
 msgstr "Wunsch:"
 
@@ -7287,7 +7567,7 @@ msgstr "Zuletzt erledigt am"
 msgid "Zuletzt genutzt"
 msgstr "Zuletzt genutzt"
 
-#: templates/base.html:29
+#: templates/base.html:30
 msgid "Zum Inhalt"
 msgstr "Zum Inhalt"
 
@@ -7324,6 +7604,7 @@ msgstr "Zur Übersicht"
 #: templates/core/mpg_device_form.html:7
 #: templates/core/pagination.html:4
 #: templates/core/sop_form.html:7
+#: templates/core/terminal_people.html:7
 #: templates/core/vorfuehrung.html:141
 #: templates/core/warehouse_item_form.html:7
 #: templates/core/wiki_index.html:65
@@ -7375,6 +7656,10 @@ msgstr "Zurück zu Privat"
 msgid "Zurück zu Tagesaufgaben"
 msgstr "Zurück zu Tagesaufgaben"
 
+#: templates/core/terminal_admin.html:5
+msgid "Zurück zu Team & Rollen"
+msgstr "Zurück zu Team & Rollen"
+
 #: templates/core/handover_detail.html:5
 #: templates/core/handover_form.html:5
 msgid "Zurück zu Übergaben"
@@ -7395,6 +7680,10 @@ msgstr "Zurück zum Kalender"
 #: templates/core/team_user_create.html:5
 msgid "Zurück zum Team"
 msgstr "Zurück zum Team"
+
+#: templates/core/terminal_pair.html:28
+msgid "Zurück zum Terminal-Menü"
+msgstr "Zurück zum Terminal-Menü"
 
 #: templates/core/fleet_vehicle_detail.html:7
 msgid "Zurück zur Fuhrpark-Übersicht"
@@ -7574,7 +7863,7 @@ msgid "ausgegeben"
 msgstr "ausgegeben"
 
 #: templates/core/membership_form.html:4
-#: templates/core/team.html:38
+#: templates/core/team.html:39
 msgid "bearbeiten"
 msgstr "bearbeiten"
 
@@ -7597,6 +7886,10 @@ msgstr "dringend"
 #: templates/core/_display_surface.html:77
 msgid "dringende Übergaben"
 msgstr "dringende Übergaben"
+
+#: templates/core/terminal_admin.html:72
+msgid "eigene PIN gesetzt"
+msgstr "eigene PIN gesetzt"
 
 #: templates/core/privacy.html:89
 msgid "eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies erneut bewerten, sobald weitere Dienste, SDKs oder Cookies ergänzt werden."
@@ -7646,6 +7939,10 @@ msgstr "ja"
 msgid "keine"
 msgstr "keine"
 
+#: templates/core/terminal_admin.html:73
+msgid "keine PIN"
+msgstr "keine PIN"
+
 #: templates/core/fleet_vehicle_detail.html:199
 msgid "km-Stand"
 msgstr "km-Stand"
@@ -7682,6 +7979,10 @@ msgstr "nicht erreichbar"
 #: templates/core/system_status.html:16
 msgid "nicht hinterlegt"
 msgstr "nicht hinterlegt"
+
+#: templates/core/terminal_admin.html:37
+msgid "noch nicht eingerichtet"
+msgstr "noch nicht eingerichtet"
 
 #: templates/core/team_invite.html:11
 msgid "nur jetzt"
@@ -7743,6 +8044,7 @@ msgid "von dir noch nicht quittiert"
 msgstr "von dir noch nicht quittiert"
 
 #: templates/core/api_tokens.html:35
+#: templates/core/terminal_admin.html:35
 msgid "widerrufen"
 msgstr "widerrufen"
 
@@ -7790,6 +8092,10 @@ msgstr "z. B. rtw-1"
 #: templates/core/api_tokens.html:37
 msgid "zuletzt"
 msgstr "zuletzt"
+
+#: templates/core/terminal_admin.html:36
+msgid "zuletzt aktiv"
+msgstr "zuletzt aktiv"
 
 #: templates/core/privacy.html:89
 msgid "§ 25 Abs. 2 Nr. 2 TDDDG"
@@ -7863,6 +8169,10 @@ msgstr "Übergabe wurde angelegt."
 msgid "Übergabe wurde korrigiert (neue Revision)."
 msgstr "Übergabe wurde korrigiert (neue Revision)."
 
+#: templates/core/terminal_menu.html:13
+msgid "Übergabebuch"
+msgstr "Übergabebuch"
+
 #: templates/core/handover_list.html:16
 msgid "Übergabeliste"
 msgstr "Übergabeliste"
@@ -7902,6 +8212,7 @@ msgstr "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanwei
 #: core/navigation.py:13
 #: templates/core/dashboard.html:3
 #: templates/core/dashboard.html:8
+#: templates/core/terminal_menu.html:33
 msgid "Übersicht"
 msgstr "Übersicht"
 

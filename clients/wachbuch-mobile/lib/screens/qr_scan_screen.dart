@@ -37,11 +37,13 @@ class _QrScanScreenState extends State<QrScanScreen> {
       final raw = barcode.rawValue;
       if (raw == null || raw.trim().isEmpty) continue;
       try {
-        final address = parseServerAddress(raw);
+        // Nur prüfen; zurückgegeben wird der vollständige Inhalt, damit
+        // Zertifikats-Fingerabdruck und Kopplungscode erhalten bleiben.
+        parseServerLink(raw);
         _handled = true;
         await _controller.stop();
         if (!mounted) return;
-        Navigator.of(context).pop(address);
+        Navigator.of(context).pop(raw.trim());
         return;
       } catch (_) {
         if (!mounted) return;

@@ -278,6 +278,30 @@ class WachbuchApi {
     }, maxAttempts: 1);
   }
 
+  /// POST /api/v1/token/kopplung/ — Kopplungscode vom Wachenterminal
+  /// (Server ab 0.24.0) gegen ein App-Token tauschen. Der Code gilt einmal.
+  Future<AuthToken> exchangePairingCode(
+    String code, {
+    String label = 'Mobile App (Terminal-Kopplung)',
+  }) async {
+    final response = await _send(
+      _client.post(
+        _uri('/api/v1/token/kopplung/'),
+        headers: _headers(auth: false),
+        body: jsonEncode({'code': code, 'label': label}),
+      ),
+    );
+    final body = _decode(response);
+    final value = body['token'] as String?;
+    if (value == null || value.isEmpty) {
+      throw ApiException(response.statusCode, 'Kein Token in der Antwort.');
+    }
+    return AuthToken(
+      value: value,
+      expiresAt: _parseExpiresAt(body['expires_at']),
+    );
+  }
+
   /// DELETE /api/v1/token/ — revoke the current app token.
   ///
   /// 401 is treated as success so logout still completes after an already

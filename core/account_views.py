@@ -402,7 +402,14 @@ def mobile_setup_qr(request):
     """PNG QR with the public server origin for the mobile client camera scan."""
     if not request.user.is_authenticated:
         return redirect(f"{reverse('login')}?next={reverse('mobile_setup_qr')}")
-    setup_url = request.build_absolute_uri("/").rstrip("/")
+    from .terminal import local_cert_fingerprint
+    from .terminal_views import connect_link
+
+    if local_cert_fingerprint():
+        # Lokales Zertifikat (z. B. Raspberry Pi): Fingerabdruck mitgeben.
+        setup_url = connect_link(request)
+    else:
+        setup_url = request.build_absolute_uri("/").rstrip("/")
     image = qrcode.make(setup_url, box_size=6, border=2)
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")

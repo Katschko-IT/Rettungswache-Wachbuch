@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Handy verbinden" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <h1>{% translate "Handy mit deinem Konto verbinden" %}</h1>
+  <p class="lead">{% translate "Danach nutzt du die Wachbuch-App ohne Passwort. Das Handy muss im WLAN der Wache sein." %}</p>
+</header>
+<section class="content-flow narrow">
+  {% if has_code %}
+    <div class="card terminal-pair-card">
+      <img src="{% url 'terminal_pair_qr' %}" alt="{% translate 'Persönlicher Kopplungs-QR-Code' %}" width="280" height="280">
+      <ol>
+        <li>{% translate "Wachbuch-App öffnen und „QR-Code scannen“ wählen." %}</li>
+        <li>{% translate "Diesen Code scannen. Er gilt 2 Minuten und nur einmal." %}</li>
+        <li>{% translate "Fertig: Die App ist mit deinem Konto angemeldet." %}</li>
+      </ol>
+      <p class="helptext">{% translate "Der Code meldet das Handy mit deinem Konto an. Niemand anderen scannen lassen." %}</p>
+    </div>
+  {% else %}
+    <form method="post" class="card">
+      {% csrf_token %}
+      <p>{% translate "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist." %}</p>
+      <button type="submit" class="button primary">{% translate "QR-Code anzeigen" %}</button>
+    </form>
+  {% endif %}
+  {% if pin_session %}
+    <p><a class="button secondary" href="{% url 'terminal_menu' %}">{% translate "Zurück zum Terminal-Menü" %}</a></p>
+  {% endif %}
+</section>
+{% endblock %}

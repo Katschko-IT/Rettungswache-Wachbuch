@@ -1,0 +1,277 @@
+/* Wachenterminal: Touch-Bildschirm auf der Wache (große Ziele, hoher Kontrast). */
+
+.terminal-root,
+.terminal-body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0b1622;
+  color: #f4f7fb;
+  font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  font-size: 1.25rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Ruhebildschirm: Wachen-Display mit Anmeldeleiste */
+.terminal-idle .display-surface {
+  padding-bottom: 9rem;
+}
+
+/* Kein „Esc beendet die Anzeige“: das Terminal hat keine Tastatur. */
+.terminal-idle .display-hint {
+  display: none;
+}
+
+.terminal-dock {
+  position: fixed;
+  z-index: 10;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: rgba(6, 14, 24, 0.94);
+  border-top: 2px solid #2d6cdf;
+}
+
+.terminal-cta {
+  flex: 1;
+  display: block;
+  padding: 1.6rem 2rem;
+  border-radius: 1rem;
+  background: #2d6cdf;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.terminal-cta:focus-visible,
+.terminal-person:focus-visible,
+.terminal-keypad button:focus-visible,
+.terminal-tile:focus-visible {
+  outline: 4px solid #ffd54f;
+  outline-offset: 3px;
+}
+
+.terminal-app-qr {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  max-width: 22rem;
+  font-size: 1rem;
+}
+
+.terminal-app-qr img {
+  background: #fff;
+  padding: 0.3rem;
+  border-radius: 0.5rem;
+}
+
+.terminal-messages {
+  position: absolute;
+  inset: auto 2rem 100% 2rem;
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  list-style: none;
+  border-radius: 0.75rem;
+  background: #263b52;
+}
+
+/* Personenauswahl und PIN */
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: #10233a;
+}
+
+.terminal-bar h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.terminal-back {
+  padding: 0.9rem 1.2rem;
+  border-radius: 0.75rem;
+  background: #263b52;
+  color: #fff;
+  text-decoration: none;
+}
+
+.terminal-main {
+  padding: 1.5rem 2rem 3rem;
+}
+
+.terminal-search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem 1.25rem;
+  border: 2px solid #3b5878;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #0b1622;
+  font-size: 1.4rem;
+}
+
+.terminal-people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.terminal-person {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: #17304d;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.terminal-initials {
+  display: inline-grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  background: #2d6cdf;
+  font-weight: 700;
+}
+
+.terminal-empty {
+  grid-column: 1 / -1;
+}
+
+.terminal-pin-main {
+  display: grid;
+  place-items: center;
+}
+
+.terminal-pin-form {
+  display: grid;
+  gap: 1rem;
+  width: min(26rem, 100%);
+}
+
+.terminal-pin-input {
+  padding: 1rem;
+  border: 2px solid #3b5878;
+  border-radius: 0.75rem;
+  font-size: 2.2rem;
+  letter-spacing: 0.6em;
+  text-align: center;
+}
+
+.terminal-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.terminal-keypad button,
+.terminal-submit {
+  min-height: 5rem;
+  border: 0;
+  border-radius: 1rem;
+  background: #17304d;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.terminal-submit {
+  background: #2d6cdf;
+  font-size: 1.5rem;
+}
+
+.terminal-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: #7f1d1d;
+}
+
+/* Nach der Anmeldung (innerhalb der normalen Oberfläche) */
+.terminal-session-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #10233a;
+  color: #fff;
+}
+
+.terminal-session-bar form {
+  margin: 0;
+}
+
+.terminal-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.terminal-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 8rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: var(--brand, #0d47a1);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.terminal-tile span {
+  font-size: 2.2rem;
+}
+
+.terminal-pair-card {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+}
+
+.terminal-pair-card img {
+  background: #fff;
+  padding: 0.5rem;
+}
+
+.terminal-pin-reveal {
+  font-size: 2.2rem;
+  letter-spacing: 0.4em;
+}
+
+@media (max-width: 760px) {
+  .terminal-dock {
+    flex-direction: column;
+  }
+}

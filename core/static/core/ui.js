@@ -18,6 +18,10 @@
  *   data-confirm="Frage?"          Formular nur nach Bestätigung absenden
  *   data-scanner                   Kamera-Scanner im Modal (siehe unten)
  *   data-filter-input="selector"   Live-Filter über Karten (Seite „Mehr“)
+ *   data-pin-pad="input-id"        Ziffernblock für ein PIN-Feld (Wachenterminal)
+ *     data-pin-key="7|back|clear"  … Taste; bei voller Länge wird abgesendet
+ *   data-idle-logout="120"         sendet dieses Formular nach N Sekunden ohne
+ *                                  Eingabe ab; Restzeit in [data-idle-countdown]
  */
 (function () {
   "use strict";
@@ -304,10 +308,62 @@
     });
   }
 
+  function setupPinPad(pad) {
+    var input = document.getElementById(pad.getAttribute("data-pin-pad") || "");
+    if (!input) {
+      return;
+    }
+    var length = parseInt(input.getAttribute("maxlength"), 10) || 6;
+    each("[data-pin-key]", pad, function (key) {
+      key.addEventListener("click", function () {
+        var value = key.getAttribute("data-pin-key");
+        if (value === "back") {
+          input.value = input.value.slice(0, -1);
+        } else if (value === "clear") {
+          input.value = "";
+        } else if (/^[0-9]$/.test(value) && input.value.length < length) {
+          input.value += value;
+        }
+        input.dispatchEvent(new Event("input"));
+        if (input.value.length === length && input.form && pad.hasAttribute("data-pin-autosubmit")) {
+          input.form.requestSubmit ? input.form.requestSubmit() : input.form.submit();
+        }
+      });
+    });
+  }
+
+  function setupIdleLogout(form) {
+    var seconds = parseInt(form.getAttribute("data-idle-logout"), 10);
+    if (!seconds || seconds < 10) {
+      return;
+    }
+    var counter = document.querySelector("[data-idle-countdown]");
+    var deadline = Date.now() + seconds * 1000;
+    var sent = false;
+    function reset() {
+      deadline = Date.now() + seconds * 1000;
+    }
+    ["pointerdown", "keydown", "touchstart", "wheel"].forEach(function (name) {
+      document.addEventListener(name, reset, { passive: true });
+    });
+    window.setInterval(function () {
+      var left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+      if (counter) {
+        counter.textContent = String(left);
+      }
+      if (left === 0 && !sent) {
+        sent = true;
+        form.submit();
+      }
+    }, 1000);
+  }
+
   function init() {
     applyLayoutHints(document);
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);
+    each("[data-pin-pad]", document, setupPinPad);
+    each("form[data-idle-logout]", document, setupIdleLogout);
   }
 
   if (document.readyState === "loading") {

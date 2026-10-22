@@ -1615,3 +1615,6 @@ from .diagnostics_models import ErrorEvent  # noqa: E402,F401
 
 # Widerrufbare Display-Zugaenge fuer Wandmonitore liegen in einem eigenen Modul.
 from .display_models import DisplayToken  # noqa: E402,F401
+
+# Wachenterminal (Touch-Bildschirm mit PIN-Anmeldung)
+from .terminal_models import StationTerminal, TerminalPairing, TerminalPin  # noqa: E402,F401

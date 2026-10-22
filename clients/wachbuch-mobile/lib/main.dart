@@ -8,6 +8,7 @@ import 'package:wachbuch_mobile/api/api_cache.dart';
 import 'package:wachbuch_mobile/api/client.dart';
 import 'package:wachbuch_mobile/api/server_address.dart';
 import 'package:wachbuch_mobile/api/server_links.dart';
+import 'package:wachbuch_mobile/api/server_trust.dart';
 import 'package:wachbuch_mobile/auth/session_store.dart';
 import 'package:wachbuch_mobile/demo/demo_api.dart';
 import 'package:wachbuch_mobile/demo/demo_profiles.dart';
@@ -104,7 +105,8 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
 
   Future<void> _checkForUpdates() async {
     try {
-      final updateService = UpdateService(baseUrl: _serverUrl ?? '');
+      final base = _serverUrl ?? '';
+      final updateService = UpdateService(baseUrl: base, client: ServerTrust.clientFor(base));
       final updateInfo = await updateService.checkForUpdates();
       
       if (updateInfo != null && updateInfo.hasUpdate) {
@@ -156,6 +158,11 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   }
 
   Future<void> _bootstrap() async {
+    try {
+      await ServerTrust.load();
+    } catch (_) {
+      // Ohne gespeicherte Fingerabdrücke gilt die normale TLS-Prüfung.
+    }
     var url = await widget.store.readServerUrl();
     var token = await widget.store.readToken();
 
@@ -181,8 +188,11 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
     }
 
     final initialLink = await widget.linkSource.getInitialLink();
+    ServerLink? pairingLink;
     if (initialLink != null) {
-      final linkedUrl = _parseLink(initialLink);
+      final parsed = await _parseAndTrust(initialLink);
+      if (parsed?.pairingCode != null) pairingLink = parsed;
+      final linkedUrl = parsed?.url;
       if (linkedUrl != null && linkedUrl != url) {
         // During bootstrap `_api` does not exist yet, so clear the persisted
         // session cache directly before replacing a previously stored server.
@@ -226,14 +236,51 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
     if (_serverUrl != null && _serverUrl!.isNotEmpty && !DemoService.isDemoUrl(_serverUrl!)) {
       _checkForUpdates();
     }
+    if (pairingLink != null) {
+      await _pairWith(pairingLink);
+    }
   }
 
-  String? _parseLink(Uri link) {
+  /// Liest einen Wachbuch-Link und merkt sich einen mitgelieferten
+  /// Zertifikats-Fingerabdruck für diesen Server.
+  Future<ServerLink?> _parseAndTrust(Uri link) async {
+    final ServerLink parsed;
     try {
-      return parseServerAddress(link.toString(), allowInsecure: kDebugMode);
+      parsed = parseServerLink(link.toString(), allowInsecure: kDebugMode);
     } on ArgumentError {
       return null;
     }
+    final pin = parsed.certSha256;
+    if (pin != null) {
+      await ServerTrust.remember(parsed.url, pin);
+    }
+    return parsed;
+  }
+
+  /// Kopplungs-QR vom Wachenterminal: Token holen und direkt anmelden.
+  Future<void> _pairWith(ServerLink link) async {
+    final code = link.pairingCode;
+    if (code == null) return;
+    final api = createWachbuchApi(link.url);
+    try {
+      final token = await api.exchangePairingCode(code);
+      await _onPaired(link.url, token);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _sessionNotice = 'Kopplung fehlgeschlagen: ${error.message} '
+            'Bitte am Wachenterminal einen neuen QR-Code erzeugen.';
+        if (_phase != _BootPhase.home) _phase = _BootPhase.login;
+      });
+    } finally {
+      api.close();
+    }
+  }
+
+  Future<void> _onPaired(String url, AuthToken token) async {
+    await _clearCurrentApiCache();
+    await widget.store.clearAll();
+    await _onLoggedIn(url, token.value, expiresAt: token.expiresAt);
   }
 
   Future<void> _clearCacheForSession(String baseUrl, String token) async {
@@ -289,8 +336,14 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
   }
 
   Future<void> _handleServerLink(Uri link) async {
-    final url = _parseLink(link);
-    if (url == null) return;
+    final parsed = await _parseAndTrust(link);
+    if (parsed == null) return;
+    final url = parsed.url;
+    if (parsed.pairingCode != null) {
+      // Ausdrücklich gescannter Kopplungscode: Anmeldung mit diesem Konto.
+      await _pairWith(parsed);
+      return;
+    }
     if (_serverUrl == url && _phase == _BootPhase.home) {
       return;
     }
@@ -452,6 +505,7 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
           store: widget.store,
           onServerReady: _onServerReady,
           onDemoReady: _onDemoReady,
+          onPaired: _onPaired,
         );
       case _BootPhase.login:
         home = LoginScreen(

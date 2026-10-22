@@ -18,6 +18,7 @@ import 'package:wachbuch_mobile/models/kalender_entry.dart';
 import 'package:wachbuch_mobile/models/pinboard_note.dart';
 import 'package:wachbuch_mobile/models/report_stats.dart';
 import 'package:wachbuch_mobile/models/station_asset.dart';
+import 'package:wachbuch_mobile/api/server_trust.dart';
 
 const demoTokenPrefix = 'wb_demo_';
 const _maxAttachmentBytes = 2 * 1024 * 1024;
@@ -37,6 +38,8 @@ WachbuchApi createWachbuchApi(String baseUrl, {String? token}) {
   return WachbuchApi(
     baseUrl: baseUrl,
     token: token,
+    // Lokales Zertifikat (Fingerabdruck aus dem Verbindungs-QR) oder System-TLS.
+    client: ServerTrust.clientFor(baseUrl),
     cache: token == null || token.isEmpty
         ? null
         : SecureApiCache.forSession(baseUrl: baseUrl, token: token),

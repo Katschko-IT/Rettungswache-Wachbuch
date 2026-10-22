@@ -51,6 +51,7 @@ MIDDLEWARE = [
     "core.middleware.SecurityHeadersMiddleware",
     "core.middleware.ClientIPMiddleware",
     "axes.middleware.AxesMiddleware",
+    "core.terminal.TerminalMiddleware",
     # Muss nach der Korrelations-ID-Middleware stehen, damit die ID bereits
     # am Request haengt, wenn ein 5xx-Ereignis erfasst wird.
     "core.diagnostics.ErrorEventMiddleware",
@@ -183,6 +184,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context.current_membership",
                 "core.context.application_metadata",
+                "core.terminal.terminal_context",
             ],
         },
     }
@@ -326,6 +328,14 @@ QR_LOGIN_RATE_LIMITS = {
     "qr_exchange": (10, 60),
     "qr_manual": (10, 60),
 }
+# Wachenterminal: registrierter Touch-Bildschirm mit persönlicher PIN
+# (docs/PI-WACHENTERMINAL.md). Aus, solange der Betreiber es nicht einschaltet.
+TERMINAL_ENABLED = env_bool("TERMINAL_ENABLED", default=False)
+TERMINAL_IDLE_SECONDS = max(30, int(os.getenv("TERMINAL_IDLE_SECONDS", "120") or "120"))
+# SHA-256 des TLS-Zertifikats bei lokalem Betrieb mit eigenem Zertifikat (z. B.
+# Raspberry Pi mit eigenem WLAN). Die App erhält ihn über den Verbindungs-QR und
+# vertraut dann genau diesem Zertifikat. Leer bei öffentlich gültigem Zertifikat.
+LOCAL_TLS_CERT_SHA256 = os.getenv("LOCAL_TLS_CERT_SHA256", "").strip().lower().replace(":", "")
 WEBAUTHN_ENABLED = env_bool("WEBAUTHN_ENABLED", default=True)
 WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "").strip()

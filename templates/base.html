@@ -23,9 +23,10 @@
   <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'core/crypto_unlock.css' %}">
+  {% if terminal_session %}<link rel="stylesheet" href="{% static 'core/terminal.css' %}">{% endif %}
   {% block extra_css %}{% endblock %}
 </head>
-<body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
+<body{% if terminal_device %} data-terminal-device{% endif %} class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#inhalt">{% translate "Zum Inhalt" %}</a>
   <header class="app-header">
     <div class="header-inner">
@@ -42,7 +43,7 @@
             <strong><a class="account-link" href="{% url 'account_home' %}">{{ request.user.first_name|default:request.user.username }}</a></strong>
             {% if current_membership %}<span>{{ current_membership.get_role_display }}</span>{% endif %}
           </div>
-          <form class="logout-form" method="post" action="{% url 'logout' %}" data-clear-cache-on-submit>
+          <form class="logout-form" method="post" action="{% if terminal_session %}{% url 'terminal_logout' %}{% else %}{% url 'logout' %}{% endif %}" data-clear-cache-on-submit>
             {% csrf_token %}
             <button type="submit">{% translate "Abmelden" %}</button>
           </form>
@@ -57,7 +58,18 @@
 
   <div class="connection-chip" data-connection-chip hidden role="status"></div>
 
-  {% if current_membership and current_membership.role != 'auditor' %}
+  {% if terminal_session %}
+    <div class="terminal-session-bar" role="status">
+      <span>{% translate "Wachenterminal" %} · {% blocktranslate with seconds=terminal_idle_seconds %}Abmeldung nach Inaktivität in <strong data-idle-countdown>{{ seconds }}</strong> s{% endblocktranslate %}</span>
+      <a class="button secondary" href="{% url 'terminal_menu' %}">{% translate "Terminal-Menü" %}</a>
+      <form method="post" action="{% url 'terminal_logout' %}" data-idle-logout="{{ terminal_idle_seconds }}" data-clear-cache-on-submit>
+        {% csrf_token %}
+        <button type="submit" class="button primary">{% translate "Abmelden" %}</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if current_membership and current_membership.role != 'auditor' and not terminal_session %}
     <div class="install-banner" data-install-banner hidden>
       <div>
         <strong>{% blocktranslate %}{{ app_name }} auf dem Gerät{% endblocktranslate %}</strong>

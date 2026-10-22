@@ -7,6 +7,7 @@ urlpatterns = [
     path("openapi.yaml", views.openapi_spec, name="api_v1_openapi"),
     # English / Paperless-style
     path("token/", views.token_endpoint, name="api_v1_token"),
+    path("token/kopplung/", views.pairing_exchange, name="api_v1_token_pairing"),
     path("me/", wachalltag.me, name="api_v1_me"),
     path("handovers/", views.handovers_list, name="api_v1_handovers"),
     path("handovers/<int:pk>/", views.handover_detail, name="api_v1_handover_detail"),

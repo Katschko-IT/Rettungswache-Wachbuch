@@ -151,6 +151,10 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Wachenterminal und lokales Zertifikat (docs/PI-WACHENTERMINAL.md)
+      TERMINAL_ENABLED: ${TERMINAL_ENABLED:-false}
+      TERMINAL_IDLE_SECONDS: ${TERMINAL_IDLE_SECONDS:-120}
+      LOCAL_TLS_CERT_SHA256: ${LOCAL_TLS_CERT_SHA256:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

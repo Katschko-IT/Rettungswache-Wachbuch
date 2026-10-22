@@ -4,6 +4,13 @@ Alle wesentlichen Änderungen an Wachbuch Mobile werden hier dokumentiert.
 
 ## Unreleased
 
+- Wache ohne Internet: Ein Verbindungs-QR mit `pin=sha256/…` hinterlegt den
+  Fingerabdruck eines lokalen Serverzertifikats (z. B. Raspberry Pi mit eigenem
+  WLAN). Die App vertraut dann genau diesem Zertifikat für diesen Server.
+- Kopplung am Wachenterminal: Ein QR mit `pair=…` meldet die App ohne Passwort
+  mit dem eigenen Konto an (Server ab 0.24.0, `POST /api/v1/token/kopplung/`).
+- iOS: Hinweistext für den Zugriff auf das lokale Netzwerk
+  (`NSLocalNetworkUsageDescription`).
 - Erinnerung für die Besatzung, wenn die Desinfektions-Einwirkzeit eines
   Fahrzeugs abläuft (Server ab 0.24.0). Die App plant eine lokale
   Benachrichtigung zur Sperrzeit und zeigt neue Hinweise aus dem persönlichen

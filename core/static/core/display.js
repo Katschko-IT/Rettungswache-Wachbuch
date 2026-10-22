@@ -395,11 +395,14 @@
   var sseSource = null;
   function initSSE() {
     if (!window.EventSource) return false;
+    // Flächen ohne Display-Token (z. B. Wachenterminal) fragen nur periodisch ab.
+    var streamUrl = roots[0] ? roots[0].getAttribute("data-stream-url") : null;
+    if (streamUrl === "none") return false;
     try {
       if (sseSource) {
         sseSource.close();
       }
-      sseSource = new EventSource("/display/stream/");
+      sseSource = new EventSource(streamUrl || "/display/stream/");
       sseSource.addEventListener("update", function (e) {
         try {
           var payload = JSON.parse(e.data);
@@ -592,11 +595,13 @@
         overlayRoot = visibleRoots[0];
       } else {
         initStandalone();
-        document.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && !document.fullscreenElement) {
-            window.location.href = "/uebersicht/";
-          }
-        });
+        if (!visibleRoots[0].hasAttribute("data-no-escape")) {
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !document.fullscreenElement) {
+              window.location.href = "/uebersicht/";
+            }
+          });
+        }
       }
       setBackground(roots[0]);
       tickClock();

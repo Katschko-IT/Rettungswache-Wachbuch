@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenterminal" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <h1>{% blocktranslate with name=request.user.first_name|default:request.user.username %}Hallo {{ name }}{% endblocktranslate %}</h1>
+  <p class="lead">{% translate "Was möchtest du erledigen? Nach der Arbeit bitte abmelden." %}</p>
+</header>
+<nav class="terminal-tiles" aria-label="{% translate 'Schnellzugriff' %}">
+  {% if station.fleet_enabled %}
+    <a class="terminal-tile" href="{% url 'fleet_dashboard' %}"><span aria-hidden="true">🚑</span>{% translate "Fahrzeug übernehmen, desinfizieren, Status" %}</a>
+  {% endif %}
+  <a class="terminal-tile" href="{% url 'handover_list' %}"><span aria-hidden="true">📋</span>{% translate "Übergabebuch" %}</a>
+  <a class="terminal-tile" href="{% url 'defects_web' %}"><span aria-hidden="true">⚠️</span>{% translate "Mangel melden" %}</a>
+  {% if station.mpg_enabled %}
+    <a class="terminal-tile" href="{% url 'mpg_dashboard' %}"><span aria-hidden="true">🩺</span>{% translate "Medizingeräte prüfen" %}</a>
+  {% endif %}
+  {% if station.warehouse_enabled %}
+    <a class="terminal-tile" href="{% url 'warehouse_dashboard' %}"><span aria-hidden="true">📦</span>{% translate "Material entnehmen" %}</a>
+  {% endif %}
+  {% if station.tasks_enabled %}
+    <a class="terminal-tile" href="{% url 'tasks_today' %}"><span aria-hidden="true">✅</span>{% translate "Aufgaben heute" %}</a>
+  {% endif %}
+  {% if station.checklists_enabled %}
+    <a class="terminal-tile" href="{% url 'checklists' %}"><span aria-hidden="true">☑️</span>{% translate "Checklisten" %}</a>
+  {% endif %}
+  {% if station.orga_enabled %}
+    <a class="terminal-tile" href="{% url 'orga_dashboard' %}"><span aria-hidden="true">📄</span>{% translate "Dienstanweisungen lesen" %}</a>
+  {% endif %}
+  {% if station.calendar_enabled %}
+    <a class="terminal-tile" href="{% url 'calendar' %}"><span aria-hidden="true">📅</span>{% translate "Termine" %}</a>
+  {% endif %}
+  <a class="terminal-tile" href="{% url 'dashboard' %}"><span aria-hidden="true">🏠</span>{% translate "Übersicht" %}</a>
+  <a class="terminal-tile" href="{% url 'terminal_pair' %}"><span aria-hidden="true">📱</span>{% translate "Handy mit meinem Konto verbinden" %}</a>
+  <a class="terminal-tile" href="{% url 'terminal_pin_change' %}"><span aria-hidden="true">🔢</span>{% translate "PIN ändern" %}</a>
+</nav>
+{% endblock %}

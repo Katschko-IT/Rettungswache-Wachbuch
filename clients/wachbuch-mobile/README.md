@@ -101,6 +101,17 @@ und dann im Client mit einem Test der echten Antwortform übernommen.
 
 Der Vertrag liegt im Server-Repository unter `docs/API.md`, `docs/CLIENT.md` und `docs/openapi.yaml`. Die Kopplung erfolgt ausschließlich über den versionierten API-Vertrag – nicht durch Kopieren eines Client-Quellbaums in das Server-Repository.
 
+### Wache ohne Internet (Raspberry Pi mit eigenem WLAN)
+
+Der Verbindungs-QR eines Pi-Servers lautet
+`wachbuch://connect?url=https://10.42.0.1&pin=sha256/<Fingerabdruck>`. Die App
+vertraut dann genau diesem Zertifikat für genau diesen Server
+(`lib/api/server_trust.dart`); ein anderes Zertifikat wird abgelehnt, auf dem
+Handy muss keine Zertifizierungsstelle installiert werden. Ein QR vom
+Wachenterminal mit `pair=<Code>` meldet die App zusätzlich ohne Passwort an
+(`POST /api/v1/token/kopplung/`, Code 120 s gültig und einmalig). Einrichtung
+des Servers: `docs/PI-WACHENTERMINAL.md` im Server-Repository.
+
 ## Qualitätsgates
 
 Vor Freigabe müssen mindestens bestehen:

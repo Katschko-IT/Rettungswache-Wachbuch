@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Terminal-PIN" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <h1>{% translate "Terminal-PIN festlegen" %}</h1>
+  {% if forced %}
+    <p class="lead">{% translate "Die Wachleitung hat dir eine Start-PIN gegeben. Lege jetzt deine eigene PIN fest." %}</p>
+  {% else %}
+    <p class="lead">{% translate "Mit dieser PIN meldest du dich am Wachenterminal an. Sie gilt nur an registrierten Terminals der Wache, nicht in der App oder im Internet." %}</p>
+  {% endif %}
+</header>
+<section class="content-flow narrow">
+  <form method="post" class="card" autocomplete="off">
+    {% csrf_token %}
+    {% if error_text %}<p class="message error" role="alert">{{ error_text }}</p>{% endif %}
+    {% if needs_current %}
+      <label for="current_pin">{% translate "Bisherige PIN" %}</label>
+      <input id="current_pin" type="password" name="current_pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" required>
+    {% endif %}
+    <label for="new_pin">{% translate "Neue PIN (6 Ziffern)" %}</label>
+    <input id="new_pin" type="password" name="new_pin" inputmode="numeric" pattern="[0-9]*" minlength="6" maxlength="6" required>
+    <label for="new_pin_repeat">{% translate "Neue PIN wiederholen" %}</label>
+    <input id="new_pin_repeat" type="password" name="new_pin_repeat" inputmode="numeric" pattern="[0-9]*" minlength="6" maxlength="6" required>
+    <p class="helptext">{% translate "Keine Folgen wie 123456 und nicht sechsmal dieselbe Ziffer. Nach fünf Fehlversuchen ist die PIN 15 Minuten gesperrt." %}</p>
+    <div class="page-actions-bar">
+      <button type="submit" class="button primary">{% translate "PIN speichern" %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

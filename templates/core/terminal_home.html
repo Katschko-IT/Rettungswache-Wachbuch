@@ -1,0 +1,27 @@
+{% include "core/_terminal_head.html" %}{% load i18n static %}
+  <title>{{ terminal.station.name }} · {% translate "Wachenterminal" %}</title>
+  <link rel="stylesheet" href="{% static 'core/display.css' %}">
+  <link rel="stylesheet" href="{% static 'core/modules.css' %}">
+  <link rel="stylesheet" href="{% static 'core/terminal.css' %}">
+</head>
+<body class="display-body terminal-idle">
+  <div class="display-surface" data-display-root data-display-overlay="false" data-no-escape data-stream-url="none" data-data-url="{% url 'terminal_data' %}">
+    {% include "core/_display_surface.html" %}
+  </div>
+
+  <nav class="terminal-dock" aria-label="{% translate 'Wachenterminal' %}">
+    {% if messages %}
+      <ul class="terminal-messages">
+        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    <a class="terminal-cta" href="{% url 'terminal_people' %}">👆 {% translate "Antippen zum Anmelden" %}</a>
+    <figure class="terminal-app-qr">
+      <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="132" height="132">
+      <figcaption>{% translate "App verbinden: im WLAN der Wache scannen" %}</figcaption>
+    </figure>
+  </nav>
+
+  <script src="{% static 'core/display.js' %}" defer></script>
+</body>
+</html>
