@@ -1,57 +1,87 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% translate "Fuhrpark & Fahrzeuge" %} | {{ app_name }}{% endblock %}
+{% block title %}{% translate "Fuhrpark & Hygiene" %} | {{ app_name }}{% endblock %}
+
 {% block content %}
-<header class="page-heading">
-  <p class="context-line">{% translate "Flottenmanagement & Einsatzbereitschaft" %}</p>
-  <h1>{% translate "Fuhrpark & Fahrzeuge" %}</h1>
-  <p class="lead">{% translate "Statusübersicht aller Rettungsmittel (RTW, KTW, NEF), Fristen und Fahrzeugmängel." %}</p>
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Fuhrpark, Einsatzbereitschaft & Hygiene" %}</p>
+    <h1>{% translate "Fuhrpark & Fahrzeuge" %}</h1>
+    <p class="lead">{% translate "Taktischer BOS-Status, 3-Minuten Express-Schichtübernahme, StVZO § 29 HU / UVV-Fristen und RKI/VAH-Desinfektionsbuch mit Sperrtimer." %}</p>
+  </div>
+  <div class="page-actions-bar" style="margin: 0;">
+    {% if can_manage %}
+      <a class="button" href="{% url 'fleet_vehicle_create' %}">
+        <span class="icon" aria-hidden="true">➕</span> {% translate "Neues Fahrzeug anlegen" %}
+      </a>
+    {% endif %}
+    <a class="button secondary" href="{% url 'fleet_export_csv' %}">
+      <span class="icon" aria-hidden="true">📥</span> {% translate "Fuhrpark-Akte (CSV)" %}
+    </a>
+    <button type="button" class="button secondary" onclick="document.getElementById('scanner-modal').style.display='flex'">
+      <span class="icon" aria-hidden="true">📷</span> {% translate "Fahrzeug-QR-Scanner" %}
+    </button>
+  </div>
 </header>
 
+<!-- Fuhrpark KPI Status Board -->
 <div class="kpi-grid">
+  <div class="kpi-card">
+    <span class="kpi-value text-success">{{ kpis.status_1|add:kpis.status_2 }}</span>
+    <span class="kpi-label">{% translate "Einsatzbereit (Status 1/2)" %}</span>
+  </div>
+  <div class="kpi-card{% if kpis.disinfection %} border-warning{% endif %}">
+    <span class="kpi-value" style="color: #8b5cf6;">{{ kpis.disinfection }}</span>
+    <span class="kpi-label">{% translate "Desinfektion (Gesperrt)" %}</span>
+  </div>
+  <div class="kpi-card{% if kpis.workshop %} border-danger{% endif %}">
+    <span class="kpi-value text-danger">{{ kpis.workshop }}</span>
+    <span class="kpi-label">{% translate "Werkstatt / Status 6" %}</span>
+  </div>
+  <div class="kpi-card{% if kpis.urgent_inspections %} border-warning{% endif %}">
+    <span class="kpi-value" style="color: #ea580c;">{{ kpis.urgent_inspections }}</span>
+    <span class="kpi-label">{% translate "Prüffrist fällig (HU/UVV)" %}</span>
+  </div>
   <div class="kpi-card">
     <span class="kpi-value">{{ kpis.total }}</span>
     <span class="kpi-label">{% translate "Fahrzeuge gesamt" %}</span>
   </div>
-  <div class="kpi-card">
-    <span class="kpi-value text-success">{{ kpis.ready }}</span>
-    <span class="kpi-label">{% translate "Einsatzklar" %}</span>
-  </div>
-  <div class="kpi-card">
-    <span class="kpi-value text-warning">{{ kpis.limited }}</span>
-    <span class="kpi-label">{% translate "Bedingt einsatzklar" %}</span>
-  </div>
-  <div class="kpi-card">
-    <span class="kpi-value text-danger">{{ kpis.workshop }}</span>
-    <span class="kpi-label">{% translate "In Werkstatt" %}</span>
-  </div>
-  {% if kpis.open_defects %}
-    <div class="kpi-card">
-      <span class="kpi-value text-danger">{{ kpis.open_defects }}</span>
-      <span class="kpi-label">{% translate "Fahrzeugmängel" %}</span>
-    </div>
+</div>
+
+<!-- Filter & Suchleiste -->
+<nav class="filter-nav" aria-label="{% translate 'Fuhrpark Ansicht' %}" style="margin-top: 1.5rem; margin-bottom: 1rem;">
+  <a href="?filter=all{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Fahrzeuge" %} ({{ vehicles|length }})</a>
+  <a href="?filter=ready{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ready' %}aria-current="page"{% endif %}>🟢 {% translate "Einsatzbereit (1 & 2)" %}</a>
+  <a href="?filter=disinfection{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'disinfection' %}aria-current="page"{% endif %}>🟣 {% translate "In Desinfektion" %} ({{ kpis.disinfection }})</a>
+  <a href="?filter=workshop{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'workshop' %}aria-current="page"{% endif %}>🔧 {% translate "Werkstatt / Ausfall" %} ({{ kpis.workshop }})</a>
+  <a href="?filter=urgent_inspections{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent_inspections' %}aria-current="page"{% endif %}>🚨 {% translate "Fristen fällig" %} ({{ kpis.urgent_inspections }})</a>
+</nav>
+
+<form method="get" class="search-form" style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+  <input type="hidden" name="filter" value="{{ filter_mode }}">
+  <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Funkrufname, Kennzeichen, Hersteller...' %}" style="flex: 1; min-width: 240px; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px;">
+  <select name="type" onchange="this.form.submit()" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card);">
+    <option value="">{% translate "Alle Fahrzeugtypen" %}</option>
+    {% for type_key, type_label in types %}
+      <option value="{{ type_key }}" {% if vehicle_type == type_key %}selected{% endif %}>{{ type_label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="button secondary">{% translate "Filtern" %}</button>
+  {% if query or vehicle_type %}
+    <a href="?filter={{ filter_mode }}" class="button secondary">{% translate "Zurücksetzen" %}</a>
   {% endif %}
-</div>
+</form>
 
-<div class="page-actions-bar">
-  <a class="button secondary" href="{% url 'assets_inventory_web' %}">
-    <span class="icon" aria-hidden="true">🚑</span> {% translate "Fahrzeug erfassen / bearbeiten" %}
-  </a>
-  <a class="button secondary" href="{% url 'defect_create_web' %}">
-    <span class="icon" aria-hidden="true">⚠️</span> {% translate "Fahrzeugmangel melden" %}
-  </a>
-</div>
-
-{% if vehicle_defects %}
-<section class="section-block">
-  <h2>{% translate "Aktuelle Fahrzeugmängel" %}</h2>
+{% if open_defects %}
+<section class="section-block" style="border-left: 4px solid var(--danger-color, #dc2626); margin-bottom: 1.5rem;">
+  <h2>⚠️ {% translate "Offene Fahrzeug- & Werkstattmängel" %}</h2>
   <div class="item-list">
-    {% for defect in vehicle_defects %}
+    {% for defect in open_defects %}
       <div class="list-row priority-{{ defect.priority }}">
         <span class="status-label status-{{ defect.status }}">{{ defect.get_status_display }}</span>
         <span class="row-content">
           <strong><a href="{% url 'defect_detail_web' defect.pk %}">{{ defect.title }}</a></strong>
-          <small>{{ defect.created_at|date:"d.m.Y H:i" }} · {{ defect.created_by.first_name|default:defect.created_by.username }}</small>
+          <small>{{ defect.asset_ref }} &middot; {{ defect.created_at|date:"d.m.Y H:i" }} &middot; {{ defect.created_by.get_full_name|default:defect.created_by.username }}</small>
         </span>
         <span class="badge priority-badge">{{ defect.get_priority_display }}</span>
       </div>
@@ -60,23 +90,254 @@
 </section>
 {% endif %}
 
+<!-- Fahrzeugliste Matrix -->
 <section class="section-block">
-  <h2>{% translate "Einsatzmittel der Wache" %}</h2>
+  <h2>🚑 {% translate "Fahrzeug-Matrix" %} ({{ vehicles|length }})</h2>
+
   <div class="item-list">
-    {% for item in vehicles %}
-      <div class="list-row">
-        <span class="status-label status-{{ item.status }}">{{ item.get_status_display }}</span>
-        <span class="row-content">
-          <strong>{{ item.label }}</strong>
-          <small>{% translate "Kennung:" %} {{ item.asset_id }}{% if item.note %} · {{ item.note }}{% endif %}</small>
-        </span>
-        <span class="row-meta">
-          <small>{{ item.updated_at|date:"d.m.Y H:i" }}</small>
-        </span>
+    {% for vehicle in vehicles %}
+      <div class="list-row" style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <h3 style="margin: 0; font-size: 1.25rem;">
+                <a href="{% url 'fleet_vehicle_detail' vehicle.slug %}">{{ vehicle.call_sign }}</a>
+              </h3>
+              <span class="badge" style="background: var(--bg-hover); font-weight: bold;">{{ vehicle.license_plate }}</span>
+              <span class="badge">{{ vehicle.get_vehicle_type_display }}</span>
+            </div>
+            <p style="margin: 0.25rem 0 0; color: var(--text-muted); font-size: 0.875rem;">
+              {{ vehicle.chassis_manufacturer }} &middot; {{ vehicle.body_manufacturer }} &middot; {{ vehicle.current_mileage|default:0 }} km
+            </p>
+          </div>
+
+          <!-- Status Badge & Desinfektions-Timer -->
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+            {% if vehicle.tactical_status == '1' %}
+              <span class="status-label text-success" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                🟢 Status 1: Einsatzbereit Wache
+              </span>
+            {% elif vehicle.tactical_status == '2' %}
+              <span class="status-label" style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; color: #0891b2; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                🔵 Status 2: Einsatzbereit Funk
+              </span>
+            {% elif vehicle.tactical_status == '3' or vehicle.tactical_status == '4' %}
+              <span class="status-label" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #d97706; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                🟡 Status {{ vehicle.tactical_status }}: Im Einsatz
+              </span>
+            {% elif vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
+              <span class="status-label" style="background: rgba(139, 92, 246, 0.15); border: 1px solid #8b5cf6; color: #7c3aed; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                🟣 Desinfektion (Gesperrt)
+              </span>
+            {% elif vehicle.tactical_status == 'workshop' %}
+              <span class="status-label text-danger" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                🔧 Werkstatt
+              </span>
+            {% else %}
+              <span class="status-label" style="background: rgba(100, 116, 139, 0.15); border: 1px solid #64748b; color: #475569; font-weight: bold; font-size: 0.9rem; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                ⚪ Status 6: Außer Dienst
+              </span>
+            {% endif %}
+
+            {% if vehicle.is_disinfection_locked %}
+              <div style="font-size: 0.8rem; color: #7c3aed; font-weight: bold; background: rgba(139, 92, 246, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px;">
+                ⏳ Einwirkzeit läuft bis {{ vehicle.disinfection_locked_until|date:"H:i" }} Uhr
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Füllstände (Tank, AdBlue, Sauerstoff) und Fristenampel -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; background: var(--bg-subtle, rgba(0,0,0,0.02)); padding: 0.75rem; border-radius: 6px;">
+          <!-- Kraftstoff -->
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+              <span>⛽ {% translate "Kraftstoff" %}:</span>
+              <strong>{{ vehicle.fuel_level_percent }} %</strong>
+            </div>
+            <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; width: {{ vehicle.fuel_level_percent }}%; background: {% if vehicle.fuel_level_percent < 30 %}#ef4444{% elif vehicle.fuel_level_percent < 50 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+            </div>
+          </div>
+
+          <!-- Sauerstoff -->
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+              <span>🫁 {% translate "Sauerstoff O₂" %}:</span>
+              <strong>{{ vehicle.o2_pressure_bar }} bar</strong>
+            </div>
+            <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; width: {% widthratio vehicle.o2_pressure_bar 200 100 %}%; background: {% if vehicle.o2_pressure_bar < 100 %}#ef4444{% elif vehicle.o2_pressure_bar < 150 %}#f59e0b{% else %}#06b6d4{% endif %};"></div>
+            </div>
+          </div>
+
+          <!-- AdBlue -->
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+              <span>💧 {% translate "AdBlue" %}:</span>
+              <strong>{{ vehicle.adblue_level_percent }} %</strong>
+            </div>
+            <div style="background: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; width: {{ vehicle.adblue_level_percent }}%; background: {% if vehicle.adblue_level_percent < 25 %}#ef4444{% else %}#3b82f6{% endif %};"></div>
+            </div>
+          </div>
+
+          <!-- Gesetzliche Fristen (§ 29 HU / UVV) -->
+          <div>
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">{% translate "Fristen & Prüfungen" %}:</span>
+            {% if vehicle.urgency.level == 'overdue' %}
+              <span class="badge border-danger" style="color: #dc2626; font-weight: bold;">⛔ {{ vehicle.urgency.label }}</span>
+            {% elif vehicle.urgency.level == 'critical' %}
+              <span class="badge border-warning" style="color: #ea580c; font-weight: bold;">⚠️ {{ vehicle.urgency.label }}</span>
+            {% elif vehicle.urgency.level == 'warning' %}
+              <span class="badge" style="color: #ca8a04; font-weight: bold;">⏳ {{ vehicle.urgency.label }}</span>
+            {% else %}
+              <span class="badge text-success">✅ {{ vehicle.urgency.label }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Schnellaktionen -->
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap;">
+          <a href="{% url 'fleet_vehicle_detail' vehicle.slug %}" class="button secondary small">
+            📋 {% translate "Cockpit & Schichtübernahme" %}
+          </a>
+          <a href="{% url 'fleet_vehicle_qr' vehicle.slug %}" target="_blank" class="button secondary small">
+            🖨️ {% translate "QR-Sticker" %}
+          </a>
+          {% if can_manage %}
+            <a href="{% url 'fleet_vehicle_edit' vehicle.slug %}" class="button secondary small">
+              ✏️ {% translate "Bearbeiten" %}
+            </a>
+          {% endif %}
+        </div>
       </div>
     {% empty %}
-      <p class="empty-state">{% translate "Noch keine Fahrzeuge im System hinterlegt. Über 'Fahrzeug erfassen' können Einsatzmittel angelegt werden." %}</p>
+      <p class="empty-state">{% translate "Keine Fahrzeuge für diesen Filter gefunden." %}</p>
     {% endfor %}
   </div>
 </section>
+
+<!-- Letzte Desinfektionen -->
+{% if recent_disinfections %}
+<section class="section-block" style="margin-top: 2rem;">
+  <h2>🧼 {% translate "RKI-Desinfektionsbuch (Letzte Protokolle)" %}</h2>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{% translate "Datum / Uhrzeit" %}</th>
+          <th>{% translate "Fahrzeug" %}</th>
+          <th>{% translate "Art der Desinfektion" %}</th>
+          <th>{% translate "Mittel" %}</th>
+          <th>{% translate "Einwirkzeit" %}</th>
+          <th>{% translate "Desinfektor / Personal" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for proto in recent_disinfections %}
+          <tr>
+            <td>{{ proto.started_at|date:"d.m.Y H:i" }} Uhr</td>
+            <td><strong>{{ proto.vehicle.call_sign }}</strong> ({{ proto.vehicle.license_plate }})</td>
+            <td>{{ proto.get_kind_display }}</td>
+            <td>{{ proto.disinfectant.name }}</td>
+            <td>{{ proto.exposure_minutes }} Min.</td>
+            <td>{{ proto.performed_by.get_full_name|default:proto.performed_by.username }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<!-- QR Scanner Modal -->
+<div id="scanner-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card); max-width: 480px; width: 100%; border-radius: 12px; padding: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">📷 {% translate "Fahrzeug-QR scannen" %}</h3>
+      <button type="button" class="button secondary small" onclick="closeScannerModal()">&times;</button>
+    </div>
+    <div style="width: 100%; height: 260px; background: #000; border-radius: 8px; overflow: hidden; position: relative;">
+      <video id="qr-video" style="width: 100%; height: 100%; object-fit: cover;"></video>
+    </div>
+    <p id="scanner-status" style="font-size: 0.85rem; color: var(--text-muted); margin: 0.75rem 0; text-align: center;">
+      {% translate "Kamera wird initialisiert..." %}
+    </p>
+    <div style="display: flex; gap: 0.5rem;">
+      <input type="text" id="manual-vehicle-input" placeholder="{% translate 'Oder Fahrzeug-Slug / Kennzeichen eingeben...' %}" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+      <button type="button" class="button" onclick="goToScannedVehicle(document.getElementById('manual-vehicle-input').value)">{% translate "Öffnen" %}</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let videoStream = null;
+
+function closeScannerModal() {
+  document.getElementById('scanner-modal').style.display = 'none';
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
+}
+
+function goToScannedVehicle(val) {
+  if (!val) return;
+  val = val.trim();
+  if (val.startsWith('http://') || val.startsWith('https://')) {
+    window.location.href = val;
+  } else {
+    window.location.href = '/fuhrpark/v/' + encodeURIComponent(val) + '/';
+  }
+}
+
+document.getElementById('scanner-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeScannerModal();
+});
+
+const observer = new MutationObserver(function(mutations) {
+  mutations.forEach(function(mutation) {
+    if (mutation.target.style.display === 'flex' && !videoStream) {
+      startCamera();
+    }
+  });
+});
+observer.observe(document.getElementById('scanner-modal'), { attributes: true, attributeFilter: ['style'] });
+
+async function startCamera() {
+  const statusEl = document.getElementById('scanner-status');
+  const video = document.getElementById('qr-video');
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = videoStream;
+    video.setAttribute('playsinline', true);
+    await video.play();
+    statusEl.textContent = "{% translate 'Kamera aktiv - Fahrzeug-QR fokussieren' %}";
+
+    if ('BarcodeDetector' in window) {
+      const barcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'data_matrix', 'code_128'] });
+      const interval = setInterval(async () => {
+        if (!videoStream) {
+          clearInterval(interval);
+          return;
+        }
+        try {
+          const barcodes = await barcodeDetector.detect(video);
+          if (barcodes.length > 0) {
+            clearInterval(interval);
+            const rawValue = barcodes[0].rawValue;
+            statusEl.textContent = "{% translate 'Erkannt: ' %}" + rawValue;
+            goToScannedVehicle(rawValue);
+          }
+        } catch (err) {}
+      }, 300);
+    } else {
+      statusEl.textContent = "{% translate 'Kamera aktiv. Manuelle Eingabe unterstützt.' %}";
+    }
+  } catch (err) {
+    statusEl.textContent = "{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}";
+  }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% if vehicle %}{% url 'fleet_vehicle_detail' vehicle.slug %}{% else %}{% url 'fleet_dashboard' %}{% endif %}">&larr; {% translate "Zurück" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Fuhrparkverwaltung" %}</p>
+  <h1>{{ title }}</h1>
+  <p class="lead">{% translate "Stammdaten, technische Merkmale und gesetzliche Prüfintervalle (StVZO § 29 HU / DGUV Vorschrift 70)." %}</p>
+</header>
+
+<form method="post" class="form-card" style="max-width: 760px;">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert danger" style="margin-bottom: 1rem;">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <!-- Stammdaten -->
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">🚑 {% translate "Fahrzeugstammdaten & Kennzeichnung" %}</legend>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.call_sign.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Funkrufname (OPTA)*" %}:
+        </label>
+        {{ form.call_sign }}
+        {% if form.call_sign.errors %}<div class="form-error">{{ form.call_sign.errors }}</div>{% endif %}
+      </div>
+      <div>
+        <label for="{{ form.license_plate.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Amtliches Kennzeichen*" %}:
+        </label>
+        {{ form.license_plate }}
+        {% if form.license_plate.errors %}<div class="form-error">{{ form.license_plate.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.vehicle_type.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Fahrzeugtyp" %}:
+        </label>
+        {{ form.vehicle_type }}
+      </div>
+      <div>
+        <label for="{{ form.year_of_manufacture.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Baujahr" %}:
+        </label>
+        {{ form.year_of_manufacture }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.chassis_manufacturer.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Fahrgestell-Hersteller" %}:
+        </label>
+        {{ form.chassis_manufacturer }}
+      </div>
+      <div>
+        <label for="{{ form.body_manufacturer.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Aufbau-Hersteller" %}:
+        </label>
+        {{ form.body_manufacturer }}
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Taktischer Status & Füllstände -->
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📡 {% translate "BOS-Status & Füllstände" %}</legend>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.tactical_status.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Taktischer Status" %}:
+        </label>
+        {{ form.tactical_status }}
+      </div>
+      <div>
+        <label for="{{ form.status_note.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Status-Bemerkung" %}:
+        </label>
+        {{ form.status_note }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.current_mileage.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Kilometerstand" %}:
+        </label>
+        {{ form.current_mileage }}
+      </div>
+      <div>
+        <label for="{{ form.fuel_level_percent.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Tank (%)" %}:
+        </label>
+        {{ form.fuel_level_percent }}
+      </div>
+      <div>
+        <label for="{{ form.adblue_level_percent.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "AdBlue (%)" %}:
+        </label>
+        {{ form.adblue_level_percent }}
+      </div>
+      <div>
+        <label for="{{ form.o2_pressure_bar.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "O₂ Druck (bar)" %}:
+        </label>
+        {{ form.o2_pressure_bar }}
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Gesetzliche Fristen -->
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">🛡️ {% translate "Gesetzliche Fristen (§ 29 StVZO, UVV, DIN EN 1789)" %}</legend>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.next_hu_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Nächste HU (§ 29 StVZO)*" %}:
+        </label>
+        {{ form.next_hu_date }}
+      </div>
+      <div>
+        <label for="{{ form.next_uvv_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Nächste UVV (DGUV V70)" %}:
+        </label>
+        {{ form.next_uvv_date }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.next_stretcher_service_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Tragentisch 10g (DIN EN 1789)" %}:
+        </label>
+        {{ form.next_stretcher_service_date }}
+      </div>
+      <div>
+        <label for="{{ form.next_sp_date.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Sicherheitsprüfung (SP)" %}:
+        </label>
+        {{ form.next_sp_date }}
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Notizen -->
+  <div style="margin-bottom: 1.5rem;">
+    <label for="{{ form.notes.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+      {% translate "Fahrzeugakte / Besonderheiten" %}:
+    </label>
+    {{ form.notes }}
+  </div>
+
+  <div class="form-actions" style="display: flex; gap: 1rem;">
+    <button type="submit" class="button">{{ action_label }}</button>
+    <a href="{% if vehicle %}{% url 'fleet_vehicle_detail' vehicle.slug %}{% else %}{% url 'fleet_dashboard' %}{% endif %}" class="button secondary">{% translate "Abbrechen" %}</a>
+  </div>
+</form>
+{% endblock %}
