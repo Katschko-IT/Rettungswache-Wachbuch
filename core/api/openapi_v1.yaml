@@ -421,7 +421,7 @@ components:
           properties:
             code:
               type: string
-              enum: [validation_error, auth_required, forbidden, mfa_required, mfa_setup_required, not_found, rate_limit, server_error]
+              enum: [validation_error, auth_required, forbidden, mfa_required, mfa_setup_required, not_found, conflict, payload_too_large, unsupported_media_type, rate_limit, server_error]
             message: { type: string }
             correlation_id: { type: string }
     Defect:

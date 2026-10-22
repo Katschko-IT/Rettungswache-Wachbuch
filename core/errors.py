@@ -50,6 +50,9 @@ ERROR_CODE_RATE_LIMIT = "rate_limit"
 ERROR_CODE_SERVER_ERROR = "server_error"
 ERROR_CODE_MFA_REQUIRED = "mfa_required"
 ERROR_CODE_MFA_SETUP_REQUIRED = "mfa_setup_required"
+ERROR_CODE_CONFLICT = "conflict"
+ERROR_CODE_PAYLOAD_TOO_LARGE = "payload_too_large"
+ERROR_CODE_UNSUPPORTED_MEDIA_TYPE = "unsupported_media_type"
 
 ERROR_CODES: dict[str, dict[str, Any]] = {
     ERROR_CODE_VALIDATION: {"status": 400, "label": _("Ungültige Anfrage.")},
@@ -60,6 +63,9 @@ ERROR_CODES: dict[str, dict[str, Any]] = {
     ERROR_CODE_SERVER_ERROR: {"status": 500, "label": _("Serverfehler.")},
     ERROR_CODE_MFA_REQUIRED: {"status": 403, "label": _("Zwei-Faktor-Anmeldung erforderlich.")},
     ERROR_CODE_MFA_SETUP_REQUIRED: {"status": 403, "label": _("Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden.")},
+    ERROR_CODE_CONFLICT: {"status": 409, "label": _("Konflikt mit dem aktuellen Stand.")},
+    ERROR_CODE_PAYLOAD_TOO_LARGE: {"status": 413, "label": _("Datei oder Anfrage ist zu groß.")},
+    ERROR_CODE_UNSUPPORTED_MEDIA_TYPE: {"status": 415, "label": _("Dateityp wird nicht unterstützt.")},
 }
 
 

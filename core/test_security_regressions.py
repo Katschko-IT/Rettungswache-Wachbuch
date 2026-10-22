@@ -195,7 +195,11 @@ class ErrorHandlerRegressionTests(SimpleTestCase):
             "validation_error", "auth_required", "forbidden",
             "not_found", "rate_limit", "server_error",
             "mfa_required", "mfa_setup_required",
+            "conflict", "payload_too_large", "unsupported_media_type",
         })
+        self.assertEqual(ERROR_CODES["conflict"]["status"], 409)
+        self.assertEqual(ERROR_CODES["payload_too_large"]["status"], 413)
+        self.assertEqual(ERROR_CODES["unsupported_media_type"]["status"], 415)
         self.assertEqual(ERROR_CODES["forbidden"]["status"], 403)
         self.assertEqual(ERROR_CODES["not_found"]["status"], 404)
         self.assertEqual(ERROR_CODES["rate_limit"]["status"], 429)

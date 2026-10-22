@@ -25,7 +25,7 @@ class MedicalDevice(models.Model):
     """Medizinprodukt im Bestandsverzeichnis (§ 14 MPBetreibV) / Medizinproduktebuch (§ 13 MPBetreibV)."""
 
     class RiskClass(models.TextChoices):
-        I = "I", "Klasse I"
+        CLASS_I = "I", "Klasse I"
         IIA = "IIa", "Klasse IIa"
         IIB = "IIb", "Klasse IIb"
         III = "III", "Klasse III"

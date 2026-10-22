@@ -257,7 +257,33 @@ class WachalltagApiTests(TestCase):
             {**payload, "filename": "mangel-9.jpg"},
         )
         self.assertEqual(ninth.status_code, 409)
+        self.assertEqual(ninth.json()["error"]["code"], "conflict")
         self.assertEqual(defect.attachments.count(), 8)
+
+    def test_defect_pdf_attachment_is_accepted_and_spoofed_pdf_rejected(self):
+        defect = Defect.objects.create(station=self.station, title="PDF-Test", created_by=self.user)
+        pdf = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+        upload = self._json("post", f"/api/v1/defects/{defect.pk}/attachments/", {
+            "filename": "pruefbericht.pdf",
+            "content_type": "application/pdf",
+            "data_base64": base64.b64encode(pdf).decode("ascii"),
+        })
+        self.assertEqual(upload.status_code, 201)
+        spoofed = self._json("post", f"/api/v1/defects/{defect.pk}/attachments/", {
+            "filename": "fake.pdf",
+            "content_type": "application/pdf",
+            "data_base64": base64.b64encode(b"<html>kein pdf</html>").decode("ascii"),
+        })
+        self.assertEqual(spoofed.status_code, 415)
+        self.assertEqual(spoofed.json()["error"]["code"], "unsupported_media_type")
+
+    def test_token_can_be_revoked_after_membership_was_removed(self):
+        Membership.objects.filter(user=self.user).update(is_active=False)
+        self.assertEqual(self.client.get("/api/v1/me/", **self.auth).status_code, 403)
+        response = self.client.delete("/api/v1/token/", **self.auth)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(ApiToken.objects.get(token_hash=hash_api_token(self.raw_token)).is_active)
+        self.assertEqual(self.client.delete("/api/v1/token/", **self.auth).status_code, 401)
 
     def test_reports_aggregate_real_station_state(self):
         Defect.objects.create(station=self.station, title="Offen", created_by=self.user, due_at=timezone.now() - timedelta(days=1))

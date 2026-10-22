@@ -795,7 +795,7 @@ def defect_attachments(request, pk):
     if content_type == "image/jpg":
         content_type = "image/jpeg"
     if content_type not in ALLOWED_ATTACHMENT_TYPES:
-        return base._json_error(request, "Nur JPEG, PNG oder WebP sind erlaubt.", status=415)
+        return base._json_error(request, "Nur JPEG, PNG, WebP oder PDF sind erlaubt.", status=415)
     encoded = body.get("data_base64")
     if not isinstance(encoded, str) or not encoded:
         return base._json_error(request, "Bilddaten fehlen.", status=422)
@@ -805,8 +805,8 @@ def defect_attachments(request, pk):
         return base._json_error(request, "Bilddaten sind kein gueltiges Base64.", status=422)
     if not raw or len(raw) > MAX_ATTACHMENT_BYTES:
         return base._json_error(request, "Bild darf maximal 5 MiB gross sein.", status=413)
-    if not _image_is_decodable(raw, content_type):
-        return base._json_error(request, "Datei ist kein gueltiges oder unterstuetztes Bild.", status=415)
+    if not attachment_is_valid(raw, content_type):
+        return base._json_error(request, "Datei ist kein gueltiges Bild oder PDF.", status=415)
     with transaction.atomic():
         locked_defect = Defect.objects.select_for_update().filter(pk=pk, station=station).first()
         if locked_defect is None:

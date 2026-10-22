@@ -30,10 +30,13 @@ from django.db.models import Sum
 from ..access import CONTENT_ROLES, get_membership
 from ..errors import (
     ERROR_CODE_AUTH_REQUIRED,
+    ERROR_CODE_CONFLICT,
     ERROR_CODE_FORBIDDEN,
     ERROR_CODE_NOT_FOUND,
+    ERROR_CODE_PAYLOAD_TOO_LARGE,
     ERROR_CODE_RATE_LIMIT,
     ERROR_CODE_SERVER_ERROR,
+    ERROR_CODE_UNSUPPORTED_MEDIA_TYPE,
     ERROR_CODE_VALIDATION,
     json_error,
     log_exception,
@@ -145,6 +148,9 @@ def _json_error(request, message, status=400, code=None, **extra):
         401: ERROR_CODE_AUTH_REQUIRED,
         403: ERROR_CODE_FORBIDDEN,
         404: ERROR_CODE_NOT_FOUND,
+        409: ERROR_CODE_CONFLICT,
+        413: ERROR_CODE_PAYLOAD_TOO_LARGE,
+        415: ERROR_CODE_UNSUPPORTED_MEDIA_TYPE,
         422: ERROR_CODE_VALIDATION,
         429: ERROR_CODE_RATE_LIMIT,
     }
@@ -369,13 +375,22 @@ def obtain_token(request):
     })
 
 
-@api_token_required
 def revoke_current_token(request):
-    """Deactivate only the presented app token. Logout remains possible offline."""
-    token = request.api_token
+    """Deactivate only the presented app token. Logout remains possible offline.
+
+    Bewusst ohne Mitgliedschaftsprüfung: Auch wer keinen aktiven Wachenzugang
+    mehr hat, muss sein eigenes Token beim Abmelden widerrufen können.
+    """
+    raw = _extract_bearer_token(request)
+    if not raw:
+        return _json_error(request, "Authentifizierung erforderlich.", status=401)
+    token = resolve_api_token(raw)
+    if token is None:
+        return _json_error(request, "Ungültiges oder widerrufenes API-Token.", status=401)
+    membership = get_membership(token.user)
     updated = ApiToken.objects.filter(pk=token.pk, is_active=True).update(is_active=False)
     if updated:
-        audit(request.user, request.membership.station, "api.token_revoked", request.user, {
+        audit(token.user, membership.station if membership else None, "api.token_revoked", token.user, {
             "fields": ["is_active"],
             "via": "api.token",
             "token_prefix": token.token_prefix,
