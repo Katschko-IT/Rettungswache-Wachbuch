@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Materialstammdaten" %}</p>
+  <h1>{{ title }}</h1>
+  <p class="lead">{% translate "Verwalte Artikeldaten, PZN/GTIN-Kennungen, Kühlketten-Regeln und Mindestbestände." %}</p>
+</header>
+
+<form method="post" class="form-card" style="max-width: 760px;">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert danger" style="margin-bottom: 1rem;">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📦 {% translate "Artikelbezeichnung & Einheiten" %}</legend>
+    
+    <div style="margin-bottom: 1rem;">
+      <label for="{{ form.name.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Artikelbezeichnung*" %}:
+      </label>
+      {{ form.name }}
+      <small style="color: var(--text-muted); display: block;">{% translate "z. B. Rocuronium 10 mg/ml (5x5ml) oder Endotrachealtubus Ch. 7.5" %}</small>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label for="{{ form.category.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Kategorie:" %}
+        </label>
+        {{ form.category }}
+      </div>
+      <div>
+        <label for="{{ form.unit.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Packungs- / Zähleinheit:" %}
+        </label>
+        {{ form.unit }}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div>
+        <label for="{{ form.pzn.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "PZN (Pharmazentralnummer):" %}
+        </label>
+        {{ form.pzn }}
+      </div>
+      <div>
+        <label for="{{ form.gtin.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "GTIN / Barcode (EAN):" %}
+        </label>
+        {{ form.gtin }}
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📊 {% translate "Bestandssteuerung & Mindestmengen" %}</legend>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div>
+        <label for="{{ form.min_stock.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Mindestbestand Wache:" %}
+        </label>
+        {{ form.min_stock }}
+        <small style="color: var(--text-muted); display: block;">{% translate "Meldet Warnung, wenn unterschritten" %}</small>
+      </div>
+      <div>
+        <label for="{{ form.target_stock.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {% translate "Sollbestand Wache:" %}
+        </label>
+        {{ form.target_stock }}
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">❄️ {% translate "Kühlkette & Out-of-Fridge Haltbarkeit" %}</legend>
+    
+    <div style="margin-bottom: 1rem;">
+      <label style="display: flex; align-items: center; gap: 0.5rem;">
+        {{ form.requires_cooling }} <strong>{% translate "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)" %}</strong>
+      </label>
+    </div>
+
+    <div>
+      <label for="{{ form.room_temp_max_days.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        {% translate "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):" %}
+      </label>
+      {{ form.room_temp_max_days }}
+      <small style="color: var(--text-muted); display: block;">{% translate "z. B. 84 Tage (= 12 Wochen) für Rocuronium, 60 Tage für Succinylcholin" %}</small>
+    </div>
+  </fieldset>
+
+  <fieldset style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <legend style="font-weight: bold; padding: 0 0.5rem;">📝 {% translate "Hinweise & Lagerhinweise" %}</legend>
+    <div>
+      {{ form.notes }}
+    </div>
+  </fieldset>
+
+  <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+    <a class="button secondary" href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">
+      {% translate "Abbrechen" %}
+    </a>
+    <button type="submit" class="button">
+      {{ action_label }}
+    </button>
+  </div>
+
+</form>
+{% endblock %}

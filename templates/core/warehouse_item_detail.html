@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ item.name }} | {% translate "Lager & Material" %}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% url 'warehouse_dashboard' %}">← {% translate "Zurück zur Lagerübersicht" %}</a>
+</nav>
+
+<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+      <span class="badge" style="background: var(--bg-hover);">{{ item.get_category_display }}</span>
+      <span class="badge" style="background: var(--bg-hover);">{{ item.get_unit_display }}</span>
+      {% if item.requires_cooling %}
+        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: bold;">❄️ Kühlpflicht 2–8 °C</span>
+        {% if item.room_temp_max_days %}
+          <span class="badge" style="background: #fef9c3; color: #854d0e;">Out-of-Fridge: max. {{ item.room_temp_max_days }} Tage</span>
+        {% endif %}
+      {% endif %}
+    </div>
+    <h1>{{ item.name }}</h1>
+    <p class="lead" style="margin-bottom: 0;">
+      {% if item.pzn %}<strong>PZN:</strong> <code>{{ item.pzn }}</code> &middot; {% endif %}
+      {% if item.gtin %}<strong>GTIN/EAN:</strong> <code>{{ item.gtin }}</code> &middot; {% endif %}
+      <strong>{% translate "Gesamtbestand Wache:" %}</strong> {{ item.total_stock }} {{ item.get_unit_display }}
+      (Min: {{ item.min_stock }} / Soll: {{ item.target_stock }})
+    </p>
+  </div>
+  <div class="page-actions-bar" style="margin: 0;">
+    {% if can_manage %}
+      <a class="button secondary" href="{% url 'warehouse_item_edit' item.slug %}">
+        ✏️ {% translate "Stammdaten bearbeiten" %}
+      </a>
+    {% endif %}
+    <button type="button" class="button" onclick="document.getElementById('batch-modal').style.display='flex'">
+      ➕ {% translate "Neue Charge einbuchen" %}
+    </button>
+  </div>
+</header>
+
+<!-- Bestandsübersicht nach Lagerorten -->
+<section class="section-block" style="margin-bottom: 2rem;">
+  <h2>📍 {% translate "Bestand nach Lagerorten (Fahrzeuge, Schränke, Koffer)" %}</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;">
+    {% for si in stock_items %}
+      <div class="kpi-card" style="text-align: left; border-left: 4px solid var(--primary-color, #2563eb);">
+        <strong style="font-size: 1.05rem;">{{ si.location.name }}</strong>
+        <div style="font-size: 1.3rem; font-weight: bold; color: var(--text-color); margin: 0.25rem 0;">
+          {{ si.quantity }} <span style="font-size: 0.85rem; font-weight: normal;">{{ item.get_unit_display }}</span>
+        </div>
+        <small style="color: var(--text-muted); display: block;">
+          Charge: <code>{{ si.batch.batch_number }}</code> &middot;
+          MHD: <strong>{{ si.batch.effective_date|date:"d.m.Y" }}</strong>
+        </small>
+      </div>
+    {% empty %}
+      <p class="empty-state" style="grid-column: 1 / -1;">
+        {% translate "Aktuell kein physischer Bestand an einem Lagerort erfasst." %}
+      </p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- FEFO-Chargenliste -->
+<section class="section-block" style="margin-bottom: 2rem;">
+  <h2>⏱️ {% translate "Chargen nach FEFO-Priorität (First Expired, First Out)" %}</h2>
+  <div class="item-list">
+    {% for batch in batches %}
+      {% with urg=batch.urgency %}
+      <div class="list-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); {% if urg.level == 'overdue' or urg.level == 'recalled' %}border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.04);{% elif urg.level == 'critical' %}border-left: 4px solid #f97316;{% elif urg.level == 'warning' %}border-left: 4px solid #eab308;{% endif %}">
+        
+        <div style="flex: 2; min-width: 200px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <strong style="font-size: 1.1rem;">Lot: <code>{{ batch.batch_number }}</code></strong>
+            {% if batch.is_recalled %}
+              <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: bold;">⛔ GESPERRT</span>
+            {% endif %}
+          </div>
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+            Hersteller-MHD: {{ batch.manufacturer_exp_date|date:"d.m.Y" }}
+            {% if batch.out_of_fridge_date %}
+              &middot; ⚠️ Entnommen: {{ batch.out_of_fridge_date|date:"d.m.Y" }} (Out-of-Fridge)
+            {% endif %}
+          </small>
+        </div>
+
+        <div style="flex: 1.5; min-width: 180px;">
+          {% if urg.level == 'recalled' %}
+            <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 9999px;">{{ urg.label }}</span>
+          {% elif urg.level == 'overdue' %}
+            <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 9999px;">🔴 {{ urg.label }}</span>
+          {% elif urg.level == 'critical' %}
+            <span class="badge" style="background: #ffedd5; color: #9a3412; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 9999px;">🟠 {{ urg.label }}</span>
+          {% elif urg.level == 'warning' %}
+            <span class="badge" style="background: #fef9c3; color: #854d0e; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 9999px;">🟡 {{ urg.label }}</span>
+          {% else %}
+            <span class="badge" style="background: #dcfce7; color: #166534; padding: 0.25rem 0.6rem; border-radius: 9999px;">🟢 {{ urg.label }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Aktionen: Umlagern & Verbrauch -->
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" class="button secondary small" onclick="openTransferModal('{{ batch.id }}', '{{ batch.batch_number }}')">
+            🔄 {% translate "Umlagern" %}
+          </button>
+          <button type="button" class="button secondary small" onclick="openConsumeModal('{{ batch.id }}', '{{ batch.batch_number }}')">
+            📉 {% translate "Verbrauch" %}
+          </button>
+        </div>
+
+      </div>
+      {% endwith %}
+    {% empty %}
+      <p class="empty-state small">{% translate "Keine Chargen vorhanden." %}</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Buchungsjournal -->
+<section class="section-block">
+  <h2>📋 {% translate "Buchungsjournal dieses Artikels" %}</h2>
+  <div class="item-list">
+    {% for m in movements %}
+      <div class="list-row">
+        <span class="row-content">
+          <strong>{{ m.get_kind_display }}</strong> &middot; {{ m.quantity }} {{ item.get_unit_display }} (Lot: <code>{{ m.batch.batch_number }}</code>)
+          <small>
+            {{ m.created_at|date:"d.m.Y H:i" }} &middot;
+            {% if m.source_location %}{{ m.source_location.name }}{% else %}Lieferant{% endif %} →
+            {% if m.target_location %}{{ m.target_location.name }}{% else %}Ausscheidung{% endif %}
+            &middot; {{ m.actor.get_full_name|default:m.actor.username }}
+            {% if m.note %} &middot; <em>{{ m.note }}</em>{% endif %}
+          </small>
+        </span>
+      </div>
+    {% empty %}
+      <p class="empty-state small">{% translate "Bisher keine Bewegungen." %}</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- MODALS -->
+
+<!-- Modal: Neue Charge -->
+<div id="batch-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 500px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0;">➕ {% translate "Neue Charge einbuchen" %}</h3>
+    <form method="post" action="{% url 'warehouse_batch_create' item.slug %}">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Chargennummer (Lot):" %}</label>
+        {{ batch_form.batch_number }}
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Hersteller-MHD:" %}</label>
+          {{ batch_form.manufacturer_exp_date }}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Anfangsmenge:" %}</label>
+          {{ batch_form.initial_quantity }}
+        </div>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Anfangslagerort:" %}</label>
+        {{ batch_form.initial_location }}
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('batch-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Einbuchen" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Umlagerung -->
+<div id="transfer-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 500px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0;">🔄 {% translate "Umlagerung buchen" %} (<span id="transfer-batch-label"></span>)</h3>
+    <form id="transfer-form" method="post" action="">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Von Lagerort:" %}</label>
+        {{ transfer_form.source_location }}
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Nach Lagerort (z. B. RTW):" %}</label>
+        {{ transfer_form.target_location }}
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Menge:" %}</label>
+          {{ transfer_form.quantity }}
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Notiz:" %}</label>
+          {{ transfer_form.note }}
+        </div>
+      </div>
+      {% if item.requires_cooling %}
+        <div style="margin-bottom: 1rem; padding: 0.5rem; background: #fef9c3; border-radius: 6px; font-size: 0.85rem;">
+          <label style="display: flex; align-items: center; gap: 0.4rem;">
+            {{ transfer_form.mark_out_of_fridge }}
+            <span><strong>Kühlkette unterbrechen (Out-of-Fridge aktivieren):</strong> Setzt Entnahmedatum auf heute, falls Ziellager ungekühlt.</span>
+          </label>
+        </div>
+      {% endif %}
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('transfer-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Umbuchen" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Verbrauch / Ausscheidung -->
+<div id="consume-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: var(--bg-card, #fff); border-radius: 12px; max-width: 500px; width: 100%; padding: 1.5rem;">
+    <h3 style="margin-top: 0;">📉 {% translate "Materialverbrauch erfassen" %} (<span id="consume-batch-label"></span>)</h3>
+    <form id="consume-form" method="post" action="">
+      {% csrf_token %}
+      <div style="margin-bottom: 0.75rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Von Lagerort:" %}</label>
+        <select name="location_id" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+          {% for si in stock_items %}
+            <option value="{{ si.location.id }}">{{ si.location.name }} (Verfügbar: {{ si.quantity }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Menge:" %}</label>
+          <input type="number" name="quantity" value="1" min="1" required style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">{% translate "Grund:" %}</label>
+          <input type="text" name="reason" value="Einsatzverbrauch am Patienten" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+        </div>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label><input type="checkbox" name="is_discard" value="1"> {% translate "Verfall / Beschädigung (Ausscheidung)" %}</label>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button type="button" class="button secondary" onclick="document.getElementById('consume-modal').style.display='none'">{% translate "Abbrechen" %}</button>
+        <button type="submit" class="button">{% translate "Abbuchen" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openTransferModal(batchId, lot) {
+  document.getElementById('transfer-batch-label').textContent = 'Lot: ' + lot;
+  document.getElementById('transfer-form').action = '/lager/charge/' + batchId + '/umlagerung/';
+  document.getElementById('transfer-modal').style.display = 'flex';
+}
+
+function openConsumeModal(batchId, lot) {
+  document.getElementById('consume-batch-label').textContent = 'Lot: ' + lot;
+  document.getElementById('consume-form').action = '/lager/charge/' + batchId + '/verbrauch/';
+  document.getElementById('consume-modal').style.display = 'flex';
+}
+</script>
+{% endblock %}

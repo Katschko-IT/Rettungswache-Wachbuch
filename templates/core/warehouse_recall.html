@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "BfArM-Chargenrückruf" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav" style="margin-bottom: 1rem;">
+  <a href="{% url 'warehouse_dashboard' %}">← {% translate "Zurück zur Lagerübersicht" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Arzneimittelsicherheit & Behördenmeldungen" %}</p>
+  <h1>🚨 {% translate "BfArM-Rückrufsperre & Quarantäne" %}</h1>
+  <p class="lead">{% translate "Sofortige Wachen-weite Sperre einer betroffenen Charge über alle Rettungswagen, Koffer und Lagerfächer." %}</p>
+</header>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+  
+  <section class="section-block">
+    <h2>⛔ {% translate "Rückrufsperre aktivieren" %}</h2>
+    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+      {% translate "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge." %}
+    </p>
+
+    <form method="post" class="form-card">
+      {% csrf_token %}
+      <div style="margin-bottom: 1rem;">
+        <label for="{{ form.batch_number.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {{ form.batch_number.label }}:
+        </label>
+        {{ form.batch_number }}
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label for="{{ form.reason.id_for_label }}" style="font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          {{ form.reason.label }}:
+        </label>
+        {{ form.reason }}
+      </div>
+
+      <button type="submit" class="button" style="background: #dc2626; border-color: #dc2626; color: white;">
+        ⛔ {% translate "Charge sofort sperren & Quarantäne verhängen" %}
+      </button>
+    </form>
+  </section>
+
+  <section class="section-block">
+    <h2>📋 {% translate "Aktuell gesperrte Chargen auf der Wache" %} ({{ recalled_batches|length }})</h2>
+    <div class="item-list">
+      {% for b in recalled_batches %}
+        <div class="list-row" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.04);">
+          <span class="row-content">
+            <strong style="color: #dc2626;">{{ b.item.name }} (Lot: <code>{{ b.batch_number }}</code>)</strong>
+            <small>
+              MHD: {{ b.effective_date|date:"d.m.Y" }} &middot;
+              {% translate "Grund:" %} <em>{{ b.recall_reason }}</em>
+            </small>
+            <div style="margin-top: 0.4rem; font-size: 0.85rem;">
+              <strong>{% translate "Fundorte im System:" %}</strong>
+              <ul style="margin: 0.2rem 0 0 1rem; padding: 0;">
+                {% for si in b.stock_items.all %}
+                  <li>{{ si.location.name }}: <strong>{{ si.quantity }} {{ b.item.get_unit_display }}</strong></li>
+                {% empty %}
+                  <li><em>{% translate "Kein aktiver Bestand an Lagerorten mehr vorhanden." %}</em></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </span>
+        </div>
+      {% empty %}
+        <p class="empty-state small">
+          ✅ {% translate "Aktuell keine gesperrten Chargen auf der Wache." %}
+        </p>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

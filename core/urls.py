@@ -15,6 +15,7 @@ from . import (
     views,
     wachalltag_media,
     wachalltag_web,
+    warehouse_views,
 )
 
 
@@ -67,7 +68,15 @@ urlpatterns = [
     path("mpg/d/<slug:slug>/schulung/", mpg_views.mpg_training_create, name="mpg_training_create"),
     path("mpg/d/<slug:slug>/mangel/", mpg_views.mpg_device_defect, name="mpg_device_defect"),
     path("mpg/d/<slug:slug>/qr.png", mpg_views.mpg_device_qr, name="mpg_device_qr"),
-    path("lager/", module_views.warehouse_dashboard, name="warehouse_dashboard"),
+    path("lager/", warehouse_views.warehouse_dashboard, name="warehouse_dashboard"),
+    path("lager/artikel/neu/", warehouse_views.item_create, name="warehouse_item_create"),
+    path("lager/artikel/<slug:slug>/", warehouse_views.item_detail, name="warehouse_item_detail"),
+    path("lager/artikel/<slug:slug>/bearbeiten/", warehouse_views.item_edit, name="warehouse_item_edit"),
+    path("lager/artikel/<slug:slug>/charge-neu/", warehouse_views.batch_create, name="warehouse_batch_create"),
+    path("lager/charge/<int:batch_id>/umlagerung/", warehouse_views.stock_transfer, name="warehouse_stock_transfer"),
+    path("lager/charge/<int:batch_id>/verbrauch/", warehouse_views.stock_consume, name="warehouse_stock_consume"),
+    path("lager/rueckruf/", warehouse_views.batch_recall, name="warehouse_batch_recall"),
+    path("lager/export/fefo/", warehouse_views.export_fefo_csv, name="warehouse_export_fefo"),
     path("fuhrpark/", module_views.fleet_dashboard, name="fleet_dashboard"),
     path("orga/", module_views.orga_dashboard, name="orga_dashboard"),
     path("pinnwand/anhaenge/<int:pk>/", wachalltag_media.pinboard_attachment, name="pinboard_attachment"),
