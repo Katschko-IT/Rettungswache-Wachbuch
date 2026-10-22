@@ -333,6 +333,13 @@ WEB_PUSH_ENABLED = env_bool("WEB_PUSH_ENABLED", default=False)
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "").strip()
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "").strip()
 VAPID_ADMIN_EMAIL = os.getenv("VAPID_ADMIN_EMAIL", "ops@localhost").strip() or "ops@localhost"
+# Optionales Push-Relay für die iOS-/Android-App (APNs/FCM-Schlüssel liegen
+# beim Relay-Betreiber, nicht auf dem Wachenserver). Leer = kein nativer Push;
+# die App erinnert dann lokal. Vertrag: docs/PUSH-RELAY.md.
+PUSH_RELAY_URL = os.getenv("PUSH_RELAY_URL", "").strip()
+PUSH_RELAY_TOKEN = os.getenv("PUSH_RELAY_TOKEN", "").strip()
+if PUSH_RELAY_URL and not PUSH_RELAY_URL.startswith("https://"):
+    raise ImproperlyConfigured("PUSH_RELAY_URL muss eine https://-Adresse sein.")
 # HTTPS host allowlist for browser push subscription endpoints (SSRF guard).
 # The same list feeds CSP ``connect-src`` (no scheme-wide ``https:``).
 # Entries match an exact host; entries starting with "." match that suffix

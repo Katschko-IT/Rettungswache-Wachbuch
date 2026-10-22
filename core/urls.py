@@ -41,6 +41,7 @@ urlpatterns = [
     path("setup/wetter/", setup_views.setup_weather_preview, name="setup_weather_preview"),
     path("aktivieren/<str:token>/", setup_views.activate_account, name="activate_account"),
     path("uebersicht/", views.dashboard, name="dashboard"),
+    path("hinweise/<int:pk>/gelesen/", views.notification_read, name="notification_read"),
     path("uebergaben/", views.handover_list, name="handover_list"),
     path("uebergaben/neu/", views.handover_create, name="handover_create"),
     path("uebergaben/<int:pk>/", views.handover_detail, name="handover_detail"),

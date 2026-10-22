@@ -41,6 +41,15 @@
     </div>
   </div>
 </div>
+{% elif vehicle.awaiting_crew_release %}
+<div class="alert alert-success" role="status">
+  <h3>{% translate "Einwirkzeit abgelaufen – Freigabe durch die Besatzung" %}</h3>
+  <p>{% translate "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei." %}</p>
+  <form method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
+    {% csrf_token %}
+    <button type="submit" name="status" value="1" class="button primary">🟢 {% translate "Geprüft – Status 1 setzen" %}</button>
+  </form>
+</div>
 {% endif %}
 
 {# Taktischer BOS-Status Changer #}

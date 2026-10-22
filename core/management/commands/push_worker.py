@@ -129,8 +129,74 @@ def _mark_failed(outbox: PushOutbox, error_message: str) -> None:
         logger.exception("Audit fuer PushOutbox fehlgeschlagen")
 
 
+def _deliver_relay(outbox: PushOutbox) -> None:
+    """Native App-Push über das konfigurierte Push-Relay (APNs/FCM beim Relay).
+
+    Vertrag: docs/PUSH-RELAY.md. Übertragen werden nur Plattform, Geräte-Token
+    und der kurze organisatorische Nachrichtentext.
+    """
+    import urllib.error
+    import urllib.request
+
+    from core.notification_models import MobilePushDevice
+
+    relay_url = getattr(settings, "PUSH_RELAY_URL", "")
+    relay_token = getattr(settings, "PUSH_RELAY_TOKEN", "")
+    device = MobilePushDevice.objects.filter(pk=outbox.device_id).first() if outbox.device_id else None
+    if device is None:
+        outbox.status = PushOutbox.Status.DISCARDED
+        outbox.error_message = "device vanished"
+        outbox.save(update_fields=["status", "error_message"])
+        return
+    if not relay_url or not relay_token:
+        _schedule_retry(outbox, "push relay not configured")
+        return
+    payload = outbox.payload if isinstance(outbox.payload, dict) else json.loads(outbox.payload)
+    body = json.dumps({
+        "platform": device.platform,
+        "token": device.token,
+        "title": str(payload.get("title", ""))[:120],
+        "body": str(payload.get("body", ""))[:300],
+        "url": str(payload.get("url", ""))[:200],
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        relay_url,
+        data=body,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {relay_token}",
+            "X-Idempotency-Key": str(outbox.id),
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310 - https enforced in settings
+            status_code = getattr(response, "status", 200)
+    except urllib.error.HTTPError as exc:
+        if exc.code in {404, 410}:
+            # Token beim Anbieter ungültig: Gerät entfernen, Zeile behalten.
+            outbox.status = PushOutbox.Status.DISCARDED
+            outbox.error_message = f"device token gone ({exc.code})"
+            outbox.device = None
+            outbox.save(update_fields=["status", "error_message", "device"])
+            device.delete()
+            return
+        _schedule_retry(outbox, f"relay HTTP {exc.code}")
+        return
+    except Exception as exc:  # network or unexpected
+        _schedule_retry(outbox, f"{type(exc).__name__}: {exc}"[:2000])
+        return
+    if 200 <= status_code < 300:
+        _mark_sent(outbox)
+    else:
+        _schedule_retry(outbox, f"relay HTTP {status_code}")
+
+
 def _deliver(outbox: PushOutbox) -> None:
     """Send one outbox row. Runs inside a transaction opened by the caller."""
+    if outbox.device_id:
+        _deliver_relay(outbox)
+        return
     if webpush is None:
         logger.warning("pywebpush nicht verfuegbar")
         _mark_failed(outbox, "pywebpush not installed")

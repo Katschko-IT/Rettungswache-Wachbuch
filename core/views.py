@@ -512,7 +512,13 @@ def dashboard(request):
     from .module_overview import module_attention_cards
 
     dashboard_cards.extend(module_attention_cards(station, request.user))
+    from .notification_models import UserNotification
+
+    my_notifications = list(
+        UserNotification.objects.filter(user=request.user, station=station, read_at__isnull=True)[:5]
+    )
     context = {
+        "my_notifications": my_notifications,
         "dashboard_profile": profile,
         "dashboard_cards": dashboard_cards,
         "open_handovers": active[:5],
@@ -1049,6 +1055,18 @@ def checklist_complete(request, pk):
         })
     messages.success(request, _("Checkliste wurde als erledigt vermerkt."))
     return redirect("checklists")
+
+
+@membership_required(CONTENT_ROLES)
+@require_POST
+def notification_read(request, pk):
+    """Persönlichen Hinweis als erledigt markieren (nur eigene Nachrichten)."""
+    from .notification_models import UserNotification
+
+    UserNotification.objects.filter(
+        pk=pk, user=request.user, station=request.membership.station, read_at__isnull=True,
+    ).update(read_at=timezone.now())
+    return redirect("dashboard")
 
 
 def more(request):

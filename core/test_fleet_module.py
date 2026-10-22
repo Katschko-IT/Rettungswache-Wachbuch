@@ -224,43 +224,36 @@ class FleetModuleTests(TestCase):
         self.assertEqual(qr_resp.status_code, 200)
         self.assertEqual(qr_resp["Content-Type"], "image/png")
 
-    def test_auto_disinfection_release(self):
-        # Set vehicle in DISINFECTION with timer in future
+    def test_expired_contact_time_never_releases_vehicle_automatically(self):
+        # Fachentscheidung: Die Besatzung prüft und gibt selbst frei.
         self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-        self.vehicle.disinfection_locked_until = timezone.now() + timedelta(minutes=15)
-        self.vehicle.save()
-
-        # Should NOT release yet
-        released = self.vehicle.check_and_release_disinfection()
-        self.assertFalse(released)
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
-
-        # Set timer in past
         self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
         self.vehicle.save()
 
-        # Should release automatically
-        released = self.vehicle.check_and_release_disinfection()
-        self.assertTrue(released)
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
-        self.assertIsNone(self.vehicle.disinfection_locked_until)
-        self.assertIn("automatisch freigegeben", self.vehicle.status_note)
+        self.client.get(reverse("fleet_dashboard"))
+        self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
+        self.assertTrue(self.vehicle.awaiting_crew_release)
 
-    def test_auto_release_is_audited_exactly_once(self):
+        detail = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        self.assertContains(detail, "Freigabe durch die Besatzung")
+
+    def test_manual_release_after_contact_time_is_audited(self):
         from core.models import AuditEvent
 
         self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
         self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
         self.vehicle.save()
-        stale_copy = Vehicle.objects.get(pk=self.vehicle.pk)
-
-        self.assertTrue(self.vehicle.check_and_release_disinfection())
-        # Zweiter, paralleler Abruf mit veraltetem Objektstand gibt nicht erneut frei.
-        self.assertFalse(stale_copy.check_and_release_disinfection())
-        self.assertEqual(stale_copy.tactical_status, Vehicle.TacticalStatus.STATUS_1)
-        self.assertEqual(
-            AuditEvent.objects.filter(action="fleet.disinfection_auto_released").count(), 1
+        resp = self.client.post(
+            reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "1"},
         )
+        self.assertEqual(resp.status_code, 302)
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        event = AuditEvent.objects.get(action="fleet.status_changed")
+        self.assertEqual(event.actor, self.user)
+        self.assertEqual(event.metadata["from"], "disinfection")
 
     def test_station_fleet_disabled_denied(self):
         self.station.fleet_enabled = False

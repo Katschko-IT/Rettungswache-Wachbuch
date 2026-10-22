@@ -19,6 +19,26 @@
   {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} {% translate "erledigt · Wandtafel" %}</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>{% translate "Kalender" %}</strong><span>{% translate "Nächste Wachentermine" %}</span></a>{% endif %}
 </nav>
 
+{% if my_notifications %}
+<section class="section-block notification-inbox" aria-labelledby="my-notifications">
+  <div class="section-heading">
+    <h2 id="my-notifications">{% translate "Für dich" %}</h2>
+  </div>
+  <div class="item-list">
+    {% for note in my_notifications %}
+      <div class="list-row">
+        <span class="status-label success">{% translate "Hinweis" %}</span>
+        <a class="row-content" href="{{ note.url }}"><strong>{{ note.title }}</strong><small>{{ note.body }}</small></a>
+        <form method="post" action="{% url 'notification_read' note.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="button secondary small">{% translate "Erledigt" %}</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="section-block operations-summary" aria-labelledby="operations-summary">
   <div class="section-heading">
     <h2 id="operations-summary">{% translate "Wachalltag im Blick" %}</h2>

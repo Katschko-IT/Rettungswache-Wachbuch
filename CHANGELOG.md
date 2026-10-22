@@ -13,6 +13,12 @@ Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
 - Die Orga-Seite legt keine medizinischen Muster-SOPs mit Dosierungen und keine
   regional falschen Notrufnummern mehr an; der Fuhrpark erfindet keine Kennzeichen.
 - Dienstanweisungen wurden als „quittiert“ angezeigt, obwohl sie es nicht waren.
+- Fuhrpark: Fahrzeuge werden nach der Desinfektions-Einwirkzeit nicht mehr
+  automatisch auf Status 1 gesetzt. Die Besatzung (Schichtübernahme der letzten
+  24 h und die desinfizierende Person) wird benachrichtigt und gibt selbst frei.
+  Neuer Dienst `notify-worker`, persönlicher Posteingang („Für dich“), Web-Push
+  und App-Schnittstellen (`/api/v1/benachrichtigungen/`, `/api/v1/fahrzeuge/sperren/`,
+  `/api/v1/push/geraete/`); natives Push-Relay vorbereitet (`docs/PUSH-RELAY.md`).
 - Übersicht zeigt den Handlungsbedarf aller aktiven Fachmodule.
 - Modulseiten nutzen ein einheitliches Komponentenvokabular (Kacheln, Tabellen,
   Hinweise, Buttons) und klare Beschreibungen.

@@ -2675,6 +2675,7 @@ class DatabaseRoleLeastPrivilegeTests(TestCase):
             "GRANT USAGE ON SCHEMA public TO rwsth_app, rwsth_feed, rwsth_backup, rwsth_push",
             "GRANT SELECT, UPDATE ON core_pushoutbox TO rwsth_push",
             "GRANT SELECT, DELETE ON core_pushsubscription TO rwsth_push",
+            "GRANT SELECT, DELETE ON core_mobilepushdevice TO rwsth_push",
             "GRANT SELECT ON core_station TO rwsth_push",
             "GRANT INSERT ON core_auditevent TO rwsth_push",
             "GRANT USAGE, SELECT ON SEQUENCE core_auditevent_id_seq TO rwsth_push",

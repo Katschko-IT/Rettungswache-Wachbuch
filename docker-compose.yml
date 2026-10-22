@@ -208,6 +208,30 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  notify-worker:
+    image: rettungswache-wachbuch:local
+    restart: unless-stopped
+    logging: *default-logging
+    # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
+    # Besatzung (kein automatischer Statuswechsel). Kein HTTP-Listener.
+    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30"]
+    healthcheck:
+      disable: true
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "false"
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${APP_DB_USER}
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      ALLOWED_HOSTS: localhost
+      WEB_PUSH_ENABLED: ${WEB_PUSH_ENABLED:-false}
+      PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      web:
+        condition: service_healthy
+
   push-worker:
     image: rettungswache-wachbuch:local
     restart: unless-stopped
@@ -225,6 +249,8 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
+      PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
+      PUSH_RELAY_TOKEN: ${PUSH_RELAY_TOKEN:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       web:

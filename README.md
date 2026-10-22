@@ -66,7 +66,8 @@ Ein Docker-Compose-Projekt startet alles:
 | `migrate` | einmalige Schema- und Bootstrap-Migration |
 | `web` | Gunicorn/Django hinter Loopback-Port |
 | `feed-worker` | periodischer Abruf freigegebener HTTPS-Quellen |
-| `push-worker` | Versand von WebPush-Nachrichten aus der Outbox |
+| `notify-worker` | benachrichtigt die Besatzung, wenn Desinfektions-Einwirkzeiten ablaufen |
+| `push-worker` | Versand von Web-Push (und optional App-Push über ein Relay) aus der Outbox |
 | `backup` | tägliche lokale PostgreSQL-Dumps, `restore-test` für die Probe |
 
 Authentifizierung läuft ausschließlich über lokale Django-Konten. TLS und
@@ -228,7 +229,7 @@ und Mitbestimmung sowie eine unabhängige Sicherheitsprüfung. Übersicht:
 - [Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) · [Quellseite](site/index.html)
 - [Review und Debugging 2026-10-22](docs/REVIEW-2026-10-22.md)
 - [Roadmap](docs/ROADMAP.md) · [Remediation-Roadmap](docs/REMEDIATION-ROADMAP-2026-08.md)
-- [Fachmodule](docs/MODULES-RETTUNGSDIENST.md)
+- [Fachmodule](docs/MODULES-RETTUNGSDIENST.md) · [Push-Relay für die App](docs/PUSH-RELAY.md)
 - [Architektur](docs/ARCHITECTURE.md)
 - [Betrieb, Backup und Updates](docs/OPERATIONS.md)
 - [Lokaler Betrieb ohne WAN](docs/OFFLINE-BETRIEB.md)

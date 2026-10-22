@@ -886,6 +886,12 @@ class PushOutbox(models.Model):
         null=True, blank=True,
         related_name="outbox_entries",
     )
+    # Native App-Geräte (über Push-Relay); genau eines von subscription/device.
+    device = models.ForeignKey(
+        "core.MobilePushDevice", on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="outbox_entries",
+    )
     payload = models.JSONField()
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     attempts = models.PositiveIntegerField(default=0)

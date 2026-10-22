@@ -101,42 +101,19 @@ class Vehicle(models.Model):
             return False
         return timezone.now() < self.disinfection_locked_until
 
-    def check_and_release_disinfection(self) -> bool:
-        """Prüft, ob die Einwirkzeit abgelaufen ist und hebt die Sperre automatisch auf.
+    @property
+    def awaiting_crew_release(self) -> bool:
+        """Einwirkzeit abgelaufen, Fahrzeug steht noch auf „Desinfektion“.
 
-        Die Freigabe ist ein bedingtes UPDATE: Bei parallelen Abrufen (Display,
-        Dashboard, Detailseite) gewinnt genau einer und schreibt genau ein
-        Audit-Ereignis. Ohne Audit wäre der Statuswechsel nicht nachvollziehbar.
+        Bewusst keine automatische Freigabe: Die Besatzung prüft das Fahrzeug
+        und setzt den Status selbst; sie wird dazu benachrichtigt
+        (``core.crew_notifications``).
         """
-        if not (
+        return (
             self.tactical_status == self.TacticalStatus.DISINFECTION
-            and self.disinfection_locked_until
+            and self.disinfection_locked_until is not None
             and timezone.now() >= self.disinfection_locked_until
-        ):
-            return False
-        locked_until = self.disinfection_locked_until
-        note = "Desinfektion abgeschlossen (automatisch freigegeben)"
-        now = timezone.now()
-        released = type(self).objects.filter(
-            pk=self.pk,
-            tactical_status=self.TacticalStatus.DISINFECTION,
-            disinfection_locked_until=locked_until,
-        ).update(
-            tactical_status=self.TacticalStatus.STATUS_1,
-            status_note=note,
-            disinfection_locked_until=None,
-            updated_at=now,
         )
-        self.refresh_from_db(fields=["tactical_status", "status_note", "disinfection_locked_until", "updated_at"])
-        if not released:
-            return False
-        from .services import audit
-
-        audit(None, self.station, "fleet.disinfection_auto_released", self, {
-            "fields": ["tactical_status", "disinfection_locked_until"],
-            "locked_until": locked_until.isoformat(),
-        })
-        return True
 
     @property
     def disinfection_remaining_seconds(self) -> int:

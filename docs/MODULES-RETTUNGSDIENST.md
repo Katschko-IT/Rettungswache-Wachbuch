@@ -41,7 +41,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Express-Schichtübernahme (3 Min.)**: Schnelle Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
-  - **Automatisierungs-Feature**: `Vehicle.check_and_release_disinfection()` hebt nach Ablauf der Einwirkzeit die Fahrzeugsperre automatisch auf und setzt das Fahrzeug zurück auf Status 1. Die Freigabe ist ein bedingtes Update mit genau einem Audit-Ereignis (`fleet.disinfection_auto_released`). Ob ein Fahrzeug ohne Bestätigung der Besatzung freigegeben werden soll, ist eine offene Fachentscheidung (siehe `docs/REVIEW-2026-10-22.md`).
+  - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.
 - **Gesetzliche Fristen**:
   - Hauptuntersuchung gem. § 29 StVZO.
   - UVV-Prüfung gem. DGUV Vorschrift 70.
@@ -125,6 +125,8 @@ Die Seite `/mehr/` („Alle Bereiche“) zeigt alle für die Rolle erreichbaren 
   Fuhrpark legt höchstens ein neutrales Desinfektionsmittel an (im Django-Admin
   unter „Desinfektionsmittel“ pflegbar) und erfindet keine Kennzeichen.
 - Die Übersicht (`/uebersicht/`) zeigt den Handlungsbedarf der aktiven
-  Fachmodule (`core/module_overview.py`).
+  Fachmodule (`core/module_overview.py`) und persönliche Hinweise („Für dich“).
+- Fahrzeuge werden nach der Einwirkzeit **nicht** automatisch freigegeben; die
+  Besatzung wird benachrichtigt und gibt selbst frei.
 - Demo-Daten (`load_demo_data`) enthalten Fahrzeuge, Medizingeräte, Material und
   eine Dienstanweisung (`core/demo_modules.py`).

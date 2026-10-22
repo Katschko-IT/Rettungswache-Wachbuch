@@ -15,6 +15,7 @@ from .access import CONTENT_ROLES, membership_required, station_module_required
 from .fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
 from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
 from .models import Membership, Station
+from .services import audit
 from .wachalltag_models import Defect
 
 
@@ -62,9 +63,13 @@ def fleet_dashboard(request):
             )
 
     vehicles_qs = Vehicle.objects.filter(station=station, is_active=True)
-    # Automatische Freigabe abgelaufener Desinfektions-Sperren
-    for v in vehicles_qs:
-        v.check_and_release_disinfection()
+    # Abgelaufene Einwirkzeiten: Besatzung benachrichtigen (idempotent), auch
+    # falls der notify-worker gerade nicht läuft. Kein Statuswechsel.
+    from .crew_notifications import notify_vehicle_ready
+
+    for waiting in vehicles_qs.filter(tactical_status=Vehicle.TacticalStatus.DISINFECTION):
+        if waiting.awaiting_crew_release:
+            notify_vehicle_ready(waiting)
 
     query = request.GET.get("q", "").strip()
     if query:
@@ -190,7 +195,6 @@ def vehicle_edit(request, slug: str):
     """Fahrzeugdaten bearbeiten."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
     if not can_manage:
         messages.error(request, "Keine Berechtigung zum Bearbeiten von Fahrzeugdaten.")
@@ -219,7 +223,10 @@ def vehicle_detail(request, slug: str):
     """Mobiles Fahrzeug-Cockpit (Schichtübernahme, Desinfektion, Fristen)."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
+    if vehicle.awaiting_crew_release:
+        from .crew_notifications import notify_vehicle_ready
+
+        notify_vehicle_ready(vehicle)
 
     handovers = vehicle.handovers.select_related("crew_member").order_by("-performed_at")[:10]
     disinfections = vehicle.disinfections.select_related("performed_by", "disinfectant").order_by("-started_at")[:10]
@@ -265,7 +272,6 @@ def vehicle_status_change(request, slug: str):
     """BOS-Taktischen Status ändern (mit Desinfektions-Sperrschutz!)."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
 
     new_status = request.POST.get("status", "").strip()
     if new_status not in Vehicle.TacticalStatus.values:
@@ -281,10 +287,20 @@ def vehicle_status_change(request, slug: str):
         )
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
+    previous = vehicle.tactical_status
     vehicle.tactical_status = new_status
     if new_status in (Vehicle.TacticalStatus.STATUS_1, Vehicle.TacticalStatus.STATUS_2):
         vehicle.status_note = ""
     vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
+    audit(request.user, station, "fleet.status_changed", vehicle, {
+        "fields": ["tactical_status"],
+        "from": previous,
+        "to": new_status,
+    })
+    if previous == Vehicle.TacticalStatus.DISINFECTION and new_status != previous:
+        from .crew_notifications import mark_vehicle_notifications_read
+
+        mark_vehicle_notifications_read(vehicle)
 
     messages.success(request, f"Status für {vehicle.call_sign} auf '{vehicle.get_tactical_status_display()}' gesetzt.")
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
@@ -297,7 +313,6 @@ def vehicle_disinfection_create(request, slug: str):
     """Desinfektionsprotokoll erfassen und Sperrtimer starten."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
 
     form = DisinfectionProtocolForm(request.POST, station=station)
     if form.is_valid():
@@ -324,7 +339,6 @@ def vehicle_handover_create(request, slug: str):
     """3-Minuten Express-Schichtübernahme erfassen."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
 
     form = VehicleHandoverForm(request.POST)
     if form.is_valid():
@@ -358,7 +372,6 @@ def vehicle_defect_report(request, slug: str):
     """Fahrzeugmangel melden und Fahrzeug auf Werkstatt setzen."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
 
     title = request.POST.get("title", f"Mangel an {vehicle.call_sign}").strip()
     description = request.POST.get("description", "").strip()
@@ -395,7 +408,6 @@ def vehicle_qr(request, slug: str):
 
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    vehicle.check_and_release_disinfection()
 
     target_url = request.build_absolute_uri(reverse("fleet_vehicle_detail", args=[vehicle.slug]))
     image = qrcode.make(target_url)
