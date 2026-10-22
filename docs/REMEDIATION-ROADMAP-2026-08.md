@@ -227,7 +227,7 @@ Umgesetzt (Details: [`REVIEW-2026-10-22.md`](REVIEW-2026-10-22.md)):
 - i18n-Katalog vollständig (DE/EN), zerstückelte Sätze als `blocktranslate`.
 - Client: Kaffeekasse/Checklisten lesen die echten Serverfelder.
 
-Nachweise: 925 Django-Tests grün (2 skipped), Ruff-Baseline, `node --check`,
+Nachweise: 935 Django-Tests grün (2 skipped), Ruff-Baseline, `node --check`,
 i18n-Check, `makemigrations --check`, `check --deploy`; Browserlauf
 (Playwright/Chromium) ohne CSP-Verstöße auf allen Modulseiten; Client
 `flutter analyze` ohne Befund, 314 Flutter-Tests grün.

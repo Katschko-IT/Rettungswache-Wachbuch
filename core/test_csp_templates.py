@@ -147,3 +147,9 @@ class FormAndRoleRegressionTests(TestCase):
         self.assertNotIn(reverse("fleet_dashboard"), html)
         self.assertNotIn(reverse("coffee"), html)
         self.assertIn(reverse("audit_log"), html)
+
+    def test_auditor_account_page_has_no_forbidden_links(self):
+        self.client.force_login(self.auditor)
+        html = self.client.get(reverse("account_home")).content.decode()
+        self.assertNotIn(reverse("chat"), html)
+        self.assertNotIn(reverse("birthday_settings"), html)

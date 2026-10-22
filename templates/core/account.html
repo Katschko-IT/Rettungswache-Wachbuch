@@ -65,10 +65,10 @@
   <nav class="more-list" aria-label="{% translate 'Konto-Links' %}">
     {% if mfa_enabled %}<a href="{% url 'mfa_setup' %}"><strong>{% translate "Zwei-Faktor / Passkeys" %}</strong><span>{% translate "Authenticator und Passkeys verwalten" %}</span></a>{% endif %}
     <a href="{% url 'crypto_setup' %}"><strong>{% translate "Chat-Schlüssel (E2EE)" %}</strong><span>{% translate "Damit Admin und Server keine Klartexte lesen" %}</span></a>
-    <a href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens" %}</strong><span>{% translate "API für spätere iOS-/Android-Clients" %}</span></a>
-    {% if membership and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}
+    <a href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens" %}</strong><span>{% translate "Zugang für die Wachbuch-App (iOS/Android)" %}</span></a>
+    {% if membership and membership.role != 'auditor' and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}
     {% if web_push_enabled and membership %}<a href="{% url 'push_settings' %}"><strong>{% translate "Push-Benachrichtigungen" %}</strong><span>{% translate "Dringende Übergaben" %}</span></a>{% endif %}
-    {% if membership and membership.station.birthdays_enabled %}<a href="{% url 'birthday_settings' %}"><strong>{% translate "Geburtstag" %}</strong><span>{% translate "Freiwillige Anzeige" %}</span></a>{% endif %}
+    {% if membership and membership.role != 'auditor' and membership.station.birthdays_enabled %}<a href="{% url 'birthday_settings' %}"><strong>{% translate "Geburtstag" %}</strong><span>{% translate "Freiwillige Anzeige" %}</span></a>{% endif %}
   </nav>
 </section>
 {% endblock %}
