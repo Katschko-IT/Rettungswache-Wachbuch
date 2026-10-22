@@ -50,6 +50,7 @@ urlpatterns = [
     path("einstellungen/display/", display_views.display_tokens, name="display_tokens"),
     path("einstellungen/display/neu/", display_views.create_display_token, name="display_token_create"),
     path("einstellungen/display/<int:pk>/widerrufen/", display_views.revoke_display_token, name="display_token_revoke"),
+    path("einstellungen/display/<int:pk>/konfiguration/", display_views.configure_display_token, name="display_token_configure"),
     path("display/", display_views.display_home, name="display_home"),
     path("display/data/", display_views.display_data, name="display_data"),
     path("display/start/<str:token>/", display_views.display_start, name="display_start"),

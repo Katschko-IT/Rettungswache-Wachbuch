@@ -43,10 +43,13 @@
               </p>
             </div>
             {% if token.is_active %}
-              <form method="post" action="{% url 'display_token_revoke' token.pk %}">
-                {% csrf_token %}
-                <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
-              </form>
+              <div class="token-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% translate "Anpassen" %}</a>
+                <form method="post" action="{% url 'display_token_revoke' token.pk %}">
+                  {% csrf_token %}
+                  <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
+                </form>
+              </div>
             {% else %}
               <span class="status-label neutral">{% translate "Widerrufen" %}</span>
             {% endif %}

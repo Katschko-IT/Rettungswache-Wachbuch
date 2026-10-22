@@ -119,6 +119,35 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001 - Verkehr ist optional
             traffic = None
 
+    pinboard = []
+    if getattr(station, "pinboard_enabled", False):
+        try:
+            from .models import PinboardNote
+
+            for note in PinboardNote.objects.filter(
+                station=station, is_pinned=True, is_archived=False
+            ).order_by("-updated_at")[:4]:
+                pinboard.append({
+                    "title": note.title[:80],
+                    "category": note.category,
+                })
+        except Exception:  # noqa: BLE001
+            pinboard = []
+
+    news = []
+    if getattr(station, "news_enabled", False):
+        try:
+            from .models import NewsPost
+
+            for post in NewsPost.objects.filter(
+                station=station, archived_at__isnull=True
+            ).order_by("-created_at")[:4]:
+                news.append({
+                    "title": post.title[:80],
+                })
+        except Exception:  # noqa: BLE001
+            news = []
+
     return {
         "station": station.name,
         "date": day.isoformat(),
@@ -129,4 +158,6 @@ def display_payload(station) -> dict:
         "birthdays": birthdays,
         "weather": weather,
         "traffic": traffic,
+        "pinboard": pinboard,
+        "news": news,
     }

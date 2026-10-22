@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% blocktranslate with label=token.label %}Konfiguration: {{ label }}{% endblocktranslate %} · {{ current_membership.station.name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <h1>{% blocktranslate with label=token.label %}Display-Konfiguration: {{ label }}{% endblocktranslate %}</h1>
+    <p class="subtitle">{% translate "Module und Bildschirmzonen nach MagicMirror-Prinzip frei zusammenstellen." %}</p>
+  </div>
+  <a href="{% url 'display_tokens' %}" class="button secondary">{% translate "Zurück zur Übersicht" %}</a>
+</header>
+
+<form method="post" class="card">
+  {% csrf_token %}
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 80px; text-align: center;">{% translate "Aktiv" %}</th>
+          <th>{% translate "Modul" %}</th>
+          <th>{% translate "Position (Zone)" %}</th>
+          <th>{% translate "Eigener Titel" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in module_rows %}
+        <tr>
+          <td style="text-align: center;">
+            <input type="checkbox" name="mod_{{ row.id }}_enabled" value="1" id="chk_{{ row.id }}"
+              {% if row.enabled %}checked{% endif %}>
+          </td>
+          <td>
+            <label for="chk_{{ row.id }}"><strong>{{ row.name }}</strong></label>
+            <br><small class="text-muted"><code>{{ row.id }}</code></small>
+          </td>
+          <td>
+            <select name="mod_{{ row.id }}_pos" class="form-select">
+              {% for p_key, p_label in positions %}
+              <option value="{{ p_key }}" {% if row.position == p_key %}selected{% endif %}>{{ p_label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <input type="text" name="mod_{{ row.id }}_header" class="form-input" 
+              value="{{ row.header }}" placeholder="{% translate 'Standard' %}" maxlength="80">
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+    <button type="submit" class="button primary">{% translate "Konfiguration speichern" %}</button>
+    <a href="{% url 'display_tokens' %}" class="button secondary">{% translate "Abbrechen" %}</a>
+  </footer>
+</form>
+{% endblock %}

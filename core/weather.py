@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -25,8 +26,13 @@ from django.core.cache import cache
 from django.utils import timezone
 
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
+OSM_GEOCODE_URL = "https://nominatim.openstreetmap.org/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
-ALLOWED_HOSTS = frozenset({"geocoding-api.open-meteo.com", "api.open-meteo.com"})
+ALLOWED_HOSTS = frozenset({
+    "geocoding-api.open-meteo.com",
+    "api.open-meteo.com",
+    "nominatim.openstreetmap.org",
+})
 TIMEOUT_SECONDS = 3.0
 MAX_RESPONSE_BYTES = 200_000
 FORECAST_CACHE_SECONDS = 3600
@@ -72,12 +78,15 @@ def _urlopen(request, timeout):  # indirection for tests
     return _opener().open(request, timeout=timeout)
 
 
-def _fetch_json(url: str, params: dict) -> dict:
+def _fetch_json(url: str, params: dict) -> dict | list:
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme != "https" or (parsed.hostname or "").lower() not in ALLOWED_HOSTS:
         raise WeatherUnavailable("Nicht erlaubter Wetter-Endpunkt.")
     full = f"{url}?{urllib.parse.urlencode(params)}"
-    request = urllib.request.Request(full, headers={"User-Agent": "Wachbuch/1.0 (local)"})
+    request = urllib.request.Request(
+        full,
+        headers={"User-Agent": "Wachwerk-Rettungswache/1.0 (https://github.com/Katschko-IT/Rettungswache-Wachbuch)"},
+    )
     try:
         with _urlopen(request, TIMEOUT_SECONDS) as response:
             status = getattr(response, "status", 200)
@@ -94,7 +103,9 @@ def _fetch_json(url: str, params: dict) -> dict:
         data = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.") from exc
-    if not isinstance(data, dict) or data.get("error"):
+    if not isinstance(data, (dict, list)):
+        raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.")
+    if isinstance(data, dict) and data.get("error"):
         raise WeatherUnavailable("Wetterdienst meldet einen Fehler.")
     return data
 
@@ -136,6 +147,88 @@ def _normalized_timezone(timezone_name: str) -> str:
     return name
 
 
+def _extract_candidates(address: str) -> list[str]:
+    """Erzeugt schrittweise vergröberte Suchbegriffe (Straße/Hausnr, PLZ+Ort, Ort)."""
+    cleaned = (address or "").strip()
+    candidates = [cleaned]
+
+    # PLZ (4-5 Ziffern) und Ort am Ende extrahieren (z. B. "12345 Musterstadt")
+    match = re.search(r"(?:,\s*)?(\b\d{4,5}\b)\s+([^,]+)$", cleaned)
+    if match:
+        plz, city = match.group(1).strip(), match.group(2).strip()
+        candidates.append(f"{plz} {city}")
+        candidates.append(city)
+    else:
+        # Falls durch Komma getrennt, den letzten Teil (meist Stadt) separat versuchen
+        parts = [p.strip() for p in cleaned.split(",") if p.strip()]
+        if len(parts) > 1:
+            candidates.append(parts[-1])
+
+    seen = set()
+    result = []
+    for c in candidates:
+        low = c.lower()
+        if low not in seen and len(c) >= 2:
+            seen.add(low)
+            result.append(c)
+    return result
+
+
+def _geocode_osm(query: str) -> dict | None:
+    try:
+        data = _fetch_json(
+            OSM_GEOCODE_URL,
+            {"q": query, "format": "json", "limit": 1, "addressdetails": 1},
+        )
+    except WeatherUnavailable:
+        return None
+    if isinstance(data, list) and data:
+        first = data[0]
+        if isinstance(first, dict):
+            lat = first.get("lat")
+            lon = first.get("lon")
+            if _valid_coordinate(lat, -90, 90) and _valid_coordinate(lon, -180, 180):
+                display_name = first.get("display_name") or query
+                return {
+                    "latitude": round(float(lat), 4),
+                    "longitude": round(float(lon), 4),
+                    "label": str(display_name)[:120],
+                }
+    return None
+
+
+def _geocode_open_meteo(query: str, language: str) -> dict | None:
+    data = _fetch_json(
+        GEOCODE_URL,
+        {"name": query, "count": 1, "language": language, "format": "json"},
+    )
+    if not isinstance(data, dict):
+        raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.")
+    results = data.get("results")
+    if results is None:
+        return None
+    if not isinstance(results, list):
+        raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.")
+    if not results:
+        return None
+    first = results[0]
+    if not isinstance(first, dict):
+        raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.")
+    latitude, longitude = first.get("latitude"), first.get("longitude")
+    if not (_valid_coordinate(latitude, -90, 90) and _valid_coordinate(longitude, -180, 180)):
+        raise WeatherUnavailable("Wetterdienst lieferte ungültige Koordinaten.")
+    label_parts = [
+        str(part)
+        for part in (first.get("name"), first.get("admin1"), first.get("country"))
+        if isinstance(part, str) and part
+    ]
+    return {
+        "latitude": round(float(latitude), 4),
+        "longitude": round(float(longitude), 4),
+        "label": ", ".join(label_parts),
+    }
+
+
 def geocode(address: str, *, language: str = "de") -> dict:
     """Resolve a free-text address to coordinates. Requires explicit consent."""
     address = (address or "").strip()
@@ -143,33 +236,29 @@ def geocode(address: str, *, language: str = "de") -> dict:
         raise WeatherUnavailable("Adresse ist zu kurz für eine Geocodierung.")
     if _circuit_open():
         raise WeatherUnavailable("Wetterdienst ist vorübergehend pausiert.")
-    try:
-        data = _fetch_json(
-            GEOCODE_URL,
-            {"name": address, "count": 1, "language": language, "format": "json"},
-        )
-    except WeatherUnavailable:
-        _record_failure()
-        raise
-    _record_success()
-    results = data.get("results")
-    if not isinstance(results, list) or not results:
-        raise WeatherUnavailable("Adresse konnte nicht gefunden werden.")
-    first = results[0]
-    if not isinstance(first, dict):
-        raise WeatherUnavailable("Ungültige Antwort des Wetterdienstes.")
-    latitude, longitude = first.get("latitude"), first.get("longitude")
-    if not (_valid_coordinate(latitude, -90, 90) and _valid_coordinate(longitude, -180, 180)):
-        raise WeatherUnavailable("Wetterdienst lieferte ungültige Koordinaten.")
-    return {
-        "latitude": round(float(latitude), 4),
-        "longitude": round(float(longitude), 4),
-        "label": ", ".join(
-            str(part)
-            for part in (first.get("name"), first.get("admin1"), first.get("country"))
-            if isinstance(part, str) and part
-        ),
-    }
+
+    candidates = _extract_candidates(address)
+
+    # 1. OpenStreetMap Nominatim für präzise Straßen- und Hausnummern-Auflösung
+    for candidate in candidates:
+        loc = _geocode_osm(candidate)
+        if loc:
+            _record_success()
+            return loc
+
+    # 2. Open-Meteo Geocoding als Ausweichdienst für Orte und Regionen
+    for candidate in candidates:
+        try:
+            loc = _geocode_open_meteo(candidate, language)
+            if loc:
+                _record_success()
+                return loc
+        except WeatherUnavailable:
+            _record_failure()
+            raise
+
+    _record_failure()
+    raise WeatherUnavailable("Adresse konnte nicht gefunden werden.")
 
 
 def _cache_key(latitude: float, longitude: float, timezone_name: str) -> str:

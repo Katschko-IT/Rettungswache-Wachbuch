@@ -232,3 +232,61 @@ class StationSettingsHolidaysAndWeatherTests(TestCase):
         self.assertFalse(self.station.weather_enabled)
         self.assertEqual(self.station.street, "Hauptstr. 10")
         self.assertEqual(self.station.city, "Berlin")
+
+
+class CombinedGeocodingTests(TestCase):
+    def test_candidate_extraction_hierarchical(self):
+        from core.weather import _extract_candidates
+
+        candidates = _extract_candidates("Florianstraße 12, 49074 Osnabrück")
+        self.assertIn("Florianstraße 12, 49074 Osnabrück", candidates)
+        self.assertIn("49074 Osnabrück", candidates)
+        self.assertIn("Osnabrück", candidates)
+
+        candidates_comma = _extract_candidates("Hauptstraße 1, Hamburg")
+        self.assertIn("Hauptstraße 1, Hamburg", candidates_comma)
+        self.assertIn("Hamburg", candidates_comma)
+
+    @mock.patch("core.weather._fetch_json")
+    def test_osm_geocoding_resolves_street_address(self, mock_fetch):
+        mock_fetch.return_value = [
+            {
+                "lat": "52.5215",
+                "lon": "13.4124",
+                "display_name": "Alexanderplatz 1, Berlin",
+            }
+        ]
+        from core.weather import geocode
+
+        result = geocode("Alexanderplatz 1, 10178 Berlin")
+        self.assertEqual(result["latitude"], 52.5215)
+        self.assertEqual(result["longitude"], 13.4124)
+        self.assertIn("Alexanderplatz", result["label"])
+
+    @mock.patch("core.weather._fetch_json")
+    def test_osm_failure_cascades_to_open_meteo(self, mock_fetch):
+        # First call (OSM) returns empty list, second call (Open-Meteo) returns results dict
+        def side_effect(url, params):
+            if "nominatim" in url:
+                return []
+            if "open-meteo" in url:
+                return {
+                    "results": [
+                        {
+                            "latitude": 52.2726,
+                            "longitude": 8.0498,
+                            "name": "Osnabrück",
+                            "admin1": "Niedersachsen",
+                            "country": "Deutschland",
+                        }
+                    ]
+                }
+            raise WeatherUnavailable("Unexpected URL")
+
+        mock_fetch.side_effect = side_effect
+        from core.weather import geocode
+
+        result = geocode("Fantasieweg 999, 49074 Osnabrück")
+        self.assertEqual(result["latitude"], 52.2726)
+        self.assertEqual(result["longitude"], 8.0498)
+        self.assertIn("Osnabrück", result["label"])

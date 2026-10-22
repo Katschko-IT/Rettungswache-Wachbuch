@@ -258,8 +258,61 @@
     show(block, (count || 0) > 0);
   }
 
+  function applyLayout(root, layoutConfig) {
+    if (!layoutConfig || !Array.isArray(layoutConfig.modules)) {
+      return;
+    }
+    layoutConfig.modules.forEach(function (mod) {
+      var container = root.querySelector('[data-module-container="' + mod.id + '"]');
+      if (!container) {
+        return;
+      }
+      if (mod.enabled === false) {
+        container.hidden = true;
+        return;
+      }
+      container.hidden = false;
+
+      if (typeof mod.header === "string" && mod.header.trim() !== "") {
+        var heading = container.querySelector('[data-module-heading="' + mod.id + '"]') || container.querySelector("h2");
+        if (heading) {
+          heading.textContent = mod.header;
+        }
+      }
+
+      if (mod.position) {
+        var targetRegion = root.querySelector('[data-region="' + mod.position + '"]');
+        if (targetRegion && container.parentNode !== targetRegion) {
+          targetRegion.appendChild(container);
+        }
+      }
+    });
+  }
+
+  function renderPinboardNews(root, pinboard, news) {
+    var container = root.querySelector("[data-display-pinboard-news]");
+    var textNode = root.querySelector("[data-display-ticker-text]");
+    if (!container || !textNode) {
+      return;
+    }
+    var items = [];
+    (pinboard || []).forEach(function (p) {
+      items.push("📌 " + p.title);
+    });
+    (news || []).forEach(function (n) {
+      items.push("📢 " + n.title);
+    });
+    if (!items.length) {
+      container.hidden = true;
+      return;
+    }
+    textNode.textContent = items.join("   ·   ");
+    container.hidden = false;
+  }
+
   function apply(payload) {
     roots.forEach(function (root) {
+      applyLayout(root, payload.layout_config);
       renderEvents(root, payload.events);
       renderWaste(root, payload.waste);
       renderTasks(root, payload.tasks);
@@ -267,6 +320,7 @@
       renderBirthdays(root, payload.birthdays);
       renderTraffic(root, payload.traffic);
       renderUrgent(root, payload.urgent_handovers);
+      renderPinboardNews(root, payload.pinboard, payload.news);
     });
   }
 

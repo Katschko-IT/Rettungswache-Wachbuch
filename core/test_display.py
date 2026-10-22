@@ -161,6 +161,41 @@ class DisplayDataTests(TestCase):
         titles = [entry["title"] for entry in self.payload()["events"]]
         self.assertIn("Fahrzeugübergabe", titles)
 
+    def test_payload_includes_layout_config(self):
+        data = self.payload()
+        self.assertIn("layout_config", data)
+        self.assertIn("modules", data["layout_config"])
+
+    def test_custom_token_layout_is_served(self):
+        token = DisplayToken.objects.get(station=self.station)
+        token.layout_config = {
+            "version": 1,
+            "theme": "custom",
+            "modules": [
+                {"id": "clock", "position": "top_center", "enabled": True, "header": "Wachentakt"}
+            ]
+        }
+        token.save(update_fields=["layout_config"])
+        data = self.payload()
+        self.assertEqual(data["layout_config"]["theme"], "custom")
+        self.assertEqual(data["layout_config"]["modules"][0]["position"], "top_center")
+
+    def test_pinboard_appears_in_payload(self):
+        from .models import PinboardNote
+        self.station.pinboard_enabled = True
+        self.station.save(update_fields=["pinboard_enabled"])
+        PinboardNote.objects.create(
+            station=self.station,
+            title="Wichtiger Aushang",
+            body="Details",
+            is_pinned=True,
+            author=self.user,
+        )
+        data = self.payload()
+        self.assertIn("pinboard", data)
+        self.assertEqual(len(data["pinboard"]), 1)
+        self.assertEqual(data["pinboard"][0]["title"], "Wichtiger Aushang")
+
 
 class DisplayManagementTests(TestCase):
     def setUp(self):
@@ -199,3 +234,49 @@ class DisplayManagementTests(TestCase):
         self.assertEqual(response.status_code, 302)
         foreign.refresh_from_db()
         self.assertIsNone(foreign.revoked_at)
+
+    def test_configure_display_token_view(self):
+        self.client.force_login(self.admin)
+        token = DisplayToken.objects.create(
+            station=self.station,
+            label="Konferenzraum",
+            token_hash=hashlib.sha256(b"k").hexdigest(),
+            created_by=self.admin,
+        )
+        # GET
+        url = reverse("display_token_configure", args=[token.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Display-Konfiguration: Konferenzraum")
+        self.assertIn("module_rows", response.context)
+
+        # POST
+        post_data = {
+            "mod_clock_enabled": "1",
+            "mod_clock_pos": "top_center",
+            "mod_clock_header": "Zentrale Uhr",
+            "mod_weather_enabled": "1",
+            "mod_weather_pos": "top_right",
+            "mod_weather_header": "Stationswetter",
+        }
+        res_post = self.client.post(url, post_data)
+        self.assertRedirects(res_post, reverse("display_tokens"))
+        token.refresh_from_db()
+        modules = {m["id"]: m for m in token.layout_config["modules"]}
+        self.assertEqual(modules["clock"]["position"], "top_center")
+        self.assertEqual(modules["clock"]["header"], "Zentrale Uhr")
+        self.assertTrue(modules["clock"]["enabled"])
+        self.assertFalse(modules["events"]["enabled"])  # Not in post_data -> disabled
+
+    def test_configure_foreign_token_is_forbidden(self):
+        other_station = Station.objects.create(name="Fremd 2", slug="fremd-2")
+        foreign = DisplayToken.objects.create(
+            station=other_station,
+            label="fremd",
+            token_hash=hashlib.sha256(b"y").hexdigest(),
+            created_by=self.admin,
+        )
+        self.client.force_login(self.admin)
+        url = reverse("display_token_configure", args=[foreign.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

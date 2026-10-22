@@ -2,57 +2,83 @@
 <div class="display-background" data-display-background aria-hidden="true"></div>
 <div class="display-vignette" aria-hidden="true"></div>
 
-<main class="display-grid">
-  <header class="display-header">
-    <div class="display-clock-block">
+<main class="display-grid" data-display-grid>
+  <!-- Region Top: Links (Uhr), Mitte (Station), Rechts (Wetter) -->
+  <header class="display-header display-region region-top" data-region="top_left">
+    <div class="display-clock-block" data-module-container="clock">
       <p class="display-clock" data-display-clock>--:--</p>
       <p class="display-date" data-display-date></p>
     </div>
-    <p class="display-station">{{ display_station.name }}</p>
+    <div class="display-region region-top-center" data-region="top_center">
+      <p class="display-station">{{ display_station.name }}</p>
+    </div>
+    <div class="display-region region-top-right" data-region="top_right"></div>
   </header>
 
-  <section class="display-column display-column-wide">
-    <h2 class="display-heading">{% translate "Heute" %}</h2>
-    <ul class="display-list" data-display-events>
-      <li class="display-empty">{% translate "Keine Termine" %}</li>
-    </ul>
-    <ul class="display-waste" data-display-waste></ul>
-  </section>
-
-  {% if display_station.tasks_enabled %}
-  <section class="display-column">
-    <h2 class="display-heading">{% translate "Tagesaufgaben" %}</h2>
-    <p class="display-metric"><span data-display-tasks-open>0</span><small>{% translate "offen" %}</small></p>
-    <div class="display-progress" role="img" aria-label="{% translate 'Fortschritt der Tagesaufgaben' %}">
-      <span class="display-progress-bar" data-display-progress></span>
+  <!-- Region Middle-Left -->
+  <section class="display-column display-column-wide display-region" data-region="middle_left">
+    <div data-module-container="events">
+      <h2 class="display-heading" data-module-heading="events">{% translate "Heute" %}</h2>
+      <ul class="display-list" data-display-events>
+        <li class="display-empty">{% translate "Keine Termine" %}</li>
+      </ul>
     </div>
-    <p class="display-sub" data-display-tasks-detail></p>
-  </section>
-  {% endif %}
-
-  <section class="display-column">
-    <h2 class="display-heading">{% translate "Wetter" %}</h2>
-    <div class="display-weather" data-display-weather hidden>
-      <p class="display-temperature"><span data-display-temp>--</span><small>°C</small></p>
-      <p class="display-weather-label" data-display-weather-label></p>
-      <p class="display-sub" data-display-weather-range></p>
+    <div data-module-container="waste">
+      <ul class="display-waste" data-display-waste></ul>
     </div>
-    <p class="display-empty" data-display-weather-empty>{% translate "Wetter nicht aktiviert" %}</p>
-    <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
   </section>
 
+  <!-- Region Middle-Center -->
+  <section class="display-column display-region" data-region="middle_center">
+    {% if display_station.tasks_enabled %}
+    <div data-module-container="tasks">
+      <h2 class="display-heading" data-module-heading="tasks">{% translate "Tagesaufgaben" %}</h2>
+      <p class="display-metric"><span data-display-tasks-open>0</span><small>{% translate "offen" %}</small></p>
+      <div class="display-progress" role="img" aria-label="{% translate 'Fortschritt der Tagesaufgaben' %}">
+        <span class="display-progress-bar" data-display-progress></span>
+      </div>
+      <p class="display-sub" data-display-tasks-detail></p>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Region Middle-Right -->
+  <section class="display-column display-region" data-region="middle_right">
+    <div data-module-container="weather">
+      <h2 class="display-heading" data-module-heading="weather">{% translate "Wetter" %}</h2>
+      <div class="display-weather" data-display-weather hidden>
+        <p class="display-temperature"><span data-display-temp>--</span><small>°C</small></p>
+        <p class="display-weather-label" data-display-weather-label></p>
+        <p class="display-sub" data-display-weather-range></p>
+      </div>
+      <p class="display-empty" data-display-weather-empty>{% translate "Wetter nicht aktiviert" %}</p>
+    </div>
+    <div data-module-container="birthdays">
+      <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
+    </div>
+  </section>
+
+  <!-- Region Traffic Strip (optional) -->
   {% if display_station.traffic_enabled %}
-  <section class="display-traffic-strip" data-display-traffic-section hidden>
-    <h2 class="display-heading">{% translate "Baustellen und Sperrungen" %}</h2>
-    <ul class="display-traffic-list" data-display-traffic data-closed-label="{% translate 'Gesperrt' %}"></ul>
+  <section class="display-traffic-strip display-region" data-display-traffic-section data-region="middle_traffic" hidden>
+    <div data-module-container="traffic">
+      <h2 class="display-heading" data-module-heading="traffic">{% translate "Baustellen und Sperrungen" %}</h2>
+      <ul class="display-traffic-list" data-display-traffic data-closed-label="{% translate 'Gesperrt' %}"></ul>
+    </div>
   </section>
   {% endif %}
 
-  <footer class="display-footer">
-    <p class="display-urgent" data-display-urgent-block hidden>
-      <span class="display-urgent-count" data-display-urgent>0</span>
-      <span class="display-urgent-label">{% translate "dringende Übergaben" %}</span>
-    </p>
+  <!-- Region Bottom: Left, Center, Right, Bar -->
+  <footer class="display-footer display-region" data-region="bottom_bar">
+    <div data-module-container="urgent_handovers">
+      <p class="display-urgent" data-display-urgent-block hidden>
+        <span class="display-urgent-count" data-display-urgent>0</span>
+        <span class="display-urgent-label">{% translate "dringende Übergaben" %}</span>
+      </p>
+    </div>
+    <div data-module-container="pinboard_news" data-display-pinboard-news hidden>
+      <p class="display-ticker"><span data-display-ticker-text></span></p>
+    </div>
     <p class="display-hint" data-display-hint>{% translate "Esc beendet die Anzeige" %}</p>
   </footer>
 </main>

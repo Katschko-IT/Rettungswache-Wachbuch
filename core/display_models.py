@@ -15,6 +15,82 @@ from django.utils import timezone
 
 from .models import Station
 
+DEFAULT_DISPLAY_CONFIG = {
+    "version": 1,
+    "theme": "dark",
+    "background_rotation_minutes": 5,
+    "modules": [
+        {
+            "id": "clock",
+            "module": "clock",
+            "position": "top_left",
+            "enabled": True,
+            "header": "",
+            "config": {"show_date": True, "show_station": True},
+        },
+        {
+            "id": "weather",
+            "module": "weather",
+            "position": "top_right",
+            "enabled": True,
+            "header": "",
+            "config": {},
+        },
+        {
+            "id": "events",
+            "module": "events",
+            "position": "middle_left",
+            "enabled": True,
+            "header": "Heute",
+            "config": {"limit": 6},
+        },
+        {
+            "id": "waste",
+            "module": "waste",
+            "position": "middle_left",
+            "enabled": True,
+            "header": "",
+            "config": {"limit": 3},
+        },
+        {
+            "id": "tasks",
+            "module": "tasks",
+            "position": "middle_center",
+            "enabled": True,
+            "header": "Tagesaufgaben",
+            "config": {"show_progress": True},
+        },
+        {
+            "id": "traffic",
+            "module": "traffic",
+            "position": "middle_right",
+            "enabled": True,
+            "header": "Verkehrslage",
+            "config": {},
+        },
+        {
+            "id": "birthdays",
+            "module": "birthdays",
+            "position": "middle_right",
+            "enabled": True,
+            "header": "Geburtstage",
+            "config": {},
+        },
+        {
+            "id": "urgent_handovers",
+            "module": "urgent_handovers",
+            "position": "bottom_bar",
+            "enabled": True,
+            "header": "",
+            "config": {},
+        },
+    ],
+}
+
+
+def default_layout_config() -> dict:
+    return dict(DEFAULT_DISPLAY_CONFIG)
+
 
 class DisplayToken(models.Model):
     """Widerrufbarer Lesezugang für genau einen Bildschirm einer Wache."""
@@ -24,6 +100,11 @@ class DisplayToken(models.Model):
     )
     label = models.CharField(max_length=80, verbose_name="Bezeichnung")
     token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    layout_config = models.JSONField(
+        default=default_layout_config,
+        blank=True,
+        verbose_name="Bildschirm-Konfiguration",
+    )
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
