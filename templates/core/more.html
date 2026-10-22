@@ -1,32 +1,517 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% translate "Mehr" %} | {{ app_name }}{% endblock %}
+{% block title %}{% translate "Wachenzentrale & Alle Module" %} | {{ app_name }}{% endblock %}
+
 {% block content %}
-<header class="page-heading">
-  <p class="context-line">{% translate "Weitere Bereiche" %}</p>
-  <h1>{% translate "Mehr" %}</h1>
-  <p class="lead">{% translate "Zusatzmodule und Verwaltung. Die App bleibt auch auf dem Startbildschirm erreichbar." %}</p>
-</header>
-<nav class="more-list" aria-label="{% translate 'Weitere Bereiche' %}">
-{% if 'defects' not in nav_keys %}<a data-more="defects" style="order: {{ more_order.defects|default:50 }}" href="{% url 'defects_web' %}"><strong>{% translate "Mängel" %}</strong><span>{% translate "Offene Punkte mit Priorität, Owner, Frist und Fotos" %}</span></a>{% endif %}
-{% if 'assets' not in nav_keys %}<a data-more="assets" style="order: {{ more_order.assets|default:50 }}" href="{% url 'assets_inventory_web' %}"><strong>{% translate "Geräte &amp; Status" %}</strong><span>{% translate "Fahrzeug-/Gerätestatus, Schlüssel und Poolgeräte" %}</span></a>{% endif %}
-{% if 'reports' not in nav_keys %}<a data-more="reports" style="order: {{ more_order.reports|default:50 }}" href="{% url 'wachalltag_reports_web' %}"><strong>{% translate "Auswertung" %}</strong><span>{% translate "Offene Mängel, fällige Checks und Einsatzklar-Quote" %}</span></a>{% endif %}
-{% if 'tasks' not in nav_keys %}{% if current_membership.station.tasks_enabled %}<a data-more="tasks" style="order: {{ more_order.tasks|default:50 }}" href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{% translate "Grüne Routine, gelbe Wochentage, blaue Zusatzpunkte" %}</span></a>{% endif %}{% endif %}
-{% if 'birthdays' not in nav_keys %}{% if current_membership.station.birthdays_enabled %}<a data-more="birthdays" style="order: {{ more_order.birthdays|default:50 }}" href="{% url 'birthdays' %}"><strong>{% translate "Geburtstage" %}</strong><span>{% translate "Freiwillige Teamtermine" %}</span></a>{% endif %}{% endif %}
-{% if 'coffee' not in nav_keys %}{% if current_membership.station.coffee_enabled %}<a data-more="coffee" style="order: {{ more_order.coffee|default:50 }}" href="{% url 'coffee' %}"><strong>{% translate "Kaffeekasse" %}</strong><span>{% translate "Saldo und Buchungen" %}</span></a>{% endif %}{% endif %}
-{% if 'feeds' not in nav_keys %}{% if current_membership.station.feeds_enabled %}<a data-more="feeds" style="order: {{ more_order.feeds|default:50 }}" href="{% url 'feeds' %}"><strong>{% translate "Meldungen &amp; Verkehr" %}</strong><span>{% translate "Konfigurierte offizielle Quellen" %}</span></a>{% endif %}{% endif %}
-{% if 'checklists' not in nav_keys %}{% if current_membership.station.checklists_enabled %}<a data-more="checklists" style="order: {{ more_order.checklists|default:50 }}" href="{% url 'checklists' %}"><strong>{% translate "Checklisten" %}</strong><span>{% translate "Wiederkehrende Prüfungen" %}</span></a><a data-more="schedules" style="order: {{ more_order.schedules|default:50 }}" href="{% url 'checklist_schedules_web' %}"><strong>{% translate "Prüfintervalle" %}</strong><span>{% translate "Fälligkeiten täglich, wöchentlich oder monatlich" %}</span></a>{% endif %}{% endif %}
-{% if 'pinboard' not in nav_keys %}{% if current_membership.station.pinboard_enabled %}<a data-more="pinboard" style="order: {{ more_order.pinboard|default:50 }}" href="{% url 'pinboard' %}"><strong>{% translate "Pinnwand" %}</strong><span>{% translate "Kurze Aushänge und Hinweise für die Wache" %}</span></a>{% endif %}{% endif %}
-{% if 'news' not in nav_keys %}<a data-more="news" style="order: {{ more_order.news|default:50 }}" href="{% url 'news_index' %}"><strong>{% translate "Neuigkeiten" %}</strong><span>{% translate "Mitteilungen lesen und quittieren" %}</span></a>{% endif %}
-{% if 'wiki' not in nav_keys %}<a data-more="wiki" style="order: {{ more_order.wiki|default:50 }}" href="{% url 'wiki_index' %}"><strong>{% translate "Wachen-Wiki" %}</strong><span>{% translate "Dauerhafte Hinweise und Abläufe dieser Wache" %}</span></a>{% endif %}
-{% if 'chat' not in nav_keys %}{% if current_membership.station.chat_enabled %}<a data-more="chat" style="order: {{ more_order.chat|default:50 }}" href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}{% endif %}
-{% if 'account' not in nav_keys %}<a data-more="account" style="order: {{ more_order.account|default:50 }}" href="{% url 'account_home' %}"><strong>{% translate "Mein Konto" %}</strong><span>{% translate "Profilbild, Passwort und Zwei-Faktor" %}</span></a>{% endif %}
-  <a data-more="tokens" style="order: {{ more_order.tokens|default:50 }}" href="{% url 'api_tokens_manage' %}"><strong>{% translate "App-Tokens / API" %}</strong><span>{% translate "Anbindung Open-Source-Apps (iOS/Android)" %}</span></a>
-  {% if current_membership.role == 'admin' %}<a data-more="team" style="order: {{ more_order.team|default:50 }}" href="{% url 'team' %}"><strong>{% translate "Team &amp; Rollen" %}</strong><span>{% translate "Als Master-Admin Nutzer anlegen und freigeben" %}</span></a><a data-more="invites" style="order: {{ more_order.invites|default:50 }}" href="{% url 'team_invites' %}"><strong>{% translate "Mitarbeiter-Aktivierungen" %}</strong><span>{% translate "Einmal-Links und QR-Codes für persönliche Konten" %}</span></a><a data-more="appearance" style="order: {{ more_order.appearance|default:50 }}" href="{% url 'presentation_settings' %}"><strong>{% translate "Darstellung" %}</strong><span>{% translate "Reihenfolge der Leiste und der Bereiche unter Mehr" %}</span></a><a data-more="display" style="order: {{ more_order.appearance|default:50|add:1 }}" href="{% url 'display_tokens' %}"><strong>{% translate "Wachen-Display" %}</strong><span>{% translate "Link für Monitor oder Fernseher erzeugen und widerrufen" %}</span></a>
-  <a data-more="settings" style="order: {{ more_order.settings|default:50 }}" href="{% url 'station_settings' %}"><strong>{% translate "Einstellungen" %}</strong><span>{% translate "Name und Module der Wache verwalten" %}</span></a>{% endif %}
-  {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}<a data-more="audit" style="order: {{ more_order.audit|default:50 }}" href="{% url 'audit_log' %}"><strong>{% translate "Audit" %}</strong><span>{% translate "Änderungen nachvollziehen" %}</span></a>{% endif %}
-  {% if mfa_enabled %}<a data-more="mfa" style="order: {{ more_order.mfa|default:50 }}" href="{% url 'mfa_setup' %}"><strong>{% translate "Zwei-Faktor / Passkeys" %}</strong><span>{% translate "Authenticator-App und Passkeys" %}</span></a>{% endif %}
-  {% if web_push_enabled %}<a data-more="push" style="order: {{ more_order.push|default:50 }}" href="{% url 'push_settings' %}"><strong>{% translate "Push-Benachrichtigungen" %}</strong><span>{% translate "Nur dringende Übergaben" %}</span></a>{% endif %}
-  {% if request.user.is_staff %}<a data-more="admin" style="order: {{ more_order.admin|default:50 }}" href="{% url 'admin:index' %}"><strong>{% translate "Technische Verwaltung" %}</strong><span>{% translate "Quellen und Systemkonten verwalten" %}</span></a>{% endif %}
-</nav>
+<div class="more-hub-container">
+
+  <header class="page-heading heading-with-action" style="margin-bottom: 0.5rem;">
+    <div>
+      <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Modulübersicht" %}</p>
+      <h1>{% translate "Wachenzentrale & Alle Module" %}</h1>
+      <p class="lead">{% translate "Alle Einsatzmodule, Fachbereiche und Einstellungen dieser Wache auf einen Blick." %}</p>
+    </div>
+    {% if current_membership.role == 'admin' %}
+      <div>
+        <a class="button secondary" href="{% url 'presentation_settings' %}">
+          <span class="icon" aria-hidden="true">🎨</span> {% translate "Leiste anpassen" %}
+        </a>
+      </div>
+    {% endif %}
+  </header>
+
+  <!-- Live-Schnellsuche -->
+  <div class="more-search-box">
+    <span style="font-size: 1.2rem;" aria-hidden="true">🔍</span>
+    <input type="search" id="more-quick-search" class="more-search-input" placeholder="{% translate 'Modul oder Bereich suchen (z. B. Fuhrpark, MPG, Lager, Wiki, Mängel)...' %}" autocomplete="off" aria-label="{% translate 'Module durchsuchen' %}">
+    <small id="more-search-hint" style="color: var(--muted); display: none;">{% translate "Escape zum Zurücksetzen" %}</small>
+  </div>
+
+  <!-- KATEGORIE 1: Rettungsdienst-Fachmodule -->
+  <section class="more-category-block" data-category="fachmodule">
+    <div class="more-category-header">
+      <h2 class="more-category-title">
+        <span>🚑</span> {% translate "Einsatz & Rettungsdienst-Fachmodule" %}
+      </h2>
+      <span class="more-category-count">{% translate "Kernmodule" %}</span>
+    </div>
+    <div class="more-cards-grid">
+      
+      <!-- MPG & Medizingeräte -->
+      {% if current_membership.station.mpg_enabled %}
+        <a class="more-card-item" data-more="mpg" style="order: {{ more_order.mpg|default:10 }}" href="{% url 'mpg_dashboard' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🩺</span>
+            {% if 'mpg' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "MPG & Medizingeräte" %}</strong>
+            <span class="more-card-desc">{% translate "Medizinproduktebuch nach MPBetreibV, STK/MTK-Fristenampel, QR-Selbsttest & Einweisungsmatrix." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Lager & Material -->
+      {% if current_membership.station.warehouse_enabled %}
+        <a class="more-card-item" data-more="warehouse" style="order: {{ more_order.warehouse|default:11 }}" href="{% url 'warehouse_dashboard' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📦</span>
+            {% if 'warehouse' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Lager & Material" %}</strong>
+            <span class="more-card-desc">{% translate "FEFO-Apothekenlager, Kühlketten-Timer (2–8 °C), Mindestbestands-Bestellschein & 1-Scan Aufrüstung." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Fuhrpark & Fahrzeuge -->
+      {% if current_membership.station.fleet_enabled %}
+        <a class="more-card-item" data-more="fleet" style="order: {{ more_order.fleet|default:12 }}" href="{% url 'fleet_dashboard' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🚑</span>
+            {% if 'fleet' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Fuhrpark & Fahrzeuge" %}</strong>
+            <span class="more-card-desc">{% translate "Taktischer BOS-Status, O₂-Druck (bar), Tank, VAH-Desinfektion mit Timer-Freigabe & UVV/10g-Tragentisch." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Organisation & Desk -->
+      {% if current_membership.station.orga_enabled %}
+        <a class="more-card-item" data-more="orga" style="order: {{ more_order.orga|default:13 }}" href="{% url 'orga_dashboard' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🏢</span>
+            {% if 'orga' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Organisation & Desk" %}</strong>
+            <span class="more-card-desc">{% translate "Dienstanweisungen, Hygienepläne, SOPs mit SHA-256 Integrität, Lesequittierung & Notfall-Kurzwahlliste." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Wachen-Display -->
+      {% if current_membership.station.display_enabled %}
+        <a class="more-card-item" data-more="display" style="order: {{ more_order.display|default:14 }}" href="{% url 'display_home' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🖥️</span>
+            {% if 'display' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Wachen-Display" %}</strong>
+            <span class="more-card-desc">{% translate "Vollbild-Monitor für Fahrzeughalle: Live-Einsatzstatus, BOS-Flotte, Wetter, Ticker und Fristen." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- KATEGORIE 2: Wachbetrieb & Alltagsorganisation -->
+  <section class="more-category-block" data-category="wachbetrieb">
+    <div class="more-category-header">
+      <h2 class="more-category-title">
+        <span>📋</span> {% translate "Wachbetrieb & Alltagsorganisation" %}
+      </h2>
+      <span class="more-category-count">{% translate "Wachalltag" %}</span>
+    </div>
+    <div class="more-cards-grid">
+
+      <!-- Mängel -->
+      <a class="more-card-item" data-more="defects" style="order: {{ more_order.defects|default:20 }}" href="{% url 'defects_web' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">⚠️</span>
+          {% if 'defects' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Mängel & Werkstatt" %}</strong>
+          <span class="more-card-desc">{% translate "Mängel mit Priorität, Fristen, Fotos, Fahrzeug-Werkstattstatus und Eigentümer erfassen." %}</span>
+        </div>
+      </a>
+
+      <!-- Geräte & Status -->
+      <a class="more-card-item" data-more="assets" style="order: {{ more_order.assets|default:21 }}" href="{% url 'assets_inventory_web' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">🧰</span>
+          {% if 'assets' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Geräte & Poolbestand" %}</strong>
+          <span class="more-card-desc">{% translate "Bereitschaftsstatus von Einsatzgeräten, Schlüsselkästen und Poolmaterial verwalten." %}</span>
+        </div>
+      </a>
+
+      <!-- Tagesaufgaben -->
+      {% if current_membership.station.tasks_enabled %}
+        <a class="more-card-item" data-more="tasks" style="order: {{ more_order.tasks|default:22 }}" href="{% url 'tasks_today' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📝</span>
+            {% if 'tasks' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Tagesaufgaben" %}</strong>
+            <span class="more-card-desc">{% translate "Digitale Wandtafel: Grüne tägliche Routine, gelbe Wochentage und blaue Zusatzaufgaben." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Auswertung -->
+      <a class="more-card-item" data-more="reports" style="order: {{ more_order.reports|default:23 }}" href="{% url 'wachalltag_reports_web' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">📊</span>
+          {% if 'reports' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Auswertung & Kennzahlen" %}</strong>
+          <span class="more-card-desc">{% translate "Offene Mängel, fällige Checks, Einsatzklar-Quote und Erledigungsstatistiken." %}</span>
+        </div>
+      </a>
+
+      <!-- Checklisten & Prüfintervalle -->
+      {% if current_membership.station.checklists_enabled %}
+        <a class="more-card-item" data-more="checklists" style="order: {{ more_order.checklists|default:24 }}" href="{% url 'checklists' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">✅</span>
+            {% if 'checklists' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Checklisten" %}</strong>
+            <span class="more-card-desc">{% translate "Strukturierte Prüflisten für Schichtübernahmen und Wachenrundgänge." %}</span>
+          </div>
+        </a>
+
+        <a class="more-card-item" data-more="schedules" style="order: {{ more_order.schedules|default:25 }}" href="{% url 'checklist_schedules_web' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">⏱️</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Prüfintervalle" %}</strong>
+            <span class="more-card-desc">{% translate "Wiederkehrende Kontrollen täglich, wöchentlich oder monatlich planen." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Kalender -->
+      {% if current_membership.station.calendar_enabled %}
+        <a class="more-card-item" data-more="calendar" style="order: {{ more_order.calendar|default:26 }}" href="{% url 'calendar' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📅</span>
+            {% if 'calendar' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Wachenkalender" %}</strong>
+            <span class="more-card-desc">{% translate "Schulungen, Wachtermine, Feiertage aller Bundesländer & ICS-Kalenderabo." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Pinnwand -->
+      {% if current_membership.station.pinboard_enabled %}
+        <a class="more-card-item" data-more="pinboard" style="order: {{ more_order.pinboard|default:27 }}" href="{% url 'pinboard' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📌</span>
+            {% if 'pinboard' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Pinnwand" %}</strong>
+            <span class="more-card-desc">{% translate "Kurze Aushänge, Schichthinweise und Ankündigungen für die Wachmannschaft." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Kaffeekasse -->
+      {% if current_membership.station.coffee_enabled %}
+        <a class="more-card-item" data-more="coffee" style="order: {{ more_order.coffee|default:28 }}" href="{% url 'coffee' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">☕</span>
+            {% if 'coffee' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Kaffeekasse" %}</strong>
+            <span class="more-card-desc">{% translate "Digitales Saldo-Ledger, Einzahlungen und Strichlistenbuchungen." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Geburtstage -->
+      {% if current_membership.station.birthdays_enabled %}
+        <a class="more-card-item" data-more="birthdays" style="order: {{ more_order.birthdays|default:29 }}" href="{% url 'birthdays' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🎂</span>
+            {% if 'birthdays' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Geburtstage" %}</strong>
+            <span class="more-card-desc">{% translate "Freiwillige Team-Geburtstagsübersicht und Jubiläen." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- KATEGORIE 3: Kommunikation & Wissen -->
+  <section class="more-category-block" data-category="kommunikation">
+    <div class="more-category-header">
+      <h2 class="more-category-title">
+        <span>📢</span> {% translate "Kommunikation & Wissen" %}
+      </h2>
+      <span class="more-category-count">{% translate "Information" %}</span>
+    </div>
+    <div class="more-cards-grid">
+
+      <!-- Neuigkeiten -->
+      <a class="more-card-item" data-more="news" style="order: {{ more_order.news|default:30 }}" href="{% url 'news_index' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">📰</span>
+          {% if 'news' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Neuigkeiten" %}</strong>
+          <span class="more-card-desc">{% translate "Wichtige Wachenmitteilungen lesen und Kenntnisnahme quittieren." %}</span>
+        </div>
+      </a>
+
+      <!-- Wachen-Wiki -->
+      <a class="more-card-item" data-more="wiki" style="order: {{ more_order.wiki|default:31 }}" href="{% url 'wiki_index' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">📖</span>
+          {% if 'wiki' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Wachen-Wiki" %}</strong>
+          <span class="more-card-desc">{% translate "Dauerhafte Nachschlagewerke, Ortskunde, Verfahrensanweisungen & Hausordnung." %}</span>
+        </div>
+      </a>
+
+      <!-- Meldungen & Verkehr -->
+      {% if current_membership.station.feeds_enabled %}
+        <a class="more-card-item" data-more="feeds" style="order: {{ more_order.feeds|default:32 }}" href="{% url 'feeds' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📡</span>
+            {% if 'feeds' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Meldungen & Katwarn" %}</strong>
+            <span class="more-card-desc">{% translate "Offizielle Feeds, Katwarn/MoWaS-Meldungen und lokale Verkehrslage." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Wachenchat -->
+      {% if current_membership.station.chat_enabled %}
+        <a class="more-card-item" data-more="chat" style="order: {{ more_order.chat|default:33 }}" href="{% url 'chat' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">💬</span>
+            {% if 'chat' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Wachenchat" %}</strong>
+            <span class="more-card-desc">{% translate "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- KATEGORIE 4: Wachenverwaltung & Sicherheit -->
+  <section class="more-category-block" data-category="verwaltung">
+    <div class="more-category-header">
+      <h2 class="more-category-title">
+        <span>⚙️</span> {% translate "Wachenverwaltung & Sicherheit" %}
+      </h2>
+      <span class="more-category-count">{% translate "Administration & Profil" %}</span>
+    </div>
+    <div class="more-cards-grid">
+
+      <!-- Mein Konto -->
+      <a class="more-card-item" data-more="account" style="order: {{ more_order.account|default:40 }}" href="{% url 'account_home' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">👤</span>
+          {% if 'account' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "Mein Konto" %}</strong>
+          <span class="more-card-desc">{% translate "Passwort ändern, Profilbild, Notfallkontakt und Anmeldehistorie." %}</span>
+        </div>
+      </a>
+
+      <!-- App-Tokens / API -->
+      <a class="more-card-item" data-more="tokens" style="order: {{ more_order.tokens|default:41 }}" href="{% url 'api_tokens_manage' %}">
+        <div class="more-card-top">
+          <span class="more-card-icon" aria-hidden="true">🔌</span>
+        </div>
+        <div>
+          <strong class="more-card-title">{% translate "App-Tokens / API" %}</strong>
+          <span class="more-card-desc">{% translate "Schnittstellen-Tokens für mobile Apps, Alarmmonitore und Leitstellen-Anbindung." %}</span>
+        </div>
+      </a>
+
+      <!-- Display-Tokens (Admin) -->
+      {% if current_membership.role == 'admin' %}
+        <a class="more-card-item" data-more="display_tokens" style="order: {{ more_order.appearance|default:42|add:1 }}" href="{% url 'display_tokens' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">📺</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Display-Tokens" %}</strong>
+            <span class="more-card-desc">{% translate "Sichere Zugangs-Links für Wachenmonitore und Wand-TVs erzeugen und widerrufen." %}</span>
+          </div>
+        </a>
+
+        <!-- Team & Rollen -->
+        <a class="more-card-item" data-more="team" style="order: {{ more_order.team|default:43 }}" href="{% url 'team' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">👥</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Team & Rollen" %}</strong>
+            <span class="more-card-desc">{% translate "Mitarbeiterkonten verwalten, Wachleiter, Schichtleiter und Rollenrechte zuweisen." %}</span>
+          </div>
+        </a>
+
+        <!-- Mitarbeiter-Aktivierungen -->
+        <a class="more-card-item" data-more="invites" style="order: {{ more_order.invites|default:44 }}" href="{% url 'team_invites' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">✉️</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Mitarbeiter-Aktivierungen" %}</strong>
+            <span class="more-card-desc">{% translate "Einladungslinks und QR-Codes zur sicheren Erstregistrierung neuer Kollegen." %}</span>
+          </div>
+        </a>
+
+        <!-- Darstellung -->
+        <a class="more-card-item" data-more="appearance" style="order: {{ more_order.appearance|default:45 }}" href="{% url 'presentation_settings' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🎨</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Darstellung & Leiste" %}</strong>
+            <span class="more-card-desc">{% translate "Reihenfolge der oberen Menüleiste und der Module unter Mehr individuell anpassen." %}</span>
+          </div>
+        </a>
+
+        <!-- Einstellungen -->
+        <a class="more-card-item" data-more="settings" style="order: {{ more_order.settings|default:46 }}" href="{% url 'station_settings' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">⚙️</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Wacheneinstellungen" %}</strong>
+            <span class="more-card-desc">{% translate "Wachenname, Standortanschrift, Wetter-Koordinaten und Modulschalter steuern." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Audit -->
+      {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}
+        <a class="more-card-item" data-more="audit" style="order: {{ more_order.audit|default:47 }}" href="{% url 'audit_log' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🛡️</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Audit-Logbuch" %}</strong>
+            <span class="more-card-desc">{% translate "Revisionssichere Nachverfolgung aller Systemänderungen für Prüfer und QM." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Zwei-Faktor -->
+      {% if mfa_enabled %}
+        <a class="more-card-item" data-more="mfa" style="order: {{ more_order.mfa|default:48 }}" href="{% url 'mfa_setup' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🔑</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Zwei-Faktor / Passkeys" %}</strong>
+            <span class="more-card-desc">{% translate "Authenticator-Apps (TOTP) und biometrische FIDO2/Passkey-Sicherheit." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- WebPush -->
+      {% if web_push_enabled %}
+        <a class="more-card-item" data-more="push" style="order: {{ more_order.push|default:49 }}" href="{% url 'push_settings' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🔔</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Push-Mitteilungen" %}</strong>
+            <span class="more-card-desc">{% translate "Direkte Benachrichtigungen auf Smartphone oder Desktop bei dringenden Schichtmeldungen." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+      <!-- Technische Systemverwaltung (Django-Admin) -->
+      {% if request.user.is_staff %}
+        <a class="more-card-item" data-more="admin" style="order: {{ more_order.admin|default:50 }}" href="{% url 'admin:index' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon" aria-hidden="true">🛠️</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Technische Verwaltung" %}</strong>
+            <span class="more-card-desc">{% translate "Django-Backend-Administration für Serveradministratoren." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
+    </div>
+  </section>
+
+</div>
+
+<!-- Schnelle Live-Suche Script -->
+<script>
+  (function() {
+    var searchInput = document.getElementById('more-quick-search');
+    var searchHint = document.getElementById('more-search-hint');
+    var cards = document.querySelectorAll('.more-card-item');
+    var categories = document.querySelectorAll('.more-category-block');
+
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+      var query = this.value.toLowerCase().trim();
+      if (query.length > 0) {
+        if (searchHint) searchHint.style.display = 'inline';
+      } else {
+        if (searchHint) searchHint.style.display = 'none';
+      }
+
+      categories.forEach(function(cat) {
+        var visibleInCat = 0;
+        var catCards = cat.querySelectorAll('.more-card-item');
+        catCards.forEach(function(card) {
+          var title = (card.querySelector('.more-card-title') || {}).innerText || '';
+          var desc = (card.querySelector('.more-card-desc') || {}).innerText || '';
+          var text = (title + ' ' + desc).toLowerCase();
+          if (query === '' || text.indexOf(query) !== -1) {
+            card.style.display = 'flex';
+            visibleInCat++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+        if (visibleInCat === 0 && query !== '') {
+          cat.style.display = 'none';
+        } else {
+          cat.style.display = 'flex';
+        }
+      });
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        this.value = '';
+        this.dispatchEvent(new Event('input'));
+        this.blur();
+      }
+    });
+  })();
+</script>
 {% endblock %}

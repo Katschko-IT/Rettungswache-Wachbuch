@@ -14,10 +14,19 @@ JavaScript und ohne externe Ressourcen. Veröffentlichung und Konfiguration sind
 
 ## Funktionen
 
+### Rettungsdienst-Fachmodule & Wachenzentrale
+- **🚑 Fuhrpark & Hygiene**: Mobiles Fahrzeug-Cockpit mit taktischem BOS-Status (1–6), Füllständen (Kraftstoff %, AdBlue %, Sauerstoff O₂-Flaschendruck in bar), Express-Schichtübernahme (3 Min.), VAH-Wischdesinfektion mit automatischer Timer-Freigabe, Mängeleskalation in Werkstattstatus sowie Fristenüberwachung (HU § 29 StVZO, UVV DGUV 70, 10g-Tragentischprüfung nach DIN EN 1789).
+- **📦 Lager & Material (FEFO-Apotheke)**: Chargenverfolgung (Lot, PZN, GTIN), Verfallsüberwachung nach First-Expired-First-Out, dynamische Kühlketten-Regel (2–8 °C mit Out-of-Fridge Timer, z. B. 12 Wochen für Rocuronium), automatische Quarantäne bei BfArM-Rückrufen, 1-Scan Express-Umlagerung und automatischer Nachbestellschein mit Wachbuch-Tagesaufgabe.
+- **🩺 MPG & Medizingeräte**: Digitales Medizinproduktebuch nach § 13 MPBetreibV mit Risikoklassen (I bis III), automatischer STK/MTK-Fristenampel (Anlage 1 & 2), 1-Tap Funktionskontrollen, QR-Code-Selbsttest-Ingest (corpuls3 / Weinmann MEDUMAT) und digitaler § 10 MPBetreibV Einweisungsmatrix (inkl. Gruppenschulungen).
+- **🏢 Organisation & Desk**: Revisionssichere Dienstanweisungen, Hygienepläne und medizinische SOPs mit Versionskontrolle (`vX.Y`), SHA-256 Integritätsprüfung, persönlicher Mitarbeiter-Lesequittierung und Notfall-Kurzwahlliste.
+- **🖥️ Wachen-Display**: Vollbild-Dashboard für Monitore/TV in Fahrzeughalle und Bereitschaftsraum mit Live-Uhrzeit, Wetter, aktuellen Terminen, BOS-Fahrzeugstatus, MPG-Warnungen und konfigurierbarem Live-Ticker.
+- **🗂️ Moderne Wachenzentrale („Mehr“-Menü)**: 4-Kategorien-Hub (Fachmodule, Wachbetrieb, Kommunikation, Verwaltung) mit sofortiger Live-Schnellsuche für alle 28 Module.
+
+### Wachbuch & Kernfunktionen
 - versionierte Schichtübergaben mit Kategorie, Priorität, Status und Revisionen
 - Tagesaufgaben nach täglicher Routine, Wochentag und Zusatzaufgaben
 - Checklisten mit Einzelpunkten, Wiederholungsplan und Abschlussvermerk
-- Wachenkalender mit Terminen, Feiertagen und ICS-Abo
+- Wachenkalender mit Terminen, Feiertagen aller 16 Bundesländer und ICS-Abo
 - Kaffeekasse als fortlaufendes Ledger mit Korrekturbuchungen
 - Pinnwand für interne Aushänge
 - Mängel mit Statusworkflow und optionalem Foto, Fahrzeuge/Geräte mit

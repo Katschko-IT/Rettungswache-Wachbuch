@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.23.0 - 2026-10-22
+
+Großes Modul- und Automatisierungs-Release für den Rettungsdienstbetrieb. Neue Fachmodule (Fuhrpark, Lager, MPG, Organisation, Wachen-Display), intelligente Daten-Automatisierung und komplett überarbeitetes „Mehr“-Menü. Keine Produktionsfreigabe.
+
+- **Rettungsdienst-Fachmodule**:
+  - **🚑 Fuhrpark & Hygiene**: Mobiles Fahrzeug-Cockpit mit taktischem BOS-Status (1–6), Telemetrie (Kraftstoff %, AdBlue %, O₂-Druck in bar), Express-Schichtübernahme (3 Min.), VAH-Wischdesinfektion, Mängeleskalation in Werkstattstatus sowie Fristenüberwachung (HU § 29 StVZO, UVV DGUV 70, 10g-Tragentisch nach DIN EN 1789).
+  - **📦 Lager & Material (FEFO-Apotheke)**: Chargenverfolgung (Lot, PZN, GTIN), Verfallsüberwachung nach First-Expired-First-Out, dynamische Kühlketten-Regel (2–8 °C mit Out-of-Fridge Timer, z. B. 12 Wochen für Rocuronium) und sofortige Quarantäne gesperrter Chargen bei BfArM-Rückrufen.
+  - **🩺 MPG & Medizingeräte**: Digitales Medizinproduktebuch nach § 13 MPBetreibV mit Risikoklassen (I bis III), automatischer STK/MTK-Fristenampel (Anlage 1 & 2), 1-Tap Funktionskontrollen, revisionssicheren Wartungsnachweisen und digitaler § 10 MPBetreibV Einweisungsmatrix (inkl. Gruppenschulungen).
+  - **🏢 Organisation & Desk**: Revisionssichere Dienstanweisungen, Hygienepläne und medizinische SOPs mit Versionskontrolle (`vX.Y`), SHA-256 Integritätsprüfung und persönlicher Mitarbeiter-Lesequittierung sowie Notfall-Kurzwahlliste.
+  - **🖥️ Wachen-Display**: Vollbild-Dashboard für Monitore/TV in Bereitschaftsraum und Fahrzeughalle mit Live-Uhrzeit, Wetter, aktuellen Terminen, BOS-Fahrzeugstatus, MPG-Warnungen und konfigurierbarem Live-Ticker.
+- **Intelligente Software-Automatisierung**:
+  - **Auto-Desinfektionsfreigabe**: Entsperrt Fahrzeuge nach Ablauf der VAH-Einwirkzeit vollautomatisch und setzt sie ohne manuellen Klick auf Status 1 (Frei Wache).
+  - **Automatischer Nachbestellschein & Wachbuch-Task**: Erkennt Unterschreitungen des Mindestbestands, berechnet die Differenz zum Sollbestand, generiert einen Apotheken-Bestellschein (CSV) und legt auf Knopfdruck eine synchronisierte Tagesaufgabe im Wachbuch an.
+  - **1-Scan Express-Umlagerung**: Bucht Material aus dem Zentrallager per Scan direkt auf ein Zielfahrzeug um; aktualisiert bei kühlpflichtigen Medikamenten automatisch das Out-of-Fridge Datum und das berechnete Verfallsdatum.
+  - **QR-Selbsttest-Ingest (corpuls3 & Weinmann MEDUMAT)**: Liest den Prüfcode vom Gerätedisplay ein, prüft Baugruppen und Defibrillationsenergie (200 J) und dokumentiert die Funktionskontrolle ohne Formularausfüllen.
+- **Wachenzentrale & Redesign des „Mehr“-Menüs**:
+  - Das Menü `/mehr/` wurde von einer unstrukturierten Liste in eine moderne, responsive 4-Kategorien-Wachenzentrale mit Card-Grids umgebaut:
+    1. *🚑 Einsatz & Rettungsdienst-Fachmodule*
+    2. *📋 Wachbetrieb & Alltagsorganisation*
+    3. *📢 Kommunikation & Wissen*
+    4. *⚙️ Wachenverwaltung & Sicherheit*
+  - Schnelle Live-Suche mit Client-Filterung zur sofortigen Auffindbarkeit aller 28 Module und Funktionen.
+  - Kennzeichnung von Modulen mit Status-Badges („In Leiste“).
+- **Einheiten-Konsistenz & Robustheit**:
+  - Konsistente Ausrichtung aller physikalischen Maßeinheiten (`km`, `%`, `bar`, `Min.`, `Joule`, `mbar/hPa`, `°C`, `mm`, `d`, `PZN`, `GTIN`).
+  - Crash-resistenter Kontext-Prozessor `current_membership` bei fehlerhaften Host-Headern.
+- **Tests**: Über 49 Modultests für Navigation, Fuhrpark, Lager, MPG, Organisation und Dashboards erfolgreich validiert.
+
 ## 0.22.0 - 2026-10-22
 
 Pilotstand mit bundesweiten Feiertagen, Wettermodul in den Einstellungen und bereinigter Navigationsleiste. Keine Produktionsfreigabe.
