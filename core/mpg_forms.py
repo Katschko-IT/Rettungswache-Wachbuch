@@ -40,10 +40,10 @@ class MedicalDeviceForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "acquired_at": forms.DateInput(attrs={"type": "date"}),
-            "next_stk_date": forms.DateInput(attrs={"type": "date"}),
-            "next_mtk_date": forms.DateInput(attrs={"type": "date"}),
-            "next_dguv_date": forms.DateInput(attrs={"type": "date"}),
+            "acquired_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_stk_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_mtk_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_dguv_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "notes": forms.Textarea(attrs={"rows": 3}),
             "status_note": forms.TextInput(attrs={"placeholder": "z. B. Akku schwach, STK fällig"}),
             "location": forms.TextInput(attrs={"placeholder": "z. B. RTW 01/83-01 oder Notfallrucksack"}),
@@ -81,8 +81,8 @@ class MaintenanceLogForm(forms.ModelForm):
             "findings",
         ]
         widgets = {
-            "performed_at": forms.DateInput(attrs={"type": "date"}),
-            "next_due_date": forms.DateInput(attrs={"type": "date"}),
+            "performed_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "findings": forms.Textarea(attrs={"rows": 3, "placeholder": "Befund, Prüfwerte, ausgetauschte Teile..."}),
             "performed_by": forms.TextInput(attrs={"placeholder": "Firma / Medizintechniker Name"}),
         }
@@ -113,7 +113,7 @@ class DeviceTrainingRecordForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "trained_at": forms.DateInput(attrs={"type": "date"}),
+            "trained_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "instructor": forms.TextInput(attrs={"placeholder": "Name des Gerätebeauftragten / Herstellers"}),
             "notes": forms.TextInput(attrs={"placeholder": "z. B. Erstschulung oder Re-Zertifizierung"}),
         }
@@ -142,7 +142,7 @@ class GroupTrainingForm(forms.Form):
     )
     trained_at = forms.DateField(
         label="Schulungsdatum",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     notes = forms.CharField(
         max_length=300,

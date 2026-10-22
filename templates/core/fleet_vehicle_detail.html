@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{{ vehicle.call_sign }} ({{ vehicle.license_plate }}) | {{ app_name }}{% endblock %}
+{% block title %}{{ vehicle.call_sign }}{% if vehicle.license_plate %} ({{ vehicle.license_plate }}){% endif %} | {{ app_name }}{% endblock %}
 
 {% block content %}
 <p class="breadcrumbs ms-9420460">
@@ -12,7 +12,7 @@
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ vehicle.get_vehicle_type_display }}</p>
     <h1 class="ms-8fe430e">
       <span>{{ vehicle.call_sign }}</span>
-      <span class="badge ms-d65a16b">{{ vehicle.license_plate }}</span>
+      {% if vehicle.license_plate %}<span class="badge ms-d65a16b">{{ vehicle.license_plate }}</span>{% endif %}
     </h1>
     <p class="lead">{{ vehicle.chassis_manufacturer }} &middot; Aufbau: {{ vehicle.body_manufacturer }}{% if vehicle.year_of_manufacture %} &middot; Baujahr {{ vehicle.year_of_manufacture }}{% endif %}</p>
   </div>
@@ -187,22 +187,22 @@
       {% csrf_token %}
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-f0a8344">{% translate "km-Stand" %}</label>
+          <label class="ms-f0a8344" for="{{ handover_form.mileage.id_for_label }}">{% translate "km-Stand" %}</label>
           {{ handover_form.mileage }}
         </div>
         <div>
-          <label class="ms-f0a8344">{% translate "O₂ Druck (bar)" %}</label>
+          <label class="ms-f0a8344" for="{{ handover_form.o2_pressure_bar.id_for_label }}">{% translate "O₂ Druck (bar)" %}</label>
           {{ handover_form.o2_pressure_bar }}
         </div>
       </div>
 
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-f0a8344">{% translate "Tank (%)" %}</label>
+          <label class="ms-f0a8344" for="{{ handover_form.fuel_percent.id_for_label }}">{% translate "Tank (%)" %}</label>
           {{ handover_form.fuel_percent }}
         </div>
         <div>
-          <label class="ms-f0a8344">{% translate "AdBlue (%)" %}</label>
+          <label class="ms-f0a8344" for="{{ handover_form.adblue_percent.id_for_label }}">{% translate "AdBlue (%)" %}</label>
           {{ handover_form.adblue_percent }}
         </div>
       </div>
@@ -223,7 +223,7 @@
       </div>
 
       <div class="ms-c2c0d0a">
-        <label class="ms-f0a8344">{% translate "Bemerkung" %}</label>
+        <label class="ms-f0a8344" for="{{ handover_form.notes.id_for_label }}">{% translate "Bemerkung" %}</label>
         {{ handover_form.notes }}
       </div>
 
@@ -243,18 +243,18 @@
     <form method="post" action="{% url 'fleet_vehicle_disinfection_create' vehicle.slug %}">
       {% csrf_token %}
       <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
+        <label class="ms-f0a8344" for="{{ disinfection_form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
         {{ disinfection_form.disinfectant }}
       </div>
 
       <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Art der Desinfektion" %}</label>
+        <label class="ms-f0a8344" for="{{ disinfection_form.kind.id_for_label }}">{% translate "Art der Desinfektion" %}</label>
         {{ disinfection_form.kind }}
       </div>
 
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-f0a8344">{% translate "Einwirkzeit (Min)" %}</label>
+          <label class="ms-f0a8344" for="{{ disinfection_form.exposure_minutes.id_for_label }}">{% translate "Einwirkzeit (Min)" %}</label>
           {{ disinfection_form.exposure_minutes }}
         </div>
         <div class="ms-4107a1a">
@@ -266,7 +266,7 @@
       </div>
 
       <div class="ms-c2c0d0a">
-        <label class="ms-f0a8344">{% translate "Bemerkung / Transportgrund" %}</label>
+        <label class="ms-f0a8344" for="{{ disinfection_form.notes.id_for_label }}">{% translate "Bemerkung / Transportgrund" %}</label>
         {{ disinfection_form.notes }}
       </div>
 

@@ -30,10 +30,10 @@ class VehicleForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "next_hu_date": forms.DateInput(attrs={"type": "date"}),
-            "next_sp_date": forms.DateInput(attrs={"type": "date"}),
-            "next_uvv_date": forms.DateInput(attrs={"type": "date"}),
-            "next_stretcher_service_date": forms.DateInput(attrs={"type": "date"}),
+            "next_hu_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_sp_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_uvv_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "next_stretcher_service_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "notes": forms.Textarea(attrs={"rows": 3}),
             "call_sign": forms.TextInput(attrs={"placeholder": "z. B. Rotkreuz 01/83-01"}),
             "license_plate": forms.TextInput(attrs={"placeholder": "z. B. M-RK 8301"}),
@@ -71,15 +71,19 @@ class DisinfectionProtocolForm(forms.ModelForm):
         ]
         widgets = {
             "exposure_minutes": forms.NumberInput(attrs={"min": 1, "max": 120}),
-            "notes": forms.TextInput(attrs={"placeholder": "z. B. Transport MRSA-Patient mit Husten"}),
+            "notes": forms.TextInput(attrs={"placeholder": "z. B. Schlussdesinfektion nach Infektionstransport"}),
         }
 
     def __init__(self, *args, station=None, **kwargs):
         super().__init__(*args, **kwargs)
         if station:
-            self.fields["disinfectant"].queryset = DisinfectantMaster.objects.filter(
-                station=station
-            ).order_by("name")
+            choices = DisinfectantMaster.objects.filter(station=station).order_by("name")
+            self.fields["disinfectant"].queryset = choices
+            # Gibt es nur ein Mittel, ist es vorausgewählt (ein Tipp weniger).
+            if not self.is_bound and choices.count() == 1:
+                only = choices.first()
+                self.initial.setdefault("disinfectant", only.pk)
+                self.initial.setdefault("exposure_minutes", only.default_exposure_minutes)
 
 
 class VehicleHandoverForm(forms.ModelForm):

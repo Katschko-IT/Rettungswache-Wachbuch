@@ -103,7 +103,7 @@
               <h3 class="ms-a7e3144">
                 <a href="{% url 'fleet_vehicle_detail' vehicle.slug %}">{{ vehicle.call_sign }}</a>
               </h3>
-              <span class="badge ms-fb59e5e">{{ vehicle.license_plate }}</span>
+              {% if vehicle.license_plate %}<span class="badge ms-fb59e5e">{{ vehicle.license_plate }}</span>{% endif %}
               <span class="badge">{{ vehicle.get_vehicle_type_display }}</span>
             </div>
             <p class="ms-1d42005">
@@ -238,7 +238,7 @@
         {% for proto in recent_disinfections %}
           <tr>
             <td>{{ proto.started_at|date:"d.m.Y H:i" }} Uhr</td>
-            <td><strong>{{ proto.vehicle.call_sign }}</strong> ({{ proto.vehicle.license_plate }})</td>
+            <td><strong>{{ proto.vehicle.call_sign }}</strong>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}</td>
             <td>{{ proto.get_kind_display }}</td>
             <td>{{ proto.disinfectant.name }}</td>
             <td>{{ proto.exposure_minutes }} Min.</td>

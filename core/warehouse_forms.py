@@ -69,8 +69,8 @@ class ItemBatchForm(forms.ModelForm):
             "out_of_fridge_date",
         ]
         widgets = {
-            "manufacturer_exp_date": forms.DateInput(attrs={"type": "date"}),
-            "out_of_fridge_date": forms.DateInput(attrs={"type": "date"}),
+            "manufacturer_exp_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "out_of_fridge_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "batch_number": forms.TextInput(attrs={"placeholder": "z. B. LOT-98745A"}),
         }
 

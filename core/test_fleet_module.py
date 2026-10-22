@@ -131,6 +131,10 @@ class FleetModuleTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.vehicle.refresh_from_db()
 
+        # Sperrzeit wird in Ortszeit (Europe/Berlin) angezeigt, nicht in UTC.
+        local_until = timezone.localtime(self.vehicle.disinfection_locked_until).strftime("%H:%M")
+        self.assertIn(f"bis {local_until} Uhr", self.vehicle.status_note)
+
         # Vehicle must be in DISINFECTION status and locked
         self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
         self.assertTrue(self.vehicle.is_disinfection_locked)

@@ -590,9 +590,9 @@ class StationTaskForm(forms.ModelForm):
                 "type": "color",
                 "class": "color-input",
             }),
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "end_date": forms.DateInput(attrs={"type": "date"}),
-            "due_date": forms.DateInput(attrs={"type": "date"}),
+            "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
 
     def __init__(self, *args, **kwargs):

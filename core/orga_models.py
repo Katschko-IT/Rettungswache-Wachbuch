@@ -122,7 +122,7 @@ class SOPRevision(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.sop.doc_number} v{self.version_label} ({self.created_at.strftime('%d.%m.%Y')})"
+        return f"{self.sop.doc_number} v{self.version_label} ({timezone.localtime(self.created_at).strftime('%d.%m.%Y')})"
 
     def save(self, *args, **kwargs):
         # SHA-256 Hash berechnen falls noch nicht vorhanden

@@ -18,6 +18,24 @@ from .models import Membership, Station
 from .wachalltag_models import Defect
 
 
+def ensure_default_disinfectant(station):
+    """Ein neutraler Eintrag, damit Protokolle sofort möglich sind.
+
+    Bewusst ohne Produktnamen: Mittel, Konzentration und Einwirkzeit legt die
+    Wache fest (Django-Admin „Desinfektionsmittel“); die Einwirkzeit ist im
+    Protokoll anpassbar.
+    """
+    if not DisinfectantMaster.objects.filter(station=station).exists():
+        DisinfectantMaster.objects.create(
+            station=station,
+            name="Flächendesinfektion (Wache festlegen)",
+            manufacturer="",
+            spectrum="laut Herstellerangabe",
+            default_exposure_minutes=15,
+            is_vah_listed=True,
+        )
+
+
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_GET
@@ -25,34 +43,21 @@ def fleet_dashboard(request):
     """Flotten-Cockpit-Matrix mit Status-Übersicht, Füllständen und Fristenampel."""
     station = request.membership.station
 
-    # Standard-Desinfektionsmittel anlegen falls noch nicht vorhanden
-    if not DisinfectantMaster.objects.filter(station=station).exists():
-        DisinfectantMaster.objects.create(
-            station=station,
-            name="Incidin OxyWipe S",
-            manufacturer="Ecolab",
-            spectrum="Bakterizid, Levurozid, begrenzt viruzid PLUS",
-            default_exposure_minutes=15,
-            is_vah_listed=True,
-        )
-        DisinfectantMaster.objects.create(
-            station=station,
-            name="Mikrobac forte",
-            manufacturer="Hartmann",
-            spectrum="Bakterizid, Levurozid, tuberkulozid, sporizid (C. diff)",
-            default_exposure_minutes=30,
-            is_vah_listed=True,
-        )
+    ensure_default_disinfectant(station)
 
-    # Legacy StationAsset(kind=VEHICLE) nahtlos synchronisieren
+    # Fahrzeuge aus dem älteren Geräte-Modul übernehmen. Nur vorhandene Angaben
+    # werden übertragen; ein Kennzeichen wird nicht erfunden.
+    from django.utils.text import slugify
+
     from .wachalltag_models import StationAsset
     for legacy in StationAsset.objects.filter(station=station, kind=StationAsset.Kind.VEHICLE):
-        if not Vehicle.objects.filter(station=station, slug=legacy.asset_id).exists():
+        slug = slugify(legacy.asset_id)[:64] or f"fahrzeug-{legacy.pk}"
+        if not Vehicle.objects.filter(station=station, slug=slug).exists():
             Vehicle.objects.create(
                 station=station,
-                slug=legacy.asset_id,
+                slug=slug,
                 call_sign=legacy.label,
-                license_plate="M-RD " + legacy.asset_id[:4].upper(),
+                license_plate="",
                 tactical_status=Vehicle.TacticalStatus.STATUS_1 if legacy.status == StationAsset.Status.READY else Vehicle.TacticalStatus.STATUS_6,
             )
 
@@ -226,13 +231,14 @@ def vehicle_detail(request, slug: str):
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
-    handover_form = VehicleHandoverForm(initial={
+    handover_form = VehicleHandoverForm(auto_id="handover_%s", initial={
         "mileage": vehicle.current_mileage,
         "fuel_percent": vehicle.fuel_level_percent,
         "adblue_percent": vehicle.adblue_level_percent,
         "o2_pressure_bar": vehicle.o2_pressure_bar,
     })
-    disinfection_form = DisinfectionProtocolForm(station=station)
+    ensure_default_disinfectant(station)
+    disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
 
     vehicle_qr_url = request.build_absolute_uri(reverse("fleet_vehicle_qr", args=[vehicle.slug]))
 
@@ -303,7 +309,7 @@ def vehicle_disinfection_create(request, slug: str):
 
         messages.warning(
             request,
-            f"Desinfektion erfasst: Fahrzeug {vehicle.call_sign} ist für {protocol.exposure_minutes} Minuten gesperrt (Einwirkzeit bis {vehicle.disinfection_locked_until.strftime('%H:%M')} Uhr).",
+            f"Desinfektion erfasst: Fahrzeug {vehicle.call_sign} ist für {protocol.exposure_minutes} Minuten gesperrt (Einwirkzeit bis {timezone.localtime(vehicle.disinfection_locked_until).strftime('%H:%M')} Uhr).",
         )
     else:
         messages.error(request, "Fehlerhafte Angaben beim Desinfektionsprotokoll.")
@@ -445,7 +451,7 @@ def export_fleet_csv(request):
             v.next_hu_date.isoformat() if v.next_hu_date else "",
             v.next_uvv_date.isoformat() if v.next_uvv_date else "",
             v.next_stretcher_service_date.isoformat() if v.next_stretcher_service_date else "",
-            v.last_disinfection.strftime("%d.%m.%Y %H:%M") if v.last_disinfection else "",
+            timezone.localtime(v.last_disinfection).strftime("%d.%m.%Y %H:%M") if v.last_disinfection else "",
         ])
 
     return response

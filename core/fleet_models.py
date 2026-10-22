@@ -255,7 +255,7 @@ class DisinfectionProtocol(models.Model):
             lock_until = self.started_at + timedelta(minutes=self.exposure_minutes)
             self.vehicle.disinfection_locked_until = lock_until
             self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-            self.vehicle.status_note = f"Desinfektion läuft ({self.get_kind_display()}): Gesperrt bis {lock_until.strftime('%H:%M')} Uhr"
+            self.vehicle.status_note = f"Desinfektion läuft ({self.get_kind_display()}): Gesperrt bis {timezone.localtime(lock_until).strftime('%H:%M')} Uhr"
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
 
 

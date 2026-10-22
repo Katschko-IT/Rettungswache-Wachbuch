@@ -234,10 +234,10 @@ def mpg_device_detail(request, slug: str):
     is_user_trained = device.trainings.filter(trainee=request.user).exists()
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
-    maint_form = MaintenanceLogForm()
-    check_form = DeviceRoutineCheckForm()
-    training_form = DeviceTrainingRecordForm(station=station)
-    group_training_form = GroupTrainingForm(station=station)
+    maint_form = MaintenanceLogForm(auto_id="maint_%s")
+    check_form = DeviceRoutineCheckForm(auto_id="check_%s")
+    training_form = DeviceTrainingRecordForm(station=station, auto_id="training_%s")
+    group_training_form = GroupTrainingForm(station=station, auto_id="group_%s")
 
     device_qr_url = request.build_absolute_uri(reverse("mpg_device_qr", args=[device.slug]))
 
@@ -595,7 +595,7 @@ def mpg_export_bestandsverzeichnis(request):
             d.next_stk_date.isoformat() if d.next_stk_date else "",
             d.next_mtk_date.isoformat() if d.next_mtk_date else "",
             d.next_dguv_date.isoformat() if d.next_dguv_date else "",
-            d.last_routine_check.strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
+            timezone.localtime(d.last_routine_check).strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
         ])
 
     return response

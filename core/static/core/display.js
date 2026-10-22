@@ -545,14 +545,18 @@
   }
 
   function init() {
+    // Nur wirklich sichtbare Flächen zählen: Ein verstecktes Overlay darf
+    // weder Daten abrufen noch einen Livestream (Server-Thread) öffnen.
     var visibleRoots = Array.prototype.slice.call(
-      document.querySelectorAll("[data-display-root]:not([hidden])")
-    );
+      document.querySelectorAll("[data-display-root]")
+    ).filter(function (el) {
+      return !el.closest("[hidden]");
+    });
 
     // Ereignisbehandlung immer registrieren – auch wenn das Overlay noch
     // verborgen ist und erst später per Monitor-Symbol geöffnet wird.
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && roots.length) {
         tickClock();
         poll();
         requestWakeLock();

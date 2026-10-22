@@ -366,30 +366,30 @@
       {% csrf_token %}
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-3a21370">{% translate "Prüfungsart:" %}</label>
+          <label class="ms-3a21370" for="{{ maint_form.kind.id_for_label }}">{% translate "Prüfungsart:" %}</label>
           {{ maint_form.kind }}
         </div>
         <div>
-          <label class="ms-3a21370">{% translate "Prüfdatum:" %}</label>
+          <label class="ms-3a21370" for="{{ maint_form.performed_at.id_for_label }}">{% translate "Prüfdatum:" %}</label>
           {{ maint_form.performed_at }}
         </div>
       </div>
       <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Prüfer / Fachbetrieb:" %}</label>
+        <label class="ms-3a21370" for="{{ maint_form.performed_by.id_for_label }}">{% translate "Prüfer / Fachbetrieb:" %}</label>
         {{ maint_form.performed_by }}
       </div>
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-3a21370">{% translate "Ergebnis:" %}</label>
+          <label class="ms-3a21370" for="{{ maint_form.passed.id_for_label }}">{% translate "Ergebnis:" %}</label>
           {{ maint_form.passed }} {% translate "Bestanden" %}
         </div>
         <div>
-          <label class="ms-3a21370">{% translate "Nächste Fälligkeit:" %}</label>
+          <label class="ms-3a21370" for="{{ maint_form.next_due_date.id_for_label }}">{% translate "Nächste Fälligkeit:" %}</label>
           {{ maint_form.next_due_date }}
         </div>
       </div>
       <div class="ms-c2c0d0a">
-        <label class="ms-3a21370">{% translate "Befund / Bemerkungen:" %}</label>
+        <label class="ms-3a21370" for="{{ maint_form.findings.id_for_label }}">{% translate "Befund / Bemerkungen:" %}</label>
         {{ maint_form.findings }}
       </div>
       <div class="ms-4c0715e">
@@ -410,11 +410,11 @@
       <form class="ms-366622e" method="post" action="{% url 'mpg_training_create' device.slug %}">
         {% csrf_token %}
         <div class="ms-9420460">
-          <label class="ms-3a21370">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
+          <label class="ms-3a21370" for="{{ group_training_form.instructor.id_for_label }}">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
           {{ group_training_form.instructor }}
         </div>
         <div class="ms-9420460">
-          <label class="ms-3a21370">{% translate "Datum:" %}</label>
+          <label class="ms-3a21370" for="{{ group_training_form.trained_at.id_for_label }}">{% translate "Datum:" %}</label>
           {{ group_training_form.trained_at }}
         </div>
         <div class="ms-9420460">
@@ -434,21 +434,21 @@
     <form method="post" action="{% url 'mpg_training_create' device.slug %}">
       {% csrf_token %}
       <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Mitarbeiter:" %}</label>
+        <label class="ms-3a21370" for="{{ training_form.trainee.id_for_label }}">{% translate "Mitarbeiter:" %}</label>
         {{ training_form.trainee }}
       </div>
       <div class="ms-e8fa32b">
         <div>
-          <label class="ms-3a21370">{% translate "Einweiser:" %}</label>
+          <label class="ms-3a21370" for="{{ training_form.instructor.id_for_label }}">{% translate "Einweiser:" %}</label>
           {{ training_form.instructor }}
         </div>
         <div>
-          <label class="ms-3a21370">{% translate "Schulungsdatum:" %}</label>
+          <label class="ms-3a21370" for="{{ training_form.trained_at.id_for_label }}">{% translate "Schulungsdatum:" %}</label>
           {{ training_form.trained_at }}
         </div>
       </div>
       <div class="ms-c2c0d0a">
-        <label class="ms-3a21370">{% translate "Notiz / Zertifikat-Nr:" %}</label>
+        <label class="ms-3a21370" for="{{ training_form.notes.id_for_label }}">{% translate "Notiz / Zertifikat-Nr:" %}</label>
         {{ training_form.notes }}
       </div>
       <div class="ms-4c0715e">
