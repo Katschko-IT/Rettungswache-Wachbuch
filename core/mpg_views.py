@@ -267,6 +267,50 @@ def mpg_routine_check(request, slug: str):
     station = request.membership.station
     device = get_object_or_404(MedicalDevice, station=station, slug=slug)
 
+    qr_payload = request.POST.get("qr_payload", "").strip()
+    if qr_payload:
+        upper_qr = qr_payload.upper()
+        is_fail = any(tok in upper_qr for tok in ["FAIL", "ERR", "DEFEKT", "NOT OK", "ERROR"])
+        is_passed = not is_fail and any(tok in upper_qr for tok in ["PASS", "OK", "BESTANDEN", "ERFOLGREICH", "CP3", "MEDUMAT"])
+
+        details = []
+        if "CP3" in upper_qr or "CORPULS" in upper_qr:
+            details.append("corpuls3 Selbsttest")
+        elif "MEDUMAT" in upper_qr or "WEINMANN" in upper_qr:
+            details.append("MEDUMAT Funktionskontrolle")
+        else:
+            details.append("QR-Prüflauf")
+
+        if is_passed:
+            details.append("Alle Baugruppen bestanden")
+            check = DeviceRoutineCheck(
+                station=station,
+                device=device,
+                performed_by=request.user,
+                passed=True,
+                battery_ok=True,
+                visual_ok=True,
+                function_ok=True,
+                notes=f"Auto-QR ({', '.join(details)}): {qr_payload[:120]}",
+            )
+            check.save()
+            messages.success(request, f"✅ Automatischer Prüflauf für '{device.name}' erfolgreich eingelesen und dokumentiert.")
+        else:
+            details.append("FEHLER GEMELDET")
+            check = DeviceRoutineCheck(
+                station=station,
+                device=device,
+                performed_by=request.user,
+                passed=False,
+                battery_ok=True,
+                visual_ok=True,
+                function_ok=False,
+                notes=f"Auto-QR FEHLER ({', '.join(details)}): {qr_payload[:120]}",
+            )
+            check.save()
+            messages.warning(request, f"⚠️ Automatischer Prüflauf fehlgeschlagen! Gerät '{device.name}' wurde sofort gesperrt.")
+        return redirect("mpg_device_detail", slug=device.slug)
+
     quick_pass = request.POST.get("quick_pass") == "1"
     if quick_pass:
         check = DeviceRoutineCheck(

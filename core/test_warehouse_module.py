@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Membership, Station
+from core.models import Membership, Station, StationTask
 from core.warehouse_models import ItemBatch, MedicalItem, StockItem, StockMovement, StorageLocation
 
 
@@ -186,3 +186,58 @@ class WarehouseModuleTests(TestCase):
         self.assertEqual(resp_csv.status_code, 200)
         self.assertIn("text/csv", resp_csv["Content-Type"])
         self.assertIn("LOT-2026-A", resp_csv.content.decode("utf-8-sig"))
+
+    def test_reorder_proposal_and_task_generation(self):
+        # Reduce stock below min_stock (min_stock=5, target_stock=15)
+        self.stock_1.quantity = 2
+        self.stock_1.save()
+
+        # 1. GET Proposal view
+        resp = self.client.get(reverse("warehouse_reorder_proposal"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Rocuronium")
+        self.assertContains(resp, "13")  # Suggested order qty: 15 - 2 = 13
+
+        # 2. Export CSV
+        resp_csv = self.client.get(reverse("warehouse_reorder_proposal") + "?export=csv")
+        self.assertEqual(resp_csv.status_code, 200)
+        self.assertIn("text/csv", resp_csv["Content-Type"])
+        self.assertIn("Rocuronium", resp_csv.content.decode("utf-8-sig"))
+
+        # 3. POST to create StationTask in Wachbuch
+        resp_post = self.client.post(
+            reverse("warehouse_reorder_proposal"),
+            data={"create_task": "1"},
+            follow=True,
+        )
+        self.assertEqual(resp_post.status_code, 200)
+        task = StationTask.objects.filter(station=self.station, band=StationTask.Band.EXTRA).first()
+        self.assertIsNotNone(task)
+        self.assertIn("Apotheken-Bestellung", task.title)
+        self.assertIn("1 Artikel", task.title)
+
+    def test_express_transfer_by_barcode(self):
+        # 1-Scan Express transfer from central to vehicle
+        resp = self.client.post(
+            reverse("warehouse_express_transfer"),
+            data={
+                "target_location_slug": self.vehicle_loc.slug,
+                "barcode": "LOT-2026-A",
+                "quantity": "3",
+            },
+            follow=True,
+        )
+        self.assertEqual(resp.status_code, 200)
+
+        # Central was 10 -> now 7
+        self.stock_1.refresh_from_db()
+        self.assertEqual(self.stock_1.quantity, 7)
+
+        # Vehicle location has 3
+        veh_stock = StockItem.objects.filter(location=self.vehicle_loc, batch=self.batch_1).first()
+        self.assertIsNotNone(veh_stock)
+        self.assertEqual(veh_stock.quantity, 3)
+
+        # Since Rocuronium requires cooling and vehicle location is not cold storage, out_of_fridge_date should be set
+        self.batch_1.refresh_from_db()
+        self.assertIsNotNone(self.batch_1.out_of_fridge_date)

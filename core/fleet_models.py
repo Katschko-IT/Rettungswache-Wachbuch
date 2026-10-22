@@ -101,6 +101,20 @@ class Vehicle(models.Model):
             return False
         return timezone.now() < self.disinfection_locked_until
 
+    def check_and_release_disinfection(self) -> bool:
+        """Prüft, ob die Einwirkzeit abgelaufen ist und hebt die Sperre automatisch auf."""
+        if (
+            self.tactical_status == self.TacticalStatus.DISINFECTION
+            and self.disinfection_locked_until
+            and timezone.now() >= self.disinfection_locked_until
+        ):
+            self.tactical_status = self.TacticalStatus.STATUS_1
+            self.status_note = "Desinfektion abgeschlossen (automatisch freigegeben)"
+            self.disinfection_locked_until = None
+            self.save(update_fields=["tactical_status", "status_note", "disinfection_locked_until", "updated_at"])
+            return True
+        return False
+
     @property
     def disinfection_remaining_seconds(self) -> int:
         if not self.is_disinfection_locked:

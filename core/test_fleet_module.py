@@ -220,6 +220,28 @@ class FleetModuleTests(TestCase):
         self.assertEqual(qr_resp.status_code, 200)
         self.assertEqual(qr_resp["Content-Type"], "image/png")
 
+    def test_auto_disinfection_release(self):
+        # Set vehicle in DISINFECTION with timer in future
+        self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
+        self.vehicle.disinfection_locked_until = timezone.now() + timedelta(minutes=15)
+        self.vehicle.save()
+
+        # Should NOT release yet
+        released = self.vehicle.check_and_release_disinfection()
+        self.assertFalse(released)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
+
+        # Set timer in past
+        self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
+        self.vehicle.save()
+
+        # Should release automatically
+        released = self.vehicle.check_and_release_disinfection()
+        self.assertTrue(released)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        self.assertIsNone(self.vehicle.disinfection_locked_until)
+        self.assertIn("automatisch freigegeben", self.vehicle.status_note)
+
     def test_station_fleet_disabled_denied(self):
         self.station.fleet_enabled = False
         self.station.save()

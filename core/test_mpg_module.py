@@ -212,3 +212,26 @@ class MPGModuleTests(TestCase):
         alert = payload["mpg_alerts"][0]
         self.assertEqual(alert["level"], "critical")
         self.assertIn("corpuls3", alert["name"])
+
+    def test_qr_selftest_ingest_pass_and_fail(self):
+        # 1. Successful corpuls3 self-test QR payload
+        resp_pass = self.client.post(
+            reverse("mpg_routine_check", args=[self.device.slug]),
+            data={"qr_payload": "CP3;SELFTEST:PASS;DEF:200J;BAT:98%"},
+            follow=True,
+        )
+        self.assertEqual(resp_pass.status_code, 200)
+        check_pass = DeviceRoutineCheck.objects.filter(device=self.device, passed=True).latest("checked_at")
+        self.assertTrue(check_pass.passed)
+        self.assertIn("corpuls3 Selbsttest", check_pass.notes)
+
+        # 2. Failed Weinmann MEDUMAT self-test QR payload
+        resp_fail = self.client.post(
+            reverse("mpg_routine_check", args=[self.device.slug]),
+            data={"qr_payload": "WEINMANN;SELFTEST:FAIL;VALVE_ERROR"},
+            follow=True,
+        )
+        self.assertEqual(resp_fail.status_code, 200)
+        check_fail = DeviceRoutineCheck.objects.filter(device=self.device, passed=False).latest("checked_at")
+        self.assertFalse(check_fail.passed)
+        self.assertIn("FEHLER GEMELDET", check_fail.notes)

@@ -15,6 +15,9 @@
         <span class="icon" aria-hidden="true">➕</span> {% translate "Neuer Artikel" %}
       </a>
     {% endif %}
+    <a class="button secondary" href="{% url 'warehouse_reorder_proposal' %}">
+      <span class="icon" aria-hidden="true">📋</span> {% translate "Bestellschein" %}
+    </a>
     <a class="button secondary" href="{% url 'warehouse_batch_recall' %}" style="color: #dc2626;">
       <span class="icon" aria-hidden="true">🚨</span> {% translate "BfArM-Rückruf-Filter" %}
     </a>

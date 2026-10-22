@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
-from .models import Membership, Station
+from .models import Membership, Station, StationTask
 from .warehouse_forms import (
     BatchRecallForm,
     ItemBatchForm,
@@ -515,3 +515,160 @@ def export_fefo_csv(request):
         ])
 
     return response
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("warehouse_enabled")
+@require_http_methods(["GET", "POST"])
+def warehouse_reorder_proposal(request):
+    """Automatischer Bestellschein & Nachbestell-Trigger bei Mindestbestand."""
+    station = request.membership.station
+    items = MedicalItem.objects.filter(station=station).prefetch_related("stock_items__batch")
+
+    low_stock_proposals = []
+    for item in items:
+        if item.is_under_min_stock:
+            curr = item.total_stock
+            suggested = max(item.target_stock - curr, 1)
+            low_stock_proposals.append({
+                "item": item,
+                "current_stock": curr,
+                "min_stock": item.min_stock,
+                "target_stock": item.target_stock,
+                "suggested_qty": suggested,
+                "unit": item.get_unit_display(),
+            })
+
+    action = request.POST.get("action") or request.GET.get("action")
+
+    if action == "export_csv" or request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+        response["Content-Disposition"] = f'attachment; filename="Apotheken_Bestellung_{station.slug}_{timezone.localdate().isoformat()}.csv"'
+        writer = csv.writer(response, delimiter=";")
+        writer.writerow(["PZN", "Artikelbezeichnung", "Kategorie", "Bestellmenge", "Einheit", "Ist-Bestand", "Mindestbestand", "Sollbestand"])
+        for p in low_stock_proposals:
+            writer.writerow([
+                p["item"].pzn,
+                p["item"].name,
+                p["item"].get_category_display(),
+                p["suggested_qty"],
+                p["unit"],
+                p["current_stock"],
+                p["min_stock"],
+                p["target_stock"],
+            ])
+        return response
+
+    if request.method == "POST" and (action == "create_task" or request.POST.get("create_task") == "1"):
+        if not low_stock_proposals:
+            messages.info(request, "Alle Artikel haben ausreichenden Bestand. Keine Nachbestellung nötig.")
+            return redirect("warehouse_reorder_proposal")
+
+        task_title = f"📦 Apotheken-Bestellung auslösen: {len(low_stock_proposals)} Artikel unter Mindestbestand"
+        if not StationTask.objects.filter(station=station, title=task_title).exists():
+            StationTask.objects.create(
+                station=station,
+                title=task_title,
+                band=StationTask.Band.EXTRA,
+                repeat=StationTask.Repeat.ONCE,
+            )
+            messages.success(request, f"Tagesaufgabe im Wachbuch angelegt: '{task_title}'.")
+        else:
+            messages.info(request, "Die Nachbestell-Aufgabe existiert bereits im Wachbuch.")
+        return redirect("warehouse_reorder_proposal")
+
+    return render(
+        request,
+        "core/warehouse_reorder.html",
+        {
+            "proposals": low_stock_proposals,
+            "total_low_count": len(low_stock_proposals),
+            "can_manage": request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN},
+        },
+    )
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("warehouse_enabled")
+@require_POST
+def warehouse_express_transfer(request):
+    """1-Scan Schnellaufrüstung: Bucht Material direkt vom Zentrallager auf Zielfahrzeug."""
+    station = request.membership.station
+    target_slug = request.POST.get("target_location_slug", "").strip()
+    batch_id = request.POST.get("batch_id")
+    barcode = request.POST.get("barcode", "").strip()
+    qty_str = request.POST.get("quantity", "1").strip()
+
+    try:
+        quantity = max(1, int(qty_str))
+    except ValueError:
+        quantity = 1
+
+    target_loc = get_object_or_404(StorageLocation, station=station, slug=target_slug)
+
+    batch = None
+    if batch_id:
+        batch = get_object_or_404(ItemBatch, id=batch_id, station=station)
+    elif barcode:
+        batch = ItemBatch.objects.filter(station=station, batch_number__iexact=barcode, is_recalled=False).first()
+        if not batch:
+            item = MedicalItem.objects.filter(
+                Q(station=station) & (Q(pzn__iexact=barcode) | Q(gtin__iexact=barcode))
+            ).first()
+            if item:
+                batch = item.batches.filter(is_recalled=False).order_by("calculated_exp_date").first()
+
+    if not batch:
+        messages.error(request, f"Keine passende Charge für Barcode '{barcode}' gefunden.")
+        return redirect("warehouse_dashboard")
+
+    if batch.is_recalled:
+        messages.error(request, f"Charge {batch.batch_number} ist gesperrt und darf nicht gebucht werden!")
+        return redirect("warehouse_dashboard")
+
+    central_loc = StorageLocation.objects.filter(
+        station=station, kind__in=[StorageLocation.Kind.CENTRAL, StorageLocation.Kind.FRIDGE]
+    ).first()
+
+    with transaction.atomic():
+        if central_loc:
+            src_stock = StockItem.objects.filter(location=central_loc, batch=batch).first()
+            if src_stock and src_stock.quantity >= quantity:
+                src_stock.quantity -= quantity
+                src_stock.save(update_fields=["quantity"])
+
+        target_stock, _ = StockItem.objects.get_or_create(
+            station=station,
+            item=batch.item,
+            batch=batch,
+            location=target_loc,
+            defaults={"quantity": 0},
+        )
+        target_stock.quantity += quantity
+        target_stock.save(update_fields=["quantity"])
+
+        if batch.item.requires_cooling and not target_loc.is_cold_storage and not batch.out_of_fridge_date:
+            batch.out_of_fridge_date = timezone.localdate()
+            if batch.item.room_temp_max_days:
+                calc_exp = batch.out_of_fridge_date + timedelta(days=batch.item.room_temp_max_days)
+                if not batch.calculated_exp_date or calc_exp < batch.calculated_exp_date:
+                    batch.calculated_exp_date = calc_exp
+            batch.save(update_fields=["out_of_fridge_date", "calculated_exp_date"])
+
+        StockMovement.objects.create(
+            station=station,
+            item=batch.item,
+            batch=batch,
+            source_location=central_loc,
+            target_location=target_loc,
+            quantity=quantity,
+            kind=StockMovement.Kind.TRANSFER,
+            actor=request.user,
+            note=f"1-Scan Express-Umlagerung nach {target_loc.name}",
+        )
+
+    messages.success(
+        request,
+        f"✅ {quantity}x {batch.item.name} (Lot {batch.batch_number}) erfolgreich nach '{target_loc.name}' aufgerüstet.",
+    )
+    return redirect("warehouse_dashboard")

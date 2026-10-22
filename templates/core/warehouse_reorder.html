@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Nachbestellung & Bestellschein" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<p class="breadcrumbs" style="margin-bottom: 0.75rem;">
+  <a href="{% url 'warehouse_dashboard' %}">&larr; {% translate "Zurück zur Lagerübersicht" %}</a>
+</p>
+
+<header class="page-heading heading-with-action" style="margin-bottom: 1.5rem;">
+  <div>
+    <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Materialwirtschaft & Beschaffung" %}</p>
+    <h1>{% translate "📦 Automatischer Bestellschein" %}</h1>
+    <p class="lead">{% translate "Ermittelt automatisch alle Artikel unter Mindestbestand und berechnet die Nachbestellmenge bis zum Sollbestand." %}</p>
+  </div>
+  <div class="page-actions-bar" style="margin: 0;">
+    <a class="button secondary" href="?action=export_csv">
+      <span class="icon" aria-hidden="true">📥</span> {% translate "Apotheken-Bestellschein (CSV)" %}
+    </a>
+    {% if can_manage %}
+      <form method="post" style="margin: 0; display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_task">
+        <button type="submit" class="button" {% if not proposals %}disabled style="opacity: 0.6;"{% endif %}>
+          <span class="icon" aria-hidden="true">📋</span> {% translate "Ins Wachbuch übergeben" %}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</header>
+
+<section class="section-block">
+  <h2>⚠️ {% translate "Artikel mit Nachbestell-Bedarf" %} ({{ total_low_count }})</h2>
+
+  {% if proposals %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{% translate "PZN" %}</th>
+            <th>{% translate "Artikelbezeichnung" %}</th>
+            <th>{% translate "Kategorie" %}</th>
+            <th style="text-align: right;">{% translate "Ist-Bestand" %}</th>
+            <th style="text-align: right;">{% translate "Mindestbestand" %}</th>
+            <th style="text-align: right;">{% translate "Sollbestand" %}</th>
+            <th style="text-align: right; color: var(--primary-color);">{% translate "Bestellvorschlag" %}</th>
+            <th>{% translate "Einheit" %}</th>
+            <th>{% translate "Aktion" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in proposals %}
+            <tr>
+              <td><code>{{ p.item.pzn|default:"—" }}</code></td>
+              <td>
+                <strong><a href="{% url 'warehouse_item_detail' p.item.slug %}">{{ p.item.name }}</a></strong>
+                {% if p.item.requires_cooling %}<span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; margin-left: 0.25rem;">❄️ 2–8 °C</span>{% endif %}
+              </td>
+              <td>{{ p.item.get_category_display }}</td>
+              <td style="text-align: right; color: #dc2626; font-weight: bold;">{{ p.current_stock }}</td>
+              <td style="text-align: right;">{{ p.min_stock }}</td>
+              <td style="text-align: right;">{{ p.target_stock }}</td>
+              <td style="text-align: right; font-weight: bold; font-size: 1.1rem; color: #2563eb;">{{ p.suggested_qty }}</td>
+              <td>{{ p.unit }}</td>
+              <td>
+                <a href="{% url 'warehouse_item_detail' p.item.slug %}" class="button secondary small">
+                  🔍 {% translate "Details" %}
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; padding: 2rem; text-align: center; color: #047857;">
+      <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">✅</span>
+      <h3 style="margin: 0; color: #047857;">{% translate "Alle Bestände im grünen Bereich!" %}</h3>
+      <p style="margin: 0.5rem 0 0; color: var(--text-muted);">
+        {% translate "Kein einziger Artikel unterschreitet den Mindestbestand. Aktuell ist keine Nachbestellung erforderlich." %}
+      </p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

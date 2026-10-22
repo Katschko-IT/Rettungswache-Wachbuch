@@ -194,6 +194,7 @@ def display_payload(station) -> dict:
             from .fleet_models import Vehicle
 
             for v in Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign"):
+                v.check_and_release_disinfection()
                 fleet_vehicles.append({
                     "call_sign": v.call_sign[:30],
                     "license_plate": v.license_plate[:20],
