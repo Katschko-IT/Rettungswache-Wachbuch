@@ -212,7 +212,7 @@ msgstr "API-Wurzel:"
 #: templates/core/task_form.html:24
 #: templates/core/team_form.html:17
 #: templates/core/team_user_create.html:17
-#: templates/core/terminal_home.html:37
+#: templates/core/terminal_home.html:96
 #: templates/core/warehouse_item_detail.html:170
 #: templates/core/warehouse_item_detail.html:210
 #: templates/core/warehouse_item_detail.html:245
@@ -681,7 +681,7 @@ msgstr "App im WLAN der Wache"
 msgid "App per QR-Code ohne Passwort anmelden"
 msgstr "App per QR-Code ohne Passwort anmelden"
 
-#: templates/core/terminal_home.html:18
+#: templates/core/terminal_home.html:74
 msgid "App verbinden"
 msgstr "App verbinden"
 
@@ -819,6 +819,10 @@ msgstr "Aufgabe wurde wieder geöffnet."
 #: core/navigation.py:16
 msgid "Aufgaben"
 msgstr "Aufgaben"
+
+#: templates/core/terminal_home.html:35
+msgid "Aufgaben heute"
+msgstr "Aufgaben heute"
 
 #: templates/core/tasks_manage.html:3
 #: templates/core/tasks_manage.html:9
@@ -2557,6 +2561,7 @@ msgid "Fahrzeugcheck"
 msgstr "Fahrzeugcheck"
 
 #: core/module_overview.py:37
+#: templates/core/terminal_home.html:63
 msgid "Fahrzeuge"
 msgstr "Fahrzeuge"
 
@@ -2660,6 +2665,10 @@ msgstr "Folgende Kontakte wurden durch die jeweiligen Betreiber im Administratio
 #: templates/core/_display_surface.html:37
 msgid "Fortschritt der Tagesaufgaben"
 msgstr "Fortschritt der Tagesaufgaben"
+
+#: templates/core/terminal_home.html:77
+msgid "Foto"
+msgstr "Foto"
 
 #: templates/core/vorfuehrung.html:64
 msgid "Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar."
@@ -3238,6 +3247,7 @@ msgstr "Hersteller:"
 
 #: templates/core/_display_surface.html:21
 #: templates/core/tasks_today.html:25
+#: templates/core/terminal_home.html:44
 msgid "Heute"
 msgstr "Heute"
 
@@ -3716,6 +3726,11 @@ msgstr "Kein einziger Artikel unterschreitet den Mindestbestand. Aktuell ist kei
 msgid "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)."
 msgstr "Kein lokales Zertifikat hinterlegt: Die App erwartet ein öffentlich gültiges Zertifikat (z. B. Let's Encrypt)."
 
+#: templates/core/terminal_home.html:54
+#: templates/core/terminal_home.html:55
+msgid "Keine Abholung in den nächsten Tagen"
+msgstr "Keine Abholung in den nächsten Tagen"
+
 #: templates/core/vorfuehrung.html:116
 msgid "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern."
 msgstr "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern."
@@ -3810,6 +3825,8 @@ msgid "Keine Schnellwahlkontakte hinterlegt."
 msgstr "Keine Schnellwahlkontakte hinterlegt."
 
 #: templates/core/_display_surface.html:23
+#: templates/core/terminal_home.html:45
+#: templates/core/terminal_home.html:46
 msgid "Keine Termine"
 msgstr "Keine Termine"
 
@@ -4128,7 +4145,7 @@ msgstr "Letzte Schichtübernahmen"
 msgid "Letzte Wartungen & STK-Prüfungen"
 msgstr "Letzte Wartungen & STK-Prüfungen"
 
-#: templates/core/terminal_home.html:35
+#: templates/core/terminal_home.html:94
 msgid "Letzte Ziffer löschen"
 msgstr "Letzte Ziffer löschen"
 
@@ -4620,6 +4637,7 @@ msgid "Müll"
 msgstr "Müll"
 
 #: core/display_views.py:282
+#: templates/core/terminal_home.html:53
 #: templates/core/terminal_menu.html:69
 msgid "Müllabfuhr"
 msgstr "Müllabfuhr"
@@ -4864,6 +4882,10 @@ msgstr "Neuigkeit wurde veröffentlicht."
 #: templates/core/terminal_menu.html:32
 msgid "Neuigkeiten"
 msgstr "Neuigkeiten"
+
+#: templates/core/terminal_home.html:22
+msgid "Nicht eingerichtet"
+msgstr "Nicht eingerichtet"
 
 #: core/errors.py:61
 msgid "Nicht gefunden."
@@ -5763,7 +5785,7 @@ msgstr "QR-Code zur Anmeldung"
 msgid "QR-Code zur Signal-Gruppe"
 msgstr "QR-Code zur Signal-Gruppe"
 
-#: templates/core/terminal_home.html:17
+#: templates/core/terminal_home.html:73
 msgid "QR-Code: App mit dieser Wache verbinden"
 msgstr "QR-Code: App mit dieser Wache verbinden"
 
@@ -7043,16 +7065,20 @@ msgstr "Wache %(station_name)s wurde eingerichtet. Bitte jetzt mit dem Master-Ad
 msgid "Wache einrichten"
 msgstr "Wache einrichten"
 
+#: templates/core/terminal_home.html:17
+msgid "Wache heute"
+msgstr "Wache heute"
+
 #: templates/core/setup_wizard.html:7
 msgid "Wache und Master-Admin einrichten"
 msgstr "Wache und Master-Admin einrichten"
 
 #: templates/core/terminal_admin.html:28
-#: templates/core/terminal_home.html:26
+#: templates/core/terminal_home.html:85
 msgid "Wachen-Code"
 msgstr "Wachen-Code"
 
-#: templates/core/terminal_home.html:25
+#: templates/core/terminal_home.html:84
 msgid "Wachen-Code eingeben"
 msgstr "Wachen-Code eingeben"
 
@@ -7255,6 +7281,7 @@ msgid "Wero-Links müssen mit https:// beginnen."
 msgstr "Wero-Links müssen mit https:// beginnen."
 
 #: templates/core/_display_surface.html:49
+#: templates/core/terminal_home.html:19
 msgid "Wetter"
 msgstr "Wetter"
 
@@ -7550,7 +7577,7 @@ msgstr "Zuletzt genutzt"
 msgid "Zuletzt geändert am %(date)s."
 msgstr "Zuletzt geändert am %(date)s."
 
-#: templates/core/terminal_home.html:14
+#: templates/core/terminal_home.html:70
 msgid "Zum Entsperren antippen"
 msgstr "Zum Entsperren antippen"
 
@@ -7862,6 +7889,7 @@ msgid "bis"
 msgstr "bis"
 
 #: templates/core/dashboard.html:10
+#: templates/core/terminal_home.html:29
 #: templates/core/terminal_menu.html:23
 msgid "dringend"
 msgstr "dringend"
@@ -7876,6 +7904,7 @@ msgstr "eine Ausnahme vom Einwilligungserfordernis vor. Der Betreiber muss dies 
 
 #: templates/core/tasks_today.html:11
 #: templates/core/tasks_week.html:37
+#: templates/core/terminal_home.html:38
 msgid "erledigt"
 msgstr "erledigt"
 
@@ -7974,6 +8003,8 @@ msgstr "nächste Fälligkeit"
 #: core/views.py:486
 #: templates/core/_display_surface.html:36
 #: templates/core/tasks_today.html:12
+#: templates/core/terminal_home.html:27
+#: templates/core/terminal_home.html:36
 msgid "offen"
 msgstr "offen"
 
@@ -8164,6 +8195,7 @@ msgstr "Übergabeliste"
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
 #: templates/core/offline.html:12
+#: templates/core/terminal_home.html:26
 #: templates/core/vorfuehrung.html:62
 msgid "Übergaben"
 msgstr "Übergaben"

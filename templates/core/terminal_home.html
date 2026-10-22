@@ -1,22 +1,81 @@
 {% include "core/_terminal_head.html" %}{% load i18n static %}
   <title>{{ terminal.station.name }} · {% translate "Wachenterminal" %}</title>
-  <link rel="stylesheet" href="{% static 'core/display.css' %}">
-  <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/terminal.css' %}">
+  <link rel="stylesheet" href="{% static 'core/lockscreen.css' %}">
 </head>
-<body class="display-body terminal-idle" data-lock-screen>
-  <div class="display-surface" data-display-root data-display-overlay="false" data-no-escape data-stream-url="none" data-data-url="{% url 'terminal_data' %}">
-    {% include "core/_display_surface.html" %}
-  </div>
+<body class="lock-body" data-lock-screen>
+  <div class="lock-bg {{ background.css_class }}" aria-hidden="true"></div>
+  <div class="lock-scrim" aria-hidden="true"></div>
+
+  <main class="lock-layout" data-lock-root data-data-url="{% url 'terminal_data' %}">
+    <header class="lock-time">
+      <p class="lock-station">{{ terminal.station.name }}</p>
+      <p class="lock-clock" data-lock-clock>{% now "H:i" %}</p>
+      <p class="lock-date" data-lock-date>{% now "l, j. F" %}</p>
+    </header>
+
+    <section class="lock-widgets" aria-label="{% translate 'Wache heute' %}">
+      <article class="lock-card lock-card-weather{% if not data.weather %} is-empty{% endif %}" data-lock-weather>
+        <h2>{% translate "Wetter" %}</h2>
+        <p class="lock-big" data-lock-weather-temp>{% if data.weather %}{{ data.weather.max }}° / {{ data.weather.min }}°{% endif %}</p>
+        <p data-lock-weather-label>{% if data.weather %}{{ data.weather.label }}{% endif %}</p>
+        <p class="lock-empty lock-when-empty">{% translate "Nicht eingerichtet" %}</p>
+      </article>
+
+      <article class="lock-card">
+        <h2>{% translate "Übergaben" %}</h2>
+        <p class="lock-big"><span data-lock-handovers-open>{{ data.open_handovers }}</span> <small>{% translate "offen" %}</small></p>
+        <p class="lock-alert" data-lock-handovers-urgent-row{% if not data.urgent_handovers %} hidden{% endif %}>
+          <span data-lock-handovers-urgent>{{ data.urgent_handovers }}</span> {% translate "dringend" %}
+        </p>
+      </article>
+
+      {% if terminal.station.tasks_enabled %}
+        <article class="lock-card">
+          <h2>{% translate "Aufgaben heute" %}</h2>
+          <p class="lock-big"><span data-lock-tasks-open>{{ data.tasks.open }}</span> <small>{% translate "offen" %}</small></p>
+          <div class="lock-progress" aria-hidden="true"><span data-lock-tasks-bar data-bar="{% widthratio data.tasks.done data.tasks.total|default:1 100 %}"></span></div>
+          <p><span data-lock-tasks-done>{{ data.tasks.done }} / {{ data.tasks.total }}</span> {% translate "erledigt" %}</p>
+        </article>
+      {% endif %}
+
+      {% if terminal.station.calendar_enabled %}
+        <article class="lock-card">
+          <h2>{% translate "Heute" %}</h2>
+          <ul class="lock-list" data-lock-events data-empty-text="{% translate 'Keine Termine' %}">
+            {% for event in data.events|slice:":3" %}<li><strong>{{ event.time }}</strong> {{ event.title }}</li>{% empty %}<li class="lock-empty">{% translate "Keine Termine" %}</li>{% endfor %}
+          </ul>
+        </article>
+      {% endif %}
+
+      {% if terminal.station.waste_calendar_enabled %}
+        <article class="lock-card">
+          <h2>{% translate "Müllabfuhr" %}</h2>
+          <ul class="lock-list" data-lock-waste data-empty-text="{% translate 'Keine Abholung in den nächsten Tagen' %}">
+            {% for item in data.waste|slice:":3" %}<li><strong>{{ item.day }}</strong> {{ item.title }}</li>{% empty %}<li class="lock-empty">{% translate "Keine Abholung in den nächsten Tagen" %}</li>{% endfor %}
+          </ul>
+        </article>
+      {% endif %}
+
+    </section>
+
+    {% if data.fleet_vehicles %}
+      <ul class="lock-chips" data-lock-fleet data-empty-text="" aria-label="{% translate 'Fahrzeuge' %}">
+        {% for vehicle in data.fleet_vehicles|slice:":8" %}<li class="lock-chip lock-status-{{ vehicle.status }}"><strong>{{ vehicle.call_sign }}</strong> {{ vehicle.status_short }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </main>
 
   <button type="button" class="terminal-unlock-hint" data-unlock-open>
-    <span class="terminal-lock-icon" aria-hidden="true">🔒</span>
-    {% translate "Zum Entsperren antippen" %}
+    <span aria-hidden="true">🔒</span> {% translate "Zum Entsperren antippen" %}
   </button>
   <figure class="terminal-app-qr">
-    <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="96" height="96">
+    <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="88" height="88">
     <figcaption>{% translate "App verbinden" %}</figcaption>
   </figure>
+  {% if background.credit %}
+    <p class="lock-credit">{% translate "Foto" %}: {{ background.credit }}</p>
+  {% endif %}
 
   <div class="terminal-unlock{% if error_text %} has-error{% endif %}" data-unlock-panel role="dialog" aria-modal="true" aria-labelledby="terminal-unlock-title"{% if not error_text %} hidden{% endif %}>
     <form method="post" class="terminal-unlock-inner" autocomplete="off">
@@ -38,7 +97,7 @@
     </form>
   </div>
 
-  <script src="{% static 'core/display.js' %}" defer></script>
   <script src="{% static 'core/ui.js' %}" defer></script>
+  <script src="{% static 'core/terminal.js' %}" defer></script>
 </body>
 </html>

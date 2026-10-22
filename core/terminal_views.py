@@ -20,6 +20,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from . import rate_limit
 from .access import get_membership, membership_required
 from .display import display_payload
+from .lockscreen import background_for
 from .models import HandoverEntry, Membership
 from .services import audit
 from .task_board import day_board, month_tasks, week_board
@@ -253,9 +254,26 @@ def terminal_home(request):
     return render(
         request,
         "core/terminal_home.html",
-        {"terminal": terminal, "display_station": terminal.station, "error_text": error_text},
+        {
+            "terminal": terminal,
+            "data": _lock_screen_data(terminal.station),
+            "background": background_for(timezone.localdate()),
+            "error_text": error_text,
+        },
         status=status,
     )
+
+
+def _lock_screen_data(station) -> dict:
+    """Daten für Sperrbildschirm und /terminal/daten/ (nur Zählwerte und Titel)."""
+    payload = display_payload(station)
+    for vehicle in payload.get("fleet_vehicles", []):
+        # „Status 1: Einsatzbereit auf Wache“ → „Status 1“ für die Statuszeile.
+        vehicle["status_short"] = vehicle.get("status_label", "").split(":")[0]
+    payload["open_handovers"] = (
+        HandoverEntry.objects.filter(station=station).exclude(status=HandoverEntry.Status.DONE).count()
+    )
+    return payload
 
 
 @require_GET
@@ -264,11 +282,7 @@ def terminal_data(request):
     terminal, error = _terminal_or_403(request)
     if error:
         return JsonResponse({"detail": "kein Zugang"}, status=403)
-    from .display_models import DEFAULT_DISPLAY_CONFIG
-
-    payload = display_payload(terminal.station)
-    payload["layout_config"] = DEFAULT_DISPLAY_CONFIG
-    return JsonResponse(payload)
+    return JsonResponse(_lock_screen_data(terminal.station))
 
 
 @require_GET

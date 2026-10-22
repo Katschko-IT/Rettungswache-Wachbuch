@@ -1,0 +1,298 @@
+/* Sperrbildschirm des Wachenterminals: Foto des Tages, Uhr, Glas-Karten.
+ * Die Klassen .lock-bg-NN am Ende erzeugt scripts/lockscreen_images.py. */
+
+.lock-body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #0b1622;
+  color: #fff;
+  font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+}
+
+.lock-bg {
+  position: fixed;
+  inset: -3%;
+  background-color: #0b1622;
+  background-position: center;
+  background-size: cover;
+  /* Leicht unscharf: Motiv erkennbar, Schrift bleibt ruhig lesbar. */
+  filter: blur(5px) saturate(1.05) brightness(0.92);
+  transform: scale(1.04);
+  animation: lock-drift 90s ease-in-out infinite alternate;
+}
+
+@keyframes lock-drift {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.1) translate3d(-1.5%, -1%, 0); }
+}
+
+.lock-scrim {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 22%, rgba(5, 12, 20, 0.35), transparent 60%),
+    linear-gradient(180deg, rgba(5, 12, 20, 0.5) 0%, rgba(5, 12, 20, 0.12) 38%, rgba(5, 12, 20, 0.7) 100%);
+}
+
+.lock-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 2rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 5vh 3vw 6.5rem;
+}
+
+.lock-time {
+  text-align: center;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+
+.lock-station {
+  margin: 0;
+  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.lock-clock {
+  margin: 0.1em 0 0;
+  font-size: clamp(4.5rem, min(15vw, 22vh), 12rem);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lock-date {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.3rem, 2.6vw, 2.1rem);
+  font-weight: 400;
+}
+
+.lock-widgets {
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 92rem;
+  margin: 0 auto;
+}
+
+.lock-widgets > .lock-card {
+  flex: 1 1 11rem;
+  max-width: 19rem;
+}
+
+.lock-card {
+  min-height: 7.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.4rem;
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+.lock-card h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.lock-card p {
+  margin: 0.15rem 0 0;
+}
+
+.lock-big {
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.lock-big small {
+  font-size: 1rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.lock-alert {
+  display: inline-block;
+  margin-top: 0.4rem !important;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(211, 47, 47, 0.85);
+  font-weight: 600;
+}
+
+.lock-alert[hidden] {
+  display: none;
+}
+
+.lock-progress {
+  height: 0.4rem;
+  margin: 0.55rem 0 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.lock-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #8fe3a8;
+  transition: width 0.6s ease;
+}
+
+.lock-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.05rem;
+}
+
+.lock-list li {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lock-empty {
+  opacity: 0.72;
+}
+
+.lock-when-empty,
+.lock-card.is-empty [data-lock-weather-temp],
+.lock-card.is-empty [data-lock-weather-label] {
+  display: none;
+}
+
+.lock-card.is-empty .lock-when-empty {
+  display: block;
+}
+
+.lock-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.lock-chip {
+  padding: 0.4rem 0.9rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.95rem;
+}
+
+.lock-status-1,
+.lock-status-2 { background: rgba(46, 160, 87, 0.75); }
+.lock-status-3,
+.lock-status-4 { background: rgba(230, 140, 20, 0.8); }
+.lock-status-disinfection { background: rgba(126, 87, 194, 0.8); }
+.lock-status-6,
+.lock-status-workshop { background: rgba(120, 130, 140, 0.75); }
+
+.lock-credit {
+  position: fixed;
+  z-index: 2;
+  left: 1rem;
+  bottom: 0.8rem;
+  max-width: 38vw;
+  margin: 0;
+  font-size: 0.68rem;
+  opacity: 0.6;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-height: 860px) {
+  .lock-layout {
+    gap: 1rem;
+    padding-top: 3vh;
+  }
+  .lock-card {
+    min-height: 6rem;
+    padding: 0.8rem 1rem;
+  }
+  .lock-big {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 900px), (max-height: 640px) {
+  .lock-body {
+    overflow: auto;
+  }
+  .lock-layout {
+    padding-bottom: 7rem;
+  }
+  .lock-clock {
+    font-size: clamp(4rem, 18vw, 7rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lock-bg {
+    animation: none;
+  }
+}
+
+/* --- Hintergründe (generiert) --- */
+.lock-bg-01 { background-image: url("lockscreen/bg-01.jpg"); }
+.lock-bg-02 { background-image: url("lockscreen/bg-02.jpg"); }
+.lock-bg-03 { background-image: url("lockscreen/bg-03.jpg"); }
+.lock-bg-04 { background-image: url("lockscreen/bg-04.jpg"); }
+.lock-bg-05 { background-image: url("lockscreen/bg-05.jpg"); }
+.lock-bg-06 { background-image: url("lockscreen/bg-06.jpg"); }
+.lock-bg-07 { background-image: url("lockscreen/bg-07.jpg"); }
+.lock-bg-08 { background-image: url("lockscreen/bg-08.jpg"); }
+.lock-bg-09 { background-image: url("lockscreen/bg-09.jpg"); }
+.lock-bg-10 { background-image: url("lockscreen/bg-10.jpg"); }
+.lock-bg-11 { background-image: url("lockscreen/bg-11.jpg"); }
+.lock-bg-12 { background-image: url("lockscreen/bg-12.jpg"); }
+.lock-bg-13 { background-image: url("lockscreen/bg-13.jpg"); }
+.lock-bg-14 { background-image: url("lockscreen/bg-14.jpg"); }
+.lock-bg-15 { background-image: url("lockscreen/bg-15.jpg"); }
+.lock-bg-16 { background-image: url("lockscreen/bg-16.jpg"); }
+.lock-bg-17 { background-image: url("lockscreen/bg-17.jpg"); }
+.lock-bg-18 { background-image: url("lockscreen/bg-18.jpg"); }
+.lock-bg-19 { background-image: url("lockscreen/bg-19.jpg"); }
+.lock-bg-20 { background-image: url("lockscreen/bg-20.jpg"); }
+.lock-bg-21 { background-image: url("lockscreen/bg-21.jpg"); }
+.lock-bg-22 { background-image: url("lockscreen/bg-22.jpg"); }
+.lock-bg-23 { background-image: url("lockscreen/bg-23.jpg"); }
+.lock-bg-24 { background-image: url("lockscreen/bg-24.jpg"); }
+.lock-bg-25 { background-image: url("lockscreen/bg-25.jpg"); }
+.lock-bg-26 { background-image: url("lockscreen/bg-26.jpg"); }
+.lock-bg-27 { background-image: url("lockscreen/bg-27.jpg"); }
+.lock-bg-28 { background-image: url("lockscreen/bg-28.jpg"); }
+.lock-bg-29 { background-image: url("lockscreen/bg-29.jpg"); }
+.lock-bg-30 { background-image: url("lockscreen/bg-30.jpg"); }
+.lock-bg-31 { background-image: url("lockscreen/bg-31.jpg"); }
+.lock-bg-32 { background-image: url("lockscreen/bg-32.jpg"); }
+.lock-bg-33 { background-image: url("lockscreen/bg-33.jpg"); }
+.lock-bg-34 { background-image: url("lockscreen/bg-34.jpg"); }
+.lock-bg-35 { background-image: url("lockscreen/bg-35.jpg"); }
+.lock-bg-36 { background-image: url("lockscreen/bg-36.jpg"); }

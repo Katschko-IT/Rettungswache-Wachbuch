@@ -40,6 +40,11 @@ Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in
   Sperren nach Inaktivität. Admins verbinden Handys der Besatzung per
   Einmal-QR mit dem persönlichen Konto (`/api/v1/token/kopplung/`). Aus, bis
   `TERMINAL_ENABLED=true`. Migration `0053_wachenterminal`.
+- Sperrbildschirm im iOS-Stil: große Uhr, Glas-Karten (Wetter, Übergaben,
+  Aufgaben, Termine, Müll) und Fahrzeug-Statuszeile; täglich wechselndes,
+  leicht unscharfes Rettungsdienst-Foto aus 36 frei lizenzierten Bildern
+  (CC0/CC BY/CC BY-SA, Wikimedia Commons; `docs/BILDNACHWEISE.md`,
+  `scripts/build_lockscreen_backgrounds.py`).
 - Raspberry Pi 4 als Wachen-Server: `deploy/pi/` (eigenes WLAN, lokales
   Zertifikat mit Fingerabdruck im Verbindungs-QR, TLS-Proxy, Speichergrenzen,
   Kiosk-Browser). arm64-Image jetzt mit QEMU gebaut; fehlende arm64-Hashes

@@ -180,7 +180,8 @@ sudo WLAN_SSID="Wachbuch RW1" deploy/pi/setup-pi.sh
 ```
 
 Hardware, Einrichtung, Sicherheitsmodell und Grenzen:
-[`docs/PI-WACHENTERMINAL.md`](docs/PI-WACHENTERMINAL.md).
+[`docs/PI-WACHENTERMINAL.md`](docs/PI-WACHENTERMINAL.md). Die Hintergrundfotos des
+Sperrbildschirms stehen unter freien Lizenzen: [`docs/BILDNACHWEISE.md`](docs/BILDNACHWEISE.md).
 
 ## Reverse-Proxy mit TLS
 

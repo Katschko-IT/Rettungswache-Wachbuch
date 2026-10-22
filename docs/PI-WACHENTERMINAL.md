@@ -69,9 +69,13 @@ Weitere Terminals (z. B. ein Tablet an der Wand) registriert ein Admin unter
 
 ## 4. Bedienung am Terminal
 
-- **Sperrbildschirm**: das Wachen-Display (Uhr, Termine, Aufgaben, Müllabfuhr,
-  Fahrzeugstatus, Prüffristen), unten „Zum Entsperren antippen“, rechts der QR-Code
-  zum Verbinden der App.
+- **Sperrbildschirm**: großes Uhr-/Datumsfeld, darunter Glas-Karten für Wetter,
+  offene und dringende Übergaben, Aufgaben des Tages (mit Fortschritt), heutige
+  Termine und Müllabfuhr sowie eine Statuszeile der Fahrzeuge. Die Karten
+  aktualisieren sich jede Minute. Im Hintergrund läuft leicht unscharf ein Foto aus
+  dem Rettungsdienst – jeden Tag ein anderes aus 36 frei lizenzierten Bildern
+  (Wikimedia Commons, Nachweis unten links, vollständig in `docs/BILDNACHWEISE.md`).
+  Unten „Zum Entsperren antippen“, rechts der QR-Code zum Verbinden der App.
 - **Entsperren**: irgendwo antippen, der runde Ziffernblock erscheint; vier Ziffern
   eingeben. Ein falscher Code lässt die Punkte wackeln.
 - **Alltagsmodus (Startseite)**: Wetter, offene Übergaben, heutige Termine,

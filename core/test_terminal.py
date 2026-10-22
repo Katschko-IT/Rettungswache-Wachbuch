@@ -64,11 +64,18 @@ class TerminalDeviceTests(TerminalTestCase):
         self.assertContains(page, "data-lock-screen")
         self.assertContains(page, 'data-pin-pad="terminal-code"')
 
-    def test_terminal_data_returns_display_payload(self):
+    def test_terminal_data_returns_lock_screen_payload(self):
         self.use_terminal()
         response = self.client.get(reverse("terminal_data"))
         self.assertEqual(response.status_code, 200)
-        self.assertIn("layout_config", response.json())
+        self.assertIn("open_handovers", response.json())
+        self.assertIn("tasks", response.json())
+
+    def test_lock_screen_shows_photo_of_the_day_with_credit(self):
+        self.use_terminal()
+        page = self.client.get(reverse("terminal_home"))
+        self.assertContains(page, "lock-bg lock-bg-")
+        self.assertContains(page, "Wikimedia Commons")
 
     def test_service_worker_is_blocked_on_terminals(self):
         self.use_terminal()
@@ -274,6 +281,34 @@ class TerminalPairingTests(TerminalTestCase):
         self.client.post(reverse("terminal_pair"))
         self.assertEqual(self.client.get(reverse("terminal_pair_qr")).status_code, 200)
         self.assertEqual(self.client.get(reverse("terminal_pair_qr")).status_code, 404)
+
+
+class LockScreenBackgroundTests(TestCase):
+    def test_at_least_thirty_licensed_backgrounds_exist(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        from core.lockscreen import backgrounds
+
+        items = backgrounds()
+        self.assertGreaterEqual(len(items), 30)
+        allowed = ("CC0", "Public domain", "CC BY ", "CC BY-SA ")
+        static = Path(settings.BASE_DIR) / "core" / "static" / "core" / "lockscreen"
+        css = (static.parent / "lockscreen.css").read_text(encoding="utf-8")
+        for number, item in enumerate(items, 1):
+            self.assertTrue(item["license"].startswith(allowed), item)
+            self.assertTrue(item["artist"] and item["source"].startswith("https://commons.wikimedia.org/"), item)
+            self.assertTrue((static / item["file"]).is_file(), item["file"])
+            self.assertIn(f".lock-bg-{number:02d} ", css)
+
+    def test_background_changes_daily_and_carries_credit(self):
+        from core.lockscreen import background_for
+
+        today, tomorrow = date(2026, 10, 22), date(2026, 10, 23)
+        self.assertNotEqual(background_for(today)["css_class"], background_for(tomorrow)["css_class"])
+        self.assertEqual(background_for(today), background_for(today))
+        self.assertIn("Wikimedia Commons", background_for(today)["credit"])
 
 
 class MonthTasksTests(TestCase):
