@@ -1,15 +1,15 @@
 # Wachbuch Client (AGPL)
 
-Open-Source-Begleit-App für das selbst gehostete **[Wachbuch](https://github.com/darkspike1988/Rettungswache-Wachbuch)** auf iOS und Android.
+Open-Source-Begleit-App für das selbst gehostete **[Wachbuch](https://github.com/Katschko-IT/Rettungswache-Wachbuch)** auf iOS und Android.
 
 | | |
 | --- | --- |
-| **Client** | https://github.com/darkspike1988/Wachbuch-Client |
-| **Server** | https://github.com/darkspike1988/Rettungswache-Wachbuch |
+| **Client** | https://github.com/Katschko-IT/Wachbuch-Client |
+| **Server** | https://github.com/Katschko-IT/Rettungswache-Wachbuch |
 | **Lizenz** | AGPL-3.0-or-later |
 | **API** | `/api/v1/` · Token-Auth |
 | **App-Version** | `1.0.0+12` |
-| **Produktiv-Paarung** | Server `0.16.x` |
+| **Produktiv-Paarung** | Server `0.24.x` |
 | **E2E-Abnahme** | [docs/E2E-WACHALLTAG.md](docs/E2E-WACHALLTAG.md) |
 | **Store-Release** | [docs/STORE-RELEASE-1.0.md](docs/STORE-RELEASE-1.0.md) |
 | **Secure-Storage-Migration** | [docs/SECURE-STORAGE-MIGRATION-1.0.md](docs/SECURE-STORAGE-MIGRATION-1.0.md) |
@@ -59,7 +59,7 @@ Die Demo dient als Produkt-/UX-Vorschau. Die entsprechenden Kernfunktionen Mäng
 ## Lokaler Start
 
 ```bash
-git clone https://github.com/darkspike1988/Wachbuch-Client.git
+git clone https://github.com/Katschko-IT/Wachbuch-Client.git
 cd Wachbuch-Client
 flutter pub get
 flutter test
@@ -93,6 +93,11 @@ BUILD_NAME=1.0.0 BUILD_NUMBER=12 bash scripts/build-aab.sh
 Der Release-Workflow erzeugt zusätzlich Hashes, Zertifikatsberichte, Obfuskationssymbole und eine CycloneDX-SBOM. Store-Builds werden ausschließlich aus `main` erzeugt und müssen exakt zur Version in `pubspec.yaml` passen.
 
 ## Server-Kopplung
+
+Die Modelle und Tests orientieren sich an den Antwortformen von `core/api` im
+Server-Repository (abgeglichen im Review vom 22. Oktober 2026: Kaffeekasse,
+Checklisten, Modulschalter). Neue Felder werden zuerst serverseitig dokumentiert
+und dann im Client mit einem Test der echten Antwortform übernommen.
 
 Der Vertrag liegt im Server-Repository unter `docs/API.md`, `docs/CLIENT.md` und `docs/openapi.yaml`. Die Kopplung erfolgt ausschließlich über den versionierten API-Vertrag – nicht durch Kopieren eines Client-Quellbaums in das Server-Repository.
 

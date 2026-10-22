@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/link.dart';
 
 const _privacyPolicyUri =
-    'https://github.com/darkspike1988/Wachbuch-Client/'
+    'https://github.com/Katschko-IT/Wachbuch-Client/'
     'blob/main/docs/PRIVACY-POLICY.md';
 const _supportUri =
-    'https://github.com/darkspike1988/Wachbuch-Client/'
+    'https://github.com/Katschko-IT/Wachbuch-Client/'
     'blob/main/docs/SUPPORT.md';
 
 /// Store-facing privacy information that remains reachable before login.

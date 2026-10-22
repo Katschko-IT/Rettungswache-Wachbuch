@@ -1,7 +1,7 @@
 # Wachbuch – Support
 
 **App:** Wachbuch für iOS und Android  
-**Quellcode:** https://github.com/darkspike1988/Wachbuch-Client
+**Quellcode:** https://github.com/Katschko-IT/Wachbuch-Client
 
 ## Hilfe
 
@@ -17,7 +17,7 @@ Wachbuch ist ein Open-Source-Client für selbst gehostete Wachbuch-Server. Bei P
 
 Technische Fehler des mobilen Clients können öffentlich gemeldet werden:
 
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues
 
 Bitte keine Passwörter, App-Tokens, internen Serveradressen, Patienten-, Einsatz- oder personenbezogenen Organisationsdaten in öffentliche Issues kopieren.
 
@@ -39,7 +39,7 @@ Wachbuch ist kein Notruf-, Alarmierungs-, Einsatzleit-, Patientenakten- oder ePC
 
 Wachbuch is an open-source client for self-hosted Wachbuch servers. Mobile-client issues can be reported at:
 
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues
 
 Never post passwords, app tokens, private server addresses, patient data, incident data or personal organisational data in a public issue. Account management, deletion requests, backups and server-side data are the responsibility of the operator of the server you connected to.
 

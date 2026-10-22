@@ -6,7 +6,7 @@
 
 **Danke für dein Interesse am Wachbuch Client!** 🎉
 
-Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wachbuch](https://github.com/darkspike1988/Rettungswache-Wachbuch). Beiträge sind herzlich willkommen – egal ob du Code beisteuern, Bugs melden, die Dokumentation verbessern oder Feature-Ideen einbringen möchtest.
+Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wachbuch](https://github.com/Katschko-IT/Rettungswache-Wachbuch). Beiträge sind herzlich willkommen – egal ob du Code beisteuern, Bugs melden, die Dokumentation verbessern oder Feature-Ideen einbringen möchtest.
 
 ---
 
@@ -27,7 +27,7 @@ Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wa
 
 ### **🐛 Bugs melden**
 
-- **Issue erstellen**: [GitHub Issues](https://github.com/darkspike1988/Wachbuch-Client/issues/new/choose)
+- **Issue erstellen**: [GitHub Issues](https://github.com/Katschko-IT/Wachbuch-Client/issues/new/choose)
 - **Vorlage verwenden**: Nutze die Bug-Report-Vorlage
 - **Reproduktionsschritte**: Klare Anleitung, wie der Bug ausgelöst wird
 - **Umgebung**: 
@@ -40,7 +40,7 @@ Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wa
 
 ### **💡 Feature-Ideen einreichen**
 
-- **Issue erstellen**: [Feature Request](https://github.com/darkspike1988/Wachbuch-Client/issues/new?template=feature_request.md)
+- **Issue erstellen**: [Feature Request](https://github.com/Katschko-IT/Wachbuch-Client/issues/new?template=feature_request.md)
 - **Use Case beschreiben**: Welches Problem löst das Feature?
 - **Akzeptanzkriterien**: Was muss das Feature können?
 - **Mockups**: Bei UI-Änderungen (optional)
@@ -68,7 +68,7 @@ Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wa
 
 ### **📢 Community unterstützen**
 
-- **Fragen beantworten**: In [Discussions](https://github.com/darkspike1988/Wachbuch-Client/discussions)
+- **Fragen beantworten**: In [Discussions](https://github.com/Katschko-IT/Wachbuch-Client/discussions)
 - **Anfänger helfen**: Bei den ersten Schritten unterstützen
 - **Erfahrungen teilen**: Wie du die App einsetzt
 
@@ -79,13 +79,13 @@ Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wa
 ### **1. Projekt verstehen**
 
 - **README lesen**: [README.md](README.md)
-- **Server-Repository kennenlernen**: [Rettungswache-Wachbuch](https://github.com/darkspike1988/Rettungswache-Wachbuch)
-- **API verstehen**: [Server API Docs](https://github.com/darkspike1988/Rettungswache-Wachbuch/blob/main/docs/API.md)
-- **Architektur**: [Server Architecture](https://github.com/darkspike1988/Rettungswache-Wachbuch/blob/main/docs/ARCHITECTURE.md)
+- **Server-Repository kennenlernen**: [Rettungswache-Wachbuch](https://github.com/Katschko-IT/Rettungswache-Wachbuch)
+- **API verstehen**: [Server API Docs](https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/API.md)
+- **Architektur**: [Server Architecture](https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/ARCHITECTURE.md)
 
 ### **2. Issue auswählen oder erstellen**
 
-- **Existing Issues**: [GitHub Issues](https://github.com/darkspike1988/Wachbuch-Client/issues)
+- **Existing Issues**: [GitHub Issues](https://github.com/Katschko-IT/Wachbuch-Client/issues)
 - **Labels prüfen**: `good first issue`, `help wanted`, `bug`, `enhancement`, `ui`, `performance`
 - **Priorität**: Issues mit `P0`, `P1`, `P2` haben höhere Priorität
 
@@ -115,7 +115,7 @@ Der **Wachbuch Client** ist die offizielle Mobile-App für das [Rettungswache-Wa
 #### **1. Repository klonen**
 
 ```bash
-git clone https://github.com/darkspike1988/Wachbuch-Client.git
+git clone https://github.com/Katschko-IT/Wachbuch-Client.git
 cd Wachbuch-Client
 ```
 
@@ -413,7 +413,7 @@ git commit -m "chore: update dependencies"
    git push origin feature/mein-feature
    ```
 
-2. **Pull Request erstellen**: [GitHub PR](https://github.com/darkspike1988/Wachbuch-Client/compare)
+2. **Pull Request erstellen**: [GitHub PR](https://github.com/Katschko-IT/Wachbuch-Client/compare)
 
 3. **Vorlage ausfüllen**:
    - **Titel**: Klar und präzise (z.B. "feat: Add dark mode support")
@@ -470,7 +470,7 @@ git commit -m "chore: update dependencies"
 ### **Verantwortliche Offenlegung**
 
 1. **E-Mail**: Sende eine E-Mail an die Maintainer
-2. **GitHub Security Advisory**: Erstelle einen [Security Advisory](https://github.com/darkspike1988/Wachbuch-Client/security/advisories/new)
+2. **GitHub Security Advisory**: Erstelle einen [Security Advisory](https://github.com/Katschko-IT/Wachbuch-Client/security/advisories/new)
 3. **Warten**: Gib dem Team Zeit zur Reaktion (mind. 72 Stunden)
 
 ### **Was als Sicherheitslücke gilt**
@@ -563,4 +563,4 @@ Deine Beiträge helfen, die App besser zu machen und Rettungswachen bei ihrer wi
 
 ---
 
-*Letzte Aktualisierung: August 2026 | [GitHub](https://github.com/darkspike1988/Wachbuch-Client)*
+*Letzte Aktualisierung: August 2026 | [GitHub](https://github.com/Katschko-IT/Wachbuch-Client)*

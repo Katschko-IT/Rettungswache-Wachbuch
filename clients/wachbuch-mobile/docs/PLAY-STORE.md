@@ -128,7 +128,7 @@ Android-Appdaten sind von Cloud-Backups und Geräteübertragungen ausgeschlossen
 
 Öffentliche Datenschutzerklärung:
 
-`https://github.com/darkspike1988/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
+`https://github.com/Katschko-IT/Wachbuch-Client/blob/main/docs/PRIVACY-POLICY.md`
 
 Die App zeigt die wesentlichen Datenschutzinformationen zusätzlich **vor dem Login** an.
 

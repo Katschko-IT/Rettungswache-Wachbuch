@@ -2,7 +2,7 @@
 
 Dieses Client-Repo gehört zu:
 
-**https://github.com/darkspike1988/Rettungswache-Wachbuch**
+**https://github.com/Katschko-IT/Rettungswache-Wachbuch**
 
 | Client | Server |
 | --- | --- |
@@ -16,4 +16,4 @@ Dieses Client-Repo gehört zu:
 
 Header: `Authorization: Token <wb_…>` (widerrufbar)
 
-Ausführlich: [docs/API.md im Server](https://github.com/darkspike1988/Rettungswache-Wachbuch/blob/main/docs/API.md)
+Ausführlich: [docs/API.md im Server](https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/API.md)

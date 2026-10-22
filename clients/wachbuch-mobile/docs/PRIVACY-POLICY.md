@@ -2,7 +2,7 @@
 
 **Stand / Last updated:** 10. August 2026  
 **App:** Wachbuch für iOS und Android  
-**Quellcode:** https://github.com/darkspike1988/Wachbuch-Client
+**Quellcode:** https://github.com/Katschko-IT/Wachbuch-Client
 
 Wachbuch ist ein Open-Source-Client für selbst gehostete Wachbuch-Server. Die App ist weder eine offizielle Behörden-App noch ein Patienten-, Einsatzleit-, Alarmierungs- oder ePCR-System.
 
@@ -86,7 +86,7 @@ Wenn sich Datenverarbeitung, Berechtigungen oder integrierte Dienste wesentlich 
 
 Fragen zur mobilen Open-Source-App und zu dieser Erklärung können über das öffentliche Repository gestellt werden:
 
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues
 
 Fragen zu Daten auf einem konkreten Wachbuch-Server sind an den Betreiber dieses Servers zu richten.
 
@@ -103,4 +103,4 @@ Camera frames used for QR setup are processed for scanning and are not uploaded 
 The app contains no advertising, advertising SDK, cross-app tracking or external analytics/crash-tracking SDK. Account and server-side data deletion are controlled by the operator of the selected self-hosted server. Signing out or changing servers removes the associated local token and offline cache.
 
 Questions about the mobile app or this policy can be filed at:
-https://github.com/darkspike1988/Wachbuch-Client/issues
+https://github.com/Katschko-IT/Wachbuch-Client/issues
