@@ -233,6 +233,21 @@ class StationSettingsHolidaysAndWeatherTests(TestCase):
         self.assertEqual(self.station.street, "Hauptstr. 10")
         self.assertEqual(self.station.city, "Berlin")
 
+    def test_station_settings_saves_cleanly_with_fictional_test_address(self):
+        response = self.client.post(reverse("station_settings"), {
+            "name": "Wache Alpha",
+            "organization_profile": "rescue",
+            "weather_enabled": "on",
+            "street": "Musterstraße 12",
+            "postal_code": "12345",
+            "city": "Musterstadt",
+        })
+        self.assertRedirects(response, reverse("station_settings"))
+        self.station.refresh_from_db()
+        self.assertTrue(self.station.weather_enabled)
+        self.assertIsNotNone(self.station.latitude)
+        self.assertIsNotNone(self.station.longitude)
+
 
 class CombinedGeocodingTests(TestCase):
     def test_candidate_extraction_hierarchical(self):
@@ -290,3 +305,20 @@ class CombinedGeocodingTests(TestCase):
         self.assertEqual(result["latitude"], 52.2726)
         self.assertEqual(result["longitude"], 8.0498)
         self.assertIn("Osnabrück", result["label"])
+
+    def test_short_city_name_is_not_rejected(self):
+        from core.weather import geocode
+
+        result = geocode("Köln")
+        self.assertAlmostEqual(result["latitude"], 50.9384, places=1)
+        self.assertAlmostEqual(result["longitude"], 6.96, places=1)
+
+    def test_fictional_address_uses_fallback_coordinates(self):
+        from core.weather import geocode
+
+        # 12345 matches Berlin PLZ prefix -> falls back to Berlin coordinates
+        result = geocode("Musterstraße 12, 12345 Musterstadt")
+        self.assertEqual(result["latitude"], 52.52)
+        self.assertEqual(result["longitude"], 13.405)
+        self.assertIn("Standardkoordinaten", result["label"])
+

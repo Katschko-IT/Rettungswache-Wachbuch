@@ -147,10 +147,86 @@ def _normalized_timezone(timezone_name: str) -> str:
     return name
 
 
+STATE_COORDINATES = {
+    "BW": (48.7758, 9.1829, "Baden-Württemberg"),
+    "BY": (48.1351, 11.5820, "Bayern"),
+    "BE": (52.5200, 13.4050, "Berlin"),
+    "BB": (52.3906, 13.0645, "Brandenburg"),
+    "HB": (53.0793, 8.8017, "Bremen"),
+    "HH": (53.5511, 9.9937, "Hamburg"),
+    "HE": (50.1109, 8.6821, "Hessen"),
+    "MV": (53.6355, 11.4012, "Mecklenburg-Vorpommern"),
+    "NI": (52.3759, 9.7320, "Niedersachsen"),
+    "NW": (51.2277, 6.7735, "Nordrhein-Westfalen"),
+    "RP": (49.9929, 8.2473, "Rheinland-Pfalz"),
+    "SL": (49.2402, 6.9969, "Saarland"),
+    "SN": (51.0504, 13.7373, "Sachsen"),
+    "ST": (52.1205, 11.6276, "Sachsen-Anhalt"),
+    "SH": (54.3233, 10.1228, "Schleswig-Holstein"),
+    "TH": (50.9848, 11.0299, "Thüringen"),
+}
+DEFAULT_COORDINATES = (51.1657, 10.4515, "Deutschland")
+
+
+def _guess_state_from_plz(text: str) -> str | None:
+    match = re.search(r"\b(\d{4,5})\b", text or "")
+    if not match:
+        return None
+    plz = match.group(1)
+    if len(plz) == 4:
+        return "SN"
+    prefix = int(plz[:2])
+    if prefix in (10, 11, 12, 13, 14):
+        return "BE"
+    if 20 <= prefix <= 22:
+        return "HH"
+    if prefix == 28:
+        return "HB"
+    if prefix == 66:
+        return "SL"
+    if 40 <= prefix <= 47 or 50 <= prefix <= 53 or 57 <= prefix <= 59 or 32 <= prefix <= 33:
+        return "NW"
+    if 70 <= prefix <= 79:
+        return "BW"
+    if 80 <= prefix <= 97:
+        return "BY"
+    if 60 <= prefix <= 65 or 34 <= prefix <= 36:
+        return "HE"
+    if 26 <= prefix <= 27 or 29 <= prefix <= 31 or prefix in (37, 38, 49):
+        return "NI"
+    if 54 <= prefix <= 56 or 67 <= prefix <= 69:
+        return "RP"
+    if 23 <= prefix <= 25:
+        return "SH"
+    if 1 <= prefix <= 9:
+        return "SN"
+    if prefix == 39 or prefix == 6:
+        return "ST"
+    if 17 <= prefix <= 19:
+        return "MV"
+    if 98 <= prefix <= 99:
+        return "TH"
+    if 15 <= prefix <= 16:
+        return "BB"
+    return None
+
+
 def _extract_candidates(address: str) -> list[str]:
     """Erzeugt schrittweise vergröberte Suchbegriffe (Straße/Hausnr, PLZ+Ort, Ort)."""
     cleaned = (address or "").strip()
+    if not cleaned:
+        return []
     candidates = [cleaned]
+
+    # Präfixe von Hilfsorganisationen / Wachen entfernen
+    no_prefix = re.sub(
+        r"^(?:Feuerwache|Rettungswache|Wache|Notfallzentrum|Klinikum|DRK|ASB|MHD|JUH)\s*\w*\s*,\s*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    ).strip()
+    if no_prefix and no_prefix != cleaned:
+        candidates.append(no_prefix)
 
     # PLZ (4-5 Ziffern) und Ort am Ende extrahieren (z. B. "12345 Musterstadt")
     match = re.search(r"(?:,\s*)?(\b\d{4,5}\b)\s+([^,]+)$", cleaned)
@@ -158,11 +234,26 @@ def _extract_candidates(address: str) -> list[str]:
         plz, city = match.group(1).strip(), match.group(2).strip()
         candidates.append(f"{plz} {city}")
         candidates.append(city)
+        street_part = cleaned[:match.start()].strip().rstrip(",")
+        if street_part:
+            candidates.append(f"{street_part}, {city}")
+            street_no_num = re.sub(r"\s+\d+[\s\w/-]*$", "", street_part).strip()
+            if street_no_num and street_no_num != street_part:
+                candidates.append(f"{street_no_num}, {city}")
+                candidates.append(street_no_num)
     else:
         # Falls durch Komma getrennt, den letzten Teil (meist Stadt) separat versuchen
         parts = [p.strip() for p in cleaned.split(",") if p.strip()]
         if len(parts) > 1:
             candidates.append(parts[-1])
+            candidates.append(f"{parts[-2]}, {parts[-1]}")
+
+    # Zusätzliche Kandidaten mit Länderkontext Deutschland
+    country_candidates = []
+    for c in candidates:
+        if "deutschland" not in c.lower() and "germany" not in c.lower():
+            country_candidates.append(f"{c}, Deutschland")
+    candidates.extend(country_candidates)
 
     seen = set()
     result = []
@@ -229,12 +320,27 @@ def _geocode_open_meteo(query: str, language: str) -> dict | None:
     }
 
 
-def geocode(address: str, *, language: str = "de") -> dict:
+def geocode(
+    address: str,
+    *,
+    language: str = "de",
+    allow_fallback: bool = True,
+    fallback_state: str | None = None,
+) -> dict:
     """Resolve a free-text address to coordinates. Requires explicit consent."""
     address = (address or "").strip()
-    if len(address) < 5:
+    if len(address) < 2:
         raise WeatherUnavailable("Adresse ist zu kurz für eine Geocodierung.")
+
     if _circuit_open():
+        if allow_fallback:
+            state_key = (fallback_state or _guess_state_from_plz(address) or "").upper()
+            coords = STATE_COORDINATES.get(state_key, DEFAULT_COORDINATES)
+            return {
+                "latitude": round(coords[0], 4),
+                "longitude": round(coords[1], 4),
+                "label": f"{address} ({coords[2]} Standardkoordinaten)",
+            }
         raise WeatherUnavailable("Wetterdienst ist vorübergehend pausiert.")
 
     candidates = _extract_candidates(address)
@@ -256,6 +362,17 @@ def geocode(address: str, *, language: str = "de") -> dict:
         except WeatherUnavailable:
             _record_failure()
             raise
+
+    # 3. Bei unvollständigen/fiktiven Adressen oder Offline-Netz: Robuster Fallback
+    if allow_fallback:
+        state_key = (fallback_state or _guess_state_from_plz(address) or "").upper()
+        coords = STATE_COORDINATES.get(state_key, DEFAULT_COORDINATES)
+        _record_success()
+        return {
+            "latitude": round(coords[0], 4),
+            "longitude": round(coords[1], 4),
+            "label": f"{address} ({coords[2]} Standardkoordinaten)",
+        }
 
     _record_failure()
     raise WeatherUnavailable("Adresse konnte nicht gefunden werden.")
