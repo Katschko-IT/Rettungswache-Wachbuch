@@ -3,9 +3,9 @@
 {% block title %}{% translate "Erstinstallation" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading">
-  <p class="context-line">{% translate "Erstinstallation" %}</p>
-  <h1>{% translate "Wache und Master-Admin einrichten" %}</h1>
-  <p class="lead">{% translate "Alle Angaben werden lokal gespeichert. Der Abschluss ist einmalig und atomar; ein zweiter Abschluss ist nicht möglich." %}</p>
+  <p class="context-line">{% translate "Erstinstallation · Schritt 2 von 2" %}</p>
+  <h1>{% translate "Wache und Admin-Konto anlegen" %}</h1>
+  <p class="lead">{% translate "Alles wird nur auf diesem Server gespeichert. Die Einrichtung lässt sich genau einmal abschließen; alles Weitere stellst du danach in der Verwaltung ein." %}</p>
 </header>
 
 {% if weather_error %}<div class="alert alert-error" role="alert">{{ weather_error }}</div>{% endif %}
@@ -49,7 +49,8 @@
   </section>
 
   <section class="section-block">
-    <h2>{% translate "Master-Admin-Konto" %}</h2>
+    <h2>{% translate "Admin-Konto" %}</h2>
+    <p class="help-text">{% translate "Dein persönliches Konto mit allen Rechten. Die Besatzung bekommt später eigene Konten über Team → Einladungen." %}</p>
     {% for field in form %}
       {% if field.name == "admin_username" or field.name == "admin_first_name" or field.name == "admin_last_name" or field.name == "admin_email" or field.name == "password1" or field.name == "password2" or field.name == "bootstrap_token" %}
         {% if field.name != "bootstrap_token" %}
@@ -63,7 +64,23 @@
     {% endfor %}
   </section>
 
-  <p class="help-text">{% translate "Mit dem Abschluss wird genau eine Wache und genau ein Master-Admin angelegt. Weitere Mitarbeiterkonten erhalten anschließend persönliche Einmal-Aktivierungslinks." %}</p>
-  <button class="button primary" type="submit">{% translate "Erstinstallation abschließen" %}</button>
+  {% if form.terminal_code %}
+    <section class="section-block">
+      <h2>{% translate "Wachenterminal (Touch-Bildschirm)" %}</h2>
+      <p class="help-text">{% translate "Optional. Der Bildschirm auf der Wache zeigt im Ruhezustand das Wachen-Display; mit dem gemeinsamen Wachen-Code öffnet die Besatzung Übergaben, Kalender, Aufgaben und Müllplan." %}</p>
+      {% for field in form %}
+        {% if field.name == "terminal_code" or field.name == "register_terminal" %}
+          <p>
+            {% if field.name == "register_terminal" %}<label>{{ field }} {{ field.label }}</label>{% else %}{{ field.label_tag }} {{ field }}{% endif %}
+            {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+            {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+          </p>
+        {% endif %}
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <p class="help-text">{% translate "Angelegt werden genau eine Wache und dein Admin-Konto. Mitarbeitende erhalten danach persönliche Einladungslinks." %}</p>
+  <button class="button primary" type="submit">{% translate "Einrichtung abschließen" %}</button>
 </form>
 {% endblock %}

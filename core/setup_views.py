@@ -28,6 +28,7 @@ from .access import membership_required
 from .forms import ActivationPasswordForm, EmployeeInviteForm, SetupWizardForm
 from .models import EmployeeActivation, Membership, Station
 from .rate_limit import consume as rate_limit_consume
+from .services import audit
 from .setup_wizard import (
     ActivationInvalid,
     SetupAlreadyCompleted,
@@ -36,11 +37,11 @@ from .setup_wizard import (
     SetupTokenInvalid,
     activation_url,
     active_activations,
+    bootstrap_fingerprint,
     complete_setup,
     consume_activation,
     create_employee_invite,
     find_activation,
-    hash_token,
     revoke_activation,
     setup_available,
     setup_completed,
@@ -49,6 +50,7 @@ from .setup_wizard import (
 )
 
 SETUP_SESSION_KEY = "setup_bootstrap_hash"
+SETUP_DONE_KEY = "setup_done"
 SETUP_SESSION_AT = "setup_bootstrap_at"
 SETUP_SESSION_TTL = 600
 WEATHER_SESSION_KEY = "setup_weather_preview"
@@ -157,7 +159,7 @@ def setup_wizard(request):
         if not verify_bootstrap_token(token):
             return render(request, "core/setup_token.html", {"invalid": True}, status=403)
         request.session.cycle_key()
-        request.session[SETUP_SESSION_KEY] = hash_token(token)
+        request.session[SETUP_SESSION_KEY] = bootstrap_fingerprint(token)
         request.session[SETUP_SESSION_AT] = time.time()
         request.session.pop(WEATHER_SESSION_KEY, None)
         return redirect("setup_wizard")
@@ -218,24 +220,64 @@ def setup_wizard(request):
                 return redirect("setup_wizard")
             except SetupDisabled:
                 raise Http404
-            request.session.pop(SETUP_SESSION_KEY, None)
-            request.session.pop(SETUP_SESSION_AT, None)
-            request.session.pop(WEATHER_SESSION_KEY, None)
-            request.session.pop(DRAFT_SESSION_KEY, None)
-            messages.success(
-                request,
-                _("Wache %(station_name)s wurde eingerichtet. Bitte jetzt mit dem Master-Admin-Konto anmelden.")
-                % {"station_name": station.name},
-            )
-            return redirect("login")
+            _clear_setup_session(request)
+            return _finish_setup(request, station, user, form.cleaned_data)
     else:
-        form = SetupWizardForm(initial=request.session.get(DRAFT_SESSION_KEY) or None)
+        initial = dict(request.session.get(DRAFT_SESSION_KEY) or {})
+        # Am Touch-Bildschirm des Servers ist „dieses Gerät“ das Terminal.
+        initial.setdefault("register_terminal", _local_device(request))
+        form = SetupWizardForm(initial=initial)
 
     return _render_wizard(
         request,
         form,
         weather_preview=request.session.get(WEATHER_SESSION_KEY),
     )
+
+
+def _local_device(request) -> bool:
+    """Der Assistent läuft im Browser des Servers selbst (Kiosk des Pi)."""
+    return request.get_host().rsplit(":", 1)[0].strip("[]") in {"localhost", "127.0.0.1", "::1"}
+
+
+def _finish_setup(request, station, user, cleaned):
+    """Optionaler Terminal-Schritt, dann Abschlussseite mit den nächsten Schritten."""
+    from .terminal import create_terminal_device, set_station_code, set_terminal_cookie, terminal_enabled
+
+    code_set = register = False
+    raw_terminal = ""
+    if terminal_enabled():
+        if cleaned.get("terminal_code"):
+            set_station_code(station, cleaned["terminal_code"], set_by=user)
+            audit(user, station, "terminal.code_changed", station, {"via": "setup"})
+            code_set = True
+        if cleaned.get("register_terminal"):
+            terminal, raw_terminal = create_terminal_device(station, label="Wachenterminal", created_by=user)
+            audit(user, station, "terminal.created", terminal, {"label": terminal.label, "via": "setup"})
+            register = True
+    request.session[SETUP_DONE_KEY] = {
+        "station": station.name,
+        "admin": user.get_username(),
+        "terminal_enabled": terminal_enabled(),
+        "terminal_registered": register,
+        "code_set": code_set,
+        "weather": bool(station.weather_enabled),
+    }
+    response = redirect("setup_done")
+    if raw_terminal:
+        set_terminal_cookie(response, request, raw_terminal)
+    return response
+
+
+@require_GET
+def setup_done(request):
+    """Einmalige Zusammenfassung nach dem Abschluss; ohne frische Einrichtung 404."""
+    summary = request.session.get(SETUP_DONE_KEY)
+    if not summary or request.user.is_authenticated:
+        raise Http404
+    response = render(request, "core/setup_done.html", {"summary": summary})
+    response["Cache-Control"] = "no-store, max-age=0"
+    return response
 
 
 @require_POST

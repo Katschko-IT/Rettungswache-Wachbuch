@@ -40,6 +40,7 @@ urlpatterns = [
     ),
     path("setup/", setup_views.setup_wizard, name="setup_wizard"),
     path("setup/wetter/", setup_views.setup_weather_preview, name="setup_weather_preview"),
+    path("setup/fertig/", setup_views.setup_done, name="setup_done"),
     path("aktivieren/<str:token>/", setup_views.activate_account, name="activate_account"),
     path("uebersicht/", views.dashboard, name="dashboard"),
     path("hinweise/<int:pk>/gelesen/", views.notification_read, name="notification_read"),

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Einrichtung abgeschlossen" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Erstinstallation abgeschlossen" %}</p>
+  <h1>{% blocktranslate with station=summary.station %}Wache {{ station }} ist eingerichtet{% endblocktranslate %}</h1>
+  <p class="lead">{% blocktranslate with admin=summary.admin %}Melde dich jetzt mit dem Admin-Konto „{{ admin }}“ an. Diese Schritte machen die Wache startklar:{% endblocktranslate %}</p>
+</header>
+
+<section class="content-flow narrow">
+  <ol class="card setup-steps">
+    <li>
+      <strong>{% translate "Besatzung einladen" %}</strong> –
+      {% translate "Team → Einladungen: Für jede Person einen Einladungslink oder QR-Code erzeugen. Jede Person legt dabei ihr eigenes Passwort fest; das passiert nur einmal." %}
+    </li>
+    {% if summary.terminal_enabled %}
+      <li>
+        <strong>{% translate "Wachenterminal" %}</strong> –
+        {% if summary.terminal_registered %}{% translate "Dieses Gerät ist als Terminal eingerichtet." %}{% else %}{% translate "Unter Team → Wachenterminal den Touch-Bildschirm einrichten." %}{% endif %}
+        {% if summary.code_set %}{% translate "Der Wachen-Code ist festgelegt." %}{% else %}{% translate "Dort auch den vierstelligen Wachen-Code festlegen." %}{% endif %}
+      </li>
+      <li>
+        <strong>{% translate "Handys verbinden" %}</strong> –
+        {% translate "Die Besatzung verbindet die App über das WLAN der Wache: QR-Code „App verbinden“ auf dem Sperrbildschirm scannen, danach mit dem eigenen Konto anmelden oder koppeln." %}
+      </li>
+    {% endif %}
+    <li>
+      <strong>{% translate "Wache ausstatten" %}</strong> –
+      {% translate "Fahrzeuge, Medizingeräte, Aufgaben und Müllabfuhr-Termine anlegen; Module wie Müllkalender, Aufgaben und Wetter unter Einstellungen ein- oder ausschalten." %}
+    </li>
+    <li>
+      <strong>{% translate "Einrichtungscode entfernen" %}</strong> –
+      {% translate "SETUP_BOOTSTRAP_TOKEN in der Datei .env leeren. Der Assistent ist ab jetzt ohnehin gesperrt." %}
+    </li>
+  </ol>
+  <div class="form-actions">
+    <a class="button primary" href="{% url 'login' %}">{% translate "Jetzt anmelden" %}</a>
+    {% if summary.terminal_registered %}<a class="button secondary" href="{% url 'terminal_home' %}">{% translate "Zum Sperrbildschirm" %}</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

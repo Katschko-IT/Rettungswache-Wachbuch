@@ -11,7 +11,8 @@
       <h1 id="landing-title">{% translate "Das digitale Wachbuch für Rettungswache, Feuerwehr und Behörden." %}</h1>
       <p class="lead">{% translate "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle." %}</p>
       <div class="landing-cta">
-        <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+        {% if setup_pending %}<a class="button primary" href="{% url 'setup_wizard' %}">{% translate "Ersteinrichtung starten" %}</a>{% endif %}
+        <a class="button {% if setup_pending %}secondary{% else %}primary{% endif %}" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
         {% if demo_mode %}
           <form method="post" action="{% url 'demo_login' %}">
             {% csrf_token %}

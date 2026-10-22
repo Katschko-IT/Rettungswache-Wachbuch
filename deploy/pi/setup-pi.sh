@@ -44,7 +44,9 @@ fi
 
 say "Pakete installieren (Docker aus dem offiziellen Docker-Repository)"
 apt-get update -q
-apt-get install -y -q ca-certificates curl gnupg openssl network-manager
+apt-get install -y -q ca-certificates curl gnupg openssl network-manager python3
+# Bildschirmtastatur für den Touch-Bildschirm (Raspberry Pi OS mit labwc).
+apt-get install -y -q squeekboard || echo "Hinweis: squeekboard nicht verfügbar – für die Ersteinrichtung eine USB-Tastatur anschließen."
 if ! command -v docker >/dev/null 2>&1; then
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/debian/gpg -o /tmp/docker.gpg
@@ -141,8 +143,14 @@ set_env WEBAUTHN_ENABLED false
 set_env PI_SERVER_NAMES "\"$LAN_NAME localhost $AP_ADDRESS\""
 set_env PI_TLS_DIR "$TLS_DIR"
 if grep -Eq '^SETUP_BOOTSTRAP_TOKEN=$' "$ENV_FILE" && [[ ! -f "$STATE_DIR/setup-done" ]]; then
-  set_env SETUP_BOOTSTRAP_TOKEN "$(openssl rand -hex 24)"
+  # Einrichtungscode zum Abtippen am Touch-Bildschirm: 24 Zeichen (rund 119 Bit) ohne
+  # verwechselbare Zeichen (0/O, 1/I/L), in Vierergruppen.
+  set_env SETUP_BOOTSTRAP_TOKEN "$(python3 -c 'import secrets
+a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+s = "".join(secrets.choice(a) for _ in range(24))
+print("-".join(s[i:i + 4] for i in range(0, 24, 4)))')"
 fi
+SETUP_CODE=$(grep -E '^SETUP_BOOTSTRAP_TOKEN=' "$ENV_FILE" | cut -d= -f2-)
 
 say "Wachbuch bauen und starten (beim ersten Mal 10–20 Minuten)"
 "${COMPOSE[@]}" up -d --build
@@ -163,6 +171,7 @@ exec "$CHROMIUM" --kiosk --lang=de --noerrdialogs --disable-infobars --no-first-
   --check-for-update-interval=31536000 --password-store=basic \\
   --user-data-dir="$KIOSK_HOME/.local/share/wachbuch-kiosk" \\
   --ignore-certificate-errors-spki-list="$SPKI_SHA256" \\
+  --ozone-platform-hint=auto --enable-wayland-ime \\
   "\$URL"
 KIOSK
 chmod 755 /usr/local/bin/wachbuch-kiosk
@@ -186,8 +195,14 @@ Fertig.
   Zertifikat:    SHA-256 $CERT_SHA256
 
 Nächste Schritte:
-  1. Ersteinrichtung im Browser: https://localhost/setup/ (Token: SETUP_BOOTSTRAP_TOKEN in $ENV_FILE)
-     Danach SETUP_BOOTSTRAP_TOKEN in .env leeren und: sudo touch $STATE_DIR/setup-done
-  2. Terminal registrieren: sudo deploy/pi/register-terminal.sh
-  3. Neu starten: sudo reboot  (der Touch-Bildschirm startet dann das Wachenterminal)
+  1. Neu starten: sudo reboot
+     Der Touch-Bildschirm öffnet danach die Ersteinrichtung (oder vom Laptop/Handy
+     im WLAN: https://$AP_ADDRESS/setup/).
+     Einrichtungscode: ${SETUP_CODE:-(bereits verwendet)}
+     Am Bildschirm „Dieses Gerät als Wachenterminal einrichten“ angekreuzt lassen
+     und den vierstelligen Wachen-Code festlegen.
+  2. Danach SETUP_BOOTSTRAP_TOKEN in $ENV_FILE leeren und: sudo touch $STATE_DIR/setup-done
+  Bildschirmtastatur: Raspberry-Pi-Konfiguration → Anzeige → Bildschirmtastatur „immer“
+  (oder eine USB-Tastatur für die Ersteinrichtung).
+  Lief die Einrichtung über Laptop/Handy: sudo deploy/pi/register-terminal.sh
 DONE

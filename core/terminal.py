@@ -83,6 +83,35 @@ def hash_secret(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 5
+
+
+def create_terminal_device(station, *, label: str, created_by):
+    """Legt ein Terminal an; gibt ``(terminal, geheimnis)`` zurück. Gespeichert wird nur der Hash."""
+    from .terminal_models import StationTerminal
+
+    raw = secrets.token_urlsafe(32)
+    terminal = StationTerminal.objects.create(
+        station=station,
+        label=(label or "Wachenterminal").strip()[:80],
+        token_hash=hash_secret(raw),
+        created_by=created_by,
+    )
+    return terminal, raw
+
+
+def set_terminal_cookie(response, request, raw: str) -> None:
+    response.set_cookie(
+        COOKIE_NAME,
+        raw,
+        max_age=COOKIE_MAX_AGE,
+        path="/",
+        httponly=True,
+        samesite="Strict",
+        secure=request.is_secure(),
+    )
+
+
 def terminal_enabled() -> bool:
     return bool(getattr(settings, "TERMINAL_ENABLED", False))
 

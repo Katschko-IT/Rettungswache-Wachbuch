@@ -2,26 +2,30 @@
 {% load i18n %}
 {% block title %}{% translate "Erstinstallation" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading">
-  <p class="context-line">{% translate "Erstinstallation" %}</p>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Erstinstallation · Schritt 1 von 2" %}</p>
   <h1>{% translate "Wache einrichten" %}</h1>
   <p class="lead">{% translate "Dieser Assistent läuft vollständig auf dem lokalen Wachenserver. Für Wachendaten, Konten und Anmeldung ist kein Internetzugang erforderlich." %}</p>
 </header>
 
-{% if invalid %}<div class="alert alert-error" role="alert">{% translate "Der Bootstrap-Token ist ungültig." %}</div>{% endif %}
-{% if rate_limited %}<div class="alert alert-error" role="alert">{% translate "Zu viele Versuche. Bitte in 15 Minuten erneut versuchen." %}</div>{% endif %}
-{% if already_completed %}<div class="alert" role="status">{% translate "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich." %}</div>{% endif %}
+<section class="content-flow narrow">
+  {% if invalid %}<div class="alert alert-error" role="alert">{% translate "Der Einrichtungscode stimmt nicht. Bitte noch einmal genau abtippen." %}</div>{% endif %}
+  {% if rate_limited %}<div class="alert alert-error" role="alert">{% translate "Zu viele Versuche. Bitte in 15 Minuten erneut versuchen." %}</div>{% endif %}
+  {% if already_completed %}<div class="alert" role="status">{% translate "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich." %}</div>{% endif %}
 
-<section class="section-block form-card">
-  <h2>{% translate "Bootstrap-Autorisierung" %}</h2>
-  <p>{% blocktranslate %}Der Bootstrap-Token wird vom Betreiber außerhalb der Anwendung als Umgebungsvariable <code>SETUP_BOOTSTRAP_TOKEN</code> gesetzt. Ohne diesen Token ist die Erstinstallation deaktiviert.{% endblocktranslate %}</p>
-  <form method="post" action="{% url 'setup_wizard' %}">
-    {% csrf_token %}
-    <p>
-      <label for="id_bootstrap_token">{% translate "Bootstrap-Token" %}</label>
-      <input type="password" name="bootstrap_token" id="id_bootstrap_token" autocomplete="off" required>
-    </p>
-    <button class="button primary" type="submit">{% translate "Token prüfen" %}</button>
-  </form>
+  <div class="card form-card">
+    <h2>{% translate "Einrichtungscode eingeben" %}</h2>
+    <p>{% translate "Der Code schützt die Ersteinrichtung. Auf dem Raspberry Pi zeigt ihn das Installationsskript am Ende an; er steht außerdem als SETUP_BOOTSTRAP_TOKEN in der Datei .env." %}</p>
+    <form method="post" action="{% url 'setup_wizard' %}">
+      {% csrf_token %}
+      <p>
+        <label for="id_bootstrap_token">{% translate "Einrichtungscode" %}</label>
+        <input type="text" name="bootstrap_token" id="id_bootstrap_token" class="setup-code-input"
+               autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" required>
+        <span class="help-text">{% translate "Groß- und Kleinschreibung, Leerzeichen und Bindestriche spielen keine Rolle." %}</span>
+      </p>
+      <button class="button primary" type="submit">{% translate "Weiter" %}</button>
+    </form>
+  </div>
 </section>
 {% endblock %}

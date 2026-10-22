@@ -5,6 +5,9 @@
 <section class="access-panel">
   <p class="context-line">{% translate "Persönlicher Zugang" %}</p>
   <h1>{% translate "Anmelden" %}</h1>
+  {% if setup_pending %}
+    <div class="alert" role="status">{% translate "Diese Wache ist noch nicht eingerichtet." %} <a href="{% url 'setup_wizard' %}">{% translate "Ersteinrichtung starten" %}</a></div>
+  {% endif %}
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}

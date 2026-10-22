@@ -62,6 +62,19 @@ def bootstrap_token() -> str:
     return (getattr(settings, "SETUP_BOOTSTRAP_TOKEN", "") or "").strip()
 
 
+def normalize_bootstrap_token(raw: str) -> str:
+    """Touch-taugliche Eingabe: Leerzeichen, Bindestriche und Groß-/Kleinschreibung zählen nicht.
+
+    ``ABCD-EFGH`` und ``abcd efgh`` sind derselbe Einrichtungscode. Die
+    Normalisierung gilt für Eingabe und konfigurierten Wert gleichermaßen.
+    """
+    return "".join(ch for ch in (raw or "") if not ch.isspace() and ch != "-").casefold()
+
+
+def bootstrap_fingerprint(raw: str) -> str:
+    return hash_token(normalize_bootstrap_token(raw))
+
+
 def setup_available() -> bool:
     """Fail-closed: without a configured bootstrap secret the wizard does not exist."""
     return bool(bootstrap_token())
@@ -71,10 +84,10 @@ def verify_bootstrap_token(raw: str) -> bool:
     expected = bootstrap_token()
     if not expected:
         raise SetupDisabled("Erstinstallation ist nicht konfiguriert.")
-    candidate = (raw or "").strip()
+    candidate = normalize_bootstrap_token(raw)
     if not candidate:
         return False
-    return secrets.compare_digest(hash_token(candidate), hash_token(expected))
+    return secrets.compare_digest(hash_token(candidate), bootstrap_fingerprint(expected))
 
 
 def setup_state() -> InstallationSetup | None:
@@ -86,11 +99,16 @@ def setup_completed() -> bool:
     return bool(state and state.completed_at)
 
 
+def setup_pending() -> bool:
+    """Einrichtungscode ist gesetzt und die Wache noch nicht angelegt."""
+    return setup_available() and not setup_completed()
+
+
 def verify_bootstrap_hash(bootstrap_hash: str) -> bool:
     expected = bootstrap_token()
     if not expected:
         raise SetupDisabled("Erstinstallation ist nicht konfiguriert.")
-    return bool(bootstrap_hash) and secrets.compare_digest(bootstrap_hash, hash_token(expected))
+    return bool(bootstrap_hash) and secrets.compare_digest(bootstrap_hash, bootstrap_fingerprint(expected))
 
 
 def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: str | None = None) -> tuple[Station, User]:
@@ -108,7 +126,7 @@ def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: 
             raise SetupTokenInvalid("Bootstrap-Token ist ungültig.")
         fingerprint = bootstrap_hash
     elif verify_bootstrap_token(raw_token or ""):
-        fingerprint = hash_token(raw_token or "")
+        fingerprint = bootstrap_fingerprint(raw_token)
     else:
         raise SetupTokenInvalid("Bootstrap-Token ist ungültig.")
 

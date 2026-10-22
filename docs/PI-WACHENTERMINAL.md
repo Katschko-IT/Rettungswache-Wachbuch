@@ -45,12 +45,29 @@ zusätzlich die Wachbuch-App auf dem eigenen Handy über dasselbe WLAN.
    - erzeugt ein eigenes TLS-Zertifikat (10 Jahre) und trägt dessen Fingerabdruck als `LOCAL_TLS_CERT_SHA256` ein,
    - schreibt `.env` mit Zufallswerten für alle Schlüssel und Passwörter,
    - startet das Wachbuch mit `deploy/pi/docker-compose.pi.yml` (Speichergrenzen, zwei Gunicorn-Prozesse, TLS-Proxy, keine Internet-Dienste),
-   - richtet den Kiosk-Browser ein, der beim Anmelden des Desktop-Benutzers startet.
-3. **Ersteinrichtung**: im Browser `https://10.42.0.1/setup/` (Zertifikatswarnung einmal bestätigen)
-   mit dem `SETUP_BOOTSTRAP_TOKEN` aus `.env`. Danach den Wert in `.env` leeren und
-   `sudo touch /etc/wachbuch/setup-done`.
-4. **Terminal registrieren**: `sudo deploy/pi/register-terminal.sh "Fahrzeughalle"`, dann `sudo reboot`.
-   Der Kiosk-Browser öffnet den Registrierungslink einmal und löscht ihn danach.
+   - richtet den Kiosk-Browser ein, der beim Anmelden des Desktop-Benutzers startet,
+   - installiert die Bildschirmtastatur `squeekboard` und erzeugt einen gut abtippbaren
+     **Einrichtungscode** (`XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`, ohne 0/O/1/I/L), den es am Ende anzeigt.
+3. `sudo reboot`. Der Touch-Bildschirm öffnet jetzt **direkt die Ersteinrichtung**
+   (`/terminal/` leitet dorthin, solange es noch keine Wache gibt).
+   - Bildschirmtastatur: *Raspberry-Pi-Konfiguration → Anzeige → Bildschirmtastatur: immer*.
+     Alternativ für diesen einen Schritt eine USB-Tastatur anschließen oder die
+     Einrichtung vom Laptop/Handy im WLAN der Wache unter `https://10.42.0.1/setup/` machen.
+   - **Schritt 1:** Einrichtungscode eingeben. Groß-/Kleinschreibung, Leerzeichen und
+     Bindestriche spielen keine Rolle.
+   - **Schritt 2:** Wache (Name, Anschrift, optional Wetter), eigenes Admin-Konto und –
+     im Abschnitt *Wachenterminal* – den vierstelligen Wachen-Code. Das Häkchen
+     „Dieses Gerät als Wachenterminal einrichten“ ist am Touch-Bildschirm vorbelegt
+     (Adresse `localhost`) und auf Laptop/Handy leer.
+   - Die Abschlussseite nennt die nächsten Schritte; mit „Zum Sperrbildschirm“ zeigt der
+     Bildschirm sofort das Wachen-Display.
+4. Danach `SETUP_BOOTSTRAP_TOKEN` in `.env` leeren und `sudo touch /etc/wachbuch/setup-done`.
+   Der Assistent ist nach dem Abschluss ohnehin gesperrt (404).
+5. Nur falls die Einrichtung über Laptop/Handy lief: den Touch-Bildschirm als Terminal
+   einrichten – entweder dort als Admin anmelden und unter **Team → Wachenterminal**
+   „Dieses Gerät als Terminal einrichten“ tippen, oder
+   `sudo deploy/pi/register-terminal.sh "Fahrzeughalle"` und `sudo reboot`.
+   Ein nicht registriertes Gerät zeigt unter `/terminal/` genau diese Anleitung.
 
 Weitere Terminals (z. B. ein Tablet an der Wand) registriert ein Admin unter
 **Team → Wachenterminal**; den angezeigten Link einmal auf dem Gerät öffnen.

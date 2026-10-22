@@ -1,5 +1,26 @@
 # Changelog
 
+## Unveröffentlicht
+
+Ersteinrichtung für den Raspberry Pi überarbeitet.
+
+- Der Touch-Bildschirm öffnet vor der Einrichtung direkt den Assistenten statt
+  einer Textmeldung „nicht registriert“; ein nicht registriertes Gerät nach der
+  Einrichtung zeigt eine Anleitung.
+- Einrichtungscode statt „Bootstrap-Token“: `setup-pi.sh` erzeugt einen
+  abtippbaren Code in Vierergruppen; Groß-/Kleinschreibung, Leerzeichen und
+  Bindestriche werden bei der Prüfung ignoriert.
+- Assistent mit optionalem Schritt *Wachenterminal*: Wachen-Code festlegen und
+  dieses Gerät als Terminal einrichten (am Kiosk vorbelegt).
+- Neue Abschlussseite mit den nächsten Schritten (Besatzung einladen, Terminal,
+  Handys, Ausstattung, Einrichtungscode entfernen).
+- Team → Wachenterminal: „Dieses Gerät als Terminal einrichten“ für den Browser,
+  in dem man gerade angemeldet ist.
+- Startseite und Anmeldung weisen auf eine ausstehende Ersteinrichtung hin.
+- Klarere Texte ohne Fachjargon; der Benutzername `wachenterminal-…` ist für das
+  Dienstkonto reserviert.
+- Pi: Bildschirmtastatur `squeekboard`, Chromium mit Wayland-Texteingabe.
+
 ## 0.24.0 - 2026-10-22
 
 Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in

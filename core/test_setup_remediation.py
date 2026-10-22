@@ -319,8 +319,8 @@ class BootstrapSessionProofTests(TestCase):
         with override_settings(SETUP_BOOTSTRAP_TOKEN="rotated-secret"):
             response = self.client.get(reverse("setup_wizard"))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Master-Admin-Konto")
-        self.assertContains(response, "Bootstrap-Token")
+        self.assertNotContains(response, "Admin-Konto")
+        self.assertContains(response, "Einrichtungscode")
 
     def test_tampered_proof_with_fresh_ttl_is_rejected(self):
         # A valid TTL alone must not authenticate: the stored proof has to be

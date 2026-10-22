@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from core.i18n import apply_login_language
 from core.mfa import mfa_enabled, mfa_required, user_has_confirmed_mfa
 from core.qr_login import is_qr_login_enabled
+from core.setup_wizard import setup_pending
 from core.webauthn_auth import webauthn_enabled
 
 
@@ -17,6 +18,7 @@ class PasswordLoginView(LoginView):
         context = super().get_context_data(**kwargs)
         context["webauthn_enabled"] = webauthn_enabled()
         context["qr_login_enabled"] = is_qr_login_enabled(self.request)
+        context["setup_pending"] = setup_pending()
         return context
 
     def form_valid(self, form):
