@@ -78,7 +78,15 @@ class _ChecklistenScreenState extends State<ChecklistenScreen> {
       if (!mounted) return;
       setState(() {
         _lists = _lists
-            .map((entry) => entry.id == list.id ? updated.copyWith(title: updated.title.isEmpty ? list.title : updated.title) : entry)
+            .map((entry) => entry.id == list.id
+                ? optimistic.copyWith(
+                    completedAt: updated.completedAt,
+                    completedBy: updated.completedBy.isEmpty ? null : updated.completedBy,
+                    interval: updated.interval.isEmpty ? null : updated.interval,
+                    dueNext: updated.dueNext,
+                    overdue: updated.overdue,
+                  )
+                : entry)
             .toList(growable: false);
       });
     } on ApiException catch (error) {
@@ -276,7 +284,9 @@ class _ChecklistCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   AppLocalizations.of(context)!.checklistCompletedAt(
-                    _formatTimestamp(list.completedAt!),
+                    list.completedBy.isEmpty
+                        ? _formatTimestamp(list.completedAt!)
+                        : '${_formatTimestamp(list.completedAt!)} · ${list.completedBy}',
                   ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

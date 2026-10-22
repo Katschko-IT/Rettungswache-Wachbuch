@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wachbuch_mobile/l10n/generated/app_localizations.dart';
 import 'package:wachbuch_mobile/api/api_cache.dart';
 import 'package:wachbuch_mobile/api/client.dart';
@@ -13,15 +14,30 @@ import 'package:wachbuch_mobile/demo/demo_profiles.dart';
 import 'package:wachbuch_mobile/screens/home_shell.dart';
 import 'package:wachbuch_mobile/screens/login_screen.dart';
 import 'package:wachbuch_mobile/screens/server_setup_screen.dart';
+import 'package:wachbuch_mobile/services/update_service.dart';
 import 'package:wachbuch_mobile/theme/app_theme.dart';
-import 'package:wachbuch_mobile/theme/high_contrast_theme.dart';
 import 'package:wachbuch_mobile/theme/solar_theme.dart';
-
+import 'package:wachbuch_mobile/theme/high_contrast_theme.dart';
+import 'package:wachbuch_mobile/widgets/update_dialog.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize session store
   final store = SessionStore();
+  
+  // Initialize server links
   final links = AppLinksServerLinkSource();
+  
+  // Initialize theme controller
   final themeController = SolarThemeController.device();
+  
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+  
   runApp(
     WachbuchApp(
       store: store,
@@ -76,6 +92,46 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
     setState(() {
       _themeMode = widget.themeController?.mode ?? ThemeMode.system;
     });
+  }
+
+  Future<void> _checkForUpdates() async {
+    try {
+      final updateService = UpdateService(baseUrl: _serverUrl ?? '');
+      final updateInfo = await updateService.checkForUpdates();
+      
+      if (updateInfo != null && updateInfo.hasUpdate) {
+        // If this is a forced update, show blocking dialog
+        if (updateInfo.forceUpdate) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              showDialog(
+                context: _navigatorKey.currentContext!,
+                barrierDismissible: false,
+                builder: (context) => ForcedUpdateDialog(
+                  updateInfo: updateInfo,
+                  updateService: updateService,
+                ),
+              );
+            }
+          });
+        } else {
+          // For non-forced updates, show dialog after app loads
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              showDialog(
+                context: _navigatorKey.currentContext!,
+                builder: (context) => UpdateDialog(
+                  updateInfo: updateInfo,
+                  updateService: updateService,
+                ),
+              );
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to check for updates: $e');
+    }
   }
 
   @override
@@ -153,6 +209,9 @@ class _WachbuchAppState extends State<WachbuchApp> with WidgetsBindingObserver {
       _handleServerLink,
       onError: (_) {},
     );
+    if (_serverUrl != null && _serverUrl!.isNotEmpty && !DemoService.isDemoUrl(_serverUrl!)) {
+      _checkForUpdates();
+    }
   }
 
   String? _parseLink(Uri link) {

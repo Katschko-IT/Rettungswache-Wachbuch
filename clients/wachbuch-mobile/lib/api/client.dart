@@ -375,7 +375,16 @@ class WachbuchApi {
       );
       final body = _decode(response);
       if (body.isEmpty) return Checklist(id: id, title: '', completed: true);
-      return Checklist.fromJson({...body, 'id': body['checklist'] ?? id, 'completed': true});
+      // Antwort beschreibt den Abschluss, nicht die Liste: `created_at` ist
+      // der Abschlusszeitpunkt. Titel/Punkte ergänzt der Aufrufer.
+      final by = body['completed_by'];
+      return Checklist.fromJson({
+        ...body,
+        'id': body['checklist'] ?? id,
+        'completed': true,
+        'completed_at': body['created_at'] ?? body['completed_at'],
+        'last_completed_by': by is Map ? by['display_name'] : by,
+      });
     }, maxAttempts: 1);
   }
 
@@ -968,6 +977,10 @@ String moduleLabel(String key, {String languageCode = 'de'}) {
     'feeds': 'Meldungen & Verkehr',
     'checklists': 'Checklisten',
     'messaging': 'Nachrichten',
+    'chat': 'Wachenchat',
+    'pinboard': 'Pinnwand',
+    'holidays': 'Feiertage',
+    'weather': 'Wetter',
     'tasks': 'Aufgaben',
     'defects': 'Mängel',
     'assets': 'Geräte',
@@ -982,6 +995,10 @@ String moduleLabel(String key, {String languageCode = 'de'}) {
     'feeds': 'News & traffic',
     'checklists': 'Checklists',
     'messaging': 'Messages',
+    'chat': 'Station chat',
+    'pinboard': 'Pinboard',
+    'holidays': 'Public holidays',
+    'weather': 'Weather',
     'tasks': 'Tasks',
     'defects': 'Defects',
     'assets': 'Assets',

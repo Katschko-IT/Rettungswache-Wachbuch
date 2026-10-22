@@ -5,28 +5,39 @@ class Checklist {
     this.items = const [],
     this.completed = false,
     this.completedAt,
+    this.completedBy = '',
     this.description = '',
     this.interval = '',
     this.dueNext,
     this.overdue = false,
   });
 
+  /// Server (`GET /api/v1/checklisten/`) liefert `items` als Liste von
+  /// Texten sowie `last_completed_at`/`last_completed_by`; ob die Liste im
+  /// aktuellen Turnus erledigt ist, wird daraus und aus `interval` abgeleitet.
   factory Checklist.fromJson(Map<String, dynamic> json) {
     final dueNext = _readDate(json['due_next'] ?? json['dueNext']);
     final overdueFlag = json['overdue'] == true || json['is_overdue'] == true;
+    final interval = _readInterval(json['interval']);
+    final completedAt = _readDate(json['completed_at']) ??
+        _readDate(json['last_completed_at']) ??
+        _readDate((json['completion'] is Map
+                ? (json['completion'] as Map)['created_at']
+                : null));
+    final overdue = overdueFlag || _isPastDue(dueNext);
     return Checklist(
       id: _readInt(json['id']),
       title: (json['title'] ?? json['name'] ?? '').toString().trim(),
       description: (json['description'] ?? '').toString().trim(),
       items: _readItems(json['items'] ?? json['tasks'] ?? const []),
-      completed: json['completed'] == true || json['is_completed'] == true,
-      completedAt: _readDate(json['completed_at']) ??
-          _readDate((json['completion'] is Map
-                  ? (json['completion'] as Map)['created_at']
-                  : null)),
-      interval: _readInterval(json['interval']),
+      completed: json['completed'] == true ||
+          json['is_completed'] == true ||
+          (!overdue && _completedInCurrentCycle(completedAt, interval)),
+      completedAt: completedAt,
+      completedBy: (json['last_completed_by'] ?? '').toString().trim(),
+      interval: interval,
       dueNext: dueNext,
-      overdue: overdueFlag || _isPastDue(dueNext),
+      overdue: overdue,
     );
   }
 
@@ -36,6 +47,8 @@ class Checklist {
   final List<ChecklistItem> items;
   final bool completed;
   final DateTime? completedAt;
+  /// Anzeigename der Person, die zuletzt abgeschlossen hat (falls bekannt).
+  final String completedBy;
   /// `daily` | `weekly` | `monthly` | empty when not recurring.
   final String interval;
   final DateTime? dueNext;
@@ -63,6 +76,7 @@ class Checklist {
     List<ChecklistItem>? items,
     bool? completed,
     DateTime? completedAt,
+    String? completedBy,
     String? interval,
     DateTime? dueNext,
     bool? overdue,
@@ -74,6 +88,7 @@ class Checklist {
       items: items ?? this.items,
       completed: completed ?? this.completed,
       completedAt: completedAt ?? this.completedAt,
+      completedBy: completedBy ?? this.completedBy,
       interval: interval ?? this.interval,
       dueNext: dueNext ?? this.dueNext,
       overdue: overdue ?? this.overdue,
@@ -114,10 +129,30 @@ class ChecklistItem {
 
 List<ChecklistItem> _readItems(Object? value) {
   if (value is! List) return const [];
-  return value
-      .whereType<Map>()
-      .map((item) => ChecklistItem.fromJson(Map<String, dynamic>.from(item)))
-      .toList(growable: false);
+  final items = <ChecklistItem>[];
+  for (final (index, item) in value.indexed) {
+    if (item is Map) {
+      items.add(ChecklistItem.fromJson(Map<String, dynamic>.from(item)));
+    } else if (item is String && item.trim().isNotEmpty) {
+      // Server liefert Prüfpunkte als reine Texte.
+      items.add(ChecklistItem(id: index + 1, label: item.trim()));
+    }
+  }
+  return List.unmodifiable(items);
+}
+
+/// Erledigt, wenn der letzte Abschluss in den laufenden Turnus fällt
+/// (ohne Turnus: heute).
+bool _completedInCurrentCycle(DateTime? completedAt, String interval) {
+  if (completedAt == null) return false;
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final done = DateTime(completedAt.year, completedAt.month, completedAt.day);
+  return switch (interval) {
+    'weekly' => today.difference(done).inDays < 7,
+    'monthly' => done.year == today.year && done.month == today.month,
+    _ => done == today,
+  };
 }
 
 DateTime? _readDate(Object? value) {

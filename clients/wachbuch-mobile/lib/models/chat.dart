@@ -20,6 +20,7 @@ class ChatMemberKey {
     required this.label,
     required this.hasKeys,
     this.publicJwk,
+    this.fingerprint,
   });
 
   factory ChatMemberKey.fromJson(Map<String, dynamic> json) {
@@ -29,6 +30,10 @@ class ChatMemberKey {
       label: (json['label'] ?? '').toString(),
       hasKeys: json['has_keys'] == true,
       publicJwk: jwk is Map ? Map<String, dynamic>.from(jwk) : null,
+      fingerprint: json['fingerprint'] is String &&
+              (json['fingerprint'] as String).isNotEmpty
+          ? json['fingerprint'] as String
+          : null,
     );
   }
 
@@ -36,6 +41,7 @@ class ChatMemberKey {
   final String label;
   final bool hasKeys;
   final Map<String, dynamic>? publicJwk;
+  final String? fingerprint;
 
   /// Recipient descriptor consumed by `E2ee.encryptForRecipients`.
   Map<String, dynamic> toRecipient() => {'user_id': userId, 'public_jwk': publicJwk};

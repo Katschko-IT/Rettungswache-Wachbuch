@@ -4,6 +4,18 @@ Alle wesentlichen Änderungen an Wachbuch Mobile werden hier dokumentiert.
 
 ## Unreleased
 
+- API-Vertrag mit dem Server abgeglichen (Review 2026-10-22):
+  - Kaffeekasse liest die echten Serverfelder `balance_euros`, `results`,
+    `amount_euros` und `reason` (zuvor immer „0,00 €“ und keine Buchungen).
+  - Kassenstand zeigte statt des Währungssymbols einen Funktionsnamen
+    (`Closure: …`); behoben.
+  - Checklisten übernehmen Prüfpunkte, die der Server als Texte liefert, und
+    leiten „erledigt“ aus `last_completed_at` und Turnus ab; der Name der
+    abschließenden Person wird angezeigt.
+  - Ein Abschluss ersetzt die Karte nicht mehr durch eine leere Liste,
+    sondern ergänzt Zeitpunkt, Turnus und nächste Fälligkeit.
+  - Modul-Chips zeigen Wachenchat, Pinnwand, Feiertage und Wetter mit Namen
+    und blenden Zusatzangaben wie `holiday_state` aus.
 - Gemeinsame Palette mit der Web-PWA: Primary `#0D47A1`, Fläche `#F7F9FC`.
 - High-Contrast-Emergency-Themes sind an `MaterialApp` verdrahtet
   (`highContrastTheme` / `highContrastDarkTheme`).

@@ -6,6 +6,7 @@ import 'package:wachbuch_mobile/models/chat.dart';
 import 'package:wachbuch_mobile/state/crypto_session.dart';
 import 'package:wachbuch_mobile/ui/error_banner.dart';
 import 'package:wachbuch_mobile/ui/layout.dart';
+import 'package:wachbuch_mobile/screens/key_verification_sheet.dart';
 
 /// List of group chats plus a create action.
 class GroupsScreen extends StatefulWidget {
@@ -76,7 +77,23 @@ class _GroupsScreenState extends State<GroupsScreen> {
     final l = AppLocalizations.of(context)!;
     final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
-      appBar: AppBar(title: Text(l.groupsTitle)),
+      appBar: AppBar(
+        title: Text(l.groupsTitle),
+        actions: [
+          IconButton(
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => KeyVerificationSheet(
+                api: widget.api,
+                session: widget.session,
+              ),
+            ),
+            tooltip: l.keyVerifyTitle,
+            icon: const Icon(Icons.verified_user_outlined),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreate,
         icon: const Icon(Icons.group_add_outlined),

@@ -6,12 +6,19 @@ class Kaffeekasse {
     this.paymentHint = '',
   });
 
+  /// Server (`GET /api/v1/kaffeekasse/`) liefert `balance_euros` und
+  /// `results`; die übrigen Schlüssel bleiben als Rückfall erhalten.
   factory Kaffeekasse.fromJson(Map<String, dynamic> json) {
     final currency = (json['currency'] ?? 'EUR').toString();
     return Kaffeekasse(
-      balance: _formatMoney(json['balance'] ?? json['saldo'], currency),
+      balance: _formatMoney(
+        json['balance_euros'] ?? json['balance'] ?? json['saldo'],
+        currency,
+      ),
       currency: currency,
-      ledger: _readLedger(json['ledger'] ?? json['transactions'] ?? const []),
+      ledger: _readLedger(
+        json['results'] ?? json['ledger'] ?? json['transactions'] ?? const [],
+      ),
       paymentHint:
           (json['payment_hint'] ?? json['payment'] ?? '').toString().trim(),
     );
@@ -37,8 +44,11 @@ class KaffeekasseEntry {
   factory KaffeekasseEntry.fromJson(Map<String, dynamic> json) {
     return KaffeekasseEntry(
       id: _readInt(json['id']),
-      amount: _parseMoney(json['amount'] ?? json['value']),
-      description: (json['description'] ?? json['memo'] ?? '').toString().trim(),
+      amount: _parseMoney(json['amount_euros'] ?? json['amount'] ?? json['value']),
+      description:
+          (json['reason'] ?? json['description'] ?? json['memo'] ?? '')
+              .toString()
+              .trim(),
       userName: _readUser(json['user'] ?? json['member']),
       createdAt: _readDate(json['created_at'] ?? json['date']),
     );
@@ -92,7 +102,7 @@ String _formatMoney(Object? value, String currency) {
   final amount = _parseMoney(value);
   final absolute = amount.abs().toStringAsFixed(2).replaceAll('.', ',');
   final sign = amount < 0 ? '-' : '';
-  return '$sign$absolute $_currencySymbol(currency)';
+  return '$sign$absolute ${_currencySymbol(currency)}';
 }
 
 String _formatSignedMoney(num amount) {

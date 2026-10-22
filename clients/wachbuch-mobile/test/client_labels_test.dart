@@ -7,6 +7,11 @@ void main() {
     expect(moduleLabel('calendar'), 'Kalender');
     expect(moduleLabel('checklists'), 'Checklisten');
     expect(moduleLabel('custom_module'), 'custom_module');
+    // Schlüssel, die der Server in /api/v1/me/ tatsächlich sendet.
+    for (final key in ['chat', 'pinboard', 'holidays', 'weather', 'feeds', 'tasks']) {
+      expect(moduleLabel(key), isNot(key));
+      expect(moduleLabel(key, languageCode: 'en'), isNot(key));
+    }
   });
 
   test('ensureWachbuchDiscovery accepts ok endpoints payloads', () {

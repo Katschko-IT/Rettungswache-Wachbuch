@@ -166,6 +166,36 @@ void main() {
       expect(result.items.first.checked, isTrue);
     });
 
+    test('reads the real server completion payload', () async {
+      final client = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'ok': true,
+            'id': 99,
+            'checklist': 5,
+            'completed_by': {'id': 1, 'display_name': 'Sandra'},
+            'created_at': '2026-10-22T07:00:00+00:00',
+            'interval': 'daily',
+            'due_next': '2026-10-23T07:00:00+00:00',
+            'overdue': false,
+          }),
+          201,
+        );
+      });
+
+      final result = await WachbuchApi(
+        baseUrl: baseUrl,
+        token: 'wb_test123',
+        client: client,
+      ).checklisteAbschluss(5);
+
+      expect(result.id, 5);
+      expect(result.completed, isTrue);
+      expect(result.completedAt, DateTime.parse('2026-10-22T07:00:00+00:00').toLocal());
+      expect(result.completedBy, 'Sandra');
+      expect(result.interval, 'daily');
+    });
+
     test('empty 204-style body still yields a completed checklist', () async {
       final client = MockClient(
         (_) async => http.Response('', 204),

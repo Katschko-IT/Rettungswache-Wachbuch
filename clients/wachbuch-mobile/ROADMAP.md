@@ -12,6 +12,19 @@ Kurz: Mängel-Workflow → Statusboard → Quittierung → Anhänge → wiederke
 Checks → Schlüssel/Pools → Offline-Cache → Auswertung. Prototyp Phase A–D in
 `landing/app/`.
 
+## Server-Parität (Review 22. Oktober 2026)
+
+- [x] ~~Kaffeekasse liest `balance_euros`/`results`/`amount_euros`/`reason`.~~
+- [x] ~~Checklisten verarbeiten Text-Prüfpunkte und `last_completed_at`/`_by`.~~
+- [x] ~~Abschluss einer Checkliste ergänzt die Karte statt sie zu leeren.~~
+- [x] ~~Modul-Chips kennen alle Schlüssel aus `/api/v1/me/`.~~
+- [ ] Schreibende Server-Endpunkte nutzen: Übergabe anlegen/Status,
+  `PATCH /defects/{id}/`, Kalender- und Kassen-Einträge.
+- [ ] `next`-Paginierung auswerten, sobald der Server sie liefert.
+- [ ] Upload-Grenze mit dem Server vereinheitlichen (Client 2 MiB, Server 5 MiB).
+
+Bericht: `docs/REVIEW-2026-10-22.md` im Server-Repository.
+
 ## Android-Ziel: 10/10 Release Engineering
 
 Die technische Android-Härtung ist abgeschlossen und in `main` integriert.

@@ -5,7 +5,9 @@
 /// cleared on logout. Persisting it would weaken the passphrase protection.
 library;
 
-class CryptoSession {
+import 'package:flutter/foundation.dart';
+
+class CryptoSession extends ChangeNotifier {
   CryptoSession();
 
   /// Process-wide session used by the app shell; tests inject their own.
@@ -18,10 +20,12 @@ class CryptoSession {
   Map<String, dynamic>? get privateJwk => _privateJwk;
 
   void unlockWith(Map<String, dynamic> privateJwk) {
-    _privateJwk = privateJwk;
+    _privateJwk = Map<String, dynamic>.unmodifiable(privateJwk);
+    notifyListeners();
   }
 
   void lock() {
     _privateJwk = null;
+    notifyListeners();
   }
 }

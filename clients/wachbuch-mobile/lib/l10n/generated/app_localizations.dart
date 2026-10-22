@@ -1561,6 +1561,192 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Aushang wurde angelegt.'**
   String get pinboardCreated;
+
+  /// No description provided for @updateTitleAvailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Version verfügbar'**
+  String get updateTitleAvailable;
+
+  /// No description provided for @updateTitleRequired.
+  ///
+  /// In de, this message translates to:
+  /// **'Wichtiges Update erforderlich'**
+  String get updateTitleRequired;
+
+  /// No description provided for @updateCurrentVersion.
+  ///
+  /// In de, this message translates to:
+  /// **'Aktuelle Version: {version}'**
+  String updateCurrentVersion(Object version);
+
+  /// No description provided for @updateNewVersion.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Version: {version}'**
+  String updateNewVersion(Object version);
+
+  /// No description provided for @updateReleasedAt.
+  ///
+  /// In de, this message translates to:
+  /// **'Veröffentlicht am: {date}'**
+  String updateReleasedAt(Object date);
+
+  /// No description provided for @updateWhatsNew.
+  ///
+  /// In de, this message translates to:
+  /// **'Was gibt es Neues?'**
+  String get updateWhatsNew;
+
+  /// No description provided for @updateRequiredNotice.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Update ist erforderlich, um die App weiter nutzen zu können.'**
+  String get updateRequiredNotice;
+
+  /// No description provided for @updateForceExplanation.
+  ///
+  /// In de, this message translates to:
+  /// **'Um die App weiter nutzen zu können, musst du auf die neueste Version updaten.'**
+  String get updateForceExplanation;
+
+  /// No description provided for @updateRequiredVersion.
+  ///
+  /// In de, this message translates to:
+  /// **'Erforderliche Version: {version}'**
+  String updateRequiredVersion(Object version);
+
+  /// No description provided for @updateLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später erinnern'**
+  String get updateLater;
+
+  /// No description provided for @updateClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get updateClose;
+
+  /// No description provided for @updateDownload.
+  ///
+  /// In de, this message translates to:
+  /// **'Update herunterladen'**
+  String get updateDownload;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In de, this message translates to:
+  /// **'Jetzt updaten'**
+  String get updateNow;
+
+  /// No description provided for @updateVersionEntry.
+  ///
+  /// In de, this message translates to:
+  /// **'Version {version}'**
+  String updateVersionEntry(Object version);
+
+  /// No description provided for @keyVerifyTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Schlüssel verifizieren'**
+  String get keyVerifyTitle;
+
+  /// No description provided for @keyVerifyExplanation.
+  ///
+  /// In de, this message translates to:
+  /// **'Vergleiche den Fingerprint deines Schlüssels mit dem deiner Kolleginnen und Kollegen – persönlich oder per QR-Scan. Stimmen sie überein, ist der Schlüssel echt.'**
+  String get keyVerifyExplanation;
+
+  /// No description provided for @keyVerifyOwnKey.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Schlüssel'**
+  String get keyVerifyOwnKey;
+
+  /// No description provided for @keyVerifyOwnTag.
+  ///
+  /// In de, this message translates to:
+  /// **'(du)'**
+  String get keyVerifyOwnTag;
+
+  /// No description provided for @keyVerifyVerifiedTag.
+  ///
+  /// In de, this message translates to:
+  /// **'verifiziert'**
+  String get keyVerifyVerifiedTag;
+
+  /// No description provided for @keyVerifyScanAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Per Scan verifizieren'**
+  String get keyVerifyScanAction;
+
+  /// No description provided for @keyVerifyScanTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fingerprint scannen'**
+  String get keyVerifyScanTitle;
+
+  /// No description provided for @keyVerifyMatch.
+  ///
+  /// In de, this message translates to:
+  /// **'Fingerprint stimmt mit {name} überein.'**
+  String keyVerifyMatch(Object name);
+
+  /// No description provided for @keyVerifyNoMatch.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Mitglied mit diesem Fingerprint gefunden.'**
+  String get keyVerifyNoMatch;
+
+  /// No description provided for @keyVerifyCopied.
+  ///
+  /// In de, this message translates to:
+  /// **'Fingerprint kopiert.'**
+  String get keyVerifyCopied;
+
+  /// No description provided for @keyVerifyShowQr.
+  ///
+  /// In de, this message translates to:
+  /// **'QR-Code anzeigen'**
+  String get keyVerifyShowQr;
+
+  /// No description provided for @keyVerifyConfirmAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Als verifiziert markieren'**
+  String get keyVerifyConfirmAction;
+
+  /// No description provided for @keyVerifyRevoke.
+  ///
+  /// In de, this message translates to:
+  /// **'Verifizierung zurückziehen'**
+  String get keyVerifyRevoke;
+
+  /// No description provided for @keyVerifyReverified.
+  ///
+  /// In de, this message translates to:
+  /// **'Geänderter Schlüssel von {name} erneut verifiziert.'**
+  String keyVerifyReverified(Object name);
+
+  /// No description provided for @keyVerifyChangedTag.
+  ///
+  /// In de, this message translates to:
+  /// **'Schlüssel geändert!'**
+  String get keyVerifyChangedTag;
+
+  /// No description provided for @keyVerifyChangedWarning.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, one {{count} verifizierter Schlüssel hat sich geändert} other {{count} verifizierte Schlüssel haben sich geändert}}. Bitte persönlich erneut prüfen.'**
+  String keyVerifyChangedWarning(num count);
+
+  /// No description provided for @keyVerifyServerMismatch.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, one {{count} vom Server gemeldeter Fingerprint weicht vom Schlüssel ab} other {{count} vom Server gemeldete Fingerprints weichen vom Schlüssel ab}}. Mögliche Server-Manipulation – nicht verifizieren.'**
+  String keyVerifyServerMismatch(num count);
 }
 
 class _AppLocalizationsDelegate

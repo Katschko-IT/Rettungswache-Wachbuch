@@ -21,6 +21,7 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: stable
+          flutter-version: "3.47.7"
           cache: true
       - run: flutter pub get
       - name: Verify committed dependency lock
@@ -35,6 +36,15 @@ jobs:
           fi
       - name: Generate localizations
         run: flutter gen-l10n
+      - name: Check for outdated dependencies
+        run: flutter pub outdated
+      - name: Verify dependency versions
+        run: |
+          # Prüfe, dass keine 'any' Versionen mehr vorhanden sind
+          if grep -q "any" pubspec.yaml; then
+            echo "::error::Found 'any' version constraints in pubspec.yaml"
+            exit 1
+          fi
       - run: flutter analyze
       - run: flutter test
 
@@ -52,6 +62,7 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: stable
+          flutter-version: "3.47.7"
           cache: true
       - uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
         with:

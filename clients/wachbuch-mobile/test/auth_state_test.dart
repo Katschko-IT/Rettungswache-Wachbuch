@@ -102,4 +102,73 @@ void main() {
     expect(state.modules, isEmpty);
     state.dispose();
   });
+
+  group('account identity (login-user isolation)', () {
+    test('userId/accountKey prefer the stable numeric id', () async {
+      final api = _FakeApi({
+        'user': {'id': 42, 'username': 'michael'},
+      });
+      final state = AuthState(api: api);
+      await state.reload();
+
+      expect(state.userId, 42);
+      expect(state.accountKey, '42');
+      state.dispose();
+    });
+
+    test('accountKey falls back to the username when the id is absent',
+        () async {
+      final api = _FakeApi({
+        'user': {'username': 'michael'},
+      });
+      final state = AuthState(api: api);
+      await state.reload();
+
+      expect(state.userId, isNull);
+      expect(state.accountKey, 'michael');
+      state.dispose();
+    });
+
+    test('accountKey is null when unknown -> callers fail closed', () async {
+      final api = _FakeApi(const <String, dynamic>{});
+      final state = AuthState(api: api);
+      await state.reload();
+
+      expect(state.accountKey, isNull);
+      state.dispose();
+    });
+
+    test('a captured caller keeps its identity across a reload', () async {
+      final api = _MutableFakeApi({
+        'user': {'id': 7, 'username': 'a'},
+      });
+      final state = AuthState(api: api);
+      await state.reload();
+
+      // The caller captures the current-login identity for local state.
+      final captured = state.accountKey;
+      expect(captured, '7');
+
+      // The same app reloads after a logout + different login.
+      api.payload = {
+        'user': {'id': 8, 'username': 'b'},
+      };
+      await state.reload();
+
+      expect(state.accountKey, '8');
+      // The captured snapshot is unchanged (immutable identity).
+      expect(captured, '7');
+      state.dispose();
+    });
+  });
+}
+
+class _MutableFakeApi extends WachbuchApi {
+  _MutableFakeApi(this.payload)
+      : super(baseUrl: 'https://wache.example.org', token: 'wb_test');
+
+  Map<String, dynamic> payload;
+
+  @override
+  Future<Map<String, dynamic>> me() async => payload;
 }
