@@ -323,3 +323,34 @@ class MonthTasksTests(TestCase):
             [(item["task"].title, item["date"]) for item in items],
             [("Sauerstoff bestellen", date(2026, 2, 28))],
         )
+
+
+class TerminalWifiQrTests(TerminalTestCase):
+    def test_payload_escapes_special_characters(self):
+        from core.terminal import wifi_qr_payload
+
+        with self.settings(TERMINAL_WIFI_SSID='RW;1 "Nord"', TERMINAL_WIFI_PASSWORD="a:b,c\\d"):
+            self.assertEqual(wifi_qr_payload(), r'WIFI:T:WPA;S:RW\;1 \"Nord\";P:a\:b\,c\\d;;')
+        with self.settings(TERMINAL_WIFI_SSID="Offen", TERMINAL_WIFI_PASSWORD=""):
+            self.assertEqual(wifi_qr_payload(), "WIFI:T:nopass;S:Offen;;")
+        with self.settings(TERMINAL_WIFI_SSID="", TERMINAL_WIFI_PASSWORD="geheim"):
+            self.assertEqual(wifi_qr_payload(), "")
+
+    @override_settings(TERMINAL_WIFI_SSID="Wachbuch RW1", TERMINAL_WIFI_PASSWORD="sehr-geheim-123")
+    def test_lock_screen_shows_wifi_qr_only_on_terminal(self):
+        url = reverse("terminal_wifi_qr")
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.use_terminal()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertIn("no-store", response["Cache-Control"])
+        page = self.client.get(reverse("terminal_home"))
+        self.assertContains(page, url)
+        self.assertContains(page, "WLAN verbinden")
+        self.assertNotContains(page, "sehr-geheim-123")
+
+    def test_no_wifi_qr_without_configuration(self):
+        self.use_terminal()
+        self.assertEqual(self.client.get(reverse("terminal_wifi_qr")).status_code, 404)
+        self.assertNotContains(self.client.get(reverse("terminal_home")), reverse("terminal_wifi_qr"))

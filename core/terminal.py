@@ -120,6 +120,23 @@ def idle_seconds() -> int:
     return int(getattr(settings, "TERMINAL_IDLE_SECONDS", 120))
 
 
+def wifi_qr_payload() -> str:
+    """WLAN-Beitritt per Kamera (Format ``WIFI:``, Android und iOS); leer ohne Konfiguration."""
+    ssid = getattr(settings, "TERMINAL_WIFI_SSID", "") or ""
+    password = getattr(settings, "TERMINAL_WIFI_PASSWORD", "") or ""
+    if not ssid:
+        return ""
+
+    def escape(value: str) -> str:
+        for char in ("\\", ";", ",", ":", '"'):
+            value = value.replace(char, "\\" + char)
+        return value
+
+    if not password:
+        return f"WIFI:T:nopass;S:{escape(ssid)};;"
+    return f"WIFI:T:WPA;S:{escape(ssid)};P:{escape(password)};;"
+
+
 def local_cert_fingerprint() -> str:
     value = getattr(settings, "LOCAL_TLS_CERT_SHA256", "") or ""
     return value if _SHA256.match(value) else ""
@@ -327,16 +344,28 @@ class TerminalMiddleware:
         return None
 
 
+def is_local_request(request) -> bool:
+    """Der Browser läuft auf dem Server selbst (Kiosk des Pi, Adresse localhost)."""
+    try:
+        host = request.get_host()
+    except Exception:  # DisallowedHost o. Ä.: nie als lokal werten
+        return False
+    return host.rsplit(":", 1)[0].strip("[]") in {"localhost", "127.0.0.1", "::1"}
+
+
 def terminal_context(request):
     terminal = terminal_for_request(request) if hasattr(request, "COOKIES") else None
     feature = terminal_enabled()
     device = terminal is not None
+    # Bildschirmtastatur nur am Terminal bzw. am Bildschirm des Servers selbst.
+    osk = feature and (device or is_local_request(request))
     if not device or not getattr(request, "user", None) or not request.user.is_authenticated:
-        return {"terminal_session": False, "terminal_device": device, "terminal_feature": feature}
+        return {"terminal_session": False, "terminal_device": device, "terminal_feature": feature, "osk_enabled": osk}
     return {
         "terminal_session": True,
         "terminal_open_mode": is_open_mode(request),
         "terminal_device": True,
         "terminal_feature": feature,
         "terminal_idle_seconds": idle_seconds(),
+        "osk_enabled": osk,
     }

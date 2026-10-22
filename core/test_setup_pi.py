@@ -127,3 +127,34 @@ class KioskFirstBootTests(TestCase):
         self.assertEqual(terminal.token_hash, hash_secret(response.cookies[COOKIE_NAME].value))
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertEqual(self.client.get(reverse("terminal_home")).status_code, 200)
+
+
+@override_settings(ALLOWED_HOSTS=["localhost", "10.42.0.1", "testserver"])
+class OnScreenKeyboardTests(TestCase):
+    """Bildschirmtastatur nur am Kiosk (localhost) und auf registrierten Terminals."""
+
+    @override_settings(TERMINAL_ENABLED=True)
+    def test_kiosk_gets_keyboard(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="localhost")
+        self.assertContains(response, 'id="osk-root"')
+        self.assertContains(response, "core/osk.js")
+        self.assertContains(response, "core/osk.css")
+
+    @override_settings(TERMINAL_ENABLED=True)
+    def test_phones_and_laptops_keep_their_own_keyboard(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="10.42.0.1")
+        self.assertNotContains(response, "osk-root")
+
+    @override_settings(TERMINAL_ENABLED=True)
+    def test_registered_terminal_gets_keyboard_on_any_address(self):
+        station = Station.objects.create(name="Wache OSK", slug="wache-osk")
+        admin = User.objects.create_user("osk-chef", password="pw-Sicher-2026!")
+        Membership.objects.create(user=admin, station=station, role=Membership.Role.ADMIN)
+        raw = "osk-terminal-secret"
+        StationTerminal.objects.create(station=station, label="Halle", token_hash=hash_secret(raw), created_by=admin)
+        self.client.cookies[COOKIE_NAME] = raw
+        self.assertContains(self.client.get(reverse("login"), HTTP_HOST="10.42.0.1"), 'id="osk-root"')
+
+    def test_feature_off_means_no_keyboard(self):
+        with self.settings(TERMINAL_ENABLED=False):
+            self.assertNotContains(self.client.get(reverse("login"), HTTP_HOST="localhost"), "osk-root")

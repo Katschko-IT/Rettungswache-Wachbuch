@@ -152,6 +152,7 @@ urlpatterns = [
     path("terminal/start/<str:token>/", terminal_views.terminal_start, name="terminal_start"),
     path("terminal/daten/", terminal_views.terminal_data, name="terminal_data"),
     path("terminal/app-qr.png", terminal_views.terminal_connect_qr, name="terminal_connect_qr"),
+    path("terminal/wlan-qr.png", terminal_views.terminal_wifi_qr, name="terminal_wifi_qr"),
     path("terminal/abmelden/", terminal_views.terminal_logout, name="terminal_logout"),
     path("terminal/alltag/", terminal_views.terminal_menu, name="terminal_menu"),
     path("terminal/handy/", terminal_views.terminal_pair, name="terminal_pair"),

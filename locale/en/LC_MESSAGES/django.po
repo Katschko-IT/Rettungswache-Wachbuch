@@ -7,7 +7,7 @@ msgstr "Project-Id-Version: Wachbuch\nReport-Msgid-Bugs-To: \nPOT-Creation-Date:
 msgid "%(active)s/%(total)s Bausteine aktiv"
 msgstr "%(active)s/%(total)s modules active"
 
-#: templates/base.html:77
+#: templates/base.html:78
 msgid "%(app_name)s auf dem Gerät"
 msgstr "%(app_name)s on this device"
 
@@ -19,7 +19,7 @@ msgstr "%(category)s &middot; Version %(version)s"
 msgid "%(done)s von %(total)s erledigt"
 msgstr "%(done)s of %(total)s done"
 
-#: templates/base.html:99
+#: templates/base.html:100
 msgid "%(nav_urgent_count)s dringend"
 msgstr "%(nav_urgent_count)s urgent"
 
@@ -187,7 +187,7 @@ msgstr "API tokens require active station access."
 msgid "API-Wurzel:"
 msgstr "API root:"
 
-#: templates/base.html:133
+#: templates/base.html:134
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
@@ -212,7 +212,7 @@ msgstr "API root:"
 #: templates/core/task_form.html:24
 #: templates/core/team_form.html:17
 #: templates/core/team_user_create.html:17
-#: templates/core/terminal_home.html:96
+#: templates/core/terminal_home.html:104
 #: templates/core/warehouse_item_detail.html:170
 #: templates/core/warehouse_item_detail.html:210
 #: templates/core/warehouse_item_detail.html:245
@@ -239,7 +239,7 @@ msgstr "Retrieved on %(date)s (age: %(age)s minutes)."
 msgid "Ablehnen"
 msgstr "Decline"
 
-#: templates/base.html:50
+#: templates/base.html:51
 msgid "Abmelden"
 msgstr "Sign out"
 
@@ -327,11 +327,11 @@ msgstr "Activation link"
 msgid "Aktivierungslink für"
 msgstr "Activation link for"
 
-#: core/setup_views.py:494
+#: core/setup_views.py:490
 msgid "Aktivierungslink war bereits verbraucht oder widerrufen."
 msgstr "Activation link was already used or revoked."
 
-#: core/setup_views.py:492
+#: core/setup_views.py:488
 msgid "Aktivierungslink wurde widerrufen."
 msgstr "Activation link was revoked."
 
@@ -491,7 +491,7 @@ msgstr "Watch routine"
 msgid "Als Admin anmelden"
 msgstr "Sign in as admin"
 
-#: templates/base.html:78
+#: templates/base.html:79
 msgid "Als App installieren für schnellen Zugriff auf der Wache."
 msgstr "Install as app for quick access at the station."
 
@@ -603,7 +603,7 @@ msgstr "Create and approve"
 
 #: core/test_i18n_phase1.py:73
 #: core/test_i18n_phase1.py:74
-#: templates/base.html:55
+#: templates/base.html:56
 #: templates/core/landing.html:15
 #: templates/core/privacy.html:194
 #: templates/core/vorfuehrung.html:128
@@ -697,7 +697,7 @@ msgstr "App on the station Wi-Fi"
 msgid "App per QR-Code ohne Passwort anmelden"
 msgstr "Sign in to the app by QR code without a password"
 
-#: templates/core/terminal_home.html:74
+#: templates/core/terminal_home.html:81
 msgid "App verbinden"
 msgstr "Connect app"
 
@@ -790,7 +790,7 @@ msgid "Auch eine Vorführung mit fiktiven Fachinhalten verarbeitet echte Verbind
 msgstr "Even a demonstration with fictional operational content processes real connection data. Which details permanently end up in access or error logs depends on the actual configuration of the application, the reverse proxy, and the hosting. Prior to publication, an inventory is required for the following possible data fields; the list is not a statement that all fields are logged:"
 
 #: core/navigation.py:70
-#: templates/base.html:93
+#: templates/base.html:94
 #: templates/core/audit_log.html:3
 #: templates/core/audit_log.html:5
 msgid "Audit"
@@ -1258,6 +1258,10 @@ msgstr "Images or PDFs, at most 5 MB per file."
 msgid "Bildschirm-Zone"
 msgstr "Screen zone"
 
+#: templates/base.html:146
+msgid "Bildschirmtastatur"
+msgstr "On-screen keyboard"
+
 #: templates/core/calendar.html:24
 msgid "Bis"
 msgstr "To"
@@ -1323,7 +1327,7 @@ msgstr "Please choose a file."
 msgid "Bitte eine Wache auswählen."
 msgstr "Please select a station."
 
-#: core/setup_views.py:80
+#: core/setup_views.py:81
 msgid "Bitte eine der angebotenen Zeitzonen wählen."
 msgstr "Please select one of the offered timezones."
 
@@ -1356,7 +1360,7 @@ msgstr "Please select"
 msgid "Bitte zuerst"
 msgstr "Please first"
 
-#: core/setup_views.py:199
+#: core/setup_views.py:200
 msgid "Bitte zuerst die Wettervorschau laden oder die Wetteranzeige abwählen."
 msgstr "Please fetch the weather preview first or deselect the weather display."
 
@@ -1377,6 +1381,10 @@ msgstr "Does the problem persist? Contact logbook support and share the correlat
 #: templates/errors/404.html:19
 msgid "Brauchst du Hilfe? Wende dich an den Wachbuch-Support und teile die Korrelations-ID."
 msgstr "Need help? Contact logbook support and share the correlation ID."
+
+#: templates/base.html:150
+msgid "Buchstaben"
+msgstr "Letters"
 
 #: templates/core/coffee.html:7
 #: templates/core/coffee_form.html:3
@@ -1649,7 +1657,7 @@ msgstr "Database"
 msgid "Datenschutz"
 msgstr "Privacy"
 
-#: templates/base.html:120
+#: templates/base.html:121
 msgid "Datenschutz & Cookies"
 msgstr "Privacy & Cookies"
 
@@ -1889,7 +1897,7 @@ msgstr "Diagnostics"
 msgid "Die Anfrage konnte nicht verarbeitet werden. Bitte prüfe Eingaben oder Link."
 msgstr "The request could not be processed. Please check your input or link."
 
-#: core/setup_views.py:183
+#: core/setup_views.py:184
 msgid "Die Anschrift wurde nach der Wettervorschau geändert. Bitte die Wettervorschau für die aktuelle Anschrift erneut laden."
 msgstr "The address has changed since the weather preview. Please reload the weather preview for the current address."
 
@@ -1944,7 +1952,7 @@ msgstr "The port specification of the waste calendar URL is invalid."
 msgid "Die Revisionsnummer muss mindestens 1 sein."
 msgstr "The revision number must be at least 1."
 
-#: core/setup_views.py:301
+#: core/setup_views.py:297
 msgid "Die Wettervorschau ist nur sinnvoll, wenn die Wetteranzeige aktiviert ist. Bitte zuerst „5-Tage-Wetter … anzeigen“ auswählen."
 msgstr "The weather preview is only useful when the weather display is enabled. Please select \"Show 5-day weather at the station location\" first."
 
@@ -2463,7 +2471,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Decryption failed."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:134
+#: templates/base.html:135
 msgid "Entsperren"
 msgstr "Unlock"
 
@@ -2777,7 +2785,7 @@ msgstr "The following contacts were provided for publication by the respective o
 msgid "Fortschritt der Tagesaufgaben"
 msgstr "Progress of daily tasks"
 
-#: templates/core/terminal_home.html:77
+#: templates/core/terminal_home.html:85
 msgid "Foto"
 msgstr "Photo"
 
@@ -3215,7 +3223,7 @@ msgstr "Preferred station"
 msgid "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 msgstr "Enter the batch number (lot) from the authority warning. The system locks the batch within seconds for all vehicles."
 
-#: templates/base.html:128
+#: templates/base.html:129
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Enter the passphrase for your end-to-end key. It will only stay in this browser."
 
@@ -3331,6 +3339,7 @@ msgid "Handy mit deinem Konto verbinden"
 msgstr "Connect a phone to your account"
 
 #: templates/core/account.html:70
+#: templates/core/terminal_home.html:72
 #: templates/core/terminal_pair.html:3
 msgid "Handy verbinden"
 msgstr "Connect phone"
@@ -3347,7 +3356,7 @@ msgstr "Connect crew phones"
 msgid "Handys verbinden"
 msgstr "Connect phones"
 
-#: templates/base.html:88
+#: templates/base.html:89
 msgid "Hauptnavigation"
 msgstr "Main navigation"
 
@@ -3396,7 +3405,7 @@ msgid "Heutige Termine"
 msgstr "Today's appointments"
 
 #: core/navigation.py:35
-#: templates/base.html:121
+#: templates/base.html:122
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -3651,7 +3660,7 @@ msgstr "Installable as a web app, plus open-source apps for iOS and Android via 
 msgid "Installierbar, offline lesbar"
 msgstr "Installable, readable offline"
 
-#: templates/base.html:81
+#: templates/base.html:82
 msgid "Installieren"
 msgstr "Install"
 
@@ -4107,7 +4116,7 @@ msgstr "Account"
 msgid "Konto aktivieren"
 msgstr "Activate account"
 
-#: core/setup_views.py:419
+#: core/setup_views.py:415
 msgid "Konto aktiviert. Bitte jetzt mit dem neuen Passwort anmelden."
 msgstr "Account activated. Please sign in now with the new password."
 
@@ -4236,6 +4245,10 @@ msgstr "Ticker in the footer for current station notices and news."
 msgid "Laufende Version:"
 msgstr "Current version:"
 
+#: templates/base.html:150
+msgid "Leertaste"
+msgstr "Space"
+
 #: templates/core/wachalltag_reports.html:8
 msgid "Leichte Betriebsübersicht ohne Leistungsbewertung einzelner Beschäftigter."
 msgstr "Light operational overview without performance evaluation of individual employees."
@@ -4272,7 +4285,7 @@ msgstr "Latest shift takeovers"
 msgid "Letzte Wartungen & STK-Prüfungen"
 msgstr "Latest maintenance & STK inspections"
 
-#: templates/core/terminal_home.html:94
+#: templates/core/terminal_home.html:102
 msgid "Letzte Ziffer löschen"
 msgstr "Delete last digit"
 
@@ -4307,6 +4320,10 @@ msgstr "Local help for the watch log. The articles are stored on the server and 
 #: templates/core/pinboard.html:33
 msgid "Loslösen"
 msgstr "Detach"
+
+#: templates/base.html:148
+msgid "Löschen"
+msgstr "Delete"
 
 #: templates/registration/mfa_manage.html:3
 msgid "MFA"
@@ -5385,7 +5402,7 @@ msgstr "Without CDN, without tracking cookies"
 msgid "Ohne JavaScript erscheinen alle Folien untereinander. Musik steht nur mit JavaScript und nach einem Klick zur Verfügung."
 msgstr "Without JavaScript, all slides appear one below the other. Music is only available with JavaScript and after a click."
 
-#: core/setup_views.py:311
+#: core/setup_views.py:307
 msgid "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterdienst übermittelt. Die Wachendaten werden ausschließlich lokal gespeichert."
 msgstr "Without explicit consent, the address is not transmitted to the weather service. Station data is stored exclusively locally."
 
@@ -5565,7 +5582,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys are not available here."
 
-#: templates/base.html:129
+#: templates/base.html:130
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -5916,9 +5933,13 @@ msgstr "QR code for login"
 msgid "QR-Code zur Signal-Gruppe"
 msgstr "QR code for the Signal group"
 
-#: templates/core/terminal_home.html:73
+#: templates/core/terminal_home.html:80
 msgid "QR-Code: App mit dieser Wache verbinden"
 msgstr "QR code: connect the app to this station"
+
+#: templates/core/terminal_home.html:75
+msgid "QR-Code: WLAN %(ssid)s beitreten"
+msgstr "QR code: join Wi-Fi %(ssid)s"
 
 #: core/templatetags/js_i18n.py:58
 msgid "QR-Login konnte nicht gestartet werden."
@@ -5936,7 +5957,7 @@ msgstr "QR sticker"
 msgid "QR-Sticker drucken"
 msgstr "Print QR sticker"
 
-#: templates/base.html:118
+#: templates/base.html:119
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Source code (AGPL-3.0)"
 
@@ -6211,7 +6232,7 @@ msgstr "Keys & pools"
 msgid "Schlüssel einrichten"
 msgstr "Set up keys"
 
-#: templates/base.html:127
+#: templates/base.html:128
 msgid "Schlüssel entsperren"
 msgstr "Unlock key"
 
@@ -6444,11 +6465,11 @@ msgstr "Save"
 msgid "Sperre aufheben"
 msgstr "Lift lock"
 
-#: templates/base.html:69
+#: templates/base.html:70
 msgid "Sperren"
 msgstr "Lock"
 
-#: templates/base.html:65
+#: templates/base.html:66
 msgid "Sperrt sich nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
 msgstr "Locks after inactivity in <strong data-idle-countdown>%(seconds)s</strong> s"
 
@@ -6464,7 +6485,7 @@ msgstr "Language"
 msgid "Sprache der Benutzeroberfläche. Die Auswahl gilt für dein Konto in diesem Browser."
 msgstr "Language of the user interface. The choice applies to your account in this browser."
 
-#: templates/base.html:82
+#: templates/base.html:83
 msgid "Später"
 msgstr "Later"
 
@@ -6500,7 +6521,7 @@ msgstr "Location & operational status"
 msgid "Standort / Fahrzeug:"
 msgstr "Location / vehicle:"
 
-#: templates/base.html:66
+#: templates/base.html:67
 msgid "Start"
 msgstr "Home"
 
@@ -6677,6 +6698,14 @@ msgstr "Tactical status"
 #: templates/core/fleet_vehicle_form.html:105
 msgid "Tank (%)"
 msgstr "Fuel (%)"
+
+#: templates/base.html:147
+msgid "Tastatur ausblenden"
+msgstr "Hide keyboard"
+
+#: templates/base.html:147
+msgid "Tastatur einblenden"
+msgstr "Show keyboard"
 
 #: templates/core/team.html:3
 msgid "Team"
@@ -6882,6 +6911,10 @@ msgstr "Relocate"
 msgid "Umlagerung buchen"
 msgstr "Book relocation"
 
+#: templates/base.html:149
+msgid "Umschalttaste"
+msgstr "Shift"
+
 #: core/errors.py:58
 msgid "Ungültige Anfrage."
 msgstr "Invalid request."
@@ -6996,7 +7029,7 @@ msgstr "Encrypted – cannot be decrypted (missing keys)."
 msgid "Verschlüsselung"
 msgstr "Encryption"
 
-#: templates/base.html:122
+#: templates/base.html:123
 #: templates/core/handover_detail.html:44
 #: templates/core/privacy.html:190
 #: templates/core/system_status.html:12
@@ -7092,7 +7125,7 @@ msgstr "Get instruction from the device officer before use!"
 msgid "Vorführen. Pilotieren. Selbst hosten."
 msgstr "Demonstrate. Pilot. Self-host."
 
-#: templates/base.html:119
+#: templates/base.html:120
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
 msgstr "Demonstration"
@@ -7145,6 +7178,10 @@ msgstr "Early warning 31–90 days"
 #: templates/core/mpg_dashboard.html:42
 msgid "Vorwarnung ≤ 60 Tage"
 msgstr "Early warning ≤ 60 days"
+
+#: templates/core/terminal_home.html:76
+msgid "WLAN verbinden"
+msgstr "Join Wi-Fi"
 
 #: templates/core/assets_inventory.html:7
 #: templates/core/checklists.html:7
@@ -7221,7 +7258,7 @@ msgid "Wache und Admin-Konto anlegen"
 msgstr "Create station and admin account"
 
 #: templates/core/terminal_admin.html:28
-#: templates/core/terminal_home.html:85
+#: templates/core/terminal_home.html:93
 msgid "Wachen-Code"
 msgstr "Station code"
 
@@ -7229,7 +7266,7 @@ msgstr "Station code"
 msgid "Wachen-Code (4 Ziffern)"
 msgstr "Station code (4 digits)"
 
-#: templates/core/terminal_home.html:84
+#: templates/core/terminal_home.html:92
 msgid "Wachen-Code eingeben"
 msgstr "Enter station code"
 
@@ -7293,7 +7330,7 @@ msgstr "Station calendar"
 msgid "Wachenorganisation"
 msgstr "Station organization"
 
-#: templates/base.html:65
+#: templates/base.html:66
 #: templates/core/setup_done.html:19
 #: templates/core/team.html:15
 #: templates/core/terminal_admin.html:3
@@ -7402,6 +7439,7 @@ msgstr "Web-PWA"
 msgid "Web-PWA, iOS und Android."
 msgstr "Web-PWA, iOS, and Android."
 
+#: templates/base.html:148
 #: templates/core/diagnostics_events.html:55
 #: templates/core/pagination.html:6
 #: templates/core/setup_token.html:27
@@ -7447,7 +7485,7 @@ msgstr "Wero links must start with https://."
 msgid "Wetter"
 msgstr "Weather"
 
-#: core/setup_views.py:205
+#: core/setup_views.py:206
 msgid "Wetter ist aktiviert, aber es liegen keine Koordinaten vor."
 msgstr "Weather is enabled, but no coordinates are available."
 
@@ -7459,7 +7497,7 @@ msgstr "Weather is optional. Without consent, the address is not transmitted to 
 msgid "Wetter konnte nicht aktiviert werden: %(error)s"
 msgstr "\\\"Weather could not be activated: %(error)s\\\""
 
-#: core/setup_views.py:330
+#: core/setup_views.py:326
 msgid "Wetter konnte nicht geladen werden (%(error)s). Die Installation ist davon nicht betroffen und kann ohne Wetter fortgesetzt werden."
 msgstr "Weather could not be loaded (%(error)s). The installation is unaffected and can proceed without weather."
 
@@ -7495,7 +7533,7 @@ msgstr "\\\"Weather forecast activated (Open-Meteo)\\\""
 msgid "Wettervorschau (%(label)s)"
 msgstr "Weather preview (%(label)s)"
 
-#: core/setup_views.py:190
+#: core/setup_views.py:191
 msgid "Wettervorschau passt nicht zur eingegebenen Anschrift."
 msgstr "The weather preview does not match the address entered."
 
@@ -7668,6 +7706,10 @@ msgstr "Timezone"
 msgid "Zielkonto"
 msgstr "Destination account"
 
+#: templates/base.html:149
+msgid "Ziffern und Sonderzeichen"
+msgstr "Numbers and symbols"
+
 #: templates/core/chat_signal.html:41
 msgid "Zu den Einstellungen"
 msgstr "Go to settings"
@@ -7743,7 +7785,7 @@ msgstr "Last changed on %(date)s."
 msgid "Zum Entsperren antippen"
 msgstr "Tap to unlock"
 
-#: templates/base.html:30
+#: templates/base.html:31
 msgid "Zum Inhalt"
 msgstr "Skip to content"
 

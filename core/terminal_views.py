@@ -43,6 +43,7 @@ from .terminal import (
     terminal_for_request,
     terminal_locked,
     verify_code,
+    wifi_qr_payload,
 )
 from .terminal_models import StationTerminal, StationTerminalCode
 
@@ -260,6 +261,7 @@ def terminal_home(request):
             "data": _lock_screen_data(terminal.station),
             "background": background_for(timezone.localdate()),
             "error_text": error_text,
+            "wifi_ssid": settings.TERMINAL_WIFI_SSID if wifi_qr_payload() else "",
         },
         status=status,
     )
@@ -294,6 +296,19 @@ def terminal_connect_qr(request):
     if error:
         return error
     return _qr_png(connect_link(request))
+
+
+@require_GET
+@never_cache
+def terminal_wifi_qr(request):
+    """WLAN-QR der Wache; nur auf registrierten Terminals (enthält das WLAN-Passwort)."""
+    terminal, error = _terminal_or_403(request)
+    if error:
+        return error
+    payload = wifi_qr_payload()
+    if not payload:
+        raise Http404
+    return _qr_png(payload)
 
 
 @require_POST

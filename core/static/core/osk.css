@@ -1,0 +1,131 @@
+/* Bildschirmtastatur des Wachenterminals (osk.js). Große Tasten, Handschuh-tauglich. */
+
+.osk {
+  position: fixed;
+  z-index: 200;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.6rem max(0.6rem, calc((100vw - 72rem) / 2)) 0.8rem;
+  background: rgba(16, 26, 38, 0.97);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.osk[hidden] {
+  display: none;
+}
+
+.osk-row {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.osk-key {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 3.4rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #3a4a5c;
+  color: #fff;
+  font: inherit;
+  font-size: 1.45rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.osk-key:active {
+  background: #6b8099;
+}
+
+.osk-special {
+  background: #26323f;
+  font-size: 1.1rem;
+}
+
+.osk-space {
+  flex-grow: 5;
+}
+
+.osk-enter,
+.osk-bksp {
+  flex-grow: 1.4;
+}
+
+.osk-enter {
+  background: #1565c0;
+}
+
+.osk-shift.is-active,
+.osk-shift.is-locked {
+  background: #e3ecf7;
+  color: #10233a;
+}
+
+.osk-shift.is-locked {
+  box-shadow: inset 0 -4px 0 #1565c0;
+}
+
+.osk-gap {
+  visibility: hidden;
+}
+
+.osk-numeric {
+  padding-left: max(0.6rem, calc((100vw - 26rem) / 2));
+  padding-right: max(0.6rem, calc((100vw - 26rem) / 2));
+}
+
+.osk-numeric .osk-key {
+  min-height: 3.8rem;
+  font-size: 1.7rem;
+}
+
+.osk-toggle {
+  position: fixed;
+  z-index: 199;
+  right: 1rem;
+  bottom: 1rem;
+  width: 3.6rem;
+  height: 3.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: #1565c0;
+  color: #fff;
+  font-size: 1.7rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.osk-toggle[hidden] {
+  display: none;
+}
+
+@media (max-height: 760px) {
+  .osk {
+    gap: 0.35rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.5rem;
+  }
+  .osk-row {
+    gap: 0.35rem;
+  }
+  .osk-key {
+    min-height: 2.9rem;
+    font-size: 1.3rem;
+  }
+  .osk-numeric .osk-key {
+    min-height: 3.1rem;
+  }
+}
+
+.osk-key:focus-visible,
+.osk-toggle:focus-visible {
+  outline: 3px solid #ffd54f;
+  outline-offset: 2px;
+}

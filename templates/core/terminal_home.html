@@ -69,10 +69,18 @@
   <button type="button" class="terminal-unlock-hint" data-unlock-open>
     <span aria-hidden="true">🔒</span> {% translate "Zum Entsperren antippen" %}
   </button>
-  <figure class="terminal-app-qr">
-    <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="88" height="88">
-    <figcaption>{% translate "App verbinden" %}</figcaption>
-  </figure>
+  <div class="terminal-app-qr" aria-label="{% translate 'Handy verbinden' %}">
+    {% if wifi_ssid %}
+      <figure>
+        <img src="{% url 'terminal_wifi_qr' %}" alt="{% blocktranslate with ssid=wifi_ssid %}QR-Code: WLAN {{ ssid }} beitreten{% endblocktranslate %}" width="112" height="112">
+        <figcaption><strong>1</strong> {% translate "WLAN verbinden" %}<br><small>{{ wifi_ssid }}</small></figcaption>
+      </figure>
+    {% endif %}
+    <figure>
+      <img src="{% url 'terminal_connect_qr' %}" alt="{% translate 'QR-Code: App mit dieser Wache verbinden' %}" width="112" height="112">
+      <figcaption>{% if wifi_ssid %}<strong>2</strong> {% endif %}{% translate "App verbinden" %}</figcaption>
+    </figure>
+  </div>
   {% if background.credit %}
     <p class="lock-credit">{% translate "Foto" %}: {{ background.credit }}</p>
   {% endif %}

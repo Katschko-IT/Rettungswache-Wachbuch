@@ -19,7 +19,17 @@ Ersteinrichtung für den Raspberry Pi überarbeitet.
 - Startseite und Anmeldung weisen auf eine ausstehende Ersteinrichtung hin.
 - Klarere Texte ohne Fachjargon; der Benutzername `wachenterminal-…` ist für das
   Dienstkonto reserviert.
-- Pi: Bildschirmtastatur `squeekboard`, Chromium mit Wayland-Texteingabe.
+- Eigene Bildschirmtastatur für den Kiosk (QWERTZ, Umlaute, Ziffernblock für
+  Zahlenfelder): erscheint nur beim Antippen eines Eingabefelds, nicht bei
+  angeschlossener Tastatur oder Maus; nur am Kiosk und auf registrierten Terminals.
+- Sperrbildschirm: WLAN-QR-Code („① WLAN verbinden“) neben dem App-QR, oben rechts
+  (überdeckte auf 14″ die Karten); `setup-pi.sh` trägt SSID und Passwort ein.
+- Kiosk-Zoom passend zur Bildschirmgröße (EDID, Ziel ≈ 110 CSS-Pixel pro Zoll;
+  `KIOSK_SCALE` überschreibt).
+- Touch-Audit über 70 Seiten auf Handy, Tablet, 14″ und 22″: Modulzeilen und
+  zweispaltige Formulare laufen auf dem Handy nicht mehr seitlich aus dem Bild;
+  Felder, kleine Knöpfe, Sortierknöpfe, Sprachwahl, Kästchen-Zeilen und
+  Tabellen-Links haben mindestens 44 px Trefferfläche; „Zurück“-Links sind Knöpfe.
 
 ## 0.24.0 - 2026-10-22
 

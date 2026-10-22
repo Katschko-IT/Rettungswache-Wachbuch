@@ -29,6 +29,7 @@ from .forms import ActivationPasswordForm, EmployeeInviteForm, SetupWizardForm
 from .models import EmployeeActivation, Membership, Station
 from .rate_limit import consume as rate_limit_consume
 from .services import audit
+from .terminal import is_local_request
 from .setup_wizard import (
     ActivationInvalid,
     SetupAlreadyCompleted,
@@ -225,7 +226,7 @@ def setup_wizard(request):
     else:
         initial = dict(request.session.get(DRAFT_SESSION_KEY) or {})
         # Am Touch-Bildschirm des Servers ist „dieses Gerät“ das Terminal.
-        initial.setdefault("register_terminal", _local_device(request))
+        initial.setdefault("register_terminal", is_local_request(request))
         form = SetupWizardForm(initial=initial)
 
     return _render_wizard(
@@ -233,11 +234,6 @@ def setup_wizard(request):
         form,
         weather_preview=request.session.get(WEATHER_SESSION_KEY),
     )
-
-
-def _local_device(request) -> bool:
-    """Der Assistent läuft im Browser des Servers selbst (Kiosk des Pi)."""
-    return request.get_host().rsplit(":", 1)[0].strip("[]") in {"localhost", "127.0.0.1", "::1"}
 
 
 def _finish_setup(request, station, user, cleaned):

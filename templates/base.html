@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
   <link rel="stylesheet" href="{% static 'core/crypto_unlock.css' %}">
   {% if terminal_session %}<link rel="stylesheet" href="{% static 'core/terminal.css' %}">{% endif %}
+  {% if osk_enabled %}<link rel="stylesheet" href="{% static 'core/osk.css' %}">{% endif %}
   {% block extra_css %}{% endblock %}
 </head>
 <body{% if terminal_device %} data-terminal-device{% endif %} class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
@@ -141,5 +142,13 @@
   <script src="{% static 'core/crypto_unlock.js' %}" defer></script>
   <script src="{% static 'core/app.js' %}" defer></script>
   <script src="{% static 'core/ui.js' %}" defer></script>
+  {% if osk_enabled %}
+    <div id="osk-root" class="osk" hidden role="group" aria-label="{% translate 'Bildschirmtastatur' %}"
+         data-osk-show="{% translate 'Tastatur einblenden' %}" data-osk-hide="{% translate 'Tastatur ausblenden' %}"
+         data-osk-backspace="{% translate 'Löschen' %}" data-osk-enter="{% translate 'Weiter' %}"
+         data-osk-shift="{% translate 'Umschalttaste' %}" data-osk-symbols="{% translate 'Ziffern und Sonderzeichen' %}"
+         data-osk-letters="{% translate 'Buchstaben' %}" data-osk-space="{% translate 'Leertaste' %}"></div>
+    <script src="{% static 'core/osk.js' %}" defer></script>
+  {% endif %}
 </body>
 </html>

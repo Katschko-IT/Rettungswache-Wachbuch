@@ -46,13 +46,21 @@ zusätzlich die Wachbuch-App auf dem eigenen Handy über dasselbe WLAN.
    - schreibt `.env` mit Zufallswerten für alle Schlüssel und Passwörter,
    - startet das Wachbuch mit `deploy/pi/docker-compose.pi.yml` (Speichergrenzen, zwei Gunicorn-Prozesse, TLS-Proxy, keine Internet-Dienste),
    - richtet den Kiosk-Browser ein, der beim Anmelden des Desktop-Benutzers startet,
-   - installiert die Bildschirmtastatur `squeekboard` und erzeugt einen gut abtippbaren
+   - stellt den Zoom des Kiosk-Browsers passend zur Bildschirmgröße ein (aus den
+     EDID-Angaben des Monitors, z. B. 14″ Full-HD → 150 %; fest vorgeben mit `KIOSK_SCALE=1.25`),
+   - trägt Name und Passwort des WLANs für den WLAN-QR-Code ein (`TERMINAL_WIFI_SSID`,
+     `TERMINAL_WIFI_PASSWORD`) und erzeugt einen gut abtippbaren
      **Einrichtungscode** (`XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`, ohne 0/O/1/I/L), den es am Ende anzeigt.
 3. `sudo reboot`. Der Touch-Bildschirm öffnet jetzt **direkt die Ersteinrichtung**
    (`/terminal/` leitet dorthin, solange es noch keine Wache gibt).
-   - Bildschirmtastatur: *Raspberry-Pi-Konfiguration → Anzeige → Bildschirmtastatur: immer*.
-     Alternativ für diesen einen Schritt eine USB-Tastatur anschließen oder die
-     Einrichtung vom Laptop/Handy im WLAN der Wache unter `https://10.42.0.1/setup/` machen.
+   - Tastatur: Das Wachbuch bringt eine eigene **Bildschirmtastatur** mit (QWERTZ mit
+     Umlauten, Ziffernblock für Zahlenfelder). Sie erscheint nur, wenn ein Eingabefeld
+     angetippt wird, und verschwindet, sobald auf einer angeschlossenen Tastatur getippt
+     oder eine Maus bewegt wird (dann 10 Minuten Pause; eine runde Taste unten rechts
+     holt sie jederzeit zurück). Sie läuft nur am Kiosk (`localhost`) und auf
+     registrierten Terminals – Handys und Laptops behalten ihre eigene Tastatur.
+     Alternativ geht die Einrichtung auch vom Laptop/Handy im WLAN unter
+     `https://10.42.0.1/setup/`.
    - **Schritt 1:** Einrichtungscode eingeben. Groß-/Kleinschreibung, Leerzeichen und
      Bindestriche spielen keine Rolle.
    - **Schritt 2:** Wache (Name, Anschrift, optional Wetter), eigenes Admin-Konto und –
@@ -92,7 +100,9 @@ Weitere Terminals (z. B. ein Tablet an der Wand) registriert ein Admin unter
   aktualisieren sich jede Minute. Im Hintergrund läuft leicht unscharf ein Foto aus
   dem Rettungsdienst – jeden Tag ein anderes aus 36 frei lizenzierten Bildern
   (Wikimedia Commons, Nachweis unten links, vollständig in `docs/BILDNACHWEISE.md`).
-  Unten „Zum Entsperren antippen“, rechts der QR-Code zum Verbinden der App.
+  Unten „Zum Entsperren antippen“, oben rechts zwei QR-Codes: **① WLAN verbinden**
+  (Handy-Kamera öffnen, Code scannen, beitreten – Android und iOS) und
+  **② App verbinden** (Serveradresse und Zertifikat für die Wachbuch-App).
 - **Entsperren**: irgendwo antippen, der runde Ziffernblock erscheint; vier Ziffern
   eingeben. Ein falscher Code lässt die Punkte wackeln.
 - **Alltagsmodus (Startseite)**: Wetter, offene Übergaben, heutige Termine,
@@ -128,6 +138,12 @@ der Bereich am Terminal gesperrt.
 
 ## 6. App im WLAN der Wache
 
+- **WLAN beitreten**: QR-Code ① auf dem Sperrbildschirm mit der Kamera scannen
+  (Format `WIFI:`; Android ab 10, iOS ab 11). Das Bild liefert der Server nur an
+  registrierte Terminals aus. Wer den Bildschirm sieht, kann dem WLAN beitreten –
+  Zugriff auf Daten gibt es trotzdem nur mit eigenem Konto; die Geräte im WLAN sehen
+  sich gegenseitig nicht (AP-Isolation). Nach einem Passwortwechsel (`WLAN_PSK=… setup-pi.sh`)
+  zeigt der QR-Code automatisch das neue Passwort.
 - Der QR-Code auf dem Ruhebildschirm enthält `wachbuch://connect?url=https://10.42.0.1&pin=sha256/…`.
   Die App merkt sich den Fingerabdruck für diesen Server.
 - Die App nutzt die Adresse `10.42.0.1` statt eines Namens: Android löst in einem
