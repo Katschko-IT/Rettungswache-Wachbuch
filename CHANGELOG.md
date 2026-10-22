@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.22.0 - 2026-10-22
+
+Pilotstand mit bundesweiten Feiertagen, Wettermodul in den Einstellungen und bereinigter Navigationsleiste. Keine Produktionsfreigabe.
+
+- Navigation: Monitor-Button aus der Kopfleiste entfernt; Wachen-Display bleibt unter „Mehr“ und über Display-Tokens erreichbar.
+- Feiertage: Gesetzliche Feiertage für alle 16 deutschen Bundesländer im Wachenkalender und ICS-Export wählbar (Baden-Württemberg, Bayern, Berlin, Brandenburg, Bremen, Hamburg, Hessen, Mecklenburg-Vorpommern, Niedersachsen, Nordrhein-Westfalen, Rheinland-Pfalz, Saarland, Sachsen, Sachsen-Anhalt, Schleswig-Holstein, Thüringen).
+- Wetter: Modul „Wettervorhersage aktiviert“ in den Wacheneinstellungen ergänzt; Adresse (Straße, PLZ, Ort) wird hinterlegt und per Open-Meteo geocodiert.
+- Tests: Neue Testsuite für Feiertage aller Bundesländer, Navigation und Wetter-Konfiguration (core.test_settings_holidays_weather).
+
 ## 0.21.0 - 2026-10-20
 
 Pilotstand mit Verkehrslage auf dem Wachen-Display. Keine Produktionsfreigabe.

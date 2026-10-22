@@ -25,8 +25,12 @@
             {% if event.source_pk %}<p><a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "Als ICS speichern" %}</a></p>{% endif %}
           {% elif event.kind == 'waste' %}
             <small>{% translate "Müllabfuhr (externe ICS-Quelle)" %}</small>
+          {% elif event.kind == 'birthday' %}
+            <small>{% translate "Geburtstag" %}</small>
+          {% elif event.kind == 'holiday' %}
+            <small>{{ event.description|default:_("Gesetzlicher Feiertag") }}</small>
           {% else %}
-            <small>{% translate "Gesetzlicher Feiertag NRW" %}</small>
+            <small>{{ event.description }}</small>
           {% endif %}
         </div>
       </article>

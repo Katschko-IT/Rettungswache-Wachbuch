@@ -18,6 +18,24 @@ class Station(models.Model):
         POLICE = "police", "Polizei"
         GENERAL = "general", "Allgemein"
 
+    class GermanState(models.TextChoices):
+        BW = "BW", "Baden-Württemberg"
+        BY = "BY", "Bayern"
+        BE = "BE", "Berlin"
+        BB = "BB", "Brandenburg"
+        HB = "HB", "Bremen"
+        HH = "HH", "Hamburg"
+        HE = "HE", "Hessen"
+        MV = "MV", "Mecklenburg-Vorpommern"
+        NI = "NI", "Niedersachsen"
+        NW = "NW", "Nordrhein-Westfalen"
+        RP = "RP", "Rheinland-Pfalz"
+        SL = "SL", "Saarland"
+        SN = "SN", "Sachsen"
+        ST = "ST", "Sachsen-Anhalt"
+        SH = "SH", "Schleswig-Holstein"
+        TH = "TH", "Thüringen"
+
     name = models.CharField(max_length=120)
     slug = models.SlugField(unique=True)
     organization_profile = models.CharField(
@@ -34,7 +52,13 @@ class Station(models.Model):
     tasks_enabled = models.BooleanField(default=True, verbose_name="Tagesaufgaben aktiviert")
     chat_enabled = models.BooleanField(default=True, verbose_name="Wachenchat aktiviert")
     pinboard_enabled = models.BooleanField(default=True, verbose_name="Pinnwand aktiviert")
-    holidays_enabled = models.BooleanField(default=True, verbose_name="Feiertage (NRW) im Kalender")
+    holidays_enabled = models.BooleanField(default=True, verbose_name="Feiertage im Kalender")
+    holiday_state = models.CharField(
+        max_length=2,
+        choices=GermanState.choices,
+        default=GermanState.NW,
+        verbose_name="Bundesland für Feiertage",
+    )
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     waste_calendar_enabled = models.BooleanField(default=False, verbose_name="Muellkalender aktiviert")
     waste_calendar_url = models.URLField(blank=True, default="", max_length=600, verbose_name="Muellkalender-ICS-URL")

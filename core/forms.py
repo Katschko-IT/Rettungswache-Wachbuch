@@ -209,6 +209,11 @@ class StationSettingsForm(forms.ModelForm):
             "tasks_enabled",
             "pinboard_enabled",
             "holidays_enabled",
+            "holiday_state",
+            "weather_enabled",
+            "street",
+            "postal_code",
+            "city",
             "checklists_enabled",
             "traffic_enabled",
             "waste_calendar_enabled",
@@ -221,22 +226,34 @@ class StationSettingsForm(forms.ModelForm):
             "payment_note",
         ]
         labels = {
-            "name": "Name der Organisationseinheit",
-            "organization_profile": "Profil dieser Einrichtung",
-            "paypal_me_url": "PayPal.me-Link",
-            "wero_link": "Wero-Link",
-            "iban": "IBAN",
-            "bic": "BIC",
-            "payment_note": "Zahlungshinweis",
+            "name": _("Name der Organisationseinheit"),
+            "organization_profile": _("Profil dieser Einrichtung"),
+            "holidays_enabled": _("Feiertage im Kalender"),
+            "holiday_state": _("Bundesland für Feiertage"),
+            "weather_enabled": _("Wettervorhersage aktiviert (Open-Meteo)"),
+            "street": _("Straße und Hausnummer"),
+            "postal_code": _("Postleitzahl"),
+            "city": _("Ort"),
+            "paypal_me_url": _("PayPal.me-Link"),
+            "wero_link": _("Wero-Link"),
+            "iban": _("IBAN"),
+            "bic": _("BIC"),
+            "payment_note": _("Zahlungshinweis"),
         }
         help_texts = {
-            "paypal_me_url": "Vollständige https://paypal.me/…-URL.",
-            "wero_link": "Vollständige https://…-URL zum Wero-Profil.",
-            "iban": "Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige.",
-            "bic": "Optional, 8 oder 11 Zeichen.",
-            "payment_note": "Freitext, z. B. Verwendungszweck oder Ansprechpartner.",
-            "waste_calendar_url": "Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen.",
-            "signal_group_url": "Link der Signal-Gruppe, z. B. https://signal.group/#…",
+            "holidays_enabled": _("Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."),
+            "holiday_state": _("Bestimmt die gesetzlichen Feiertage für den Wachenkalender und ICS-Export."),
+            "weather_enabled": _("5-Tage-Wetter am Wachenstandort über Open-Meteo abrufen. Erfordert eine hinterlegte Adresse."),
+            "street": _("Straße und Hausnummer der Wache für die Wetterabfrage."),
+            "postal_code": _("Postleitzahl der Wache."),
+            "city": _("Ort der Wache für die Wetterabfrage."),
+            "paypal_me_url": _("Vollständige https://paypal.me/…-URL."),
+            "wero_link": _("Vollständige https://…-URL zum Wero-Profil."),
+            "iban": _("Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige."),
+            "bic": _("Optional, 8 oder 11 Zeichen."),
+            "payment_note": _("Freitext, z. B. Verwendungszweck oder Ansprechpartner."),
+            "waste_calendar_url": _("Vollständige https://…-URL zu einer ICS-Datei. Der Host muss in FEED_ALLOWED_HOSTS stehen."),
+            "signal_group_url": _("Link der Signal-Gruppe, z. B. https://signal.group/#…"),
         }
 
     waste_calendar_file = forms.FileField(
@@ -252,9 +269,14 @@ class StationSettingsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["organization_profile"].required = False
         self.fields["organization_profile"].widget.attrs["required"] = "required"
+        self.fields["holiday_state"].required = False
+        self.fields["holiday_state"].widget.attrs["required"] = "required"
 
     def clean_organization_profile(self):
         return self.cleaned_data.get("organization_profile") or self.instance.organization_profile
+
+    def clean_holiday_state(self):
+        return self.cleaned_data.get("holiday_state") or getattr(self.instance, "holiday_state", "NW") or "NW"
 
     def clean_waste_calendar_url(self):
         value = (self.cleaned_data.get("waste_calendar_url") or "").strip()
@@ -294,7 +316,54 @@ class StationSettingsForm(forms.ModelForm):
         upload = cleaned.get("waste_calendar_file")
         if upload is not None and upload.size > 1_048_576:
             self.add_error("waste_calendar_file", "Die ICS-Datei darf höchstens 1 MB groß sein.")
+
+        if cleaned.get("weather_enabled"):
+            street = (cleaned.get("street") or "").strip()
+            postal_code = (cleaned.get("postal_code") or "").strip()
+            city = (cleaned.get("city") or "").strip()
+            if not city and not street:
+                self.add_error(
+                    "city",
+                    _("Für die Wettervorhersage wird mindestens ein Ort oder eine Anschrift benötigt."),
+                )
+            else:
+                address_parts = [street, f"{postal_code} {city}".strip()]
+                address = ", ".join(part for part in address_parts if part)
+
+                coords_exist = (
+                    self.instance
+                    and getattr(self.instance, "pk", None)
+                    and self.instance.latitude is not None
+                    and self.instance.longitude is not None
+                )
+                addr_unchanged = (
+                    coords_exist
+                    and (self.instance.street or "").strip() == street
+                    and (self.instance.postal_code or "").strip() == postal_code
+                    and (self.instance.city or "").strip() == city
+                )
+                if not addr_unchanged:
+                    try:
+                        from . import weather
+
+                        location = weather.geocode(address)
+                        self._geocoded_coords = (location["latitude"], location["longitude"])
+                    except Exception as exc:
+                        self.add_error(
+                            "weather_enabled",
+                            _("Wetter konnte nicht aktiviert werden: %(error)s") % {"error": str(exc)},
+                        )
         return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if hasattr(self, "_geocoded_coords"):
+            instance.latitude = self._geocoded_coords[0]
+            instance.longitude = self._geocoded_coords[1]
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
     def clean_paypal_me_url(self):
         value = (self.cleaned_data.get("paypal_me_url") or "").strip()
