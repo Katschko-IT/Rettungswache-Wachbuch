@@ -26,12 +26,6 @@
 </head>
 <body class="{% if current_membership %}has-app-nav profile-{{ current_membership.station.organization_profile|default:'general' }} {% endif %}{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#inhalt">{% translate "Zum Inhalt" %}</a>
-  {% if demo_mode %}
-  <div class="demo-banner" role="status">
-    <strong>{% translate "Demo-Modus" %}</strong>
-    <span>{% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</span>
-  </div>
-  {% endif %}
   <header class="app-header">
     <div class="header-inner">
       <a class="brand" href="{% if current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
