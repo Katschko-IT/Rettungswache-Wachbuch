@@ -262,6 +262,17 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Passkey": "Fachbegriff, identisch",
             "Passkeys": "Fachbegriff, identisch",
             "Passphrase": "Fachbegriff, identisch",
+            # Fachmodule (MPG/Lager): Normen, Kennungen und Lehnwoerter
+            "PZN": "Pharmazentralnummer, Kennung",
+            "MPBetreibV § 10 & § 11": "Normzitat",
+            "Optional": "Lehnwort, identisch",
+            "Details": "Lehnwort, identisch",
+            "OK": "Lehnwort, identisch",
+            "Check": "Lehnwort, identisch",
+            "Normal": "Lehnwort, identisch",
+            "AdBlue": "Markenname",
+            "AdBlue (%)": "Markenname mit Einheit",
+            "UDI-DI (GTIN):": "Normkennung",
             # Platzhalterzeile ohne uebersetzbaren Text
             "%(category)s &middot; Version %(version)s": "nur Platzhalter und Produktwort",
         }
