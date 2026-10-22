@@ -1,0 +1,259 @@
+name: Android Signed Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: Semantic version from pubspec.yaml, for example 1.0.0
+        required: true
+        default: 1.0.0
+      build_number:
+        description: Unique and strictly increasing Play version code
+        required: true
+        default: "12"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-signed-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: google-play
+    env:
+      RELEASE_BUILD_NAME: ${{ inputs.build_name }}
+      RELEASE_BUILD_NUMBER: ${{ inputs.build_number }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Validate store release source and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "Store releases must be built from main, got: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          if ! [[ "$RELEASE_BUILD_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "build_name must use MAJOR.MINOR.PATCH" >&2
+            exit 1
+          fi
+          if ! [[ "$RELEASE_BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "build_number must be a positive integer" >&2
+            exit 1
+          fi
+          source_version=$(awk '/^version:/{print $2; exit}' pubspec.yaml)
+          expected="$RELEASE_BUILD_NAME+$RELEASE_BUILD_NUMBER"
+          if [ "$source_version" != "$expected" ]; then
+            echo "pubspec version $source_version does not match release input $expected" >&2
+            exit 1
+          fi
+          test -f docs/PRIVACY-POLICY.md
+          test -f docs/STORE-RELEASE-1.0.md
+          test -f docs/STORE-METADATA.md
+          test -f docs/SECURE-STORAGE-MIGRATION-1.0.md
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          flutter-version: "3.47.7"
+          cache: true
+      - uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: platform-tools
+
+      - name: Validate protected signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required secret: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Install temporary upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYSTORE_PATH="$RUNNER_TEMP/wachbuch-upload.jks"
+          echo -n "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          keytool -list -keystore "$KEYSTORE_PATH" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          {
+            echo "ANDROID_KEYSTORE_PATH=$KEYSTORE_PATH"
+            echo "ANDROID_KEYSTORE_PASSWORD=$STORE_PASSWORD"
+            echo "ANDROID_KEY_ALIAS=$KEY_ALIAS"
+            echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD"
+            echo "REQUIRE_RELEASE_SIGNING=true"
+          } >> "$GITHUB_ENV"
+
+      - name: Verify source and locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get
+          git diff --exit-code -- pubspec.lock
+          flutter gen-l10n
+          flutter analyze
+          flutter test
+
+      - name: Build signed production AAB
+        run: >-
+          flutter build appbundle
+          --release
+          --flavor production
+          --build-name "$RELEASE_BUILD_NAME"
+          --build-number "$RELEASE_BUILD_NUMBER"
+          --obfuscate
+          --split-debug-info=build/symbols/production
+
+      - name: Build signed production APKs
+        run: >-
+          flutter build apk
+          --release
+          --flavor production
+          --split-per-abi
+          --build-name "$RELEASE_BUILD_NAME"
+          --build-number "$RELEASE_BUILD_NUMBER"
+          --obfuscate
+          --split-debug-info=build/symbols/production
+
+      - name: Run Android lint
+        working-directory: android
+        run: ./gradlew :app:lintProductionRelease
+
+      - name: Verify signatures identity permissions SDKs and release properties
+        run: |
+          set -euo pipefail
+          export LC_ALL=C
+          mkdir -p dist/aab dist/apk dist/reports dist/symbols
+
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          APKANALYZER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/apkanalyzer"
+          if [ ! -x "$APKANALYZER" ]; then
+            APKANALYZER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name apkanalyzer | sort -V | tail -n 1)
+          fi
+          test -x "$APKSIGNER"
+          test -x "$APKANALYZER"
+
+          expected_cert=$(keytool -list -v \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            | awk -F': ' '/SHA256:/{gsub(":", "", $2); print tolower($2); exit}')
+          test -n "$expected_cert"
+
+          AAB=$(find build/app/outputs/bundle -type f -name '*production*release*.aab' -print -quit)
+          test -n "$AAB"
+          test "$(stat -c%s "$AAB")" -le 104857600
+          jarsigner -verify -verbose -certs "$AAB" > dist/reports/aab-signature.txt
+          aab_cert=$(keytool -printcert -jarfile "$AAB" \
+            | awk -F': ' '/SHA256:/{gsub(":", "", $2); print tolower($2); exit}')
+          test "$aab_cert" = "$expected_cert"
+          cp "$AAB" "dist/aab/wachbuch-$RELEASE_BUILD_NAME-$RELEASE_BUILD_NUMBER.aab"
+
+          mapfile -d '' APKS < <(find build/app/outputs/flutter-apk -type f -name '*production*release.apk' -print0)
+          if [ "${#APKS[@]}" -lt 3 ]; then
+            echo "Expected signed production APKs for all supported ABIs" >&2
+            exit 1
+          fi
+
+          for apk in "${APKS[@]}"; do
+            signer_output=$("$APKSIGNER" verify --verbose --print-certs "$apk")
+            printf '%s\n' "$signer_output" | tee -a dist/reports/apk-signatures.txt
+            apk_cert=$(printf '%s\n' "$signer_output" \
+              | awk -F': ' '/certificate SHA-256 digest:/{gsub(":", "", $2); print tolower($2); exit}')
+            test "$apk_cert" = "$expected_cert"
+
+            app_id=$($APKANALYZER manifest application-id "$apk")
+            debuggable=$($APKANALYZER manifest debuggable "$apk")
+            min_sdk=$($APKANALYZER manifest min-sdk "$apk")
+            target_sdk=$($APKANALYZER manifest target-sdk "$apk")
+            test "$app_id" = "de.wachbuch.mobile"
+            test "$debuggable" = "false"
+            test "$min_sdk" = "24"
+            test "$target_sdk" -ge 36
+            test "$(stat -c%s "$apk")" -le 52428800
+
+            cat > "$RUNNER_TEMP/expected-permissions.txt" <<PERMISSIONS
+          android.permission.ACCESS_COARSE_LOCATION
+          android.permission.ACCESS_NETWORK_STATE
+          android.permission.CAMERA
+          android.permission.INTERNET
+          android.permission.POST_NOTIFICATIONS
+          android.permission.VIBRATE
+          ${app_id}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+          PERMISSIONS
+            sort -u "$RUNNER_TEMP/expected-permissions.txt" -o "$RUNNER_TEMP/expected-permissions.txt"
+            $APKANALYZER manifest permissions "$apk" | sed '/^[[:space:]]*$/d' | sort -u \
+              > "$RUNNER_TEMP/actual-permissions.txt"
+            diff -u "$RUNNER_TEMP/expected-permissions.txt" "$RUNNER_TEMP/actual-permissions.txt"
+            cp "$apk" dist/apk/
+          done
+
+          keytool -list -v \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            > dist/reports/upload-certificate.txt
+
+          cp -R build/symbols/. dist/symbols/
+          flutter pub deps --json > dist/reports/flutter-dependencies.json
+          (cd android && ./gradlew :app:dependencies --configuration productionReleaseRuntimeClasspath) \
+            > dist/reports/android-production-dependencies.txt
+          python3 scripts/generate-android-sbom.py \
+            --pub dist/reports/flutter-dependencies.json \
+            --gradle dist/reports/android-production-dependencies.txt \
+            --output dist/reports/wachbuch-android.cdx.json \
+            --version "$RELEASE_BUILD_NAME+$RELEASE_BUILD_NUMBER"
+          python3 -m json.tool dist/reports/wachbuch-android.cdx.json >/dev/null
+          cp build/app/reports/lint-results-productionRelease.html dist/reports/
+          (cd dist && find aab apk -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wachbuch-google-play-aab-${{ inputs.build_number }}
+          path: |
+            dist/aab
+            dist/SHA256SUMS
+            dist/reports
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wachbuch-production-apks-${{ inputs.build_number }}
+          path: |
+            dist/apk
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wachbuch-android-symbols-${{ inputs.build_number }}
+          path: dist/symbols
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove temporary signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/wachbuch-upload.jks"

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Play Store / production: cleartext (HTTP) disabled.
+  Debug builds may use LAN HTTP via debug-overrides (developer testing only).
+  Official guidance: https://developer.android.com/privacy-and-security/security-config
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <debug-overrides>
+        <base-config cleartextTrafficPermitted="true" />
+    </debug-overrides>
+</network-security-config>

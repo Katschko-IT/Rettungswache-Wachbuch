@@ -1,0 +1,35 @@
+# Splash screen configuration for Wachbuch Mobile
+# Run: flutter pub run flutter_native_splash:create
+
+flutter_native_splash:
+  # Color for the splash screen background
+  color: "#1B5E20"  # Dark green (primary color)
+  
+  # Image path for the splash screen logo
+  image: assets/launch_image.png
+  
+  # Android-specific configuration
+  android:
+    image: assets/launch_image.png
+    color: "#1B5E20"
+    # Android 12+ splash screen
+    android_12:
+      image: assets/launch_image.png
+      color: "#1B5E20"
+      icon_background_color: "#1B5E20"
+  
+  # iOS-specific configuration
+  ios:
+    image: assets/launch_image.png
+    color: "#1B5E20"
+  
+  # Web-specific configuration
+  web:
+    image: assets/launch_image.png
+    color: "#1B5E20"
+  
+  # Duration in milliseconds (default: 2000)
+  duration: 2000
+  
+  # Fill the entire screen with the image (default: false)
+  fill: true

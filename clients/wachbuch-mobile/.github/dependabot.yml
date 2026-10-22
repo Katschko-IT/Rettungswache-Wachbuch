@@ -1,0 +1,41 @@
+version: 2
+updates:
+  # Flutter dependencies
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "flutter"
+    reviewers:
+      - "darkspike1988"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # v11 ist durch docs/SECURE-STORAGE-MIGRATION-1.0.md blockiert: erst
+      # 10.x auf echten Geräten verifizieren, danach eigener Migrations-Change.
+      - dependency-name: "flutter_secure_storage"
+    groups:
+      flutter:
+        patterns:
+          - "flutter"
+          - "flutter_*"
+        update-types: ["minor", "patch"]
+      security:
+        patterns:
+          - "*"
+        update-types: ["security"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "actions"

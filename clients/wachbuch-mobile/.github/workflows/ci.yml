@@ -1,0 +1,188 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          flutter-version: "3.47.7"
+          cache: true
+      - run: flutter pub get
+      - name: Verify committed dependency lock
+        run: |
+          set -euo pipefail
+          if ! git diff --exit-code -- pubspec.lock; then
+            echo "pubspec.lock is stale. Commit the exact lock produced by flutter pub get." >&2
+            echo "--- RESOLVED PUBSPEC LOCK START ---"
+            cat pubspec.lock
+            echo "--- RESOLVED PUBSPEC LOCK END ---"
+            exit 1
+          fi
+      - name: Generate localizations
+        run: flutter gen-l10n
+      - name: Check for outdated dependencies
+        run: flutter pub outdated
+      - name: Verify dependency versions
+        run: |
+          # Prüfe, dass keine 'any' Versionen mehr vorhanden sind
+          if grep -q "any" pubspec.yaml; then
+            echo "::error::Found 'any' version constraints in pubspec.yaml"
+            exit 1
+          fi
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          # AGP 9.3.x Android Lint calls List.removeLast() (JDK 21 API).
+          java-version: "21"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          flutter-version: "3.47.7"
+          cache: true
+      - uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: platform-tools
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Build hardened internal APKs
+        run: >-
+          flutter build apk
+          --release
+          --flavor internal
+          --split-per-abi
+          --obfuscate
+          --split-debug-info=build/symbols/internal
+
+      - name: Build production AAB without publishing credentials
+        run: >-
+          flutter build appbundle
+          --release
+          --flavor production
+          --obfuscate
+          --split-debug-info=build/symbols/production
+
+      - name: Run Android lint
+        working-directory: android
+        run: ./gradlew :app:lintProductionRelease
+
+      - name: Verify identities permissions SDKs signatures and size budgets
+        run: |
+          set -euo pipefail
+          mapfile -d '' APKS < <(find build/app/outputs/flutter-apk -type f -name '*internal*release.apk' -print0)
+          if [ "${#APKS[@]}" -lt 3 ]; then
+            echo "Expected split internal APKs for the supported ABIs" >&2
+            exit 1
+          fi
+
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          APKANALYZER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/apkanalyzer"
+          if [ ! -x "$APKANALYZER" ]; then
+            APKANALYZER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name apkanalyzer | sort -V | tail -n 1)
+          fi
+          test -x "$APKSIGNER"
+          test -x "$APKANALYZER"
+
+          for apk in "${APKS[@]}"; do
+            "$APKSIGNER" verify --verbose --print-certs "$apk"
+            size=$(stat -c%s "$apk")
+            if [ "$size" -gt 52428800 ]; then
+              echo "$apk exceeds the 50 MiB internal APK budget" >&2
+              exit 1
+            fi
+
+            app_id=$($APKANALYZER manifest application-id "$apk")
+            debuggable=$($APKANALYZER manifest debuggable "$apk")
+            min_sdk=$($APKANALYZER manifest min-sdk "$apk")
+            target_sdk=$($APKANALYZER manifest target-sdk "$apk")
+            test "$app_id" = "de.wachbuch.mobile.internal"
+            test "$debuggable" = "false"
+            test "$min_sdk" = "24"
+            test "$target_sdk" -ge 36
+
+            cat > "$RUNNER_TEMP/expected-permissions.txt" <<PERMISSIONS
+          android.permission.ACCESS_COARSE_LOCATION
+          android.permission.ACCESS_NETWORK_STATE
+          android.permission.CAMERA
+          android.permission.INTERNET
+          android.permission.POST_NOTIFICATIONS
+          android.permission.VIBRATE
+          ${app_id}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+          PERMISSIONS
+            sort -u "$RUNNER_TEMP/expected-permissions.txt" -o "$RUNNER_TEMP/expected-permissions.txt"
+            $APKANALYZER manifest permissions "$apk" | sed '/^[[:space:]]*$/d' | sort -u \
+              > "$RUNNER_TEMP/actual-permissions.txt"
+            diff -u "$RUNNER_TEMP/expected-permissions.txt" "$RUNNER_TEMP/actual-permissions.txt"
+          done
+
+          AAB=$(find build/app/outputs/bundle -type f -name '*production*release*.aab' -print -quit)
+          test -n "$AAB"
+          test "$(stat -c%s "$AAB")" -le 104857600
+          if unzip -Z1 "$AAB" | grep -Eiq '^META-INF/.*\.(RSA|DSA|EC)$'; then
+            echo "Verification AAB must remain unsigned without release credentials" >&2
+            exit 1
+          fi
+
+      - name: Package auditable artifacts and CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          mkdir -p dist/internal dist/reports dist/symbols
+          find build/app/outputs/flutter-apk -type f -name '*internal*release.apk' -exec cp {} dist/internal/ \;
+          cp -R build/symbols/. dist/symbols/
+          flutter pub deps --json > dist/reports/flutter-dependencies.json
+          (cd android && ./gradlew :app:dependencies --configuration productionReleaseRuntimeClasspath) \
+            > dist/reports/android-production-dependencies.txt
+          APP_VERSION=$(awk '/^version:/ {print $2; exit}' pubspec.yaml)
+          python3 scripts/generate-android-sbom.py \
+            --pub dist/reports/flutter-dependencies.json \
+            --gradle dist/reports/android-production-dependencies.txt \
+            --output dist/reports/wachbuch-android.cdx.json \
+            --version "$APP_VERSION"
+          python3 -m json.tool dist/reports/wachbuch-android.cdx.json >/dev/null
+          (cd dist/internal && sha256sum *.apk > SHA256SUMS)
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wachbuch-internal-apks
+          path: dist/internal
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wachbuch-android-audit
+          path: |
+            dist/reports
+            dist/symbols
+            build/app/reports/lint-results-productionRelease.html
+          if-no-files-found: error
+          retention-days: 30

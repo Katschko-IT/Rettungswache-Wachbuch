@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    />
+    <meta
+      name="description"
+      content="Wachbuch Web-Demo – Wachalltag für Rettungsdienst, Feuerwehr, FFW und Polizei."
+    />
+    <meta name="theme-color" content="#0b1c22" />
+    <title>Wachbuch Demo</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="sr-only" href="#main">Zum Inhalt</a>
+
+    <section id="setup" class="setup" aria-labelledby="setup-title">
+      <div class="setup-panel">
+        <p class="setup-brand">Wachbuch</p>
+        <h1 class="setup-title" id="setup-title">Demo-Modus wählen</h1>
+        <p class="setup-lede">
+          Lokale Musterdaten ohne Server — Übergaben, Mängel, Statusboard und
+          Gerätepools für Rettungsdienst, Feuerwehr, FFW und Polizei.
+        </p>
+        <div class="service-list" id="service-list"></div>
+        <a class="setup-back" href="../">← Zurück zur Landingpage</a>
+      </div>
+    </section>
+
+    <div id="shell" class="shell app-hidden">
+      <header class="topbar">
+        <a class="brand-lockup" href="../" aria-label="Wachbuch Landingpage">
+          <strong>Wachbuch</strong>
+          <span id="top-station">Demo</span>
+        </a>
+        <div class="topbar-actions">
+          <button type="button" class="btn btn-ghost" id="btn-switch">
+            Organisation wechseln
+          </button>
+          <a class="btn btn-cta" href="../">Landingpage</a>
+        </div>
+      </header>
+
+      <div class="demo-strip" role="status">
+        <span aria-hidden="true">◈</span>
+        <span id="demo-label">Demo-Modus</span>
+      </div>
+
+      <nav class="rail" aria-label="Hauptnavigation Desktop" id="rail-nav"></nav>
+
+      <main class="content" id="main" tabindex="-1"></main>
+
+      <nav class="bottom-nav" aria-label="Hauptnavigation Mobil" id="bottom-nav"></nav>
+    </div>
+
+    <div
+      id="dialog-root"
+      class="dialog-backdrop app-hidden"
+      role="presentation"
+    ></div>
+
+    <script src="data.js"></script>
+    <script src="hardening.js" defer></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
