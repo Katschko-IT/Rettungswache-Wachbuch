@@ -2,6 +2,20 @@
 
 ## Unveröffentlicht
 
+Docker-Installation von Grund auf geprüft (Build, alle Dienste, Ersteinrichtung,
+Neustart, Backup, Restore-Test, Terminal-Registrierung). Zwei Fehler behoben:
+
+- `notify-worker` lag in keinem Datenbanknetz und konnte `db` nicht auflösen: Die
+  Besatzung wurde nach Ablauf der Einwirkzeit nie benachrichtigt. Jetzt im Netz
+  `app-db` und wie die anderen Worker gehärtet; neuer Test prüft, dass jeder
+  Datenbank-Client ein Netz mit `db` teilt.
+- Die Ersteinrichtung legte neben der beim Start automatisch angelegten
+  Standardwache eine zweite Wache an. Folgen: leere Zweitwache mit den
+  Tagesaufgaben, `register-terminal.sh`/`create_terminal` brach mit „genau eine
+  aktive Wache“ ab. Die Einrichtung übernimmt jetzt die unbenutzte Standardwache.
+- Recherche Rollenmodell einer Rettungswache (`docs/ROLLENMODELL-RETTUNGSWACHE.md`).
+
+
 Ersteinrichtung für den Raspberry Pi überarbeitet.
 
 - Der Touch-Bildschirm öffnet vor der Einrichtung direkt den Assistenten statt

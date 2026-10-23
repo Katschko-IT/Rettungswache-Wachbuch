@@ -111,6 +111,17 @@ def verify_bootstrap_hash(bootstrap_hash: str) -> bool:
     return bool(bootstrap_hash) and secrets.compare_digest(bootstrap_hash, bootstrap_fingerprint(expected))
 
 
+def _unclaimed_default_station():
+    """Die automatisch angelegte Standardwache, solange sie die einzige und unbenutzt ist."""
+    stations = list(Station.objects.select_for_update()[:2])
+    if len(stations) != 1:
+        return None
+    station = stations[0]
+    if station.slug != settings.DEFAULT_STATION_SLUG or Membership.objects.filter(station=station).exists():
+        return None
+    return station
+
+
 def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: str | None = None) -> tuple[Station, User]:
     """Create station and bootstrap admin exactly once.
 
@@ -143,19 +154,28 @@ def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: 
             if not claimed:
                 raise SetupAlreadyCompleted("Die Erstinstallation ist bereits abgeschlossen.")
 
-            station = Station.objects.create(
-                name=data["station_name"].strip(),
-                slug=data["slug"],
-                organization_profile=data["organization_profile"],
-                employee_count=data.get("employee_count"),
-                street=data.get("street", "").strip(),
-                postal_code=data.get("postal_code", "").strip(),
-                city=data.get("city", "").strip(),
-                timezone_name=data.get("timezone_name") or "Europe/Berlin",
-                weather_enabled=bool(data.get("weather_enabled")),
-                latitude=data.get("latitude"),
-                longitude=data.get("longitude"),
-            )
+            fields = {
+                "name": data["station_name"].strip(),
+                "organization_profile": data["organization_profile"],
+                "employee_count": data.get("employee_count"),
+                "street": data.get("street", "").strip(),
+                "postal_code": data.get("postal_code", "").strip(),
+                "city": data.get("city", "").strip(),
+                "timezone_name": data.get("timezone_name") or "Europe/Berlin",
+                "weather_enabled": bool(data.get("weather_enabled")),
+                "latitude": data.get("latitude"),
+                "longitude": data.get("longitude"),
+            }
+            station = _unclaimed_default_station()
+            if station is not None:
+                # Der Container-Start legt mit „migrate“ eine leere Standardwache
+                # an (bootstrap_project). Sie wird übernommen statt daneben eine
+                # zweite Wache anzulegen; Slug und Tagesaufgaben-Vorlage bleiben.
+                for name, value in fields.items():
+                    setattr(station, name, value)
+                station.save()
+            else:
+                station = Station.objects.create(slug=data["slug"], **fields)
             user = User.objects.create_user(
                 username=data["admin_username"].strip(),
                 password=data["password1"],

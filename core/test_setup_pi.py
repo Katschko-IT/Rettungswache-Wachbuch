@@ -1,6 +1,8 @@
 """Ersteinrichtung auf dem Raspberry Pi: Einrichtungscode, Terminal-Schritt, Abschlussseite."""
 from __future__ import annotations
 
+import io
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase, override_settings
@@ -158,3 +160,36 @@ class OnScreenKeyboardTests(TestCase):
     def test_feature_off_means_no_keyboard(self):
         with self.settings(TERMINAL_ENABLED=False):
             self.assertNotContains(self.client.get(reverse("login"), HTTP_HOST="localhost"), "osk-root")
+
+
+@override_settings(SETUP_BOOTSTRAP_TOKEN=GROUPED)
+class DefaultStationAdoptionTests(TestCase):
+    """Docker: migrate legt eine leere Standardwache an; die Einrichtung übernimmt sie."""
+
+    def setUp(self):
+        cache.clear()
+        self.client.post(reverse("setup_wizard"), {"bootstrap_token": GROUPED})
+
+    def test_wizard_adopts_empty_default_station(self):
+        from django.core.management import call_command
+
+        call_command("bootstrap_project", stdout=io.StringIO())
+        default = Station.objects.get()
+        tasks = default.station_tasks.count()
+        self.assertGreater(tasks, 0)
+        self.client.post(reverse("setup_wizard"), setup_payload())
+        station = Station.objects.get()
+        self.assertEqual(station.pk, default.pk)
+        self.assertEqual(station.name, "Rettungswache Teststadt")
+        self.assertEqual(station.city, "Osnabrück")
+        self.assertTrue(Membership.objects.filter(station=station, role=Membership.Role.ADMIN).exists())
+        self.assertEqual(station.station_tasks.count(), tasks)
+
+    def test_used_station_is_never_taken_over(self):
+        other = Station.objects.create(name="Andere Wache", slug="rettungswache")
+        owner = User.objects.create_user("fremd", password="pw-Sicher-2026!")
+        Membership.objects.create(user=owner, station=other, role=Membership.Role.ADMIN)
+        self.client.post(reverse("setup_wizard"), setup_payload())
+        self.assertEqual(Station.objects.count(), 2)
+        other.refresh_from_db()
+        self.assertEqual(other.name, "Andere Wache")

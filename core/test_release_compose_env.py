@@ -85,3 +85,28 @@ class ReleaseComposeContractTests(unittest.TestCase):
         for service, config in services.items():
             if service != "web":
                 self.assertNotIn("SETUP_BOOTSTRAP_TOKEN", config.get("environment", {}))
+
+
+class ComposeNetworkContractTests(unittest.TestCase):
+    """Jeder Dienst mit DB_HOST: db muss ein Netz mit der Datenbank teilen."""
+
+    @staticmethod
+    def services(source):
+        body = source.split("\nservices:\n", 1)[1].split("\nnetworks:\n", 1)[0]
+        blocks = re.split(r"\n  (?=[a-z][a-z0-9-]*:\n)", "\n" + body)
+        return {block.split(":", 1)[0].strip(): block for block in blocks if block.strip()}
+
+    @staticmethod
+    def networks(block):
+        match = re.search(r"\n    networks:\n((?:      - [a-z-]+\n?)+)", block)
+        return set(re.findall(r"- ([a-z-]+)", match.group(1))) if match else set()
+
+    def test_database_clients_share_a_network_with_db(self):
+        services = self.services((ROOT / "docker-compose.yml").read_text())
+        db_networks = self.networks(services["db"])
+        self.assertTrue(db_networks)
+        clients = [name for name, block in services.items() if "DB_HOST: db" in block or "PGHOST: db" in block]
+        self.assertIn("notify-worker", clients)
+        for name in clients:
+            with self.subTest(service=name):
+                self.assertTrue(self.networks(services[name]) & db_networks, f"{name} erreicht db nicht")

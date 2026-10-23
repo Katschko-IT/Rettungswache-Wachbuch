@@ -237,6 +237,17 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Nur das interne Datenbanknetz: ohne es findet der Dienst „db“ nicht und
+    # benachrichtigt niemanden.
+    networks:
+      - app-db
+    tmpfs:
+      - /tmp
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
 
   push-worker:
     image: rettungswache-wachbuch:local
