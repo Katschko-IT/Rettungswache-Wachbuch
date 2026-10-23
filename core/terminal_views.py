@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import io
-import secrets
 from datetime import timedelta
 from urllib.parse import urlencode, urlparse
 
@@ -23,13 +22,14 @@ from .display import display_payload
 from .lockscreen import background_for
 from .models import HandoverEntry, Membership
 from .services import audit
+from .setup_wizard import setup_pending
 from .task_board import day_board, month_tasks, week_board
 from .terminal import (
-    COOKIE_NAME,
     SESSION_LAST_SEEN,
     SESSION_TERMINAL,
     code_problem,
     create_pairing,
+    create_terminal_device,
     end_terminal_session,
     generate_code,
     hash_secret,
@@ -38,10 +38,12 @@ from .terminal import (
     is_service_user,
     local_cert_fingerprint,
     set_station_code,
+    set_terminal_cookie,
     terminal_enabled,
     terminal_for_request,
     terminal_locked,
     verify_code,
+    wifi_qr_payload,
 )
 from .terminal_models import StationTerminal, StationTerminalCode
 
@@ -57,11 +59,11 @@ def _terminal_or_403(request):
     _require_enabled()
     terminal = terminal_for_request(request)
     if terminal is None:
-        return None, HttpResponse(
-            "Dieses Gerät ist nicht als Wachenterminal registriert.",
-            status=403,
-            content_type="text/plain; charset=utf-8",
-        )
+        if setup_pending():
+            # Erster Start des Kiosks: Die Wache gibt es noch nicht, also führt
+            # der Bildschirm direkt in die Ersteinrichtung.
+            return None, redirect("setup_wizard")
+        return None, render(request, "core/terminal_unregistered.html", status=403)
     return terminal, None
 
 
@@ -114,15 +116,7 @@ def terminal_start(request, token: str):
         logout(request)
     StationTerminal.objects.filter(pk=terminal.pk).update(last_used_at=timezone.now())
     response = redirect("terminal_home")
-    response.set_cookie(
-        COOKIE_NAME,
-        token,
-        max_age=60 * 60 * 24 * 365 * 5,
-        path="/",
-        httponly=True,
-        samesite="Strict",
-        secure=request.is_secure(),
-    )
+    set_terminal_cookie(response, request, token)
     response["Referrer-Policy"] = "no-referrer"
     return response
 
@@ -135,15 +129,22 @@ def terminal_admin(request):
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "create":
-            raw = secrets.token_urlsafe(32)
-            terminal = StationTerminal.objects.create(
-                station=station,
-                label=(request.POST.get("label") or "Wachenterminal").strip()[:80],
-                token_hash=hash_secret(raw),
-                created_by=request.user,
+            terminal, raw = create_terminal_device(
+                station, label=request.POST.get("label") or "", created_by=request.user
             )
             audit(request.user, station, "terminal.created", terminal, {"label": terminal.label})
             request.session["terminal_new_url"] = request.build_absolute_uri(reverse("terminal_start", args=[raw]))
+        elif action == "create-here":
+            # Dieser Browser (z. B. der Touch-Bildschirm des Pi) wird selbst zum
+            # Terminal. Wie beim Start-Link endet die persönliche Anmeldung.
+            terminal, raw = create_terminal_device(
+                station, label=request.POST.get("label") or "", created_by=request.user
+            )
+            audit(request.user, station, "terminal.created", terminal, {"label": terminal.label, "via": "this-device"})
+            logout(request)
+            response = redirect("terminal_home")
+            set_terminal_cookie(response, request, raw)
+            return response
         elif action in {"revoke", "unlock"}:
             terminal = get_object_or_404(StationTerminal, pk=request.POST.get("terminal_id"), station=station)
             if action == "revoke" and terminal.revoked_at is None:
@@ -206,6 +207,7 @@ def terminal_admin(request):
             "members": members,
             "idle_seconds": idle_seconds(),
             "cert_fingerprint": local_cert_fingerprint(),
+            "this_device": terminal_for_request(request),
         },
     )
 
@@ -259,6 +261,7 @@ def terminal_home(request):
             "data": _lock_screen_data(terminal.station),
             "background": background_for(timezone.localdate()),
             "error_text": error_text,
+            "wifi_ssid": settings.TERMINAL_WIFI_SSID if wifi_qr_payload() else "",
         },
         status=status,
     )
@@ -293,6 +296,19 @@ def terminal_connect_qr(request):
     if error:
         return error
     return _qr_png(connect_link(request))
+
+
+@require_GET
+@never_cache
+def terminal_wifi_qr(request):
+    """WLAN-QR der Wache; nur auf registrierten Terminals (enthält das WLAN-Passwort)."""
+    terminal, error = _terminal_or_403(request)
+    if error:
+        return error
+    payload = wifi_qr_payload()
+    if not payload:
+        raise Http404
+    return _qr_png(payload)
 
 
 @require_POST

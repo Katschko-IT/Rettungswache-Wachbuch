@@ -2169,7 +2169,10 @@ class ApiUnifiedContractTests(PilotTestCase):
         self.assertEqual(cal.status_code, 200)
         self.membership.role = Membership.Role.SHIFT_LEAD
         self.membership.save(update_fields=["role"])
-        starts = timezone.now() + timedelta(days=2)
+        # Feste Ortszeit 10:00: eine aus der UTC-Uhrzeit abgeleitete Zeit kann in
+        # der Nacht der Zeitumstellung doppeldeutig sein und wird dann zu Recht
+        # abgelehnt (z. B. 25.10.2026 02:23 Europe/Berlin).
+        starts = (timezone.localtime() + timedelta(days=2)).replace(hour=10, minute=0, second=0, microsecond=0)
         created = self.client.post(
             reverse("api_v1_kalender"),
             data=json.dumps({

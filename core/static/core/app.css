@@ -262,7 +262,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   gap: .25rem;
 }
 .language-switch button {
-  min-height: 2rem;
+  min-height: 2.75rem;
   padding: .2rem .5rem;
   color: white;
   background: transparent;
@@ -606,8 +606,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .sortable-list li.is-dragging { opacity: .55; }
 .sortable-list .drag-handle { color: var(--muted); letter-spacing: .1em; }
+.sortable-list li { flex-wrap: wrap; }
 .sortable-list .sort-buttons { margin-left: auto; display: inline-flex; gap: .25rem; }
-.sortable-list .sort-buttons .button { min-height: 2rem; padding: 0 .5rem; }
+.sortable-list .sort-buttons .button { min-width: 2.75rem; min-height: 2.75rem; padding: 0 .5rem; }
 
 .qr-block {
   display: flex;
@@ -1977,3 +1978,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .cookie-attributes li {
   margin-bottom: .25rem;
 }
+
+/* Ersteinrichtung: Code-Eingabe am Touch-Bildschirm und Abschluss-Checkliste */
+.setup-code-input {
+  width: 100%;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.setup-steps { display: grid; gap: 0.8rem; padding-left: 2.2rem; }
+.setup-steps li { line-height: 1.5; }

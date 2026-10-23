@@ -336,6 +336,10 @@ TERMINAL_IDLE_SECONDS = max(30, int(os.getenv("TERMINAL_IDLE_SECONDS", "120") or
 # Raspberry Pi mit eigenem WLAN). Die App erhält ihn über den Verbindungs-QR und
 # vertraut dann genau diesem Zertifikat. Leer bei öffentlich gültigem Zertifikat.
 LOCAL_TLS_CERT_SHA256 = os.getenv("LOCAL_TLS_CERT_SHA256", "").strip().lower().replace(":", "")
+# WLAN der Wache (Raspberry Pi): Der Sperrbildschirm zeigt dazu einen WLAN-QR-Code,
+# mit dem Handys dem WLAN per Kamera beitreten. Leer = kein WLAN-QR.
+TERMINAL_WIFI_SSID = os.getenv("TERMINAL_WIFI_SSID", "").strip()
+TERMINAL_WIFI_PASSWORD = os.getenv("TERMINAL_WIFI_PASSWORD", "")
 WEBAUTHN_ENABLED = env_bool("WEBAUTHN_ENABLED", default=True)
 WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN", "").strip()

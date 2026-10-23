@@ -4,7 +4,7 @@
 
 {% block content %}
 <nav class="breadcrumb-nav ms-c2c0d0a">
-  <a href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}">&larr; {% translate "Zurück" %}</a>
+  <a class="back-link" href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}">&larr; {% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">

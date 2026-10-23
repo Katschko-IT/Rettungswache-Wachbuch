@@ -1,5 +1,40 @@
 # Changelog
 
+## Unveröffentlicht
+
+Ersteinrichtung für den Raspberry Pi überarbeitet.
+
+- Der Touch-Bildschirm öffnet vor der Einrichtung direkt den Assistenten statt
+  einer Textmeldung „nicht registriert“; ein nicht registriertes Gerät nach der
+  Einrichtung zeigt eine Anleitung.
+- Einrichtungscode statt „Bootstrap-Token“: `setup-pi.sh` erzeugt einen
+  abtippbaren Code in Vierergruppen; Groß-/Kleinschreibung, Leerzeichen und
+  Bindestriche werden bei der Prüfung ignoriert.
+- Assistent mit optionalem Schritt *Wachenterminal*: Wachen-Code festlegen und
+  dieses Gerät als Terminal einrichten (am Kiosk vorbelegt).
+- Neue Abschlussseite mit den nächsten Schritten (Besatzung einladen, Terminal,
+  Handys, Ausstattung, Einrichtungscode entfernen).
+- Team → Wachenterminal: „Dieses Gerät als Terminal einrichten“ für den Browser,
+  in dem man gerade angemeldet ist.
+- Startseite und Anmeldung weisen auf eine ausstehende Ersteinrichtung hin.
+- Klarere Texte ohne Fachjargon; der Benutzername `wachenterminal-…` ist für das
+  Dienstkonto reserviert.
+- Eigene Bildschirmtastatur für den Kiosk (QWERTZ, Umlaute, Ziffernblock für
+  Zahlenfelder): erscheint nur beim Antippen eines Eingabefelds, nicht bei
+  angeschlossener Tastatur oder Maus; nur am Kiosk und auf registrierten Terminals.
+- Sperrbildschirm: WLAN-QR-Code („① WLAN verbinden“) neben dem App-QR, oben rechts
+  (überdeckte auf 14″ die Karten); `setup-pi.sh` trägt SSID und Passwort ein.
+- Kiosk-Zoom passend zur Bildschirmgröße (EDID, Ziel ≈ 110 CSS-Pixel pro Zoll;
+  `KIOSK_SCALE` überschreibt).
+- Neue Abhak-Liste für den ersten Pi-Aufbau (`docs/PI-ABNAHME.md`). Korrektur der
+  Pi-Doku: Backups liegen im Docker-Volume `backups-data`, nicht in `backups/`;
+  Befehl zum Kopieren auf einen USB-Stick ergänzt.
+- Marktvergleich mit RETTpro und Optimierungsbedarf (`docs/MARKTVERGLEICH-RETTPRO.md`).
+- Touch-Audit über 70 Seiten auf Handy, Tablet, 14″ und 22″: Modulzeilen und
+  zweispaltige Formulare laufen auf dem Handy nicht mehr seitlich aus dem Bild;
+  Felder, kleine Knöpfe, Sortierknöpfe, Sprachwahl, Kästchen-Zeilen und
+  Tabellen-Links haben mindestens 44 px Trefferfläche; „Zurück“-Links sind Knöpfe.
+
 ## 0.24.0 - 2026-10-22
 
 Review-, Debugging- und UX-Release nach dem Zwei-Repo-Review (R-025, Details in

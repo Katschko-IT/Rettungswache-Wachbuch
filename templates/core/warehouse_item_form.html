@@ -4,7 +4,7 @@
 
 {% block content %}
 <nav class="breadcrumb-nav ms-c2c0d0a">
-  <a href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
+  <a class="back-link" href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">

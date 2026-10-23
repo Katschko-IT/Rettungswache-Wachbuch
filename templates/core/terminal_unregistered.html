@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Wachenterminal einrichten" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Wachenterminal" %}</p>
+  <h1>{% translate "Dieses Gerät ist noch kein Wachenterminal" %}</h1>
+  <p class="lead">{% translate "Den Sperrbildschirm mit Wachen-Code zeigt nur ein Gerät, das ein Admin freigegeben hat. Das geht auf zwei Wegen:" %}</p>
+</header>
+<section class="content-flow narrow">
+  <article class="card">
+    <h2>{% translate "Direkt hier am Bildschirm" %}</h2>
+    <ol>
+      <li>{% translate "Mit dem Admin-Konto anmelden." %}</li>
+      <li>{% translate "Team → Wachenterminal öffnen." %}</li>
+      <li>{% translate "„Dieses Gerät als Terminal einrichten“ tippen. Danach erscheint der Sperrbildschirm." %}</li>
+    </ol>
+    <a class="button primary" href="{% url 'login' %}?next={% url 'terminal_admin' %}">{% translate "Als Admin anmelden" %}</a>
+  </article>
+  <article class="card">
+    <h2>{% translate "Auf dem Raspberry Pi (Kommandozeile)" %}</h2>
+    <p><code>sudo deploy/pi/register-terminal.sh</code></p>
+    <p class="help-text">{% translate "Der Kiosk-Browser übernimmt die Registrierung beim nächsten Start (sudo reboot)." %}</p>
+  </article>
+</section>
+{% endblock %}

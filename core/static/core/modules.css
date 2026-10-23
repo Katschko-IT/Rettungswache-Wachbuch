@@ -30,6 +30,22 @@ body.has-open-modal { overflow: hidden; }
 .module-row-critical { border-left: 4px solid #f97316; background: rgba(249, 115, 22, .04); }
 .module-row-warning { border-left: 4px solid #eab308; }
 
+/* Schmale Bildschirme (Handy, Tablet hochkant): Zeilen umbrechen, feste
+   Mindestbreiten und mehrspaltige Formularraster aufheben – nichts darf seitlich
+   aus dem Bildschirm laufen. Die ms-*-Klassen tragen !important. */
+@media (max-width: 760px) {
+  .module-row { flex-wrap: wrap; }
+  .module-row > * { flex: 1 1 auto !important; }
+  main [class*="ms-"] { min-width: 0 !important; }
+  main input, main select, main textarea { min-width: 0; max-width: 100% !important; }
+  main .badge { max-width: 100%; white-space: normal; }
+  /* „main“ erhöht die Spezifität: die ms-Regeln stehen weiter unten. */
+  main .ms-3a847b4, main .ms-a7375ee, main .ms-ba35d0a,
+  main .ms-e8fa32b, main .ms-f3c36d4, main .ms-f5004db {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
 /* Prüf-Ergebnisse. */
 .badge-pass { background: var(--success-soft); color: #166534; }
 .badge-fail { background: var(--danger-soft); color: #991b1b; }
@@ -60,7 +76,8 @@ body.has-open-modal { overflow: hidden; }
 }
 .button:not(.primary):not(.secondary):hover { background: var(--brand-deep); }
 .button.small {
-  min-height: 2.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem; /* 44 px: noch sicher mit dem Finger zu treffen */
   padding: .35rem .75rem;
   font-size: .9rem;
 }

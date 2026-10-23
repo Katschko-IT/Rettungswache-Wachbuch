@@ -10,7 +10,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from core import weather
 from core.models import InstallationSetup
-from core.setup_wizard import complete_setup, hash_token
+from core.setup_wizard import bootstrap_fingerprint, complete_setup
 from core.test_argon_remediation import forecast_payload, setup_payload, BOOTSTRAP
 
 
@@ -92,5 +92,5 @@ class DirectBootstrapNormalizationTests(TestCase):
         )
         self.assertEqual(
             InstallationSetup.objects.get(pk=1).bootstrap_fingerprint,
-            hash_token(BOOTSTRAP),
+            bootstrap_fingerprint(BOOTSTRAP),
         )

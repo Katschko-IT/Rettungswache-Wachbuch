@@ -683,7 +683,7 @@ class SetupWizardForm(forms.Form):
 
     bootstrap_token = forms.CharField(
         required=False,
-        label=_("Bootstrap-Token"),
+        label=_("Einrichtungscode"),
         widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "off"}),
         help_text=_("Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."),
     )
@@ -701,7 +701,7 @@ class SetupWizardForm(forms.Form):
         initial="Europe/Berlin",
     )
     weather_enabled = forms.BooleanField(label=_("5-Tage-Wetter am Wachenstandort anzeigen"), required=False)
-    admin_username = forms.CharField(label=_("Benutzername des Master-Admins"), max_length=150)
+    admin_username = forms.CharField(label=_("Benutzername für die Anmeldung"), max_length=150)
     admin_first_name = forms.CharField(label=_("Vorname"), max_length=150, required=False)
     admin_last_name = forms.CharField(label=_("Nachname"), max_length=150, required=False)
     admin_email = forms.EmailField(label=_("E-Mail (optional)"), required=False)
@@ -718,14 +718,43 @@ class SetupWizardForm(forms.Form):
         if preview_only:
             for name in ("admin_username", "password1", "password2"):
                 self.fields[name].required = False
+        from .terminal import terminal_enabled
+
+        if terminal_enabled():
+            # Optionaler Schritt für den Touch-Bildschirm der Wache (Pi).
+            self.fields["terminal_code"] = forms.CharField(
+                label=_("Wachen-Code (4 Ziffern)"),
+                required=False,
+                max_length=4,
+                widget=forms.TextInput(
+                    attrs={"inputmode": "numeric", "pattern": "[0-9]{4}", "autocomplete": "off", "size": 6}
+                ),
+                help_text=_("Damit entsperrt die Besatzung das Wachenterminal. Leer lassen und später unter Team → Wachenterminal festlegen."),
+            )
+            self.fields["register_terminal"] = forms.BooleanField(
+                label=_("Dieses Gerät als Wachenterminal einrichten"),
+                required=False,
+                help_text=_("Für den Touch-Bildschirm auf der Wache. Auf einem Laptop oder Handy nicht ankreuzen."),
+            )
 
     def clean_admin_username(self):
         username = (self.cleaned_data.get("admin_username") or "").strip()
         if getattr(self, "preview_only", False):
             return username
+        if username.casefold().startswith("wachenterminal-"):
+            # Reserviert für das Dienstkonto des Wachenterminals.
+            raise ValidationError(_("Dieser Benutzername ist reserviert."))
         if User.objects.filter(username__iexact=username).exists():
             raise ValidationError(_("Dieser Benutzername ist bereits vergeben."))
         return username
+
+    def clean_terminal_code(self):
+        from .terminal import code_problem
+
+        code = (self.cleaned_data.get("terminal_code") or "").strip()
+        if code and not getattr(self, "preview_only", False) and (problem := code_problem(code)):
+            raise ValidationError(problem)
+        return code
 
     def clean_station_name(self):
         name = (self.cleaned_data.get("station_name") or "").strip()

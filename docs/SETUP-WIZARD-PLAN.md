@@ -25,6 +25,14 @@ erfundenen Behörden-, Rechts- oder Produktionsdaten.
   (HTTP 404) — unabhängig von Datenbankzustand.
 - Vergleich über `hashlib.sha256` + `secrets.compare_digest` (keine Timing-Offenbarung,
   kein Klartextvergleich).
+- In der Oberfläche heißt das Geheimnis „Einrichtungscode“. Eingabe und konfigurierter
+  Wert werden vor dem Hashen gleich normalisiert (Leerzeichen und Bindestriche entfernt,
+  Groß-/Kleinschreibung egal), damit ein gruppierter Code am Touch-Bildschirm abtippbar
+  ist. `deploy/pi/setup-pi.sh` erzeugt 24 Zeichen aus 31 eindeutigen Zeichen (≈ 119 Bit).
+- Optionaler Schritt *Wachenterminal* (nur mit `TERMINAL_ENABLED`): Wachen-Code und
+  „dieses Gerät als Terminal“ werden direkt nach dem atomaren Abschluss mit dem neuen
+  Admin als Urheber angelegt; schlägt das fehl, bleibt die Wache gültig und der Schritt
+  ist unter Team → Wachenterminal nachholbar.
 - Fehlversuche: rate-limited (`core.rate_limit.consume`, Bucket `setup_bootstrap`,
   Limit 5 / 15 min pro Client-IP). Zusätzlich Zeitfenster in der Session (10 min)
   nach erfolgreicher Tokenprüfung.

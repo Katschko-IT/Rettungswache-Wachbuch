@@ -377,7 +377,9 @@ def landing(request):
                 return redirect("audit_log")
             return redirect("dashboard")
         return redirect("access")
-    return render(request, "core/landing.html")
+    from .setup_wizard import setup_pending
+
+    return render(request, "core/landing.html", {"setup_pending": setup_pending()})
 
 
 @require_GET

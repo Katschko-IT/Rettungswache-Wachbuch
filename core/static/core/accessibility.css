@@ -26,6 +26,52 @@
   margin: 0;
 }
 
+/* Touch-Ziele (Audit 2026-10-22: Handy, Tablet, 14″-Pi, 22″-Monitor).
+   Felder und Knöpfe mindestens 44 px; kleine Text-Links bekommen eine
+   größere Trefferfläche, ohne das Layout zu verschieben. */
+main input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+main select {
+  min-height: 2.75rem;
+}
+
+main select {
+  max-width: 100%;
+}
+
+main input[type="checkbox"],
+main input[type="radio"] {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+/* Die ganze Zeile mit Kästchen ist die Trefferfläche. */
+main label:has(> input[type="checkbox"]),
+main label:has(> input[type="radio"]) {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  cursor: pointer;
+}
+
+.account-link,
+main td a:not(.button),
+main th a:not(.button),
+main .module-row a:not(.button),
+main .list-row a:not(.button) {
+  display: inline-block;
+  min-width: 2.75rem;
+  padding-block: .65rem;
+  margin-block: -.65rem;
+}
+
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
 @media (max-width: 48rem) {
   .week-board {
     grid-template-columns: 1fr;

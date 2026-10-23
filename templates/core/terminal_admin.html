@@ -91,7 +91,13 @@
       <input type="hidden" name="action" value="create">
       <label for="terminal-label">{% translate "Bezeichnung" %}</label>
       <input id="terminal-label" type="text" name="label" maxlength="80" value="{% translate 'Wachenterminal' %}" required>
-      <button type="submit" class="button primary">{% translate "Terminal registrieren" %}</button>
+      <div class="form-actions">
+        <button type="submit" class="button primary">{% translate "Terminal-Link erzeugen" %}</button>
+        {% if not this_device %}
+          <button type="submit" class="button secondary" name="action" value="create-here">{% translate "Dieses Gerät als Terminal einrichten" %}</button>
+        {% endif %}
+      </div>
+      <p class="help-text">{% if this_device %}{% blocktranslate with label=this_device.label %}Dieser Browser ist bereits das Terminal „{{ label }}“.{% endblocktranslate %}{% else %}{% translate "Am Touch-Bildschirm der Wache: „Dieses Gerät als Terminal einrichten“ wählen. Deine Anmeldung endet danach und der Sperrbildschirm erscheint. Für ein anderes Gerät den Link erzeugen und dort öffnen." %}{% endif %}</p>
     </form>
   </section>
 
