@@ -26,6 +26,10 @@ Ersteinrichtung für den Raspberry Pi überarbeitet.
   (überdeckte auf 14″ die Karten); `setup-pi.sh` trägt SSID und Passwort ein.
 - Kiosk-Zoom passend zur Bildschirmgröße (EDID, Ziel ≈ 110 CSS-Pixel pro Zoll;
   `KIOSK_SCALE` überschreibt).
+- Neue Abhak-Liste für den ersten Pi-Aufbau (`docs/PI-ABNAHME.md`). Korrektur der
+  Pi-Doku: Backups liegen im Docker-Volume `backups-data`, nicht in `backups/`;
+  Befehl zum Kopieren auf einen USB-Stick ergänzt.
+- Marktvergleich mit RETTpro und Optimierungsbedarf (`docs/MARKTVERGLEICH-RETTPRO.md`).
 - Touch-Audit über 70 Seiten auf Handy, Tablet, 14″ und 22″: Modulzeilen und
   zweispaltige Formulare laufen auf dem Handy nicht mehr seitlich aus dem Bild;
   Felder, kleine Knöpfe, Sortierknöpfe, Sprachwahl, Kästchen-Zeilen und

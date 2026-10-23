@@ -17,6 +17,8 @@ zusätzlich die Wachbuch-App auf dem eigenen Handy über dasselbe WLAN.
    └──────────────┘        └──────────────────────────────────────────┘
 ```
 
+Für den ersten Aufbau gibt es eine Abhak-Liste: `docs/PI-ABNAHME.md`.
+
 ## 1. Hardware
 
 | Teil | Empfehlung | Warum |
@@ -26,7 +28,7 @@ zusätzlich die Wachbuch-App auf dem eigenen Handy über dasselbe WLAN.
 | Netzteil | offizielles 15 W/3 A | Spannungseinbrüche beschädigen Daten |
 | Touch-Monitor | HDMI + USB-Touch, 15–22″ | große Tasten, Bedienung mit Handschuhen |
 | Echtzeituhr | RTC-Modul (z. B. DS3231) | Der Pi 4 hat keine Uhr. Ohne Internet und RTC stimmen nach einem Stromausfall Einwirkzeiten, Fristen und TOTP-Codes nicht |
-| Backup | USB-Stick oder zweite SSD | `backup`-Dienst schreibt nach `backups/` |
+| Backup | USB-Stick oder zweite SSD | `backup`-Dienst schreibt ins Docker-Volume `backups-data`; Kopie auf USB siehe Abschnitt 7 |
 | optional | USV, LAN-Kabel | Updates und Zeitabgleich (NTP) |
 
 ## 2. Einrichtung
@@ -161,8 +163,18 @@ der Bereich am Terminal gesperrt.
 
 - **Updates**: LAN-Kabel anstecken, dann
   `git pull && docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml up -d --build`.
-- **Backups**: Der `backup`-Dienst sichert täglich nach `backups/`. Den Ordner auf einen
-  USB-Datenträger legen und regelmäßig eine Wiederherstellung testen (`docs/OPERATIONS.md`).
+- **Backups**: Der `backup`-Dienst legt einmal täglich einen Dump (`rwsth-*.dump`) im
+  Docker-Volume `backups-data` ab und behält 7 Tage (`BACKUP_RETENTION_DAYS`). Das Volume
+  liegt auf derselben SSD – fällt sie aus, sind auch die Backups weg. Deshalb regelmäßig
+  auf einen USB-Stick kopieren (Stick einstecken, er erscheint unter `/media/<Benutzer>/…`):
+  ```bash
+  BACKUPS=$(sudo docker volume inspect -f '{{ .Mountpoint }}' $(sudo docker volume ls -q | grep backups-data))
+  # Der Ordner gehört dem Backup-Dienst: Stern erst innerhalb von sudo auflösen.
+  sudo sh -c 'cp "$(ls -t "$1"/rwsth-*.dump | head -n 1)" "$2"' _ "$BACKUPS" /media/$USER/<STICK>/
+  ```
+  `BACKUP_OFF_TARGET` aus `docs/OPERATIONS.md` greift auf dem Pi nicht, weil das Ziel nicht in
+  den Container eingebunden ist. Wiederherstellung prüfen:
+  `docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
 - **Zeit**: RTC-Modul einbauen oder LAN mit NTP anschließen. Die Uhrzeit auf dem
   Ruhebildschirm regelmäßig prüfen.
 - **Strom**: USV oder zumindest ein sauberes Herunterfahren (`sudo poweroff`) vor dem Ausstecken.
