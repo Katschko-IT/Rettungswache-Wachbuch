@@ -8,6 +8,10 @@
 
 FROM postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb AS pgbase
 
+# Sicherheitsupdates der Alpine-Pakete bei jedem Bau – auch beim wöchentlichen
+# Neubau eines Releases (.github/workflows/refresh-images.yml).
+RUN apk upgrade --no-cache
+
 ARG APP_VERSION=dev
 LABEL org.opencontainers.image.source="https://github.com/Katschko-IT/Rettungswache-Wachbuch" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \

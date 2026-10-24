@@ -3,7 +3,7 @@
 # Liegt im Installationsordner neben compose.yml und .env.
 #
 #   wachbuch status | logs [dienst] | backup | restore DATEI | update [VERSION]
-#   wachbuch setup-code | start | stop | uninstall [--purge] | help
+#   wachbuch auto-update an|aus|status | setup-code | start | stop | uninstall [--purge] | help
 set -eu
 
 REPO_SLUG="Katschko-IT/Rettungswache-Wachbuch"
@@ -24,6 +24,15 @@ wachbuch – Verwaltung des Rettungswache-Wachbuchs
   restore DATEI       Datenbank aus einem Backup wiederherstellen (mit Rückfrage)
                       DATEI: Pfad auf diesem Rechner oder Name aus dem Backup-Volume
   update [VERSION]    Backup, neue Version laden, neu starten
+  auto-update an [sicherheit|alle] [--zeit HH:MM]
+                      nächtliche Updates einschalten (Standard: sicherheit, 03:30)
+                        sicherheit: gleiche Version, neu gebaute Images
+                                    (Sicherheitsupdates von Debian/Alpine)
+                        alle:       zusätzlich neue Versionen derselben
+                                    Hauptversion
+                      Vorher Backup, bei gescheitertem Start Rollback.
+  auto-update aus     nächtliche Updates ausschalten
+  auto-update status  Einstellung, Zeitplan und letzte Läufe anzeigen
   setup-code          Einrichtungscode für die Ersteinrichtung anzeigen
   start | stop        Wachbuch starten bzw. anhalten
   uninstall [--purge] Container entfernen; --purge löscht auch alle Daten
@@ -206,7 +215,9 @@ download() {
 
 latest_version() {
     have curl || return 0
-    curl -fsSL --max-time 15 "https://api.github.com/repos/${REPO_SLUG}/releases/latest" 2>/dev/null \
+    api=$(env_get WACHBUCH_RELEASES_API)
+    api="${api:-https://api.github.com/repos/${REPO_SLUG}/releases/latest}"
+    curl -fsSL --max-time 15 "$api" 2>/dev/null \
         | sed -n 's/.*"tag_name": *"v\{0,1\}\([0-9][0-9.]*\)".*/\1/p' | head -n 1 || true
 }
 
@@ -273,6 +284,334 @@ cmd_update() {
     cmd_status
 }
 
+# --- Automatische Updates ----------------------------------------------------
+
+AUTO_LOG="logs/auto-update.log"
+AUTO_LOCK="logs/auto-update.lock"
+
+auto_log() {
+    mkdir -p logs
+    printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >>"$AUTO_LOG"
+    printf '%s\n' "$*"
+}
+
+# 0, wenn Version $1 neuer ist als $2 (nur Ziffern und Punkte).
+version_gt() {
+    awk -v a="$1" -v b="$2" 'BEGIN {
+        split(a, x, "."); split(b, y, ".")
+        for (i = 1; i <= 3; i++) {
+            if (x[i] + 0 > y[i] + 0) exit 0
+            if (x[i] + 0 < y[i] + 0) exit 1
+        }
+        exit 1
+    }'
+}
+
+# Zeilen „IMAGE ID“ für alle Images der Installation.
+snapshot_images() {
+    dc config --images 2>/dev/null | sort -u | while IFS= read -r image; do
+        [ -n "$image" ] || continue
+        printf '%s %s\n' "$image" "$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null || true)"
+    done
+}
+
+# Container, die nicht mit dem aktuellen Stand ihres Image-Tags laufen
+# (z. B. nach einem manuellen Pull ohne Neustart).
+stale_containers() {
+    dc ps -q 2>/dev/null | while IFS= read -r container; do
+        [ -n "$container" ] || continue
+        image=$(docker inspect --format '{{.Config.Image}}' "$container" 2>/dev/null) || continue
+        running_id=$(docker inspect --format '{{.Image}}' "$container" 2>/dev/null) || continue
+        tag_id=$(docker image inspect --format '{{.Id}}' "$image" 2>/dev/null) || continue
+        [ "$running_id" = "$tag_id" ] || printf '%s\n' "$image"
+    done
+}
+
+# Sicherungs-Tags für den Rollback. Über die Image-ID lässt sich ein Image
+# nach dem Pull nicht zuverlässig zurückholen: Im containerd-Image-Speicher
+# (Docker 29) ist ein Image ohne Namen per ID nicht mehr erreichbar.
+ROLLBACK_SUFFIX="-wb-rollback"
+
+own_tagged_images() {  # Namen mit Tag, ohne per Digest gepinnte Fremd-Images
+    printf '%s\n' "$1" | while read -r image id; do
+        [ -n "$id" ] || continue
+        case "$image" in *@*) continue ;; esac
+        printf '%s\n' "$image"
+    done
+}
+
+keep_rollback_images() {
+    own_tagged_images "$1" | while IFS= read -r image; do
+        docker tag "$image" "$image$ROLLBACK_SUFFIX" >/dev/null 2>&1 || true
+    done
+}
+
+restore_images() {
+    own_tagged_images "$1" | while IFS= read -r image; do
+        docker tag "$image$ROLLBACK_SUFFIX" "$image" >/dev/null 2>&1 || true
+    done
+}
+
+drop_rollback_images() {
+    own_tagged_images "$1" | while IFS= read -r image; do
+        docker image rm "$image$ROLLBACK_SUFFIX" >/dev/null 2>&1 || true
+    done
+}
+
+ROLLBACK_FILES="compose.yml deploy/caddy/Caddyfile wachbuch"
+
+save_rollback_files() {
+    rm -rf logs/rollback
+    for file in $ROLLBACK_FILES; do
+        [ -f "$file" ] || continue
+        mkdir -p "logs/rollback/$(dirname "$file")"
+        cp -p "$file" "logs/rollback/$file"
+    done
+}
+
+restore_rollback_files() {
+    for file in $ROLLBACK_FILES; do
+        [ -f "logs/rollback/$file" ] && cp -p "logs/rollback/$file" "$file"
+    done
+    rm -rf logs/rollback
+}
+
+cmd_auto_update_run() {
+    mode=$(env_get WACHBUCH_AUTO_UPDATE)
+    case "$mode" in
+        sicherheit|alle) ;;
+        *) return 0 ;;
+    esac
+    if build_mode || [ -n "$(env_get WACHBUCH_SOURCE)" ]; then
+        auto_log "Übersprungen: Entwicklungsinstallation (lokal gebaut oder aus einem Checkout)."
+        return 0
+    fi
+    mkdir -p logs
+    # Eine hängengebliebene Sperre (Absturz, Stromausfall) gilt nach 6 h als frei.
+    find logs -maxdepth 1 -name auto-update.lock -mmin +360 -exec rmdir {} \; 2>/dev/null || true
+    if ! mkdir "$AUTO_LOCK" 2>/dev/null; then
+        auto_log "Übersprungen: ein Update läuft bereits."
+        return 0
+    fi
+    trap 'rmdir "$AUTO_LOCK" 2>/dev/null || true' EXIT INT TERM
+
+    current=$(env_get WACHBUCH_VERSION)
+    case "$current" in
+        ''|*[!0-9.]*)
+            auto_log "Übersprungen: keine feste Version eingestellt (WACHBUCH_VERSION=${current:-leer})."
+            return 0
+            ;;
+    esac
+    target="$current"
+    if [ "$mode" = alle ]; then
+        latest=$(latest_version)
+        if [ -n "$latest" ] && version_gt "$latest" "$current"; then
+            if [ "${latest%%.*}" = "${current%%.*}" ]; then
+                target="$latest"
+            else
+                auto_log "Neue Hauptversion $latest verfügbar – bitte bewusst mit 'wachbuch update $latest' einspielen."
+            fi
+        fi
+    fi
+
+    before=$(snapshot_images)
+    new_version=0
+    if [ "$target" != "$current" ]; then
+        auto_log "Neue Version $target (bisher $current)."
+        save_rollback_files
+        if ! (refresh_files "v$target") >>"$AUTO_LOG" 2>&1; then
+            restore_rollback_files
+            auto_log "Dateien für $target konnten nicht geladen werden; nichts geändert."
+            return 1
+        fi
+        env_set WACHBUCH_VERSION "$target"
+        new_version=1
+    fi
+
+    keep_rollback_images "$before"
+    if ! dc pull --quiet --ignore-buildable >>"$AUTO_LOG" 2>&1; then
+        restore_images "$before"
+        if [ "$new_version" -eq 1 ]; then
+            restore_rollback_files
+            env_set WACHBUCH_VERSION "$current"
+        fi
+        auto_log "Images konnten nicht geladen werden; nichts geändert."
+        return 1
+    fi
+    after=$(snapshot_images)
+    if [ "$new_version" -eq 0 ] && [ "$before" = "$after" ] && [ -z "$(stale_containers)" ]; then
+        drop_rollback_images "$before"
+        auto_log "Alles aktuell (Version $current)."
+        return 0
+    fi
+
+    auto_log "Backup vor dem Update"
+    if ! (cmd_backup) >>"$AUTO_LOG" 2>&1; then
+        restore_images "$before"
+        if [ "$new_version" -eq 1 ]; then
+            restore_rollback_files
+            env_set WACHBUCH_VERSION "$current"
+        fi
+        auto_log "Backup fehlgeschlagen – Update abgebrochen, laufender Stand unverändert."
+        return 1
+    fi
+
+    auto_log "Neustart mit Version $target"
+    if dc up -d --remove-orphans --wait --wait-timeout 600 >>"$AUTO_LOG" 2>&1; then
+        auto_log "Update erfolgreich (Version $target)."
+        rm -rf logs/rollback
+        drop_rollback_images "$before"
+        docker image prune -f >/dev/null 2>&1 || true
+        return 0
+    fi
+
+    auto_log "Start fehlgeschlagen – Rollback auf den vorherigen Stand."
+    restore_images "$before"
+    if [ "$new_version" -eq 1 ]; then
+        restore_rollback_files
+        env_set WACHBUCH_VERSION "$current"
+    fi
+    if dc up -d --remove-orphans --wait --wait-timeout 600 >>"$AUTO_LOG" 2>&1; then
+        drop_rollback_images "$before"
+        auto_log "Rollback erfolgreich; es läuft wieder Version $current."
+    else
+        auto_log "Rollback-Start fehlgeschlagen – bitte 'wachbuch status' prüfen; das Backup liegt unter backups/, die vorherigen Images unter *$ROLLBACK_SUFFIX."
+    fi
+    return 1
+}
+
+auto_unit_name() {
+    printf 'wachbuch-auto-update-%s' "$(printf '%s' "$WACHBUCH_DIR" | cksum | cut -d' ' -f1)"
+}
+
+uses_systemd() {
+    [ "$(id -u)" -eq 0 ] && have systemctl && [ -d /run/systemd/system ]
+}
+
+cron_marker() { printf '# wachbuch-auto-update %s' "$WACHBUCH_DIR"; }
+
+cron_without_entry() {
+    crontab -l 2>/dev/null | grep -vF "$(cron_marker)" || true
+}
+
+schedule_install() {
+    hour="$1"
+    minute="$2"
+    if uses_systemd; then
+        unit=$(auto_unit_name)
+        cat >"/etc/systemd/system/$unit.service" <<EOF
+[Unit]
+Description=Wachbuch: automatisches Update ($WACHBUCH_DIR)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$WACHBUCH_DIR/wachbuch auto-update run
+EOF
+        cat >"/etc/systemd/system/$unit.timer" <<EOF
+[Unit]
+Description=Wachbuch: nächtliches Update ($WACHBUCH_DIR)
+
+[Timer]
+OnCalendar=*-*-* $(printf '%02d:%02d' "$hour" "$minute"):00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+        systemctl daemon-reload
+        systemctl enable --now "$unit.timer" >/dev/null
+        SCHEDULER="systemd-Timer $unit.timer"
+    else
+        have crontab || die "Weder systemd (als root) noch crontab verfügbar."
+        line="$minute $hour * * * PATH='$PATH' '$WACHBUCH_DIR/wachbuch' auto-update run >/dev/null 2>&1 $(cron_marker)"
+        { cron_without_entry; printf '%s\n' "$line"; } | sed '/^$/d' | crontab -
+        SCHEDULER="crontab"
+    fi
+}
+
+schedule_remove() {
+    if uses_systemd; then
+        unit=$(auto_unit_name)
+        if [ -f "/etc/systemd/system/$unit.timer" ]; then
+            systemctl disable --now "$unit.timer" >/dev/null 2>&1 || true
+            rm -f "/etc/systemd/system/$unit.timer" "/etc/systemd/system/$unit.service"
+            systemctl daemon-reload
+        fi
+    fi
+    if have crontab && crontab -l 2>/dev/null | grep -qF "$(cron_marker)"; then
+        cron_without_entry | crontab -
+    fi
+}
+
+auto_on() {
+    mode=sicherheit
+    time=03:30
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            sicherheit|alle) mode="$1" ;;
+            --zeit|--time)
+                [ $# -ge 2 ] || die "--zeit braucht eine Uhrzeit (HH:MM)."
+                time="$2"
+                shift
+                ;;
+            *) die "Unbekannte Angabe: $1 (erlaubt: sicherheit, alle, --zeit HH:MM)" ;;
+        esac
+        shift
+    done
+    case "$time" in
+        [0-2][0-9]:[0-5][0-9]) ;;
+        *) die "Ungültige Uhrzeit: $time (Format HH:MM)" ;;
+    esac
+    # Führende Null entfernen, sonst lesen cron/printf „08“ als Oktalzahl.
+    hour=${time%%:*}
+    hour=${hour#0}
+    minute=${time#*:}
+    minute=${minute#0}
+    [ "$hour" -le 23 ] || die "Ungültige Uhrzeit: $time"
+    if build_mode || [ -n "$(env_get WACHBUCH_SOURCE)" ]; then
+        die "Automatische Updates gibt es nur für Installationen mit veröffentlichten Images."
+    fi
+    schedule_install "$hour" "$minute"
+    env_set WACHBUCH_AUTO_UPDATE "$mode"
+    env_set WACHBUCH_AUTO_UPDATE_TIME "$time"
+    say "Automatische Updates eingeschaltet: $mode, täglich um $time ($SCHEDULER)."
+    say "Protokoll: $WACHBUCH_DIR/$AUTO_LOG"
+}
+
+auto_off() {
+    schedule_remove
+    env_set WACHBUCH_AUTO_UPDATE aus
+    say "Automatische Updates ausgeschaltet."
+}
+
+auto_status() {
+    mode=$(env_get WACHBUCH_AUTO_UPDATE)
+    case "$mode" in
+        sicherheit|alle) say "Automatische Updates: $mode, täglich um $(env_get WACHBUCH_AUTO_UPDATE_TIME)" ;;
+        *) say "Automatische Updates: aus" ;;
+    esac
+    say "Installierte Version: $(env_get WACHBUCH_VERSION)"
+    if [ -f "$AUTO_LOG" ]; then
+        say "Letzte Einträge ($AUTO_LOG):"
+        tail -n 8 "$AUTO_LOG"
+    fi
+}
+
+cmd_auto_update() {
+    sub="${1:-status}"
+    [ $# -eq 0 ] || shift
+    case "$sub" in
+        an|on) auto_on "$@" ;;
+        aus|off) auto_off ;;
+        status) auto_status ;;
+        run) cmd_auto_update_run ;;
+        *) die "Aufruf: wachbuch auto-update an [sicherheit|alle] [--zeit HH:MM] | aus | status" ;;
+    esac
+}
+
 cmd_setup_code() {
     code=$(env_get SETUP_BOOTSTRAP_TOKEN)
     origin=$(env_get SITE_URL)
@@ -321,6 +660,7 @@ case "$command" in
     backup) cmd_backup ;;
     restore) cmd_restore "$@" ;;
     update) cmd_update "$@" ;;
+    auto-update) cmd_auto_update "$@" ;;
     setup-code) cmd_setup_code ;;
     start) dc up -d --remove-orphans --wait --wait-timeout 600 && cmd_status ;;
     stop) dc stop ;;

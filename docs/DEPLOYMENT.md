@@ -140,6 +140,7 @@ docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 | `wachbuch backup` | sofortiger Dump, Kopie nach `./backups/` |
 | `wachbuch restore DATEI` | Wiederherstellung mit Rückfrage; vorher Sicherheits-Backup, Einspielen in einer Transaktion, danach Migrationen und Rechte |
 | `wachbuch update [X.Y.Z]` | Backup, neue `compose.yml`/Caddyfile/`wachbuch`, `pull`, `up --wait` |
+| `wachbuch auto-update an [sicherheit\|alle] [--zeit HH:MM]` / `aus` / `status` | nächtliche Updates mit Backup und Rollback (siehe OPERATIONS.md) |
 | `wachbuch setup-code` | Einrichtungscode anzeigen |
 | `wachbuch stop` / `start` | anhalten / starten |
 | `wachbuch uninstall [--purge]` | Container entfernen; mit `--purge` auch alle Volumes |
@@ -300,6 +301,8 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 | Variable | Standard | Wirkung |
 | --- | --- | --- |
 | `WACHBUCH_VERSION` | `latest` | Image-Version (`install.sh`/`wachbuch update` setzen sie) |
+| `WACHBUCH_REGISTRY` | `ghcr.io/katschko-it` | Herkunft der Images, z. B. ein Spiegel im Wachen-Netz |
+| `WACHBUCH_AUTO_UPDATE` / `_TIME` | `aus` / `03:30` | nächtliche Updates (`wachbuch auto-update` setzt sie) |
 | `HTTP_BIND_ADDRESS` / `HTTP_PORT` | `127.0.0.1` / `8090` | lokaler Web-Port |
 | `GUNICORN_WORKERS` / `_THREADS` / `_TIMEOUT` | `2` / `4` / `60` | Gunicorn im `web`-Container |
 | `POSTGRES_SHARED_BUFFERS` u. a. | `128MB` … | PostgreSQL-Speicher, siehe OPERATIONS.md |
@@ -318,7 +321,7 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 - [ ] Firewall: nur 80/443 (bzw. nichts bei `local`); Port 8090 bleibt auf Loopback
 - [ ] Backups geprüft: `wachbuch backup`, `docker compose run --rm restore-test`,
       Offsite-Kopie eingerichtet
-- [ ] Updates eingeplant: `wachbuch update`, Host-Updates (`apt upgrade`)
+- [ ] Updates eingeplant: `wachbuch auto-update an` (oder regelmäßig `wachbuch update`), Host-Updates (`apt upgrade`)
 - [ ] Zugriff von außen nur über VPN oder bewusst über `domain`
 
 ## Weiterführende Dokumentation

@@ -431,6 +431,49 @@ Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env
 `WACHBUCH_VERSION`, zieht die Images und startet mit `up -d --wait` neu.
 Migrationen laufen dabei automatisch im Dienst `migrate`.
 
+### Automatische Updates
+
+```bash
+./wachbuch auto-update an                     # sicherheit, täglich 03:30
+./wachbuch auto-update an alle --zeit 04:15   # auch neue Versionen (gleiche Hauptversion)
+./wachbuch auto-update status                 # Einstellung und letzte Läufe
+./wachbuch auto-update aus
+```
+
+| Modus | Was passiert |
+| --- | --- |
+| `sicherheit` | bleibt bei `WACHBUCH_VERSION`, lädt die wöchentlich neu gebauten Images (Debian-/Alpine-Sicherheitsupdates) |
+| `alle` | wie `sicherheit`, zusätzlich neue Versionen derselben Hauptversion (z. B. 0.25 → 0.26, nie 0 → 1) |
+
+Ablauf jedes Laufs (Protokoll: `logs/auto-update.log`):
+
+1. Sperre gegen parallele Läufe; Entwicklungsinstallationen (`--build`,
+   `WACHBUCH_SOURCE`) werden übersprungen.
+2. Laufende Images unter `…-wb-rollback` sichern, dann `pull`.
+3. Nichts Neues und alle Container auf dem aktuellen Stand → Ende ohne Neustart.
+4. Sonst Backup (Abbruch ohne Änderung, wenn es scheitert), dann `up --wait`.
+5. Startet die neue Fassung nicht, werden Images, `compose.yml`, Caddyfile,
+   `wachbuch` und `WACHBUCH_VERSION` zurückgesetzt und die vorherige Fassung
+   gestartet. Datenbank-Migrationen laufen in PostgreSQL transaktional; eine
+   gescheiterte Migration hinterlässt den alten Stand.
+
+Zeitplan: als root mit systemd ein Timer `wachbuch-auto-update-<id>.timer`
+(`Persistent=true` holt verpasste Läufe nach), sonst ein crontab-Eintrag des
+aufrufenden Nutzers. Unter macOS braucht cron Zugriff auf Docker
+(Docker Desktop/Colima müssen laufen).
+
+Neu gebaut werden die Images vom Workflow `refresh-images.yml` (montags
+02:17 UTC): aktuelles Release ohne Cache, Sicherheitsscan (HIGH/CRITICAL mit
+verfügbarem Fix) und Starttest als Sperre, erst dann Veröffentlichung für
+amd64 und arm64. Scheitert etwas, bleiben die bisherigen Images und es entsteht
+ein Issue.
+
+### Eigener Image-Spiegel
+
+Ohne Internetzugang der Wache: Images in eine Registry im Wachen-Netz spiegeln
+und in `.env` `WACHBUCH_REGISTRY=registry.wache.lan:5000/katschko-it` setzen.
+`update` und `auto-update` laden dann von dort.
+
 ### Release vorbereiten
 
 1. SemVer in `core/version.py` setzen und `CHANGELOG.md` aktualisieren.

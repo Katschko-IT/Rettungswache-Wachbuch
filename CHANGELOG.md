@@ -4,6 +4,17 @@
 
 Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
 
+- **Automatische Updates:** `wachbuch auto-update an [sicherheit|alle]`
+  spielt nachts Updates ein – vorher Backup, bei gescheitertem Start
+  automatischer Rollback auf die vorherigen Images und Dateien (über
+  Sicherungs-Tags, da Docker 29 Images nach dem Pull nicht mehr per ID
+  zurückholen kann). `alle` überspringt neue Hauptversionen. Der Installer
+  fragt danach (`--auto-update`). Zeitplan per systemd-Timer oder crontab.
+- **Wöchentlicher Neubau** des aktuellen Releases (`refresh-images.yml`) mit
+  Sicherheitsscan und Starttest als Sperre; das Postgres-Image spielt dabei
+  ebenfalls Alpine-Updates ein.
+- `WACHBUCH_REGISTRY` für einen eigenen Image-Spiegel.
+
 - **Installation mit einem Befehl**: `curl -fsSL …/install.sh | sh` prüft Docker,
   Compose (ab 2.20), Architektur (amd64/arm64), RAM und Ports, legt
   `/opt/wachbuch` bzw. `~/wachbuch` an, erzeugt eine `.env` mit unabhängigen

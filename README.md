@@ -57,11 +57,19 @@ Im Installationsordner liegt die kleine Verwaltung `wachbuch`:
 ```bash
 /opt/wachbuch/wachbuch status          # Dienste und Gesundheit
 /opt/wachbuch/wachbuch update          # Backup, neue Version laden, neu starten
+/opt/wachbuch/wachbuch auto-update an  # nachts Sicherheitsupdates einspielen
 /opt/wachbuch/wachbuch backup          # sofortiges Backup nach /opt/wachbuch/backups
 /opt/wachbuch/wachbuch restore DATEI   # Wiederherstellung (mit Rückfrage)
 /opt/wachbuch/wachbuch setup-code      # Einrichtungscode erneut anzeigen
 /opt/wachbuch/wachbuch uninstall       # Container entfernen (Daten nur mit --purge)
 ```
+
+**Updates im Alltag:** Die Images des aktuellen Releases werden jede Woche neu
+gebaut und enthalten so die Sicherheitsupdates von Debian/Alpine. Mit
+`wachbuch auto-update an` holt die Installation sie nachts selbst (der Installer
+fragt danach). Vorher entsteht ein Backup; startet die neue Fassung nicht,
+läuft automatisch wieder die vorherige. `auto-update an alle` übernimmt
+zusätzlich neue Versionen derselben Hauptversion.
 
 Alle Optionen, manuelle Installation und Reverse-Proxy-Varianten:
 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).

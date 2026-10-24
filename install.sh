@@ -41,13 +41,17 @@ Aufruf: sh install.sh [Optionen]
   --base-url URL      andere Download-Quelle (Standard: GitHub raw)
   --build             Images lokal aus --source bauen statt herunterladen
   --project NAME      eigener Compose-Projektname (z. B. für Tests)
+  --auto-update ART   nächtliche Updates: sicherheit (gleiche Version, neu
+                      gebaute Images), alle (auch neue Versionen derselben
+                      Hauptversion) oder aus; ohne Angabe wird gefragt
+                      (Standard und bei --yes: sicherheit)
   --no-start          nur Dateien und .env anlegen, nichts starten
   -y, --yes           keine Rückfragen, Standardwerte verwenden
   -h, --help          diese Hilfe
 
 Alle Optionen gehen auch als Umgebungsvariablen: WACHBUCH_DIR, WACHBUCH_NAME,
 WACHBUCH_MODE, WACHBUCH_DOMAIN, WACHBUCH_EMAIL, WACHBUCH_PORT,
-WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL.
+WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL, WACHBUCH_AUTO_UPDATE.
 EOF
 }
 
@@ -67,6 +71,7 @@ PROJECT=""
 BUILD=0
 ASSUME_YES=0
 NO_START=0
+OPT_AUTO="${WACHBUCH_AUTO_UPDATE:-}"
 
 need_value() {
     if [ $# -lt 2 ] || [ -z "$2" ]; then
@@ -89,6 +94,7 @@ while [ $# -gt 0 ]; do
         --base-url) need_value "$@"; BASE_URL="$2"; shift ;;
         --project) need_value "$@"; PROJECT="$2"; shift ;;
         --build) BUILD=1 ;;
+        --auto-update) need_value "$@"; OPT_AUTO="$2"; shift ;;
         --no-start) NO_START=1 ;;
         -y|--yes) ASSUME_YES=1 ;;
         -h|--help) usage; exit 0 ;;
@@ -640,6 +646,33 @@ until http_ok "$health_url"; do
 done
 info "$health_url antwortet"
 
+# --- 8. Nächtliche Updates ---------------------------------------------------
+AUTO="$OPT_AUTO"
+if [ -z "$AUTO" ]; then
+    AUTO=$(env_get WACHBUCH_AUTO_UPDATE)
+    if [ -z "$AUTO" ] && [ "$BUILD" -eq 0 ]; then
+        AUTO=$(ask "Sicherheitsupdates nachts automatisch einspielen? (sicherheit/alle/aus)" "sicherheit")
+    fi
+fi
+case "$AUTO" in
+    sicherheit|alle)
+        if [ "$BUILD" -eq 1 ]; then
+            warn "Automatische Updates gibt es nur mit veröffentlichten Images (nicht mit --build)."
+            AUTO_TEXT="aus (lokal gebaut)"
+        elif "$TARGET_DIR/wachbuch" auto-update an "$AUTO" >/dev/null; then
+            AUTO_TEXT="$AUTO, täglich um $(env_get WACHBUCH_AUTO_UPDATE_TIME)"
+        else
+            warn "Automatische Updates konnten nicht eingerichtet werden; später: $TARGET_DIR/wachbuch auto-update an"
+            AUTO_TEXT="aus"
+        fi
+        ;;
+    ''|aus)
+        AUTO_TEXT="aus (einschalten: $TARGET_DIR/wachbuch auto-update an)"
+        ;;
+    *) warn "Unbekannte Angabe für automatische Updates: $AUTO (erlaubt: sicherheit, alle, aus)"
+       AUTO_TEXT="aus" ;;
+esac
+
 CODE=$(env_get SETUP_BOOTSTRAP_TOKEN)
 cat <<EOF
 
@@ -650,6 +683,7 @@ Fertig. Das Wachbuch läuft.
   Einrichtungscode:  ${CODE:-(bereits verwendet)}
 
   Verwaltung:        $TARGET_DIR/wachbuch status | logs | backup | update | help
+  Auto-Updates:      $AUTO_TEXT
 
 WICHTIG: $ENV_FILE enthält alle Schlüssel. Offline sichern
 (z. B. USB-Stick im Tresor). Ohne diese Datei sind Datenbank und Backups

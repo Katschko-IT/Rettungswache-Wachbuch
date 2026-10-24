@@ -21,7 +21,7 @@ services:
     # PostgreSQL 17 mit eingebautem Rollen-Init (scripts/init-db.sh) und
     # config/postgresql.conf (Dockerfile.backup, Ziel "db"). Damit braucht
     # niemand einen Git-Checkout für Bind-Mounts.
-    image: ghcr.io/katschko-it/rettungswache-wachbuch-db:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-db:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # The official image reads its configuration from $PGDATA/postgresql.conf,
@@ -90,7 +90,7 @@ services:
       - no-new-privileges:true
 
   migrate:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     command: ["/app/scripts/migrate.sh"]
     restart: "no"
     environment:
@@ -135,7 +135,7 @@ services:
       - no-new-privileges:true
 
   web:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     environment:
@@ -223,7 +223,7 @@ services:
       - no-new-privileges:true
 
   feed-worker:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-worker.sh"]
@@ -262,7 +262,7 @@ services:
       - no-new-privileges:true
 
   notify-worker:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
@@ -305,7 +305,7 @@ services:
       - no-new-privileges:true
 
   push-worker:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-push-worker.sh"]
@@ -346,7 +346,7 @@ services:
       - no-new-privileges:true
 
   backup-init:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "0:0"
     # /offsite best effort: ein NFS-Ziel mit root_squash lässt kein chown zu;
@@ -370,7 +370,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
@@ -418,7 +418,7 @@ services:
 
   restore-test:
     profiles: ["ops"]
-    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
     entrypoint: ["/bin/sh", "/usr/local/bin/rwsth-restore-test"]
