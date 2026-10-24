@@ -34,7 +34,7 @@
           {% endif %}
         </span>
       </article>
-    {% empty %}<p class="empty-state">{% translate "Noch keine Aushänge an der Pinnwand." %}</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Aushänge an der Pinnwand." %} <a href="{% url 'pinboard_create' %}">{% translate "Aushang anlegen" %}</a></p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

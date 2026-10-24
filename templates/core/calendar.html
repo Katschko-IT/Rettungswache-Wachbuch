@@ -34,7 +34,7 @@
           {% endif %}
         </div>
       </article>
-    {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %}</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %}{% if can_create %} <a href="{% url 'calendar_create' %}">{% translate "Termin anlegen" %}</a>{% endif %}</p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}
