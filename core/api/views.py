@@ -109,6 +109,7 @@ def api_rate_limit(bucket: str, get_key: callable = None):
         return wrapped_view
     return decorator
 DEFAULT_TOKEN_TTL_DAYS = 90
+TOKEN_LAST_USED_RESOLUTION = timedelta(minutes=1)
 WRITE_ROLES = {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 CASHIER_ROLES = {Membership.Role.CASHIER, Membership.Role.ADMIN}
 DEFAULT_MOBILE_SCOPES = [
@@ -247,7 +248,11 @@ def api_token_required(view):
         membership = get_membership(token.user)
         if membership is None:
             return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
-        ApiToken.objects.filter(pk=token.pk).update(last_used_at=timezone.now())
+        # „Zuletzt genutzt“ minutengenau: Ein Schreibzugriff pro Lese-Anfrage
+        # erzeugt bei vielen Handys einer Wache nur Sperren ohne Mehrwert.
+        now = timezone.now()
+        if token.last_used_at is None or now - token.last_used_at >= TOKEN_LAST_USED_RESOLUTION:
+            ApiToken.objects.filter(pk=token.pk).update(last_used_at=now)
         request.user = token.user
         request.membership = membership
         request.api_token = token

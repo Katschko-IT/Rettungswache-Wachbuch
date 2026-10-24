@@ -41,6 +41,8 @@ Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CL
 
 Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
 
+- API: „zuletzt genutzt“ eines App-Tokens wird minutengenau gespeichert statt
+  bei jeder Anfrage – ein Schreibzugriff weniger pro Lese-Anfrage.
 - Rate-Limit: zwei gleichzeitige erste Anfragen im selben Zeitfenster
   (z. B. App lädt `me` und Übergaben parallel) endeten mit 500. Jetzt wird
   die Zeile der parallelen Anfrage nachgelesen und weitergezählt.

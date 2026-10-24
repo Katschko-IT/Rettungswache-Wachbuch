@@ -458,3 +458,36 @@ class RateLimitRaceTests(TestCase):
             allowed = consume("race", "key", limit=5, window_seconds=60)
         self.assertTrue(allowed)
         self.assertEqual(RateLimit.objects.get(bucket="race").count, 2)
+
+
+class TokenLastUsedThrottleTests(TestCase):
+    """Optimierung: „zuletzt genutzt“ höchstens einmal pro Minute schreiben."""
+
+    def setUp(self):
+        station = Station.objects.create(name="RW", slug="rw")
+        self.user = User.objects.create_user(username="u", password=PASSWORD)
+        Membership.objects.create(user=self.user, station=station, role=Membership.Role.MEMBER)
+        self.auth = _make_token(self.user, "wb_review_token_gggggggggggggggggg")
+        self.token = ApiToken.objects.get(user=self.user)
+
+    def _token_writes(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as ctx:
+            self.assertEqual(self.client.get("/api/v1/me/", **self.auth).status_code, 200)
+        return [q for q in ctx.captured_queries if q["sql"].startswith("UPDATE") and "core_apitoken" in q["sql"]]
+
+    def test_first_use_is_recorded(self):
+        self.assertEqual(len(self._token_writes()), 1)
+        self.token.refresh_from_db()
+        self.assertIsNotNone(self.token.last_used_at)
+
+    def test_repeated_use_within_a_minute_does_not_write(self):
+        self._token_writes()
+        self.assertEqual(self._token_writes(), [])
+
+    def test_use_after_a_minute_writes_again(self):
+        self._token_writes()
+        ApiToken.objects.filter(pk=self.token.pk).update(last_used_at=timezone.now() - timedelta(minutes=2))
+        self.assertEqual(len(self._token_writes()), 1)
