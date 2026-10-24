@@ -72,7 +72,8 @@ env_set() {
 ASSUME_YES=0
 confirm() {  # confirm "Frage" "Wort" -> 0 wenn bestätigt
     [ "$ASSUME_YES" -eq 0 ] || return 0
-    [ -r /dev/tty ] || die "Rückfrage nicht möglich (kein Terminal); mit --yes bestätigen."
+    { [ -r /dev/tty ] && (: </dev/tty) 2>/dev/null; } \
+        || die "Rückfrage nicht möglich (kein Terminal); mit --yes bestätigen."
     printf '%s\nZum Bestätigen "%s" eingeben: ' "$1" "$2" >/dev/tty
     answer=""
     IFS= read -r answer </dev/tty || true
