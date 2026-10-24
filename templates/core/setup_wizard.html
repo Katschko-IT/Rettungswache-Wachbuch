@@ -49,6 +49,21 @@
   </section>
 
   <section class="section-block">
+    <h2>{% translate "Verkehrslage (optional)" %}</h2>
+    <p class="help-text">{% translate "Alle Werte lassen sich später unter Einstellungen ändern. Kommunale Quellen sind nur dort wählbar." %}</p>
+    {% for field in form %}
+      {% if field.name == "traffic_enabled" or field.name == "traffic_roads" or field.name == "traffic_radius_km" or field.name == "traffic_warning_areas" %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+          {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+        </p>
+      {% endif %}
+    {% endfor %}
+  </section>
+
+  <section class="section-block">
     <h2>{% translate "Admin-Konto" %}</h2>
     <p class="help-text">{% translate "Dein persönliches Konto mit allen Rechten. Die Besatzung bekommt später eigene Konten über Team → Einladungen." %}</p>
     {% for field in form %}

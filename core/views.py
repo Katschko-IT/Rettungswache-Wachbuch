@@ -1293,6 +1293,12 @@ def station_settings(request):
         post_data = request.POST.copy()
         post_data.setdefault("organization_profile", station.organization_profile)
         post_data.setdefault("holiday_state", getattr(station, "holiday_state", "NW") or "NW")
+        # Fehlen die Koordinatenfelder ganz (ältere Formulare), bleiben die
+        # gespeicherten Werte erhalten; ein leeres Feld löscht sie bewusst.
+        for coord_field in ("latitude", "longitude"):
+            current = getattr(station, coord_field, None)
+            if current is not None:
+                post_data.setdefault(coord_field, str(current))
     else:
         post_data = None
     form = StationSettingsForm(post_data, request.FILES or None, instance=station)

@@ -155,6 +155,10 @@ def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: 
                 weather_enabled=bool(data.get("weather_enabled")),
                 latitude=data.get("latitude"),
                 longitude=data.get("longitude"),
+                traffic_enabled=bool(data.get("traffic_enabled")),
+                traffic_roads=data.get("traffic_roads") or "",
+                traffic_radius_km=data.get("traffic_radius_km") or 25,
+                traffic_warning_areas=data.get("traffic_warning_areas") or "",
             )
             user = User.objects.create_user(
                 username=data["admin_username"].strip(),

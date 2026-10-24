@@ -109,6 +109,29 @@ class Station(models.Model):
     traffic_enabled = models.BooleanField(
         default=False, verbose_name="Verkehrslage (Baustellen und Sperrungen)"
     )
+    # Konfiguration der Verkehrslage je Wache. Neue Wachen starten leer;
+    # ohne Koordinaten gibt es keine Autobahnquelle, ohne Gebiet keine Warnungen.
+    traffic_roads = models.CharField(
+        max_length=60,
+        blank=True,
+        default="",
+        verbose_name="Autobahnen und Bundesstraßen",
+        help_text="Kommagetrennt, z. B. A2, A33. Benötigt Koordinaten der Wache.",
+    )
+    traffic_radius_km = models.PositiveSmallIntegerField(
+        default=25, verbose_name="Umkreis in km"
+    )
+    traffic_warning_areas = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        verbose_name="Gebiete für Bevölkerungswarnungen",
+        help_text="Kommagetrennte Orts- oder Kreisnamen. Leer: Ort der Wache.",
+    )
+    traffic_local_sources = models.BooleanField(
+        default=False,
+        verbose_name="Kommunale Quellen Steinhagen und Kreis Gütersloh",
+    )
 
     class Meta:
         ordering = ["name"]

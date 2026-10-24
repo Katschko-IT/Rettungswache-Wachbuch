@@ -196,7 +196,52 @@ class MembershipEditForm(forms.Form):
         self.fields["is_active"].initial = membership.is_active
 
 
-class StationSettingsForm(forms.ModelForm):
+class TrafficConfigMixin:
+    """Gemeinsame Prüfung der Verkehrslage (Einstellungen und Ersteinrichtung).
+
+    Die Straßenkennungen gehen in die Abruf-URL der Autobahn GmbH ein und
+    werden deshalb streng auf ``A2``/``B61``-Form geprüft.
+    """
+
+    def clean_traffic_roads(self):
+        from .traffic import MAX_ROADS, parse_roads
+
+        value = self.cleaned_data.get("traffic_roads") or ""
+        try:
+            roads = parse_roads(value)
+        except ValueError:
+            raise ValidationError(
+                _("Nur Kennungen wie A2, A33 oder B61 (höchstens %(max)s), durch Komma getrennt.")
+                % {"max": MAX_ROADS}
+            )
+        return ", ".join(roads)
+
+    def clean_traffic_warning_areas(self):
+        from .traffic import MAX_WARNING_AREAS, split_areas
+
+        areas = split_areas(self.cleaned_data.get("traffic_warning_areas") or "")
+        if len(areas) > MAX_WARNING_AREAS:
+            raise ValidationError(
+                _("Höchstens %(max)s Gebiete, durch Komma getrennt.") % {"max": MAX_WARNING_AREAS}
+            )
+        return ", ".join(areas)
+
+    def clean_traffic_radius_km(self):
+        from .traffic import DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MIN_RADIUS_KM
+
+        value = self.cleaned_data.get("traffic_radius_km")
+        if value is None:
+            current = getattr(getattr(self, "instance", None), "traffic_radius_km", None)
+            return current or int(DEFAULT_RADIUS_KM)
+        if not MIN_RADIUS_KM <= value <= MAX_RADIUS_KM:
+            raise ValidationError(
+                _("Der Umkreis muss zwischen %(min)s und %(max)s km liegen.")
+                % {"min": MIN_RADIUS_KM, "max": MAX_RADIUS_KM}
+            )
+        return value
+
+
+class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
     class Meta:
         model = Station
         fields = [
@@ -221,6 +266,12 @@ class StationSettingsForm(forms.ModelForm):
             "display_enabled",
             "orga_enabled",
             "traffic_enabled",
+            "traffic_roads",
+            "traffic_radius_km",
+            "traffic_warning_areas",
+            "traffic_local_sources",
+            "latitude",
+            "longitude",
             "waste_calendar_enabled",
             "waste_calendar_url",
             "signal_group_url",
@@ -244,6 +295,12 @@ class StationSettingsForm(forms.ModelForm):
             "street": _("Straße und Hausnummer"),
             "postal_code": _("Postleitzahl"),
             "city": _("Ort"),
+            "traffic_roads": _("Autobahnen und Bundesstraßen"),
+            "traffic_radius_km": _("Umkreis in km"),
+            "traffic_warning_areas": _("Gebiete für Bevölkerungswarnungen"),
+            "traffic_local_sources": _("Kommunale Quellen Steinhagen und Kreis Gütersloh"),
+            "latitude": _("Breitengrad der Wache"),
+            "longitude": _("Längengrad der Wache"),
             "paypal_me_url": _("PayPal.me-Link"),
             "wero_link": _("Wero-Link"),
             "iban": _("IBAN"),
@@ -257,6 +314,12 @@ class StationSettingsForm(forms.ModelForm):
             "street": _("Straße und Hausnummer der Wache für die Wetterabfrage."),
             "postal_code": _("Postleitzahl der Wache."),
             "city": _("Ort der Wache für die Wetterabfrage."),
+            "traffic_roads": _("Kommagetrennt, z. B. A2, A33 (höchstens 6). Benötigt Koordinaten der Wache."),
+            "traffic_radius_km": _("Baustellen weiter entfernt werden ausgeblendet (1–200 km)."),
+            "traffic_warning_areas": _("Kommagetrennte Orts- oder Kreisnamen für BBK-Warnungen. Leer: Ort der Wache; ohne Ort keine Warnungen."),
+            "traffic_local_sources": _("Nur für Wachen im Kreis Gütersloh sinnvoll: liest die Baustellenseiten der Gemeinde Steinhagen und des Kreises Gütersloh."),
+            "latitude": _("Dezimalgrad, z. B. 52.0200. Wird bei aktivierter Wettervorhersage aus der Anschrift ermittelt; nur zusammen mit dem Längengrad."),
+            "longitude": _("Dezimalgrad, z. B. 8.4200."),
             "paypal_me_url": _("Vollständige https://paypal.me/…-URL."),
             "wero_link": _("Vollständige https://…-URL zum Wero-Profil."),
             "iban": _("Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige."),
@@ -281,6 +344,23 @@ class StationSettingsForm(forms.ModelForm):
         self.fields["organization_profile"].widget.attrs["required"] = "required"
         self.fields["holiday_state"].required = False
         self.fields["holiday_state"].widget.attrs["required"] = "required"
+        self.fields["traffic_radius_km"].required = False
+
+    def clean_latitude(self):
+        value = self.cleaned_data.get("latitude")
+        if value is not None and not -90 <= value <= 90:
+            raise ValidationError(_("Der Breitengrad muss zwischen -90 und 90 liegen."))
+        return value
+
+    def clean_longitude(self):
+        value = self.cleaned_data.get("longitude")
+        if value is not None and not -180 <= value <= 180:
+            raise ValidationError(_("Der Längengrad muss zwischen -180 und 180 liegen."))
+        return value
+
+    def _coordinates_entered(self) -> bool:
+        """Hat die Person die Koordinaten in diesem Formular selbst geändert?"""
+        return bool({"latitude", "longitude"} & set(self.changed_data))
 
     def clean_organization_profile(self):
         return self.cleaned_data.get("organization_profile") or self.instance.organization_profile
@@ -327,6 +407,11 @@ class StationSettingsForm(forms.ModelForm):
         if upload is not None and upload.size > 1_048_576:
             self.add_error("waste_calendar_file", "Die ICS-Datei darf höchstens 1 MB groß sein.")
 
+        coordinate_errors = "latitude" in self.errors or "longitude" in self.errors
+        if not coordinate_errors and (cleaned.get("latitude") is None) != (cleaned.get("longitude") is None):
+            self.add_error("longitude", _("Breiten- und Längengrad nur gemeinsam angeben."))
+            coordinate_errors = True
+
         if cleaned.get("weather_enabled"):
             street = (cleaned.get("street") or "").strip()
             postal_code = (cleaned.get("postal_code") or "").strip()
@@ -352,7 +437,8 @@ class StationSettingsForm(forms.ModelForm):
                     and (self.instance.postal_code or "").strip() == postal_code
                     and (self.instance.city or "").strip() == city
                 )
-                if not addr_unchanged:
+                # Selbst eingetragene Koordinaten haben Vorrang vor der Geocodierung.
+                if not addr_unchanged and not self._coordinates_entered():
                     try:
                         from . import weather
 
@@ -363,6 +449,16 @@ class StationSettingsForm(forms.ModelForm):
                             "weather_enabled",
                             _("Wetter konnte nicht aktiviert werden: %(error)s") % {"error": str(exc)},
                         )
+
+        if cleaned.get("traffic_enabled") and cleaned.get("traffic_roads") and not coordinate_errors:
+            has_coordinates = hasattr(self, "_geocoded_coords") or (
+                cleaned.get("latitude") is not None and cleaned.get("longitude") is not None
+            )
+            if not has_coordinates:
+                self.add_error(
+                    "latitude",
+                    _("Autobahnen im Umkreis brauchen Koordinaten der Wache (Wettervorhersage mit Anschrift oder Breiten- und Längengrad)."),
+                )
         return cleaned
 
     def save(self, commit=True):
@@ -678,7 +774,7 @@ def _translated_profile_choices():
     return [(value, labels[value]) for value in Station.Profile.values]
 
 
-class SetupWizardForm(forms.Form):
+class SetupWizardForm(TrafficConfigMixin, forms.Form):
     """First-installation data. The bootstrap token is only used on step 1."""
 
     bootstrap_token = forms.CharField(
@@ -701,6 +797,24 @@ class SetupWizardForm(forms.Form):
         initial="Europe/Berlin",
     )
     weather_enabled = forms.BooleanField(label=_("5-Tage-Wetter am Wachenstandort anzeigen"), required=False)
+    traffic_enabled = forms.BooleanField(
+        label=_("Verkehrslage (Baustellen und Sperrungen) anzeigen"), required=False
+    )
+    traffic_roads = forms.CharField(
+        label=_("Autobahnen und Bundesstraßen"),
+        max_length=60,
+        required=False,
+        help_text=_("Kommagetrennt, z. B. A2, A33. Benötigt Koordinaten: Wettervorschau laden oder später unter Einstellungen eintragen."),
+    )
+    traffic_radius_km = forms.IntegerField(
+        label=_("Umkreis in km"), min_value=1, max_value=200, initial=25, required=False
+    )
+    traffic_warning_areas = forms.CharField(
+        label=_("Gebiete für Bevölkerungswarnungen"),
+        max_length=200,
+        required=False,
+        help_text=_("Kommagetrennte Orts- oder Kreisnamen. Leer: Ort der Wache."),
+    )
     admin_username = forms.CharField(label=_("Benutzername für die Anmeldung"), max_length=150)
     admin_first_name = forms.CharField(label=_("Vorname"), max_length=150, required=False)
     admin_last_name = forms.CharField(label=_("Nachname"), max_length=150, required=False)

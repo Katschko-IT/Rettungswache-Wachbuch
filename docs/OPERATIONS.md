@@ -82,6 +82,36 @@ Vor dem Upgrade einer 0.2-Installation müssen die Hosts aller bestehenden
 Quellen aus dem Django-Admin in `FEED_ALLOWED_HOSTS` übernommen werden. Eine
 leere Allowlist deaktiviert Abrufe absichtlich.
 
+## Verkehrslage
+
+Die Verkehrslage (Baustellen, Sperrungen, Bevölkerungswarnungen) auf dem
+Wachen-Display ist je Wache unter *Einstellungen* konfigurierbar; Straßen,
+Umkreis und Warngebiete auch in der Ersteinrichtung. Es gibt keine festen
+Standort- oder Regionswerte:
+
+| Einstellung | Wirkung |
+| --- | --- |
+| `traffic_enabled` | Schaltet die Leiste auf dem Display ein (Standard aus). |
+| `traffic_roads` | Autobahnen, z. B. `A2, A33` (höchstens 6, Format `^[AB]\d{1,3}$`). Abgefragt wird `verkehr.autobahn.de`; die Autobahn GmbH liefert nur Bundesautobahnen, B-Kennungen bleiben dort in der Regel leer. Braucht Koordinaten der Wache. |
+| `traffic_radius_km` | Umkreis um die Koordinaten (1–200 km, Standard 25). |
+| `latitude`/`longitude` | Koordinaten der Wache; bei aktivierter Wettervorhersage aus der Anschrift ermittelt oder direkt eintragbar. Ohne Koordinaten entfällt die Autobahnquelle (kein Ersatzstandort). |
+| `traffic_warning_areas` | Orts- oder Kreisnamen für BBK/NINA-Warnungen (`warnung.bund.de`, höchstens 8). Leer: Ort der Wache; ohne beides werden keine Warnungen abgerufen. Meldungen ohne Gebietsangabe werden nicht angezeigt. |
+| `traffic_local_sources` | Ortsspezifische HTML-Auswertung der Gemeinde Steinhagen und des Kreises Gütersloh. Nur für Wachen dort sinnvoll, Standard aus, nur in den Einstellungen wählbar. |
+
+Bestehende Wachen mit eingeschalteter Verkehrslage behalten beim Update
+(Migration `0056`) die bisherigen Werte: `A2, A33`, 25 km, Warngebiete
+„Gütersloh, Bielefeld, Steinhagen, Kreis Gütersloh“ und kommunale Quellen an.
+Der frühere feste Ersatzstandort entfällt; Wachen ohne gespeicherte Koordinaten
+müssen sie nachtragen, sonst bleibt die Autobahnquelle leer.
+
+Ergebnisse werden zehn Minuten zwischengespeichert; der Cache-Schlüssel enthält
+einen Hash der Konfiguration, Änderungen greifen also sofort. Fällt eine Quelle
+aus, bleiben die übrigen sichtbar und die Quelle steht in `failed_sources`.
+Alle Abrufe laufen über eine feste HTTPS-Allowlist (`core/traffic.py`,
+`ALLOWED_HOSTS`), nur Port 443, ohne Weiterleitungen und mit Größenlimit. Die
+kommunalen Quellen werten HTML aus und können bei Layoutänderungen der Seiten
+leer werden.
+
 ## Push-Outbox
 
 Dringende Übergaben schreiben innerhalb der Handover-Transaktion einen
