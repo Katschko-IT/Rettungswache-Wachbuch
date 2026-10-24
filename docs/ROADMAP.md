@@ -54,7 +54,7 @@ Priorisierte Umsetzung der noch offenen Wuensche. Keine Kalenderzeit-Schätzung;
 Reihenfolge nach Nutzen und Abhängigkeiten. Sicherheits- und Betriebsblocker aus
 der Remediation-Roadmap haben Vorrang vor neuen Fachmodulen.
 
-### 0. Wachalltag-Kern aus dem RETTpro-Vergleich — teilweise umgesetzt
+### 0. Wachalltag-Kern — teilweise umgesetzt
 
 **Lernpunkt:** Nicht eine komplette kommerzielle Suite nachbauen, sondern vorhandene
 Open-Source-Bausteine zu einem klaren stationsbezogenen Lagebild verbinden.
