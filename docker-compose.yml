@@ -391,6 +391,9 @@ services:
         condition: service_completed_successfully
       db:
         condition: service_healthy
+      # Erster Dump erst nach den Migrationen, sonst sichert er ein leeres Schema.
+      migrate:
+        condition: service_completed_successfully
     networks:
       - backup-db
     volumes:
