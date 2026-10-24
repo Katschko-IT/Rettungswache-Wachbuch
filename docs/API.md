@@ -82,8 +82,8 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `mfa_require
 | GET/POST | `/api/v1/inventory/` | Schlüssel-/Poolgeräte |
 | POST | `/api/v1/inventory/<item_id>/checkout/` | Ausgeben |
 | POST | `/api/v1/inventory/<item_id>/checkin/` | Zurückgeben |
-| GET/POST | `/api/v1/kalender/` | Termine |
-| GET/POST | `/api/v1/kaffeekasse/` | Kasse |
+| GET/POST | `/api/v1/kalender/` | Termine (laufende und kommende, mit `description`) |
+| GET/POST | `/api/v1/kaffeekasse/` | Kasse; `scope` = `station` (Kassenwart/Admin, Wachensaldo) oder `own` (eigene Buchungen) |
 | GET | `/api/v1/checklisten/` | Checklisten + Fälligkeit |
 | POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |
@@ -98,16 +98,31 @@ Die vollständige, maschinenlesbare Beschreibung ist `core/api/openapi_v1.yaml` 
 
 Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
 
+`GET /api/v1/defects/` sortiert fachlich: offen → in Bearbeitung → wartend →
+erledigt, innerhalb davon dringend → wichtig → normal, dann nach Frist. Die
+Liste ist paginiert:
+
+| Parameter | Bedeutung |
+| --- | --- |
+| `limit` | Einträge pro Seite, 1–200, Standard 100 |
+| `offset` | Startposition, Standard 0 |
+| `active=1` | erledigte Mängel ausblenden |
+| `status`, `priority`, `overdue=1` | Filter wie bisher |
+
+Antwort: `{"ok": true, "count": <Gesamtzahl>, "results": [...], "next": <Pfad oder null>, "previous": <Pfad oder null>}`.
+`next`/`previous` sind relative Pfade mit allen Filtern; Clients folgen ihnen,
+statt selbst Offsets zu berechnen.
+
 ### Fotos
 
-Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG und WebP. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit mit Pillow, bevor Daten persistiert werden. Grenzen:
+Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG, WebP und PDF. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit, bevor Daten persistiert werden. Grenzen (Web und API gleich):
 
-- maximal **2 MiB je Datei**
+- maximal **5 MiB je Datei** (Server); der offizielle Client verkleinert Fotos vorab auf höchstens 2 MiB
 - maximal **25 Megapixel je Bild**
-- maximal **8 Fotos je Mangel**
+- maximal **8 Anhänge je Mangel**
 - maximal **12 MiB Gesamtgröße je Mangel**
 
-Die 2 MiB Binärdaten werden aktuell als Base64 in JSON transportiert. Dadurch ist der HTTP-Request größer als die Bilddatei selbst. Wachbuch setzt deshalb standardmäßig `DATA_UPLOAD_MAX_MEMORY_SIZE` auf **3 MiB**; ein vorgeschalteter Reverse Proxy muss für diese API-Route ebenfalls mindestens 3 MiB Request-Body zulassen. Das 2-MiB-Limit bleibt die fachliche Grenze für die tatsächlich gespeicherte Bilddatei.
+Die Binärdaten werden als Base64 in JSON transportiert; der HTTP-Request ist dadurch rund ein Drittel größer als die Datei. Wachbuch erlaubt standardmäßig **10 MiB** Request-Body (`DATA_UPLOAD_MAX_MEMORY_SIZE`); ein vorgeschalteter Reverse Proxy muss mindestens 8 MiB zulassen. Lehnt der Proxy vorher ab, liefert er oft HTML statt JSON – Clients werten dann den Statuscode (413) aus.
 
 Die Limits schützen vor manipulierten/defekten Dateien, Dekompressionsrisiken und ungebremstem Datenbankwachstum. Fotos dürfen keine Patienten-/Einsatzdaten enthalten.
 
@@ -131,13 +146,20 @@ Bestehende Scopes bleiben bewusst kompatibel:
 
 Wachalltag-Ressourcen nutzen aktuell die passenden Handovers-/Checklists-Scopes plus Rollen- und Stationsprüfung. Ein Scope ersetzt niemals die fachliche Rollenprüfung.
 
+## Rate-Limits
+
+Angemeldete Anfragen werden pro Person gezählt, nicht pro IP (alle Handys im
+Wachen-WLAN teilen sich hinter NAT eine Adresse). Nur Anmeldung und
+Token-Ausgabe zählen zusätzlich nach Client-IP. Eine `429`-Antwort enthält
+`Retry-After` in Sekunden.
+
 ## Retry-Regeln für Clients
 
 Clients dürfen GETs sowie nachweislich idempotente Operationen erneut senden. Nicht-idempotente Mutationen wie Token-Erzeugung, Mangelanlage, Foto-Upload, Asset-/Inventar-Stammdaten oder Checklistenabschluss dürfen bei verlorener Antwort **nicht automatisch wiederholt** werden. Checkout/Checkin, identische Statussetzung und Quittierung besitzen serverseitige Idempotenz-/Zustandsregeln.
 
 ## Offline-Lesen
 
-Der offizielle Client darf erfolgreiche GET-Antworten verschlüsselt und an Server+Token gebunden zwischenspeichern. Cache-Fallback ist nur bei echten Netzwerkfehlern zulässig. `401`/`403` dürfen niemals durch alte Offline-Daten verdeckt werden.
+Maßgeblich ist [`CLIENT-OFFLINE-CONTRACT.md`](CLIENT-OFFLINE-CONTRACT.md): Der offizielle Client darf nur die dort freigegebenen Antworten (eigene Mitgliedschaft, Aufgaben, Checklisten, Übergabeliste ohne Inhalt) verschlüsselt, an Server+Token gebunden und höchstens 24 Stunden zwischenspeichern; für Admin, Kassenwart und Auditor gar nicht. Cache-Fallback ist nur bei echten Netzwerkfehlern zulässig. `401`/`403` dürfen niemals durch alte Offline-Daten verdeckt werden.
 
 ## Betrieb
 

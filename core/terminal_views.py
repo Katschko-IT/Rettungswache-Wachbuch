@@ -132,7 +132,7 @@ def terminal_admin(request):
             terminal, raw = create_terminal_device(
                 station, label=request.POST.get("label") or "", created_by=request.user
             )
-            audit(request.user, station, "terminal.created", terminal, {"label": terminal.label})
+            audit(request.user, station, "terminal.created", terminal, {"fields": ["label"]})
             request.session["terminal_new_url"] = request.build_absolute_uri(reverse("terminal_start", args=[raw]))
         elif action == "create-here":
             # Dieser Browser (z. B. der Touch-Bildschirm des Pi) wird selbst zum
@@ -140,7 +140,7 @@ def terminal_admin(request):
             terminal, raw = create_terminal_device(
                 station, label=request.POST.get("label") or "", created_by=request.user
             )
-            audit(request.user, station, "terminal.created", terminal, {"label": terminal.label, "via": "this-device"})
+            audit(request.user, station, "terminal.created", terminal, {"fields": ["label"], "via": "this-device"})
             logout(request)
             response = redirect("terminal_home")
             set_terminal_cookie(response, request, raw)
@@ -181,6 +181,17 @@ def terminal_admin(request):
             )
             if is_service_user(member.user):
                 raise Http404
+            from .mfa import mfa_required, user_has_confirmed_mfa
+
+            # Fremdkopplung darf keinen zweiten Faktor umgehen: Wer MFA nutzt
+            # oder nutzen muss, koppelt sein Handy aus der eigenen Sitzung.
+            if member.user_id != request.user.pk and (mfa_required() or user_has_confirmed_mfa(member.user)):
+                messages.error(
+                    request,
+                    "Diese Person nutzt die Zwei-Faktor-Anmeldung und koppelt ihr Handy "
+                    "selbst unter „Handy koppeln“.",
+                )
+                return redirect("terminal_admin")
             request.session["terminal_pair_link"] = connect_link(request, pair=create_pairing(member))
             request.session["terminal_pair_name"] = member.user.get_full_name() or member.user.username
             audit(request.user, station, "terminal.pairing_created", member, {"by_admin": True})

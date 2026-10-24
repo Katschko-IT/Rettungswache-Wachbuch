@@ -2,6 +2,21 @@
 
 ## Unveröffentlicht
 
+Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
+
+- Sicherheit: `MFA_REQUIRED` wird jetzt durchgesetzt; das Dienstkonto
+  „Wachenterminal“ kann keine Neuigkeiten mehr quittieren; Admins koppeln keine
+  Handys für Personen mit Zwei-Faktor-Anmeldung; Terminal-Fehlversuche werden
+  zuverlässig gezählt; Client-IP hinter dem Reverse-Proxy aus dem vom Proxy
+  angehängten Eintrag (auch für die Anmeldesperre).
+- API: Mängelliste fachlich sortiert (offen vor erledigt, dringend vor normal)
+  und paginiert (`limit`, `offset`, `next`, `active=1`); Kalender liefert
+  laufende Termine und die Beschreibung; Kaffeekasse liefert `scope`;
+  Rate-Limits pro Person mit `Retry-After`; JSON ohne Objekt ergibt 400 statt 500.
+- Web: Checklisten-Abschluss schaltet das Prüfintervall weiter; Anhänge an
+  Mängeln mit denselben Grenzen wie in der App; unmögliche Datumswerte ergeben
+  eine Fehlermeldung statt eines Serverfehlers.
+
 Abhängigkeiten und Basis-Images auf den Stand vom 24.10.2026 gebracht.
 
 - Python-Pakete: Django 6.1.2, psycopg 3.3.6, cryptography 50.0.2,

@@ -20,6 +20,30 @@ def _require_same_station(parent, station_id, label):
         raise ValidationError(f"{label} und Wache müssen übereinstimmen.")
 
 
+# Fachliche Rangfolge statt alphabetischer Sortierung der Schlüssel:
+# offen → in Bearbeitung → wartend → erledigt, darin dringend → wichtig → normal.
+# Abfragen mit GROUP BY (z. B. Anhangszählung) ignorieren Meta.ordering und
+# müssen ``order_by(*DEFECT_WORKFLOW_ORDERING)`` selbst setzen.
+DEFECT_WORKFLOW_ORDERING = [
+    models.Case(
+        models.When(status="open", then=0),
+        models.When(status="in_progress", then=1),
+        models.When(status="waiting", then=2),
+        default=3,
+        output_field=models.IntegerField(),
+    ).asc(),
+    models.Case(
+        models.When(priority="urgent", then=0),
+        models.When(priority="important", then=1),
+        default=2,
+        output_field=models.IntegerField(),
+    ).asc(),
+    models.F("due_at").asc(nulls_last=True),
+    "-updated_at",
+    "-id",
+]
+
+
 class Defect(models.Model):
     class Priority(models.TextChoices):
         NORMAL = "normal", "Normal"
@@ -75,7 +99,7 @@ class Defect(models.Model):
     )
 
     class Meta:
-        ordering = ["status", "-priority", "due_at", "-updated_at"]
+        ordering = DEFECT_WORKFLOW_ORDERING
         indexes = [
             models.Index(fields=["station", "status", "due_at"], name="defect_station_status_idx"),
             models.Index(fields=["station", "priority"], name="defect_station_prio_idx"),

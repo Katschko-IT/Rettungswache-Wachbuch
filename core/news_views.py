@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -52,6 +53,10 @@ def news_detail(request, pk):
     post = get_object_or_404(NewsPost, pk=pk, station=station)
     if request.method == "POST":
         if request.POST.get("action") == "acknowledge":
+            from .terminal import is_service_user
+
+            if is_service_user(request.user):
+                raise PermissionDenied
             status = acknowledge(post, request.user)
             if status["complete"]:
                 messages.success(request, _("Danke – alle haben gelesen. Die Neuigkeit ist im Archiv."))

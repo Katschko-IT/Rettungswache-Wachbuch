@@ -249,7 +249,7 @@ def _finish_setup(request, station, user, cleaned):
             code_set = True
         if cleaned.get("register_terminal"):
             terminal, raw_terminal = create_terminal_device(station, label="Wachenterminal", created_by=user)
-            audit(user, station, "terminal.created", terminal, {"label": terminal.label, "via": "setup"})
+            audit(user, station, "terminal.created", terminal, {"fields": ["label"], "via": "setup"})
             register = True
     request.session[SETUP_DONE_KEY] = {
         "station": station.name,

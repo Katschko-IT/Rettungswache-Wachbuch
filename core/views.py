@@ -1055,6 +1055,9 @@ def checklist_complete(request, pk):
         audit(request.user, station, "checklist.completed", completion, {
             "fields": ["checklist", "note"],
         })
+        from .api.wachalltag import advance_checklist_schedule
+
+        advance_checklist_schedule(checklist.pk)
     messages.success(request, _("Checkliste wurde als erledigt vermerkt."))
     return redirect("checklists")
 

@@ -85,20 +85,24 @@ def api_rate_limit(bucket: str, get_key: callable = None):
             limit = config["limit"]
             window_seconds = config["window_seconds"]
             
-            # Extract key from request
+            # Angemeldete Anfragen pro Person zählen: Hinter NAT teilen sich
+            # alle Handys einer Wache eine IP.
             if get_key:
                 raw_key = get_key(request)
+            elif getattr(request, "user", None) is not None and request.user.is_authenticated:
+                raw_key = f"user:{request.user.pk}"
             else:
                 raw_key = getattr(request, "client_ip", None) or "unknown"
-            
-            # Check rate limit
+
             if not consume(bucket, raw_key, limit=limit, window_seconds=window_seconds):
-                return _json_error(
+                response = _json_error(
                     request,
                     "Zu viele Anfragen. Bitte später erneut versuchen.",
                     status=429,
                     code=ERROR_CODE_RATE_LIMIT,
                 )
+                response["Retry-After"] = str(window_seconds)
+                return response
             
             return view_func(request, *args, **kwargs)
         return wrapped_view
@@ -173,10 +177,12 @@ def _api_get_or_404(request, model, **kwargs):
 
 
 def _parse_json(request):
+    """JSON-Objekt aus dem Request-Körper; alles andere (Liste, Zahl, kaputt) ist None."""
     try:
-        return json.loads(request.body.decode("utf-8") or "{}")
+        data = json.loads(request.body.decode("utf-8") or "{}")
     except (UnicodeDecodeError, json.JSONDecodeError):
         return None
+    return data if isinstance(data, dict) else None
 
 
 def _token_rate_limit_key(request):
@@ -317,6 +323,14 @@ def pairing_exchange(request):
     if membership is None:
         return _json_error(request, "Kopplungscode ist ungültig oder abgelaufen.", status=401)
     user = membership.user
+    from ..mfa import mfa_required, user_has_confirmed_mfa
+
+    if mfa_required() and not user_has_confirmed_mfa(user):
+        return _json_error(request,
+            "MFA ist verpflichtend. Bitte zuerst die Zwei-Faktor-Anmeldung unter /konto/mfa/ einrichten.",
+            status=403,
+            code="mfa_setup_required",
+        )
     label = str(body.get("label") or "Mobile App (Terminal-Kopplung)").strip()[:120]
     expires_at = default_token_expiry()
     raw, token_hash, prefix = generate_api_token()
@@ -737,8 +751,9 @@ def calendar_api(request):
         return _json_error(request, "Scope read:calendar fehlt.", status=403)
     if request.membership.role not in CONTENT_ROLES:
         return _json_error(request, "Rolle hat keinen Zugriff auf den Kalender.", status=403)
+    # Laufende Termine gehören dazu: maßgeblich ist das Ende, nicht der Beginn.
     events = (
-        CalendarEvent.objects.filter(station=station, starts_at__gte=timezone.now())
+        CalendarEvent.objects.filter(station=station, ends_at__gte=timezone.now())
         .order_by("starts_at")[:30]
     )
     return JsonResponse({
@@ -747,6 +762,7 @@ def calendar_api(request):
             {
                 "id": event.pk,
                 "title": event.title,
+                "description": event.description,
                 "starts_at": event.starts_at.isoformat(),
                 "ends_at": event.ends_at.isoformat() if event.ends_at else None,
             }
@@ -816,7 +832,9 @@ def coffee_api(request):
         }
         for entry in qs.order_by("-created_at")[:50]
     ]
-    return JsonResponse({"ok": True, "balance_euros": total / 100, "results": results})
+    # scope sagt dem Client, ob der Saldo die Wache oder nur die eigenen Buchungen meint.
+    scope = "station" if request.membership.role in CASHIER_ROLES else "own"
+    return JsonResponse({"ok": True, "balance_euros": total / 100, "scope": scope, "results": results})
 
 
 @csrf_exempt

@@ -22,9 +22,11 @@ class ClientIPMiddlewareTests(TestCase):
 
     @override_settings(TRUSTED_PROXY=True)
     def test_trusted_proxy_uses_x_forwarded_for(self):
-        request = self._request(REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="1.2.3.4, 10.0.0.1")
+        # Der Proxy hängt die echte Client-IP rechts an; links stehende
+        # Einträge stammen vom Client und werden ignoriert.
+        request = self._request(REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="1.2.3.4, 203.0.113.7")
         ClientIPMiddleware(lambda r: r)(request)
-        self.assertEqual(request.client_ip, "1.2.3.4")
+        self.assertEqual(request.client_ip, "203.0.113.7")
 
     @override_settings(TRUSTED_PROXY=True)
     def test_trusted_proxy_with_oversize_ip_falls_back(self):

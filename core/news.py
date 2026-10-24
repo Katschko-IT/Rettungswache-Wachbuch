@@ -7,10 +7,18 @@ from .models import Membership, NewsAcknowledgement, NewsPost
 
 
 def news_audience_ids(station):
-    """Alle aktiven Mitglieder, die eine Neuigkeit lesen müssen (ohne Auditor)."""
+    """Alle aktiven Mitglieder, die eine Neuigkeit lesen müssen.
+
+    Ohne Auditor und ohne das Dienstkonto „Wachenterminal“: Lesebestätigungen
+    sind persönlich (AGENTS.md §4).
+    """
+    from .terminal_models import StationTerminalCode
+
+    service_ids = StationTerminalCode.objects.filter(station=station).values_list("service_user_id", flat=True)
     return set(
         Membership.objects.filter(station=station, is_active=True)
         .exclude(role=Membership.Role.AUDITOR)
+        .exclude(user_id__in=service_ids)
         .values_list("user_id", flat=True)
     )
 

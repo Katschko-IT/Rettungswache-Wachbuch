@@ -52,6 +52,7 @@ MIDDLEWARE = [
     "core.middleware.ClientIPMiddleware",
     "axes.middleware.AxesMiddleware",
     "core.terminal.TerminalMiddleware",
+    "core.middleware.MfaEnforcementMiddleware",
     # Muss nach der Korrelations-ID-Middleware stehen, damit die ID bereits
     # am Request haengt, wenn ein 5xx-Ereignis erfasst wird.
     "core.diagnostics.ErrorEventMiddleware",
@@ -170,6 +171,8 @@ AXES_COOLOFF_TIME = 1
 AXES_HTTP_RESPONSE_CODE = 429
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
+# Gleiche Proxy-Logik wie Rate-Limits (rechter X-Forwarded-For-Eintrag).
+AXES_CLIENT_IP_CALLABLE = "core.middleware.axes_client_ip"
 
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [
