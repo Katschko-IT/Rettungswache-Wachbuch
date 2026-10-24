@@ -111,13 +111,17 @@ jobs:
           # The db service must load the mounted config/postgresql.conf. Assert
           # the EXACT config_file path the compose command sets, otherwise the
           # read-only mount would be silently ignored and the official image
-          # would fall back to $PGDATA defaults (shared_buffers=128MB).
+          # would fall back to $PGDATA defaults. The small defaults (128MB/50)
+          # keep the stack bootable on 1-2 GB hosts. statement_timeout is only
+          # set in the file (not on the command line) and proves it is read.
           test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
             'SHOW config_file')" = "/etc/postgresql/postgresql.conf"
           test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            'SHOW shared_buffers')" = "2GB"
+            'SHOW shared_buffers')" = "128MB"
           test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            'SHOW max_connections')" = "200"
+            'SHOW max_connections')" = "50"
+          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
+            'SHOW statement_timeout')" = "1min"
           test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
             "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')")" = "f"
           test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \

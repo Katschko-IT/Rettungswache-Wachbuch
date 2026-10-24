@@ -15,7 +15,25 @@ services:
     # The official image reads its configuration from $PGDATA/postgresql.conf,
     # NOT from /etc/postgresql. Without this explicit config_file the read-only
     # mount below is silently ignored, so the tuning settings never apply.
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    # Speicherwerte: kleine Standardwerte für 1-2-GB-Systeme, per .env anhebbar
+    # (siehe config/postgresql.conf und docs/OPERATIONS.md).
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}
+      - -c
+      - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-512MB}
+      - -c
+      - work_mem=${POSTGRES_WORK_MEM:-4MB}
+      - -c
+      - maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-50}
+    # Docker gibt Containern standardmäßig nur 64 MB /dev/shm; PostgreSQL legt
+    # dort Shared Memory für parallele Abfragen ab.
+    shm_size: ${POSTGRES_SHM_SIZE:-256mb}
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
