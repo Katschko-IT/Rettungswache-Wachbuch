@@ -313,6 +313,16 @@ if [ "$free_kb" -gt 0 ] && [ "$free_kb" -lt 3000000 ]; then
     warn "Weniger als 3 GB frei in $TARGET_DIR (Images, Datenbank, Backups)."
 fi
 
+# Eine früher mit --build eingerichtete Installation bleibt im Build-Modus.
+case "$(env_get COMPOSE_FILE)" in
+    *compose.build.yml*)
+        if [ "$BUILD" -eq 0 ]; then
+            BUILD=1
+            SOURCE="${SOURCE:-$(env_get WACHBUCH_SOURCE)}"
+            info "Bestehende Installation baut lokal (compose.build.yml) aus ${SOURCE:-?}"
+        fi
+        ;;
+esac
 if [ -n "$SOURCE" ]; then
     [ -d "$SOURCE" ] || die "--source $SOURCE ist kein Ordner."
     SOURCE=$(cd "$SOURCE" && pwd)
@@ -601,7 +611,7 @@ if [ "$BUILD" -eq 1 ]; then
     dc build
 else
     say "Images herunterladen"
-    dc pull --quiet || die "Images konnten nicht geladen werden (Internet? Version $VERSION vorhanden?)."
+    dc pull --quiet --ignore-buildable || die "Images konnten nicht geladen werden (Internet? Version $VERSION vorhanden?)."
 fi
 
 say "Wachbuch starten (wartet, bis alle Dienste gesund sind)"

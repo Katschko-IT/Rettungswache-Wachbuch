@@ -263,7 +263,7 @@ cmd_update() {
         dc build --pull
     else
         say "Images laden"
-        dc pull --quiet
+        dc pull --quiet --ignore-buildable
     fi
     say "Neu starten"
     dc up -d --remove-orphans --wait --wait-timeout 600
