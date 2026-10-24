@@ -183,7 +183,7 @@ services:
     ports:
       - "${HTTP_BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8090}:8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=3)"]
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/healthz/', headers={'Host': 'localhost'}), timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 10

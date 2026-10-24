@@ -124,3 +124,23 @@ class ComposeNetworkContractTests(SimpleTestCase):
                 self.assertIn("ALL", service.get("cap_drop", []))
                 self.assertIn("no-new-privileges:true", service.get("security_opt", []))
         self.assertFalse(self.services["notify-worker"]["healthcheck"].get("disable", False))
+
+
+class LoopbackAllowedHostsTests(SimpleTestCase):
+    """K3: Der Healthcheck (Host: localhost) darf nie an ALLOWED_HOSTS scheitern."""
+
+    def test_loopback_hosts_are_always_allowed(self):
+        env = dict(os.environ, ALLOWED_HOSTS="wache.example", DJANGO_SECRET_KEY="x" * 50,
+                   DJANGO_DEBUG="false")
+        result = subprocess.run(
+            [sys.executable, "-c", "import json, config.settings as s; print(json.dumps(s.ALLOWED_HOSTS))"],
+            cwd=ROOT, env=env, capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr[-500:])
+        self.assertEqual(json.loads(result.stdout.strip().splitlines()[-1]),
+                         ["wache.example", "localhost", "127.0.0.1"])
+
+    def test_compose_healthcheck_sends_loopback_host(self):
+        for path in ("docker-compose.yml", "Dockerfile"):
+            with self.subTest(path=path):
+                self.assertIn("headers={'Host': 'localhost'}", (ROOT / path).read_text())
