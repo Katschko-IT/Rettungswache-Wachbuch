@@ -1,0 +1,183 @@
+/* Wachbuch Klar 2 – Design-Tokens (hell und Nachtdienst).
+   Einzige Quelle für App, Projektseite (site/) und Folien (docs/praesentation/);
+   die Kopien dort erzeugt scripts/sync_design_assets.py, ein Test prüft sie.
+   Gleichnamig in Wachbuch-Client lib/theme/design_tokens.dart. */
+
+:root {
+  color-scheme: light;
+
+  /* Flächen */
+  --bg: #f5f7f6;
+  --bg-accent: #e9eeec;
+  --surface: #ffffff;
+  --surface-soft: #eef2f1;
+  --surface-raised: #ffffff;
+
+  /* Text und Linien. --line ist dekorativ, --line-strong begrenzt
+     Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11). */
+  --text: #14212b;
+  --muted: #4d5b66;
+  --line: #d7dde1;
+  --line-strong: #6f7d88;
+
+  /* Aktion: Blaulicht. Nur für Bedienung, Auswahl und aktive Navigation. */
+  --brand: #0e4aa8;
+  --brand-deep: #0a3a85;
+  --brand-ink: #14212b;
+  --accent: #0e4aa8;
+  --accent-dark: #0a3a85;
+  --accent-soft: #e3ecfa;
+  --primary-container: #e3ecfa;
+  --on-primary: #ffffff;
+
+  /* Zustand. Textfarben ≥ 4,5:1 auf --surface und auf ihrer -soft-Fläche. */
+  --danger: #b81d18;
+  --danger-soft: #fcebea;
+  --warning: #8a4b00;
+  --warning-soft: #fdf2df;
+  --warning-accent: #f2a900;
+  --success: #136b3a;
+  --success-soft: #e5f4ea;
+  --info: #0e4aa8;
+  --info-soft: #e3ecfa;
+  --violet: #6a3fb0;
+  --violet-soft: #f1ebfa;
+
+  /* Feste Flächen: Text auf kräftiger Signalfläche, Abdunklung hinter
+     Dialogen und Druck-/QR-Papier (bleibt in jedem Modus hell). */
+  --on-strong: #ffffff;
+  --scrim: rgba(13, 20, 26, .55);
+  --paper: #ffffff;
+  --paper-ink: #14212b;
+
+  /* Bühne der öffentlichen Startseite und Vorführung: Foto mit dunkler
+     Blaulicht-Abdunklung, in beiden Modi gleich. */
+  --hero-bg: #082e63;
+  --hero-bg-2: #0d47a1;
+  --hero-ink: #ffffff;
+  --hero-ink-dim: rgba(255, 255, 255, .85);
+  --hero-line: rgba(255, 255, 255, .7);
+  --hero-glass: rgba(255, 255, 255, .12);
+  --hero-cta: #f2a900;
+  --hero-cta-hover: #f7c44a;
+  --hero-cta-ink: #14212b;
+  --hero-shade: rgba(4, 24, 54, .45);
+
+  --priority-urgent: var(--danger);
+  --priority-important: var(--warning-accent);
+  --priority-normal: var(--brand);
+  --priority-done: var(--success);
+
+  /* Warnmarkierung: Leuchtrot und Weiß (RAL 3024 / 9016, angenähert). */
+  --stripe-red: #e2231a;
+  --stripe-white: #ffffff;
+
+  --focus: #f2a900;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus);
+
+  --radius-sm: .375rem;
+  --radius: .625rem;
+  --radius-lg: .875rem;
+  --shadow: none;
+  --shadow-soft: none;
+  --shadow-overlay: 0 12px 32px rgba(20, 33, 43, .18);
+
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --content: 72rem;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --nav-height: 4.5rem;
+  --touch: 3rem; /* 48px – WCAG 2.5.5 */
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+  font-family: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  font-size: 100%;
+  line-height: 1.5;
+}
+
+/* Nachtdienst: dunkle Flächen, gedämpfte Signale, gelber Fokus. Folgt dem
+   Gerät, solange niemand ausdrücklich „hell“ gewählt hat. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0d141a;
+    --bg-accent: #121b22;
+    --surface: #151e26;
+    --surface-soft: #1c2731;
+    --surface-raised: #1c2731;
+    --text: #e7ecef;
+    --muted: #a6b3bd;
+    --line: #2b3843;
+    --line-strong: #6d7c88;
+    --brand: #8db4ff;
+    --brand-deep: #b3ccff;
+    --brand-ink: #e7ecef;
+    --accent: #8db4ff;
+    --accent-dark: #b3ccff;
+    --accent-soft: #1b2d4a;
+    --primary-container: #1b2d4a;
+    --on-primary: #0a1a33;
+    --danger: #ff8f86;
+    --danger-soft: #3a1714;
+    --warning: #ffc966;
+    --warning-soft: #33260c;
+    --warning-accent: #f2a900;
+    --success: #6fd49a;
+    --success-soft: #11301f;
+    --info: #8db4ff;
+    --info-soft: #1b2d4a;
+    --violet: #c7a8f5;
+    --violet-soft: #2a1f3d;
+    --scrim: rgba(0, 0, 0, .65);
+    --stripe-white: #c9d2d8;
+    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+    --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d141a;
+  --bg-accent: #121b22;
+  --surface: #151e26;
+  --surface-soft: #1c2731;
+  --surface-raised: #1c2731;
+  --text: #e7ecef;
+  --muted: #a6b3bd;
+  --line: #2b3843;
+  --line-strong: #6d7c88;
+  --brand: #8db4ff;
+  --brand-deep: #b3ccff;
+  --brand-ink: #e7ecef;
+  --accent: #8db4ff;
+  --accent-dark: #b3ccff;
+  --accent-soft: #1b2d4a;
+  --primary-container: #1b2d4a;
+  --on-primary: #0a1a33;
+  --danger: #ff8f86;
+  --danger-soft: #3a1714;
+  --warning: #ffc966;
+  --warning-soft: #33260c;
+  --warning-accent: #f2a900;
+  --success: #6fd49a;
+  --success-soft: #11301f;
+  --info: #8db4ff;
+  --info-soft: #1b2d4a;
+  --violet: #c7a8f5;
+  --violet-soft: #2a1f3d;
+  --scrim: rgba(0, 0, 0, .65);
+  --stripe-white: #c9d2d8;
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+}

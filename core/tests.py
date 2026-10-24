@@ -104,7 +104,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
         self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
         self.assertContains(response, 'class="brand-mark"', html=False)
-        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "tokens.css").read_text(
             encoding="utf-8"
         )
         self.assertIn("--brand: #0e4aa8", css)
@@ -425,7 +425,12 @@ class MinimalInterfaceTests(PilotTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Für die nächste Schicht")
         self.assertContains(response, "Nächste Termine")
-        self.assertContains(response, "Schnellzugriff")
+        # Dringende Übergaben erscheinen als erster Punkt der Aufmerksamkeitsliste.
+        HandoverEntry.objects.create(
+            station=self.station, title="Dringend", details="x", category="station",
+            priority=HandoverEntry.Priority.URGENT, author=self.user,
+        )
+        response = self.client.get(reverse("dashboard"))
         self.assertContains(response, reverse("handover_list") + "?ansicht=dringend")
         self.assertNotContains(response, "Aktuelle Meldungen")
         self.assertNotContains(response, "Datenraum")
@@ -481,8 +486,9 @@ class MinimalInterfaceTests(PilotTestCase):
             "task_total": 8,
             "task_done": 0,
         })
-        self.assertContains(response, "Wachalltag im Blick")
-        self.assertContains(response, "1 Mängel")
+        self.assertContains(response, "Punkte brauchen Aufmerksamkeit")
+        defects = next(item for item in response.context["attention_items"] if item["key"] == "defects")
+        self.assertEqual((defects["value"], defects["title"]), (1, "Mangel"))
         self.assertNotContains(response, "Fremder Mangel")
 
         normal = self.create_handover("Normal", HandoverEntry.Priority.NORMAL)

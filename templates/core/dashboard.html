@@ -2,22 +2,13 @@
 {% load i18n %}
 {% block title %}{% translate "Übersicht" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<header class="page-heading heading-with-action">
+<header class="page-heading heading-with-action dashboard-head">
   <div>
-    <p class="context-line">{{ current_membership.station.name }} · {{ dashboard_profile.eyebrow }} · {% now "l, d. F" %}</p>
-    <h1>{% translate "Übersicht" %}</h1>
-    <p class="status-summary">
-      <a class="status-pill danger" href="{% url 'handover_list' %}?ansicht=dringend"><strong>{{ urgent_count }}</strong> {% translate "dringend" %}</a>
-      <a class="status-pill" href="{% url 'handover_list' %}"><strong>{{ open_count }}</strong> {% translate "aktive Übergaben" %}</a>
-    </p>
+    <p class="context-line">{{ current_membership.station.name }} · {% now "l, j. F" %}</p>
+    <h1>{% with count=attention_items|length %}{% if count == 1 %}{% translate "1 Punkt braucht Aufmerksamkeit" %}{% elif count %}{% blocktranslate with count=count %}{{ count }} Punkte brauchen Aufmerksamkeit{% endblocktranslate %}{% else %}{% translate "Nichts Dringendes offen" %}{% endif %}{% endwith %}</h1>
   </div>
-  <a class="button primary" href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a>
+  <a class="button primary" href="{% url 'handover_create' %}">{% include "core/_icon.html" with name="plus" %}{% translate "Übergabe anlegen" %}</a>
 </header>
-
-<nav class="quick-actions" aria-label="{% translate 'Schnellzugriff' %}">
-  <a href="{% url 'handover_list' %}?ansicht=dringend"><strong>{% translate "Dringendes öffnen" %}</strong><span>{% if urgent_count == 1 %}{% translate "1 offener Punkt" %}{% else %}{{ urgent_count }} {% translate "offene Punkte" %}{% endif %}</span></a>
-  {% if tasks_enabled and task_progress %}<a href="{% url 'tasks_today' %}"><strong>{% translate "Tagesaufgaben" %}</strong><span>{{ task_progress.done_count }}/{{ task_progress.total }} {% translate "erledigt · Wandtafel" %}</span></a>{% elif calendar_enabled %}<a href="{% url 'calendar' %}"><strong>{% translate "Kalender" %}</strong><span>{% translate "Nächste Wachentermine" %}</span></a>{% endif %}
-</nav>
 
 {% if my_notifications %}
 <section class="section-block notification-inbox" aria-labelledby="my-notifications">
@@ -39,15 +30,26 @@
 </section>
 {% endif %}
 
-<section class="section-block operations-summary" aria-labelledby="operations-summary">
-  <div class="section-heading">
-    <h2 id="operations-summary">{% translate "Wachalltag im Blick" %}</h2>
-    <span class="context-line">{% translate "Nur offene stationsbezogene Punkte" %}</span>
-  </div>
-  <div class="quick-actions">
-    {% for card in dashboard_cards %}<a href="{{ card.href }}"{% if card.attention %} class="has-attention"{% endif %}><strong>{{ card.value }} {{ card.title }}</strong><span>{{ card.subtitle }}</span></a>{% endfor %}
-  </div>
+{% if attention_items %}
+<section class="attention-board" aria-labelledby="attention-title">
+  <h2 id="attention-title" class="sr-only">{% translate "Was jetzt Aufmerksamkeit braucht" %}</h2>
+  <ul>
+    {% for item in attention_items %}
+      <li>
+        <a class="attention-row tone-{{ item.tone }}" href="{{ item.href }}">
+          <span class="attention-value">{{ item.value }}</span>
+          <span class="attention-text"><strong>{{ item.title }}</strong><small>{{ item.subtitle }}</small></span>
+          {% include "core/_icon.html" with name="chevron" class="attention-chevron" %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
 </section>
+{% endif %}
+{% if calm_items %}
+<p class="calm-line">{% include "core/_icon.html" with name="check" %}<span>{% translate "Ohne Auffälligkeiten:" %}
+  {% for item in calm_items %}<a href="{{ item.href }}">{{ item.title }}{% if item.value %} ({{ item.value }} {{ item.subtitle }}){% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</span></p>
+{% endif %}
 
 <div class="overview-layout">
   <section class="section-block" aria-labelledby="active-handovers">
@@ -66,6 +68,14 @@
     </div>
   </section>
 
+  <div class="overview-aside">
+  {% if tasks_enabled and task_progress %}
+  <a class="section-block task-progress" href="{% url 'tasks_today' %}">
+    <span class="task-progress-head"><strong>{{ dashboard_profile.task_label }}</strong><span class="tabular">{{ task_progress.done_count }}/{{ task_progress.total }}</span></span>
+    <progress max="{{ task_progress.total }}" value="{{ task_progress.done_count }}">{{ task_progress.done_count }}/{{ task_progress.total }}</progress>
+    <small>{% translate "heute erledigt" %}</small>
+  </a>
+  {% endif %}
   {% if calendar_enabled %}<section class="section-block" aria-labelledby="next-events">
     <div class="section-heading">
       <h2 id="next-events">{% translate "Nächste Termine" %}</h2>
@@ -79,11 +89,11 @@
             <strong>{{ event.title }}</strong>
             {% if event.kind == 'holiday' %}<span class="status-label neutral">{% translate "Feiertag" %}</span>{% elif event.kind == 'waste' %}<span class="status-label neutral">{% translate "Müll" %}</span>{% elif event.kind == 'birthday' %}<span class="status-label neutral">{% translate "Geburtstag" %}</span>{% endif %}
             {% if event.description %}<p>{{ event.description|truncatechars:90 }}</p>{% endif %}
-            {% if event.kind == 'event' and event.source_pk %}<a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "In Kalender speichern" %}</a>{% endif %}
           </div>
         </article>
       {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %} <a href="{% url 'calendar' %}">{% translate "Zum Kalender" %}</a></p>{% endfor %}
     </div>
   </section>{% endif %}
+  </div>
 </div>
 {% endblock %}

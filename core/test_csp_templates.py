@@ -96,17 +96,21 @@ class DashboardModuleCardsTests(TestCase):
         )
         self.client.force_login(self.user)
 
+    def _attention(self):
+        response = self.client.get(reverse("dashboard"))
+        return {item["key"]: item for item in response.context["attention_items"]}, response.content.decode()
+
     def test_dashboard_shows_module_attention(self):
-        html = self.client.get(reverse("dashboard")).content.decode()
-        self.assertIn("1 Fahrzeug<", html)
-        self.assertIn("1 Medizingerät<", html)
+        items, html = self._attention()
+        self.assertEqual((items["fleet"]["value"], items["fleet"]["title"]), (1, "Fahrzeug"))
+        self.assertEqual((items["mpg"]["value"], items["mpg"]["title"]), (1, "Medizingerät"))
         self.assertIn(reverse("mpg_dashboard") + "?filter=urgent", html)
 
     def test_disabled_module_has_no_card(self):
         self.station.fleet_enabled = False
         self.station.save(update_fields=["fleet_enabled"])
-        html = self.client.get(reverse("dashboard")).content.decode()
-        self.assertNotIn("1 Fahrzeug<", html)
+        items, _html = self._attention()
+        self.assertNotIn("fleet", items)
 
 
 class FormAndRoleRegressionTests(TestCase):

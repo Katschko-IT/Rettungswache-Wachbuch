@@ -11,184 +11,7 @@
 
 /* Schrift: core/static/core/fonts.css (wird vor app.css geladen). */
 
-:root {
-  color-scheme: light;
-
-  /* Flächen */
-  --bg: #f5f7f6;
-  --bg-accent: #e9eeec;
-  --surface: #ffffff;
-  --surface-soft: #eef2f1;
-  --surface-raised: #ffffff;
-
-  /* Text und Linien. --line ist dekorativ, --line-strong begrenzt
-     Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11). */
-  --text: #14212b;
-  --muted: #4d5b66;
-  --line: #d7dde1;
-  --line-strong: #6f7d88;
-
-  /* Aktion: Blaulicht. Nur für Bedienung, Auswahl und aktive Navigation. */
-  --brand: #0e4aa8;
-  --brand-deep: #0a3a85;
-  --brand-ink: #14212b;
-  --accent: #0e4aa8;
-  --accent-dark: #0a3a85;
-  --accent-soft: #e3ecfa;
-  --primary-container: #e3ecfa;
-  --on-primary: #ffffff;
-
-  /* Zustand. Textfarben ≥ 4,5:1 auf --surface und auf ihrer -soft-Fläche. */
-  --danger: #b81d18;
-  --danger-soft: #fcebea;
-  --warning: #8a4b00;
-  --warning-soft: #fdf2df;
-  --warning-accent: #f2a900;
-  --success: #136b3a;
-  --success-soft: #e5f4ea;
-  --info: #0e4aa8;
-  --info-soft: #e3ecfa;
-  --violet: #6a3fb0;
-  --violet-soft: #f1ebfa;
-
-  /* Feste Flächen: Text auf kräftiger Signalfläche, Abdunklung hinter
-     Dialogen und Druck-/QR-Papier (bleibt in jedem Modus hell). */
-  --on-strong: #ffffff;
-  --scrim: rgba(13, 20, 26, .55);
-  --paper: #ffffff;
-  --paper-ink: #14212b;
-
-  /* Bühne der öffentlichen Startseite und Vorführung: Foto mit dunkler
-     Blaulicht-Abdunklung, in beiden Modi gleich. */
-  --hero-bg: #082e63;
-  --hero-bg-2: #0d47a1;
-  --hero-ink: #ffffff;
-  --hero-ink-dim: rgba(255, 255, 255, .85);
-  --hero-line: rgba(255, 255, 255, .7);
-  --hero-glass: rgba(255, 255, 255, .12);
-  --hero-cta: #f2a900;
-  --hero-cta-hover: #f7c44a;
-  --hero-cta-ink: #14212b;
-  --hero-shade: rgba(4, 24, 54, .45);
-
-  --priority-urgent: var(--danger);
-  --priority-important: var(--warning-accent);
-  --priority-normal: var(--brand);
-  --priority-done: var(--success);
-
-  /* Warnmarkierung: Leuchtrot und Weiß (RAL 3024 / 9016, angenähert). */
-  --stripe-red: #e2231a;
-  --stripe-white: #ffffff;
-
-  --focus: #f2a900;
-  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus);
-
-  --radius-sm: .375rem;
-  --radius: .625rem;
-  --radius-lg: .875rem;
-  --shadow: none;
-  --shadow-soft: none;
-  --shadow-overlay: 0 12px 32px rgba(20, 33, 43, .18);
-
-  --space-1: .25rem;
-  --space-2: .5rem;
-  --space-3: .75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-
-  --content: 72rem;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --nav-height: 4.5rem;
-  --touch: 3rem; /* 48px – WCAG 2.5.5 */
-  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
-
-  font-family: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  font-size: 100%;
-  line-height: 1.5;
-}
-
-/* Nachtdienst: dunkle Flächen, gedämpfte Signale, gelber Fokus. Folgt dem
-   Gerät, solange niemand ausdrücklich „hell“ gewählt hat. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #0d141a;
-    --bg-accent: #121b22;
-    --surface: #151e26;
-    --surface-soft: #1c2731;
-    --surface-raised: #1c2731;
-    --text: #e7ecef;
-    --muted: #a6b3bd;
-    --line: #2b3843;
-    --line-strong: #6d7c88;
-    --brand: #8db4ff;
-    --brand-deep: #b3ccff;
-    --brand-ink: #e7ecef;
-    --accent: #8db4ff;
-    --accent-dark: #b3ccff;
-    --accent-soft: #1b2d4a;
-    --primary-container: #1b2d4a;
-    --on-primary: #0a1a33;
-    --danger: #ff8f86;
-    --danger-soft: #3a1714;
-    --warning: #ffc966;
-    --warning-soft: #33260c;
-    --warning-accent: #f2a900;
-    --success: #6fd49a;
-    --success-soft: #11301f;
-    --info: #8db4ff;
-    --info-soft: #1b2d4a;
-    --violet: #c7a8f5;
-    --violet-soft: #2a1f3d;
-    --scrim: rgba(0, 0, 0, .65);
-    --stripe-white: #c9d2d8;
-    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
-    --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0d141a;
-  --bg-accent: #121b22;
-  --surface: #151e26;
-  --surface-soft: #1c2731;
-  --surface-raised: #1c2731;
-  --text: #e7ecef;
-  --muted: #a6b3bd;
-  --line: #2b3843;
-  --line-strong: #6d7c88;
-  --brand: #8db4ff;
-  --brand-deep: #b3ccff;
-  --brand-ink: #e7ecef;
-  --accent: #8db4ff;
-  --accent-dark: #b3ccff;
-  --accent-soft: #1b2d4a;
-  --primary-container: #1b2d4a;
-  --on-primary: #0a1a33;
-  --danger: #ff8f86;
-  --danger-soft: #3a1714;
-  --warning: #ffc966;
-  --warning-soft: #33260c;
-  --warning-accent: #f2a900;
-  --success: #6fd49a;
-  --success-soft: #11301f;
-  --info: #8db4ff;
-  --info-soft: #1b2d4a;
-  --violet: #c7a8f5;
-  --violet-soft: #2a1f3d;
-  --scrim: rgba(0, 0, 0, .65);
-  --stripe-white: #c9d2d8;
-  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
-  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
-}
+/* Tokens: core/static/core/tokens.css (wird vor app.css geladen). */
 
 * { box-sizing: border-box; }
 html {
@@ -1816,12 +1639,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 /* Kalenderquellen auf einen Blick unterscheidbar: Feiertag, Müll, Geburtstag.
    Der Balken liegt als Rahmen AUSSERHALB des Inhalts, sonst überdeckt er die
    Datumszahlen in der ersten Spalte. */
-.agenda-holiday { background: var(--danger-soft); border-left: 4px solid var(--danger); }
-.agenda-holiday h2, .agenda-holiday strong { color: var(--danger); }
-.agenda-waste { background: var(--success-soft); border-left: 4px solid var(--success); }
-.agenda-waste h2, .agenda-waste strong { color: var(--success); }
-.agenda-birthday { background: var(--violet-soft); border-left: 4px solid var(--violet); }
-.agenda-birthday h2, .agenda-birthday strong { color: var(--violet); }
+/* Sonderzeilen leise: nur eine schmale Kante in der Kategoriefarbe – Feiertage
+   sind Information, keine Warnung, und dürfen nicht lauter sein als diese. */
+.agenda-holiday, .agenda-waste, .agenda-birthday { border-left: 3px solid var(--line-strong); }
+.agenda-holiday { border-left-color: var(--danger); }
+.agenda-waste { border-left-color: var(--success); }
+.agenda-birthday { border-left-color: var(--violet); }
 
 /* Organisationsprofile: gleiche Informationsarchitektur, eigene Aktionsfarbe.
    Jede Farbe hat eine Nachtvariante; Rettungsdienst nutzt die Grund-Tokens. */
@@ -2470,3 +2293,81 @@ dialog::backdrop { background: var(--scrim); }
     margin: 0;
   }
 }
+
+/* ==========================================================================
+   Übersicht: zuerst, was Aufmerksamkeit braucht
+   ========================================================================== */
+.dashboard-head h1 { font-size: clamp(1.75rem, 3.2vw, 2.4rem); }
+
+.attention-board { margin: 0 0 1rem; }
+.attention-board ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.attention-board li + li { border-top: 1px solid var(--line); }
+.attention-row {
+  min-height: 4.25rem;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .25rem 1rem;
+  padding: .75rem 1rem .75rem 0;
+  color: var(--text);
+  text-decoration: none;
+  border-left: 4px solid var(--warning-accent);
+}
+.attention-row.tone-danger { border-left-color: var(--danger); }
+.attention-row:hover { background: var(--surface-soft); }
+.attention-value {
+  justify-self: end;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.tone-danger .attention-value { color: var(--danger); }
+.tone-warning .attention-value { color: var(--warning); }
+.attention-text strong { display: block; font-size: 1.05rem; }
+.attention-text small { display: block; color: var(--muted); }
+.attention-chevron { color: var(--muted); }
+
+.calm-line {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 0 0 1.75rem;
+  color: var(--muted);
+}
+.calm-line .icon { margin-top: .15rem; color: var(--success); }
+.calm-line a { color: inherit; text-decoration-color: var(--line-strong); }
+.calm-line a:hover { color: var(--text); }
+
+.overview-aside { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
+.task-progress {
+  display: grid;
+  gap: .5rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.task-progress:hover { border-color: var(--line-strong); }
+.task-progress-head { display: flex; justify-content: space-between; align-items: baseline; }
+.task-progress-head .tabular { font-size: 1.25rem; font-weight: 700; }
+.task-progress small { color: var(--muted); }
+.task-progress progress {
+  width: 100%;
+  height: .5rem;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+.task-progress progress::-webkit-progress-bar { background: var(--surface-soft); }
+.task-progress progress::-webkit-progress-value { background: var(--success); border-radius: 999px; }
+.task-progress progress::-moz-progress-bar { background: var(--success); border-radius: 999px; }

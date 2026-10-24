@@ -16,9 +16,10 @@ from django.utils.translation import gettext as _
 ATTENTION_LEVELS = ("overdue", "critical")
 
 
-def _card(url_name, query, title, subtitle, value):
-    return {"href": f"{reverse(url_name)}?{query}" if query else reverse(url_name),
-            "title": title, "subtitle": subtitle, "value": value, "attention": bool(value)}
+def _card(key, url_name, query, title, subtitle, value, *, attention=None, tone="warning"):
+    return {"key": key, "href": f"{reverse(url_name)}?{query}" if query else reverse(url_name),
+            "title": title, "subtitle": subtitle, "value": value,
+            "attention": bool(value) if attention is None else attention, "tone": tone}
 
 
 def module_attention_cards(station, user) -> list[dict]:
@@ -32,12 +33,23 @@ def module_attention_cards(station, user) -> list[dict]:
         if vehicles:
             not_ready = sum(1 for v in vehicles if v.tactical_status not in ready or v.is_disinfection_locked)
             due = sum(1 for v in vehicles if v.urgency["level"] in ATTENTION_LEVELS)
-            cards.append(_card(
-                "fleet_dashboard", "filter=urgent_inspections" if due and not not_ready else "",
-                _("Fahrzeug") if not_ready == 1 else _("Fahrzeuge"),
-                _("nicht einsatzbereit · %(due)s Fristen fällig") % {"due": due},
-                not_ready,
-            ))
+            # Die Zahl nennt den eigentlichen Grund: nicht einsatzbereite
+            # Fahrzeuge zuerst, sonst fällige HU/UVV-Fristen. Nullen bleiben weg.
+            if not_ready:
+                subtitle = _("nicht einsatzbereit")
+                if due:
+                    subtitle += " · " + (_("1 Frist fällig") if due == 1 else _("%(due)s Fristen fällig") % {"due": due})
+                cards.append(_card(
+                    "fleet", "fleet_dashboard", "",
+                    _("Fahrzeug") if not_ready == 1 else _("Fahrzeuge"),
+                    subtitle, not_ready, tone="danger",
+                ))
+            else:
+                cards.append(_card(
+                    "fleet", "fleet_dashboard", "filter=urgent_inspections" if due else "",
+                    _("Fahrzeugfrist") if due == 1 else _("Fahrzeugfristen"),
+                    _("HU oder UVV fällig") if due else _("alle einsatzbereit"), due,
+                ))
 
     if station.mpg_enabled:
         from .mpg_models import MedicalDevice
@@ -52,7 +64,7 @@ def module_attention_cards(station, user) -> list[dict]:
                 or d.current_status in (MedicalDevice.Status.OOB, MedicalDevice.Status.MAINTENANCE)
             )
             cards.append(_card(
-                "mpg_dashboard", "filter=urgent" if attention else "",
+                "mpg", "mpg_dashboard", "filter=urgent" if attention else "",
                 _("Medizingerät") if attention == 1 else _("Medizingeräte"),
                 _("Prüffrist fällig oder gesperrt"), attention,
             ))
@@ -70,12 +82,18 @@ def module_attention_cards(station, user) -> list[dict]:
                 Q(calculated_exp_date__lte=soon)
                 | Q(calculated_exp_date__isnull=True, manufacturer_exp_date__lte=soon)
             ).distinct().count()
-            cards.append(_card(
-                "warehouse_dashboard", "filter=low_stock" if low else ("filter=urgent" if expiring else ""),
-                _("Artikel"),
-                _("unter Mindestbestand · %(expiring)s Chargen verfallen bald") % {"expiring": expiring},
-                low,
-            ))
+            if low:
+                subtitle = _("unter Mindestbestand")
+                if expiring:
+                    subtitle += " · " + _("%(expiring)s Chargen verfallen bald") % {"expiring": expiring}
+                cards.append(_card("warehouse", "warehouse_dashboard", "filter=low_stock",
+                                   _("Artikel"), subtitle, low))
+            else:
+                cards.append(_card(
+                    "warehouse", "warehouse_dashboard", "filter=urgent" if expiring else "",
+                    _("Charge") if expiring == 1 else _("Chargen"),
+                    _("verfallen in 30 Tagen") if expiring else _("Bestand ausreichend"), expiring,
+                ))
 
     if station.orga_enabled:
         from .orga_models import SOPDocument
@@ -86,7 +104,7 @@ def module_attention_cards(station, user) -> list[dict]:
         if sops.exists():
             pending = sum(1 for sop in sops if not sop.user_has_acknowledged(user))
             cards.append(_card(
-                "orga_dashboard", "filter=pending" if pending else "",
+                "orga", "orga_dashboard", "filter=pending" if pending else "",
                 _("Dienstanweisung") if pending == 1 else _("Dienstanweisungen"),
                 _("von dir noch nicht quittiert"), pending,
             ))
