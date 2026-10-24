@@ -22,6 +22,12 @@ SECRET_KEY = configured_secret or "development-only-rwsth-4Jt8vR2mQ7xN5kP9sW3cL6
 ALLOWED_HOSTS = [value.strip() for value in os.getenv(
     "ALLOWED_HOSTS", "localhost,127.0.0.1,testserver"
 ).split(",") if value.strip()]
+# Der Container-Healthcheck ruft Gunicorn über Loopback mit "Host: localhost"
+# auf. Loopback-Namen bleiben deshalb immer erlaubt, auch wenn ALLOWED_HOSTS
+# nur den öffentlichen Namen nennt; sonst scheitert /healthz/ mit DisallowedHost
+# und alle abhängigen Dienste starten nicht. Ein von außen gesendeter
+# "Host: localhost" führt höchstens zu Links auf localhost.
+ALLOWED_HOSTS += [host for host in ("localhost", "127.0.0.1") if host not in ALLOWED_HOSTS]
 CSRF_TRUSTED_ORIGINS = [value.strip() for value in os.getenv(
     "CSRF_TRUSTED_ORIGINS", ""
 ).split(",") if value.strip()]

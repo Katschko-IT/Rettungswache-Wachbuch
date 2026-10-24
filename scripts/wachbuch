@@ -1,0 +1,328 @@
+#!/bin/sh
+# wachbuch – Verwaltung einer mit install.sh eingerichteten Installation.
+# Liegt im Installationsordner neben compose.yml und .env.
+#
+#   wachbuch status | logs [dienst] | backup | restore DATEI | update [VERSION]
+#   wachbuch setup-code | start | stop | uninstall [--purge] | help
+set -eu
+
+REPO_SLUG="Katschko-IT/Rettungswache-Wachbuch"
+DEFAULT_BASE_URL="https://raw.githubusercontent.com/${REPO_SLUG}"
+
+say() { printf '==> %s\n' "$*"; }
+warn() { printf 'Warnung: %s\n' "$*" >&2; }
+die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+usage() {
+    cat <<'EOF'
+wachbuch – Verwaltung des Rettungswache-Wachbuchs
+
+  status              Dienste, Gesundheit und Version anzeigen
+  logs [DIENST...]    Logs anzeigen (z. B. web, notify-worker, backup)
+  backup              sofort ein Backup erstellen und nach ./backups kopieren
+  restore DATEI       Datenbank aus einem Backup wiederherstellen (mit Rückfrage)
+                      DATEI: Pfad auf diesem Rechner oder Name aus dem Backup-Volume
+  update [VERSION]    Backup, neue Version laden, neu starten
+  setup-code          Einrichtungscode für die Ersteinrichtung anzeigen
+  start | stop        Wachbuch starten bzw. anhalten
+  uninstall [--purge] Container entfernen; --purge löscht auch alle Daten
+  help                diese Hilfe
+
+Optionen: -y/--yes beantwortet Rückfragen mit Ja (für Skripte).
+EOF
+}
+
+# Installationsordner: dort, wo dieses Skript liegt (auch über einen Symlink).
+self="$0"
+while [ -L "$self" ]; do
+    link=$(readlink "$self")
+    case "$link" in
+        /*) self="$link" ;;
+        *) self="$(dirname "$self")/$link" ;;
+    esac
+done
+WACHBUCH_DIR="${WACHBUCH_DIR:-$(cd "$(dirname "$self")" && pwd)}"
+cd "$WACHBUCH_DIR"
+[ -f .env ] && [ -f compose.yml ] || die "$WACHBUCH_DIR ist kein Wachbuch-Ordner (compose.yml/.env fehlen)."
+
+# Compose liest COMPOSE_FILE, COMPOSE_PROJECT_NAME und COMPOSE_PROFILES aus .env.
+dc() { docker compose "$@"; }
+
+env_get() {
+    value=$(sed -n "s/^$1=//p" .env | tail -n 1)
+    case "$value" in
+        \'*\') value=${value#\'}; value=${value%\'} ;;
+        \"*\") value=${value#\"}; value=${value%\"} ;;
+    esac
+    printf '%s' "$value"
+}
+
+env_set() {
+    if grep -q "^$1=" .env; then
+        K="$1" V="$2" awk 'BEGIN { k = ENVIRON["K"]; v = ENVIRON["V"] }
+            index($0, k "=") == 1 { print k "=" v; next } { print }' .env >.env.tmp.$$
+        cat .env.tmp.$$ >.env
+        rm -f .env.tmp.$$
+    else
+        printf '%s=%s\n' "$1" "$2" >>.env
+    fi
+}
+
+ASSUME_YES=0
+confirm() {  # confirm "Frage" "Wort" -> 0 wenn bestätigt
+    [ "$ASSUME_YES" -eq 0 ] || return 0
+    { [ -r /dev/tty ] && (: </dev/tty) 2>/dev/null; } \
+        || die "Rückfrage nicht möglich (kein Terminal); mit --yes bestätigen."
+    printf '%s\nZum Bestätigen "%s" eingeben: ' "$1" "$2" >/dev/tty
+    answer=""
+    IFS= read -r answer </dev/tty || true
+    [ "$answer" = "$2" ]
+}
+
+http_get() {
+    if have curl; then
+        curl -fsS --max-time 5 "$1"
+    elif have wget; then
+        wget -q -T 5 -O - "$1"
+    else
+        return 2
+    fi
+}
+
+running() { [ -n "$(dc ps -q --status running "$1" 2>/dev/null)" ]; }
+
+build_mode() {
+    case "$(env_get COMPOSE_FILE)" in *compose.build.yml*) return 0 ;; esac
+    return 1
+}
+
+cmd_status() {
+    dc ps --format 'table {{.Service}}\t{{.Status}}\t{{.Ports}}'
+    port=$(env_get HTTP_PORT)
+    url="http://127.0.0.1:${port:-8090}/healthz/"
+    printf '\n'
+    if result=$(http_get "$url" 2>/dev/null); then
+        say "Healthcheck OK: $result"
+    else
+        warn "Healthcheck $url antwortet nicht."
+        return 1
+    fi
+    origin=$(env_get SITE_URL)
+    [ -z "$origin" ] || say "Adresse: $origin/"
+}
+
+cmd_logs() {
+    if [ -t 1 ]; then
+        dc logs --tail 200 -f "$@"
+    else
+        dc logs --tail 200 --no-color "$@"
+    fi
+}
+
+# Erstellt einen Dump im Backup-Volume und kopiert ihn nach ./backups.
+cmd_backup() {
+    if running backup; then
+        output=$(dc exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once) || {
+            printf '%s\n' "$output"
+            die "Backup fehlgeschlagen."
+        }
+    else
+        running db || die "Die Datenbank läuft nicht (wachbuch start)."
+        output=$(dc run --rm --no-deps -T backup once) || {
+            printf '%s\n' "$output"
+            die "Backup fehlgeschlagen."
+        }
+    fi
+    printf '%s\n' "$output" | grep -v '^BACKUP_FILE=' || true
+    file=$(printf '%s\n' "$output" | sed -n 's/^BACKUP_FILE=//p' | tail -n 1)
+    [ -n "$file" ] || die "Backup-Datei unbekannt."
+    mkdir -p backups
+    chmod 700 backups
+    if running backup; then
+        dc cp "backup:$file" "backups/" >/dev/null
+    else
+        dc run --rm --no-deps -T --entrypoint cat backup "$file" >"backups/$(basename "$file")"
+    fi
+    chmod 600 "backups/$(basename "$file")"
+    say "Backup: $WACHBUCH_DIR/backups/$(basename "$file")"
+    say "Zusammen mit .env an einem zweiten Ort aufbewahren."
+}
+
+cmd_restore() {
+    [ $# -ge 1 ] || die "Aufruf: wachbuch restore DATEI"
+    source_file="$1"
+    db_name=$(env_get POSTGRES_DB)
+    if [ -f "$source_file" ]; then
+        mode=host
+        label="$source_file"
+    else
+        case "$source_file" in
+            */*|*..*) die "$source_file nicht gefunden." ;;
+        esac
+        dc run --rm --no-deps -T --entrypoint test restore-test -f "/backups/$source_file" \
+            || die "$source_file weder auf diesem Rechner noch im Backup-Volume gefunden."
+        mode=volume
+        label="Backup-Volume: $source_file"
+    fi
+    confirm "Die Datenbank '$db_name' wird vollständig durch den Stand aus $label ersetzt.
+Alle Änderungen seit diesem Backup gehen verloren." "WIEDERHERSTELLEN" \
+        || die "Abgebrochen."
+
+    say "Sicherheits-Backup des aktuellen Stands"
+    cmd_backup
+    say "Anwendung anhalten"
+    dc stop web feed-worker notify-worker push-worker
+    say "Wiederherstellen"
+    # Wird im Container ausgewertet (PGDATABASE dort gesetzt).
+    # shellcheck disable=SC2016
+    restore_cmd='pg_restore --clean --if-exists --no-owner --no-acl --single-transaction --exit-on-error --dbname "$PGDATABASE" "$@"'
+    if [ "$mode" = host ]; then
+        dc run --rm --no-deps -T --entrypoint /bin/sh restore-test -c "$restore_cmd" restore <"$source_file" \
+            || die "Wiederherstellung fehlgeschlagen; die Datenbank ist unverändert (eine Transaktion). Starten: wachbuch start"
+    else
+        dc run --rm --no-deps -T --entrypoint /bin/sh restore-test -c "$restore_cmd" restore "/backups/$source_file" \
+            || die "Wiederherstellung fehlgeschlagen; die Datenbank ist unverändert (eine Transaktion). Starten: wachbuch start"
+    fi
+    say "Migrationen und Datenbankrechte"
+    dc run --rm --no-deps -T migrate
+    say "Starten"
+    dc up -d --wait --wait-timeout 600
+    say "Wiederherstellung abgeschlossen."
+}
+
+download() {
+    tmp="$2.download.$$"
+    if have curl; then
+        curl -fsSL --retry 3 --connect-timeout 15 -o "$tmp" "$1" || { rm -f "$tmp"; return 1; }
+    elif have wget; then
+        wget -q -O "$tmp" "$1" || { rm -f "$tmp"; return 1; }
+    else
+        die "Weder curl noch wget gefunden."
+    fi
+}
+
+latest_version() {
+    have curl || return 0
+    curl -fsSL --max-time 15 "https://api.github.com/repos/${REPO_SLUG}/releases/latest" 2>/dev/null \
+        | sed -n 's/.*"tag_name": *"v\{0,1\}\([0-9][0-9.]*\)".*/\1/p' | head -n 1 || true
+}
+
+# Neue compose.yml/Caddyfile/wachbuch holen. Neue Dateien werden erst nach
+# erfolgreichem Download per mv übernommen (das laufende Skript bleibt heil).
+refresh_files() {
+    ref="$1"
+    source_dir=$(env_get WACHBUCH_SOURCE)
+    base=$(env_get WACHBUCH_BASE_URL)
+    base="${base:-$DEFAULT_BASE_URL}"
+    set -- docker-compose.yml:compose.yml deploy/caddy/Caddyfile:deploy/caddy/Caddyfile scripts/wachbuch:wachbuch
+    if build_mode; then
+        set -- "$@" compose.build.yml:compose.build.yml
+    fi
+    for pair in "$@"; do
+        from=${pair%%:*}
+        to=${pair#*:}
+        mkdir -p "$(dirname "$to")"
+        if [ -n "$source_dir" ]; then
+            cp "$source_dir/$from" "$to.download.$$" || die "$source_dir/$from fehlt."
+        else
+            download "$base/$ref/$from" "$to" || die "Download fehlgeschlagen: $base/$ref/$from"
+        fi
+    done
+    for pair in "$@"; do
+        to=${pair#*:}
+        mv "$to.download.$$" "$to"
+    done
+    chmod 755 wachbuch
+}
+
+cmd_update() {
+    target="${1:-}"
+    target=$(printf '%s' "$target" | sed 's/^v//')
+    if [ -z "$target" ] && ! build_mode && [ -z "$(env_get WACHBUCH_SOURCE)" ]; then
+        target=$(latest_version)
+    fi
+    target="${target:-$(env_get WACHBUCH_VERSION)}"
+    target="${target:-latest}"
+    case "$target" in
+        latest) ref=main ;;
+        *[!0-9.]*) die "Ungültige Version: $target" ;;
+        *) ref="v$target" ;;
+    esac
+
+    if running db; then
+        say "Backup vor dem Update"
+        cmd_backup
+    else
+        warn "Datenbank läuft nicht – Update ohne vorheriges Backup."
+    fi
+    say "Dateien aktualisieren ($target)"
+    refresh_files "$ref"
+    env_set WACHBUCH_VERSION "$target"
+    if build_mode; then
+        say "Images neu bauen"
+        dc build --pull
+    else
+        say "Images laden"
+        dc pull --quiet --ignore-buildable
+    fi
+    say "Neu starten"
+    dc up -d --remove-orphans --wait --wait-timeout 600
+    cmd_status
+}
+
+cmd_setup_code() {
+    code=$(env_get SETUP_BOOTSTRAP_TOKEN)
+    origin=$(env_get SITE_URL)
+    if [ -z "$code" ]; then
+        say "Kein Einrichtungscode gesetzt (Ersteinrichtung abgeschlossen oder Code entfernt)."
+        return 0
+    fi
+    say "Ersteinrichtung: ${origin:-http://localhost:8090}/setup/"
+    say "Einrichtungscode: $code"
+}
+
+cmd_uninstall() {
+    purge=0
+    for arg in "$@"; do
+        [ "$arg" = "--purge" ] && purge=1
+    done
+    if [ "$purge" -eq 1 ]; then
+        confirm "Container UND alle Daten (Datenbank, Backups im Volume, Zertifikate) werden gelöscht.
+Kopien unter $WACHBUCH_DIR/backups und die .env bleiben." "ALLES LOESCHEN" || die "Abgebrochen."
+        dc --profile ops --profile https down --volumes --remove-orphans
+        say "Container und Volumes entfernt."
+    else
+        confirm "Die Wachbuch-Container werden entfernt. Daten (Volumes) bleiben erhalten." "ENTFERNEN" \
+            || die "Abgebrochen."
+        dc --profile ops --profile https down --remove-orphans
+        say "Container entfernt; Daten bleiben in den Docker-Volumes (wachbuch start stellt alles wieder her)."
+    fi
+    say "Der Ordner $WACHBUCH_DIR (mit .env) bleibt bestehen; bei Bedarf von Hand löschen."
+}
+
+# Globale Option --yes an beliebiger Stelle
+args=""
+for arg in "$@"; do
+    case "$arg" in
+        -y|--yes) ASSUME_YES=1 ;;
+        *) args="$args $(printf '%s' "$arg" | sed "s/'/'\\\\''/g; s/^/'/; s/\$/'/")" ;;
+    esac
+done
+eval "set -- $args"
+
+command="${1:-help}"
+[ $# -eq 0 ] || shift
+case "$command" in
+    status) cmd_status ;;
+    logs) cmd_logs "$@" ;;
+    backup) cmd_backup ;;
+    restore) cmd_restore "$@" ;;
+    update) cmd_update "$@" ;;
+    setup-code) cmd_setup_code ;;
+    start) dc up -d --remove-orphans --wait --wait-timeout 600 && cmd_status ;;
+    stop) dc stop ;;
+    uninstall) cmd_uninstall "$@" ;;
+    help|-h|--help) usage ;;
+    *) usage >&2; die "Unbekannter Befehl: $command" ;;
+esac

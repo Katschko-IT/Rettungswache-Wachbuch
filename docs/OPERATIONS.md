@@ -18,27 +18,41 @@ ist nur für lokalen HTTP-Zugriff über Loopback vorgesehen.
 
 ## Standardbefehle
 
+Im Installationsordner (`/opt/wachbuch` bzw. `~/wachbuch`, siehe
+[DEPLOYMENT.md](DEPLOYMENT.md)); `docker compose` liest dort `.env` mit
+`COMPOSE_FILE`/`COMPOSE_PROFILES`:
+
 ```bash
-docker compose ps
-docker compose logs --since 30m web migrate feed-worker backup
-docker compose up -d --build
-docker compose exec -T web python manage.py test --settings=config.test_settings
+./wachbuch status
+./wachbuch logs web
+docker compose logs --since 30m web migrate notify-worker feed-worker backup
+./wachbuch update
 docker compose exec -T web python manage.py apply_retention
 curl -fsS http://127.0.0.1:8090/healthz/
 ```
 
+Die Testsuite läuft nicht im Produktionscontainer (die App-Rolle darf keine
+Testdatenbank anlegen), sondern lokal bzw. in der CI.
+
+Healthchecks: `web` prüft `/healthz/` (mit `Host: localhost`, Loopback ist immer
+in `ALLOWED_HOSTS`), `notify-worker` das Alter seiner Heartbeat-Datei (< 180 s),
+`push-worker` seine Lebenszeichen-Datei. `notify-worker` beendet sich nach zehn
+Fehlversuchen in Folge (`NOTIFY_MAX_FAILURES`) mit Fehlercode, damit Docker ihn neu
+startet und der Fehler in `wachbuch status` sichtbar wird.
+
 ## Benutzer und Rollen
 
-Lokaler Erstadmin:
+Das erste Konto entsteht ausschließlich im Setup-Assistenten unter `/setup/`
+(Einrichtungscode: `./wachbuch setup-code`). Nur als Notfallzugang, wenn kein
+Admin-Konto mehr nutzbar ist:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 ```
 
-Weitere persönliche Konten werden unter `/django-admin/auth/user/` angelegt.
-Stationsadministratoren geben sie anschließend unter `/team/` frei und setzen
-die Rolle. Gemeinschaftskonten sind nicht vorgesehen. Unter **Mehr → Zwei-Faktor
+Weitere persönliche Konten legt der Master-Admin unter `/team/anlegen/` oder per
+Einladung an und setzt dort die Rolle. Gemeinschaftskonten sind nicht vorgesehen. Unter **Mehr → Zwei-Faktor
 / Passkeys** können TOTP und Passkeys eingerichtet werden. Mit
 `MFA_REQUIRED=true` wird die Einrichtung nach dem Passwort-Login erzwungen.
 
@@ -51,7 +65,9 @@ VAPID-Schluessel (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`).
 TLS nach **BSI TR-02102-2**: bevorzugt TLS 1.3 mit AEAD (z. B. AES-256-GCM).
 Details: [`CRYPTO-BSI.md`](CRYPTO-BSI.md).
 
-Beispiel für Caddy vor dem Loopback-Port:
+Empfohlen ist der mitgelieferte Caddy (Compose-Profil `https`, eingerichtet von
+`install.sh --mode lan|domain`). Für einen eigenen Proxy auf dem Host genügt mit
+Caddy:
 
 ```caddy
 wache.example.org {
@@ -59,8 +75,10 @@ wache.example.org {
 }
 ```
 
+Ein nginx-Beispiel steht in [DEPLOYMENT.md](DEPLOYMENT.md#eigener-proxy).
 Hostname und HTTPS-Origin müssen in `ALLOWED_HOSTS` und
-`CSRF_TRUSTED_ORIGINS` stehen. Der Proxy sollte `X-Forwarded-Proto` setzen.
+`CSRF_TRUSTED_ORIGINS` stehen. Der Proxy muss `X-Forwarded-Proto` setzen und
+`X-Forwarded-For` überschreiben (nicht anhängen), wenn `TRUSTED_PROXY=true` gilt.
 Für jeden TLS-Betrieb muss `SECURE_COOKIES=true` gesetzt sein.
 Django wertet `SECURE_PROXY_SSL_HEADER` aus und erzwingt sichere Cookies, wenn
 `SECURE_COOKIES=true` gesetzt ist.
@@ -197,6 +215,26 @@ Abweichende Images können `BACKUP_UID` und `BACKUP_GID` in `.env` anpassen.
 Ring bleibt im Volume `backups-data` und wird pro Durchlauf um Dumps
 älter als `BACKUP_RETENTION_DAYS` ausgedünnt.
 
+Der Abstand der Dumps ist `BACKUP_INTERVAL_SECONDS` (Standard 86400). Fehler
+beenden den Dienst nicht: nach `BACKUP_RETRY_SECONDS` (Standard 3600) folgt ein
+neuer Versuch. Nach einem Neustart des Containers wird erst gedumpt, wenn der
+letzte Dump älter als das Intervall ist; Neustarts lösen also keine Dump-Serie aus.
+
+Sofortiges Backup mit Kopie auf den Host (`./backups/` im Installationsordner):
+
+```bash
+./wachbuch backup
+# ohne CLI:
+docker compose exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once
+```
+
+Wiederherstellung (fragt nach, legt vorher ein Sicherheits-Backup an, spielt den
+Dump in einer Transaktion ein und setzt danach Migrationen und Rollenrechte neu):
+
+```bash
+./wachbuch restore backups/rwsth-20261024T120517Z.dump
+```
+
 ### Aufbewahrung alter Dumps
 
 `BACKUP_RETENTION_DAYS` (Standard `7`) steuert, wie viele Tage alte Dumps
@@ -212,22 +250,46 @@ BACKUP_RETENTION_DAYS=14   # zwei Wochen behalten
 BACKUP_RETENTION_DAYS=0    # nie automatisch loeschen
 ```
 
-### Offsite-Verschlüsselung
+### Offsite-Kopie und Verschlüsselung
 
-Wenn `BACKUP_ENCRYPT_REMOTE=true` gesetzt ist, wird jeder Dump vor dem
-Offsite-Upload symmetrisch mit GnuPG gegen `BACKUP_GPG_RECIPIENT`
-(AES-256, Empfänger-Fingerprint oder E-Mail) verschlüsselt. Der Klartext
-verlässt den Container nie. `BACKUP_OFF_TARGET` akzeptiert `file://`-Ziele
-und ist die einzige Stelle, an der das verschlüsselte Artefakt abgelegt
-wird. Ein leerer Wert führt das lokale Backup weiter aus, unterdrückt
-aber den Offsite-Schritt.
+Der `backup`-Container ist read-only. Das Offsite-Ziel ist deshalb ein
+Host-Ordner (z. B. NAS-Mount oder USB-Platte), den Compose als `/offsite`
+einbindet; `BACKUP_OFF_TARGET` zeigt auf diesen Pfad im Container. Der Ordner
+muss UID/GID 70 (`BACKUP_UID`/`BACKUP_GID`) gehören; `backup-init` versucht das
+beim Start zu setzen (bei NFS mit `root_squash` vorher von Hand).
+
+Wenn `BACKUP_ENCRYPT_REMOTE=true` gesetzt ist, wird jeder Dump vor der Kopie
+asymmetrisch mit GnuPG für `BACKUP_GPG_RECIPIENT` (Fingerprint oder E-Mail)
+verschlüsselt (AES-256). Den **öffentlichen** Schlüssel als `*.asc` in den
+Host-Ordner `BACKUP_GPG_KEY_DIR` legen; er wird read-only eingebunden und beim
+Start in einen Schlüsselbund im tmpfs (`GNUPGHOME=/tmp/gnupg`) importiert. Fehlt
+der Schlüssel, protokolliert der Dienst einen Fehler und überspringt die
+Offsite-Kopie – Klartext wird nie ausgelagert, der lokale Dump bleibt erhalten.
 
 ```bash
 # in .env
+BACKUP_OFFSITE_DIR=/srv/wachbuch-offsite
+BACKUP_OFF_TARGET=file:///offsite
 BACKUP_ENCRYPT_REMOTE=true
 BACKUP_GPG_RECIPIENT=ops-backup@example.org
-BACKUP_OFF_TARGET=file:///srv/wachbuch-offsite
+BACKUP_GPG_KEY_DIR=/etc/wachbuch/backup-keys   # enthält ops-backup.asc
 ```
+
+```bash
+sudo install -d -o 70 -g 70 -m 0700 /srv/wachbuch-offsite
+./wachbuch start && ./wachbuch backup && ls -l /srv/wachbuch-offsite
+```
+
+Die Aufbewahrung im Offsite-Ordner regelt `BACKUP_RETENTION_DAYS` nicht; dort
+gelten die Regeln des Zielsystems.
+
+### Was gehört zur Sicherung
+
+- die Dumps (Volume `backups-data`, Kopien in `./backups/` bzw. `/offsite`),
+- die `.env` (alle Schlüssel; ohne `CRYPTO_MASTER_KEY` und `DJANGO_SECRET_KEY`
+  sind verschlüsselte Felder nicht lesbar),
+- bei `--mode lan` das Volume `caddy-data` (interne CA, sonst müssen Geräte eine
+  neue CA importieren).
 
 ### Restore-Test
 
@@ -256,16 +318,53 @@ wieder.
 
 ## Datenbank-Passwortrotation
 
-App- und Feed-Rollenpasswörter rotieren (Owner-Passwort bleibt unangetastet):
+App-, Feed-, Backup- und Push-Rollenpasswörter rotieren (Owner-Passwort bleibt
+unangetastet):
 
 ```bash
-./scripts/rotate-db-passwords.sh
+./scripts/rotate-db-passwords.sh                                  # im Repository-Checkout
+WACHBUCH_DIR=/opt/wachbuch sh rotate-db-passwords.sh              # bei install.sh-Installationen
 ```
 
-Das Skript setzt neue Zufallswerte in PostgreSQL und `.env`, startet `web` und
-`feed-worker` neu. Anschließend Healthcheck und Feed-Worker-Logs prüfen. Das
-Owner-Passwort (`POSTGRES_PASSWORD`) nur mit Dump/Restore und Neuinitialisierung
-rotieren.
+Das Skript setzt neue Zufallswerte in PostgreSQL und `.env` und erstellt `web`,
+`notify-worker`, `feed-worker`, `backup` und `push-worker` neu. Anschließend
+`./wachbuch status` prüfen. Das Owner-Passwort (`POSTGRES_PASSWORD`) nur mit
+Dump/Restore und Neuinitialisierung rotieren.
+
+Ältere Volumes ohne Rolle `rwsth_push` ergänzt `grant_database_access` beim nächsten
+Start (`migrate`) automatisch. Wurde die Rolle früher mit dem alten Standardpasswort
+`disabled` angelegt und `.env` enthält jetzt ein anderes `PUSH_DB_PASSWORD`, meldet
+der `push-worker` Anmeldefehler; die Rotation oben gleicht Datenbank und `.env` an.
+
+## Datenbank-Tuning
+
+`config/postgresql.conf` (im db-Image) ist für 1–2 GB RAM ausgelegt:
+`shared_buffers=128MB`, `max_connections=50`, `maintenance_work_mem=64MB`, dazu
+`shm_size: 256mb` für den Container. Auf größeren Servern in `.env` anheben, ohne
+eigene Datei:
+
+```dotenv
+POSTGRES_SHARED_BUFFERS=1GB          # ca. 25 % des RAM
+POSTGRES_EFFECTIVE_CACHE_SIZE=3GB    # ca. 50-75 % des RAM
+POSTGRES_WORK_MEM=8MB
+POSTGRES_MAINTENANCE_WORK_MEM=256MB
+POSTGRES_MAX_CONNECTIONS=100         # > GUNICORN_WORKERS x GUNICORN_THREADS + 10
+POSTGRES_SHM_SIZE=1gb                # mindestens shared_buffers
+```
+
+Danach `./wachbuch start` (der db-Container wird neu erstellt) und mit
+`docker compose exec db psql -U rwsth_owner -d rwsth -c 'SHOW shared_buffers'`
+prüfen. Für weitere Parameter eine eigene Konfigurationsdatei per
+`compose.override.yml` einhängen:
+
+```yaml
+services:
+  db:
+    volumes:
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+```
+
+Werte aus `.env` (`-c` auf der Kommandozeile) haben Vorrang vor der Datei.
 
 ## Krypto-Schlüsselrotation (TOTP-Secrets)
 
@@ -317,6 +416,20 @@ akzeptiert das System ausschließlich den neuen Key.
 
 Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env`
 überschrieben werden. Die Version erscheint im Footer und unter `/healthz/`.
+`WACHBUCH_VERSION` in `.env` wählt die Image-Version
+(`ghcr.io/katschko-it/rettungswache-wachbuch[-backup|-db]:X.Y.Z`).
+
+### Update einer Installation
+
+```bash
+./wachbuch update            # neueste Veröffentlichung
+./wachbuch update 0.25.0     # bestimmte Version
+```
+
+`update` erstellt zuerst ein Backup (Abbruch, wenn es scheitert), lädt
+`compose.yml`, Caddyfile und `wachbuch` passend zur Version, setzt
+`WACHBUCH_VERSION`, zieht die Images und startet mit `up -d --wait` neu.
+Migrationen laufen dabei automatisch im Dienst `migrate`.
 
 ### Release vorbereiten
 
@@ -324,17 +437,20 @@ Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env
 2. Migrationshinweise und Breaking Changes dokumentieren.
 3. Backup und Restore-Test ausführen.
 4. Abhängigkeiten und Image-Digests kontrolliert aktualisieren.
-5. `docker compose build --no-cache` ausführen.
+5. Lokal bauen: `docker compose -f docker-compose.yml -f compose.build.yml build --no-cache`.
 6. Images auf HIGH/CRITICAL-Schwachstellen scannen.
-7. Tests ausführen und danach `docker compose up -d` starten.
+7. Tests ausführen und den Stack mit `up -d --wait` starten.
 8. Healthcheck inkl. Versionsfeld, Anmeldung, Rollen, Tagesaufgaben und optionale
    Feeds prüfen.
-9. Service-Worker-Caches leeren bzw. einmal ab-/anmelden, falls Shell-Assets
-   geändert wurden.
+9. Tag `vX.Y.Z` pushen: `publish-image.yml` baut App-, Backup- und db-Image für
+   amd64/arm64 und taggt `X.Y.Z`, `X.Y` und `latest`.
+10. Service-Worker-Caches leeren bzw. einmal ab-/anmelden, falls Shell-Assets
+    geändert wurden.
 
 ### Rollback
 
-1. Vorheriges Image-Tag bzw. Compose-Revision wieder aktivieren.
+1. Vorherige Version wieder aktivieren: `./wachbuch update <alte Version>`; bei
+   inkompatibler Migration zusätzlich `./wachbuch restore <Backup vor dem Update>`.
 2. Bei scheiternder Migration nur dokumentierte Reverse-Migrationen oder
    Dump-Restore nutzen.
 3. Keine Tabellen manuell „reparieren“.

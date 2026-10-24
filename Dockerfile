@@ -33,11 +33,14 @@ RUN apt-get update \
     && apt-get upgrade --yes --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Version kommt beim Release aus dem Git-Tag (publish-image.yml); die
+# Laufzeitversion selbst steht in core/version.py.
+ARG APP_VERSION=dev
 LABEL org.opencontainers.image.title="Rettungswache-Wachbuch" \
       org.opencontainers.image.description="Selbst gehostetes Wachbuch fuer Rettungswachen" \
       org.opencontainers.image.source="https://github.com/Katschko-IT/Rettungswache-Wachbuch" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
-      org.opencontainers.image.version="0.15.0"
+      org.opencontainers.image.version="${APP_VERSION}"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -62,6 +65,6 @@ USER app
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=3)"]
+    CMD ["python", "-c", "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/healthz/', headers={'Host': 'localhost'}), timeout=3)"]
 
 CMD ["/app/scripts/start-web.sh"]

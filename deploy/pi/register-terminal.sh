@@ -8,7 +8,7 @@ set -euo pipefail
 LABEL="${1:-Wachenterminal}"
 KIOSK_USER="${KIOSK_USER:-${SUDO_USER:-}}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COMPOSE=(docker compose -f "$REPO_DIR/docker-compose.yml" -f "$REPO_DIR/deploy/pi/docker-compose.pi.yml")
+COMPOSE=(docker compose -f "$REPO_DIR/docker-compose.yml" -f "$REPO_DIR/compose.build.yml" -f "$REPO_DIR/deploy/pi/docker-compose.pi.yml")
 
 [[ $EUID -eq 0 ]] || { echo "Bitte mit sudo ausführen." >&2; exit 1; }
 [[ -n "$KIOSK_USER" ]] || { echo "KIOSK_USER fehlt." >&2; exit 1; }
