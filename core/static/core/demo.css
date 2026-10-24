@@ -23,9 +23,8 @@
 }
 
 .demo-kicker {
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  font-size: .8rem;
+  letter-spacing: .01em;
+  font-size: .9rem;
   font-weight: 700;
   color: var(--brand);
   margin: 0 0 1rem;
@@ -74,8 +73,8 @@
   color: var(--muted);
 }
 
-.demo-yes { color: var(--priority-done, #16a34a); }
-.demo-no { color: var(--priority-urgent, #dc2626); }
+.demo-yes { color: var(--success); }
+.demo-no { color: var(--danger); }
 
 .demo-badges {
   display: flex;
@@ -101,10 +100,10 @@
   height: .7rem;
   border-radius: 50%;
 }
-.demo-dot-urgent { background: var(--priority-urgent, #dc2626); }
-.demo-dot-important { background: var(--priority-important, #f59e0b); }
-.demo-dot-normal { background: var(--accent, #2563eb); }
-.demo-dot-done { background: var(--priority-done, #16a34a); }
+.demo-dot-urgent { background: var(--danger); }
+.demo-dot-important { background: var(--warning-accent); }
+.demo-dot-normal { background: var(--brand); }
+.demo-dot-done { background: var(--success); }
 
 .demo-phones {
   display: grid;
@@ -136,8 +135,8 @@
   position: relative;
   overflow: hidden;
   min-height: 18rem;
-  color: #fff;
-  background: #082e63;
+  color: var(--hero-ink);
+  background: var(--hero-bg);
   border: 0;
 }
 
@@ -145,7 +144,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(105deg, rgba(8, 46, 99, .88), rgba(13, 71, 161, .45)),
+    linear-gradient(105deg, color-mix(in srgb, var(--hero-bg) 88%, transparent), color-mix(in srgb, var(--hero-bg-2) 45%, transparent)),
     url("landing-hero.jpg") center / cover;
 }
 
@@ -157,7 +156,7 @@
 .demo-slide-hero .demo-kicker,
 .demo-slide-hero h2,
 .demo-slide-hero .demo-lead {
-  color: #fff;
+  color: var(--hero-ink);
 }
 
 .demo-cta {
@@ -169,15 +168,15 @@
 }
 
 .demo-cta .button.primary {
-  background: #f0b429;
-  color: #172033;
-  border-color: #f0b429;
+  background: var(--hero-cta);
+  color: var(--hero-cta-ink);
+  border-color: var(--hero-cta);
 }
 
 .demo-cta .button.secondary {
-  color: #fff;
+  color: var(--hero-ink);
   background: transparent;
-  border-color: rgba(255, 255, 255, .7);
+  border-color: var(--hero-line);
 }
 
 .demo-photo-credit {
@@ -234,7 +233,7 @@
   align-items: center;
   gap: .6rem;
   padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom));
-  background: rgba(247, 249, 252, .94);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
   border-top: 1px solid var(--line);
 }
 
@@ -319,30 +318,31 @@ body.is-vorfuehrung .site-footer {
 }
 
 @media (prefers-contrast: more) {
+  /* Hoher Kontrast: Tokens sind hier Schwarz (--text) und Weiß (--surface). */
   .demo-slide-hero {
-    background: #000;
-    color: #fff;
-    border: 2px solid #fff;
+    background: var(--text);
+    color: var(--surface);
+    border: 2px solid var(--surface);
   }
   .demo-hero-bg {
-    background: #000;
+    background: var(--text);
     animation: none;
   }
   .demo-cta .button.primary {
-    background: #fff;
-    color: #000;
-    border-color: #fff;
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--surface);
   }
   .demo-cta .button.secondary {
-    color: #fff;
-    border-color: #fff;
+    color: var(--surface);
+    border-color: var(--surface);
   }
   .demo-deck.is-js .demo-bar {
-    background: #fff;
-    border-top: 2px solid #000;
+    background: var(--surface);
+    border-top: 2px solid var(--text);
   }
   .demo-yes,
   .demo-no {
-    color: #000;
+    color: var(--text);
   }
 }

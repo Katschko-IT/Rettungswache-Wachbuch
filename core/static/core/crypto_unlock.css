@@ -1,26 +1,26 @@
 dialog.crypto-unlock {
-  border: 1px solid var(--line, #dce4ef);
-  border-radius: var(--radius-lg, 1rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   max-width: 28rem;
   width: 90%;
-  background: var(--surface, #ffffff);
-  color: var(--text, #172033);
+  background: var(--surface);
+  color: var(--text);
 }
 
 dialog.crypto-unlock::backdrop {
-  background: rgba(8, 46, 99, 0.45);
+  background: var(--scrim);
 }
 
 dialog.crypto-unlock h2 {
   margin: 0 0 8px;
   font-size: 1.15rem;
-  color: var(--brand-ink, #17343d);
+  color: var(--brand-ink);
 }
 
 dialog.crypto-unlock p {
   margin: 0 0 16px;
-  color: var(--muted, #445066);
+  color: var(--muted);
 }
 
 dialog.crypto-unlock label {
@@ -31,25 +31,27 @@ dialog.crypto-unlock label {
 
 dialog.crypto-unlock input {
   width: 100%;
-  min-height: var(--touch, 3rem);
+  min-height: var(--touch);
   padding: .75rem 1rem;
-  border: 2px solid var(--line, #dce4ef);
-  border-radius: .75rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
   font-size: 1rem;
 }
 
 dialog.crypto-unlock input:focus-visible {
-  outline: 3px solid var(--focus, #f0b429);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
-  border-color: var(--brand, #0d47a1);
+  border-color: var(--brand);
 }
 
 dialog.crypto-unlock input[aria-invalid="true"] {
-  border-color: var(--danger, #dc2626);
+  border-color: var(--danger);
 }
 
 dialog.crypto-unlock .crypto-unlock-error {
-  color: var(--danger, #dc2626);
+  color: var(--danger);
   margin: 8px 0 0;
   font-size: 0.92rem;
 }
