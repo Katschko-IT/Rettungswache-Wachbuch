@@ -16,12 +16,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "core" / "static" / "core"
 TARGETS = [ROOT / "site" / "assets" / "design", ROOT / "docs" / "praesentation" / "design"]
-FILES = ["tokens.css", "fonts.css", "icons.svg"]
+FILES = ["tokens.css", "fonts.css", "public.css", "icons.svg"]
 
 
 def design_files() -> list[Path]:
     fonts = sorted((SOURCE / "fonts").glob("atkinson-hyperlegible-next-*.woff2"))
-    return [SOURCE / name for name in FILES] + fonts + [SOURCE / "fonts" / "LICENSE-AtkinsonHyperlegibleNext.txt"]
+    # Screenshots der Oberfläche (scripts/capture_screens.py, nur Demodaten).
+    screens = sorted((SOURCE / "screens").glob("*.webp"))
+    return ([SOURCE / name for name in FILES] + fonts
+            + [SOURCE / "fonts" / "LICENSE-AtkinsonHyperlegibleNext.txt"] + screens)
 
 
 def relative(path: Path) -> Path:
