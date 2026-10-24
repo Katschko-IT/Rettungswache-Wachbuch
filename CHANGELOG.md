@@ -1,6 +1,6 @@
 # Changelog
 
-## Unveröffentlicht
+## 0.25.0 - 2026-10-24
 
 Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
 
@@ -132,7 +132,6 @@ Ersteinrichtung für den Raspberry Pi überarbeitet.
 - Neue Abhak-Liste für den ersten Pi-Aufbau (`docs/PI-ABNAHME.md`). Korrektur der
   Pi-Doku: Backups liegen im Docker-Volume `backups-data`, nicht in `backups/`;
   Befehl zum Kopieren auf einen USB-Stick ergänzt.
-- Marktvergleich mit RETTpro und Optimierungsbedarf (`docs/MARKTVERGLEICH-RETTPRO.md`).
 - Touch-Audit über 70 Seiten auf Handy, Tablet, 14″ und 22″: Modulzeilen und
   zweispaltige Formulare laufen auf dem Handy nicht mehr seitlich aus dem Bild;
   Felder, kleine Knöpfe, Sortierknöpfe, Sprachwahl, Kästchen-Zeilen und
