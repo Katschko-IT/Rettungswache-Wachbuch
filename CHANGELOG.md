@@ -17,6 +17,17 @@ Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
   Mängeln mit denselben Grenzen wie in der App; unmögliche Datumswerte ergeben
   eine Fehlermeldung statt eines Serverfehlers.
 
+Verkehrslage je Wache konfigurierbar statt fest auf Gütersloh/Steinhagen
+verdrahtet (portiert aus Draft-PR #116). Autobahnen, Umkreis, Warngebiete
+(BBK/NINA), kommunale Quellen und Koordinaten der Wache stehen in den
+Einstellungen, Straßen, Umkreis und Warngebiete auch in der Ersteinrichtung.
+Ohne Koordinaten keine Autobahnquelle, ohne Warngebiet oder Ort keine Warnungen;
+Straßen werden auf `A2`/`B61`-Form geprüft (höchstens 6); der Cache-Schlüssel
+enthält einen Konfigurations-Hash. Die Parser für Steinhagen und den Kreis
+Gütersloh sind nur noch je Wache zuschaltbar (Standard aus). Bestehende Wachen
+mit Verkehrslage behalten ihre bisherigen Werte (Migrationen 0055/0056); der
+feste Ersatzstandort entfällt, fehlende Koordinaten müssen nachgetragen werden.
+
 Abhängigkeiten und Basis-Images auf den Stand vom 24.10.2026 gebracht.
 
 - Python-Pakete: Django 6.1.2, psycopg 3.3.6, cryptography 50.0.2,

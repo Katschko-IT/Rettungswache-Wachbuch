@@ -46,6 +46,12 @@ Dieses Dokument ist keine Rechtsberatung.
 - sichere Session-Cookies, CSRF-Schutz, CSP (`connect-src` nur `'self'` und
   Hosts aus `PUSH_ALLOWED_ENDPOINT_HOSTS`) und restriktive Browser-Header
 - serverseitige Objekt- und Rollenprüfung
+- optionale Verkehrslage je Wache (Standard aus): der Server fragt nur fest
+  eingetragene HTTPS-Hosts auf Port 443 ab (Autobahn GmbH, BBK/NINA und – nur
+  wenn die Wache sie zuschaltet – Gemeinde Steinhagen und Kreis Gütersloh),
+  ohne Weiterleitungen, mit Größen- und Zeitlimit; Straßenkennungen sind auf
+  `^[AB]\d{1,3}$` begrenzt. Übermittelt wird nur die Serveranfrage, keine
+  Personen- oder Wachendaten; Koordinaten und Warngebiete bleiben auf dem Server.
 - separate Datenbank ohne veröffentlichten Port
 - Abhängigkeits-, Container- und Anwendungsscan vor Go-live
 - Versionskennung in Footer und `/healthz/`
