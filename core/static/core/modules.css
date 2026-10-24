@@ -554,3 +554,94 @@ body.has-open-modal { overflow: hidden; }
 
 /* —— Modul: Aufgaben —— */
 .task-legend .urgency-ok { margin-left: auto; }
+
+/* —— Seiten-Bausteine (Hilfe, Pinnwand, Anhänge, System, Tokens) ——— */
+/* Hilfe */
+.help-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+}
+.help-search label { flex: 1 0 100%; font-weight: 700; }
+.help-search input {
+  flex: 1 1 14rem;
+  min-height: var(--touch);
+  padding: .55rem .75rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+.help-results, .help-topics, .help-admin { margin: 0 0 var(--space-5); }
+.help-results h2, .help-topics h2, .help-admin h2 { margin: 0 0 var(--space-3); font-size: 1.2rem; }
+.help-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.help-list li { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--line); }
+.help-list li:last-child { border-bottom: 0; }
+.help-list a { min-height: var(--touch); display: inline-flex; align-items: center; }
+.help-list span { display: block; color: var(--muted); font-size: .9rem; }
+.help-meta, .help-article-meta { color: var(--muted); font-size: .875rem; }
+.help-article-meta { margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--line); }
+.help-article { max-width: 70ch; }
+.help-article section + section { margin-top: var(--space-5); }
+.help-article h2 { margin: 0 0 var(--space-2); font-size: 1.2rem; }
+.help-article p { margin: 0; line-height: 1.65; }
+
+/* Pinnwand und Anhänge */
+.pinboard-row { align-items: start; }
+.pinboard-body { max-width: 70ch; margin: var(--space-2) 0 0; color: var(--text); }
+.attachment-list { display: grid; gap: var(--space-1); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.attachment-list li { min-height: var(--touch); display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .75rem; }
+.attachment-list small { color: var(--muted); }
+
+/* Schlichte Listen (Kalender-Abos, Passkeys) */
+.landing-points { display: grid; margin: 0 0 var(--space-4); padding: 0; list-style: none; }
+.landing-points li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Übersicht: persönliche Hinweise */
+.notification-inbox { margin-bottom: var(--space-5); }
+
+/* Systemstatus: Begriff und Wert nebeneinander */
+.system-facts {
+  display: grid;
+  grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-4);
+}
+.system-facts dt { color: var(--muted); }
+.system-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+@media (max-width: 30rem) {
+  .system-facts { grid-template-columns: 1fr; gap: 0; }
+  .system-facts dd { margin-bottom: var(--space-2); }
+}
+
+/* Einmalig angezeigte Links, Codes und Fingerabdrücke: gut kopierbar. */
+.token-value,
+.activation-link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+  color: var(--text);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  user-select: all;
+}
+.form-card-secondary { margin-top: var(--space-3); }
+.landing-hero-copy { min-width: 0; }

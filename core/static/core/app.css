@@ -345,8 +345,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   gap: .25rem;
 }
 .language-switch button {
-  min-height: 2.75rem;
-  padding: .2rem .5rem;
+  min-height: var(--touch);
+  padding: .2rem .9rem;
   color: var(--text);
   background: transparent;
   border: 1px solid var(--line-strong);
@@ -2280,6 +2280,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .status-label.warning::before,
 .status-label.status-in_progress::before { background: var(--warning-accent); }
 .status-label.priority-normal,
+.status-label.priority-info,
+.status-label.priority-event,
 .status-label.neutral,
 .status-label.info,
 .status-label.status-open {
@@ -2288,6 +2290,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border-color: var(--line);
 }
 .status-label.priority-normal::before,
+.status-label.priority-info::before,
+.status-label.priority-event::before,
 .status-label.neutral::before,
 .status-label.info::before,
 .status-label.status-open::before { background: var(--brand); }
