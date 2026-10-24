@@ -3,8 +3,8 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">
@@ -13,109 +13,103 @@
   <p class="lead">{% translate "Verwalte Artikeldaten, PZN/GTIN-Kennungen, Kühlketten-Regeln und Mindestbestände." %}</p>
 </header>
 
-<form method="post" class="form-card ms-c06a247">
+<form method="post" class="form-card">
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-    <div class="alert danger ms-c2c0d0a">
+    <div class="alert danger">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📦 {% translate "Artikelbezeichnung & Einheiten" %}</legend>
-    
-    <div class="ms-c2c0d0a">
-      <label class="ms-0ab77d1" for="{{ form.name.id_for_label }}">
-        {% translate "Artikelbezeichnung*" %}:
-      </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Artikelbezeichnung & Einheiten" %}</legend>
+
+    <div class="field">
+      <label for="{{ form.name.id_for_label }}">{% translate "Artikelbezeichnung*" %}:</label>
       {{ form.name }}
-      <small class="ms-b0a14b6">{% translate "z. B. Rocuronium 10 mg/ml (5x5ml) oder Endotrachealtubus Ch. 7.5" %}</small>
+      {{ form.name.errors }}
+      <small class="helptext">{% translate "z. B. Rocuronium 10 mg/ml (5x5ml) oder Endotrachealtubus Ch. 7.5" %}</small>
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.category.id_for_label }}">
-          {% translate "Kategorie:" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.category.id_for_label }}">{% translate "Kategorie:" %}</label>
         {{ form.category }}
+        {{ form.category.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.unit.id_for_label }}">
-          {% translate "Packungs- / Zähleinheit:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.unit.id_for_label }}">{% translate "Packungs- / Zähleinheit:" %}</label>
         {{ form.unit }}
+        {{ form.unit.errors }}
       </div>
     </div>
 
-    <div class="ms-ba35d0a">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.pzn.id_for_label }}">
-          {% translate "PZN (Pharmazentralnummer):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.pzn.id_for_label }}">{% translate "PZN (Pharmazentralnummer):" %}</label>
         {{ form.pzn }}
+        {{ form.pzn.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.gtin.id_for_label }}">
-          {% translate "GTIN / Barcode (EAN):" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.gtin.id_for_label }}">{% translate "GTIN / Barcode (EAN):" %}</label>
         {{ form.gtin }}
+        {{ form.gtin.errors }}
       </div>
     </div>
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📊 {% translate "Bestandssteuerung & Mindestmengen" %}</legend>
-    
-    <div class="ms-ba35d0a">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.min_stock.id_for_label }}">
-          {% translate "Mindestbestand Wache:" %}
-        </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Bestandssteuerung & Mindestmengen" %}</legend>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.min_stock.id_for_label }}">{% translate "Mindestbestand Wache:" %}</label>
         {{ form.min_stock }}
-        <small class="ms-b0a14b6">{% translate "Meldet Warnung, wenn unterschritten" %}</small>
+        {{ form.min_stock.errors }}
+        <small class="helptext">{% translate "Meldet Warnung, wenn unterschritten" %}</small>
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.target_stock.id_for_label }}">
-          {% translate "Sollbestand Wache:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.target_stock.id_for_label }}">{% translate "Sollbestand Wache:" %}</label>
         {{ form.target_stock }}
+        {{ form.target_stock.errors }}
       </div>
     </div>
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">❄️ {% translate "Kühlkette & Out-of-Fridge Haltbarkeit" %}</legend>
-    
-    <div class="ms-c2c0d0a">
-      <label class="ms-6450058">
-        {{ form.requires_cooling }} <strong>{% translate "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)" %}</strong>
+  <fieldset class="form-section">
+    <legend>{% translate "Kühlkette & Out-of-Fridge Haltbarkeit" %}</legend>
+
+    <div class="field">
+      <label class="checkbox-field" for="{{ form.requires_cooling.id_for_label }}">
+        {{ form.requires_cooling }} {% translate "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)" %}
       </label>
     </div>
 
-    <div>
-      <label class="ms-0ab77d1" for="{{ form.room_temp_max_days.id_for_label }}">
-        {% translate "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):" %}
-      </label>
+    <div class="field">
+      <label for="{{ form.room_temp_max_days.id_for_label }}">{% translate "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):" %}</label>
       {{ form.room_temp_max_days }}
-      <small class="ms-b0a14b6">{% translate "z. B. 84 Tage (= 12 Wochen) für Rocuronium, 60 Tage für Succinylcholin" %}</small>
+      {{ form.room_temp_max_days.errors }}
+      <small class="helptext">{% translate "z. B. 84 Tage (= 12 Wochen) für Rocuronium, 60 Tage für Succinylcholin" %}</small>
     </div>
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📝 {% translate "Hinweise & Lagerhinweise" %}</legend>
-    <div>
+  <fieldset class="form-section">
+    <legend>{% translate "Hinweise & Lagerhinweise" %}</legend>
+    <div class="field">
+      <label class="sr-only" for="{{ form.notes.id_for_label }}">{% translate "Hinweise & Lagerhinweise" %}</label>
       {{ form.notes }}
+      {{ form.notes.errors }}
     </div>
   </fieldset>
 
-  <div class="form-actions ms-73b822e">
+  <div class="form-actions">
+    <button type="submit" class="button primary">
+      {{ action_label }}
+    </button>
     <a class="button secondary" href="{% if item %}{% url 'warehouse_item_detail' item.slug %}{% else %}{% url 'warehouse_dashboard' %}{% endif %}">
       {% translate "Abbrechen" %}
     </a>
-    <button type="submit" class="button">
-      {{ action_label }}
-    </button>
   </div>
 
 </form>

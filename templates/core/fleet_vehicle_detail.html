@@ -3,363 +3,314 @@
 {% block title %}{{ vehicle.call_sign }}{% if vehicle.license_plate %} ({{ vehicle.license_plate }}){% endif %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<p class="breadcrumbs ms-9420460">
-  <a class="back-link" href="{% url 'fleet_dashboard' %}">&larr; {% translate "Zurück zur Fuhrpark-Übersicht" %}</a>
-</p>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'fleet_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Fuhrpark-Übersicht" %}</a>
+</nav>
 
-<header class="page-heading heading-with-action ms-92cb257">
+<header class="page-heading heading-with-action">
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ vehicle.get_vehicle_type_display }}</p>
-    <h1 class="ms-8fe430e">
-      <span>{{ vehicle.call_sign }}</span>
-      {% if vehicle.license_plate %}<span class="badge ms-d65a16b">{{ vehicle.license_plate }}</span>{% endif %}
-    </h1>
+    <h1>{{ vehicle.call_sign }}</h1>
+    {% if vehicle.license_plate %}<div class="cluster"><span class="badge mono">{{ vehicle.license_plate }}</span></div>{% endif %}
     <p class="lead">{{ vehicle.chassis_manufacturer }} &middot; Aufbau: {{ vehicle.body_manufacturer }}{% if vehicle.year_of_manufacture %} &middot; Baujahr {{ vehicle.year_of_manufacture }}{% endif %}</p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
     {% if can_manage %}
       <a class="button secondary" href="{% url 'fleet_vehicle_edit' vehicle.slug %}">
-        <span class="icon" aria-hidden="true">✏️</span> {% translate "Fahrzeug bearbeiten" %}
+        {% include "core/_icon.html" with name="edit" %}{% translate "Fahrzeug bearbeiten" %}
       </a>
     {% endif %}
     <a class="button secondary" href="{% url 'fleet_vehicle_qr' vehicle.slug %}" target="_blank">
-      <span class="icon" aria-hidden="true">🖨️</span> {% translate "QR-Sticker drucken" %}
+      {% include "core/_icon.html" with name="print" %}{% translate "QR-Sticker drucken" %}
     </a>
   </div>
 </header>
 
-{# Desinfektions-Sperr-Banner falls aktiv #}
+{# Desinfektions-Sperre bzw. Freigabe durch die Besatzung #}
 {% if vehicle.is_disinfection_locked %}
-<div class="alert alert-warning ms-6ff3bac">
-  <div class="ms-bb9e8c0">
-    <span class="ms-355e22a">⏳</span>
-    <div>
-      <h3 class="ms-b15edf5">{% translate "DESINFEKTIONS-EINWIRKZEIT LÄUFT" %}</h3>
-      <p class="ms-c472370">
-        {% blocktranslate with until=vehicle.disinfection_locked_until|date:"H:i" %}Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>{{ until }} Uhr</strong> gesperrt. Eine Freigabe auf Status 1 oder 2 ist vor Ablauf der Einwirkzeit blockiert.{% endblocktranslate %}
-      </p>
-    </div>
-  </div>
+<div class="alert warning" role="status">
+  <h3>{% translate "Desinfektions-Einwirkzeit läuft" %}</h3>
+  <p>
+    {% blocktranslate with until=vehicle.disinfection_locked_until|date:"H:i" %}Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>{{ until }} Uhr</strong> gesperrt. Eine Freigabe auf Status 1 oder 2 ist vor Ablauf der Einwirkzeit blockiert.{% endblocktranslate %}
+  </p>
 </div>
 {% elif vehicle.awaiting_crew_release %}
-<div class="alert alert-success" role="status">
+<div class="alert success" role="status">
   <h3>{% translate "Einwirkzeit abgelaufen – Freigabe durch die Besatzung" %}</h3>
   <p>{% translate "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei." %}</p>
   <form method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
     {% csrf_token %}
-    <button type="submit" name="status" value="1" class="button primary">🟢 {% translate "Geprüft – Status 1 setzen" %}</button>
+    <button type="submit" name="status" value="1" class="button primary">{% include "core/_icon.html" with name="check" %}{% translate "Geprüft – Status 1 setzen" %}</button>
   </form>
 </div>
 {% endif %}
 
-{# Taktischer BOS-Status Changer #}
-<section class="section-block ms-59028bf">
-  <div class="ms-b1b392f">
-    <div>
-      <span class="ms-a0b58dc">{% translate "Aktueller Taktischer BOS-Status" %}</span>
-      <div class="ms-24e190b">
-        {% if vehicle.tactical_status == '1' %}
-          <span class="text-success">🟢 {{ vehicle.get_tactical_status_display }}</span>
-        {% elif vehicle.tactical_status == '2' %}
-          <span class="ms-a3361e8">🔵 {{ vehicle.get_tactical_status_display }}</span>
-        {% elif vehicle.tactical_status == '3' or vehicle.tactical_status == '4' %}
-          <span class="ms-5a2c8fa">🟡 {{ vehicle.get_tactical_status_display }}</span>
-        {% elif vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
-          <span class="ms-277c7e4">🟣 {{ vehicle.get_tactical_status_display }}</span>
-        {% elif vehicle.tactical_status == 'workshop' %}
-          <span class="text-danger">🔧 {{ vehicle.get_tactical_status_display }}</span>
-        {% else %}
-          <span class="ms-a6f4814">⚪ {{ vehicle.get_tactical_status_display }}</span>
-        {% endif %}
-      </div>
-      {% if vehicle.status_note %}
-        <p class="ms-b2996c1">
-          {{ vehicle.status_note }}
-        </p>
-      {% endif %}
-    </div>
-
-    {# Status Change Schnell-Buttons #}
-    <form class="ms-9cdc00f" method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
-      {% csrf_token %}
-      <button type="submit" name="status" value="1" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '1' %}disabled{% endif %}>
-        🟢 1: Wache
-      </button>
-      <button type="submit" name="status" value="2" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '2' %}disabled{% endif %}>
-        🔵 2: Funk
-      </button>
-      <button type="submit" name="status" value="3" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '3' %}disabled{% endif %}>
-        🟡 3: Anfahrt
-      </button>
-      <button type="submit" name="status" value="4" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '4' %}disabled{% endif %}>
-        📍 4: Einsatzort
-      </button>
-      <button type="submit" name="status" value="disinfection" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == 'disinfection' %}disabled{% endif %}>
-        🟣 Desinfektion
-      </button>
-      <button type="submit" name="status" value="workshop" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == 'workshop' %}disabled{% endif %}>
-        🔧 Werkstatt
-      </button>
-      <button type="submit" name="status" value="6" class="button secondary small ms-31127fe" {% if vehicle.tactical_status == '6' %}disabled{% endif %}>
-        ⚪ 6: Außer Dienst
-      </button>
-    </form>
+{# Taktischer BOS-Status #}
+<section class="section-block">
+  <h2>{% translate "Aktueller Taktischer BOS-Status" %}</h2>
+  <div>
+    {% if vehicle.tactical_status == '1' %}
+      <span class="state success large">{{ vehicle.get_tactical_status_display }}</span>
+    {% elif vehicle.tactical_status == '2' %}
+      <span class="state info large">{{ vehicle.get_tactical_status_display }}</span>
+    {% elif vehicle.tactical_status == '3' or vehicle.tactical_status == '4' %}
+      <span class="state warning large">{{ vehicle.get_tactical_status_display }}</span>
+    {% elif vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
+      <span class="state warning large">{{ vehicle.get_tactical_status_display }}</span>
+    {% elif vehicle.tactical_status == 'workshop' %}
+      <span class="state danger large">{{ vehicle.get_tactical_status_display }}</span>
+    {% else %}
+      <span class="state muted large">{{ vehicle.get_tactical_status_display }}</span>
+    {% endif %}
   </div>
+  {% if vehicle.status_note %}
+    <div class="note-box">{{ vehicle.status_note }}</div>
+  {% endif %}
+
+  {# Status-Schnellwahl #}
+  <form class="cluster fleet-status-buttons" method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
+    {% csrf_token %}
+    <button type="submit" name="status" value="1" class="button secondary" {% if vehicle.tactical_status == '1' %}disabled{% endif %}>
+      <span class="dot dot-success" aria-hidden="true"></span>1: Wache
+    </button>
+    <button type="submit" name="status" value="2" class="button secondary" {% if vehicle.tactical_status == '2' %}disabled{% endif %}>
+      <span class="dot dot-info" aria-hidden="true"></span>2: Funk
+    </button>
+    <button type="submit" name="status" value="3" class="button secondary" {% if vehicle.tactical_status == '3' %}disabled{% endif %}>
+      <span class="dot dot-warning" aria-hidden="true"></span>3: Anfahrt
+    </button>
+    <button type="submit" name="status" value="4" class="button secondary" {% if vehicle.tactical_status == '4' %}disabled{% endif %}>
+      <span class="dot dot-warning" aria-hidden="true"></span>4: Einsatzort
+    </button>
+    <button type="submit" name="status" value="disinfection" class="button secondary" {% if vehicle.tactical_status == 'disinfection' %}disabled{% endif %}>
+      <span class="dot dot-warning" aria-hidden="true"></span>Desinfektion
+    </button>
+    <button type="submit" name="status" value="workshop" class="button secondary" {% if vehicle.tactical_status == 'workshop' %}disabled{% endif %}>
+      <span class="dot dot-danger" aria-hidden="true"></span>Werkstatt
+    </button>
+    <button type="submit" name="status" value="6" class="button secondary" {% if vehicle.tactical_status == '6' %}disabled{% endif %}>
+      <span class="dot" aria-hidden="true"></span>6: Außer Dienst
+    </button>
+  </form>
 </section>
 
-{# Füllstände & Fristenübersicht Grid #}
-<div class="ms-eac2322">
-  {# Telemetrie / Füllstände #}
-  <div class="ms-89be969">
-    <h3 class="ms-ec0f7ff">📊 {% translate "Füllstände & Telemetrie" %}</h3>
-    <div class="ms-bea22e2">
-      <div>
-        <div class="ms-5666b94">
-          <span>⛽ {% translate "Kraftstoff" %}:</span>
+{# Füllstände und Fristen #}
+<div class="grid-2">
+  <section class="section-block">
+    <h2>{% translate "Füllstände & Telemetrie" %}</h2>
+    <div class="stack">
+      <div class="stack-sm">
+        <div class="split">
+          <span>{% translate "Kraftstoff" %}:</span>
           <strong>{{ vehicle.fuel_level_percent }} %</strong>
         </div>
-        <div class="ms-d4b471a">
+        <div class="gauge">
           <div class="gauge-fill {% if vehicle.fuel_level_percent < 30 %}gauge-red{% elif vehicle.fuel_level_percent < 50 %}gauge-amber{% else %}gauge-green{% endif %}" data-bar="{{ vehicle.fuel_level_percent }}"></div>
         </div>
       </div>
-      <div>
-        <div class="ms-5666b94">
-          <span>🫁 {% translate "Sauerstoff O₂" %}:</span>
+      <div class="stack-sm">
+        <div class="split">
+          <span>{% translate "Sauerstoff O₂" %}:</span>
           <strong>{{ vehicle.o2_pressure_bar }} bar</strong>
         </div>
-        <div class="ms-d4b471a">
+        <div class="gauge">
           <div class="gauge-fill {% if vehicle.o2_pressure_bar < 100 %}gauge-red{% elif vehicle.o2_pressure_bar < 150 %}gauge-amber{% else %}gauge-cyan{% endif %}" data-bar="{% widthratio vehicle.o2_pressure_bar 200 100 %}"></div>
         </div>
       </div>
-      <div>
-        <div class="ms-5666b94">
-          <span>💧 {% translate "AdBlue" %}:</span>
+      <div class="stack-sm">
+        <div class="split">
+          <span>{% translate "AdBlue" %}:</span>
           <strong>{{ vehicle.adblue_level_percent }} %</strong>
         </div>
-        <div class="ms-d4b471a">
+        <div class="gauge">
           <div class="gauge-fill {% if vehicle.adblue_level_percent < 25 %}gauge-red{% else %}gauge-blue{% endif %}" data-bar="{{ vehicle.adblue_level_percent }}"></div>
         </div>
       </div>
-      <div class="ms-1f96b21">
-        <span class="ms-3dca5e5">{% translate "Kilometerstand" %}:</span>
+      <div class="split">
+        <span class="muted">{% translate "Kilometerstand" %}:</span>
         <strong>{{ vehicle.current_mileage }} km</strong>
       </div>
     </div>
-  </div>
+  </section>
 
   {# Gesetzliche Fristen (§ 29 StVZO, UVV DGUV 70, Tragentisch) #}
-  <div class="ms-89be969">
-    <h3 class="ms-ec0f7ff">🛡️ {% translate "Gesetzliche Fristen & Prüfungen" %}</h3>
-    <ul class="ms-8afeede">
-      <li class="ms-f120801">
-        <span>{% translate "Hauptuntersuchung (§ 29 StVZO)" %}:</span>
-        <strong>{{ vehicle.next_hu_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
-      </li>
-      <li class="ms-f120801">
-        <span>{% translate "UVV-Prüfung (DGUV Vorschrift 70)" %}:</span>
-        <strong>{{ vehicle.next_uvv_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
-      </li>
-      <li class="ms-f120801">
-        <span>{% translate "Tragentisch 10g (DIN EN 1789)" %}:</span>
-        <strong>{{ vehicle.next_stretcher_service_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</strong>
-      </li>
-      <li class="ms-f120801">
-        <span>{% translate "Letzte Desinfektion" %}:</span>
-        <strong>{{ vehicle.last_disinfection|date:"d.m.Y H:i"|default:"Kein Nachweis" }}</strong>
-      </li>
-      <li class="ms-87983a4">
-        <span class="ms-3dca5e5">{% translate "Gesamtstatus Fristenampel" %}:</span>
-        {% if vehicle.urgency.level == 'overdue' %}
-          <span class="badge border-danger ms-7c3dc80">⛔ {{ vehicle.urgency.label }}</span>
-        {% elif vehicle.urgency.level == 'critical' %}
-          <span class="badge border-warning ms-78c9859">⚠️ {{ vehicle.urgency.label }}</span>
-        {% elif vehicle.urgency.level == 'warning' %}
-          <span class="badge ms-e115a90">⏳ {{ vehicle.urgency.label }}</span>
-        {% else %}
-          <span class="badge text-success ms-b87ae90">✅ {{ vehicle.urgency.label }}</span>
-        {% endif %}
-      </li>
-    </ul>
-  </div>
+  <section class="section-block">
+    <h2>{% translate "Gesetzliche Fristen & Prüfungen" %}</h2>
+    <dl class="summary-list">
+      <div><dt>{% translate "Hauptuntersuchung (§ 29 StVZO)" %}:</dt><dd>{{ vehicle.next_hu_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</dd></div>
+      <div><dt>{% translate "UVV-Prüfung (DGUV Vorschrift 70)" %}:</dt><dd>{{ vehicle.next_uvv_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</dd></div>
+      <div><dt>{% translate "Tragentisch 10g (DIN EN 1789)" %}:</dt><dd>{{ vehicle.next_stretcher_service_date|date:"d.m.Y"|default:"Nicht hinterlegt" }}</dd></div>
+      <div><dt>{% translate "Letzte Desinfektion" %}:</dt><dd>{{ vehicle.last_disinfection|date:"d.m.Y H:i"|default:"Kein Nachweis" }}</dd></div>
+      <div>
+        <dt>{% translate "Gesamtstatus Fristenampel" %}:</dt>
+        <dd>
+          {% if vehicle.urgency.level == 'overdue' %}
+            <span class="state danger">{{ vehicle.urgency.label }}</span>
+          {% elif vehicle.urgency.level == 'critical' or vehicle.urgency.level == 'warning' %}
+            <span class="state warning">{{ vehicle.urgency.label }}</span>
+          {% else %}
+            <span class="state success">{{ vehicle.urgency.label }}</span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+  </section>
 </div>
 
-{# Tabs für Express-Aktionen (Schichtübernahme, Desinfektion, Mangel) #}
-<div class="ms-6b52158">
+{# Schnellaktionen: Schichtübernahme, Desinfektion, Mangel #}
+<div class="grid-auto section-gap fleet-actions">
   {# 3-Minuten Schichtübernahme #}
-  <section class="section-block ms-89be969">
-    <h2 class="ms-e767ca2">⏱️ {% translate "3-Minuten Schichtübernahme" %}</h2>
-    <p class="ms-665382c">
-      {% translate "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung." %}
-    </p>
+  <section id="fleet-handover" class="section-block">
+    <h2>{% translate "3-Minuten Schichtübernahme" %}</h2>
+    <p class="muted">{% translate "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung." %}</p>
 
     <form method="post" action="{% url 'fleet_vehicle_handover_create' vehicle.slug %}">
       {% csrf_token %}
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-f0a8344" for="{{ handover_form.mileage.id_for_label }}">{% translate "km-Stand" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ handover_form.mileage.id_for_label }}">{% translate "km-Stand" %}</label>
           {{ handover_form.mileage }}
         </div>
-        <div>
-          <label class="ms-f0a8344" for="{{ handover_form.o2_pressure_bar.id_for_label }}">{% translate "O₂ Druck (bar)" %}</label>
+        <div class="field">
+          <label for="{{ handover_form.o2_pressure_bar.id_for_label }}">{% translate "O₂ Druck (bar)" %}</label>
           {{ handover_form.o2_pressure_bar }}
         </div>
       </div>
 
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-f0a8344" for="{{ handover_form.fuel_percent.id_for_label }}">{% translate "Tank (%)" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ handover_form.fuel_percent.id_for_label }}">{% translate "Tank (%)" %}</label>
           {{ handover_form.fuel_percent }}
         </div>
-        <div>
-          <label class="ms-f0a8344" for="{{ handover_form.adblue_percent.id_for_label }}">{% translate "AdBlue (%)" %}</label>
+        <div class="field">
+          <label for="{{ handover_form.adblue_percent.id_for_label }}">{% translate "AdBlue (%)" %}</label>
           {{ handover_form.adblue_percent }}
         </div>
       </div>
 
-      <div class="ms-f8c36c2">
-        <label class="ms-111ff30">
-          {{ handover_form.btm_seal_intact }}
-          <span>🛡️ {% translate "BTM-Plombe unversehrt & geprüft" %}</span>
-        </label>
-        <label class="ms-111ff30">
-          {{ handover_form.medical_devices_checked }}
-          <span>🩺 {% translate "Selbsttests der Medizingeräte in Ordnung" %}</span>
-        </label>
-        <label class="ms-111ff30">
-          {{ handover_form.vehicle_clean }}
-          <span>✨ {% translate "Patientenraum & Fahrerkabine einsatzklar/sauber" %}</span>
-        </label>
+      <div class="check-list">
+        <label>{{ handover_form.btm_seal_intact }} {% translate "BTM-Plombe unversehrt & geprüft" %}</label>
+        <label>{{ handover_form.medical_devices_checked }} {% translate "Selbsttests der Medizingeräte in Ordnung" %}</label>
+        <label>{{ handover_form.vehicle_clean }} {% translate "Patientenraum & Fahrerkabine einsatzklar/sauber" %}</label>
       </div>
 
-      <div class="ms-c2c0d0a">
-        <label class="ms-f0a8344" for="{{ handover_form.notes.id_for_label }}">{% translate "Bemerkung" %}</label>
+      <div class="field">
+        <label for="{{ handover_form.notes.id_for_label }}">{% translate "Bemerkung" %}</label>
         {{ handover_form.notes }}
       </div>
 
-      <button type="submit" class="button ms-16000cc">
-        ✅ {% translate "Schichtübernahme bestätigen" %}
+      <button type="submit" class="button {% if vehicle.awaiting_crew_release %}secondary{% else %}primary{% endif %} block">
+        {% include "core/_icon.html" with name="check" %}{% translate "Schichtübernahme bestätigen" %}
       </button>
     </form>
   </section>
 
   {# RKI Desinfektionsprotokoll & Sperrtimer #}
-  <section class="section-block ms-89be969">
-    <h2 class="ms-e767ca2">🧼 {% translate "RKI-Desinfektionsprotokoll" %}</h2>
-    <p class="ms-665382c">
-      {% translate "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer." %}
-    </p>
+  <section id="fleet-disinfection" class="section-block">
+    <h2>{% translate "RKI-Desinfektionsprotokoll" %}</h2>
+    <p class="muted">{% translate "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer." %}</p>
 
     <form method="post" action="{% url 'fleet_vehicle_disinfection_create' vehicle.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-f0a8344" for="{{ disinfection_form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
+      <div class="field">
+        <label for="{{ disinfection_form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
         {{ disinfection_form.disinfectant }}
       </div>
 
-      <div class="ms-9420460">
-        <label class="ms-f0a8344" for="{{ disinfection_form.kind.id_for_label }}">{% translate "Art der Desinfektion" %}</label>
+      <div class="field">
+        <label for="{{ disinfection_form.kind.id_for_label }}">{% translate "Art der Desinfektion" %}</label>
         {{ disinfection_form.kind }}
       </div>
 
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-f0a8344" for="{{ disinfection_form.exposure_minutes.id_for_label }}">{% translate "Einwirkzeit (Min)" %}</label>
-          {{ disinfection_form.exposure_minutes }}
-        </div>
-        <div class="ms-4107a1a">
-          <label class="ms-3de17c7">
-            {{ disinfection_form.lock_timer_applied }}
-            <span>⏳ {% translate "Sperrtimer aktivieren" %}</span>
-          </label>
-        </div>
+      <div class="field">
+        <label for="{{ disinfection_form.exposure_minutes.id_for_label }}">{% translate "Einwirkzeit (Min)" %}</label>
+        {{ disinfection_form.exposure_minutes }}
       </div>
 
-      <div class="ms-c2c0d0a">
-        <label class="ms-f0a8344" for="{{ disinfection_form.notes.id_for_label }}">{% translate "Bemerkung / Transportgrund" %}</label>
+      <div class="check-list">
+        <label>{{ disinfection_form.lock_timer_applied }} {% translate "Sperrtimer aktivieren" %}</label>
+      </div>
+
+      <div class="field">
+        <label for="{{ disinfection_form.notes.id_for_label }}">{% translate "Bemerkung / Transportgrund" %}</label>
         {{ disinfection_form.notes }}
       </div>
 
-      <button type="submit" class="button secondary ms-d3c6298">
-        🟣 {% translate "Desinfektion starten & Fahrzeug sperren" %}
+      <button type="submit" class="button secondary block">
+        {% include "core/_icon.html" with name="lock" %}{% translate "Desinfektion starten & Fahrzeug sperren" %}
       </button>
     </form>
   </section>
 
   {# Mangel an Fahrzeug melden #}
-  <section class="section-block ms-89be969">
-    <h2 class="ms-e767ca2">🔧 {% translate "Werkstattmangel melden" %}</h2>
-    <p class="ms-665382c">
-      {% translate "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt." %}
-    </p>
+  <section class="section-block">
+    <h2>{% translate "Werkstattmangel melden" %}</h2>
+    <p class="muted">{% translate "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt." %}</p>
 
     <form method="post" action="{% url 'fleet_vehicle_defect_report' vehicle.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Betreff des Mangels" %}</label>
-        <input class="ms-ac90647" type="text" name="title" value="Mangel an {{ vehicle.call_sign }}" required>
+      <div class="field">
+        <label for="fleet_defect_title">{% translate "Betreff des Mangels" %}</label>
+        <input id="fleet_defect_title" type="text" name="title" value="Mangel an {{ vehicle.call_sign }}" required>
       </div>
 
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Dringlichkeit" %}</label>
-        <select class="ms-ac90647" name="priority">
+      <div class="field">
+        <label for="fleet_defect_priority">{% translate "Dringlichkeit" %}</label>
+        <select id="fleet_defect_priority" name="priority">
           <option value="normal">{% translate "Normal (bei nächster Wartung)" %}</option>
           <option value="important" selected>{% translate "Wichtig (zeitnah instandsetzen)" %}</option>
-          <option value="urgent">🚨 {% translate "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)" %}</option>
+          <option value="urgent">{% translate "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)" %}</option>
         </select>
       </div>
 
-      <div class="ms-c2c0d0a">
-        <label class="ms-f0a8344">{% translate "Genaue Beschreibung" %}</label>
-        <textarea class="ms-ac90647" name="description" rows="3" placeholder="{% translate 'Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit...' %}"></textarea>
+      <div class="field">
+        <label for="fleet_defect_description">{% translate "Genaue Beschreibung" %}</label>
+        <textarea id="fleet_defect_description" name="description" rows="3" placeholder="{% translate 'Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit...' %}"></textarea>
       </div>
 
-      <button type="submit" class="button secondary ms-5a2bcea">
-        ⚠️ {% translate "Mangel erfassen" %}
+      <button type="submit" class="button danger block">
+        {% include "core/_icon.html" with name="alert" %}{% translate "Mangel erfassen" %}
       </button>
     </form>
   </section>
 </div>
 
 {# Protokoll-Historie: Schichtübernahmen & Desinfektionsbuch #}
-<div class="ms-8dd4329">
-  {# Letzte Schichtübernahmen #}
+<div class="grid-2">
   <section class="section-block">
-    <h3>📋 {% translate "Letzte Schichtübernahmen" %}</h3>
+    <h2>{% translate "Letzte Schichtübernahmen" %}</h2>
     <div class="item-list">
       {% for h in handovers %}
-        <div class="list-row ms-9f10e42">
+        <div class="list-row">
           <span class="row-content">
             <strong>{{ h.performed_at|date:"d.m.Y H:i" }} Uhr &middot; {{ h.crew_member.get_full_name|default:h.crew_member.username }}</strong>
-            <small class="ms-e62ef52">
-              {{ h.mileage }} km &middot; ⛽ {{ h.fuel_percent }}% &middot; 🫁 {{ h.o2_pressure_bar }} bar &middot; 💧 {{ h.adblue_percent }}%
-              {% if h.notes %}<br><em>{{ h.notes }}</em>{% endif %}
+            <small>
+              {{ h.mileage }} km &middot; {% translate "Kraftstoff" %} {{ h.fuel_percent }} % &middot; O₂ {{ h.o2_pressure_bar }} bar &middot; {% translate "AdBlue" %} {{ h.adblue_percent }} %
             </small>
+            {% if h.notes %}<span class="row-note">{{ h.notes }}</span>{% endif %}
           </span>
-          <span class="badge text-success">{% translate "OK" %}</span>
+          <span class="badge badge-pass">{% translate "OK" %}</span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Schichtübernahmen dokumentiert." %}</p>
+        <p class="empty-state">{% translate "Noch keine Schichtübernahmen dokumentiert." %} <a href="#fleet-handover">{% translate "Schichtübernahme bestätigen" %}</a></p>
       {% endfor %}
     </div>
   </section>
 
-  {# RKI Desinfektionsbuch Historie #}
   <section class="section-block">
-    <h3>🧼 {% translate "Desinfektionsbuch-Historie" %}</h3>
+    <h2>{% translate "Desinfektionsbuch-Historie" %}</h2>
     <div class="item-list">
       {% for d in disinfections %}
-        <div class="list-row ms-9f10e42">
+        <div class="list-row">
           <span class="row-content">
             <strong>{{ d.started_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
-            <small class="ms-e62ef52">
-              {{ d.get_kind_display }} &middot; Mittel: {{ d.disinfectant.name }} ({{ d.exposure_minutes }} Min)
-              {% if d.notes %}<br><em>{{ d.notes }}</em>{% endif %}
-            </small>
+            <small>{{ d.get_kind_display }} &middot; Mittel: {{ d.disinfectant.name }} ({{ d.exposure_minutes }} Min)</small>
+            {% if d.notes %}<span class="row-note">{{ d.notes }}</span>{% endif %}
           </span>
-          <span class="badge ms-c8f60af">{% translate "RKI-konform" %}</span>
+          <span class="badge badge-info">{% translate "RKI-konform" %}</span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Desinfektionen protokolliert." %}</p>
+        <p class="empty-state">{% translate "Noch keine Desinfektionen protokolliert." %} <a href="#fleet-disinfection">{% translate "RKI-Desinfektionsprotokoll" %}</a></p>
       {% endfor %}
     </div>
   </section>

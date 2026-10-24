@@ -68,7 +68,7 @@
   </main>
 
   <button type="button" class="terminal-unlock-hint" data-unlock-open>
-    <span aria-hidden="true">🔒</span> {% translate "Zum Entsperren antippen" %}
+    {% include "core/_icon.html" with name="lock" %}{% translate "Zum Entsperren antippen" %}
   </button>
   <div class="terminal-app-qr" aria-label="{% translate 'Handy verbinden' %}">
     {% if wifi_ssid %}

@@ -19,17 +19,17 @@
 </header>
 
 <nav class="terminal-tiles" aria-label="{% translate 'Schnellzugriff' %}">
-  <a class="terminal-tile" href="{% url 'handover_create' %}"><span aria-hidden="true">📝</span>{% translate "Übergabe schreiben" %}</a>
-  <a class="terminal-tile" href="{% url 'handover_list' %}"><span aria-hidden="true">📋</span>{% translate "Übergabebuch" %}{% if urgent_handovers %} <em class="terminal-tile-badge">{{ urgent_handovers }} {% translate "dringend" %}</em>{% endif %}</a>
-  {% if station.calendar_enabled %}<a class="terminal-tile" href="{% url 'calendar' %}"><span aria-hidden="true">📅</span>{% translate "Kalender" %}</a>{% endif %}
+  <a class="terminal-tile" href="{% url 'handover_create' %}">{% include "core/_icon.html" with name="edit" %}{% translate "Übergabe schreiben" %}</a>
+  <a class="terminal-tile" href="{% url 'handover_list' %}">{% include "core/_icon.html" with name="handovers" %}{% translate "Übergabebuch" %}{% if urgent_handovers %} <em class="terminal-tile-badge">{{ urgent_handovers }} {% translate "dringend" %}</em>{% endif %}</a>
+  {% if station.calendar_enabled %}<a class="terminal-tile" href="{% url 'calendar' %}">{% include "core/_icon.html" with name="calendar" %}{% translate "Kalender" %}</a>{% endif %}
   {% if station.tasks_enabled %}
-    <a class="terminal-tile" href="{% url 'tasks_today' %}"><span aria-hidden="true">✅</span>{% translate "Tagesaufgaben" %}</a>
-    <a class="terminal-tile" href="{% url 'tasks_week' %}"><span aria-hidden="true">🗓️</span>{% translate "Wochenplan" %}</a>
+    <a class="terminal-tile" href="{% url 'tasks_today' %}">{% include "core/_icon.html" with name="tasks" %}{% translate "Tagesaufgaben" %}</a>
+    <a class="terminal-tile" href="{% url 'tasks_week' %}">{% include "core/_icon.html" with name="calendar" %}{% translate "Wochenplan" %}</a>
   {% endif %}
-  <a class="terminal-tile" href="{% url 'defect_create_web' %}"><span aria-hidden="true">⚠️</span>{% translate "Mangel melden" %}</a>
-  {% if station.checklists_enabled %}<a class="terminal-tile" href="{% url 'checklists' %}"><span aria-hidden="true">☑️</span>{% translate "Checklisten" %}</a>{% endif %}
-  {% if station.pinboard_enabled %}<a class="terminal-tile" href="{% url 'pinboard' %}"><span aria-hidden="true">📌</span>{% translate "Pinnwand" %}</a>{% endif %}
-  <a class="terminal-tile" href="{% url 'news_index' %}"><span aria-hidden="true">📰</span>{% translate "Neuigkeiten" %}</a>
+  <a class="terminal-tile" href="{% url 'defect_create_web' %}">{% include "core/_icon.html" with name="defects" %}{% translate "Mangel melden" %}</a>
+  {% if station.checklists_enabled %}<a class="terminal-tile" href="{% url 'checklists' %}">{% include "core/_icon.html" with name="checklists" %}{% translate "Checklisten" %}</a>{% endif %}
+  {% if station.pinboard_enabled %}<a class="terminal-tile" href="{% url 'pinboard' %}">{% include "core/_icon.html" with name="pinboard" %}{% translate "Pinnwand" %}</a>{% endif %}
+  <a class="terminal-tile" href="{% url 'news_index' %}">{% include "core/_icon.html" with name="news" %}{% translate "Neuigkeiten" %}</a>
 </nav>
 
 <div class="terminal-cockpit">

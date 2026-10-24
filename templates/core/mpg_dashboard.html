@@ -9,20 +9,20 @@
     <h1>{% translate "MPG & Medizingeräte" %}</h1>
     <p class="lead">{% translate "Bestandsverzeichnis, sicherheits- und messtechnische Kontrollen (STK/MTK), Funktionskontrollen und Einweisungen nach MPBetreibV." %}</p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
     {% if can_manage %}
-      <a class="button" href="{% url 'mpg_device_create' %}">
-        <span class="icon" aria-hidden="true">➕</span> {% translate "Neues Gerät anlegen" %}
+      <a class="button primary" href="{% url 'mpg_device_create' %}">
+        {% include "core/_icon.html" with name="plus" %}{% translate "Neues Gerät anlegen" %}
       </a>
     {% endif %}
     <a class="button secondary" href="{% url 'mpg_geraetepass' %}">
-      <span class="icon" aria-hidden="true">🎓</span> {% translate "Gerätepass & Schulungen" %}
+      {% include "core/_icon.html" with name="training" %}{% translate "Gerätepass & Schulungen" %}
     </a>
     <a class="button secondary" href="{% url 'mpg_export_bestandsverzeichnis' %}">
-      <span class="icon" aria-hidden="true">📥</span> {% translate "Bestandsverzeichnis (CSV)" %}
+      {% include "core/_icon.html" with name="download" %}{% translate "Bestandsverzeichnis (CSV)" %}
     </a>
     <button type="button" class="button secondary" data-modal-open="scanner-modal">
-      <span class="icon" aria-hidden="true">📷</span> {% translate "QR-Scanner" %}
+      {% include "core/_icon.html" with name="camera" %}{% translate "QR-Scanner" %}
     </button>
   </div>
 </header>
@@ -30,19 +30,19 @@
 {# 4-Stufen Ampel KPI Board #}
 <div class="kpi-grid">
   <div class="kpi-card{% if overdue_count %} border-danger{% endif %}">
-    <span class="kpi-value text-danger">{{ overdue_count }}</span>
+    <span class="kpi-value{% if overdue_count %} text-danger{% endif %}">{{ overdue_count }}</span>
     <span class="kpi-label">{% translate "Überfällig / OOB" %}</span>
   </div>
   <div class="kpi-card{% if critical_count %} border-warning{% endif %}">
-    <span class="kpi-value ms-f24f64e">{{ critical_count }}</span>
+    <span class="kpi-value{% if critical_count %} text-warning{% endif %}">{{ critical_count }}</span>
     <span class="kpi-label">{% translate "Fällig ≤ 30 Tage" %}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value ms-69caa73">{{ warning_count }}</span>
+    <span class="kpi-value">{{ warning_count }}</span>
     <span class="kpi-label">{% translate "Vorwarnung ≤ 60 Tage" %}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value text-success">{{ ok_count }}</span>
+    <span class="kpi-value">{{ ok_count }}</span>
     <span class="kpi-label">{% translate "Betriebsbereit & STK OK" %}</span>
   </div>
   <div class="kpi-card">
@@ -52,18 +52,18 @@
 </div>
 
 {# Filter & Suchleiste #}
-<nav class="filter-nav ms-8580457" aria-label="{% translate 'MPG Ansicht' %}">
+<nav class="filter-tabs" aria-label="{% translate 'MPG Ansicht' %}">
   <a href="?filter=all{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Geräte" %}</a>
-  <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}>🚨 {% translate "Akut fällig / Überfällig" %} ({{ overdue_count|add:critical_count }})</a>
-  <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}>⚠️ {% translate "Vorwarnung 31–60 Tage" %} ({{ warning_count }})</a>
-  <a href="?filter=oob{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'oob' %}aria-current="page"{% endif %}>⛔ {% translate "Außer Betrieb" %} ({{ oob_count }})</a>
-  <a href="?filter=ok{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ok' %}aria-current="page"{% endif %}>✅ {% translate "Betriebsbereit" %} ({{ ok_count }})</a>
+  <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Akut fällig / Überfällig" %} <span class="count">{{ overdue_count|add:critical_count }}</span></a>
+  <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Vorwarnung 31–60 Tage" %} <span class="count">{{ warning_count }}</span></a>
+  <a href="?filter=oob{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'oob' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Außer Betrieb" %} <span class="count">{{ oob_count }}</span></a>
+  <a href="?filter=ok{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ok' %}aria-current="page"{% endif %}><span class="dot dot-success" aria-hidden="true"></span>{% translate "Betriebsbereit" %} <span class="count">{{ ok_count }}</span></a>
 </nav>
 
-<form method="get" class="search-form ms-06174bc">
+<form method="get" class="search-form">
   <input type="hidden" name="filter" value="{{ filter_mode }}">
-  <input class="ms-3069a23" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Name, Typ, Serien-Nr, Standort, Inventar-Nr...' %}">
-  <select class="ms-1e5879f" name="category" data-auto-submit>
+  <input class="form-input" type="search" name="q" aria-label="{% translate 'Geräte durchsuchen' %}" value="{{ query }}" placeholder="{% translate 'Suche nach Name, Typ, Serien-Nr, Standort, Inventar-Nr...' %}">
+  <select class="form-select" name="category" data-auto-submit aria-label="{% translate 'Kategorie' %}">
     <option value="">{% translate "Alle Kategorien" %}</option>
     {% for cat_key, cat_label in categories %}
       <option value="{{ cat_key }}" {% if category == cat_key %}selected{% endif %}>{{ cat_label }}</option>
@@ -71,13 +71,13 @@
   </select>
   <button type="submit" class="button secondary">{% translate "Filtern" %}</button>
   {% if query or category %}
-    <a href="?filter={{ filter_mode }}" class="button secondary">{% translate "Zurücksetzen" %}</a>
+    <a href="?filter={{ filter_mode }}" class="button ghost">{% translate "Zurücksetzen" %}</a>
   {% endif %}
 </form>
 
 {% if open_defects %}
-<section class="section-block ms-e862e4e">
-  <h2>⚠️ {% translate "Offene Gerätemängel (Wachalltag-Eskalation)" %}</h2>
+<section class="section-block section-gap">
+  <h2>{% translate "Offene Gerätemängel (Wachalltag-Eskalation)" %}</h2>
   <div class="item-list">
     {% for defect in open_defects %}
       <div class="list-row priority-{{ defect.priority }}">
@@ -86,7 +86,7 @@
           <strong><a href="{% url 'defect_detail_web' defect.pk %}">{{ defect.title }}</a></strong>
           <small>{{ defect.asset_ref }} &middot; {{ defect.created_at|date:"d.m.Y H:i" }} &middot; {{ defect.created_by.get_full_name|default:defect.created_by.username }}</small>
         </span>
-        <span class="badge priority-badge">{{ defect.get_priority_display }}</span>
+        <span class="status-label priority-{{ defect.priority }}">{{ defect.get_priority_display }}</span>
       </div>
     {% endfor %}
   </div>
@@ -95,21 +95,21 @@
 
 {# Geräteliste #}
 <section class="section-block">
-  <h2>📋 {% translate "Medizinprodukte & Prüffristen-Ampel" %} ({{ devices|length }})</h2>
+  <h2>{% translate "Medizinprodukte & Prüffristen-Ampel" %} ({{ devices|length }})</h2>
   
   <div class="item-list">
     {% for device in devices %}
       {% with urg=device.urgency %}
       <div class="list-row module-row{% if urg.level == 'overdue' %} module-row-overdue{% elif urg.level == 'critical' %} module-row-critical{% elif urg.level == 'warning' %} module-row-warning{% endif %}">
         
-        <div class="ms-50f3efa">
-          <div class="ms-756d4ee">
-            <strong><a class="ms-ec76253" href="{% url 'mpg_device_detail' device.slug %}">{{ device.name }}</a></strong>
-            <span class="badge ms-8b85496">{{ device.get_category_display }}</span>
-            <span class="badge ms-8b85496">{{ device.get_risk_class_display }}</span>
+        <div class="row-main">
+          <div class="cluster">
+            <strong><a href="{% url 'mpg_device_detail' device.slug %}">{{ device.name }}</a></strong>
+            <span class="badge">{{ device.get_category_display }}</span>
+            <span class="badge">{{ device.get_risk_class_display }}</span>
           </div>
-          <small class="ms-236cf06">
-            📍 <strong>{{ device.location }}</strong>
+          <small>
+            <strong>{{ device.location }}</strong>
             {% if device.manufacturer %} &middot; {{ device.manufacturer }}{% endif %}
             {% if device.model_type %} &middot; {{ device.model_type }}{% endif %}
             {% if device.serial_number %} &middot; SN: {{ device.serial_number }}{% endif %}
@@ -118,52 +118,44 @@
         </div>
 
         {# Prüffristen-Ampel #}
-        <div class="ms-07f320a">
+        <div class="row-due">
           {% if urg.level == 'overdue' %}
-            <span class="badge ms-451babe">
-              🔴 {{ urg.label }}
-            </span>
+            <span class="state danger">{{ urg.label }}</span>
           {% elif urg.level == 'critical' %}
-            <span class="badge ms-9eea231">
-              🟠 {{ urg.label }} ({{ urg.due_date|date:"d.m.Y" }})
-            </span>
+            <span class="state warning">{{ urg.label }} ({{ urg.due_date|date:"d.m.Y" }})</span>
           {% elif urg.level == 'warning' %}
-            <span class="badge ms-9cc0f21">
-              🟡 {{ urg.label }} ({{ urg.due_date|date:"d.m.Y" }})
-            </span>
+            <span class="state warning">{{ urg.label }} ({{ urg.due_date|date:"d.m.Y" }})</span>
           {% else %}
-            <span class="badge ms-519594e">
-              🟢 {{ urg.label }}
-            </span>
+            <span class="state success">{{ urg.label }}</span>
           {% endif %}
           
-          <div class="ms-9ba66e9">
+          <small>
             {% if device.last_routine_check %}
               {% translate "Letzter Check:" %} {{ device.last_routine_check|date:"d.m. H:i" }}
             {% else %}
-              <em>{% translate "Noch kein Check erfasst" %}</em>
+              {% translate "Noch kein Check erfasst" %}
             {% endif %}
-          </div>
+          </small>
         </div>
 
         {# Status & Aktionen #}
-        <div class="ms-756d4ee">
+        <div class="row-actions cluster">
           {% if device.current_status == 'ready' %}
             <span class="status-label status-done">{% translate "Einsatzklar" %}</span>
           {% elif device.current_status == 'limited' %}
-            <span class="status-label status-waiting">{% translate "Eingeschränkt" %}</span>
+            <span class="status-label warning">{% translate "Eingeschränkt" %}</span>
           {% elif device.current_status == 'maintenance' %}
-            <span class="status-label status-in_progress">{% translate "In Wartung" %}</span>
+            <span class="status-label warning">{% translate "In Wartung" %}</span>
           {% elif device.current_status == 'oob' %}
-            <span class="status-label status-open ms-cee790c">{% translate "Außer Betrieb" %}</span>
+            <span class="status-label danger">{% translate "Außer Betrieb" %}</span>
           {% endif %}
 
           {# 1-Tap Express Check #}
-          <form class="ms-47dffa1" method="post" action="{% url 'mpg_routine_check' device.slug %}">
+          <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}">
             {% csrf_token %}
             <input type="hidden" name="quick_pass" value="1">
             <button type="submit" class="button secondary small" title="{% translate 'Tägliche Funktionskontrolle mit 1 Tap als bestanden bestätigen' %}">
-              ✅ {% translate "Check" %}
+              {% include "core/_icon.html" with name="check" %}{% translate "Check" %}
             </button>
           </form>
 
@@ -178,8 +170,7 @@
       <p class="empty-state">
         {% translate "Keine Medizinprodukte gefunden." %}
         {% if can_manage %}
-          <br><br>
-          <a class="button" href="{% url 'mpg_device_create' %}">{% translate "Jetzt erstes Gerät registrieren" %}</a>
+          <a href="{% url 'mpg_device_create' %}">{% translate "Gerät anlegen" %}</a>
         {% endif %}
       </p>
     {% endfor %}
@@ -187,64 +178,64 @@
 </section>
 
 {# Letzte Aktivitäten & Protokolle #}
-<div class="ms-d960d32">
+<div class="grid-2">
   <section class="section-block">
-    <h3>🛠️ {% translate "Letzte Wartungen & STK-Prüfungen" %}</h3>
+    <h2>{% translate "Letzte Wartungen & STK-Prüfungen" %}</h2>
     <div class="item-list">
       {% for m in recent_maint %}
         <div class="list-row">
           <span class="row-content">
-            <strong>{{ m.device.name }}</strong> &middot; {{ m.get_kind_display }}
-            <small>{{ m.performed_at|date:"d.m.Y" }} &middot; Prüfer: {{ m.performed_by }} &middot; {% if m.passed %}<span class="ms-7b0e5e4">Bestanden</span>{% else %}<span class="ms-1280362">Mängel</span>{% endif %}</small>
+            <strong>{{ m.device.name }} &middot; {{ m.get_kind_display }}</strong>
+            <small>{{ m.performed_at|date:"d.m.Y" }} &middot; Prüfer: {{ m.performed_by }} &middot; {% if m.passed %}<span class="text-success">Bestanden</span>{% else %}<span class="text-danger">Mängel</span>{% endif %}</small>
           </span>
         </div>
       {% empty %}
-        <p class="empty-state small">{% translate "Bisher keine Wartungen eingetragen." %}</p>
+        <p class="empty-state">{% translate "Noch keine Wartungen eingetragen." %}</p>
       {% endfor %}
     </div>
   </section>
 
   <section class="section-block">
-    <h3>🔍 {% translate "Letzte Funktionskontrollen" %}</h3>
+    <h2>{% translate "Letzte Funktionskontrollen" %}</h2>
     <div class="item-list">
       {% for c in recent_checks %}
         <div class="list-row">
           <span class="row-content">
             <strong>{{ c.device.name }}</strong>
-            <small>{{ c.checked_at|date:"d.m.Y H:i" }} &middot; {{ c.performed_by.get_full_name|default:c.performed_by.username }} &middot; {% if c.passed %}<span class="ms-7b0e5e4">Bestanden</span>{% else %}<span class="ms-1280362">Fehlgeschlagen</span>{% endif %}</small>
+            <small>{{ c.checked_at|date:"d.m.Y H:i" }} &middot; {{ c.performed_by.get_full_name|default:c.performed_by.username }} &middot; {% if c.passed %}<span class="text-success">Bestanden</span>{% else %}<span class="text-danger">Fehlgeschlagen</span>{% endif %}</small>
           </span>
         </div>
       {% empty %}
-        <p class="empty-state small">{% translate "Bisher keine Kontrollen eingetragen." %}</p>
+        <p class="empty-state">{% translate "Noch keine Funktionskontrollen. Kontrolle über „Check“ in der Geräteliste erfassen." %}</p>
       {% endfor %}
     </div>
   </section>
 </div>
 
 {# Modal: Zero-Install Kamera QR-Scanner #}
-<div id="scanner-modal" class="wb-modal" hidden role="dialog" aria-modal="true" data-scanner data-scanner-search="{% url 'mpg_dashboard' %}" data-scanner-formats="qr_code,data_matrix,code_128" data-msg-active="{% translate 'Kamera aktiv - QR-Code fokussieren' %}" data-msg-detected="{% translate 'Erkannt: ' %}" data-msg-manual="{% translate 'Kamera nicht verfügbar. Bitte manuell eingeben.' %}" data-msg-denied="{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}">
-  <div class="ms-988625a">
-    <h3 class="ms-ec0f7ff">📷 {% translate "Geräte-QR-Code scannen" %}</h3>
-    <p class="ms-b2b8c2f">
+<div id="scanner-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title" data-scanner data-scanner-search="{% url 'mpg_dashboard' %}" data-scanner-formats="qr_code,data_matrix,code_128" data-msg-active="{% translate 'Kamera aktiv - QR-Code fokussieren' %}" data-msg-detected="{% translate 'Erkannt: ' %}" data-msg-manual="{% translate 'Kamera nicht verfügbar. Bitte manuell eingeben.' %}" data-msg-denied="{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}">
+  <div class="modal-panel">
+    <h2 id="scanner-modal-title">{% translate "Geräte-QR-Code scannen" %}</h2>
+    <p class="muted text-small">
       {% translate "Halte die Kamera auf den QR-Code am Gerät oder gib den Geräteslug / Inventarnummer direkt ein." %}
     </p>
 
-    <div class="ms-f3972cb">
-      <video class="ms-b19d6a5" id="qr-video" data-scanner-video muted></video>
-      <div class="ms-3694989" id="scanner-status" data-scanner-status role="status">
+    <div class="scanner-view">
+      <video id="qr-video" data-scanner-video muted></video>
+      <div class="scanner-status" id="scanner-status" data-scanner-status role="status">
         {% translate "Kamera wird initialisiert..." %}
       </div>
     </div>
 
-    <div class="ms-a6cb65c">
-      <label class="ms-e575c43" for="manual-slug">{% translate "Manuelle Eingabe:" %}</label>
-      <div class="ms-b378622">
-        <input class="ms-023bb84" type="text" id="manual-slug" data-scanner-input placeholder="z. B. medumat-standard-2">
-        <button type="button" class="button" data-scanner-submit>{% translate "Öffnen" %}</button>
+    <div class="field">
+      <label for="manual-slug">{% translate "Manuelle Eingabe:" %}</label>
+      <div class="input-with-button">
+        <input type="text" id="manual-slug" data-scanner-input placeholder="z. B. medumat-standard-2">
+        <button type="button" class="button primary" data-scanner-submit>{% translate "Öffnen" %}</button>
       </div>
     </div>
 
-    <div class="ms-c9c355d">
+    <div class="modal-actions">
       <button type="button" class="button secondary" data-modal-close>{% translate "Schließen" %}</button>
     </div>
   </div>

@@ -28,7 +28,7 @@
         </span>
         <span>{% translate "Bearbeiten" %}</span>
       </a>
-    {% empty %}<p class="empty-state">{% translate "Noch keine Aufgaben." %}</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "Noch keine Aufgaben." %} <a href="{% url 'task_create' %}">{% translate "Aufgabe anlegen" %}</a></p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

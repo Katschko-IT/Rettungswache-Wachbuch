@@ -137,9 +137,12 @@ class ProgressiveWebAppTests(PilotTestCase):
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("background: transparent !important;", css)
-        self.assertIn("border-color: rgba(255, 255, 255, .55) !important;", css)
-        self.assertIn(".header-login:hover { background: rgba(255, 255, 255, .12) !important; }", css)
+        # Heller Kopf (Wachbuch Klar 2): Aktionsfarbe statt Weiß auf Blau,
+        # über Tokens, damit es auch im Nachtdienst-Modus lesbar bleibt.
+        self.assertIn("color: var(--brand) !important;", css)
+        self.assertIn("border-color: var(--brand) !important;", css)
+        self.assertIn(".header-login:hover { background: var(--accent-soft) !important; }", css)
+        self.assertNotIn("rgba(255, 255, 255, .55)", css)
 
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()

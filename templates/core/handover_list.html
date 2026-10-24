@@ -21,7 +21,7 @@
         <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }} &middot; {{ item.author.first_name|default:item.author.username }}</small></span>
         <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m.Y H:i" }}</time>
       </a>
-    {% empty %}<p class="empty-state">{% translate "In dieser Ansicht gibt es keine Übergaben." %}</p>{% endfor %}
+    {% empty %}<p class="empty-state">{% translate "In dieser Ansicht gibt es keine Übergaben." %} <a href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a></p>{% endfor %}
   </div>
 </section>
 {% include "core/pagination.html" %}

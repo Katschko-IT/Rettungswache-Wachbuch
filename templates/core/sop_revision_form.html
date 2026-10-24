@@ -3,8 +3,8 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% url 'sop_detail' sop.slug %}">&larr; {% translate "Zurück zur SOP" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'sop_detail' sop.slug %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur SOP" %}</a>
 </nav>
 
 <header class="page-heading">
@@ -13,54 +13,54 @@
   <p class="lead">{% translate "Veröffentlicht eine neue Version. Nach Freigabe müssen alle Mitarbeiter die neue Version erneut quittieren." %}</p>
 </header>
 
-<form method="post" class="form-card ms-c06a247">
+<form method="post" class="form-card narrow">
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-    <div class="alert danger ms-c2c0d0a">
+    <div class="alert danger">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">🔄 {% translate "Revisions-Details & Inkrafttreten" %}</legend>
+  <fieldset class="form-section">
+    <legend>{% translate "Revisions-Details & Inkrafttreten" %}</legend>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.version_label.id_for_label }}">
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.version_label.id_for_label }}">
           {% translate "Neue Versionsnummer*" %}:
         </label>
         {{ form.version_label }}
-        <small class="ms-b0a14b6">{% translate "Bisherige Version: v" %}{{ sop.current_version }}</small>
+        <small class="helptext">{% translate "Bisherige Version: v" %}{{ sop.current_version }}</small>
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.effective_date.id_for_label }}">
+      <div class="field">
+        <label for="{{ form.effective_date.id_for_label }}">
           {% translate "Inkrafttreten*" %}:
         </label>
         {{ form.effective_date }}
       </div>
     </div>
 
-    <div class="ms-c2c0d0a">
-      <label class="ms-0ab77d1" for="{{ form.change_summary.id_for_label }}">
+    <div class="field">
+      <label for="{{ form.change_summary.id_for_label }}">
         {% translate "Änderungsbegründung / Changelog*" %}:
       </label>
       {{ form.change_summary }}
     </div>
 
-    <div>
-      <label class="ms-0ab77d1" for="{{ form.content_markdown.id_for_label }}">
+    <div class="field">
+      <label for="{{ form.content_markdown.id_for_label }}">
         {% translate "Aktualisierter Volltext (Markdown)*" %}:
       </label>
       {{ form.content_markdown }}
-      <small class="ms-236cf06">
+      <small class="helptext">
         {% translate "Ein neuer kryptographischer SHA-256 Prüfsummen-Hash wird automatisch generiert." %}
       </small>
     </div>
   </fieldset>
 
-  <div class="form-actions ms-e3a0adb">
-    <button type="submit" class="button">{% translate "Revision freigeben & veröffentlichen" %}</button>
+  <div class="form-actions">
+    <button type="submit" class="button primary">{% translate "Revision freigeben & veröffentlichen" %}</button>
     <a href="{% url 'sop_detail' sop.slug %}" class="button secondary">{% translate "Abbrechen" %}</a>
   </div>
 </form>

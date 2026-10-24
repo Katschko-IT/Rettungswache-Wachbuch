@@ -3,8 +3,8 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">← {% translate "Zurück" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">
@@ -13,218 +13,185 @@
   <p class="lead">{% translate "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses aktive Medizinprodukt." %}</p>
 </header>
 
-<form method="post" class="form-card ms-c06a247">
+<form method="post" class="form-card">
   {% csrf_token %}
-  
+
   {% if form.non_field_errors %}
-    <div class="alert danger ms-c2c0d0a">
+    <div class="alert danger">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📋 {% translate "Gerätestammdaten & Identifikation" %}</legend>
-    
-    <div class="ms-c2c0d0a">
-      <label class="ms-0ab77d1" for="{{ form.name.id_for_label }}">
-        {% translate "Gerätebezeichnung*" %}:
-      </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Gerätestammdaten & Identifikation" %}</legend>
+
+    <div class="field">
+      <label for="{{ form.name.id_for_label }}">{% translate "Gerätebezeichnung*" %}:</label>
       {{ form.name }}
-      <small class="ms-b0a14b6">{% translate "z. B. corpuls3 Defibrillator / Monitor oder WEINMANN MEDUMAT Standard²" %}</small>
+      <small class="helptext">{% translate "z. B. corpuls3 Defibrillator / Monitor oder WEINMANN MEDUMAT Standard²" %}</small>
+      {{ form.name.errors }}
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.category.id_for_label }}">
-          {% translate "Kategorie:" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.category.id_for_label }}">{% translate "Kategorie:" %}</label>
         {{ form.category }}
+        {{ form.category.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.risk_class.id_for_label }}">
-          {% translate "Risikoklasse gem. EU-MDR:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.risk_class.id_for_label }}">{% translate "Risikoklasse gem. EU-MDR:" %}</label>
         {{ form.risk_class }}
+        {{ form.risk_class.errors }}
       </div>
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.manufacturer.id_for_label }}">
-          {% translate "Hersteller:" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.manufacturer.id_for_label }}">{% translate "Hersteller:" %}</label>
         {{ form.manufacturer }}
+        {{ form.manufacturer.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.model_type.id_for_label }}">
-          {% translate "Typ / Modell:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.model_type.id_for_label }}">{% translate "Typ / Modell:" %}</label>
         {{ form.model_type }}
+        {{ form.model_type.errors }}
       </div>
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.serial_number.id_for_label }}">
-          {% translate "Seriennummer (SN):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.serial_number.id_for_label }}">{% translate "Seriennummer (SN):" %}</label>
         {{ form.serial_number }}
+        {{ form.serial_number.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.inventory_number.id_for_label }}">
-          {% translate "Inventarnummer / Barcode:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.inventory_number.id_for_label }}">{% translate "Inventarnummer / Barcode:" %}</label>
         {{ form.inventory_number }}
+        {{ form.inventory_number.errors }}
       </div>
     </div>
 
-    <div class="ms-2be6e17">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.udi_di.id_for_label }}">
-          {% translate "UDI-DI (GS1-GTIN):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.udi_di.id_for_label }}">{% translate "UDI-DI (GS1-GTIN):" %}</label>
         {{ form.udi_di }}
-        <small class="ms-b0a14b6">{% translate "Einmalige Gerätekennung aus dem 2D-DataMatrix-Code" %}</small>
+        <small class="helptext">{% translate "Einmalige Gerätekennung aus dem 2D-DataMatrix-Code" %}</small>
+        {{ form.udi_di.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.ce_notified_body.id_for_label }}">
-          {% translate "CE-Kennnr.:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.ce_notified_body.id_for_label }}">{% translate "CE-Kennnr.:" %}</label>
         {{ form.ce_notified_body }}
+        {{ form.ce_notified_body.errors }}
       </div>
     </div>
 
-    <div class="ms-ba35d0a">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.year_of_manufacture.id_for_label }}">
-          {% translate "Baujahr:" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.year_of_manufacture.id_for_label }}">{% translate "Baujahr:" %}</label>
         {{ form.year_of_manufacture }}
+        {{ form.year_of_manufacture.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.acquired_at.id_for_label }}">
-          {% translate "Anschaffungsdatum:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.acquired_at.id_for_label }}">{% translate "Anschaffungsdatum:" %}</label>
         {{ form.acquired_at }}
+        {{ form.acquired_at.errors }}
       </div>
     </div>
-
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📍 {% translate "Standort & Betriebsstatus" %}</legend>
-    
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.location.id_for_label }}">
-          {% translate "Standort / Fahrzeug:" %}
-        </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Standort & Betriebsstatus" %}</legend>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.location.id_for_label }}">{% translate "Standort / Fahrzeug:" %}</label>
         {{ form.location }}
-        <small class="ms-b0a14b6">{% translate "z. B. RTW 01/83-01, NEF oder Med-Lager" %}</small>
+        <small class="helptext">{% translate "z. B. RTW 01/83-01, NEF oder Med-Lager" %}</small>
+        {{ form.location.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.current_status.id_for_label }}">
-          {% translate "Aktueller Status:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.current_status.id_for_label }}">{% translate "Aktueller Status:" %}</label>
         {{ form.current_status }}
+        {% if form.current_status.help_text %}<small class="helptext">{{ form.current_status.help_text }}</small>{% endif %}
+        {{ form.current_status.errors }}
       </div>
     </div>
 
-    <div>
-      <label class="ms-0ab77d1" for="{{ form.status_note.id_for_label }}">
-        {% translate "Statusbemerkung:" %}
-      </label>
+    <div class="field">
+      <label for="{{ form.status_note.id_for_label }}">{% translate "Statusbemerkung:" %}</label>
       {{ form.status_note }}
+      {{ form.status_note.errors }}
     </div>
-
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">⏱️ {% translate "Gesetzliche Prüffristen (STK / MTK / DGUV V3)" %}</legend>
-    
-    <div class="ms-eb136f7">
-      <label class="ms-4796ccb">
-        {{ form.is_anlage_1 }} <strong>{% translate "Anlage 1 (STK-Pflicht)" %}</strong>
-      </label>
-      <label class="ms-4796ccb">
-        {{ form.is_anlage_2 }} <strong>{% translate "Anlage 2 (MTK-Pflicht)" %}</strong>
-      </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Gesetzliche Prüffristen (STK / MTK / DGUV V3)" %}</legend>
+
+    <div class="check-list">
+      <label class="checkbox-field">{{ form.is_anlage_1 }} {% translate "Anlage 1 (STK-Pflicht)" %}</label>
+      <label class="checkbox-field">{{ form.is_anlage_2 }} {% translate "Anlage 2 (MTK-Pflicht)" %}</label>
     </div>
 
-    <div class="ms-ab28349">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.stk_interval_months.id_for_label }}">
-          {% translate "STK-Intervall (Monate):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.stk_interval_months.id_for_label }}">{% translate "STK-Intervall (Monate):" %}</label>
         {{ form.stk_interval_months }}
+        {{ form.stk_interval_months.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.next_stk_date.id_for_label }}">
-          {% translate "Nächste STK:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.next_stk_date.id_for_label }}">{% translate "Nächste STK:" %}</label>
         {{ form.next_stk_date }}
+        {{ form.next_stk_date.errors }}
       </div>
     </div>
 
-    <div class="ms-ab28349">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.mtk_interval_months.id_for_label }}">
-          {% translate "MTK-Intervall (Monate):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.mtk_interval_months.id_for_label }}">{% translate "MTK-Intervall (Monate):" %}</label>
         {{ form.mtk_interval_months }}
+        {{ form.mtk_interval_months.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.next_mtk_date.id_for_label }}">
-          {% translate "Nächste MTK:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.next_mtk_date.id_for_label }}">{% translate "Nächste MTK:" %}</label>
         {{ form.next_mtk_date }}
+        {{ form.next_mtk_date.errors }}
       </div>
     </div>
 
-    <div class="ms-38a32a6">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.dguv_interval_months.id_for_label }}">
-          {% translate "DGUV V3 Intervall (M):" %}
-        </label>
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.dguv_interval_months.id_for_label }}">{% translate "DGUV V3 Intervall (M):" %}</label>
         {{ form.dguv_interval_months }}
+        {{ form.dguv_interval_months.errors }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.next_dguv_date.id_for_label }}">
-          {% translate "Nächste DGUV V3:" %}
-        </label>
+      <div class="field">
+        <label for="{{ form.next_dguv_date.id_for_label }}">{% translate "Nächste DGUV V3:" %}</label>
         {{ form.next_dguv_date }}
+        {{ form.next_dguv_date.errors }}
       </div>
     </div>
-
   </fieldset>
 
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📖 {% translate "Bedienungsanleitung & Notizen" %}</legend>
-    
-    <div class="ms-c2c0d0a">
-      <label class="ms-0ab77d1" for="{{ form.manual_url.id_for_label }}">
-        {% translate "Link zur Online-Gebrauchsanweisung:" %}
-      </label>
+  <fieldset class="form-section">
+    <legend>{% translate "Bedienungsanleitung & Notizen" %}</legend>
+
+    <div class="field">
+      <label for="{{ form.manual_url.id_for_label }}">{% translate "Link zur Online-Gebrauchsanweisung:" %}</label>
       {{ form.manual_url }}
-      <small class="ms-b0a14b6">{% translate "z. B. Hersteller-Download-Link oder Intranet-PDF" %}</small>
+      <small class="helptext">{% translate "z. B. Hersteller-Download-Link oder Intranet-PDF" %}</small>
+      {{ form.manual_url.errors }}
     </div>
 
-    <div>
-      <label class="ms-0ab77d1" for="{{ form.notes.id_for_label }}">
-        {% translate "Interne Notizen / Historie:" %}
-      </label>
+    <div class="field">
+      <label for="{{ form.notes.id_for_label }}">{% translate "Interne Notizen / Historie:" %}</label>
       {{ form.notes }}
+      {{ form.notes.errors }}
     </div>
-
   </fieldset>
 
-  <div class="form-actions ms-73b822e">
-    <a class="button secondary" href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">
-      {% translate "Abbrechen" %}
-    </a>
-    <button type="submit" class="button">
-      {{ action_label }}
-    </button>
+  <div class="form-actions">
+    <button type="submit" class="button primary">{{ action_label }}</button>
+    <a class="button secondary" href="{% if device %}{% url 'mpg_device_detail' device.slug %}{% else %}{% url 'mpg_dashboard' %}{% endif %}">{% translate "Abbrechen" %}</a>
   </div>
 
 </form>

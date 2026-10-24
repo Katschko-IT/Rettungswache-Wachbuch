@@ -3,85 +3,81 @@
 {% block title %}{{ device.name }} | {% translate "MPG Gerätebuch" %}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% url 'mpg_dashboard' %}">← {% translate "Zurück zur MPG-Übersicht" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'mpg_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 
-<header class="page-heading heading-with-action ms-92cb257">
+<header class="page-heading heading-with-action">
   <div>
-    <div class="ms-cf1b898">
-      <span class="badge ms-fd855a1">{{ device.get_category_display }}</span>
-      <span class="badge ms-fd855a1">{{ device.get_risk_class_display }}</span>
-      {% if device.is_anlage_1 %}<span class="badge ms-b37946e">Anlage 1 (STK)</span>{% endif %}
-      {% if device.is_anlage_2 %}<span class="badge ms-7a33e62">Anlage 2 (MTK)</span>{% endif %}
+    <div class="cluster">
+      <span class="badge">{{ device.get_category_display }}</span>
+      <span class="badge">{{ device.get_risk_class_display }}</span>
+      {% if device.is_anlage_1 %}<span class="badge badge-info">Anlage 1 (STK)</span>{% endif %}
+      {% if device.is_anlage_2 %}<span class="badge badge-info">Anlage 2 (MTK)</span>{% endif %}
     </div>
     <h1>{{ device.name }}</h1>
-    <p class="lead ms-50435ff">
-      📍 <strong>{{ device.location }}</strong>
+    <p class="lead">
+      {% include "core/_icon.html" with name="pin" %} <strong>{{ device.location }}</strong>
       {% if device.manufacturer %} &middot; {{ device.manufacturer }}{% endif %}
       {% if device.model_type %} &middot; Typ: {{ device.model_type }}{% endif %}
       {% if device.serial_number %} &middot; SN: {{ device.serial_number }}{% endif %}
       {% if device.inventory_number %} &middot; Inv.-Nr: {{ device.inventory_number }}{% endif %}
     </p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
     {% if can_manage %}
       <a class="button secondary" href="{% url 'mpg_device_edit' device.slug %}">
-        ✏️ {% translate "Bearbeiten" %}
+        {% include "core/_icon.html" with name="edit" %}{% translate "Bearbeiten" %}
       </a>
     {% endif %}
     <a class="button secondary" href="#qr-card">
-      📱 {% translate "QR-Code" %}
+      {% include "core/_icon.html" with name="qr" %}{% translate "QR-Code" %}
     </a>
   </div>
 </header>
 
-{# Hero-Banner: Status & Fristenampel #}
+{# Zustand auf einen Blick: Betriebsstatus, Prüffrist, eigene Einweisung #}
 {% with urg=device.urgency %}
-<div class="ms-239bd30">
-  
-  {# Betriebsstatus Kachel #}
-  <div class="kpi-card ms-1eb1850">
+<div class="kpi-grid wide">
+
+  <div class="kpi-card{% if device.current_status == 'oob' %} border-danger{% elif device.current_status == 'limited' %} border-warning{% endif %}">
     <span class="kpi-label">{% translate "Aktueller Betriebsstatus" %}</span>
-    <div class="ms-aa2e952">
+    <div>
       {% if device.current_status == 'ready' %}
-        <span class="status-label status-done ms-e2e39c3">✅ {% translate "Einsatzklar" %}</span>
+        <span class="status-label status-done">{% translate "Einsatzklar" %}</span>
       {% elif device.current_status == 'limited' %}
-        <span class="status-label status-waiting ms-e2e39c3">⚠️ {% translate "Eingeschränkt" %}</span>
+        <span class="status-label warning">{% translate "Eingeschränkt" %}</span>
       {% elif device.current_status == 'maintenance' %}
-        <span class="status-label status-in_progress ms-e2e39c3">🛠️ {% translate "In Wartung / STK" %}</span>
+        <span class="status-label warning">{% translate "In Wartung / STK" %}</span>
       {% elif device.current_status == 'oob' %}
-        <span class="status-label status-open ms-6c79c3c">⛔ {% translate "Außer Betrieb (Gesperrt)" %}</span>
+        <span class="status-label danger">{% translate "Außer Betrieb (Gesperrt)" %}</span>
       {% endif %}
     </div>
     {% if device.status_note %}
-      <small class="ms-3dca5e5">{{ device.status_note }}</small>
+      <small class="kpi-note">{{ device.status_note }}</small>
       {% if blocking_defects %}
-        <small class="ms-3dca5e5">
+        <small class="kpi-note">
           {% translate "Offene Mängel:" %}
           {% for defect in blocking_defects %}<a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
         </small>
       {% endif %}
     {% else %}
-      <small class="ms-3dca5e5">{% translate "Keine Einschränkungen vermerkt" %}</small>
+      <small class="kpi-note">{% translate "Keine Einschränkungen vermerkt" %}</small>
     {% endif %}
   </div>
 
-  {# Gesetzliche Fristen Kachel #}
-  <div class="kpi-card ms-1eb1850">
+  <div class="kpi-card{% if urg.level == 'overdue' %} border-danger{% elif urg.level == 'critical' or urg.level == 'warning' %} border-warning{% endif %}">
     <span class="kpi-label">{% translate "Prüffristen-Status" %}</span>
-    <div class="ms-aa2e952">
+    <div>
       {% if urg.level == 'overdue' %}
-        <span class="ms-12702a8">🔴 {{ urg.label }}</span>
-      {% elif urg.level == 'critical' %}
-        <span class="ms-f3e3f11">🟠 {{ urg.label }}</span>
-      {% elif urg.level == 'warning' %}
-        <span class="ms-97802f4">🟡 {{ urg.label }}</span>
+        <span class="state danger large">{{ urg.label }}</span>
+      {% elif urg.level == 'critical' or urg.level == 'warning' %}
+        <span class="state warning large">{{ urg.label }}</span>
       {% else %}
-        <span class="ms-11af402">🟢 {{ urg.label }}</span>
+        <span class="state success large">{{ urg.label }}</span>
       {% endif %}
     </div>
-    <small class="ms-3dca5e5">
+    <small class="kpi-note">
       {% if urg.due_date %}
         {% translate "Fälligkeitsdatum:" %} <strong>{{ urg.due_date|date:"d.m.Y" }}</strong>
       {% else %}
@@ -90,21 +86,16 @@
     </small>
   </div>
 
-  {# Einweisung gem. § 11 MPBetreibV #}
-  <div class="kpi-card ms-1eb1850">
+  <div class="kpi-card{% if not is_user_trained %} border-warning{% endif %}">
     <span class="kpi-label">{% translate "Deine Anwender-Einweisung (§ 11)" %}</span>
-    <div class="ms-aa2e952">
+    <div>
       {% if is_user_trained %}
-        <span class="ms-f0c373f">
-          ✅ {% translate "Du bist eingewiesen" %}
-        </span>
+        <span class="state success">{% translate "Du bist eingewiesen" %}</span>
       {% else %}
-        <span class="ms-f305a97">
-          ⚠️ {% translate "Keine Einweisung dokumentiert" %}
-        </span>
+        <span class="state warning">{% translate "Keine Einweisung dokumentiert" %}</span>
       {% endif %}
     </div>
-    <small class="ms-3dca5e5">
+    <small class="kpi-note">
       {% if is_user_trained %}
         {% translate "Befähigung im digitalen Gerätepass gültig" %}
       {% else %}
@@ -116,77 +107,73 @@
 </div>
 {% endwith %}
 
-{# Schnell-Aktionen Leiste #}
-<div class="page-actions-bar ms-179444b">
-  {# Schnellkontrolle: die Person bestätigt alle Prüfpunkte auf einmal #}
-  <form class="ms-47dffa1" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% translate 'Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?' %}">
+{# Aktionen: eine Hauptaktion (Schnellkontrolle), Rest sekundär #}
+<div class="action-bar">
+  <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% translate 'Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?' %}">
     {% csrf_token %}
     <input type="hidden" name="quick_pass" value="1">
-    <button type="submit" class="button ms-f7964be">
-      ✅ {% translate "Alles geprüft, in Ordnung" %}
+    <button type="submit" class="button primary">
+      {% include "core/_icon.html" with name="check" %}{% translate "Alles geprüft, in Ordnung" %}
     </button>
   </form>
 
   <button type="button" class="button secondary" data-modal-open="check-modal">
-    🔍 {% translate "Kontrolle mit Details" %}
+    {% include "core/_icon.html" with name="checklists" %}{% translate "Kontrolle mit Details" %}
   </button>
 
   {% if device.current_status == 'oob' and can_manage %}
     <button type="button" class="button secondary" data-modal-open="release-modal">
-      🔓 {% translate "Gerät freigeben" %}
+      {% include "core/_icon.html" with name="unlock" %}{% translate "Gerät freigeben" %}
     </button>
   {% endif %}
 
-  <button type="button" class="button secondary ms-1280362" data-modal-open="defect-modal">
-    ⚠️ {% translate "Mangel melden / Sperren" %}
+  <button type="button" class="button danger" data-modal-open="defect-modal">
+    {% include "core/_icon.html" with name="alert" %}{% translate "Mangel melden / Sperren" %}
   </button>
 
   {% if can_manage %}
     <button type="button" class="button secondary" data-modal-open="maint-modal">
-      🛠️ {% translate "Wartung / STK eintragen" %}
+      {% include "core/_icon.html" with name="defects" %}{% translate "Wartung / STK eintragen" %}
     </button>
     <button type="button" class="button secondary" data-modal-open="training-modal">
-      🎓 {% translate "Einweisung dokumentieren" %}
+      {% include "core/_icon.html" with name="training" %}{% translate "Einweisung dokumentieren" %}
     </button>
   {% endif %}
 
   {% if device.manual_url %}
-    <a href="{{ device.manual_url }}" target="_blank" rel="noopener" class="button secondary">
-      📖 {% translate "Bedienungsanleitung (PDF/Web)" %}
+    <a href="{{ device.manual_url }}" target="_blank" rel="noopener" class="button ghost">
+      {% include "core/_icon.html" with name="book" %}{% translate "Bedienungsanleitung (PDF/Web)" %}
     </a>
   {% endif %}
 </div>
 
-{# Tabs / Sektionen Grid #}
-<div class="ms-8dd4329">
-  
-  {# MPBetreibV Stammdaten #}
+<div class="grid-2">
+
   <section class="section-block">
-    <h2>📑 {% translate "Medizinproduktebuch-Stammdaten" %}</h2>
-    <table class="table-compact ms-2e3d21b">
-      <tr><th class="ms-98624b9">{% translate "Hersteller:" %}</th><td>{{ device.manufacturer|default:"-" }}</td></tr>
-      <tr><th class="ms-98624b9">{% translate "Modell / Typ:" %}</th><td>{{ device.model_type|default:"-" }}</td></tr>
-      <tr><th class="ms-98624b9">{% translate "Seriennummer:" %}</th><td><code>{{ device.serial_number|default:"-" }}</code></td></tr>
-      <tr><th class="ms-98624b9">{% translate "Inventarnummer:" %}</th><td><code>{{ device.inventory_number|default:"-" }}</code></td></tr>
-      <tr><th class="ms-98624b9">{% translate "UDI-DI (GTIN):" %}</th><td><code>{{ device.udi_di|default:"-" }}</code></td></tr>
-      <tr><th class="ms-98624b9">{% translate "CE-Kennnummer:" %}</th><td>{{ device.ce_notified_body|default:"-" }}</td></tr>
-      <tr><th class="ms-98624b9">{% translate "Baujahr / Anschaffung:" %}</th><td>{{ device.year_of_manufacture|default:"-" }}{% if device.acquired_at %} ({{ device.acquired_at|date:"d.m.Y" }}){% endif %}</td></tr>
-      <tr><th class="ms-98624b9">{% translate "STK-Intervall:" %}</th><td>{{ device.stk_interval_months }} {% translate "Monate" %}</td></tr>
-      <tr><th class="ms-98624b9">{% translate "Nächste STK:" %}</th><td><strong>{{ device.next_stk_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>
-      {% if device.is_anlage_2 %}<tr><th class="ms-98624b9">{% translate "Nächste MTK:" %}</th><td><strong>{{ device.next_mtk_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>{% endif %}
-      <tr><th class="ms-98624b9">{% translate "Nächste DGUV V3:" %}</th><td><strong>{{ device.next_dguv_date|date:"d.m.Y"|default:"-" }}</strong></td></tr>
-      <tr><th class="ms-98624b9">{% translate "Letzter Funktionscheck:" %}</th><td>{{ device.last_routine_check|date:"d.m.Y H:i"|default:"-" }}</td></tr>
-    </table>
+    <h2>{% translate "Medizinproduktebuch-Stammdaten" %}</h2>
+    <dl class="summary-list">
+      <div><dt>{% translate "Hersteller:" %}</dt><dd>{{ device.manufacturer|default:"-" }}</dd></div>
+      <div><dt>{% translate "Modell / Typ:" %}</dt><dd>{{ device.model_type|default:"-" }}</dd></div>
+      <div><dt>{% translate "Seriennummer:" %}</dt><dd class="mono">{{ device.serial_number|default:"-" }}</dd></div>
+      <div><dt>{% translate "Inventarnummer:" %}</dt><dd class="mono">{{ device.inventory_number|default:"-" }}</dd></div>
+      <div><dt>{% translate "UDI-DI (GTIN):" %}</dt><dd class="mono">{{ device.udi_di|default:"-" }}</dd></div>
+      <div><dt>{% translate "CE-Kennnummer:" %}</dt><dd>{{ device.ce_notified_body|default:"-" }}</dd></div>
+      <div><dt>{% translate "Baujahr / Anschaffung:" %}</dt><dd>{{ device.year_of_manufacture|default:"-" }}{% if device.acquired_at %} ({{ device.acquired_at|date:"d.m.Y" }}){% endif %}</dd></div>
+      <div><dt>{% translate "STK-Intervall:" %}</dt><dd>{{ device.stk_interval_months }} {% translate "Monate" %}</dd></div>
+      <div><dt>{% translate "Nächste STK:" %}</dt><dd>{{ device.next_stk_date|date:"d.m.Y"|default:"-" }}</dd></div>
+      {% if device.is_anlage_2 %}<div><dt>{% translate "Nächste MTK:" %}</dt><dd>{{ device.next_mtk_date|date:"d.m.Y"|default:"-" }}</dd></div>{% endif %}
+      <div><dt>{% translate "Nächste DGUV V3:" %}</dt><dd>{{ device.next_dguv_date|date:"d.m.Y"|default:"-" }}</dd></div>
+      <div><dt>{% translate "Letzter Funktionscheck:" %}</dt><dd>{{ device.last_routine_check|date:"d.m.Y H:i"|default:"-" }}</dd></div>
+    </dl>
     {% if device.notes %}
-      <div class="ms-7888835">
+      <div class="note-box">
         <strong>{% translate "Notiz:" %}</strong> {{ device.notes }}
       </div>
     {% endif %}
   </section>
 
-  {# Revisionssichere Wartungshistorie #}
   <section class="section-block">
-    <h2>🛠️ {% translate "Prüfprotokolle (STK / MTK / DGUV)" %}</h2>
+    <h2>{% translate "Prüfprotokolle (STK / MTK / DGUV)" %}</h2>
     <div class="item-list">
       {% for log in maint_logs %}
         <div class="list-row">
@@ -194,31 +181,30 @@
             <strong>{{ log.get_kind_display }}</strong>
             <small>{{ log.performed_at|date:"d.m.Y" }} &middot; Prüfer: {{ log.performed_by }} &middot; Erfasst von: {{ log.created_by.first_name|default:log.created_by.username }}</small>
             {% if log.findings %}
-              <div class="ms-1cd4843">{{ log.findings }}</div>
+              <span class="row-note">{{ log.findings }}</span>
             {% endif %}
           </span>
           <span class="badge {% if log.passed %}badge-pass{% else %}badge-fail{% endif %}">
-            {% if log.passed %}✅ Bestanden{% else %}❌ Mängel{% endif %}
+            {% if log.passed %}Bestanden{% else %}Mängel{% endif %}
           </span>
         </div>
       {% empty %}
-        <p class="empty-state small">{% translate "Keine Prüfprotokolle hinterlegt." %}</p>
+        <p class="empty-state">{% translate "Noch keine Prüfprotokolle." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="maint-modal">{% translate "Prüfung eintragen" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
 
 </div>
 
-<div class="ms-552493a">
-  
-  {# Protokoll der täglichen Funktionskontrollen #}
+<div class="grid-2">
+
   <section class="section-block">
-    <h2>🔍 {% translate "Funktionskontrollen (Schicht-Checks)" %}</h2>
+    <h2>{% translate "Funktionskontrollen (Schicht-Checks)" %}</h2>
     <div class="item-list">
       {% for check in routine_checks %}
         <div class="list-row">
           <span class="row-content">
-            <strong>{{ check.checked_at|date:"d.m.Y H:i" }}</strong> &middot; {{ check.performed_by.get_full_name|default:check.performed_by.username }}
+            <strong>{{ check.checked_at|date:"d.m.Y H:i" }} &middot; {{ check.performed_by.get_full_name|default:check.performed_by.username }}</strong>
             <small>
               Akku: {% if check.battery_ok %}OK{% else %}Fehler{% endif %} &middot;
               Sicht: {% if check.visual_ok %}OK{% else %}Fehler{% endif %} &middot;
@@ -231,14 +217,13 @@
           </span>
         </div>
       {% empty %}
-        <p class="empty-state small">{% translate "Noch keine Funktionskontrollen erfasst." %}</p>
+        <p class="empty-state">{% translate "Noch keine Funktionskontrollen." %} <button type="button" class="button ghost small" data-modal-open="check-modal">{% translate "Kontrolle erfassen" %}</button></p>
       {% endfor %}
     </div>
   </section>
 
-  {# Einweisungsliste & Gerätepass #}
   <section class="section-block">
-    <h2>🎓 {% translate "Eingewiesenes Personal gem. § 11 MPBetreibV" %} ({{ trainings|length }})</h2>
+    <h2>{% translate "Eingewiesenes Personal gem. § 11 MPBetreibV" %} ({{ trainings|length }})</h2>
     <div class="item-list">
       {% for t in trainings %}
         <div class="list-row">
@@ -249,101 +234,91 @@
           </span>
         </div>
       {% empty %}
-        <p class="empty-state small">{% translate "Bisher keine Einweisungen für dieses Gerät dokumentiert." %}</p>
+        <p class="empty-state">{% translate "Noch keine Einweisungen für dieses Gerät." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="training-modal">{% translate "Einweisung dokumentieren" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
 
 </div>
 
-{# QR-Code Plakette & Aufkleber-Druckansicht #}
-<section id="qr-card" class="section-block ms-9d2d772">
-  <h2>📱 {% translate "Wetterfester QR-Code für Geräteaufkleber" %}</h2>
-  <p class="ms-5d6f869">
+{# QR-Code-Aufkleber: Druckfläche bleibt hell #}
+<section id="qr-card" class="section-block section-gap">
+  <h2>{% translate "Wetterfester QR-Code für Geräteaufkleber" %}</h2>
+  <p class="muted">
     {% translate "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät." %}
   </p>
-  <div class="ms-b4e0989">
-    <img class="ms-10c18a8" src="{{ device_qr_url }}" alt="QR-Code {{ device.name }}">
-    <div class="ms-3312a19">{{ device.name }}</div>
-    <div class="ms-0430e42">{{ device.location }} &middot; Inv: {{ device.inventory_number|default:device.slug }}</div>
+  <div class="qr-sticker">
+    <img src="{{ device_qr_url }}" alt="QR-Code {{ device.name }}" width="180" height="180">
+    <strong>{{ device.name }}</strong>
+    <small>{{ device.location }} &middot; Inv: {{ device.inventory_number|default:device.slug }}</small>
   </div>
-  <div>
+  <div class="cluster">
     <button type="button" class="button secondary" data-print>
-      🖨️ {% translate "Etikett drucken" %}
+      {% include "core/_icon.html" with name="print" %}{% translate "Etikett drucken" %}
     </button>
   </div>
 </section>
 
-{# MODALS #}
+{# Dialoge #}
 
-{# Modal: Detaillierte Funktionskontrolle #}
-<div id="check-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">🔍 {% translate "Funktionskontrolle dokumentieren" %}</h3>
+<div id="check-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="check-modal-title">
+  <div class="modal-panel">
+    <h2 id="check-modal-title">{% translate "Funktionskontrolle dokumentieren" %}</h2>
     <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
       {% csrf_token %}
-      <p class="ms-665382c">{% translate "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
-      <div class="ms-4d1411d">
+      <p class="muted text-small">{% translate "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
+      <div class="check-list">
         <label><input type="checkbox" name="battery_ok"> {% translate "Energieversorgung / Akkus geladen" %}</label>
-      </div>
-      <div class="ms-4d1411d">
         <label><input type="checkbox" name="visual_ok"> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
-      </div>
-      <div class="ms-9420460">
         <label><input type="checkbox" name="function_ok"> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370" for="check_notes">{% translate "Bemerkungen / Feststellungen:" %}</label>
-        <input class="ms-ac90647" type="text" id="check_notes" name="notes" maxlength="200" placeholder="{% translate 'Optional' %}">
+      <div class="field">
+        <label for="check_notes">{% translate "Bemerkungen / Feststellungen:" %}</label>
+        <input type="text" id="check_notes" name="notes" maxlength="200" placeholder="{% translate 'Optional' %}">
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370" for="check_selftest">{% translate "Selbsttest-Protokoll (optional):" %}</label>
-        <textarea class="ms-ac90647" id="check_selftest" name="selftest_protocol" rows="2" maxlength="500" placeholder="{% translate 'Text vom Geräteausdruck oder gescannter QR-Inhalt' %}"></textarea>
-        <small class="ms-236cf06">{% translate "Wird nur als Notiz gespeichert und nicht ausgewertet." %}</small>
+      <div class="field">
+        <label for="check_selftest">{% translate "Selbsttest-Protokoll (optional):" %}</label>
+        <textarea id="check_selftest" name="selftest_protocol" rows="2" maxlength="500" placeholder="{% translate 'Text vom Geräteausdruck oder gescannter QR-Inhalt' %}"></textarea>
+        <small class="helptext">{% translate "Wird nur als Notiz gespeichert und nicht ausgewertet." %}</small>
       </div>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Speichern" %}</button>
+        <button type="submit" class="button primary">{% translate "Speichern" %}</button>
       </div>
     </form>
   </div>
 </div>
 
 {% if device.current_status == 'oob' and can_manage %}
-{# Modal: Gerät nach Sperre freigeben #}
-<div id="release-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">🔓 {% translate "Gerät freigeben" %}</h3>
+<div id="release-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="release-modal-title">
+  <div class="modal-panel">
+    <h2 id="release-modal-title">{% translate "Gerät freigeben" %}</h2>
     {% if blocking_defects %}
-      <p class="ms-665382c">{% translate "Freigabe erst möglich, wenn alle Mängel erledigt sind:" %}</p>
+      <p class="muted text-small">{% translate "Freigabe erst möglich, wenn alle Mängel erledigt sind:" %}</p>
       <ul>
         {% for defect in blocking_defects %}
           <li><a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }} {{ defect.title }}</a></li>
         {% endfor %}
       </ul>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Schließen" %}</button>
       </div>
     {% else %}
-      <p class="ms-665382c">{% translate "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert." %}</p>
+      <p class="muted text-small">{% translate "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert." %}</p>
       <form method="post" action="{% url 'mpg_device_release' device.slug %}">
         {% csrf_token %}
-        <div class="ms-4d1411d">
+        <div class="check-list">
           <label><input type="checkbox" name="battery_ok" required> {% translate "Energieversorgung / Akkus geladen" %}</label>
-        </div>
-        <div class="ms-4d1411d">
           <label><input type="checkbox" name="visual_ok" required> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
-        </div>
-        <div class="ms-9420460">
           <label><input type="checkbox" name="function_ok" required> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
         </div>
-        <div class="ms-c2c0d0a">
-          <label class="ms-3a21370" for="release_notes">{% translate "Was wurde behoben?" %}</label>
-          <input class="ms-ac90647" type="text" id="release_notes" name="notes" maxlength="200">
+        <div class="field">
+          <label for="release_notes">{% translate "Was wurde behoben?" %}</label>
+          <input type="text" id="release_notes" name="notes" maxlength="200">
         </div>
-        <div class="ms-4c0715e">
+        <div class="modal-actions">
           <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-          <button type="submit" class="button">{% translate "Freigeben" %}</button>
+          <button type="submit" class="button primary">{% translate "Freigeben" %}</button>
         </div>
       </form>
     {% endif %}
@@ -351,136 +326,133 @@
 </div>
 {% endif %}
 
-{# Modal: Mangel melden & Sperren #}
-<div id="defect-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-a061319">⚠️ {% translate "Gerätemangel melden & Gerät sperren" %}</h3>
-    <p class="ms-bd1289d">
+<div id="defect-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="defect-modal-title">
+  <div class="modal-panel">
+    <h2 id="defect-modal-title">{% translate "Gerätemangel melden & Gerät sperren" %}</h2>
+    <div class="alert danger">
       {% translate "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist." %}
-    </p>
+    </div>
     <form method="post" action="{% url 'mpg_device_defect' device.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Titel des Mangels:" %}</label>
-        <input class="ms-ac90647" type="text" name="title" value="Defekt an {{ device.name }}" required>
+      <div class="field">
+        <label for="defect_title">{% translate "Titel des Mangels:" %}</label>
+        <input type="text" id="defect_title" name="title" value="Defekt an {{ device.name }}" required>
       </div>
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Dringlichkeit:" %}</label>
-        <select class="ms-ac90647" name="priority">
-          <option value="urgent">🚨 {% translate "Dringend (Sofort außer Betrieb)" %}</option>
-          <option value="important">⚠️ {% translate "Wichtig" %}</option>
-          <option value="normal">📋 {% translate "Normal" %}</option>
+      <div class="field">
+        <label for="defect_priority">{% translate "Dringlichkeit:" %}</label>
+        <select id="defect_priority" name="priority">
+          <option value="urgent">{% translate "Dringend (Sofort außer Betrieb)" %}</option>
+          <option value="important">{% translate "Wichtig" %}</option>
+          <option value="normal">{% translate "Normal" %}</option>
         </select>
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370">{% translate "Fehlerbeschreibung:" %}</label>
-        <textarea class="ms-ac90647" name="description" rows="3" required placeholder="{% translate 'Was genau ist defekt? Fehlermeldung auf Display?' %}"></textarea>
+      <div class="field">
+        <label for="defect_description">{% translate "Fehlerbeschreibung:" %}</label>
+        <textarea id="defect_description" name="description" rows="3" required placeholder="{% translate 'Was genau ist defekt? Fehlermeldung auf Display?' %}"></textarea>
       </div>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button ms-0a198e2">{% translate "Mangel melden & Sperren" %}</button>
+        <button type="submit" class="button danger">{% translate "Mangel melden & Sperren" %}</button>
       </div>
     </form>
   </div>
 </div>
 
-{# Modal: Wartung / STK eintragen #}
 {% if can_manage %}
-<div id="maint-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-7fdf191">
-    <h3 class="ms-ec0f7ff">🛠️ {% translate "Prüfung / STK dokumentieren" %}</h3>
+<div id="maint-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="maint-modal-title">
+  <div class="modal-panel wide">
+    <h2 id="maint-modal-title">{% translate "Prüfung / STK dokumentieren" %}</h2>
     <form method="post" action="{% url 'mpg_maintenance_create' device.slug %}">
       {% csrf_token %}
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-3a21370" for="{{ maint_form.kind.id_for_label }}">{% translate "Prüfungsart:" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ maint_form.kind.id_for_label }}">{% translate "Prüfungsart:" %}</label>
           {{ maint_form.kind }}
         </div>
-        <div>
-          <label class="ms-3a21370" for="{{ maint_form.performed_at.id_for_label }}">{% translate "Prüfdatum:" %}</label>
+        <div class="field">
+          <label for="{{ maint_form.performed_at.id_for_label }}">{% translate "Prüfdatum:" %}</label>
           {{ maint_form.performed_at }}
         </div>
       </div>
-      <div class="ms-9420460">
-        <label class="ms-3a21370" for="{{ maint_form.performed_by.id_for_label }}">{% translate "Prüfer / Fachbetrieb:" %}</label>
+      <div class="field">
+        <label for="{{ maint_form.performed_by.id_for_label }}">{% translate "Prüfer / Fachbetrieb:" %}</label>
         {{ maint_form.performed_by }}
       </div>
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-3a21370" for="{{ maint_form.passed.id_for_label }}">{% translate "Ergebnis:" %}</label>
-          {{ maint_form.passed }} {% translate "Bestanden" %}
+      <div class="field-row">
+        <div class="field">
+          <span class="field-label">{% translate "Ergebnis:" %}</span>
+          <label class="checkbox-field" for="{{ maint_form.passed.id_for_label }}">{{ maint_form.passed }} {% translate "Bestanden" %}</label>
         </div>
-        <div>
-          <label class="ms-3a21370" for="{{ maint_form.next_due_date.id_for_label }}">{% translate "Nächste Fälligkeit:" %}</label>
+        <div class="field">
+          <label for="{{ maint_form.next_due_date.id_for_label }}">{% translate "Nächste Fälligkeit:" %}</label>
           {{ maint_form.next_due_date }}
         </div>
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370" for="{{ maint_form.findings.id_for_label }}">{% translate "Befund / Bemerkungen:" %}</label>
+      <div class="field">
+        <label for="{{ maint_form.findings.id_for_label }}">{% translate "Befund / Bemerkungen:" %}</label>
         {{ maint_form.findings }}
       </div>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Wartung buchen" %}</button>
+        <button type="submit" class="button primary">{% translate "Wartung buchen" %}</button>
       </div>
     </form>
   </div>
 </div>
 
-{# Modal: Einweisung dokumentieren #}
-<div id="training-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-7a45f51">
-    <h3 class="ms-ec0f7ff">🎓 {% translate "Einweisung gem. § 11 MPBetreibV" %}</h3>
-    
-    <details class="ms-ff29f3d">
-      <summary class="ms-c7037fe">👥 {% translate "Gruppenschulung (Mehrere Mitarbeiter auf einmal)" %}</summary>
-      <form class="ms-366622e" method="post" action="{% url 'mpg_training_create' device.slug %}">
+<div id="training-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="training-modal-title">
+  <div class="modal-panel wide">
+    <h2 id="training-modal-title">{% translate "Einweisung gem. § 11 MPBetreibV" %}</h2>
+
+    <details>
+      <summary>{% include "core/_icon.html" with name="users" %}&nbsp;{% translate "Gruppenschulung (Mehrere Mitarbeiter auf einmal)" %}</summary>
+      <form method="post" action="{% url 'mpg_training_create' device.slug %}">
         {% csrf_token %}
-        <div class="ms-9420460">
-          <label class="ms-3a21370" for="{{ group_training_form.instructor.id_for_label }}">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
+        <div class="field">
+          <label for="{{ group_training_form.instructor.id_for_label }}">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
           {{ group_training_form.instructor }}
         </div>
-        <div class="ms-9420460">
-          <label class="ms-3a21370" for="{{ group_training_form.trained_at.id_for_label }}">{% translate "Datum:" %}</label>
+        <div class="field">
+          <label for="{{ group_training_form.trained_at.id_for_label }}">{% translate "Datum:" %}</label>
           {{ group_training_form.trained_at }}
         </div>
-        <div class="ms-9420460">
-          <label class="ms-3a21370">{% translate "Mitarbeiter auswählen:" %}</label>
-          <div class="ms-5d6523d">
+        <div class="field">
+          <span class="field-label">{% translate "Mitarbeiter auswählen:" %}</span>
+          <div class="check-list scroll-box">
             {{ group_training_form.trainees }}
           </div>
         </div>
-        <div class="ms-9420460">
+        <div class="field">
           {{ group_training_form.notes }}
         </div>
-        <button type="submit" class="button">{% translate "Gruppe einweisen" %}</button>
+        <button type="submit" class="button primary">{% translate "Gruppe einweisen" %}</button>
       </form>
     </details>
 
-    <h4 class="ms-fc215b9">👤 {% translate "Einzelschulung erfassen" %}</h4>
+    <h3>{% translate "Einzelschulung erfassen" %}</h3>
     <form method="post" action="{% url 'mpg_training_create' device.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-3a21370" for="{{ training_form.trainee.id_for_label }}">{% translate "Mitarbeiter:" %}</label>
+      <div class="field">
+        <label for="{{ training_form.trainee.id_for_label }}">{% translate "Mitarbeiter:" %}</label>
         {{ training_form.trainee }}
       </div>
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-3a21370" for="{{ training_form.instructor.id_for_label }}">{% translate "Einweiser:" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ training_form.instructor.id_for_label }}">{% translate "Einweiser:" %}</label>
           {{ training_form.instructor }}
         </div>
-        <div>
-          <label class="ms-3a21370" for="{{ training_form.trained_at.id_for_label }}">{% translate "Schulungsdatum:" %}</label>
+        <div class="field">
+          <label for="{{ training_form.trained_at.id_for_label }}">{% translate "Schulungsdatum:" %}</label>
           {{ training_form.trained_at }}
         </div>
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370" for="{{ training_form.notes.id_for_label }}">{% translate "Notiz / Zertifikat-Nr:" %}</label>
+      <div class="field">
+        <label for="{{ training_form.notes.id_for_label }}">{% translate "Notiz / Zertifikat-Nr:" %}</label>
         {{ training_form.notes }}
       </div>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Einweisung speichern" %}</button>
+        <button type="submit" class="button primary">{% translate "Einweisung speichern" %}</button>
       </div>
     </form>
   </div>

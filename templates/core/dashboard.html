@@ -62,7 +62,7 @@
           <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small></span>
           <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m. H:i" }}</time>
         </a>
-      {% empty %}<p class="empty-state">{% translate "Keine aktiven Übergaben." %}</p>{% endfor %}
+      {% empty %}<p class="empty-state">{% translate "Keine aktiven Übergaben." %} <a href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a></p>{% endfor %}
     </div>
   </section>
 
@@ -82,7 +82,7 @@
             {% if event.kind == 'event' and event.source_pk %}<a class="text-action" href="{% url 'calendar_event_ics' event.source_pk %}">{% translate "In Kalender speichern" %}</a>{% endif %}
           </div>
         </article>
-      {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %}</p>{% endfor %}
+      {% empty %}<p class="empty-state">{% translate "Keine anstehenden Termine." %} <a href="{% url 'calendar' %}">{% translate "Zum Kalender" %}</a></p>{% endfor %}
     </div>
   </section>{% endif %}
 </div>

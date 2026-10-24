@@ -3,8 +3,8 @@
 {% block title %}{% translate "Digitaler Gerätepass & Einweisungsmatrix" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% url 'mpg_dashboard' %}">← {% translate "Zurück zur MPG-Übersicht" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'mpg_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 
 <header class="page-heading">
@@ -14,34 +14,25 @@
 </header>
 
 {# Persönlicher Gerätepass #}
-<section class="section-block ms-e705884">
-  <h2>🪪 {% translate "Mein persönlicher Gerätepass" %} ({{ request.user.get_full_name|default:request.user.username }})</h2>
-  <p class="ms-9e7f8b2">
+<section class="section-block section-gap">
+  <h2>{% translate "Mein persönlicher Gerätepass" %} ({{ request.user.get_full_name|default:request.user.username }})</h2>
+  <p class="muted">
     {% translate "Für folgende Medizinprodukte ist deine ordnungsgemäße Einweisung im System hinterlegt:" %}
   </p>
 
-  <div class="ms-957df39">
+  <div class="item-list">
     {% for t in my_trainings %}
-      <div class="kpi-card ms-5d2d94f">
-        <div class="ms-ed310ac">
-          <strong class="ms-98d7a3b">
-            <a class="ms-c52f902" href="{% url 'mpg_device_detail' t.device.slug %}">
-              {{ t.device.name }}
-            </a>
-          </strong>
-          <span class="badge ms-f8e4950">✅ Gültig</span>
-        </div>
-        <small class="ms-236cf06">
-          {{ t.device.get_category_display }} &middot; 📍 {{ t.device.location }}
-        </small>
-        <div class="ms-2047041">
-          <div>{% translate "Schulungsdatum:" %} <strong>{{ t.trained_at|date:"d.m.Y" }}</strong></div>
-          <div>{% translate "Einweiser:" %} {{ t.instructor }}</div>
-          {% if t.notes %}<div class="ms-544c382">{{ t.notes }}</div>{% endif %}
-        </div>
+      <div class="list-row">
+        <span class="row-content">
+          <strong><a href="{% url 'mpg_device_detail' t.device.slug %}">{{ t.device.name }}</a></strong>
+          <small>{{ t.device.get_category_display }} &middot; {{ t.device.location }}</small>
+          <small>{% translate "Schulungsdatum:" %} {{ t.trained_at|date:"d.m.Y" }} &middot; {% translate "Einweiser:" %} {{ t.instructor }}</small>
+          {% if t.notes %}<small>{{ t.notes }}</small>{% endif %}
+        </span>
+        <span class="badge badge-pass">Gültig</span>
       </div>
     {% empty %}
-      <p class="empty-state ms-a66f410">
+      <p class="empty-state">
         {% translate "Für deinen Benutzer sind aktuell keine Geräteeinweisungen eingetragen. Bitte wende dich an den MPG-Beauftragten deiner Wache." %}
       </p>
     {% endfor %}
@@ -50,59 +41,49 @@
 
 {# Wachen-Einweisungsmatrix #}
 <section class="section-block">
-  <div class="ms-12ce447">
-    <h2>📊 {% translate "Wachen-Einweisungsmatrix (Compliance-Übersicht)" %}</h2>
-    <span class="badge ms-ae1d0ea">{{ devices|length }} {% translate "aktive Geräte" %}</span>
+  <div class="split section-heading">
+    <h2>{% translate "Wachen-Einweisungsmatrix (Compliance-Übersicht)" %}</h2>
+    <span class="badge">{{ devices|length }} {% translate "aktive Geräte" %}</span>
   </div>
 
-  <div class="ms-48a9de0">
-    <table class="table-compact ms-70a53b7">
+  <div class="table-responsive">
+    <table class="table-compact table-sticky">
       <thead>
-        <tr class="ms-59d0223">
-          <th class="ms-8949c34">
-            {% translate "Mitarbeiter" %}
-          </th>
-          <th class="ms-69e0cd2">
-            {% translate "Quote" %}
-          </th>
+        <tr>
+          <th scope="col">{% translate "Mitarbeiter" %}</th>
+          <th scope="col" class="text-center">{% translate "Quote" %}</th>
           {% for device in devices %}
-            <th class="ms-969181d" title="{{ device.name }} ({{ device.location }})">
-              <a class="ms-c52f902" href="{% url 'mpg_device_detail' device.slug %}">
-                {{ device.name|truncatechars:18 }}
-              </a>
+            <th scope="col" class="text-center" title="{{ device.name }} ({{ device.location }})">
+              <a href="{% url 'mpg_device_detail' device.slug %}">{{ device.name|truncatechars:18 }}</a>
             </th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
         {% for row in matrix %}
-          <tr class="ms-4f4b83d">
-            <td class="ms-0b58f72">
-              {{ row.user.get_full_name|default:row.user.username }}
-            </td>
-            <td class="ms-f4b8c03">
+          <tr>
+            <th scope="row">{{ row.user.get_full_name|default:row.user.username }}</th>
+            <td class="text-center">
               <span class="badge {% if row.trained_count == total_devices_count %}badge-pass{% else %}badge-neutral{% endif %}">
                 {{ row.trained_count }} / {{ total_devices_count }}
               </span>
             </td>
             {% for item in row.items %}
-              <td class="ms-b9d958f">
+              <td class="text-center">
                 {% if item.is_trained %}
-                  <span class="ms-26ec8fb" title="{% translate 'Eingewiesen am:' %} {{ item.record.trained_at|date:'d.m.Y' }} ({% translate 'Einweiser:' %} {{ item.record.instructor }})">
-                    ✅
+                  <span class="text-success" title="{% translate 'Eingewiesen am:' %} {{ item.record.trained_at|date:'d.m.Y' }} ({% translate 'Einweiser:' %} {{ item.record.instructor }})">
+                    {% include "core/_icon.html" with name="check" %}<span class="sr-only">{% translate "Eingewiesen am:" %} {{ item.record.trained_at|date:'d.m.Y' }}</span>
                   </span>
                 {% else %}
-                  <span class="ms-33ca83a" title="{% translate 'Keine Einweisung dokumentiert' %}">
-                    &ndash;
-                  </span>
+                  <span class="muted" title="{% translate 'Keine Einweisung dokumentiert' %}">&ndash;<span class="sr-only">{% translate "Keine Einweisung dokumentiert" %}</span></span>
                 {% endif %}
               </td>
             {% endfor %}
           </tr>
         {% empty %}
           <tr>
-            <td class="ms-c00866f" colspan="{{ devices|length|add:2 }}">
-              {% translate "Keine Daten vorhanden." %}
+            <td colspan="{{ devices|length|add:2 }}">
+              <p class="empty-state">{% translate "Keine Daten vorhanden." %}</p>
             </td>
           </tr>
         {% endfor %}
