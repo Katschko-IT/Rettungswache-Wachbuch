@@ -2,6 +2,43 @@
 
 ## Unveröffentlicht
 
+Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
+
+- **Installation mit einem Befehl**: `curl -fsSL …/install.sh | sh` prüft Docker,
+  Compose (ab 2.20), Architektur (amd64/arm64), RAM und Ports, legt
+  `/opt/wachbuch` bzw. `~/wachbuch` an, erzeugt eine `.env` mit unabhängigen
+  Zufallswerten (inkl. `CRYPTO_MASTER_KEY`, `RATELIMIT_KEY_SALT`,
+  Einrichtungscode) und startet alles mit `up --wait`. Betriebsarten `local`,
+  `lan` (Caddy mit eigener CA) und `domain` (Let's Encrypt); wiederholbar ohne
+  Verlust von Geheimnissen.
+- **Vorgefertigte Images** `ghcr.io/katschko-it/rettungswache-wachbuch`,
+  `-backup` und neu `-db` (PostgreSQL mit eingebautem Rollen-Init und
+  `postgresql.conf`) für amd64 und arm64; kein Git-Checkout und keine
+  Bind-Mounts mehr nötig. Lokaler Build über `compose.build.yml`.
+- **`wachbuch`-CLI** im Installationsordner: `status`, `logs`, `backup`,
+  `restore`, `update`, `setup-code`, `start`, `stop`, `uninstall`.
+- Optionaler **Caddy-TLS-Proxy** im Compose-Profil `https`.
+- **notify-worker** lag in keinem Netz mit der Datenbank und wirkte trotzdem
+  gesund; jetzt im Netz `app-db`, gehärtet, mit Heartbeat-Healthcheck und
+  Fehlercode nach wiederholten Datenbankfehlern.
+- **PostgreSQL** startet auf 1–2-GB-Systemen: kleine Standardwerte
+  (128MB/50/64MB), Tuning über `.env`, `shm_size` 256 MB.
+- **Healthcheck** scheitert nicht mehr an einem eingeschränkten
+  `ALLOWED_HOSTS` (Host `localhost`, Loopback immer erlaubt).
+- **Backup**: Offsite-Ziel als Host-Ordner (`BACKUP_OFFSITE_DIR`), GnuPG im
+  read-only Container (öffentlicher Schlüssel aus `BACKUP_GPG_KEY_DIR`), kein
+  Klartext-Offsite ohne Schlüssel, keine Dump-Serien nach Fehlern oder Neustarts.
+- `grant_database_access` legt fehlende Rollen (z. B. `rwsth_push` auf alten
+  Volumes) an; Push-Rollen-Defaults einheitlich.
+- `.env`-Werte, die bisher nicht ankamen, werden durchgereicht
+  (`PUSH_ALLOWED_ENDPOINT_HOSTS`, `RATELIMIT_KEY_SALT`, `ERROR_EVENT_*`,
+  `APP_VERSION`, `GUNICORN_*`); Gunicorn nutzt `config/gunicorn.py`.
+- Doku: „In 5 Minuten installieren“ im README, `docs/DEPLOYMENT.md` neu
+  (Setup-Assistent als einziger Erstadmin-Weg, korrigierte nginx-/Caddy-Beispiele,
+  Traefik-/Helm-Beispiele mit nie veröffentlichtem Tag entfernt).
+- CI startet alle Dienste mit `up --wait`, prüft Worker-Gesundheit, Backup und
+  Restore-Probe, führt `install.sh` zweimal aus und prüft Skripte mit shellcheck.
+
 Abhängigkeiten und Basis-Images auf den Stand vom 24.10.2026 gebracht.
 
 - Python-Pakete: Django 6.1.2, psycopg 3.3.6, cryptography 50.0.2,
