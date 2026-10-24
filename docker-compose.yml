@@ -45,7 +45,7 @@ services:
       BACKUP_DB_USER: ${BACKUP_DB_USER}
       BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD}
       PUSH_DB_USER: ${PUSH_DB_USER:-rwsth_push}
-      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-disabled}
+      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -96,10 +96,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
       FEED_DB_USER: ${FEED_DB_USER}
+      FEED_DB_PASSWORD: ${FEED_DB_PASSWORD}
       BACKUP_DB_USER: ${BACKUP_DB_USER}
+      BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD}
       PUSH_DB_USER: ${PUSH_DB_USER:-rwsth_push}
-      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-disabled}
+      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
       DEFAULT_STATION_NAME: ${DEFAULT_STATION_NAME:-Rettungswache}
       DEFAULT_STATION_SLUG: ${DEFAULT_STATION_SLUG:-rettungswache}
       DEMO_MODE: ${DEMO_MODE:-false}
@@ -286,8 +289,8 @@ services:
       DJANGO_DEBUG: "false"
       DB_HOST: db
       DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${PUSH_DB_USER}
-      DB_PASSWORD: ${PUSH_DB_PASSWORD}
+      DB_USER: ${PUSH_DB_USER:-rwsth_push}
+      DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
       ALLOWED_HOSTS: localhost
       WEB_PUSH_ENABLED: ${WEB_PUSH_ENABLED:-false}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}

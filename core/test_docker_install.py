@@ -14,7 +14,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import OperationalError
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 ROOT = Path(__file__).resolve().parents[1]
 NOTIFY = "core.management.commands.notify_crew"
@@ -144,3 +144,58 @@ class LoopbackAllowedHostsTests(SimpleTestCase):
         for path in ("docker-compose.yml", "Dockerfile"):
             with self.subTest(path=path):
                 self.assertIn("headers={'Host': 'localhost'}", (ROOT / path).read_text())
+
+
+class GrantCreatesMissingRolesTests(TestCase):
+    """K5: Alte Volumes ohne rwsth_push dürfen grant_database_access nicht abbrechen."""
+
+    BASE_ENV = {
+        "APP_DB_USER": "rwsth_app", "FEED_DB_USER": "rwsth_feed",
+        "BACKUP_DB_USER": "rwsth_backup", "POSTGRES_USER": "rwsth_owner",
+        "POSTGRES_DB": "rwsth", "APP_DB_PASSWORD": "app-pw",
+        "FEED_DB_PASSWORD": "feed-pw", "BACKUP_DB_PASSWORD": "backup-pw",
+    }
+
+    def run_grant(self, **env):
+        executed = []
+
+        class Cursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def execute(self, statement):
+                executed.append(statement)
+
+        with patch.dict(os.environ, dict(self.BASE_ENV, **env)), patch(
+            "core.management.commands.grant_database_access.connection.cursor",
+            return_value=Cursor(),
+        ):
+            for key in ("PUSH_DB_USER", "PUSH_DB_PASSWORD"):
+                if key not in env:
+                    os.environ.pop(key, None)
+            call_command("grant_database_access", stdout=io.StringIO())
+        return executed
+
+    def test_missing_roles_are_created_before_grants(self):
+        executed = self.run_grant(PUSH_DB_PASSWORD="it's-secret")
+        creates = executed[:4]
+        for role in ("rwsth_app", "rwsth_feed", "rwsth_backup", "rwsth_push"):
+            with self.subTest(role=role):
+                self.assertTrue(any(f"rolname = '{role}'" in s and f"CREATE ROLE {role} " in s
+                                    for s in creates), creates)
+        self.assertIn("LOGIN PASSWORD 'it''s-secret'", creates[3])
+        self.assertTrue(all(s.startswith("DO $rwsth_role$") for s in creates))
+        self.assertTrue(executed[4].startswith("REVOKE"))
+
+    def test_role_without_password_is_nologin(self):
+        executed = self.run_grant()
+        push = [s for s in executed if "CREATE ROLE rwsth_push" in s]
+        self.assertEqual(len(push), 1)
+        self.assertIn("CREATE ROLE rwsth_push NOLOGIN", push[0])
+
+    def test_dollar_quote_breakout_is_rejected(self):
+        with self.assertRaises(CommandError):
+            self.run_grant(PUSH_DB_PASSWORD="x$rwsth_role$; DROP ROLE rwsth_owner; --")
