@@ -2,128 +2,127 @@
 {% load i18n %}
 {% block title %}{% translate "Wachen-Display" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu Einstellungen" %}</a>
-<header class="page-heading narrow">
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'station_settings' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zu Einstellungen" %}</a>
+</nav>
+<header class="page-heading">
   <h1>{% translate "Wachen-Display" %}</h1>
   <p class="lead">{% translate "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen." %}</p>
 </header>
 
-<section class="content-flow narrow">
-  {% if new_url %}
-    <div class="callout" role="status">
-      <h2>{% translate "Neuer Display-Link erzeugt" %}</h2>
-      <p>{% translate "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des Monitors:" %}</p>
-      <p class="token-value"><a href="{{ new_url }}">{{ new_url }}</a></p>
+{% if new_url %}
+  <div class="alert success" role="status">
+    <h2>{% translate "Neuer Display-Link erzeugt" %}</h2>
+    <p>{% translate "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des Monitors:" %}</p>
+    <p class="mono"><a href="{{ new_url }}">{{ new_url }}</a></p>
+  </div>
+{% endif %}
+
+{# Bausteine und Bildschirmzonen #}
+<section class="section-block">
+  <header class="split">
+    <h2 class="m-0">{% translate "Modulare Bausteine & Bildschirmzonen" %}</h2>
+    <span class="status-label neutral">
+      {% blocktranslate with active=active_modules_count total=module_rows|length %}{{ active }}/{{ total }} Bausteine aktiv{% endblocktranslate %}
+    </span>
+  </header>
+  <p class="helptext">
+    {% translate "Wähle aus, welche Bausteine auf den Wandmonitoren sichtbar sein sollen, in welche Bildschirmzone sie gehören und gib ihnen bei Bedarf eine eigene Überschrift." %}
+  </p>
+
+  <form method="post" class="stack">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_modules">
+
+    <div class="table-responsive">
+      <table class="table display-module-table">
+        <thead>
+          <tr>
+            <th class="text-center">{% translate "Aktiv" %}</th>
+            <th>{% translate "Baustein / Modul" %}</th>
+            <th>{% translate "Bildschirm-Zone" %}</th>
+            <th>{% translate "Eigener Titel" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in module_rows %}
+          <tr>
+            <td class="text-center">
+              <input type="checkbox" name="mod_{{ row.id }}_enabled" value="1" id="chk_def_{{ row.id }}"
+                {% if row.enabled %}checked{% endif %}>
+            </td>
+            <td>
+              <label for="chk_def_{{ row.id }}"><strong>{{ row.name }}</strong></label>
+              {% if row.desc %}<small class="muted">{{ row.desc }}</small>{% endif %}
+            </td>
+            <td>
+              <select name="mod_{{ row.id }}_pos" class="form-select" aria-label="{% translate 'Bildschirm-Zone' %}: {{ row.name }}">
+                {% for p_key, p_label in positions %}
+                <option value="{{ p_key }}" {% if row.position == p_key %}selected{% endif %}>{{ p_label }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <input type="text" name="mod_{{ row.id }}_header" class="form-input"
+                value="{{ row.header }}" placeholder="{% translate 'Standard-Titel' %}" maxlength="80" aria-label="{% translate 'Eigener Titel' %}: {{ row.name }}">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button primary">{% translate "Modul-Konfiguration für Wachen-Display speichern" %}</button>
+    </div>
+  </form>
+</section>
+
+{# Vorhandene Monitore #}
+<section class="section-block">
+  <h2>{% translate "Verbundene Monitore & Bildschirm-Links" %}</h2>
+  {% if tokens %}
+    <div class="item-list">
+      {% for token in tokens %}
+        <div class="module-row display-token-row">
+          <span class="row-content">
+            <strong>{{ token.label }}</strong>
+            <small>
+              {% translate "Erstellt" %}: {{ token.created_at|date:"d.m.Y H:i" }}
+              {% if token.last_used_at %} · {% translate "Zuletzt genutzt" %}: {{ token.last_used_at|date:"d.m.Y H:i" }}{% endif %}
+            </small>
+          </span>
+          {% if token.is_active %}
+            <span class="cluster">
+              <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% include "core/_icon.html" with name="settings" %}{% translate "Individuell anpassen" %}</a>
+              <form class="inline" method="post" action="{% url 'display_token_revoke' token.pk %}">
+                {% csrf_token %}
+                <button class="button danger" type="submit">{% translate "Widerrufen" %}</button>
+              </form>
+            </span>
+          {% else %}
+            <span class="status-label neutral">{% translate "Widerrufen" %}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">{% translate "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm." %}</p>
   {% endif %}
+</section>
 
-  {# Sektion 1: Modulare Bausteine & Zonen nach MagicMirror-Prinzip #}
-  <section class="section-block">
-    <div class="ms-3d1e2db">
-      <h2>{% translate "Modulare Bausteine & Bildschirmzonen" %}</h2>
-      <span class="status-label neutral">
-        {% blocktranslate with active=active_modules_count total=module_rows|length %}{{ active }}/{{ total }} Bausteine aktiv{% endblocktranslate %}
-      </span>
-    </div>
-    <p class="helptext">
-      {% translate "Wähle aus, welche Bausteine auf den Wandmonitoren sichtbar sein sollen, in welche Bildschirmzone sie gehören und gib ihnen bei Bedarf eine eigene Überschrift." %}
-    </p>
-
-    <form method="post" class="card ms-a6cb65c">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="save_modules">
-
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th class="ms-f7fd355">{% translate "Aktiv" %}</th>
-              <th>{% translate "Baustein / Modul" %}</th>
-              <th>{% translate "Bildschirm-Zone" %}</th>
-              <th>{% translate "Eigener Titel" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in module_rows %}
-            <tr>
-              <td class="ms-184f191">
-                <input type="checkbox" name="mod_{{ row.id }}_enabled" value="1" id="chk_def_{{ row.id }}"
-                  {% if row.enabled %}checked{% endif %}>
-              </td>
-              <td class="ms-55e7f2a">
-                <label for="chk_def_{{ row.id }}">
-                  <span class="ms-188820d">{{ row.icon }}</span>
-                  <strong>{{ row.name }}</strong>
-                </label>
-                {% if row.desc %}<br><small class="text-muted">{{ row.desc }}</small>{% endif %}
-              </td>
-              <td class="ms-55e7f2a">
-                <select name="mod_{{ row.id }}_pos" class="form-select">
-                  {% for p_key, p_label in positions %}
-                  <option value="{{ p_key }}" {% if row.position == p_key %}selected{% endif %}>{{ p_label }}</option>
-                  {% endfor %}
-                </select>
-              </td>
-              <td class="ms-55e7f2a">
-                <input type="text" name="mod_{{ row.id }}_header" class="form-input" 
-                  value="{{ row.header }}" placeholder="{% translate 'Standard-Titel' %}" maxlength="80">
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="form-actions ms-0ea6527">
-        <button type="submit" class="button primary">{% translate "Modul-Konfiguration für Wachen-Display speichern" %}</button>
-      </div>
-    </form>
-  </section>
-
-  {# Sektion 2: Vorhandene Monitore & Bildschirme #}
-  <section class="section-block">
-    <h2>{% translate "Verbundene Monitore & Bildschirm-Links" %}</h2>
-    {% if tokens %}
-      <ul class="token-list">
-        {% for token in tokens %}
-          <li>
-            <div>
-              <strong>{{ token.label }}</strong>
-              <p class="helptext">
-                {% translate "Erstellt" %}: {{ token.created_at|date:"d.m.Y H:i" }}
-                {% if token.last_used_at %} · {% translate "Zuletzt genutzt" %}: {{ token.last_used_at|date:"d.m.Y H:i" }}{% endif %}
-              </p>
-            </div>
-            {% if token.is_active %}
-              <div class="token-actions ms-522b387">
-                <a class="button secondary" href="{% url 'display_token_configure' token.pk %}">{% translate "Individuell anpassen" %}</a>
-                <form method="post" action="{% url 'display_token_revoke' token.pk %}">
-                  {% csrf_token %}
-                  <button class="button secondary" type="submit">{% translate "Widerrufen" %}</button>
-                </form>
-              </div>
-            {% else %}
-              <span class="status-label neutral">{% translate "Widerrufen" %}</span>
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="helptext">{% translate "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm." %}</p>
-    {% endif %}
-  </section>
-
-  {# Sektion 3: Neuen Wandmonitor anbinden #}
-  <section class="section-block">
-    <h2>{% translate "Neuen Monitor verbinden" %}</h2>
-    <form method="post" action="{% url 'display_token_create' %}" class="content-flow">
-      {% csrf_token %}
+{# Neuen Wandmonitor anbinden #}
+<section class="section-block">
+  <h2>{% translate "Neuen Monitor verbinden" %}</h2>
+  <form method="post" action="{% url 'display_token_create' %}">
+    {% csrf_token %}
+    <div class="field">
       <label for="display-label">{% translate "Bezeichnung des Monitors" %}</label>
       <input id="display-label" name="label" maxlength="80" placeholder="{% translate 'z. B. Aufenthaltsraum, Fahrzeughalle, Wachleitung' %}">
-      <div class="form-actions">
-        <button class="button primary" type="submit">{% translate "Neuen Bildschirm-Link erzeugen" %}</button>
-      </div>
-    </form>
-  </section>
+    </div>
+    <div class="form-actions">
+      <button class="button secondary" type="submit">{% include "core/_icon.html" with name="plus" %}{% translate "Neuen Bildschirm-Link erzeugen" %}</button>
+    </div>
+  </form>
 </section>
 {% endblock %}

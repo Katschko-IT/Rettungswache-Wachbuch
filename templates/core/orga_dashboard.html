@@ -9,205 +9,188 @@
     <h1>{% translate "Organisation & Dienstanweisungen" %}</h1>
     <p class="lead">{% translate "Versionierte Dienstanweisungen (SOPs), Lesequittierungen und Notfall-Telefonliste." %}</p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
-    {% if can_manage %}
-      <a class="button" href="{% url 'sop_create' %}">
-        <span class="icon" aria-hidden="true">➕</span> {% translate "Neue SOP anlegen" %}
-      </a>
-      <button type="button" class="button secondary" data-modal-open="contact-modal">
-        <span class="icon" aria-hidden="true">📞</span> {% translate "Kontakt hinzufügen" %}
-      </button>
-    {% endif %}
+  {% if can_manage %}
+  <div class="page-actions-bar">
+    <a class="button primary" href="{% url 'sop_create' %}">
+      {% include "core/_icon.html" with name="plus" %}{% translate "Neue SOP anlegen" %}
+    </a>
+    <button type="button" class="button secondary" data-modal-open="contact-modal">
+      {% include "core/_icon.html" with name="phone" %}{% translate "Kontakt hinzufügen" %}
+    </button>
   </div>
+  {% endif %}
 </header>
 
-{# Notfall-Schnellwahl (Speed Dial) Bar #}
-<section class="section-block ms-59028bf">
-  <h2 class="ms-d9cad21">
-    <span>⚡</span> {% translate "Notfall-Schnellwahl & Wichtige Kontakte" %}
-  </h2>
-  <div class="ms-abb51de">
+{# Notfall-Schnellwahl: Name links, Rufnummer als großer Knopf rechts #}
+<section class="section-block section-gap">
+  <h2>{% translate "Notfall-Schnellwahl & Wichtige Kontakte" %}</h2>
+  <div class="item-list orga-list">
     {% for c in speed_dials %}
-      <div class="ms-89c6923">
-        <div>
-          <span class="ms-a9208cc">{{ c.get_category_display }}</span>
-          <h3 class="ms-44bda2b">{{ c.name }}</h3>
-          {% if c.contact_person %}
-            <p class="ms-aaecb70">{{ c.contact_person }}</p>
-          {% endif %}
-        </div>
-        <div class="ms-8afc490">
-          <a href="tel:{{ c.phone_primary }}" class="button small ms-b61023e">
-            📞 {{ c.phone_primary }}
+      <div class="module-row">
+        <span class="row-content">
+          <small>{{ c.get_category_display }}</small>
+          <strong>{{ c.name }}</strong>
+          {% if c.contact_person %}<small>{{ c.contact_person }}</small>{% endif %}
+        </span>
+        <span class="cluster">
+          <a href="tel:{{ c.phone_primary }}" class="button secondary">
+            {% include "core/_icon.html" with name="phone" %}{{ c.phone_primary }}
           </a>
           {% if c.phone_secondary %}
-            <a href="tel:{{ c.phone_secondary }}" class="button secondary small ms-b61023e">
+            <a href="tel:{{ c.phone_secondary }}" class="button ghost">
               {{ c.phone_secondary }}
             </a>
           {% endif %}
-        </div>
+        </span>
       </div>
     {% empty %}
-      <p class="empty-state">{% translate "Keine Schnellwahlkontakte hinterlegt." %}</p>
+      <p class="empty-state">{% translate "Keine Schnellwahlkontakte hinterlegt." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="contact-modal">{% translate "Kontakt hinzufügen" %}</button>{% endif %}</p>
     {% endfor %}
   </div>
 </section>
 
-{# KPI Board SOP Quittierungsstatus #}
+{# Quittierungsstand: Rand und Farbe nur, wenn etwas aussteht #}
 <div class="kpi-grid">
   <div class="kpi-card{% if unack_count %} border-danger{% endif %}">
-    <span class="kpi-value text-danger">{{ unack_count }}</span>
     <span class="kpi-label">{% translate "Quittierung ausstehend" %}</span>
+    <span class="kpi-value{% if unack_count %} text-danger{% endif %}">{{ unack_count }}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value text-success">{{ ack_count }}</span>
     <span class="kpi-label">{% translate "Quittiert & Gültig" %}</span>
+    <span class="kpi-value">{{ ack_count }}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value">{{ all_sops_count }}</span>
     <span class="kpi-label">{% translate "Dienstanweisungen aktiv" %}</span>
+    <span class="kpi-value">{{ all_sops_count }}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value">{{ all_contacts|length }}</span>
     <span class="kpi-label">{% translate "Telefonbucheinträge" %}</span>
+    <span class="kpi-value">{{ all_contacts|length }}</span>
   </div>
 </div>
 
 {# Filter & Suchleiste #}
-<nav class="filter-nav ms-8580457" aria-label="{% translate 'SOP Ansicht' %}">
-  <a href="?filter=all{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Dienstanweisungen" %} ({{ all_sops_count }})</a>
-  <a href="?filter=pending{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'pending' %}aria-current="page"{% endif %}>🚨 {% translate "Ausstehende Kenntnisnahme" %} ({{ unack_count }})</a>
-  <a href="?filter=acknowledged{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'acknowledged' %}aria-current="page"{% endif %}>✅ {% translate "Von mir quittiert" %} ({{ ack_count }})</a>
+<nav class="filter-tabs" aria-label="{% translate 'SOP Ansicht' %}">
+  <a href="?filter=all{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Dienstanweisungen" %} <span class="count">{{ all_sops_count }}</span></a>
+  <a href="?filter=pending{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'pending' %}aria-current="page"{% endif %}>{% if unack_count %}<span class="dot dot-danger" aria-hidden="true"></span>{% endif %}{% translate "Ausstehende Kenntnisnahme" %} <span class="count">{{ unack_count }}</span></a>
+  <a href="?filter=acknowledged{% if cat %}&cat={{ cat }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'acknowledged' %}aria-current="page"{% endif %}>{% translate "Von mir quittiert" %} <span class="count">{{ ack_count }}</span></a>
 </nav>
 
-<form method="get" class="search-form ms-06174bc">
+<form method="get" class="search-form">
   <input type="hidden" name="filter" value="{{ filter_mode }}">
-  <input class="ms-3069a23" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Titel, SOP-Nummer, Stichwort...' %}">
-  <select class="ms-1e5879f" name="cat" data-auto-submit>
+  <input class="form-input" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Titel, SOP-Nummer, Stichwort...' %}" aria-label="{% translate 'Suche nach Titel, SOP-Nummer, Stichwort...' %}">
+  <select class="form-select" name="cat" data-auto-submit aria-label="{% translate 'Alle Kategorien' %}">
     <option value="">{% translate "Alle Kategorien" %}</option>
     {% for cat_key, cat_label in categories %}
       <option value="{{ cat_key }}" {% if cat == cat_key %}selected{% endif %}>{{ cat_label }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="button secondary">{% translate "Filtern" %}</button>
+  <button type="submit" class="button secondary">{% include "core/_icon.html" with name="search" %}{% translate "Filtern" %}</button>
   {% if query or cat %}
-    <a href="?filter={{ filter_mode }}" class="button secondary">{% translate "Zurücksetzen" %}</a>
+    <a href="?filter={{ filter_mode }}" class="button ghost">{% translate "Zurücksetzen" %}</a>
   {% endif %}
 </form>
 
-{# SOP Übersicht #}
+{# SOP-Übersicht #}
 <section class="section-block">
-  <h2>📋 {% translate "Dienstanweisungen & Heilkunde-SOPs" %} ({{ sops|length }})</h2>
+  <h2>{% translate "Dienstanweisungen & Heilkunde-SOPs" %} ({{ sops|length }})</h2>
 
-  <div class="item-list">
+  <div class="item-list orga-list">
     {% for sop in sops %}
-      <div class="list-row ms-8536bed">
-        <div class="ms-62fe895">
-          <div class="ms-756d4ee">
-            <span class="badge ms-fb59e5e">{{ sop.doc_number }}</span>
-            <span class="badge">{{ sop.get_category_display }}</span>
-            <span class="badge ms-d06573a">v{{ sop.current_version }}</span>
+      <div class="module-row">
+        <div class="row-content stack-sm">
+          <div class="cluster">
+            <span class="badge mono">{{ sop.doc_number }}</span>
+            <span class="badge badge-neutral">{{ sop.get_category_display }}</span>
+            <span class="badge badge-info">v{{ sop.current_version }}</span>
           </div>
-          <h3 class="ms-14cdeed">
+          <h3 class="m-0">
             <a href="{% url 'sop_detail' sop.slug %}">{{ sop.title }}</a>
           </h3>
-          <p class="ms-36bb07e">
+          <small>
             {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
             {% if sop.review_due_date %} &middot; {% translate "Review bis" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
-          </p>
+          </small>
         </div>
 
-        <div class="ms-81b39e9">
-          {% if sop.requires_acknowledgment %}
-            {% if sop.latest_revision %}
-              <div>
-                {% if sop.id not in unack_ids %}
-                  <span class="badge text-success ms-9e899b4">
-                    ✅ {% translate "Quittiert" %}
-                  </span>
-                {% else %}
-                  <span class="badge border-danger ms-7555dab">
-                    ⚠️ {% translate "Quittierung nötig" %}
-                  </span>
-                {% endif %}
-              </div>
+        <div class="cluster cluster-end">
+          {% if sop.requires_acknowledgment and sop.latest_revision %}
+            {% if sop.id not in unack_ids %}
+              <span class="status-label status-done">{% translate "Quittiert" %}</span>
+            {% else %}
+              <span class="status-label warning">{% translate "Quittierung nötig" %}</span>
             {% endif %}
           {% endif %}
-
-          <div class="ms-b378622">
-            <a href="{% url 'sop_detail' sop.slug %}" class="button secondary small">
-              📖 {% translate "Öffnen & Lesen" %}
+          <a href="{% url 'sop_detail' sop.slug %}" class="button secondary small">
+            {% include "core/_icon.html" with name="book" %}{% translate "Öffnen & Lesen" %}
+          </a>
+          {% if can_manage %}
+            <a href="{% url 'sop_edit' sop.slug %}" class="button ghost small">
+              {% include "core/_icon.html" with name="edit" %}{% translate "Bearbeiten" %}
             </a>
-            {% if can_manage %}
-              <a href="{% url 'sop_edit' sop.slug %}" class="button secondary small">
-                ✏️ {% translate "Bearbeiten" %}
-              </a>
-              <a href="{% url 'sop_revision_create' sop.slug %}" class="button secondary small">
-                🔄 {% translate "Neue Version" %}
-              </a>
-            {% endif %}
-          </div>
+            <a href="{% url 'sop_revision_create' sop.slug %}" class="button ghost small">
+              {% include "core/_icon.html" with name="refresh" %}{% translate "Neue Version" %}
+            </a>
+          {% endif %}
         </div>
       </div>
     {% empty %}
-      <p class="empty-state">{% translate "Keine Dienstanweisungen für diesen Filter gefunden." %}</p>
+      <p class="empty-state">{% translate "Keine Dienstanweisungen für diesen Filter gefunden." %}{% if can_manage %} <a href="{% url 'sop_create' %}">{% translate "Neue SOP anlegen" %}</a>{% endif %}</p>
     {% endfor %}
   </div>
 </section>
 
-{# Vollständiges Telefonbuch & Termine Grid #}
-<div class="ms-d960d32">
-  {# Telefonbuch #}
+{# Telefonbuch & Termine #}
+<div class="grid-2">
   <section class="section-block">
-    <h2 class="ms-e767ca2">📞 {% translate "Stations-Telefonbuch" %}</h2>
-    <div class="item-list">
+    <h2>{% translate "Stations-Telefonbuch" %}</h2>
+    <div class="item-list orga-list">
       {% for c in all_contacts %}
-        <div class="list-row ms-429f17b">
+        <div class="module-row">
           <span class="row-content">
             <strong>{{ c.name }}</strong>
-            {% if c.contact_person %}<small class="ms-bd293c7">{{ c.contact_person }}</small>{% endif %}
-            {% if c.notes %}<small class="ms-3dca5e5">{{ c.notes }}</small>{% endif %}
+            {% if c.contact_person %}<small>{{ c.contact_person }}</small>{% endif %}
+            {% if c.notes %}<small>{{ c.notes }}</small>{% endif %}
           </span>
-          <div class="ms-6450058">
-            <a href="tel:{{ c.phone_primary }}" class="button secondary small">📞 {{ c.phone_primary }}</a>
+          <span class="cluster">
+            <a href="tel:{{ c.phone_primary }}" class="button secondary small">{% include "core/_icon.html" with name="phone" %}{{ c.phone_primary }}</a>
             {% if can_manage %}
-              <form method="post" action="{% url 'contact_delete' c.pk %}" data-confirm="{% translate 'Kontakt wirklich löschen?' %}">
+              <form class="inline" method="post" action="{% url 'contact_delete' c.pk %}" data-confirm="{% translate 'Kontakt wirklich löschen?' %}">
                 {% csrf_token %}
-                <button type="submit" class="button secondary small ms-55e9279">&times;</button>
+                <button type="submit" class="button danger small">{% include "core/_icon.html" with name="trash" %}<span class="sr-only">{% translate "Löschen" %}</span></button>
               </form>
             {% endif %}
-          </div>
+          </span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Keine Kontakte angelegt." %}</p>
+        <p class="empty-state">{% translate "Keine Kontakte angelegt." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="contact-modal">{% translate "Kontakt hinzufügen" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
 
-  {# Termine & Schreibtisch #}
   <section class="section-block">
-    <h2 class="ms-e767ca2">📅 {% translate "Wachtermine & Schreibtisch" %}</h2>
+    <h2>{% translate "Wachtermine & Schreibtisch" %}</h2>
     <div class="item-list">
       {% for ev in events %}
-        <div class="list-row ms-429f17b">
+        <div class="list-row">
           <span class="row-content">
-            <strong>{{ ev.starts_at|date:"d.m.Y H:i" }} Uhr</strong>
-            <p class="ms-5dcdead">{{ ev.title }}</p>
+            <strong>{{ ev.title }}</strong>
+            <small>{{ ev.starts_at|date:"d.m.Y H:i" }} Uhr</small>
           </span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Keine anstehenden Termine." %}</p>
+        <p class="empty-state">{% translate "Keine anstehenden Termine." %} <a href="{% url 'calendar' %}">{% translate "Kalender" %}</a></p>
       {% endfor %}
     </div>
 
     {% if articles %}
-      <h3 class="ms-1a1eca9">📚 {% translate "Wachen-Wiki & Dokumente" %}</h3>
+      <h3 class="orga-subheading">{% translate "Wachen-Wiki & Dokumente" %}</h3>
       <div class="item-list">
         {% for a in articles %}
-          <div class="list-row ms-0fe06f3">
+          <div class="list-row">
             <span class="row-content">
               <strong><a href="{% url 'wiki_detail' a.pk %}">{{ a.title }}</a></strong>
-              <small class="ms-b0a14b6">{% translate "Zuletzt aktualisiert" %}: {{ a.updated_at|date:"d.m.Y" }}</small>
+              <small>{% translate "Zuletzt aktualisiert" %}: {{ a.updated_at|date:"d.m.Y" }}</small>
             </span>
           </div>
         {% endfor %}
@@ -216,18 +199,15 @@
   </section>
 </div>
 
-{# Modal: Kontakt hinzufügen #}
-<div id="contact-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-9a9bf8e">
-    <div class="ms-ded8eb6">
-      <h3 class="ms-2a0ca83">📞 {% translate "Neuen Kontakt anlegen" %}</h3>
-      <button type="button" class="button secondary small" data-modal-close>&times;</button>
-    </div>
+{# Dialog: Kontakt hinzufügen #}
+<div id="contact-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+  <div class="modal-panel">
+    <h2 id="contact-modal-title">{% translate "Neuen Kontakt anlegen" %}</h2>
     <form method="post" action="{% url 'contact_create' %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Kategorie" %}</label>
-        <select class="ms-ac90647" name="category">
+      <div class="field">
+        <label for="contact_category">{% translate "Kategorie" %}</label>
+        <select id="contact_category" name="category">
           <option value="dispatch">{% translate "Leitstelle & Disposition" %}</option>
           <option value="hospital">{% translate "Kliniken (ZNA / CPU / Stroke)" %}</option>
           <option value="emergency">{% translate "Notarztdienst / LNA / OrgL" %}</option>
@@ -238,37 +218,35 @@
           <option value="other" selected>{% translate "Sonstige Kontakte" %}</option>
         </select>
       </div>
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Name / Einrichtung*" %}</label>
-        <input class="ms-ac90647" type="text" name="name" required>
+      <div class="field">
+        <label for="contact_name">{% translate "Name / Einrichtung*" %}</label>
+        <input id="contact_name" type="text" name="name" required>
       </div>
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Ansprechpartner" %}</label>
-        <input class="ms-ac90647" type="text" name="contact_person">
+      <div class="field">
+        <label for="contact_person">{% translate "Ansprechpartner" %}</label>
+        <input id="contact_person" type="text" name="contact_person">
       </div>
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-f0a8344">{% translate "Hauptrufnummer*" %}</label>
-          <input class="ms-ac90647" type="text" name="phone_primary" required>
+      <div class="field-row">
+        <div class="field">
+          <label for="contact_phone_primary">{% translate "Hauptrufnummer*" %}</label>
+          <input id="contact_phone_primary" type="tel" name="phone_primary" required>
         </div>
-        <div>
-          <label class="ms-f0a8344">{% translate "Zweitnummer" %}</label>
-          <input class="ms-ac90647" type="text" name="phone_secondary">
+        <div class="field">
+          <label for="contact_phone_secondary">{% translate "Zweitnummer" %}</label>
+          <input id="contact_phone_secondary" type="tel" name="phone_secondary">
         </div>
       </div>
-      <div class="ms-9420460">
-        <label class="ms-f0a8344">{% translate "Zuständigkeit / Notiz" %}</label>
-        <input class="ms-ac90647" type="text" name="notes">
+      <div class="field">
+        <label for="contact_notes">{% translate "Zuständigkeit / Notiz" %}</label>
+        <input id="contact_notes" type="text" name="notes">
       </div>
-      <div class="ms-c33bec6">
-        <label class="ms-3de17c7">
-          <input type="checkbox" name="is_speed_dial" value="true">
-          <span>⚡ {% translate "In Notfall-Schnellwahlleiste anzeigen" %}</span>
-        </label>
-      </div>
-      <div class="ms-5a927fb">
+      <label class="checkbox-field">
+        <input type="checkbox" name="is_speed_dial" value="true">
+        {% translate "In Notfall-Schnellwahlleiste anzeigen" %}
+      </label>
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Kontakt anlegen" %}</button>
+        <button type="submit" class="button primary">{% translate "Kontakt anlegen" %}</button>
       </div>
     </form>
   </div>

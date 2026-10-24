@@ -3,148 +3,125 @@
 {% block title %}{{ sop.doc_number }}: {{ sop.title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<p class="breadcrumbs ms-9420460">
-  <a class="back-link" href="{% url 'orga_dashboard' %}">&larr; {% translate "Zurück zur SOP-Übersicht" %}</a>
-</p>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'orga_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur SOP-Übersicht" %}</a>
+</nav>
 
-<header class="page-heading heading-with-action ms-92cb257">
+<header class="page-heading heading-with-action">
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {{ sop.get_category_display }}</p>
-    <h1 class="ms-8fe430e">
-      <span>{{ sop.doc_number }}: {{ sop.title }}</span>
-      <span class="badge ms-8cd8b16">v{{ sop.current_version }}</span>
+    <div class="cluster">
+      <span class="badge badge-info">v{{ sop.current_version }}</span>
       {% if sop.status == 'active' %}
-        <span class="badge text-success">{% translate "Gültig / In Kraft" %}</span>
+        <span class="status-label status-done">{% translate "Gültig / In Kraft" %}</span>
       {% else %}
-        <span class="badge">{{ sop.get_status_display }}</span>
+        <span class="status-label neutral">{{ sop.get_status_display }}</span>
       {% endif %}
-    </h1>
+    </div>
+    <h1>{{ sop.doc_number }}: {{ sop.title }}</h1>
     <p class="lead">
       {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
       {% if sop.review_due_date %} &middot; {% translate "Revisionsprüfung fällig am" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
       &middot; {% translate "Erstellt von" %}: {{ sop.created_by.get_full_name|default:sop.created_by.username }}
     </p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
     {% if can_manage %}
       <a class="button secondary" href="{% url 'sop_edit' sop.slug %}">
-        <span class="icon" aria-hidden="true">✏️</span> {% translate "Metadaten bearbeiten" %}
+        {% include "core/_icon.html" with name="edit" %}{% translate "Metadaten bearbeiten" %}
       </a>
       <a class="button secondary" href="{% url 'sop_revision_create' sop.slug %}">
-        <span class="icon" aria-hidden="true">🔄</span> {% translate "Neue Version publizieren" %}
+        {% include "core/_icon.html" with name="refresh" %}{% translate "Neue Version publizieren" %}
       </a>
     {% endif %}
-    <a class="button secondary" href="{% url 'sop_export_audit' sop.slug %}">
-      <span class="icon" aria-hidden="true">📥</span> {% translate "Quittierungs-Audit (CSV)" %}
+    <a class="button ghost" href="{% url 'sop_export_audit' sop.slug %}">
+      {% include "core/_icon.html" with name="download" %}{% translate "Quittierungs-Audit (CSV)" %}
     </a>
   </div>
 </header>
 
-{# Revisionssicherheits- & SHA-256 Prüfsummen-Banner #}
-{% if latest_revision %}
-<div class="ms-a480ddf">
-  <div class="ms-fb4faf7">
-    <div>
-      <span class="ms-8356dd1">
-        🛡️ {% translate "QM-Prüfsumme (SHA-256)" %}
-      </span>
-      <div class="ms-1bba1bc">
-        {{ latest_revision.content_hash }}
-      </div>
-      <p class="ms-abd5bd0">
-        {% translate "Freigegeben durch" %}: {{ latest_revision.approved_by.get_full_name|default:latest_revision.approved_by.username|default:"Wachleitung / QM" }} &middot; {{ latest_revision.effective_date|date:"d.m.Y" }}
-        {% if latest_revision.change_summary %} &middot; <em>{{ latest_revision.change_summary }}</em>{% endif %}
+{# Quittierung der Mitarbeiterin / des Mitarbeiters #}
+{% if sop.requires_acknowledgment %}
+  {% if has_acknowledged %}
+    <div class="alert success">
+      <strong class="state success">{% translate "Kenntnisnahme quittiert" %}</strong>
+      <p class="m-0">
+        {% blocktranslate with version=latest_revision.version_label %}Du hast diese Version (v{{ version }}) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert.{% endblocktranslate %}
       </p>
     </div>
-  </div>
-</div>
-{% endif %}
-
-{# Mitarbeiter-Quittierungsbox #}
-{% if sop.requires_acknowledgment %}
-<section class="section-block ms-a279de2">
-  {% if has_acknowledged %}
-    <div class="ms-bb9e8c0">
-      <span class="ms-355e22a">✅</span>
-      <div>
-        <h3 class="ms-db31469">{% translate "Kenntnisnahme quittiert" %}</h3>
-        <p class="ms-a4d179d">
-          {% blocktranslate with version=latest_revision.version_label %}Du hast diese Version (v{{ version }}) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert.{% endblocktranslate %}
-        </p>
-      </div>
-    </div>
   {% else %}
-    <div class="ms-b1b392f">
-      <div>
-        <h3 class="ms-db77fac">
-          <span>⚠️</span> {% translate "Pflichtquittierung ausstehend" %}
-        </h3>
-        <p class="ms-a4d179d">
+    <div class="alert warning split">
+      <div class="stack-sm">
+        <strong class="state warning">{% translate "Pflichtquittierung ausstehend" %}</strong>
+        <p class="m-0">
           {% translate "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen." %}
         </p>
       </div>
-      <form method="post" action="{% url 'sop_acknowledge' sop.slug %}">
+      <form class="inline" method="post" action="{% url 'sop_acknowledge' sop.slug %}">
         {% csrf_token %}
-        <button type="submit" class="button ms-7ace0a4">
-          ✍️ {% translate "Gelesen, verstanden & quittieren" %}
+        <button type="submit" class="button primary">
+          {% include "core/_icon.html" with name="check" %}{% translate "Gelesen, verstanden & quittieren" %}
         </button>
       </form>
     </div>
   {% endif %}
-</section>
 {% endif %}
 
 {# Volltext der Dienstanweisung #}
-<article class="section-block ms-a4934f8">
+<article class="section-block">
   {% if latest_revision %}
-    <div class="markdown-body ms-b407bc0">
+    <div class="markdown-body">
       {{ latest_revision.content_markdown|linebreaks }}
     </div>
   {% else %}
-    <p class="empty-state">{% translate "Für diese Dienstanweisung ist noch kein Textstand hinterlegt." %}</p>
+    <p class="empty-state">{% translate "Für diese Dienstanweisung ist noch kein Textstand hinterlegt." %}{% if can_manage %} <a href="{% url 'sop_revision_create' sop.slug %}">{% translate "Neue Version publizieren" %}</a>{% endif %}</p>
   {% endif %}
 </article>
 
+{# Revisionssicherheit: Prüfsumme des gültigen Textstands #}
+{% if latest_revision %}
+<section class="section-block">
+  <h2>{% include "core/_icon.html" with name="shield" %}{% translate "QM-Prüfsumme (SHA-256)" %}</h2>
+  <p class="mono text-strong m-0">{{ latest_revision.content_hash }}</p>
+  <p class="muted text-small">
+    {% translate "Freigegeben durch" %}: {{ latest_revision.approved_by.get_full_name|default:latest_revision.approved_by.username|default:"Wachleitung / QM" }} &middot; {{ latest_revision.effective_date|date:"d.m.Y" }}
+    {% if latest_revision.change_summary %} &middot; <em>{{ latest_revision.change_summary }}</em>{% endif %}
+  </p>
+</section>
+{% endif %}
+
 {# Versionshistorie & Audit Trail #}
-<div class="ms-8dd4329">
-  {# Revisionshistorie #}
+<div class="grid-2">
   <section class="section-block">
-    <h3>🔄 {% translate "Revisions-Historie & Freigaben" %}</h3>
+    <h2>{% translate "Revisions-Historie & Freigaben" %}</h2>
     <div class="item-list">
       {% for rev in all_revisions %}
-        <div class="list-row ms-9f10e42">
+        <div class="list-row">
           <span class="row-content">
             <strong>v{{ rev.version_label }} &middot; {{ rev.created_at|date:"d.m.Y" }}</strong>
-            <small class="ms-e62ef52">
-              {{ rev.change_summary|default:"Keine Begründung angegeben" }}
-            </small>
-            <small class="ms-3e5504f">
-              Hash: {{ rev.content_hash|slice:":16" }}...
-            </small>
+            <small>{{ rev.change_summary|default:"Keine Begründung angegeben" }}</small>
+            <small class="mono">Hash: {{ rev.content_hash|slice:":16" }}...</small>
           </span>
           {% if rev == latest_revision %}
-            <span class="badge text-success">{% translate "Aktuell" %}</span>
+            <span class="status-label status-done">{% translate "Aktuell" %}</span>
           {% else %}
-            <span class="badge">{% translate "Archiv" %}</span>
+            <span class="status-label neutral">{% translate "Archiv" %}</span>
           {% endif %}
         </div>
       {% endfor %}
     </div>
   </section>
 
-  {# Quittierungsbuch (Audit Trail) #}
   <section class="section-block">
-    <h3>📋 {% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h3>
+    <h2>{% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h2>
     <div class="item-list">
       {% for rc in recent_receipts %}
-        <div class="list-row ms-9f10e42">
+        <div class="list-row">
           <span class="row-content">
             <strong>{{ rc.user.get_full_name|default:rc.user.username }}</strong>
-            <small class="ms-e62ef52">
-              v{{ rc.revision.version_label }} &middot; {{ rc.acknowledged_at|date:"d.m.Y H:i" }} Uhr
-            </small>
+            <small>v{{ rc.revision.version_label }} &middot; {{ rc.acknowledged_at|date:"d.m.Y H:i" }} Uhr</small>
           </span>
-          <span class="badge text-success">{% translate "Quittiert" %}</span>
+          <span class="status-label status-done">{% translate "Quittiert" %}</span>
         </div>
       {% empty %}
         <p class="empty-state">{% translate "Noch keine Quittierungen protokolliert." %}</p>
