@@ -18,3 +18,9 @@ class CoreConfig(AppConfig):
         from . import image_privacy  # noqa: F401
         from . import checks  # noqa: F401
         from . import auth_session  # noqa: F401
+
+        from django.db.models import fields
+
+        from .i18n import BLANK_CHOICE_LABEL
+
+        fields.BLANK_CHOICE_LABEL = BLANK_CHOICE_LABEL

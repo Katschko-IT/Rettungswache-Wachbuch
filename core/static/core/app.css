@@ -1,88 +1,91 @@
-/* Wachbuch Klar – Web-PWA Design
-   Tokens aligned with clients/wachbuch-mobile (BOS / öffentlicher Dienst).
-   Offline-fähig: lokale Source Sans 3, keine CDN-Abhängigkeiten. */
+/* Wachbuch Klar 2 – Web-PWA
+   Ruhige Flächen, Farbe nur für Zustand. Ein Markenelement: die
+   Warnmarkierung (Schrägstreifen wie am Heck eines Rettungswagens).
+   Offline-fähig: lokale Atkinson Hyperlegible Next, keine CDN-Abhängigkeiten.
+   Tokens gleichnamig in clients/Wachbuch-Client lib/theme/design_tokens.dart. */
 
 /* Das hidden-Attribut muss jede Layout-Regel gewinnen: sonst macht
    display:flex/-grid ein per JS oder Template verstecktes Element wieder
    sichtbar (z. B. das Installationsbanner). */
 [hidden] { display: none !important; }
 
-@font-face {
-  font-family: "Source Sans 3";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("fonts/SourceSans3-Regular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Source Sans 3";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("fonts/SourceSans3-Semibold.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Source Sans 3";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("fonts/SourceSans3-Bold.woff2") format("woff2");
-}
+/* Schrift: core/static/core/fonts.css (wird vor app.css geladen). */
 
 :root {
-  /* Surfaces – Client light scheme */
-  --bg: #f7f9fc;
-  --bg-accent: #e8eef6;
+  color-scheme: light;
+
+  /* Flächen */
+  --bg: #f5f7f6;
+  --bg-accent: #e9eeec;
   --surface: #ffffff;
-  --surface-soft: #f1f5fa;
+  --surface-soft: #eef2f1;
   --surface-raised: #ffffff;
 
-  /* Text */
-  --text: #172033;
-  --muted: #445066;
-  --line: #dce4ef;
-  --line-strong: #6f7a8f;
+  /* Text und Linien. --line ist dekorativ, --line-strong begrenzt
+     Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11). */
+  --text: #14212b;
+  --muted: #4d5b66;
+  --line: #d7dde1;
+  --line-strong: #6f7d88;
 
-  /* Brand / primary – official blue (Client ColorScheme) */
-  --brand: #0d47a1;
-  --brand-deep: #082e63;
-  --brand-ink: #17343d;
-  --accent: #2563eb;
-  --accent-dark: #0d47a1;
-  --accent-soft: #dcebff;
-  --primary-container: #dcebff;
+  /* Aktion: Blaulicht. Nur für Bedienung, Auswahl und aktive Navigation. */
+  --brand: #0e4aa8;
+  --brand-deep: #0a3a85;
+  --brand-ink: #14212b;
+  --accent: #0e4aa8;
+  --accent-dark: #0a3a85;
+  --accent-soft: #e3ecfa;
+  --primary-container: #e3ecfa;
   --on-primary: #ffffff;
 
-  /* Semantic – Client WachbuchTokens */
-  --danger: #dc2626;
-  --danger-soft: #fee2e2;
-  --warning: #b45309;
-  --warning-soft: #fef3c7;
-  --success: #16a34a;
-  --success-soft: #dcfce7;
-  --info: #2563eb;
-  --info-soft: #dcebff;
+  /* Zustand. Textfarben ≥ 4,5:1 auf --surface und auf ihrer -soft-Fläche. */
+  --danger: #b81d18;
+  --danger-soft: #fcebea;
+  --warning: #8a4b00;
+  --warning-soft: #fdf2df;
+  --warning-accent: #f2a900;
+  --success: #136b3a;
+  --success-soft: #e5f4ea;
+  --info: #0e4aa8;
+  --info-soft: #e3ecfa;
 
-  /* Priority */
-  --priority-urgent: #dc2626;
-  --priority-important: #f59e0b;
-  --priority-normal: #2563eb;
-  --priority-done: #16a34a;
+  --priority-urgent: var(--danger);
+  --priority-important: var(--warning-accent);
+  --priority-normal: var(--brand);
+  --priority-done: var(--success);
 
-  --focus: #f0b429;
+  /* Warnmarkierung: Leuchtrot und Weiß (RAL 3024 / 9016, angenähert). */
+  --stripe-red: #e2231a;
+  --stripe-white: #ffffff;
+
+  --focus: #f2a900;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus);
+
+  --radius-sm: .375rem;
   --radius: .625rem;
-  --radius-lg: 1rem;
+  --radius-lg: .875rem;
   --shadow: none;
-  --shadow-soft: 0 1px 0 rgba(8, 46, 99, .04);
-  --content: 70rem;
+  --shadow-soft: none;
+  --shadow-overlay: 0 12px 32px rgba(20, 33, 43, .18);
+
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --content: 72rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  --nav-height: 4.75rem;
-  --touch: 3rem; /* 48px – Client / WCAG 2.5.5 */
+  --nav-height: 4.5rem;
+  --touch: 3rem; /* 48px – WCAG 2.5.5 */
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
 
-  font-family: "Source Sans 3", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -90,11 +93,79 @@
   line-height: 1.5;
 }
 
+/* Nachtdienst: dunkle Flächen, gedämpfte Signale, gelber Fokus. Folgt dem
+   Gerät, solange niemand ausdrücklich „hell“ gewählt hat. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0d141a;
+    --bg-accent: #121b22;
+    --surface: #151e26;
+    --surface-soft: #1c2731;
+    --surface-raised: #1c2731;
+    --text: #e7ecef;
+    --muted: #a6b3bd;
+    --line: #2b3843;
+    --line-strong: #6d7c88;
+    --brand: #8db4ff;
+    --brand-deep: #b3ccff;
+    --brand-ink: #e7ecef;
+    --accent: #8db4ff;
+    --accent-dark: #b3ccff;
+    --accent-soft: #1b2d4a;
+    --primary-container: #1b2d4a;
+    --on-primary: #0a1a33;
+    --danger: #ff8f86;
+    --danger-soft: #3a1714;
+    --warning: #ffc966;
+    --warning-soft: #33260c;
+    --warning-accent: #f2a900;
+    --success: #6fd49a;
+    --success-soft: #11301f;
+    --info: #8db4ff;
+    --info-soft: #1b2d4a;
+    --stripe-white: #c9d2d8;
+    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+    --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d141a;
+  --bg-accent: #121b22;
+  --surface: #151e26;
+  --surface-soft: #1c2731;
+  --surface-raised: #1c2731;
+  --text: #e7ecef;
+  --muted: #a6b3bd;
+  --line: #2b3843;
+  --line-strong: #6d7c88;
+  --brand: #8db4ff;
+  --brand-deep: #b3ccff;
+  --brand-ink: #e7ecef;
+  --accent: #8db4ff;
+  --accent-dark: #b3ccff;
+  --accent-soft: #1b2d4a;
+  --primary-container: #1b2d4a;
+  --on-primary: #0a1a33;
+  --danger: #ff8f86;
+  --danger-soft: #3a1714;
+  --warning: #ffc966;
+  --warning-soft: #33260c;
+  --warning-accent: #f2a900;
+  --success: #6fd49a;
+  --success-soft: #11301f;
+  --info: #8db4ff;
+  --info-soft: #1b2d4a;
+  --stripe-white: #c9d2d8;
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+}
+
 * { box-sizing: border-box; }
 html {
   min-height: 100%;
-  background:
-    linear-gradient(180deg, #e3ebf5 0%, var(--bg) 18rem, var(--bg) 100%);
+  background: var(--bg);
 }
 body {
   min-height: 100vh;
@@ -109,19 +180,19 @@ body {
 }
 h1, h2, h3 {
   overflow-wrap: anywhere;
-  letter-spacing: -.015em;
+  letter-spacing: -.01em;
   color: var(--brand-ink);
   font-weight: 700;
+  line-height: 1.2;
 }
+/* Uhrzeiten, Beträge und Zähler stehen spaltengenau untereinander. */
+time, .amount, .kpi-value, .nav-badge, td, .tabular { font-variant-numeric: tabular-nums; }
 a { color: var(--accent-dark); text-underline-offset: .18em; }
 button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .page-shell > *:not(.messages) {
-    animation: rise .28s ease both;
-  }
   .app-nav a,
   .button,
   .list-row,
@@ -157,11 +228,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 /* —— App shell: official service header —— */
-.app-header {
-  color: white;
-  background: var(--brand);
-  border-bottom: 4px solid #f0b429;
-}
+
 .header-inner {
   width: min(var(--content), calc(100% - 2rem));
   min-height: 3.75rem;
@@ -286,10 +353,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .is-landing {
   background: var(--bg);
 }
-.is-landing .app-header {
-  background: var(--brand);
-  border-bottom-color: #f0b429;
-}
+
 .is-landing .page-shell {
   padding-top: 0;
   padding-bottom: 3rem;
@@ -1809,53 +1873,52 @@ button, a { -webkit-tap-highlight-color: transparent; }
 /* Kalenderquellen auf einen Blick unterscheidbar: Feiertag, Müll, Geburtstag.
    Der Balken liegt als Rahmen AUSSERHALB des Inhalts, sonst überdeckt er die
    Datumszahlen in der ersten Spalte. */
-.agenda-holiday { background: #fdf1f1; border-left: 4px solid #c0392b; }
-.agenda-holiday h2, .agenda-holiday strong { color: #8a2222; }
-.agenda-waste { background: #eef7f0; border-left: 4px solid #2e7d4f; }
-.agenda-waste h2, .agenda-waste strong { color: #1f5d3a; }
-.agenda-birthday { background: #f6f0fb; border-left: 4px solid #7c4dbd; }
-.agenda-birthday h2, .agenda-birthday strong { color: #4f2c86; }
-
-/* Organisationsprofile: gleiche Informationsarchitektur, eigene visuelle Akzente. */
-.profile-rescue {
-  --brand: #0d47a1;
-  --brand-deep: #082e63;
-  --accent: #2563eb;
-  --accent-dark: #0d47a1;
-  --accent-soft: #dcebff;
-  --primary-container: #dcebff;
-  --bg-accent: #e8eef6;
+.agenda-holiday { background: var(--danger-soft); border-left: 4px solid var(--danger); }
+.agenda-holiday h2, .agenda-holiday strong { color: var(--danger); }
+.agenda-waste { background: var(--success-soft); border-left: 4px solid var(--success); }
+.agenda-waste h2, .agenda-waste strong { color: var(--success); }
+.agenda-birthday { background: var(--violet-soft); border-left: 4px solid var(--violet); }
+.agenda-birthday h2, .agenda-birthday strong { color: var(--violet); }
+:root { --violet: #6a3fb0; --violet-soft: #f1ebfa; }
+:root[data-theme="dark"] { --violet: #c7a8f5; --violet-soft: #2a1f3d; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --violet: #c7a8f5; --violet-soft: #2a1f3d; }
 }
+
+/* Organisationsprofile: gleiche Informationsarchitektur, eigene Aktionsfarbe.
+   Jede Farbe hat eine Nachtvariante; Rettungsdienst nutzt die Grund-Tokens. */
 .profile-fire {
   --brand: #9f1d20;
-  --brand-deep: #641316;
-  --accent: #c2410c;
-  --accent-dark: #9f1d20;
-  --accent-soft: #ffeadf;
-  --primary-container: #ffeadf;
-  --bg-accent: #f8e6df;
+  --brand-deep: #7a1518;
+  --accent: #9f1d20;
+  --accent-dark: #7a1518;
+  --accent-soft: #fbe9e6;
+  --primary-container: #fbe9e6;
 }
 .profile-police {
-  --brand: #173b63;
-  --brand-deep: #102944;
-  --accent: #087f8c;
-  --accent-dark: #17627a;
-  --accent-soft: #d9f1f2;
-  --primary-container: #d9f1f2;
-  --bg-accent: #e5eef4;
+  --brand: #17506b;
+  --brand-deep: #103b50;
+  --accent: #17506b;
+  --accent-dark: #103b50;
+  --accent-soft: #e1eff3;
+  --primary-container: #e1eff3;
 }
 .profile-general {
-  --brand: #475569;
-  --brand-deep: #293548;
-  --accent: #526579;
-  --accent-dark: #475569;
-  --accent-soft: #e7edf2;
-  --primary-container: #e7edf2;
-  --bg-accent: #edf1f4;
+  --brand: #3f4f61;
+  --brand-deep: #2c3846;
+  --accent: #3f4f61;
+  --accent-dark: #2c3846;
+  --accent-soft: #e8edf2;
+  --primary-container: #e8edf2;
 }
-.profile-fire .brand-mark { background: var(--brand); }
-.profile-police .brand-mark { background: var(--brand); }
-.profile-general .brand-mark { background: var(--brand); }
+:root[data-theme="dark"] .profile-fire { --brand: #ff9e8f; --brand-deep: #ffbcb2; --accent: #ff9e8f; --accent-dark: #ffbcb2; --accent-soft: #3d1a17; --primary-container: #3d1a17; }
+:root[data-theme="dark"] .profile-police { --brand: #8fd0e2; --brand-deep: #b5e1ed; --accent: #8fd0e2; --accent-dark: #b5e1ed; --accent-soft: #13313d; --primary-container: #13313d; }
+:root[data-theme="dark"] .profile-general { --brand: #b9c6d3; --brand-deep: #d3dce5; --accent: #b9c6d3; --accent-dark: #d3dce5; --accent-soft: #222d38; --primary-container: #222d38; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .profile-fire { --brand: #ff9e8f; --brand-deep: #ffbcb2; --accent: #ff9e8f; --accent-dark: #ffbcb2; --accent-soft: #3d1a17; --primary-container: #3d1a17; }
+  :root:not([data-theme="light"]) .profile-police { --brand: #8fd0e2; --brand-deep: #b5e1ed; --accent: #8fd0e2; --accent-dark: #b5e1ed; --accent-soft: #13313d; --primary-container: #13313d; }
+  :root:not([data-theme="light"]) .profile-general { --brand: #b9c6d3; --brand-deep: #d3dce5; --accent: #b9c6d3; --accent-dark: #d3dce5; --accent-soft: #222d38; --primary-container: #222d38; }
+}
 
 /* —— Public navigation & privacy section styles —— */
 .public-nav {
@@ -1989,3 +2052,464 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .setup-steps { display: grid; gap: 0.8rem; padding-left: 2.2rem; }
 .setup-steps li { line-height: 1.5; }
+
+/* ==========================================================================
+   Wachbuch Klar 2 – App-Rahmen und Basiskomponenten
+   Steht bewusst am Ende von app.css: ersetzt ältere Regeln gleicher
+   Spezifität. Farben ausschließlich über Tokens (hell und Nachtdienst).
+   ========================================================================== */
+
+/* —— Icons (Sprite core/static/core/icons.svg, Partial core/_icon.html) —— */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+
+/* —— Warnmarkierung: das eine Markenelement —— */
+.warn-stripe,
+.app-header::before {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--stripe-red) 0 .625rem,
+    var(--stripe-white) .625rem 1.25rem
+  );
+}
+
+/* —— Kopfleiste —— */
+.app-header {
+  position: relative;
+  color: var(--text);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.app-header::before {
+  content: "";
+  display: block;
+  height: .3125rem;
+}
+.header-inner { min-height: 3.75rem; }
+.brand {
+  gap: .6rem;
+  color: var(--text);
+}
+.brand-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: block;
+  flex: none;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--stripe-red) 0 .3rem,
+    var(--stripe-white) .3rem .6rem
+  );
+}
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: var(--text);
+}
+.header-station {
+  color: var(--muted);
+  font-weight: 600;
+}
+.identity span { color: var(--muted); font-size: .85rem; }
+.identity strong a { color: var(--text); }
+.header-tools { display: flex; align-items: center; gap: .5rem; }
+.icon-button,
+.logout-form button {
+  min-width: var(--touch);
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: 0 .8rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+}
+.icon-button { padding: 0; }
+.icon-button:hover,
+.logout-form button:hover { background: var(--surface-soft); }
+.header-login {
+  color: var(--brand) !important;
+  background: transparent !important;
+  border-color: var(--brand) !important;
+}
+.header-login:hover { background: var(--accent-soft) !important; }
+/* Ein Symbol je Zustand: Mond im hellen, Sonne im dunklen Modus. */
+.theme-toggle .icon-light { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-dark { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-light { display: inline; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-dark { display: none; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-light { display: inline; }
+}
+
+/* —— Hauptnavigation —— */
+.app-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.app-nav a {
+  gap: .5rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.app-nav a:hover { background: var(--surface-soft); color: var(--text); }
+.app-nav a[aria-current="page"] {
+  color: var(--brand);
+  border-color: var(--brand);
+  font-weight: 700;
+}
+.nav-badge {
+  color: #fff;
+  background: var(--stripe-red);
+  font-weight: 700;
+}
+.nav-inner { scrollbar-color: var(--line-strong) transparent; }
+.nav-inner::-webkit-scrollbar-thumb { background: var(--line-strong); }
+
+@media (max-width: 48rem) {
+  .identity span { color: var(--muted); }
+  .brand-name { font-size: 1.1rem; }
+  .app-nav {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: none;
+  }
+  .app-nav a {
+    gap: .25rem;
+    border-top: 0;
+    font-size: .78rem;
+    font-weight: 600;
+  }
+  .app-nav a .icon {
+    width: 3.25rem;
+    height: 1.9rem;
+    padding: .3rem 0;
+    border-radius: 999px;
+  }
+  .app-nav a[aria-current="page"] { background: transparent; }
+  .app-nav a[aria-current="page"] .icon { background: var(--accent-soft); }
+  .logout-form .logout-label { display: none; }
+}
+
+/* —— Seitenkopf —— */
+.context-line {
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.page-heading h1 { letter-spacing: -.02em; }
+
+/* —— Buttons: primary (eine je Ansicht), secondary, ghost, danger —— */
+.button {
+  gap: .45rem;
+  border-width: 1px;
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+.button.primary {
+  color: var(--on-primary);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.button.primary:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+.button.secondary {
+  color: var(--brand);
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+.button.secondary:hover { background: var(--accent-soft); border-color: var(--brand); }
+.button.ghost {
+  color: var(--brand);
+  background: transparent;
+  border-color: transparent;
+}
+.button.ghost:hover { background: var(--accent-soft); }
+.button.danger {
+  color: var(--danger);
+  background: var(--surface);
+  border-color: currentColor;
+}
+.button.danger:hover { background: var(--danger-soft); }
+.button[disabled], .button[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+
+/* —— Flächen —— */
+.section-block,
+.card,
+.form-card,
+.summary-list,
+.details-block,
+.details-help,
+.install-banner {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.card { border-radius: var(--radius-lg); }
+
+/* Kennzahlen: Zahl groß, Bedeutung darunter; Farbe nur bei Handlungsbedarf. */
+.kpi-card {
+  border-left-width: 1px;
+  border-left-color: var(--line);
+}
+.kpi-card.border-danger { border-left: 4px solid var(--danger); }
+.kpi-card.border-warning { border-left: 4px solid var(--warning-accent); }
+.kpi-card.border-success { border-left-color: var(--line); }
+.kpi-value { font-weight: 700; letter-spacing: -.02em; }
+
+/* Übersichtskacheln: Rand nur, wenn wirklich etwas zu tun ist. */
+.quick-actions a {
+  border-left: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.quick-actions a:hover { border-color: var(--line-strong); background: var(--surface-soft); }
+.quick-actions a.has-attention,
+.operations-summary .quick-actions a.has-attention {
+  border-left: 4px solid var(--warning-accent);
+}
+.quick-actions strong { font-size: 1.05rem; }
+
+.status-pill { border-radius: var(--radius); font-weight: 600; }
+.status-pill.danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+/* —— Etiketten: Text in Lesefarbe, Zustand als Punkt und Rand —— */
+.status-label,
+.badge {
+  min-height: 1.75rem;
+  gap: .4rem;
+  padding: .15rem .55rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 700;
+}
+.status-label::before,
+.badge-pass::before,
+.badge-fail::before {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.status-label.priority-urgent,
+.status-label.status-open,
+.badge-fail {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+.status-label.priority-urgent::before,
+.status-label.status-open::before,
+.badge-fail::before { background: var(--danger); }
+.status-label.priority-important,
+.status-label.status-waiting {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-color: color-mix(in srgb, var(--warning-accent) 55%, transparent);
+}
+.status-label.priority-important::before,
+.status-label.status-waiting::before { background: var(--warning-accent); }
+.status-label.priority-normal,
+.status-label.neutral,
+.status-label.status-in_progress {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--line);
+}
+.status-label.priority-normal::before,
+.status-label.neutral::before,
+.status-label.status-in_progress::before { background: var(--brand); }
+.status-label.success,
+.status-label.status-done,
+.badge-pass {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+}
+.status-label.success::before,
+.status-label.status-done::before,
+.badge-pass::before { background: var(--success); }
+
+/* —— Hinweise —— */
+.message,
+.notice,
+.alert,
+.callout {
+  color: var(--text);
+  background: var(--info-soft);
+  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
+  border-left: 4px solid var(--info);
+  border-radius: var(--radius);
+}
+.message.success, .alert-success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
+.message.warning, .alert-warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
+.message.error, .alert-danger, .alert-error { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
+.connection-chip {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning-accent) 45%, transparent);
+}
+
+/* —— Formulare —— */
+.form-card input:not([type="checkbox"]):not([type="radio"]),
+.form-card select,
+.form-card textarea,
+.field input,
+.field select,
+.field textarea,
+.form-input,
+.form-select,
+.form-control {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+.form-card input:not([type="checkbox"]):not([type="radio"]):focus,
+.form-card select:focus,
+.form-card textarea:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.form-input:focus,
+.form-select:focus,
+.form-control:focus {
+  border-color: var(--brand);
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+}
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); }
+.helptext, .help-text {
+  display: block;
+  margin-top: .3rem;
+  color: var(--muted);
+  font-size: .9rem;
+}
+.errorlist, .field-error {
+  margin: .3rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--danger);
+  font-weight: 600;
+}
+::placeholder { color: color-mix(in srgb, var(--muted) 80%, transparent); }
+
+/* —— Listen —— */
+.list-row:hover { background: var(--surface-soft); }
+
+/* —— Leere Zustände: Hinweis, was als Nächstes zu tun ist —— */
+.empty-state {
+  padding: 1.5rem 1rem;
+  color: var(--muted);
+  text-align: left;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  background: transparent;
+}
+.empty-state strong { display: block; margin-bottom: .25rem; color: var(--text); }
+
+/* —— Hilfsklassen, die Templates nutzen —— */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.row-actions, .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.form-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.form-field { margin: 0 0 1.25rem; }
+.form-field label { display: block; margin-bottom: .35rem; font-weight: 700; }
+.list-stack { display: grid; gap: .75rem; }
+
+/* —— Fehlerseiten —— */
+.page-error .page-shell { display: grid; place-items: start; padding-top: 2.5rem; }
+.error-shell {
+  width: min(40rem, 100%);
+  padding: 2rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.error-shell::before {
+  content: "";
+  display: block;
+  height: .5rem;
+  margin: -2rem -1.5rem 1.5rem;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: repeating-linear-gradient(-45deg, var(--stripe-red) 0 .625rem, var(--stripe-white) .625rem 1.25rem);
+}
+.error-code {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.error-shell h1 { margin: .25rem 0 .75rem; font-size: clamp(1.6rem, 4vw, 2.1rem); }
+.error-message { margin: 0 0 1.5rem; color: var(--muted); font-size: 1.05rem; max-width: 60ch; }
+.error-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.error-meta, .error-support { margin: 1.5rem 0 0; color: var(--muted); font-size: .9rem; }
+.error-meta code { font-family: var(--mono); overflow-wrap: anywhere; }
+
+/* —— Fuß —— */
+.site-footer { color: var(--muted); border-top-color: var(--line); }
+
+/* —— Dialoge —— */
+dialog {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+dialog::backdrop { background: rgba(13, 20, 26, .55); }
+
+/* Kacheln innerhalb eines Abschnitts: Fläche statt zweitem Rahmen. */
+.section-block .quick-actions a {
+  background: var(--surface-soft);
+  border-color: transparent;
+}
+.section-block .quick-actions a:hover { border-color: var(--line-strong); }
+
+@media (max-width: 48rem) {
+  .app-nav a { position: relative; }
+  .app-nav .nav-badge {
+    position: absolute;
+    top: .35rem;
+    left: calc(50% + .5rem);
+    margin: 0;
+  }
+}

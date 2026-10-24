@@ -24,6 +24,9 @@
  *   data-lock-screen               Sperrbildschirm: Antippen öffnet [data-unlock-panel]
  *   data-idle-logout="120"         sendet dieses Formular nach N Sekunden ohne
  *                                  Eingabe ab; Restzeit in [data-idle-countdown]
+ *   data-theme-toggle              wechselt hell/dunkel; die Wahl liegt im Cookie
+ *                                  wb_theme, damit der Server sie beim nächsten
+ *                                  Laden ohne Aufblitzen setzt
  */
 (function () {
   "use strict";
@@ -441,8 +444,23 @@
     }, 1000);
   }
 
+  function effectiveTheme() {
+    var chosen = document.documentElement.getAttribute("data-theme");
+    if (chosen === "dark" || chosen === "light") { return chosen; }
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function setupThemeToggle(button) {
+    button.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      document.cookie = "wb_theme=" + next + "; path=/; max-age=31536000; SameSite=Lax";
+    });
+  }
+
   function init() {
     applyLayoutHints(document);
+    each("[data-theme-toggle]", document, setupThemeToggle);
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);
     each("[data-pin-pad]", document, setupPinPad);

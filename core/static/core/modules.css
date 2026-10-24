@@ -70,18 +70,18 @@ body.has-open-modal { overflow: hidden; }
 /* Die Modul-Templates nutzen diese Klassen; sie sind hier auf die Tokens
    aus app.css abgebildet, damit alle Seiten gleich aussehen. */
 
-.button:not(.primary):not(.secondary) {
+.button:not(.primary):not(.secondary):not(.ghost):not(.danger) {
   color: var(--on-primary);
   background: var(--brand);
 }
-.button:not(.primary):not(.secondary):hover { background: var(--brand-deep); }
+.button:not(.primary):not(.secondary):not(.ghost):not(.danger):hover { background: var(--brand-deep); }
 .button.small {
   min-width: 2.75rem;
   min-height: 2.75rem; /* 44 px: noch sicher mit dem Finger zu treffen */
   padding: .35rem .75rem;
   font-size: .9rem;
 }
-.button .icon, .icon { margin-right: .35rem; }
+/* Abstand kommt aus gap in .button; Icons tragen keinen eigenen Rand. */
 
 .page-actions-bar {
   display: flex;

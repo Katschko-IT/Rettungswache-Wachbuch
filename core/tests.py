@@ -66,8 +66,8 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_brand_uses_station_subtitle(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'class="brand-logo"', html=False)
-        self.assertContains(response, 'alt="Wachwerk"', html=False)
+        self.assertContains(response, 'class="brand-mark"', html=False)
+        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False)
         self.assertContains(response, self.station.name)
         self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
@@ -101,20 +101,26 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_and_manifest_use_bos_theme_tokens(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'name="theme-color" content="#0d47a1"')
-        self.assertContains(response, 'class="brand-logo"', html=False)
+        self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
+        self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
+        self.assertContains(response, 'class="brand-mark"', html=False)
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("--brand: #0d47a1", css)
-        self.assertIn("--priority-urgent: #dc2626", css)
+        self.assertIn("--brand: #0e4aa8", css)
+        self.assertIn("--priority-urgent: var(--danger)", css)
         self.assertIn("--touch: 3rem", css)
-        self.assertIn('font-family: "Source Sans 3"', css)
-        font = Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts" / "SourceSans3-Regular.woff2"
+        self.assertIn("prefers-color-scheme: dark", css)
+        fonts = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts.css").read_text(encoding="utf-8")
+        self.assertIn('font-family: "Atkinson Hyperlegible Next"', fonts)
+        font = (
+            Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts"
+            / "atkinson-hyperlegible-next-latin-400-normal.woff2"
+        )
         self.assertTrue(font.is_file())
         manifest = self.client.get(reverse("web_manifest")).json()
-        self.assertEqual(manifest["theme_color"], "#0d47a1")
-        self.assertEqual(manifest["background_color"], "#f7f9fc")
+        self.assertEqual(manifest["theme_color"], "#ffffff")
+        self.assertEqual(manifest["background_color"], "#f5f7f6")
         self.assertNotIn("medical", manifest.get("categories", []))
 
     def test_landing_uses_public_service_copy(self):
@@ -138,7 +144,7 @@ class ProgressiveWebAppTests(PilotTestCase):
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))
-        self.assertContains(response, 'alt="Wachwerk"', html=False, count=1)
+        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False, count=1)
         self.assertNotContains(response, "brand-hero")
         self.assertContains(response, "landing-hero-art")
         self.assertContains(response, "Pexels")

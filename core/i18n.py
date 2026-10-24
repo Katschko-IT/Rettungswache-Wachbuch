@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import translation
 from django.utils.cache import patch_vary_headers
+from django.utils.translation import gettext_lazy
 
 SUPPORTED_LANGUAGES: tuple[str, ...] = tuple(code for code, _ in settings.LANGUAGES)
 
@@ -86,3 +87,9 @@ def apply_login_language(request: Any, user: Any, response: Any) -> Any:
             translation.activate(lang)
             set_language_cookie(response, lang)
     return response
+
+
+
+# Beschriftung leerer Auswahlfelder. Django 6.1 nutzt „- Select an option -“
+# und erlaubt ausdrücklich, das in AppConfig.ready() zu ersetzen (core/apps.py).
+BLANK_CHOICE_LABEL = gettext_lazy("– Bitte auswählen –")

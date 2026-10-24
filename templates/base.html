@@ -2,12 +2,13 @@
 {% get_current_language as LANGUAGE_CODE %}
 {% get_available_languages as LANGUAGES %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE }}"{% if request.COOKIES.wb_theme == "dark" or request.COOKIES.wb_theme == "light" %} data-theme="{{ request.COOKIES.wb_theme }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#0d47a1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)">
   <meta name="application-name" content="{{ app_name }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,6 +20,7 @@
   <link rel="icon" href="{% static 'core/icons/icon-192.png' %}" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="{% static 'core/icons/icon-192.png' %}">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/fonts.css' %}">
   <link rel="stylesheet" href="{% static 'core/app.css' %}">
   <link rel="stylesheet" href="{% static 'core/modules.css' %}">
   <link rel="stylesheet" href="{% static 'core/accessibility.css' %}">
@@ -32,12 +34,17 @@
   <header class="app-header">
     <div class="header-inner">
       <a class="brand" href="{% if terminal_open_mode %}{% url 'terminal_menu' %}{% elif current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
-        <img class="brand-logo" src="{% static 'core/brand-wachwerk.png' %}" alt="{{ app_name }}" width="480" height="176" decoding="async">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">{{ app_name }}</span>
       </a>
       {% if current_membership %}
       <p class="header-station">{{ current_membership.station.name }}</p>
       {% endif %}
       {# Datenschutz und Vorführung stehen im Fußbereich. #}
+      <div class="header-tools">
+      <button type="button" class="icon-button theme-toggle" data-theme-toggle aria-label="{% translate 'Hell oder dunkel umschalten' %}" title="{% translate 'Hell oder dunkel umschalten' %}">
+        {% include "core/_icon.html" with name="moon" class="icon-dark" %}{% include "core/_icon.html" with name="sun" class="icon-light" %}
+      </button>
       {% if terminal_open_mode %}
         {# Alltagsmodus: kein Konto-Menü, Sperren über die Terminal-Leiste. #}
       {% elif request.user.is_authenticated %}
@@ -48,7 +55,7 @@
           </div>
           <form class="logout-form" method="post" action="{% if terminal_session %}{% url 'terminal_logout' %}{% else %}{% url 'logout' %}{% endif %}" data-clear-cache-on-submit>
             {% csrf_token %}
-            <button type="submit">{% translate "Abmelden" %}</button>
+            <button type="submit" aria-label="{% translate 'Abmelden' %}">{% include "core/_icon.html" with name="logout" %}<span class="logout-label">{% translate "Abmelden" %}</span></button>
           </form>
         </div>
       {% else %}
@@ -56,6 +63,7 @@
           <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
         </div>
       {% endif %}
+      </div>
     </div>
   </header>
 
@@ -64,10 +72,10 @@
   {% if terminal_session %}
     <div class="terminal-session-bar" role="status">
       <span>{% translate "Wachenterminal" %} · {% blocktranslate with seconds=terminal_idle_seconds %}Sperrt sich nach Inaktivität in <strong data-idle-countdown>{{ seconds }}</strong> s{% endblocktranslate %}</span>
-      {% if terminal_open_mode %}<a class="button secondary" href="{% url 'terminal_menu' %}">🏠 {% translate "Start" %}</a>{% endif %}
+      {% if terminal_open_mode %}<a class="button secondary" href="{% url 'terminal_menu' %}">{% include "core/_icon.html" with name="home" %}{% translate "Start" %}</a>{% endif %}
       <form method="post" action="{% url 'terminal_logout' %}" data-idle-logout="{{ terminal_idle_seconds }}" data-clear-cache-on-submit>
         {% csrf_token %}
-        <button type="submit" class="button primary">🔒 {% translate "Sperren" %}</button>
+        <button type="submit" class="button primary">{% include "core/_icon.html" with name="lock" %}{% translate "Sperren" %}</button>
       </form>
     </div>
   {% endif %}
@@ -90,13 +98,13 @@
       <div class="nav-inner">
         {% if current_membership.role == 'auditor' %}
           <a href="{% url 'audit_log' %}" aria-current="page">
-            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 4h14v2H5V4zm0 5h14v2H5V9zm0 5h9v2H5v-2z" fill="currentColor"/></svg></span>
+            {% include "core/_icon.html" with name="audit" %}
             <span>{% translate "Audit" %}</span>
           </a>
         {% else %}
           {% for item in nav_conf.entries %}
             <a data-order="{{ item.order }}" {% if item.key == 'handovers' %}class="nav-handovers" {% endif %}href="{% if item.key == 'chat' and 'private_chat' in request.resolver_match.url_name %}{% url 'chat' %}{% else %}{% url item.url_name %}{% endif %}"{% if item.current or item.key == 'more' and more_active %} aria-current="page"{% endif %}>
-              {% if item.key == 'overview' %}<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 10.5 12 4l8 6.5V20h-6v-5H10v5H4v-9.5z" fill="currentColor"/></svg></span>{% endif %}
+              {% include "core/_icon.html" with name=item.key %}
               <span>{{ item.label }}{% if item.key == 'handovers' and nav_urgent_count %} <span class="nav-badge" aria-label="{% blocktranslate %}{{ nav_urgent_count }} dringend{% endblocktranslate %}">{{ nav_urgent_count }}</span>{% endif %}</span>
             </a>
           {% endfor %}
