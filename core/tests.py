@@ -179,11 +179,21 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("vorfuehrung"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-demo-deck")
-        self.assertContains(response, "Für die Wache. Nicht für den Einsatz.")
-        self.assertContains(response, "kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem")
-        self.assertContains(response, "Im Umfang")
-        self.assertContains(response, "Nicht im Umfang")
+        self.assertContains(response, "data-demo-slide", count=8)
+        # Die Produktgrenze steht als eigene Folie im Warnrahmen.
+        self.assertContains(response, "Was bewusst nicht hineingehört")
+        self.assertContains(response, 'class="boundary"')
+        self.assertContains(response, "Kein Einsatzleitsystem")
+        self.assertContains(response, "Kein Patientendokumentationssystem")
+        self.assertContains(response, "Keine Dienstplanung")
+        self.assertContains(response, "Keine Produktionsfreigabe.")
+        self.assertContains(response, "core/public.css")
         self.assertContains(response, "core/demo.css")
+        # Echte Aufnahmen der Oberfläche statt Stockfoto.
+        self.assertContains(response, "core/screens/overview-desktop-light")
+        self.assertContains(response, "core/screens/handovers-phone-light")
+        self.assertNotContains(response, "landing-hero")
+        self.assertNotContains(response, "Pexels")
         self.assertContains(response, reverse("login"))
         self.assertNotContains(response, "Demo starten")
         self.assertNotContains(response, reverse("demo_login"))
@@ -192,7 +202,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("vorfuehrung"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-demo-deck")
-        self.assertContains(response, "Für die Wache. Nicht für den Einsatz.")
+        self.assertContains(response, "Was bewusst nicht hineingehört")
 
     def test_vorfuehrung_template_is_csp_safe(self):
         source = (Path(settings.BASE_DIR) / "templates" / "core" / "vorfuehrung.html").read_text(
@@ -206,10 +216,14 @@ class ProgressiveWebAppTests(PilotTestCase):
             encoding="utf-8"
         )
         self.assertIn("prefers-reduced-motion", css)
+        self.assertNotIn("landing-hero", css)
+        # Folie und Steuerleiste füllen den Bildschirm; der Fuß überlappt nicht.
+        self.assertIn("body.demo-deck-active .site-footer { display: none; }", css)
         js = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.js").read_text(
             encoding="utf-8"
         )
         self.assertIn("[data-demo-deck]", js)
+        self.assertIn("demo-deck-active", js)
         self.assertIn("prefers-reduced-motion", js)
         self.assertNotIn("innerHTML", js)
 

@@ -245,6 +245,7 @@ def service_worker(request):
         _static_url("core/app.css"),
         _static_url("core/accessibility.css"),
         _static_url("core/demo.css"),
+        _static_url("core/public.css"),
         _static_url("core/app.js"),
         _static_url("core/fonts.css"),
         _static_url("core/tokens.css"),

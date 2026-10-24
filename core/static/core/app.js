@@ -753,6 +753,9 @@
         const on = slideIndex === index;
         slide.classList.toggle("is-on", on);
         slide.setAttribute("aria-hidden", on ? "false" : "true");
+        if (on) {
+          slide.scrollTop = 0;
+        }
       });
       demoDeck.setAttribute("data-demo-index", String(index));
       if (countEl) {
@@ -858,6 +861,8 @@
     }
 
     demoDeck.classList.add("is-js");
+    /* Seite wird zur Bühne: Kopf, Folie und Steuerleiste füllen den Bildschirm. */
+    doc.body.classList.add("demo-deck-active");
     if (bar) {
       bar.hidden = false;
     }

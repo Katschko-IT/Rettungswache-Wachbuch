@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Combine slide PNGs with an original ambient bed into an MP4."""
+"""Folien als MP4 mit eigener Ambient-Spur.
+
+    python3 docs/praesentation/render_video.py --capture [--theme dark] [OUT.mp4]
+        nimmt die acht Folien aus index.html selbst auf (Playwright/Chromium,
+        1920 × 1080, ?record=1 ohne Steuerleiste) und erzeugt das Video.
+
+    python3 docs/praesentation/render_video.py FRAMES_DIR [OUT.mp4]
+        nutzt bereits vorhandene Bilder slide-1.png … slide-8.png.
+
+Benötigt ffmpeg; für --capture zusätzlich `pip install playwright` und
+`playwright install chromium`.
+"""
 
 from __future__ import annotations
 
@@ -35,18 +46,50 @@ def write_music(path: Path, seconds: int) -> None:
             wav.writeframes(struct.pack("<h", int(sample * 22000)))
 
 
+def capture(frames_dir: Path, theme: str) -> None:
+    """Nimmt jede Folie einzeln auf (index.html#n?record=1)."""
+    from playwright.sync_api import sync_playwright
+
+    index = (Path(__file__).resolve().parent / "index.html").as_uri()
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": WIDTH, "height": HEIGHT}, color_scheme=theme)
+        for n in range(1, SLIDES + 1):
+            page.goto("about:blank")
+            page.goto(f"{index}?record=1&theme={theme}#{n}", wait_until="load")
+            page.evaluate("Promise.all([...document.images].map(i => i.decode().catch(() => {})))")
+            page.wait_for_timeout(200)
+            page.screenshot(path=str(frames_dir / f"slide-{n}.png"))
+        browser.close()
+
+
 def main() -> int:
-    if len(sys.argv) < 2:
-        print("Usage: render_video.py FRAMES_DIR [OUT.mp4]", file=sys.stderr)
+    args = sys.argv[1:]
+    theme = "light"
+    if "--theme" in args:
+        pos = args.index("--theme")
+        theme = args[pos + 1]
+        del args[pos:pos + 2]
+    do_capture = "--capture" in args
+    if do_capture:
+        args.remove("--capture")
+    if not args and not do_capture:
+        print("Usage: render_video.py --capture [--theme dark] [OUT.mp4] | FRAMES_DIR [OUT.mp4]", file=sys.stderr)
         return 2
-    frames_dir = Path(sys.argv[1])
-    out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(__file__).resolve().parent / "wachbuch-vorfuehrung.mp4"
-    files = sorted(frames_dir.glob("slide-*.png"))
-    if len(files) < SLIDES:
-        print(f"Need {SLIDES} slides, found {len(files)}", file=sys.stderr)
-        return 2
+    default_out = Path(__file__).resolve().parent / "wachbuch-vorfuehrung.mp4"
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
+        if do_capture:
+            frames_dir = tmp_path
+            capture(frames_dir, theme)
+            out = Path(args[0]) if args else default_out
+        else:
+            frames_dir = Path(args[0])
+            out = Path(args[1]) if len(args) > 1 else default_out
+        files = sorted(frames_dir.glob("slide-*.png"), key=lambda p: int(p.stem.split("-")[-1]))
+        if len(files) < SLIDES:
+            print(f"Need {SLIDES} slides, found {len(files)}", file=sys.stderr)
+            return 2
         music = tmp_path / "bed.wav"
         write_music(music, SLIDES * SECONDS + 2)
         concat = tmp_path / "list.txt"

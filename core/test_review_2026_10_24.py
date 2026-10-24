@@ -173,9 +173,16 @@ class ClientIpAndRateLimitTests(TestCase):
         self.assertEqual(self.client.get("/api/v1/me/", **other_auth).status_code, 200)
 
     def test_rate_limited_response_has_retry_after(self):
-        for _ in range(60):
-            self.client.get("/api/v1/me/", **self.auth)
-        response = self.client.get("/api/v1/me/", **self.auth)
+        # Feste Uhrzeit mitten im Fenster: Sonst kann eine Minutengrenze
+        # während der 61 Anfragen den Zähler zurücksetzen.
+        from types import SimpleNamespace
+        from unittest import mock
+
+        frozen = timezone.now().replace(second=30, microsecond=0)
+        with mock.patch("core.rate_limit.timezone", SimpleNamespace(now=lambda: frozen)):
+            for _ in range(60):
+                self.client.get("/api/v1/me/", **self.auth)
+            response = self.client.get("/api/v1/me/", **self.auth)
         self.assertEqual(response.status_code, 429)
         self.assertTrue(response.get("Retry-After", "").isdigit())
 

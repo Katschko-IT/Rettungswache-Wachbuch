@@ -3,6 +3,7 @@
 from datetime import date
 from unittest import mock
 
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -251,6 +252,11 @@ class StationSettingsHolidaysAndWeatherTests(TestCase):
 
 
 class CombinedGeocodingTests(TestCase):
+    def setUp(self):
+        # Ein offener Circuit-Breaker aus einem früheren Test würde
+        # Standardkoordinaten statt der gemockten Antworten liefern.
+        cache.clear()
+
     def test_candidate_extraction_hierarchical(self):
         from core.weather import _extract_candidates
 

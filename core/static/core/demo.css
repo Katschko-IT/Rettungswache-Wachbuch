@@ -1,4 +1,8 @@
-/* Öffentliche Vorführungsseite. Tokens wie app.css. Keine Inline-Styles. */
+/* Vorführung (/vorfuehrung/) – Wachbuch Klar 2.
+   Bausteine (.device, .boundary, .code-block, .steps, .facts, .pub-button)
+   kommen aus public.css, Farben aus tokens.css. Hier nur die Folienbühne:
+   Kopf der App oben, Folie in der Mitte, Steuerleiste fest unten – zusammen
+   genau ein Bildschirm. Keine Inline-Styles; Verhalten in app.js. */
 
 .demo-noscript-hint {
   width: min(42rem, calc(100% - 2rem));
@@ -7,251 +11,180 @@
   font-size: .95rem;
 }
 
-.demo-deck {
+/* —— Seitengerüst, sobald das Deck läuft (app.js setzt die Klasse) —— */
+body.demo-deck-active {
+  box-sizing: border-box;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 2.25rem;
-  width: min(70rem, calc(100% - 2rem));
-  margin: 0 auto 2rem;
-}
-
-.demo-slide {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  padding: 1.5rem 1.35rem 1.6rem;
-}
-
-.demo-kicker {
-  letter-spacing: .01em;
-  font-size: .9rem;
-  font-weight: 700;
-  color: var(--brand);
-  margin: 0 0 1rem;
-}
-
-.demo-slide h2 {
-  margin: 0 0 1rem;
-  color: var(--brand-ink);
-  line-height: 1.15;
-  font-size: clamp(1.65rem, 3.4vw, 2.6rem);
-  max-width: 22ch;
-}
-
-.demo-lead {
-  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
-  max-width: 42rem;
-  color: var(--muted);
-  line-height: 1.45;
-  margin: 0 0 1.1rem;
-}
-
-.demo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.1rem;
-  margin-top: 1.2rem;
-}
-
-.demo-card {
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  padding: 1.15rem 1.2rem;
-  min-height: 8rem;
-}
-
-.demo-card strong {
-  display: block;
-  color: var(--brand-ink);
-  font-size: 1.1rem;
-  margin-bottom: .35rem;
-}
-
-.demo-card p {
-  margin: 0;
-  color: var(--muted);
-}
-
-.demo-yes { color: var(--success); }
-.demo-no { color: var(--danger); }
-
-.demo-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .6rem;
-  margin: 1rem 0 0;
-}
-
-.demo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  min-height: 48px;
-  padding: 0 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-weight: 600;
-}
-
-.demo-dot {
-  width: .7rem;
-  height: .7rem;
-  border-radius: 50%;
-}
-.demo-dot-urgent { background: var(--danger); }
-.demo-dot-important { background: var(--warning-accent); }
-.demo-dot-normal { background: var(--brand); }
-.demo-dot-done { background: var(--success); }
-
-.demo-phones {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 1.1rem;
-  margin-top: 1.25rem;
-}
-
-.demo-phone {
-  border: 1px solid var(--line);
-  border-radius: 1.4rem;
-  padding: 1rem 1.1rem;
-  background: var(--surface);
-}
-
-.demo-phone h3 {
-  margin: 0 0 .5rem;
-  font-size: 1rem;
-  color: var(--brand);
-}
-
-.demo-phone ul {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: var(--muted);
-}
-
-.demo-slide-hero {
-  position: relative;
   overflow: hidden;
-  min-height: 18rem;
-  color: var(--hero-ink);
-  background: var(--hero-bg);
-  border: 0;
 }
-
-.demo-hero-bg {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(105deg, color-mix(in srgb, var(--hero-bg) 88%, transparent), color-mix(in srgb, var(--hero-bg-2) 45%, transparent)),
-    url("landing-hero.jpg") center / cover;
-}
-
-.demo-slide-hero .demo-copy {
-  position: relative;
-  z-index: 1;
-}
-
-.demo-slide-hero .demo-kicker,
-.demo-slide-hero h2,
-.demo-slide-hero .demo-lead {
-  color: var(--hero-ink);
-}
-
-.demo-cta {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: .7rem;
-  align-items: center;
-}
-
-.demo-cta .button.primary {
-  background: var(--hero-cta);
-  color: var(--hero-cta-ink);
-  border-color: var(--hero-cta);
-}
-
-.demo-cta .button.secondary {
-  color: var(--hero-ink);
-  background: transparent;
-  border-color: var(--hero-line);
-}
-
-.demo-photo-credit {
-  width: min(70rem, calc(100% - 2rem));
-  margin: 0 auto 2rem;
-  text-align: right;
-  font-size: .8rem;
-  color: var(--muted);
-}
-
-.demo-photo-credit a { color: inherit; }
-
-.demo-bar {
-  display: none;
-}
-
-/* Mit JavaScript: Folien als Deck, Steuerleiste sichtbar. */
-.demo-deck.is-js {
-  position: relative;
-  display: block;
-  min-height: min(38rem, calc(100dvh - 12rem));
+body.demo-deck-active > .app-header,
+body.demo-deck-active > .app-nav { flex: none; }
+body.demo-deck-active .page-shell {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 0 0 5.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
+/* Der Fuß steht auf dieser Seite im letzten Bild (Datenschutz, Hilfe, Version). */
+body.demo-deck-active .site-footer { display: none; }
 
+/* —— Ohne JavaScript: Folien untereinander —— */
+.demo-deck {
+  --demo-gutter: clamp(1rem, 4vw, 3rem);
+  background: var(--bg);
+}
+.demo-deck:not(.is-js) .demo-slide {
+  padding: clamp(2rem, 5vw, 4rem) 0;
+  border-bottom: 1px solid var(--line);
+}
+.demo-bar { display: none; }
+
+/* —— Mit JavaScript: Bühne + Leiste —— */
+.demo-deck.is-js {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.demo-deck.is-js .demo-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  container-type: size;
+}
 .demo-deck.is-js .demo-slide {
   position: absolute;
-  inset: 0 0 5.5rem;
-  margin: 0 auto;
-  width: min(70rem, calc(100% - 2rem));
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding-block: clamp(1.25rem, 4cqh, 3rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   opacity: 0;
-  transform: translateY(18px);
-  pointer-events: none;
-  overflow: auto;
+  visibility: hidden;
 }
-
 .demo-deck.is-js .demo-slide.is-on {
   opacity: 1;
-  transform: none;
-  pointer-events: auto;
-  z-index: 2;
+  visibility: visible;
+  z-index: 1;
 }
 
-.demo-deck.is-js .demo-bar {
-  display: flex;
-  position: fixed;
-  left: 0;
+/* —— Folieninhalt —— */
+.demo-split,
+.demo-single {
+  /* Gleiche Fluchtlinie wie der App-Kopf darüber und die Leiste darunter. */
+  width: min(var(--content), 100% - 2 * var(--demo-gutter));
+  margin-inline: auto;
+}
+.demo-split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
+}
+.demo-split-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+.demo-kicker { margin: 0 0 1rem; color: var(--muted); font-weight: 600; }
+.demo-slide h2 {
+  margin: 0 0 1.25rem;
+  max-width: 15ch;
+  color: var(--text);
+  font-size: clamp(2rem, min(4.2vw, 7cqh), 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -.03em;
+  font-weight: 700;
+}
+.demo-lead {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  line-height: 1.55;
+}
+
+/* Aufnahmen: Größe richtet sich nach der Höhe der Bühne (cqh), damit Text und
+   Bild ohne Scrollen in den Bildschirm passen. */
+.demo-media { position: relative; justify-self: center; width: 100%; }
+.demo-media .device img { width: 100%; height: auto; }
+
+/* Desktop + Handy (wie Bühne der Projektseite) */
+.demo-media-duo { max-width: 118cqh; padding: 0 6% 3rem 0; }
+
+/* Ein Handy allein */
+.demo-media-phone { max-width: min(36cqh, 22rem); }
+.demo-media-phone .device-phone { position: static; width: 100%; }
+
+/* Zwei Desktops: hell vorn links, dunkel versetzt rechts unten */
+.demo-media-pair { max-width: 124cqh; padding: 0 16% 20% 0; }
+.demo-media-pair .device-second {
+  position: absolute;
   right: 0;
   bottom: 0;
-  z-index: 30;
-  justify-content: space-between;
+  width: 56%;
+}
+
+/* Ein Desktop */
+.demo-media-desktop { max-width: 136cqh; }
+
+/* Grenze: einzige Fläche mit Warnrahmen */
+.demo-slide .boundary { padding-block: clamp(1.5rem, 5cqh, 3rem); }
+.demo-slide .boundary h2 { max-width: none; }
+.demo-slide .boundary-list { margin-top: 2rem; gap: 1.5rem 3rem; }
+.demo-slide .boundary-list strong { font-size: 1.15rem; margin-bottom: .25rem; }
+.demo-slide .boundary-list span { line-height: 1.5; }
+
+/* Installation */
+.demo-single > .demo-copy { margin-bottom: 2rem; }
+.demo-slide .demo-single h2 { max-width: none; }
+.demo-slide .demo-single .demo-lead { max-width: 44rem; }
+.demo-slide .code-block code { white-space: pre-wrap; word-break: break-all; }
+.demo-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; }
+.demo-steps li { grid-template-columns: 1fr; align-content: start; gap: .75rem; }
+.demo-steps h3 { margin: 0; font-size: 1.05rem; line-height: 1.3; color: var(--text); }
+.demo-steps p { line-height: 1.5; font-size: .95rem; }
+
+/* Schluss */
+.demo-cta { margin-top: 2rem; }
+.demo-cta form { display: contents; }
+.demo-facts .facts { font-size: 1rem; }
+.demo-facts .note { margin-top: 1.5rem; }
+.demo-legal { margin: 1.5rem 0 0; color: var(--muted); font-size: .92rem; }
+.demo-legal a { color: inherit; }
+
+/* —— Steuerleiste —— */
+.demo-deck.is-js .demo-bar {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: .6rem;
-  padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  gap: .75rem;
+  padding: .75rem max(var(--demo-gutter), (100% - var(--content)) / 2) calc(.75rem + var(--safe-bottom));
+  background: var(--surface);
   border-top: 1px solid var(--line);
 }
+.demo-bar > [data-demo-prev] { justify-self: start; }
+.demo-bar-end { justify-self: end; display: flex; gap: .5rem; }
+.demo-music[aria-pressed="true"] { color: var(--on-primary); background: var(--text); border-color: var(--text); }
 
 .demo-progress {
-  height: 4px;
-  background: var(--line);
-  flex: 1;
-  border-radius: 99px;
-  overflow: hidden;
+  position: absolute;
+  inset: -1px 0 auto;
+  height: 3px;
+  background: transparent;
 }
-
 .demo-progress-fill {
   display: block;
   height: 100%;
   width: 12.5%;
   background: var(--brand);
 }
-
 .demo-deck[data-demo-index="0"] .demo-progress-fill { width: 12.5%; }
 .demo-deck[data-demo-index="1"] .demo-progress-fill { width: 25%; }
 .demo-deck[data-demo-index="2"] .demo-progress-fill { width: 37.5%; }
@@ -262,87 +195,66 @@
 .demo-deck[data-demo-index="7"] .demo-progress-fill { width: 100%; }
 
 .demo-count {
-  font-weight: 600;
   color: var(--muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-body.is-vorfuehrung .site-footer {
-  padding-bottom: 5.75rem;
-}
-
+/* —— Bewegung nur auf Wunsch —— */
 @media (prefers-reduced-motion: no-preference) {
-  .demo-card { animation: demo-rise .7s ease both; }
-  .demo-card:nth-child(2) { animation-delay: .08s; }
-  .demo-card:nth-child(3) { animation-delay: .16s; }
-  .demo-card:nth-child(4) { animation-delay: .24s; }
-  .demo-phone { animation: demo-rise .8s ease both; }
-  .demo-phone:nth-child(2) { animation-delay: .12s; }
-  .demo-phone:nth-child(3) { animation-delay: .24s; }
-  .demo-deck.is-js .demo-slide {
-    transition: opacity .7s ease, transform .8s cubic-bezier(.2, .8, .2, 1);
-  }
-  .demo-hero-bg { animation: demo-drift 18s ease-in-out infinite alternate; }
-  .demo-progress-fill { transition: width .4s ease; }
+  .demo-deck.is-js .demo-slide { transition: opacity .35s ease, visibility 0s linear .35s; }
+  .demo-deck.is-js .demo-slide.is-on { transition: opacity .35s ease, visibility 0s; }
+  .demo-progress-fill { transition: width .35s ease; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .demo-card,
-  .demo-phone,
-  .demo-hero-bg,
   .demo-deck.is-js .demo-slide,
-  .demo-progress-fill {
-    animation: none !important;
-    transition: none !important;
-  }
+  .demo-progress-fill { transition: none !important; }
 }
 
-@keyframes demo-rise {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: none; }
+/* —— Tablet / Hochformat: Bild unter den Text —— */
+@media (max-width: 60rem) {
+  .demo-deck.is-js .demo-slide { align-content: start; }
+  .demo-split,
+  .demo-split-even { grid-template-columns: 1fr; gap: 1.75rem; }
+  .demo-slide h2 { max-width: 20ch; font-size: clamp(1.75rem, 6vw, 2.5rem); margin-bottom: .9rem; }
+  .demo-lead { font-size: 1.05rem; line-height: 1.5; }
+  .demo-kicker { margin-bottom: .6rem; }
+  .demo-media { justify-self: start; }
+  .demo-media-duo { max-width: 34rem; }
+  .demo-media-pair { max-width: 34rem; }
+  .demo-media-desktop { max-width: 34rem; }
+  .demo-media-phone { max-width: 15rem; }
+  .demo-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
-@keyframes demo-drift {
-  from { transform: scale(1.08) translateX(0); }
-  to { transform: scale(1.14) translateX(-2%); }
-}
-
 @media (max-width: 40rem) {
-  .demo-deck.is-js .demo-bar {
-    flex-wrap: wrap;
-  }
-  .demo-progress {
-    order: 5;
-    flex-basis: 100%;
-  }
+  .demo-deck { --demo-gutter: 1rem; }
+  .demo-deck.is-js .demo-slide { padding-block: 1rem; }
+  .demo-media-phone { max-width: min(13rem, 30cqh); }
+  /* Schritte als nummerierte Liste mit Ziffer links – spart Höhe. */
+  .demo-steps { grid-template-columns: 1fr; gap: .9rem; margin-top: 1.25rem; }
+  .demo-steps li { grid-template-columns: 2rem minmax(0, 1fr); gap: .75rem; }
+  .demo-steps li::before { width: 2rem; height: 2rem; font-size: .9rem; }
+  .demo-steps p { font-size: .92rem; }
+  .demo-single > .demo-copy { margin-bottom: 1.25rem; }
+  .demo-slide .boundary { padding: 1.25rem 1.25rem 1.25rem 2.5rem; }
+  .demo-slide .boundary::before { width: .75rem; }
+  .demo-slide .boundary-list { margin-top: 1rem; gap: .75rem; }
+  .demo-slide .boundary-list strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+  .demo-slide .boundary-list span { font-size: .95rem; }
+  .demo-slide .code-block { font-size: .8rem; padding: .9rem 1rem; }
+  .demo-cta { margin-top: 1.25rem; }
+  .pub-actions.demo-cta .pub-button { flex: 1 1 auto; }
+  .demo-facts .facts { font-size: .95rem; }
+  .demo-facts .facts th, .demo-facts .facts td { padding-block: .5rem; }
+  .demo-facts .facts th { width: 28%; padding-right: 1rem; }
+  .demo-facts .note { margin-top: 1rem; padding: .75rem 1rem; font-size: .95rem; }
+  .demo-legal { margin-top: .6rem; }
+  .demo-bar .pub-button { padding-inline: .8rem; }
+  .demo-bar { gap: .5rem; }
 }
 
 @media (prefers-contrast: more) {
-  /* Hoher Kontrast: Tokens sind hier Schwarz (--text) und Weiß (--surface). */
-  .demo-slide-hero {
-    background: var(--text);
-    color: var(--surface);
-    border: 2px solid var(--surface);
-  }
-  .demo-hero-bg {
-    background: var(--text);
-    animation: none;
-  }
-  .demo-cta .button.primary {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--surface);
-  }
-  .demo-cta .button.secondary {
-    color: var(--surface);
-    border-color: var(--surface);
-  }
-  .demo-deck.is-js .demo-bar {
-    background: var(--surface);
-    border-top: 2px solid var(--text);
-  }
-  .demo-yes,
-  .demo-no {
-    color: var(--text);
-  }
+  .demo-deck.is-js .demo-bar { border-top: 2px solid var(--text); }
+  .demo-progress-fill { background: var(--text); }
 }
