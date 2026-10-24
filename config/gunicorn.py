@@ -1,26 +1,24 @@
 """Gunicorn configuration for Rettungswache-Wachbuch.
 
-This configuration optimizes Gunicorn for production use with:
-- Multiple worker processes (2x CPU cores + 1)
-- Threaded workers for concurrent request handling
-- Timeouts and connection limits for stability
-- Graceful worker recycling to prevent memory leaks
-
-Usage:
+Used by scripts/start-web.sh in the container:
     gunicorn --config config/gunicorn.py config.wsgi:application
+
+Defaults are sized for small hosts (1-2 GB RAM, Raspberry Pi): 2 workers with
+4 threads and a 60 s timeout. Raise GUNICORN_WORKERS on bigger machines and
+keep POSTGRES_MAX_CONNECTIONS above workers x threads plus the background
+workers.
 
 For development, use:
     gunicorn --reload --workers 1 --threads 1 config.wsgi:application
 """
 
-import multiprocessing
 import os
 
 # Worker Settings
 # -----------------
-# Number of workers: 2x CPU cores + 1 (recommended for CPU-bound workloads)
-# For I/O-bound workloads (like Django with database), you can use more workers
-workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
+# Each worker is a full Django process (~100 MB). Two workers keep one request
+# path alive while the other recycles.
+workers = int(os.getenv("GUNICORN_WORKERS", "2"))
 
 # Worker class: Use gthread for I/O-bound applications (Django + PostgreSQL)
 # Options: sync, async, gthread, gevent, tornado
@@ -44,14 +42,17 @@ max_requests_jitter = int(os.getenv("GUNICORN_MAX_REQUESTS_JITTER", 50))
 
 # Timeout for worker processes (seconds)
 # Workers that don't complete a request within this time will be killed
-timeout = int(os.getenv("GUNICORN_TIMEOUT", 30))
+timeout = int(os.getenv("GUNICORN_TIMEOUT", "60"))
 
 # Timeout for graceful worker restart (seconds)
 graceful_timeout = int(os.getenv("GUNICORN_GRACEFUL_TIMEOUT", 30))
 
 # Keepalive settings (seconds)
 # Time to wait for connections on a Keep-Alive connection
-keepalive = int(os.getenv("GUNICORN_KEEPALIVE", 2))
+# Länger als der Leerlauf-Timeout der Clients (Dart-HttpClient: 15 s). Sonst
+# schließt Gunicorn eine Verbindung, die der Client gerade wiederverwendet, und
+# ein POST endet mit „Connection closed before full header was received“.
+keepalive = int(os.getenv("GUNICORN_KEEPALIVE", 20))
 
 # Server Settings
 # ---------------
@@ -75,9 +76,9 @@ backlog = int(os.getenv("GUNICORN_BACKLOG", 2048))
 # Log level: debug, info, warning, error, critical
 loglevel = os.getenv("GUNICORN_LOGLEVEL", "info")
 
-# Log file path (use - for stdout)
-# accesslog = "-"
-# errorlog = "-"
+# Log file path ("-" = stdout/stderr, collected by the Docker log driver)
+accesslog = os.getenv("GUNICORN_ACCESSLOG", "-")
+errorlog = os.getenv("GUNICORN_ERRORLOG", "-")
 
 # Enable access log
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'

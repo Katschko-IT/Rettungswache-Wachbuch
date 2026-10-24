@@ -5,7 +5,7 @@
 {% block content %}
 <div class="more-hub-container">
 
-  <header class="page-heading heading-with-action ms-4d1411d">
+  <header class="page-heading heading-with-action">
     <div>
       <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Modulübersicht" %}</p>
       <h1>{% translate "Alle Bereiche" %}</h1>
@@ -14,7 +14,7 @@
     {% if current_membership.role == 'admin' %}
       <div>
         <a class="button secondary" href="{% url 'presentation_settings' %}">
-          <span class="icon" aria-hidden="true">🎨</span> {% translate "Leiste anpassen" %}
+          {% include "core/_icon.html" with name="palette" %}{% translate "Leiste anpassen" %}
         </a>
       </div>
     {% endif %}
@@ -22,7 +22,7 @@
 
   {# Live-Schnellsuche #}
   <div class="more-search-box">
-    <span class="ms-8ed6849" aria-hidden="true">🔍</span>
+    {% include "core/_icon.html" with name="search" class="more-search-icon" %}
     <input type="search" id="more-quick-search" data-filter-input=".more-hub-container" data-filter-hint="more-search-hint" class="more-search-input" placeholder="{% translate 'Modul oder Bereich suchen (z. B. Fuhrpark, MPG, Lager, Wiki, Mängel)...' %}" autocomplete="off" aria-label="{% translate 'Module durchsuchen' %}">
     <small id="more-search-hint" class="more-search-hint" hidden>{% translate "Escape zum Zurücksetzen" %}</small>
   </div>
@@ -31,8 +31,7 @@
   {# KATEGORIE 1: Rettungsdienst-Fachmodule #}
   <section class="more-category-block" data-filter-group data-category="fachmodule">
     <div class="more-category-header">
-      <h2 class="more-category-title">
-        <span>🚑</span> {% translate "Fachmodule" %}
+      <h2 class="more-category-title"> {% translate "Fachmodule" %}
       </h2>
       <span class="more-category-count">{% translate "Kernmodule" %}</span>
     </div>
@@ -42,7 +41,7 @@
       {% if current_membership.station.mpg_enabled %}
         <a class="more-card-item" data-filter-item data-more="mpg" data-order="{{ more_order.mpg|default:10 }}" href="{% url 'mpg_dashboard' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🩺</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="mpg" %}</span>
             {% if 'mpg' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -56,7 +55,7 @@
       {% if current_membership.station.warehouse_enabled %}
         <a class="more-card-item" data-filter-item data-more="warehouse" data-order="{{ more_order.warehouse|default:11 }}" href="{% url 'warehouse_dashboard' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📦</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="warehouse" %}</span>
             {% if 'warehouse' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -70,7 +69,7 @@
       {% if current_membership.station.fleet_enabled %}
         <a class="more-card-item" data-filter-item data-more="fleet" data-order="{{ more_order.fleet|default:12 }}" href="{% url 'fleet_dashboard' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🚑</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="fleet" %}</span>
             {% if 'fleet' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -84,7 +83,7 @@
       {% if current_membership.station.orga_enabled %}
         <a class="more-card-item" data-filter-item data-more="orga" data-order="{{ more_order.orga|default:13 }}" href="{% url 'orga_dashboard' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🏢</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="orga" %}</span>
             {% if 'orga' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -98,7 +97,7 @@
       {% if current_membership.station.display_enabled %}
         <a class="more-card-item" data-filter-item data-more="display" data-order="{{ more_order.display|default:14 }}" href="{% url 'display_home' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🖥️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="display" %}</span>
             {% if 'display' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -114,8 +113,7 @@
   {# KATEGORIE 2: Wachbetrieb & Alltagsorganisation #}
   <section class="more-category-block" data-filter-group data-category="wachbetrieb">
     <div class="more-category-header">
-      <h2 class="more-category-title">
-        <span>📋</span> {% translate "Wachbetrieb & Alltagsorganisation" %}
+      <h2 class="more-category-title"> {% translate "Wachbetrieb & Alltagsorganisation" %}
       </h2>
       <span class="more-category-count">{% translate "Wachalltag" %}</span>
     </div>
@@ -124,7 +122,7 @@
       {# Mängel #}
       <a class="more-card-item" data-filter-item data-more="defects" data-order="{{ more_order.defects|default:20 }}" href="{% url 'defects_web' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">⚠️</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="defects" %}</span>
           {% if 'defects' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -136,7 +134,7 @@
       {# Geräte & Status #}
       <a class="more-card-item" data-filter-item data-more="assets" data-order="{{ more_order.assets|default:21 }}" href="{% url 'assets_inventory_web' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">🧰</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="assets" %}</span>
           {% if 'assets' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -149,7 +147,7 @@
       {% if current_membership.station.tasks_enabled %}
         <a class="more-card-item" data-filter-item data-more="tasks" data-order="{{ more_order.tasks|default:22 }}" href="{% url 'tasks_today' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📝</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="tasks" %}</span>
             {% if 'tasks' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -162,7 +160,7 @@
       {# Auswertung #}
       <a class="more-card-item" data-filter-item data-more="reports" data-order="{{ more_order.reports|default:23 }}" href="{% url 'wachalltag_reports_web' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">📊</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="reports" %}</span>
           {% if 'reports' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -175,7 +173,7 @@
       {% if current_membership.station.checklists_enabled %}
         <a class="more-card-item" data-filter-item data-more="checklists" data-order="{{ more_order.checklists|default:24 }}" href="{% url 'checklists' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">✅</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="checklists" %}</span>
             {% if 'checklists' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -186,7 +184,7 @@
 
         <a class="more-card-item" data-filter-item data-more="schedules" data-order="{{ more_order.schedules|default:25 }}" href="{% url 'checklist_schedules_web' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">⏱️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="clock" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Prüfintervalle" %}</strong>
@@ -199,7 +197,7 @@
       {% if current_membership.station.calendar_enabled %}
         <a class="more-card-item" data-filter-item data-more="calendar" data-order="{{ more_order.calendar|default:26 }}" href="{% url 'calendar' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📅</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="calendar" %}</span>
             {% if 'calendar' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -213,7 +211,7 @@
       {% if current_membership.station.pinboard_enabled %}
         <a class="more-card-item" data-filter-item data-more="pinboard" data-order="{{ more_order.pinboard|default:27 }}" href="{% url 'pinboard' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📌</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="pinboard" %}</span>
             {% if 'pinboard' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -227,7 +225,7 @@
       {% if current_membership.station.coffee_enabled %}
         <a class="more-card-item" data-filter-item data-more="coffee" data-order="{{ more_order.coffee|default:28 }}" href="{% url 'coffee' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">☕</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="coffee" %}</span>
             {% if 'coffee' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -241,7 +239,7 @@
       {% if current_membership.station.birthdays_enabled %}
         <a class="more-card-item" data-filter-item data-more="birthdays" data-order="{{ more_order.birthdays|default:29 }}" href="{% url 'birthdays' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🎂</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="birthdays" %}</span>
             {% if 'birthdays' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -257,8 +255,7 @@
   {# KATEGORIE 3: Kommunikation & Wissen #}
   <section class="more-category-block" data-filter-group data-category="kommunikation">
     <div class="more-category-header">
-      <h2 class="more-category-title">
-        <span>📢</span> {% translate "Kommunikation & Wissen" %}
+      <h2 class="more-category-title"> {% translate "Kommunikation & Wissen" %}
       </h2>
       <span class="more-category-count">{% translate "Information" %}</span>
     </div>
@@ -267,7 +264,7 @@
       {# Neuigkeiten #}
       <a class="more-card-item" data-filter-item data-more="news" data-order="{{ more_order.news|default:30 }}" href="{% url 'news_index' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">📰</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="news" %}</span>
           {% if 'news' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -279,7 +276,7 @@
       {# Wachen-Wiki #}
       <a class="more-card-item" data-filter-item data-more="wiki" data-order="{{ more_order.wiki|default:31 }}" href="{% url 'wiki_index' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">📖</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="wiki" %}</span>
           {% if 'wiki' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -292,7 +289,7 @@
       {% if current_membership.station.feeds_enabled %}
         <a class="more-card-item" data-filter-item data-more="feeds" data-order="{{ more_order.feeds|default:32 }}" href="{% url 'feeds' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📡</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="feeds" %}</span>
             {% if 'feeds' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -306,7 +303,7 @@
       {% if current_membership.station.chat_enabled %}
         <a class="more-card-item" data-filter-item data-more="chat" data-order="{{ more_order.chat|default:33 }}" href="{% url 'chat' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">💬</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="chat" %}</span>
             {% if 'chat' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
           </div>
           <div>
@@ -324,8 +321,7 @@
   {# KATEGORIE 4: Wachenverwaltung & Sicherheit #}
   <section class="more-category-block" data-filter-group data-category="verwaltung">
     <div class="more-category-header">
-      <h2 class="more-category-title">
-        <span>⚙️</span> {% translate "Wachenverwaltung & Sicherheit" %}
+      <h2 class="more-category-title"> {% translate "Wachenverwaltung & Sicherheit" %}
       </h2>
       <span class="more-category-count">{% translate "Administration & Profil" %}</span>
     </div>
@@ -334,7 +330,7 @@
       {# Mein Konto #}
       <a class="more-card-item" data-filter-item data-more="account" data-order="{{ more_order.account|default:40 }}" href="{% url 'account_home' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">👤</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="account" %}</span>
           {% if 'account' in nav_keys %}<span class="more-card-tag">{% translate "In Leiste" %}</span>{% endif %}
         </div>
         <div>
@@ -346,7 +342,7 @@
       {# App-Tokens / API #}
       <a class="more-card-item" data-filter-item data-more="tokens" data-order="{{ more_order.tokens|default:41 }}" href="{% url 'api_tokens_manage' %}">
         <div class="more-card-top">
-          <span class="more-card-icon" aria-hidden="true">🔌</span>
+          <span class="more-card-icon">{% include "core/_icon.html" with name="link" %}</span>
         </div>
         <div>
           <strong class="more-card-title">{% translate "App-Tokens / API" %}</strong>
@@ -358,7 +354,7 @@
       {% if current_membership.role == 'admin' %}
         <a class="more-card-item" data-filter-item data-more="display_tokens" data-order="{{ more_order.appearance|default:42|add:1 }}" href="{% url 'display_tokens' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">📺</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="display" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Display-Tokens" %}</strong>
@@ -369,7 +365,7 @@
         {# Team & Rollen #}
         <a class="more-card-item" data-filter-item data-more="team" data-order="{{ more_order.team|default:43 }}" href="{% url 'team' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">👥</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="team" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Team & Rollen" %}</strong>
@@ -380,7 +376,7 @@
         {# Mitarbeiter-Aktivierungen #}
         <a class="more-card-item" data-filter-item data-more="invites" data-order="{{ more_order.invites|default:44 }}" href="{% url 'team_invites' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">✉️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="mail" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Mitarbeiter-Aktivierungen" %}</strong>
@@ -391,7 +387,7 @@
         {# Darstellung #}
         <a class="more-card-item" data-filter-item data-more="appearance" data-order="{{ more_order.appearance|default:45 }}" href="{% url 'presentation_settings' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🎨</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="palette" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Darstellung & Leiste" %}</strong>
@@ -402,7 +398,7 @@
         {# Einstellungen #}
         <a class="more-card-item" data-filter-item data-more="settings" data-order="{{ more_order.settings|default:46 }}" href="{% url 'station_settings' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">⚙️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="settings" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Wacheneinstellungen" %}</strong>
@@ -415,7 +411,7 @@
       {% if current_membership.role == 'admin' or current_membership.role == 'auditor' %}
         <a class="more-card-item" data-filter-item data-more="audit" data-order="{{ more_order.audit|default:47 }}" href="{% url 'audit_log' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🛡️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="audit" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Audit-Logbuch" %}</strong>
@@ -428,7 +424,7 @@
       {% if mfa_enabled %}
         <a class="more-card-item" data-filter-item data-more="mfa" data-order="{{ more_order.mfa|default:48 }}" href="{% url 'mfa_setup' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🔑</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="key" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Zwei-Faktor / Passkeys" %}</strong>
@@ -441,7 +437,7 @@
       {% if web_push_enabled %}
         <a class="more-card-item" data-filter-item data-more="push" data-order="{{ more_order.push|default:49 }}" href="{% url 'push_settings' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🔔</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="bell" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Push-Mitteilungen" %}</strong>
@@ -454,7 +450,7 @@
       {% if request.user.is_staff %}
         <a class="more-card-item" data-filter-item data-more="admin" data-order="{{ more_order.admin|default:50 }}" href="{% url 'admin:index' %}">
           <div class="more-card-top">
-            <span class="more-card-icon" aria-hidden="true">🛠️</span>
+            <span class="more-card-icon">{% include "core/_icon.html" with name="shield" %}</span>
           </div>
           <div>
             <strong class="more-card-title">{% translate "Technische Verwaltung" %}</strong>

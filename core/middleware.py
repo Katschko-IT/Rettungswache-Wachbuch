@@ -129,18 +129,95 @@ class ClientIPMiddleware:
         return self.get_response(request)
 
     def _extract(self, request):
-        trusted = bool(getattr(settings, "TRUSTED_PROXY", False))
-        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if trusted and forwarded:
-            ip = forwarded.split(",")[0].strip()
-        else:
-            ip = (request.META.get("REMOTE_ADDR") or "unknown").strip()
-        if not ip or len(ip) > 64:
-            ip = "unknown"
-        return ip
+        return client_ip_from_request(request)
+
+
+def client_ip_from_request(request):
+    """Client-IP für Rate-Limits und Sperren.
+
+    Hinter genau einem vertrauenswürdigen Reverse-Proxy (``TRUSTED_PROXY``)
+    zählt der Eintrag, den dieser Proxy an ``X-Forwarded-For`` angehängt hat –
+    also der rechte. Weiter links stehende Einträge kann der Client selbst
+    setzen und sind deshalb wertlos.
+    """
+    trusted = bool(getattr(settings, "TRUSTED_PROXY", False))
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ip = ""
+    if trusted and forwarded:
+        ip = forwarded.split(",")[-1].strip()
+    if not ip:
+        ip = (request.META.get("REMOTE_ADDR") or "unknown").strip()
+    if not ip or len(ip) > 64:
+        ip = "unknown"
+    return ip
+
+
+def axes_client_ip(request, *args, **kwargs):
+    """Callable für ``AXES_CLIENT_IP_CALLABLE`` mit derselben Proxy-Logik."""
+    return client_ip_from_request(request)
+
+
+class MfaEnforcementMiddleware:
+    """Setzt ``MFA_REQUIRED`` für angemeldete Web-Sitzungen durch.
+
+    Ohne bestätigten zweiten Faktor bleiben nur Einrichtung, Abmeldung und
+    technische Pfade erreichbar. Die Token-API prüft MFA an ihren eigenen
+    Ausgabestellen (``obtain_token``, ``pairing_exchange``).
+    """
+
+    ALLOWED_PREFIXES = (
+        "/konto/mfa/",
+        "/anmelden/",
+        "/aktivieren/",
+        "/setup/",
+        "/abmelden/",
+        "/api/",
+        "/healthz/",
+        "/offline/",
+        "/datenschutz/",
+        "/manifest.webmanifest",
+        "/service-worker.js",
+        "/favicon.ico",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if self._must_set_up_mfa(request):
+            from django.shortcuts import redirect
+
+            if request.method in ("GET", "HEAD"):
+                return redirect("mfa_setup")
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        return self.get_response(request)
+
+    def _must_set_up_mfa(self, request):
+        from .mfa import mfa_enabled, mfa_required, user_has_confirmed_mfa
+
+        user = getattr(request, "user", None)
+        if not (mfa_enabled() and mfa_required() and user is not None and user.is_authenticated):
+            return False
+        path = request.path_info
+        # QR-Bestätigung meldet eine andere Sitzung an und braucht daher selbst
+        # einen vollständig angemeldeten Account.
+        if "/bestaetigen/" not in path and (
+            path.startswith(settings.STATIC_URL) or path.startswith(self.ALLOWED_PREFIXES)
+        ):
+            return False
+        from .terminal import is_service_user
+
+        if is_service_user(user):
+            return False
+        return not user_has_confirmed_mfa(user)
 
 
 __all__ = [
+    "client_ip_from_request",
+    "axes_client_ip",
+    "MfaEnforcementMiddleware",
     "SecurityHeadersMiddleware",
     "CorrelationIdMiddleware",
     "ClientIPMiddleware",

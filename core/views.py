@@ -229,8 +229,8 @@ def web_manifest(request):
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
-        "background_color": "#f7f9fc",
-        "theme_color": "#0d47a1",
+        "background_color": "#f5f7f6",
+        "theme_color": "#ffffff",
         "icons": icons,
         "shortcuts": shortcuts,
         "categories": ["productivity", "utilities"],
@@ -245,10 +245,16 @@ def service_worker(request):
         _static_url("core/app.css"),
         _static_url("core/accessibility.css"),
         _static_url("core/demo.css"),
+        _static_url("core/public.css"),
         _static_url("core/app.js"),
-        _static_url("core/fonts/SourceSans3-Regular.woff2"),
-        _static_url("core/fonts/SourceSans3-Semibold.woff2"),
-        _static_url("core/fonts/SourceSans3-Bold.woff2"),
+        _static_url("core/fonts.css"),
+        _static_url("core/tokens.css"),
+        _static_url("core/modules.css"),
+        _static_url("core/ui.js"),
+        _static_url("core/icons.svg"),
+        _static_url("core/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2"),
+        _static_url("core/fonts/atkinson-hyperlegible-next-latin-600-normal.woff2"),
+        _static_url("core/fonts/atkinson-hyperlegible-next-latin-700-normal.woff2"),
         _static_url("core/icons/icon-192.png"),
         _static_url("core/icons/icon-512.png"),
     ]
@@ -484,36 +490,55 @@ def dashboard(request):
         "task_done": task_progress["done_count"] if task_progress else 0,
     }
     profile = dashboard_profile(station)
+    urgent_count = active.filter(priority=HandoverEntry.Priority.URGENT).count()
+    asset_title = _("Ausstattung") if (station.fleet_enabled or station.mpg_enabled) else profile["asset_label"]
+    # key: (Ziel, Einzahl, Mehrzahl, Untertitel, Wert, Ton bei Handlungsbedarf oder None = nur Info)
     card_definitions = {
-        "defects": ("defects_web", _("Mängel"), _("offen"), operations["defects_count"]),
+        "defects": ("defects_web", _("Mangel"), _("Mängel"), _("offen"), operations["defects_count"],
+                    "danger" if operations["urgent_defects_count"] else "warning"),
         # Mit Fuhrpark-/MPG-Modul haben Fahrzeuge und Medizingeräte eigene
         # Karten; die Gerätekarte meint dann nur noch die übrige Ausstattung.
-        "assets": (
-            "assets_inventory_web",
-            _("Ausstattung") if (station.fleet_enabled or station.mpg_enabled) else profile["asset_label"],
-            _("nicht bereit"),
-            operations["asset_attention_count"],
-        ),
-        "loans": ("assets_inventory_web", _("Inventar"), _("ausgegeben"), operations["inventory_loans_count"]),
-        "checklists": ("checklists", _("Checklisten"), _("fällig oder überfällig"), operations["due_checklists_count"]),
-        "tasks": ("tasks_today", profile["task_label"], _("heute erledigt"), f'{operations["task_done"]}/{operations["task_total"]}'),
+        "assets": ("assets_inventory_web", asset_title, asset_title, _("nicht bereit"),
+                   operations["asset_attention_count"], "warning"),
+        "loans": ("assets_inventory_web", _("Inventar"), _("Inventar"), _("ausgegeben"),
+                  operations["inventory_loans_count"], None),
+        "checklists": ("checklists", _("Checkliste"), _("Checklisten"), _("fällig oder überfällig"),
+                       operations["due_checklists_count"], "warning"),
     }
-    dashboard_cards = [
-        {
-            "href": reverse(card_definitions[key][0]),
-            "title": card_definitions[key][1],
-            "subtitle": card_definitions[key][2],
-            "value": card_definitions[key][3],
-            "attention": key in {"defects", "assets", "checklists"} and bool(card_definitions[key][3]),
-        }
-        for key in profile["cards"]
-        if (key not in {"checklists", "tasks"} or (key == "checklists" and station.checklists_enabled) or (key == "tasks" and station.tasks_enabled))
-    ]
+    cards = []
+    for key in profile["cards"]:
+        if key not in card_definitions or (key == "checklists" and not station.checklists_enabled):
+            continue
+        url_name, singular, plural, subtitle, value, tone = card_definitions[key]
+        cards.append({
+            "key": key,
+            "href": reverse(url_name),
+            "title": singular if value == 1 else plural,
+            "subtitle": subtitle,
+            "value": value,
+            "attention": tone is not None and bool(value),
+            "tone": tone or "info",
+        })
     # Fachmodule (Fahrzeuge, Medizingeräte, Material, Dienstanweisungen) melden
     # ihren Handlungsbedarf hier, damit die Übersicht das ganze Lagebild zeigt.
     from .module_overview import module_attention_cards
 
-    dashboard_cards.extend(module_attention_cards(station, request.user))
+    cards.extend(module_attention_cards(station, request.user))
+    attention_items = []
+    if urgent_count:
+        attention_items.append({
+            "key": "handovers",
+            "href": f"{reverse('handover_list')}?ansicht=dringend",
+            "title": _("Dringende Übergabe") if urgent_count == 1 else _("Dringende Übergaben"),
+            "subtitle": _("für die nächste Schicht"),
+            "value": urgent_count,
+            "tone": "danger",
+        })
+    attention_items += sorted(
+        (card for card in cards if card["attention"]),
+        key=lambda card: 0 if card["tone"] == "danger" else 1,
+    )
+    calm_items = [card for card in cards if not card["attention"]]
     from .notification_models import UserNotification
 
     my_notifications = list(
@@ -522,10 +547,11 @@ def dashboard(request):
     context = {
         "my_notifications": my_notifications,
         "dashboard_profile": profile,
-        "dashboard_cards": dashboard_cards,
+        "attention_items": attention_items,
+        "calm_items": calm_items,
         "open_handovers": active[:5],
         "open_count": active.count(),
-        "urgent_count": active.filter(priority=HandoverEntry.Priority.URGENT).count(),
+        "urgent_count": urgent_count,
         "events": events,
         "calendar_enabled": station.calendar_enabled,
         "checklists_enabled": station.checklists_enabled,
@@ -1055,6 +1081,9 @@ def checklist_complete(request, pk):
         audit(request.user, station, "checklist.completed", completion, {
             "fields": ["checklist", "note"],
         })
+        from .api.wachalltag import advance_checklist_schedule
+
+        advance_checklist_schedule(checklist.pk)
     messages.success(request, _("Checkliste wurde als erledigt vermerkt."))
     return redirect("checklists")
 
@@ -1286,6 +1315,12 @@ def station_settings(request):
         post_data = request.POST.copy()
         post_data.setdefault("organization_profile", station.organization_profile)
         post_data.setdefault("holiday_state", getattr(station, "holiday_state", "NW") or "NW")
+        # Fehlen die Koordinatenfelder ganz (ältere Formulare), bleiben die
+        # gespeicherten Werte erhalten; ein leeres Feld löscht sie bewusst.
+        for coord_field in ("latitude", "longitude"):
+            current = getattr(station, coord_field, None)
+            if current is not None:
+                post_data.setdefault(coord_field, str(current))
     else:
         post_data = None
     form = StationSettingsForm(post_data, request.FILES or None, instance=station)

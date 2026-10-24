@@ -83,10 +83,9 @@ def qr_error(code: str, status: int) -> JsonResponse:
 
 
 def get_client_ip(request: HttpRequest) -> str:
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    if xff and getattr(settings, "TRUSTED_PROXY", False):
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "127.0.0.1")
+    from .middleware import client_ip_from_request
+
+    return client_ip_from_request(request)
 
 
 def _json_body(request: HttpRequest) -> dict:

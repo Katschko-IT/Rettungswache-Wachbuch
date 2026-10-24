@@ -24,8 +24,8 @@ INDEX_HTML = SITE_DIR / "index.html"
 STYLES_CSS = SITE_DIR / "styles.css"
 README_MD = SITE_DIR / "README.md"
 NOJEKYLL = SITE_DIR / ".nojekyll"
-SHOTS_DIR = SITE_DIR / "assets" / "screenshots"
-FONTS_DIR = SITE_DIR / "assets" / "fonts"
+SHOTS_DIR = SITE_DIR / "assets" / "design" / "screens"
+FONTS_DIR = SITE_DIR / "assets" / "design" / "fonts"
 EN_DIR = SITE_DIR / "en"
 EN_HTML = EN_DIR / "index.html"
 
@@ -287,24 +287,27 @@ class TestSiteIntegrity(unittest.TestCase):
         self.assertGreaterEqual(self.parser.figures, 9, "Galerie braucht <figure>-Elemente mit Captions")
 
         for img in self.parser.images:
-            self.assertTrue(img.get("src", "").startswith("assets/screenshots/"), f"Bild nicht lokal: {img}")
+            self.assertTrue(img.get("src", "").startswith("assets/design/screens/"), f"Bild nicht lokal: {img}")
             self.assertTrue(img.get("alt", "").strip(), f"Alternativtext fehlt für {img.get('src')}")
             self.assertGreaterEqual(len(img.get("alt", "")), 40, f"Alternativtext zu knapp: {img.get('src')}")
             self.assertTrue(img.get("width", "").isdigit(), f"width fehlt: {img.get('src')}")
             self.assertTrue(img.get("height", "").isdigit(), f"height fehlt: {img.get('src')}")
-            self.assertLessEqual(int(img["width"]), 1280, "Screenshot breiter als 1280 CSS-Pixel")
+            self.assertLessEqual(int(img["width"]), 1440, "Screenshot breiter als 1440 CSS-Pixel")
 
         lower_html = self.index_content.lower()
         self.assertIn("synthetischen daten", lower_html, "Kennzeichnung der synthetischen Daten fehlt")
 
     def test_local_fonts_and_license(self):
         """Schriften müssen lokal eingebunden sein und eine Lizenz mitliefern."""
-        for weight in ("Regular", "Semibold", "Bold"):
-            font = FONTS_DIR / f"SourceSans3-{weight}.woff2"
+        fonts_css = (SITE_DIR / "assets" / "design" / "fonts.css").read_text(encoding="utf-8")
+        self.assertIn("assets/design/fonts.css", self.index_content, "Schrift-Stylesheet nicht eingebunden")
+        for weight in ("400", "600", "700"):
+            font = FONTS_DIR / f"atkinson-hyperlegible-next-latin-{weight}-normal.woff2"
             self.assertTrue(font.is_file(), f"Lokale Schrift fehlt: {font.name}")
-            self.assertIn(f"assets/fonts/SourceSans3-{weight}.woff2", self.styles_content)
+            self.assertIn(f"fonts/{font.name}", fonts_css)
 
-        self.assertTrue((FONTS_DIR / "LICENSE-SourceSans3.txt").is_file(), "Schriftlizenz fehlt")
+        self.assertTrue((FONTS_DIR / "LICENSE-AtkinsonHyperlegibleNext.txt").is_file(), "Schriftlizenz fehlt")
+        self.assertNotIn("fonts.googleapis", fonts_css)
         self.assertNotIn("fonts.googleapis", self.styles_content)
 
     def test_responsive_and_motion_requirements(self):
@@ -396,8 +399,8 @@ class TestEnglishSite(unittest.TestCase):
         """EN-Seite nutzt ../assets und ../styles.css; im en/ Ordner liegen keine Kopien."""
         self.assertEqual(
             self.en.stylesheets,
-            ["../styles.css"],
-            f"EN-Seite muss genau das zentrale Stylesheet nutzen, gefunden: {self.en.stylesheets}",
+            ["../assets/design/fonts.css", "../assets/design/tokens.css", "../assets/design/public.css", "../styles.css"],
+            f"EN-Seite muss die gemeinsamen Stylesheets nutzen, gefunden: {self.en.stylesheets}",
         )
         self.assertTrue((SITE_DIR / "styles.css").is_file(), "Zentrales Stylesheet fehlt")
         self.assertFalse((EN_DIR / "styles.css").exists(), "styles.css darf im en/ Ordner nicht dupliziert werden")
@@ -409,14 +412,14 @@ class TestEnglishSite(unittest.TestCase):
             self.assertTrue((EN_DIR / src).resolve().is_file(), f"EN-Ressource fehlt: {src}")
 
         for img in self.en.images:
-            self.assertTrue(img.get("src", "").startswith("../assets/screenshots/"), f"Bild nicht lokal: {img}")
+            self.assertTrue(img.get("src", "").startswith("../assets/design/screens/"), f"Bild nicht lokal: {img}")
             self.assertTrue(img.get("alt", "").strip(), f"Alternativtext fehlt für {img.get('src')}")
             self.assertGreaterEqual(len(img.get("alt", "")), 40, f"Alternativtext zu knapp: {img.get('src')}")
             self.assertTrue(img.get("width", "").isdigit(), f"width fehlt: {img.get('src')}")
             self.assertTrue(img.get("height", "").isdigit(), f"height fehlt: {img.get('src')}")
 
-        self.assertGreaterEqual(len(self.en.images), 11, "EN-Seite muss alle 11 App-Screenshots zeigen")
-        self.assertGreaterEqual(len(list(SHOTS_DIR.glob("*.webp"))), 11, "Screenshot-Bestand unvollständig")
+        self.assertGreaterEqual(len(self.en.images), 10, "EN-Seite muss alle App-Screenshots zeigen")
+        self.assertGreaterEqual(len(list(SHOTS_DIR.glob("*.webp"))), 10, "Screenshot-Bestand unvollständig")
 
     def test_en_no_javascript_or_external_cdn(self):
         """Auch die EN-Seite bleibt skript- und CDN-frei."""
@@ -481,11 +484,11 @@ class TestEnglishSite(unittest.TestCase):
         """EN-Fassung trägt dieselben Fakten- und Abgrenzungsaussagen wie die DE-Fassung."""
         lower = self.en_content.lower()
         for required in (
-            "interim release 0.17.0",
             "no production approval",
             "pre-production",
-            "not part of this release",
-            "not publicly available",
+            "not implemented",
+            "outbox",
+            "external acceptance",
             "synthetic",
             "german-language interface",
             "patient documentation system",

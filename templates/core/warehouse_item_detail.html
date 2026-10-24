@@ -3,247 +3,247 @@
 {% block title %}{{ item.name }} | {% translate "Lager & Material" %}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% url 'warehouse_dashboard' %}">← {% translate "Zurück zur Lagerübersicht" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'warehouse_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Lagerübersicht" %}</a>
 </nav>
 
-<header class="page-heading heading-with-action ms-92cb257">
+<header class="page-heading heading-with-action">
   <div>
-    <div class="ms-cf1b898">
-      <span class="badge ms-fd855a1">{{ item.get_category_display }}</span>
-      <span class="badge ms-fd855a1">{{ item.get_unit_display }}</span>
+    <div class="cluster">
+      <span class="badge">{{ item.get_category_display }}</span>
+      <span class="badge">{{ item.get_unit_display }}</span>
       {% if item.requires_cooling %}
-        <span class="badge ms-ac90d37">❄️ Kühlpflicht 2–8 °C</span>
+        <span class="badge badge-info">Kühlpflicht 2–8 °C</span>
         {% if item.room_temp_max_days %}
-          <span class="badge ms-371b320">Out-of-Fridge: max. {{ item.room_temp_max_days }} Tage</span>
+          <span class="badge">Out-of-Fridge: max. {{ item.room_temp_max_days }} Tage</span>
         {% endif %}
       {% endif %}
     </div>
     <h1>{{ item.name }}</h1>
-    <p class="lead ms-50435ff">
-      {% if item.pzn %}<strong>PZN:</strong> <code>{{ item.pzn }}</code> &middot; {% endif %}
-      {% if item.gtin %}<strong>GTIN/EAN:</strong> <code>{{ item.gtin }}</code> &middot; {% endif %}
-      <strong>{% translate "Gesamtbestand Wache:" %}</strong> {{ item.total_stock }} {{ item.get_unit_display }}
+    <p class="lead">
+      {% if item.pzn %}PZN: <span class="mono">{{ item.pzn }}</span> &middot; {% endif %}
+      {% if item.gtin %}GTIN/EAN: <span class="mono">{{ item.gtin }}</span> &middot; {% endif %}
+      {% translate "Gesamtbestand Wache:" %} <strong class="{% if item.is_under_min_stock %}stock-low{% endif %}">{{ item.total_stock }} {{ item.get_unit_display }}</strong>
       (Min: {{ item.min_stock }} / Soll: {{ item.target_stock }})
     </p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
+    <button type="button" class="button primary" data-modal-open="batch-modal">
+      {% include "core/_icon.html" with name="plus" %}{% translate "Neue Charge einbuchen" %}
+    </button>
     {% if can_manage %}
       <a class="button secondary" href="{% url 'warehouse_item_edit' item.slug %}">
-        ✏️ {% translate "Stammdaten bearbeiten" %}
+        {% include "core/_icon.html" with name="edit" %}{% translate "Stammdaten bearbeiten" %}
       </a>
     {% endif %}
-    <button type="button" class="button" data-modal-open="batch-modal">
-      ➕ {% translate "Neue Charge einbuchen" %}
-    </button>
   </div>
 </header>
 
-{# Bestandsübersicht nach Lagerorten #}
-<section class="section-block ms-e705884">
-  <h2>📍 {% translate "Bestand nach Lagerorten (Fahrzeuge, Schränke, Koffer)" %}</h2>
-  <div class="ms-de90db1">
-    {% for si in stock_items %}
-      <div class="kpi-card ms-0c99cbc">
-        <strong class="ms-98d7a3b">{{ si.location.name }}</strong>
-        <div class="ms-0e96cea">
-          {{ si.quantity }} <span class="ms-8aac62c">{{ item.get_unit_display }}</span>
-        </div>
-        <small class="ms-b0a14b6">
-          Charge: <code>{{ si.batch.batch_number }}</code> &middot;
-          MHD: <strong>{{ si.batch.effective_date|date:"d.m.Y" }}</strong>
-        </small>
-      </div>
-    {% empty %}
-      <p class="empty-state ms-a66f410">
-        {% translate "Aktuell kein physischer Bestand an einem Lagerort erfasst." %}
-      </p>
-    {% endfor %}
-  </div>
-</section>
-
-{# FEFO-Chargenliste #}
-<section class="section-block ms-e705884">
-  <h2>⏱️ {% translate "Chargen nach FEFO-Priorität (First Expired, First Out)" %}</h2>
+{# Chargen nach FEFO-Priorität #}
+<section class="section-block">
+  <h2>{% translate "Chargen nach FEFO-Priorität (First Expired, First Out)" %}</h2>
   <div class="item-list">
     {% for batch in batches %}
       {% with urg=batch.urgency %}
       <div class="list-row module-row{% if urg.level == 'overdue' or urg.level == 'recalled' %} module-row-overdue{% elif urg.level == 'critical' %} module-row-critical{% elif urg.level == 'warning' %} module-row-warning{% endif %}">
-        
-        <div class="ms-befb117">
-          <div class="ms-756d4ee">
-            <strong class="ms-7463f71">Lot: <code>{{ batch.batch_number }}</code></strong>
+
+        <div class="row-main">
+          <div class="cluster">
+            <strong>Lot: <code>{{ batch.batch_number }}</code></strong>
             {% if batch.is_recalled %}
-              <span class="badge ms-6208160">⛔ GESPERRT</span>
+              <span class="status-label danger">Gesperrt</span>
             {% endif %}
           </div>
-          <small class="ms-236cf06">
+          <small>
             Hersteller-MHD: {{ batch.manufacturer_exp_date|date:"d.m.Y" }}
             {% if batch.out_of_fridge_date %}
-              &middot; ⚠️ Entnommen: {{ batch.out_of_fridge_date|date:"d.m.Y" }} (Out-of-Fridge)
+              &middot; Entnommen: {{ batch.out_of_fridge_date|date:"d.m.Y" }} (Out-of-Fridge)
             {% endif %}
           </small>
         </div>
 
-        <div class="ms-07f320a">
-          {% if urg.level == 'recalled' %}
-            <span class="badge ms-451babe">{{ urg.label }}</span>
-          {% elif urg.level == 'overdue' %}
-            <span class="badge ms-451babe">🔴 {{ urg.label }}</span>
-          {% elif urg.level == 'critical' %}
-            <span class="badge ms-9eea231">🟠 {{ urg.label }}</span>
-          {% elif urg.level == 'warning' %}
-            <span class="badge ms-9cc0f21">🟡 {{ urg.label }}</span>
+        <div class="row-due">
+          {% if urg.level == 'recalled' or urg.level == 'overdue' %}
+            <span class="state danger">{{ urg.label }}</span>
+          {% elif urg.level == 'critical' or urg.level == 'warning' %}
+            <span class="state warning">{{ urg.label }}</span>
           {% else %}
-            <span class="badge ms-519594e">🟢 {{ urg.label }}</span>
+            <span class="state success">{{ urg.label }}</span>
           {% endif %}
         </div>
 
-        {# Aktionen: Umlagern & Verbrauch #}
-        <div class="ms-9cdc00f">
-          <button type="button" class="button secondary small" data-modal-open="transfer-modal" data-modal-action="{% url 'warehouse_stock_transfer' batch.id %}" data-modal-label="Lot: {{ batch.batch_number }}">
-            🔄 {% translate "Umlagern" %}
+        {# Aktionen: Umlagern und Verbrauch #}
+        <div class="row-actions cluster">
+          <button type="button" class="button secondary" data-modal-open="transfer-modal" data-modal-action="{% url 'warehouse_stock_transfer' batch.id %}" data-modal-label="Lot: {{ batch.batch_number }}">
+            {% include "core/_icon.html" with name="swap" %}{% translate "Umlagern" %}
           </button>
-          <button type="button" class="button secondary small" data-modal-open="consume-modal" data-modal-action="{% url 'warehouse_stock_consume' batch.id %}" data-modal-label="Lot: {{ batch.batch_number }}">
-            📉 {% translate "Verbrauch" %}
+          <button type="button" class="button secondary" data-modal-open="consume-modal" data-modal-action="{% url 'warehouse_stock_consume' batch.id %}" data-modal-label="Lot: {{ batch.batch_number }}">
+            {% include "core/_icon.html" with name="box" %}{% translate "Verbrauch" %}
           </button>
         </div>
 
       </div>
       {% endwith %}
     {% empty %}
-      <p class="empty-state small">{% translate "Keine Chargen vorhanden." %}</p>
+      <p class="empty-state">
+        {% translate "Keine Chargen vorhanden." %}
+        <button type="button" class="button ghost small" data-modal-open="batch-modal">{% translate "Neue Charge einbuchen" %}</button>
+      </p>
     {% endfor %}
   </div>
 </section>
 
-{# Buchungsjournal #}
-<section class="section-block">
-  <h2>📋 {% translate "Buchungsjournal dieses Artikels" %}</h2>
-  <div class="item-list">
-    {% for m in movements %}
-      <div class="list-row">
-        <span class="row-content">
-          <strong>{{ m.get_kind_display }}</strong> &middot; {{ m.quantity }} {{ item.get_unit_display }} (Lot: <code>{{ m.batch.batch_number }}</code>)
-          <small>
-            {{ m.created_at|date:"d.m.Y H:i" }} &middot;
-            {% if m.source_location %}{{ m.source_location.name }}{% else %}Lieferant{% endif %} →
-            {% if m.target_location %}{{ m.target_location.name }}{% else %}Ausscheidung{% endif %}
-            &middot; {{ m.actor.get_full_name|default:m.actor.username }}
-            {% if m.note %} &middot; <em>{{ m.note }}</em>{% endif %}
-          </small>
-        </span>
-      </div>
-    {% empty %}
-      <p class="empty-state small">{% translate "Bisher keine Bewegungen." %}</p>
-    {% endfor %}
-  </div>
-</section>
+<div class="grid-2">
 
-{# MODALS #}
+  {# Bestand nach Lagerorten #}
+  <section class="section-block">
+    <h2>{% translate "Bestand nach Lagerorten (Fahrzeuge, Schränke, Koffer)" %}</h2>
+    <div class="item-list">
+      {% for si in stock_items %}
+        <div class="list-row module-row">
+          <div class="row-main">
+            <strong>{{ si.location.name }}</strong>
+            <small>Charge: <code>{{ si.batch.batch_number }}</code> &middot; MHD: {{ si.batch.effective_date|date:"d.m.Y" }}</small>
+          </div>
+          <span class="stock-figure nowrap">{{ si.quantity }} {{ item.get_unit_display }}</span>
+        </div>
+      {% empty %}
+        <p class="empty-state">
+          {% translate "Aktuell kein physischer Bestand an einem Lagerort erfasst." %}
+          <button type="button" class="button ghost small" data-modal-open="batch-modal">{% translate "Neue Charge einbuchen" %}</button>
+        </p>
+      {% endfor %}
+    </div>
+  </section>
 
-{# Modal: Neue Charge #}
-<div id="batch-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">➕ {% translate "Neue Charge einbuchen" %}</h3>
+  {# Buchungsjournal #}
+  <section class="section-block">
+    <h2>{% translate "Buchungsjournal dieses Artikels" %}</h2>
+    <div class="item-list">
+      {% for m in movements %}
+        <div class="list-row">
+          <span class="row-content">
+            <strong>{{ m.get_kind_display }} &middot; {{ m.quantity }} {{ item.get_unit_display }} (Lot: <code>{{ m.batch.batch_number }}</code>)</strong>
+            <small>
+              {{ m.created_at|date:"d.m.Y H:i" }} &middot;
+              {% if m.source_location %}{{ m.source_location.name }}{% else %}Lieferant{% endif %} →
+              {% if m.target_location %}{{ m.target_location.name }}{% else %}Ausscheidung{% endif %}
+              &middot; {{ m.actor.get_full_name|default:m.actor.username }}
+            </small>
+            {% if m.note %}<span class="row-note">{{ m.note }}</span>{% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <p class="empty-state">{% translate "Bisher keine Bewegungen." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+
+{# Dialoge #}
+
+{# Dialog: neue Charge #}
+<div id="batch-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
+  <div class="modal-panel">
+    <h2 id="batch-modal-title">{% translate "Neue Charge einbuchen" %}</h2>
     <form method="post" action="{% url 'warehouse_batch_create' item.slug %}">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Chargennummer (Lot):" %}</label>
+      <div class="field">
+        <label for="{{ batch_form.batch_number.id_for_label }}">{% translate "Chargennummer (Lot):" %}</label>
         {{ batch_form.batch_number }}
       </div>
-      <div class="ms-e8fa32b">
-        <div>
-          <label class="ms-3a21370">{% translate "Hersteller-MHD:" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ batch_form.manufacturer_exp_date.id_for_label }}">{% translate "Hersteller-MHD:" %}</label>
           {{ batch_form.manufacturer_exp_date }}
         </div>
-        <div>
-          <label class="ms-3a21370">{% translate "Anfangsmenge:" %}</label>
+        <div class="field">
+          <label for="{{ batch_form.initial_quantity.id_for_label }}">{% translate "Anfangsmenge:" %}</label>
           {{ batch_form.initial_quantity }}
         </div>
       </div>
-      <div class="ms-c2c0d0a">
-        <label class="ms-3a21370">{% translate "Anfangslagerort:" %}</label>
+      <div class="field">
+        <label for="{{ batch_form.initial_location.id_for_label }}">{% translate "Anfangslagerort:" %}</label>
         {{ batch_form.initial_location }}
       </div>
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Einbuchen" %}</button>
+        <button type="submit" class="button primary">{% translate "Einbuchen" %}</button>
       </div>
     </form>
   </div>
 </div>
 
-{# Modal: Umlagerung #}
-<div id="transfer-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">🔄 {% translate "Umlagerung buchen" %} (<span id="transfer-batch-label" data-modal-label-target></span>)</h3>
+{# Dialog: Umlagerung #}
+<div id="transfer-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="transfer-modal-title">
+  <div class="modal-panel">
+    <h2 id="transfer-modal-title"><span>{% translate "Umlagerung buchen" %} (<span id="transfer-batch-label" data-modal-label-target></span>)</span></h2>
     <form id="transfer-form" data-modal-form method="post" action="">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Von Lagerort:" %}</label>
+      <div class="field">
+        <label for="{{ transfer_form.source_location.id_for_label }}">{% translate "Von Lagerort:" %}</label>
         {{ transfer_form.source_location }}
       </div>
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Nach Lagerort (z. B. RTW):" %}</label>
+      <div class="field">
+        <label for="{{ transfer_form.target_location.id_for_label }}">{% translate "Nach Lagerort (z. B. RTW):" %}</label>
         {{ transfer_form.target_location }}
       </div>
-      <div class="ms-f5004db">
-        <div>
-          <label class="ms-3a21370">{% translate "Menge:" %}</label>
+      <div class="field-row">
+        <div class="field">
+          <label for="{{ transfer_form.quantity.id_for_label }}">{% translate "Menge:" %}</label>
           {{ transfer_form.quantity }}
         </div>
-        <div>
-          <label class="ms-3a21370">{% translate "Notiz:" %}</label>
+        <div class="field">
+          <label for="{{ transfer_form.note.id_for_label }}">{% translate "Notiz:" %}</label>
           {{ transfer_form.note }}
         </div>
       </div>
       {% if item.requires_cooling %}
-        <div class="ms-5d7d423">
-          <label class="ms-4796ccb">
+        <div class="field">
+          <label class="checkbox-field" for="{{ transfer_form.mark_out_of_fridge.id_for_label }}">
             {{ transfer_form.mark_out_of_fridge }}
-            <span><strong>Kühlkette unterbrechen (Out-of-Fridge aktivieren):</strong> Setzt Entnahmedatum auf heute, falls Ziellager ungekühlt.</span>
+            <span>Kühlkette unterbrechen (Out-of-Fridge aktivieren)</span>
           </label>
+          <small class="helptext">Setzt Entnahmedatum auf heute, falls Ziellager ungekühlt.</small>
         </div>
       {% endif %}
-      <div class="ms-4c0715e">
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Umbuchen" %}</button>
+        <button type="submit" class="button primary">{% translate "Umbuchen" %}</button>
       </div>
     </form>
   </div>
 </div>
 
-{# Modal: Verbrauch / Ausscheidung #}
-<div id="consume-modal" class="wb-modal" hidden role="dialog" aria-modal="true">
-  <div class="ms-bb3e000">
-    <h3 class="ms-ec0f7ff">📉 {% translate "Materialverbrauch erfassen" %} (<span id="consume-batch-label" data-modal-label-target></span>)</h3>
+{# Dialog: Verbrauch / Ausscheidung #}
+<div id="consume-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="consume-modal-title">
+  <div class="modal-panel">
+    <h2 id="consume-modal-title"><span>{% translate "Materialverbrauch erfassen" %} (<span id="consume-batch-label" data-modal-label-target></span>)</span></h2>
     <form id="consume-form" data-modal-form method="post" action="">
       {% csrf_token %}
-      <div class="ms-9420460">
-        <label class="ms-3a21370">{% translate "Von Lagerort:" %}</label>
-        <select class="ms-ac90647" name="location_id" required>
+      <div class="field">
+        <label for="consume-location">{% translate "Von Lagerort:" %}</label>
+        <select id="consume-location" name="location_id" required>
           {% for si in stock_items %}
             <option value="{{ si.location.id }}">{{ si.location.name }} (Verfügbar: {{ si.quantity }})</option>
           {% endfor %}
         </select>
       </div>
-      <div class="ms-f3c36d4">
-        <div>
-          <label class="ms-3a21370">{% translate "Menge:" %}</label>
-          <input class="ms-ac90647" type="number" name="quantity" value="1" min="1" required>
+      <div class="field-row">
+        <div class="field">
+          <label for="consume-quantity">{% translate "Menge:" %}</label>
+          <input id="consume-quantity" type="number" name="quantity" value="1" min="1" required>
         </div>
-        <div>
-          <label class="ms-3a21370">{% translate "Grund:" %}</label>
-          <input class="ms-ac90647" type="text" name="reason" value="Einsatzverbrauch am Patienten">
+        <div class="field">
+          <label for="consume-reason">{% translate "Grund:" %}</label>
+          <input id="consume-reason" type="text" name="reason" value="Verbrauch aus dem Bestand">
         </div>
       </div>
-      <div class="ms-c2c0d0a">
-        <label><input type="checkbox" name="is_discard" value="1"> {% translate "Verfall / Beschädigung (Ausscheidung)" %}</label>
-      </div>
-      <div class="ms-4c0715e">
+      <label class="checkbox-field"><input type="checkbox" name="is_discard" value="1"> {% translate "Verfall / Beschädigung (Ausscheidung)" %}</label>
+      <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
-        <button type="submit" class="button">{% translate "Abbuchen" %}</button>
+        <button type="submit" class="button primary">{% translate "Abbuchen" %}</button>
       </div>
     </form>
   </div>

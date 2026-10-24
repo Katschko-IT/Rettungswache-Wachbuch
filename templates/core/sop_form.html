@@ -3,8 +3,8 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav ms-c2c0d0a">
-  <a class="back-link" href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}">&larr; {% translate "Zurück" %}</a>
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück" %}</a>
 </nav>
 
 <header class="page-heading">
@@ -13,29 +13,29 @@
   <p class="lead">{% translate "Dienstanweisung mit Versionsstand und Freigabevermerk (z. B. ÄLRD, MPBetreibV, DIN EN ISO 9001)." %}</p>
 </header>
 
-<form method="post" class="form-card ms-c06a247">
+<form method="post" class="form-card narrow">
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-    <div class="alert danger ms-c2c0d0a">
+    <div class="alert danger">
       {{ form.non_field_errors }}
     </div>
   {% endif %}
 
   {# Stammdaten #}
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📋 {% translate "Metadaten & Gültigkeit" %}</legend>
+  <fieldset class="form-section">
+    <legend>{% translate "Metadaten & Gültigkeit" %}</legend>
 
-    <div class="ms-a7375ee">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.doc_number.id_for_label }}">
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.doc_number.id_for_label }}">
           {% translate "Dokumentennummer*" %}:
         </label>
         {{ form.doc_number }}
         {% if form.doc_number.errors %}<div class="form-error">{{ form.doc_number.errors }}</div>{% endif %}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.title.id_for_label }}">
+      <div class="field">
+        <label for="{{ form.title.id_for_label }}">
           {% translate "Titel der Dienstanweisung*" %}:
         </label>
         {{ form.title }}
@@ -43,70 +43,68 @@
       </div>
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.category.id_for_label }}">
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.category.id_for_label }}">
           {% translate "Kategorie" %}:
         </label>
         {{ form.category }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.status.id_for_label }}">
+      <div class="field">
+        <label for="{{ form.status.id_for_label }}">
           {% translate "Status" %}:
         </label>
         {{ form.status }}
       </div>
     </div>
 
-    <div class="ms-3a847b4">
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.valid_from.id_for_label }}">
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.valid_from.id_for_label }}">
           {% translate "Gültig ab" %}:
         </label>
         {{ form.valid_from }}
       </div>
-      <div>
-        <label class="ms-0ab77d1" for="{{ form.review_due_date.id_for_label }}">
+      <div class="field">
+        <label for="{{ form.review_due_date.id_for_label }}">
           {% translate "Review fällig am (QM)" %}:
         </label>
         {{ form.review_due_date }}
       </div>
     </div>
 
-    <div class="ms-fc215b9">
-      <label class="ms-05bac03">
-        {{ form.requires_acknowledgment }}
-        <span>✍️ {% translate "Pflichtquittierung für Wachpersonal aktivieren" %}</span>
-      </label>
-    </div>
+    <label class="checkbox-field" for="{{ form.requires_acknowledgment.id_for_label }}">
+      {{ form.requires_acknowledgment }}
+      {% translate "Pflichtquittierung für Wachpersonal aktivieren" %}
+    </label>
   </fieldset>
 
   {# Initialer Inhalt (nur bei Neuanlage) #}
   {% if not sop %}
-  <fieldset class="ms-a86218f">
-    <legend class="ms-99216e8">📝 {% translate "Erstfassung / Inhalt (Version 1.0)" %}</legend>
-    
-    <div class="ms-c2c0d0a">
-      <label class="ms-0ab77d1" for="{{ form.initial_version.id_for_label }}">
+  <fieldset class="form-section">
+    <legend>{% translate "Erstfassung / Inhalt (Version 1.0)" %}</legend>
+
+    <div class="field">
+      <label for="{{ form.initial_version.id_for_label }}">
         {% translate "Start-Versionsnummer" %}:
       </label>
       {{ form.initial_version }}
     </div>
 
-    <div>
-      <label class="ms-0ab77d1" for="{{ form.initial_content.id_for_label }}">
+    <div class="field">
+      <label for="{{ form.initial_content.id_for_label }}">
         {% translate "Text / Handlungsanweisung (Markdown)" %}:
       </label>
       {{ form.initial_content }}
-      <small class="ms-236cf06">
+      <small class="helptext">
         {% translate "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen." %}
       </small>
     </div>
   </fieldset>
   {% endif %}
 
-  <div class="form-actions ms-e3a0adb">
-    <button type="submit" class="button">{{ action_label }}</button>
+  <div class="form-actions">
+    <button type="submit" class="button primary">{{ action_label }}</button>
     <a href="{% if sop %}{% url 'sop_detail' sop.slug %}{% else %}{% url 'orga_dashboard' %}{% endif %}" class="button secondary">{% translate "Abbrechen" %}</a>
   </div>
 </form>

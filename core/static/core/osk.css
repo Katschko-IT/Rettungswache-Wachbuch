@@ -1,4 +1,5 @@
-/* Bildschirmtastatur des Wachenterminals (osk.js). Große Tasten, Handschuh-tauglich. */
+/* Bildschirmtastatur des Wachenterminals (osk.js). Große Tasten, Handschuh-tauglich.
+   Farben über Tokens aus app.css: hell am Tag, dunkel im Nachtdienst. */
 
 .osk {
   position: fixed;
@@ -9,8 +10,9 @@
   display: grid;
   gap: 0.45rem;
   padding: 0.6rem max(0.6rem, calc((100vw - 72rem) / 2)) 0.8rem;
-  background: rgba(16, 26, 38, 0.97);
-  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+  background: var(--surface-soft);
+  border-top: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-overlay);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -29,10 +31,10 @@
   flex: 1 1 0;
   min-width: 0;
   min-height: 3.4rem;
-  border: 0;
-  border-radius: 0.6rem;
-  background: #3a4a5c;
-  color: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   font-size: 1.45rem;
   cursor: pointer;
@@ -41,11 +43,11 @@
 }
 
 .osk-key:active {
-  background: #6b8099;
+  background: var(--accent-soft);
 }
 
 .osk-special {
-  background: #26323f;
+  background: var(--bg-accent);
   font-size: 1.1rem;
 }
 
@@ -59,17 +61,20 @@
 }
 
 .osk-enter {
-  background: #1565c0;
+  color: var(--on-primary);
+  background: var(--brand);
+  border-color: var(--brand);
 }
 
 .osk-shift.is-active,
 .osk-shift.is-locked {
-  background: #e3ecf7;
-  color: #10233a;
+  color: var(--brand);
+  background: var(--accent-soft);
+  border-color: var(--brand);
 }
 
 .osk-shift.is-locked {
-  box-shadow: inset 0 -4px 0 #1565c0;
+  box-shadow: inset 0 -4px 0 var(--brand);
 }
 
 .osk-gap {
@@ -95,10 +100,10 @@
   height: 3.6rem;
   border: 0;
   border-radius: 50%;
-  background: #1565c0;
-  color: #fff;
+  background: var(--brand);
+  color: var(--on-primary);
   font-size: 1.7rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-overlay);
   cursor: pointer;
 }
 
@@ -126,6 +131,6 @@
 
 .osk-key:focus-visible,
 .osk-toggle:focus-visible {
-  outline: 3px solid #ffd54f;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }

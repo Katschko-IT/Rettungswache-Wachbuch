@@ -165,7 +165,7 @@ class AutobahnSourceTests(TestCase):
             "core.traffic._fetch_json",
             side_effect=traffic.TrafficUnavailable("offline"),
         ):
-            self.assertEqual(traffic.fetch_autobahn((52.02, 8.42)), [])
+            self.assertEqual(traffic.fetch_autobahn((52.02, 8.42), roads=("A2",)), [])
 
 
 STEINHAGEN_HTML = """
@@ -233,6 +233,9 @@ class TrafficPayloadTests(TestCase):
             slug="steinhagen-traffic",
             latitude=52.02,
             longitude=8.42,
+            traffic_enabled=True,
+            traffic_roads="A2, A33",
+            traffic_local_sources=True,
         )
 
     def test_merges_sources_and_marks_closed_first(self):

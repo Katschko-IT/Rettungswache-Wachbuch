@@ -3,670 +3,264 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wachwerk – Wachbuch für Rettungswachen, selbst gehostet</title>
-<meta name="description" content="Wachwerk ist ein selbst gehostetes Wachbuch für Rettungswachen: Übergaben, Aufgaben, Checklisten, Kalender, Kaffeekasse, Mängel und Team – lokal im Wachennetz, ohne Cloud-Zwang.">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#082e63">
-<meta property="og:title" content="Wachwerk – Wachbuch für Rettungswachen">
-<meta property="og:description" content="Selbst gehostetes Wachbuch für den Wachenalltag: Übergaben, Aufgaben, Checklisten, Kalender, Kaffeekasse und mehr. Lokal betrieben, stationsbezogen, ohne externe Dienste im Kernpfad.">
+<title>Wachwerk – das Wachbuch für Rettungswachen, selbst gehostet</title>
+<meta name="description" content="Wachwerk ist ein quelloffenes Wachbuch für Rettungswachen: Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Aufgaben – auf einem Server in der eigenen Wache, mit einem Befehl installiert.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Wachwerk – das Wachbuch für Rettungswachen">
+<meta property="og:description" content="Was die Schicht wissen muss, auf einen Blick: Übergaben, Mängel, Fahrzeuge, Medizingeräte und Material. Selbst gehostet, quelloffen, mit Tag- und Nachtansicht.">
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="de" href="https://katschko-it.github.io/Rettungswache-Wachbuch/">
 <link rel="alternate" hreflang="en" href="https://katschko-it.github.io/Rettungswache-Wachbuch/en/">
+<link rel="stylesheet" href="assets/design/fonts.css">
+<link rel="stylesheet" href="assets/design/tokens.css">
+<link rel="stylesheet" href="assets/design/public.css">
 <link rel="stylesheet" href="styles.css">
-<link rel="preload" href="assets/fonts/SourceSans3-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/SourceSans3-Semibold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/design/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/design/fonts/atkinson-hyperlegible-next-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
-<body>
+<body class="pub">
 <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
 
-<header class="site-header">
-  <div class="container header-inner">
-    <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">WB</span>
-      <span class="brand-text">
-        <strong>Wachwerk</strong>
-        <span>Wachbuch für Rettungswachen</span>
-      </span>
-    </a>
-    <nav class="site-nav" aria-label="Hauptnavigation">
-      <ul>
-        <li><a href="#funktionen">Funktionen</a></li>
-        <li><a href="#einblicke">Einblicke</a></li>
-        <li><a href="#architektur">Architektur</a></li>
-        <li><a href="#installation">Installation</a></li>
-        <li><a href="#grenzen">Betriebsgrenzen</a></li>
-        <li><a href="#status">Stand</a></li>
-      </ul>
+<header class="pub-header">
+  <div class="pub-wrap pub-header-inner">
+    <a class="pub-brand" href="#top"><span class="pub-brand-mark" aria-hidden="true"></span>Wachwerk</a>
+    <nav class="pub-nav" aria-label="Hauptnavigation">
+      <a href="#einblicke">Einblicke</a>
+      <a href="#funktionen">Funktionen</a>
+      <a href="#grenzen">Grenzen</a>
+      <a href="#installation">Installation</a>
+      <a href="#status">Stand</a>
     </nav>
-    <a class="header-cta" href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Quellcode auf GitHub</a>
-    <div class="lang-switch" role="group" aria-label="Sprache">
-      <span aria-current="true">DE</span>
-      <a href="en/" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
-    </div>
+    <div class="lang-switch"><span aria-current="true">DE</span><a href="en/" hreflang="en" lang="en" aria-label="Switch to English">EN</a></div>
   </div>
 </header>
 
 <main id="inhalt">
-  <section class="hero" id="top">
-    <div class="container hero-grid">
-      <div>
-        <p class="eyebrow">Selbst gehostet · Stationsbezogen · Offline-fähig im LAN</p>
-        <h1>Der Wachenalltag, <span>an einem Ort</span>.</h1>
-        <p class="hero-lead">
-          Wachwerk bündelt Schichtübergaben, Tagesaufgaben, Checklisten, Kalender und
-          Kaffeekasse in einem Wachbuch. Es läuft auf einem Server in der Wache, die
-          Daten bleiben dort – ohne Cloud-Konto und ohne externe Skripte.
-        </p>
-        <ul class="hero-points">
-          <li>Übergaben mit Priorität, Status und nachvollziehbaren Revisionen statt Zettel und Zuruf.</li>
-          <li>Aufgaben und Checklisten mit Tagesbezug, damit Routineaufgaben nicht untergehen.</li>
-          <li>Rollen pro Wache, persönliche Konten und ein Audit-Verlauf für Änderungen.</li>
-        </ul>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#installation">Installation ansehen</a>
-          <a class="button button-secondary" href="#einblicke">Echte Einblicke</a>
-        </div>
+<section id="top" class="pub-hero">
+  <div class="pub-wrap pub-hero-grid">
+    <div>
+      <p class="pub-kicker">Quelloffenes Wachbuch für Rettungswachen</p>
+      <h1>Was die Schicht wissen muss. Auf einen Blick.</h1>
+      <p class="pub-lead">Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Tagesaufgaben an einem Ort. Wachwerk läuft auf einem Server in der eigenen Wache und ist mit einem Befehl installiert. Ohne Cloud-Konto, ohne externe Skripte.</p>
+      <div class="pub-actions">
+        <a class="pub-button primary" href="#installation">In 5 Minuten installieren</a>
+        <a class="pub-button" href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Quellcode auf GitHub</a>
       </div>
-      <figure class="hero-figure">
-        <img src="assets/screenshots/uebersicht.webp" width="1280" height="800"
-             alt="Übersicht im Wachbuch: Kopfzeile mit Wachenname und Rolle, Kennzahlen zu Übergaben, Kacheln für Tagesaufgaben, Mängel, Fahrzeuge und Checklisten sowie die nächsten Termine."
-             fetchpriority="high" decoding="async">
-        <figcaption>Übersicht der laufenden Schicht – Aufnahme aus der lokalen Anwendung mit synthetischen Daten.</figcaption>
+    </div>
+    <div class="pub-devices">
+      <figure class="device">
+        <img src="assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: oben die Zeile „5 Punkte brauchen Aufmerksamkeit“, darunter eine dringende Übergabe, fällige Fahrzeugfristen, Medizingeräte, ein Artikel unter Mindestbestand und eine offene Dienstanweisung.">
+      </figure>
+      <figure class="device device-phone">
+        <img src="assets/design/screens/overview-phone-dark.webp" width="390" height="844" alt="Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus.">
       </figure>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="funktionen" aria-labelledby="funktionen-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Funktionsumfang</span>
-        <h2 id="funktionen-h">Was das Wachbuch tatsächlich leistet</h2>
-        <p>
-          Die folgenden Module sind im Repository implementiert und durch die Testsuite
-          abgedeckt. Sie organisieren den internen Betrieb einer Wache – nicht den Einsatz.
-        </p>
+<section id="einblicke" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2>Die echte Oberfläche, nicht ein Entwurf</h2>
+      <p class="pub-muted">Alle Aufnahmen stammen aus der lokal gestarteten Anwendung mit synthetischen Daten: erfundene Wache, erfundene Konten, keine echten Vorgänge. Tagsüber hell, nachts dunkel – die Ansicht folgt dem Gerät oder einem Schalter.</p>
+    </div>
+    <div class="shot-grid">
+      <figure class="shot half">
+        <div class="device"><img src="assets/design/screens/fleet-desktop-light.webp" width="1440" height="900" alt="Fuhrpark mit Einsatzbereitschaft, Füllständen und fälligen Fristen je Fahrzeug." loading="lazy"></div>
+        <figcaption><strong>Fuhrpark</strong>Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug, Übernahme zu Schichtbeginn und Desinfektion mit Einwirkzeit.</figcaption>
+      </figure>
+      <figure class="shot half">
+        <div class="device"><img src="assets/design/screens/mpg-desktop-dark.webp" width="1440" height="900" alt="Medizingeräte mit Prüffristen und gesperrten Geräten im dunklen Modus." loading="lazy"></div>
+        <figcaption><strong>Medizingeräte</strong>Bestandsverzeichnis, STK- und MTK-Fristen, Funktionskontrollen und Einweisungen. Ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt.</figcaption>
+      </figure>
+      <figure class="shot phone">
+        <div class="device device-phone-flat"><img src="assets/design/screens/handovers-phone-light.webp" width="390" height="844" alt="Liste der Übergaben auf dem Handy, nach Priorität sortiert." loading="lazy"></div>
+        <figcaption><strong>Übergaben</strong>Nach Priorität sortiert, mit Status und Verlauf – statt Zettel und Zuruf.</figcaption>
+      </figure>
+      <figure class="shot phone">
+        <div class="device device-phone-flat"><img src="assets/design/screens/tasks-phone-light.webp" width="390" height="844" alt="Tagesaufgaben auf dem Handy mit Routine, Wochentagsaufgaben und Fortschritt." loading="lazy"></div>
+        <figcaption><strong>Tagesaufgaben</strong>Routine, Wochentag und Zusatzaufgaben getrennt; der Haken gilt für den aktuellen Tag.</figcaption>
+      </figure>
+      <figure class="shot phone">
+        <div class="device device-phone-flat"><img src="assets/design/screens/more-phone-dark.webp" width="390" height="844" alt="Bereichsübersicht der Module im Nachtdienst-Modus." loading="lazy"></div>
+        <figcaption><strong>Alle Bereiche</strong>Jede Wache schaltet nur die Module ein, die sie nutzt.</figcaption>
+      </figure>
+      <figure class="shot phone">
+        <div class="device device-phone-flat"><img src="assets/design/screens/overview-phone-light.webp" width="390" height="844" alt="Übersicht der Wache auf dem Handy in der hellen Tagesansicht." loading="lazy"></div>
+        <figcaption><strong>Tagesansicht</strong>Dieselbe Übersicht hell – für Sonnenlicht in der Fahrzeughalle.</figcaption>
+      </figure>
+      <figure class="shot half">
+        <div class="device"><img src="assets/design/screens/warehouse-desktop-light.webp" width="1440" height="900" alt="Lager mit Beständen, Chargen, Verfallsdaten und einem Artikel unter Mindestbestand." loading="lazy"></div>
+        <figcaption><strong>Lager und Material</strong>Bestände mit Chargen und Verfallsdaten; was unter den Mindestbestand fällt, landet im Bestellvorschlag.</figcaption>
+      </figure>
+      <figure class="shot half">
+        <div class="device"><img src="assets/design/screens/overview-desktop-dark.webp" width="1440" height="900" alt="Übersicht am Desktop im dunklen Nachtdienst-Modus mit gedämpften Farben." loading="lazy"></div>
+        <figcaption><strong>Nachtdienst</strong>Dunkle Flächen und gedämpfte Signale, damit der Bildschirm nachts nicht blendet.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="funktionen" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2>Was Wachwerk tatsächlich kann</h2>
+      <p class="pub-muted">Alle genannten Bereiche sind im Repository umgesetzt und durch die Testsuite abgedeckt. Sie organisieren den Betrieb einer Wache – nicht den Einsatz.</p>
+    </div>
+    <div class="feature-groups">
+      <div class="feature-group">
+        <h3>Wachalltag</h3>
+        <ul class="feature-list">
+          <li><strong>Übersicht</strong><span>Zeigt zuerst, was Aufmerksamkeit braucht; Unauffälliges bleibt in einer ruhigen Zeile.</span></li>
+          <li><strong>Schichtübergaben</strong><span>Priorität, Status, Revisionen und Quittierung je Person.</span></li>
+          <li><strong>Tagesaufgaben und Checklisten</strong><span>Routine je Tag und Wochentag, Prüfintervalle mit dokumentiertem Abschluss.</span></li>
+          <li><strong>Kalender, Pinnwand, Neuigkeiten</strong><span>Termine mit Feiertagen und ICS-Abo, Aushänge, Lesebestätigung.</span></li>
+          <li><strong>Kaffeekasse</strong><span>Fortlaufende Buchungen statt überschreibbarer Summen.</span></li>
+        </ul>
       </div>
+      <div class="feature-group">
+        <h3>Fachmodule</h3>
+        <ul class="feature-list">
+          <li><strong>Mängel</strong><span>Frist, Foto, verantwortliche Person und Verlauf.</span></li>
+          <li><strong>Fuhrpark</strong><span>Übernahme, Desinfektion mit Einwirkzeit, HU/UVV-Fristen.</span></li>
+          <li><strong>Medizingeräte</strong><span>MPBetreibV-orientiertes Gerätebuch mit Sperren und Freigabe.</span></li>
+          <li><strong>Lager und Material</strong><span>Chargen, Verfallsdaten, Mindestbestand und Bestellvorschlag.</span></li>
+          <li><strong>Dienstanweisungen und Display</strong><span>Versionen mit Lesebestätigung, Vollbildanzeige für die Fahrzeughalle.</span></li>
+        </ul>
+      </div>
+      <div class="feature-group">
+        <h3>Betrieb und Zugang</h3>
+        <ul class="feature-list">
+          <li><strong>Persönliche Konten</strong><span>Fünf Rollen je Wache, Einladung per Einmal-Link, optional Zwei-Faktor und Passkeys.</span></li>
+          <li><strong>Wachenterminal</strong><span>Touch-Bildschirm mit Wachen-Code für die Alltagsbereiche.</span></li>
+          <li><strong>Apps für iOS und Android</strong><span>Quelloffener Flutter-Client über die versionierte API.</span></li>
+          <li><strong>Backup und Updates</strong><span>Tägliche Sicherung, nächtliche Updates mit automatischem Rollback.</span></li>
+          <li><strong>Audit-Verlauf</strong><span>Sicherheitsrelevante Änderungen bleiben nachvollziehbar.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <ul class="fact-strip">
-        <li>
-          <strong>Lokal im Wachennetz</strong>
-          <span>Django, PostgreSQL und Assets laufen auf eigener Hardware. Der Kernpfad braucht kein Internet.</span>
-        </li>
-        <li>
-          <strong>Fünf Stationsrollen</strong>
-          <span>Mitglied, Schichtleitung, Kassenwart, Master-Admin und Auditor – jeweils an eine Wache gebunden.</span>
-        </li>
-        <li>
-          <strong>Installierbare Web-App</strong>
-          <span>Auf Handy und Wachenterminal als PWA nutzbar; Schreiben setzt eine Verbindung zum Wachenserver voraus.</span>
-        </li>
+<section id="grenzen" class="pub-section">
+  <div class="pub-wrap">
+    <div class="boundary">
+      <h2>Was bewusst nicht hineingehört</h2>
+      <p class="pub-muted">Wachwerk ist ein organisatorisches Wachbuch. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach.</p>
+      <ul class="boundary-list">
+        <li><strong>Kein Einsatzleitsystem</strong><span>Keine Alarmierung, keine Einsatzführung, keine Leitstellenanbindung.</span></li>
+        <li><strong>Kein Patientendokumentationssystem</strong><span>Kein Feld für Patienten-, Diagnose- oder Einsatzdaten – solche Inhalte gehören nicht hinein.</span></li>
+        <li><strong>Keine Dienstplanung</strong><span>Keine Schichtpläne, Zeitkonten oder Leistungsbewertung.</span></li>
+        <li><strong>Kein Cloud-Dienst</strong><span>Eine Instanz gehört einer Wache. Keine zentrale Betreiberinstanz, keine Telemetrie.</span></li>
       </ul>
+    </div>
+  </div>
+</section>
 
-      <div class="grid grid-3" style="margin-top:1.25rem">
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Schichtübergaben</h3>
-          <p>
-            Übergaben mit Kategorie, Priorität und Status anlegen, bestätigen und abschließen.
-            Änderungen werden als Revisionen geführt; Einträge bleiben nachvollziehbar.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Tagesaufgaben</h3>
-          <p>
-            Aufgaben nach täglicher Routine, Wochentag und Zusatzaufgaben. Der Abschluss gilt
-            pro Tag und Schicht, die Wandtafel zeigt den Stand der laufenden Schicht.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Checklisten</h3>
-          <p>
-            Checklisten mit Einzelpunkten, Wiederholungsplan und Abschlussvermerk – etwa für
-            Fahrzeugübernahme oder Wachenrundgang.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Wachenkalender</h3>
-          <p>
-            Termine, Dienstbesprechungen und Unterweisungen pflegen. Feiertage werden
-            berücksichtigt; ein ICS-Abo macht den Kalender in gängigen Kalender-Apps lesbar.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Kaffeekasse</h3>
-          <p>
-            Fortlaufendes Ledger mit Beträgen, Grund und Gegenbuchung statt korrigierbarer
-            Endsumme. Buchungen bleiben als Kette erhalten und sind rollenbezogen.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Kern</span>
-          <h3>Pinnwand</h3>
-          <p>
-            Interne Aushänge und Hinweise für die Wache – sichtbar für alle Mitglieder,
-            verwaltet durch die Schichtleitung oder Administration.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Betrieb</span>
-          <h3>Mängel, Geräte, Inventar</h3>
-          <p>
-            Mängel mit Statusworkflow und optionalem Foto, Fahrzeuge und Geräte mit
-            Bereitschaftsstatus, Inventar mit Ausgabe und Rückgabe. Alles stationsbezogen.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Fachmodule</span>
-          <h3>Fuhrpark, Medizingeräte, Material</h3>
-          <p>
-            Zuschaltbar je Wache: Fahrzeugübernahme und Desinfektion mit Einwirkzeit,
-            Medizingeräte mit STK-/MTK-Fristen und Einweisungen, Material mit Chargen,
-            Verfallsdaten und Mindestbestand. Die Übersicht zeigt den Handlungsbedarf.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Fachmodule</span>
-          <h3>Dienstanweisungen und Display</h3>
-          <p>
-            Versionierte Dienstanweisungen mit persönlicher Lesebestätigung sowie eine
-            Vollbildanzeige für den Monitor in der Fahrzeughalle.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Betrieb</span>
-          <h3>Team, Rollen und Audit</h3>
-          <p>
-            Konten anlegen, per Einladung aktivieren, Rollen vergeben und Zugänge widerrufen.
-            Sicherheitsrelevante Änderungen landen im Audit-Verlauf.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Zugang</span>
-          <h3>Anmeldung und QR-Login</h3>
-          <p>
-            Lokale Konten mit Passwort, optional TOTP und Passkeys. Der QR-Login bestätigt
-            eine Browsersitzung auf dem Mitarbeitergerät – kurzlebig und an die Wache gebunden.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Zugang</span>
-          <h3>Erstinstallation</h3>
-          <p>
-            Einrichtungsassistent für Wachenname, Anschrift, Zeitzone, Rollen und Module –
-            nur mit einmaligem Bootstrap-Token erreichbar, danach nicht mehr vorhanden.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Schnittstelle</span>
-          <h3>API und Mobile-Client</h3>
-          <p>
-            Versionierte JSON-API mit Token-Scopes für den quelloffenen Flutter-Client.
-            Dieselben Rollen- und Stationsgrenzen gelten auch dort.
-          </p>
-        </article>
-        <article class="card">
-          <span class="card-tag">Betrieb</span>
-          <h3>Backup und Push</h3>
-          <p>
-            Tägliche lokale PostgreSQL-Dumps mit Wiederherstellungsprobe sowie optionaler
-            WebPush-Versand aus einer eigenen Outbox.
-          </p>
-        </article>
+<section id="installation" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2>In 5 Minuten installiert</h2>
+      <p class="pub-muted">Voraussetzung ist ein 64-Bit-Rechner mit Docker und Compose v2 – ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles, erzeugt sämtliche Schlüssel selbst und startet Wachwerk.</p>
+    </div>
+    <pre class="code-block"><code>curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh | sh</code></pre>
+    <ol class="steps">
+      <li><div><h3>Betriebsart wählen</h3><p>Nur dieser Rechner, im Wachen-WLAN mit HTTPS über eine wacheneigene CA, oder mit eigener Domain und Let's Encrypt.</p></div></li>
+      <li><div><h3>Wache einrichten</h3><p>Der Installer zeigt einen Einrichtungscode. Der Assistent unter <code>/setup/</code> legt Wache und erstes Admin-Konto an.</p></div></li>
+      <li><div><h3>Team einladen</h3><p>Jede Person aktiviert ihr Konto über einen Einmal-Link oder QR-Code und setzt das Passwort selbst.</p></div></li>
+      <li><div><h3>Updates laufen lassen</h3><p><code>wachbuch auto-update an</code> spielt nachts Sicherheitsupdates ein: vorher Backup, bei einem Fehlstart automatisch zurück zur vorherigen Fassung.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="architektur" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2>Ein Server in der Wache</h2>
+      <p class="pub-muted">Fällt das Internet aus, arbeitet die Wache im eigenen Netz weiter: Anmeldung, Rollen, Aufgaben und Checklisten sind durch Tests mit blockierten externen Aufrufen belegt.</p>
+    </div>
+    <table class="facts">
+      <caption class="sr-only">Technische Eckdaten</caption>
+      <tbody>
+        <tr><th scope="row">Anwendung</th><td>Django 6.1 auf Python 3.14, Gunicorn, WhiteNoise</td></tr>
+        <tr><th scope="row">Datenbank</th><td>PostgreSQL 17 mit getrennten Rollen für App, Abrufe, Push und Backup</td></tr>
+        <tr><th scope="row">Betrieb</th><td>Docker Compose mit fertigen Images für amd64 und arm64, wöchentlich mit Sicherheitsupdates neu gebaut</td></tr>
+        <tr><th scope="row">Zugang</th><td>Caddy als HTTPS-Proxy (wacheneigene CA oder Let's Encrypt); die Anwendung selbst lauscht nur lokal</td></tr>
+        <tr><th scope="row">Mindestrahmen</th><td>1 vCPU, 1 GB RAM; für mehrere Geräte und Backups 2 vCPU und 2 GB RAM</td></tr>
+        <tr><th scope="row">Lizenz</th><td>AGPL-3.0, vollständiger Quellcode auf GitHub</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="status" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2>Vorproduktion, offen benannt</h2>
+      <p class="pub-muted">Der Stand trennt, was umgesetzt und getestet ist, von dem, was erst im Betrieb einer echten Wache nachgewiesen werden kann.</p>
+    </div>
+    <div class="split">
+      <div>
+        <h3>Umgesetzt und getestet</h3>
+        <ul class="check-list">
+          <li>Wachalltag, Fachmodule, Rollen, Einladungen und Audit</li>
+          <li>Installation, Backup, Wiederherstellung und Updates mit Rollback</li>
+          <li>Ende-zu-Ende-Test im Browser und in der iOS-App gegen eine Docker-Installation</li>
+          <li>Betrieb im Wachennetz bei Internetausfall</li>
+          <li>Tag- und Nachtansicht, Touch-Ziele ab 48 Pixeln, Tastaturfokus</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Offen vor einem Produktivbetrieb</h3>
+        <ul class="open-list">
+          <li>Externe Abnahmen: echte Hardware in der Wache, Handys im WLAN, Let's Encrypt</li>
+          <li>Passkeys und WebPush auf echten Geräten</li>
+          <li>Datenschutzfolgenabschätzung, Löschkonzept und Mitbestimmung beim Betreiber</li>
+          <li>Unabhängige Sicherheitsprüfung</li>
+          <li>Schreiben ohne Netz (Outbox) in der App: nicht umgesetzt; die App hält nur einen kurzen, verschlüsselten Lesecache</li>
+        </ul>
       </div>
     </div>
-  </section>
+    <p class="note"><strong>Keine Produktionsfreigabe.</strong> Diese Seite beschreibt den Entwicklungsstand des Repositories. Sie ist keine Freigabe für den Betrieb und keine Bestätigung von Compliance-Anforderungen.</p>
+  </div>
+</section>
 
-  <section id="einblicke" aria-labelledby="einblicke-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Einblicke</span>
-        <h2 id="einblicke-h">Die Anwendung, nicht ein Entwurf</h2>
-        <p>
-          Alle Aufnahmen stammen aus der lokal gestarteten Anwendung mit einer
-          Testdatenbank und frei erfundenen Konten. Keine Montage, keine Retusche,
-          keine fremden Bildschirmbilder. Personen, Wachen und Vorgänge sind synthetisch.
-        </p>
-      </div>
-
-      <div class="gallery">
-        <figure>
-          <img src="assets/screenshots/uebergaben.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Liste der Übergaben mit Prioritätskennzeichnung, Status und kurzem Auszug je Eintrag.">
-          <figcaption><strong>Übergaben im Überblick</strong>Offene Punkte nach Priorität, mit Status und direkter Zuordnung zur Schicht.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/uebergabe-detail.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Detailansicht einer Übergabe mit Beschreibung, Status, Bestätigung und Revisionshinweis.">
-          <figcaption><strong>Eine Übergabe im Detail</strong>Beschreibung, Statuswechsel und Revisionen bleiben am Vorgang nachvollziehbar.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/aufgaben.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Tagesaufgaben gruppiert in tägliche Routine, Wochentagsaufgaben und zusätzliche Aufgaben mit Erledigt-Schaltern.">
-          <figcaption><strong>Tagesaufgaben</strong>Routine, Wochentag und Zusatzaufgaben getrennt – der Haken gilt für den aktuellen Tag.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/checklisten.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Checklistenübersicht mit Fahrzeugcheck und Wachenrundgang, Punktzahlen und letztem Abschluss.">
-          <figcaption><strong>Checklisten</strong>Wiederkehrende Prüfungen mit Einzelpunkten und dokumentiertem Abschluss.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/kalender.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Kalenderansicht mit Terminen der Wache und gekennzeichneten gesetzlichen Feiertagen.">
-          <figcaption><strong>Wachenkalender</strong>Termine und Feiertage an einer Stelle, zusätzlich als ICS-Abo verfügbar.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/kaffeekasse.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Kaffeekassenansicht mit fortlaufenden Buchungen, Beträgen, Grund und Korrekturmöglichkeit.">
-          <figcaption><strong>Kaffeekasse</strong>Fortlaufende Buchungen statt überschriebener Summen; Korrekturen bleiben sichtbar.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/pinnwand.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Pinnwand mit internen Aushängen und Hinweisen für die Wache.">
-          <figcaption><strong>Pinnwand</strong>Interne Aushänge erreichen alle Mitglieder der Wache ohne Messenger-Gruppe.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/team.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Teamverwaltung mit Konten, Rollen und Aktivstatus sowie Schaltflächen zum Anlegen und Freigeben.">
-          <figcaption><strong>Team und Rollen</strong>Konten, Rollen und Freigaben bleiben an die eigene Wache gebunden.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/anmeldung.webp" width="1280" height="800" loading="lazy" decoding="async"
-               alt="Anmeldeseite mit Feldern für Benutzername und Passwort sowie Verweis auf die QR-Anmeldung.">
-          <figcaption><strong>Anmeldung</strong>Lokale Konten, optional zweiter Faktor – und der Einstieg in den QR-Login.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/screenshots/uebersicht-mobil.webp" width="390" height="844" loading="lazy" decoding="async"
-               alt="Mobile Übersicht auf 390 Pixel Breite: Kopfzeile, Kennzahlen, Kacheln und untere Navigation.">
-          <figcaption><strong>Auf dem Handy</strong>Auf 390 CSS-Pixeln geprüft: einspaltig, ohne horizontales Scrollen, mit 48-Pixel-Zielen.</figcaption>
-        </figure>
-      </div>
-      <p class="gallery-note">
-        Aufnahmebasis: Chromium, lokaler Server auf <code>127.0.0.1</code>, Testkonten ohne
-        echte Personen. Keine Aufnahme enthält Anmelde-Token, QR-Geheimnisse oder
-        Aktivierungslinks.
-      </p>
-    </div>
-  </section>
-
-  <section id="architektur" aria-labelledby="architektur-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Architektur</span>
-        <h2 id="architektur-h">Ein Server in der Wache, klare Grenzen</h2>
-        <p>
-          Wachwerk ist ein modularer Django-Monolith mit PostgreSQL, ausgeliefert über
-          Gunicorn und WhiteNoise. Docker Compose startet Datenbank, Anwendung, Worker
-          und Backup als getrennte Dienste.
-        </p>
-      </div>
-
-      <div class="split">
-        <div>
-          <ul class="stack-list">
-            <li><span class="stack-key">Anwendung</span><span class="stack-val">Django 6.1, Python 3.13, Gunicorn, WhiteNoise</span></li>
-            <li><span class="stack-key">Datenbank</span><span class="stack-val">PostgreSQL 17 im Compose-Stack, getrennte Rollen für App und Feed-Abruf</span></li>
-            <li><span class="stack-key">Cache / Limits</span><span class="stack-val">Redis 7 für Cache und Rate-Limits; ohne Redis greifen lokale Fallbacks</span></li>
-            <li><span class="stack-key">Hintergrund</span><span class="stack-val">Feed-Worker für freigegebene HTTPS-Quellen, Push-Worker für WebPush, tägliches Backup</span></li>
-            <li><span class="stack-key">Auslieferung</span><span class="stack-val">Gunicorn nur auf Loopback; TLS und Netzfreigabe übernehmen Reverse Proxy und Firewall</span></li>
-            <li><span class="stack-key">Clients</span><span class="stack-val">Browser/PWA und quelloffener Flutter-Client über die versionierte API</span></li>
-            <li><span class="stack-key">Externe Quellen</span><span class="stack-val">Optional und ausdrücklich freizugeben: RSS-/Verkehrsquellen und Müllkalender über Host-Allowlist</span></li>
-          </ul>
-        </div>
-        <div>
-          <div class="card">
-            <h3>Systemvoraussetzungen</h3>
-            <ul>
-              <li>64-Bit-Linux mit Docker Engine und Compose v2</li>
-              <li>Dokumentierter Mindestrahmen: 1 vCPU, 1 GB RAM, rund 1 GB freier Speicher</li>
-              <li>Für den Dauerbetrieb mit Backups und mehreren Geräten: 2 vCPU und 2 GB RAM einplanen</li>
-              <li>Fester lokaler Hostname oder IP-Adresse im Wachennetz</li>
-              <li>Für Handys im WLAN: Reverse Proxy mit TLS über eine interne CA</li>
-              <li>Zeitsynchronisation per NTP, sonst driften TOTP und Aktivierungsfristen</li>
-            </ul>
-          </div>
-          <div class="notice">
-            <p>
-              <strong>Kein SaaS, kein Mandantenmix.</strong> Eine Instanz gehört einer Wache.
-              Es gibt keine zentrale Betreiberinstanz, keine Cloud-Anmeldung und keine
-              Telemetrie im Kernpfad.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="installation" aria-labelledby="installation-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Installation</span>
-        <h2 id="installation-h">Von null auf lauffähig</h2>
-        <p>
-          Voraussetzung sind Git, Docker Engine und Compose v2. Alle Schritte laufen auf
-          dem Wachenserver; ein Internetzugang wird nur für den Bezug der Images benötigt.
-        </p>
-      </div>
-
-      <div class="split">
-        <ol class="steps">
-          <li>
-            <h3>Repository beziehen</h3>
-            <pre><code>git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
-cd Rettungswache-Wachbuch
-cp .env.example .env</code></pre>
-          </li>
-          <li>
-            <h3>Geheimnisse setzen</h3>
-            <p>
-              In <code>.env</code> alle Platzhalter durch unabhängige Zufallswerte ersetzen,
-              beispielsweise mit <code>openssl rand -hex 32</code>. Keine Werte aus dem
-              Beispiel übernehmen. Das Backup-Verzeichnis muss für den Datenbankbenutzer
-              schreibbar sein.
-            </p>
-            <pre><code>sudo chown 70:70 backups
-docker compose up --build -d</code></pre>
-          </li>
-          <li>
-            <h3>Erstinstallation abschließen</h3>
-            <p>
-              <code>SETUP_BOOTSTRAP_TOKEN</code> einmalig außerhalb der Anwendung setzen und
-              <code>/setup/</code> aufrufen. Der Assistent führt durch Wachenname, Anschrift,
-              Zeitzone, Rollen und Module. Danach Token entfernen – ohne Token ist die Route
-              nicht vorhanden.
-            </p>
-          </li>
-          <li>
-            <h3>Administration und Team</h3>
-            <pre><code>docker compose exec web python manage.py createsuperuser
-docker compose exec web python manage.py grant_station_admin BENUTZERNAME</code></pre>
-            <p>
-              Weitere Konten legt der Master-Admin unter <code>/team/</code> an oder per
-              Einladung; Freigaben bleiben stationsbezogen.
-            </p>
-          </li>
-          <li>
-            <h3>TLS und Netzfreigabe</h3>
-            <p>
-              Der Container bindet absichtlich nur an <code>127.0.0.1:8090</code>. Für Handys
-              und Wachenterminale einen Reverse Proxy mit TLS davor setzen und
-              <code>ALLOWED_HOSTS</code> sowie <code>CSRF_TRUSTED_ORIGINS</code> auf die
-              tatsächlich genutzte lokale Adresse eintragen.
-            </p>
-          </li>
-        </ol>
-        <div>
-          <div class="card">
-            <h3>Betrieb im Wachennetz</h3>
-            <p>
-              Der Wachenserver ist die Autorität: Anmeldung, Rollen, Formulare und Assets
-              werden lokal ausgeliefert. Fällt die WAN-Verbindung aus, bleibt der
-              Kernbetrieb im LAN nutzbar – Anmeldung, Rollen, Aufgaben, Checklisten und
-              QR-Anzeige sind durch Tests mit blockierten externen Socket-, DNS- und
-              URL-Aufrufen belegt.
-            </p>
-            <p>
-              Voraussetzung ist ein erreichbarer Server und ein funktionierendes lokales
-              Netz. Ein Wachenserver, der nur über eine Cloud erreichbar wäre, erfüllt
-              dieses Modell nicht.
-            </p>
-          </div>
-          <div class="card" style="margin-top:1rem">
-            <h3>Betrieb und Updates</h3>
-            <ul>
-              <li>Tägliche PostgreSQL-Dumps mit Aufbewahrung und Wiederherstellungsprobe</li>
-              <li>Migrationen laufen als eigener Compose-Dienst vor dem Webstart</li>
-              <li>Health-Endpunkt <code>/healthz/</code> für Monitoring</li>
-              <li>Retention- und Aufräumkommandos für Push-Outbox und QR-Anfragen</li>
-              <li>Betriebshandbuch: <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OPERATIONS.md">docs/OPERATIONS.md</a></li>
-            </ul>
-          </div>
-          <div class="notice">
-            <p>
-              <strong>Lokaler HTTP-Start nur zum Testen.</strong> Ohne TLS muss
-              <code>SECURE_COOKIES=false</code> bewusst gesetzt werden. Für den echten
-              Betrieb bleibt TLS mit Reverse Proxy der vorgesehene Weg.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="grenzen" aria-labelledby="grenzen-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Betriebsgrenzen</span>
-        <h2 id="grenzen-h">Was bewusst nicht enthalten ist</h2>
-        <p>
-          Wachwerk ist ein organisatorisches Wachbuch. Es ersetzt weder Einsatzführung
-          noch Personalplanung und trifft keine Aussage über die Rechtmäßigkeit eines
-          konkreten Betriebs.
-        </p>
-      </div>
-
-      <div class="table-wrap">
-        <table class="boundary-table">
-          <caption>Abgrenzung des Produkts und der Nachweise</caption>
-          <thead>
-            <tr><th scope="col">Bereich</th><th scope="col">Status</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Patienten- und Einsatzdaten</th>
-              <td>Nicht vorgesehen. Kein Feld für Gesundheits-, Diagnose-, Alarmierungs- oder Einsatzdaten; solche Inhalte gehören nicht in das Wachbuch.</td>
-            </tr>
-            <tr>
-              <th scope="row">Dienst- und Personalplanung</th>
-              <td>Nicht enthalten. Keine Schichtpläne, Zeitkonten, Lohn- oder Leistungsbewertung.</td>
-            </tr>
-            <tr>
-              <th scope="row">WAN-Ausfall mit erreichbarem LAN</th>
-              <td>Kernbetrieb funktioniert; durch Tests mit blockierten externen Aufrufen belegt.</td>
-            </tr>
-            <tr>
-              <th scope="row">Handy ohne Netz oder Server aus</th>
-              <td>Nicht umgesetzt. Es gibt keine Client-Datenbank, keine Outbox und keine Offline-Anmeldung; die PWA zeigt lediglich eine Offline-Seite.</td>
-            </tr>
-            <tr>
-              <th scope="row">Externe Abnahmen</th>
-              <td>Offen: realer Passkey-Authenticator, WebPush-Zustellung, ICS-Abruf gegen einen echten Fremdhost, TLS-/Proxybetrieb, Wiederherstellung im Ernstfall.</td>
-            </tr>
-            <tr>
-              <th scope="row">Datenschutz und Mitbestimmung</th>
-              <td>Technische Maßnahmen sind dokumentiert; Datenschutzfolgenabschätzung, Löschfristen und betriebliche Freigabe liegen beim Betreiber.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="grid grid-2" style="margin-top:1.5rem">
-        <article class="card">
-          <h3>Sicherheit: was belegt ist</h3>
-          <ul>
-            <li>Passwörter mit Argon2id, Sperrmechanismus gegen wiederholte Fehlversuche</li>
-            <li>Optionaler zweiter Faktor per TOTP und Passkeys; Sitzungen mit Frischeprüfung</li>
-            <li>Rollen- und Stationsgrenzen serverseitig geprüft, Audit-Verlauf für Änderungen</li>
-            <li>Chat- und Privatnachrichten im Browser verschlüsselt (AES-256-GCM, ECDH P-256); der Server speichert Ciphertext und Schlüsselumschläge</li>
-            <li>Keine externen Skripte, Fonts oder Analyse-Dienste in der Oberfläche</li>
-          </ul>
-        </article>
-        <article class="card">
-          <h3>Sicherheit: was nicht zugesagt wird</h3>
-          <ul>
-            <li>Keine Ende-zu-Ende-Verschlüsselung für das gesamte System und keine Aussage über kompromittierte Endgeräte</li>
-            <li>Kein Audit-Siegel und keine behördliche Anerkennung; die ASVS-Bewertung ist eine Selbsteinschätzung</li>
-            <li>Kein Schutz gegen XSS, bösartige Browser-Erweiterungen oder Malware auf dem Client</li>
-            <li>Keine Rechts- oder Compliance-Zusage: Eine Bewertung entsteht erst durch Betreiberprüfung und Freigabe</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section id="status" aria-labelledby="status-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Projektstand</span>
-        <h2 id="status-h">Vorproduktion, offen benannt</h2>
-        <p>
-          Das Projekt ist kein Produktversprechen. Der folgende Stand trennt, was
-          implementiert und getestet ist, von dem, was erst im Betrieb nachgewiesen werden kann.
-        </p>
-      </div>
-
-      <div class="status-grid">
-        <div class="status-card">
-          <h3><span class="pill pill-done">Belegt</span> Implementiert und getestet</h3>
-          <ul>
-            <li>Übergaben, Aufgaben, Checklisten, Kalender, Kaffeekasse, Pinnwand</li>
-            <li>Mängel-, Geräte- und Inventarverwaltung inklusive API</li>
-            <li>Rollen, Einladungen, Aktivierung, Audit und Stationsgrenzen</li>
-            <li>QR-Login mit kurzlebigen Anfragen und Wachenbindung</li>
-            <li>Setup-Assistent, lokaler WAN-Ausfallbetrieb, Neustart mit persistenter Datenbank</li>
-            <li>Pilotstand 0.24.0 für Erprobung und Präsentation, keine Produktionsfreigabe</li>
-            <li>Oberfläche überwiegend auf Deutsch; Anmeldung und Einrichtung mit de/en-Sprachfundament. Fachmodule und Projektseite noch nicht vollständig zweisprachig</li>
-            <li>Integrierte Hilfe, Wiki und Diagnosezentrum sind nicht Bestandteil dieses Releases</li>
-            <li>Touch-Ziele, Fokus und Kontrast sind Designvorgabe</li>
-          </ul>
-        </div>
-        <div class="status-card">
-          <h3><span class="pill pill-open">Offen</span> Vor einem Produktivbetrieb</h3>
-          <ul>
-            <li>Reale Hardware- und Netzabnahme in der Wache, inklusive TLS/Proxy</li>
-            <li>Passkeys und WebPush auf echten Geräten, ICS gegen einen echten Host</li>
-            <li>Datenschutzfolgenabschätzung, Löschkonzept und Mitbestimmung</li>
-            <li>Wiederherstellungstest mit echten Backup-Daten</li>
-            <li>Client-Offlinebetrieb (Entwurf, nicht implementiert)</li>
-            <li>Unabhängige Sicherheitsprüfung</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="notice" style="margin-top:1.25rem">
-        <p>
-          <strong>Keine Produktionsfreigabe.</strong> Diese Seite beschreibt den
-          Entwicklungsstand des Repositories. Sie ist keine Freigabe für den Betrieb
-          und keine Bestätigung von Compliance-Anforderungen.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section id="fragen" aria-labelledby="fragen-h">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-kicker">Fragen</span>
-        <h2 id="fragen-h">Häufige Fragen</h2>
-      </div>
-
+<section id="fragen" class="pub-section">
+  <div class="pub-wrap">
+    <div class="pub-section-head"><h2>Häufige Fragen</h2></div>
+    <div class="faq">
       <details>
         <summary>Braucht der Betrieb eine Internetverbindung?</summary>
-        <div class="details-body">
-          <p>
-            Nein. Anmeldung, Rollen, Formulare und Assets werden lokal ausgeliefert. Nur
-            optionale Funktionen wie freigegebene RSS-Quellen, Müllkalender, Geocoding
-            oder WebPush brauchen einen Weg nach außen – und lassen sich abschalten.
-          </p>
-        </div>
+        <p>Nein. Anmeldung, Rollen, Formulare und Schriften werden lokal ausgeliefert. Internet brauchen nur optionale Quellen wie Wetter oder Verkehrslage sowie Updates.</p>
       </details>
       <details>
-        <summary>Was passiert bei einem WAN-Ausfall?</summary>
-        <div class="details-body">
-          <p>
-            Solange der Wachenserver im LAN erreichbar ist, läuft der Kernbetrieb weiter.
-            Fällt der Server selbst aus oder ist das Handy ohne Netz, gibt es keinen
-            Offline-Schreibbetrieb: keine lokale Datenbank, keine Outbox, keine spätere
-            Synchronisation.
-          </p>
-        </div>
+        <summary>Wer betreibt den Server?</summary>
+        <p>Die Wache oder ihr Träger. Es gibt keine zentrale Instanz; Daten verlassen den eigenen Server nicht.</p>
       </details>
       <details>
-        <summary>Wie funktioniert die Anmeldung per QR-Code?</summary>
-        <div class="details-body">
-          <p>
-            Der Browser zeigt eine kurzlebige Anfrage. Ein bereits angemeldetes
-            Mitarbeitergerät bestätigt sie – mit frischer Anmeldung, TOTP oder Passkey.
-            Der QR-Code enthält kein Passwort und kein dauerhaftes Token; die Anfrage ist
-            an Wache und Browsersitzung gebunden und läuft ab. Das ersetzt keine
-            Zwei-Faktor-Anmeldung, sondern verlagert die Bestätigung auf das Gerät.
-          </p>
-        </div>
+        <summary>Wie kommen Updates auf den Server?</summary>
+        <p>Mit <code>wachbuch update</code> oder automatisch per <code>wachbuch auto-update an</code>. Vor jedem Update entsteht ein Backup; startet die neue Fassung nicht, läuft wieder die vorherige.</p>
       </details>
       <details>
-        <summary>Welche Rolle spielt der Flutter-Client?</summary>
-        <div class="details-body">
-          <p>
-            Der Client ist quelloffen (AGPL) und nutzt die versionierte JSON-API mit
-            Token-Scopes. Er unterliegt denselben Rollen- und Stationsgrenzen. Für den
-            Web-Betrieb ist er nicht erforderlich.
-          </p>
-        </div>
+        <summary>Funktioniert das auf dem Handy?</summary>
+        <p>Ja, im Browser als installierbare Web-App und als quelloffene App für iOS und Android. Schreiben braucht eine Verbindung zum Wachenserver.</p>
       </details>
       <details>
-        <summary>Wie steht es um Datenschutz und Compliance?</summary>
-        <div class="details-body">
-          <p>
-            Nein, dazu trifft das Projekt keine Aussage. Dokumentiert sind technische
-            Maßnahmen und offene Punkte. Eine Bewertung setzt die Prüfung der konkreten
-            Wache, ihrer Aufbewahrungsfristen und die betriebliche Mitbestimmung voraus.
-          </p>
-        </div>
-      </details>
-      <details>
-        <summary>Wie steht es um Kompatibilität und Lizenzen?</summary>
-        <div class="details-body">
-          <p>
-            Der Servercode steht unter AGPL-3.0-or-later. Wer eine geänderte Fassung als
-            Netzwerkdienst betreibt, muss den zugehörigen Quellcode anbieten. Die
-            eingesetzten Open-Source-Bausteine und ihre Lizenzen sind im Repository
-            dokumentiert.
-          </p>
-        </div>
+        <summary>Was kostet Wachwerk?</summary>
+        <p>Nichts. Der Quellcode steht unter der AGPL-3.0. Kosten entstehen nur für eigene Hardware und Betrieb.</p>
       </details>
     </div>
-  </section>
+  </div>
+</section>
 </main>
 
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <h2>Wachwerk</h2>
-        <p>
-          Selbst gehostetes Wachbuch für die interne Organisation einer Rettungswache.
-          Kein Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.
-        </p>
-      </div>
-      <div>
-        <h3>Projekt</h3>
-        <ul>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Quellcode und Issues</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/README.md">README</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/ARCHITECTURE.md">Architektur</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/GO-LIVE-CHECKLIST.md">Go-live-Checkliste</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/LICENSE">Lizenz (AGPL-3.0)</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Dokumentation</h3>
-        <ul>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OPERATIONS.md">Betrieb und Backup</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/OFFLINE-BETRIEB.md">Lokaler Betrieb ohne WAN</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/SECURITY-PRIVACY.md">Datenschutz und Sicherheit</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/API.md">API für Mobile-Clients</a></li>
-          <li><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/CONTRIBUTING.md">Mitwirken</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>Copyright (C) 2026 Darkspike1988 · AGPL-3.0-or-later</span>
-      <span>Projektseite ohne Betreiberangaben, ohne Tracking und ohne Rechts- oder Compliance-Zusage.</span>
-    </div>
+<footer class="pub-footer">
+  <div class="pub-wrap pub-footer-inner">
+    <p>Wachwerk – selbst gehostetes Wachbuch für die interne Organisation einer Rettungswache. Kein Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.</p>
+    <p><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Quellcode</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/GO-LIVE-CHECKLIST.md">Go-live-Checkliste</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/LICENSE">Lizenz (AGPL-3.0)</a></p>
   </div>
 </footer>
 </body>

@@ -32,7 +32,7 @@ KIOSK_SCALE="${KIOSK_SCALE:-}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TLS_DIR=/etc/wachbuch/tls
 STATE_DIR=/etc/wachbuch
-COMPOSE=(docker compose -f "$REPO_DIR/docker-compose.yml" -f "$REPO_DIR/deploy/pi/docker-compose.pi.yml")
+COMPOSE=(docker compose -f "$REPO_DIR/docker-compose.yml" -f "$REPO_DIR/compose.build.yml" -f "$REPO_DIR/deploy/pi/docker-compose.pi.yml")
 
 say() { printf '\n==> %s\n' "$*"; }
 die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
@@ -131,7 +131,7 @@ set_env() {  # set_env KEY VALUE [nur-wenn-Platzhalter]
   fi
 }
 for key in DJANGO_SECRET_KEY POSTGRES_PASSWORD APP_DB_PASSWORD FEED_DB_PASSWORD BACKUP_DB_PASSWORD \
-           PUSH_DB_PASSWORD FEED_WORKER_SECRET_KEY PUSH_WORKER_SECRET_KEY; do
+           PUSH_DB_PASSWORD FEED_WORKER_SECRET_KEY PUSH_WORKER_SECRET_KEY RATELIMIT_KEY_SALT; do
   set_env "$key" "$(openssl rand -hex 32)" placeholder
 done
 set_env CRYPTO_MASTER_KEY "$(openssl rand -hex 32)" placeholder

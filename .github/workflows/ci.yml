@@ -21,14 +21,14 @@ jobs:
       REDIS_HOST: ""
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
       - name: Isolated Python environment
         run: |
-          uv venv --seed --managed-python --python 3.13 "$RUNNER_TEMP/wachbuch-venv"
+          uv venv --seed --managed-python --python 3.14 "$RUNNER_TEMP/wachbuch-venv"
           echo "$RUNNER_TEMP/wachbuch-venv/bin" >> "$GITHUB_PATH"
           echo "DATABASE_URL=sqlite:///$RUNNER_TEMP/wachbuch-ci-$GITHUB_RUN_ID.sqlite3" >> "$GITHUB_ENV"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
       - name: Install locked dependencies with hash verification
@@ -76,61 +76,100 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Lint installer and container scripts
+        run: |
+          shellcheck --version
+          shellcheck install.sh scripts/wachbuch scripts/backup-loop.sh scripts/init-db.sh \
+            scripts/start-web.sh scripts/start-worker.sh scripts/start-push-worker.sh \
+            scripts/migrate.sh scripts/restore-test.sh
       - name: Validate Compose
-        run: cp .env.example .env && docker compose config --quiet
-      - name: Build web image
-        run: docker build --tag rettungswache-wachbuch:test .
+        run: |
+          cp .env.example .env
+          docker compose -f docker-compose.yml config --quiet
+          COMPOSE_PROFILES=https,ops docker compose -f docker-compose.yml -f compose.build.yml config --quiet
+      - name: Build all images (app, backup, db)
+        run: docker compose -f docker-compose.yml -f compose.build.yml build
       - name: Reject runtime data in image
         run: |
-          test -z "$(docker run --rm --entrypoint sh rettungswache-wachbuch:test -c \
+          test -z "$(docker run --rm --entrypoint sh rettungswache-wachbuch:local -c \
             'find /app -type f \( -name "*.dump" -o -name "*.sqlite3" -o -name "*.pyc" \) -print')"
       - name: Verify language catalogs ship in the image
         run: |
-          docker run --rm --entrypoint python rettungswache-wachbuch:test -c \
+          docker run --rm --entrypoint python rettungswache-wachbuch:local -c \
             "import gettext; g = gettext.GNUTranslations(open('/app/locale/en/LC_MESSAGES/django.mo','rb')); assert g.gettext('Anmelden') == 'Sign in', g.gettext('Anmelden')"
       - name: Scan container image for HIGH/CRITICAL vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: rettungswache-wachbuch:test
+          image-ref: rettungswache-wachbuch:local
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: true
-      - name: Start isolated PostgreSQL stack
+      - name: Start the complete stack (all services)
         run: |
-          sudo chown 70:70 backups
-          HTTP_PORT=18091 docker compose up --build --detach web
-      - name: Verify health and database restrictions
+          export COMPOSE_FILE=docker-compose.yml:compose.build.yml
+          # ALLOWED_HOSTS ohne Loopback: der Healthcheck muss trotzdem gelingen.
+          HTTP_PORT=18091 ALLOWED_HOSTS=wache.example.test \
+            docker compose up --detach --wait --wait-timeout 300
+      - name: Verify health, workers and database restrictions
         run: |
-          for attempt in $(seq 1 30); do
-            curl --fail --silent http://127.0.0.1:18091/healthz/ && break
-            test "$attempt" -lt 30
-            sleep 2
+          export COMPOSE_FILE=docker-compose.yml:compose.build.yml
+          curl --fail --silent --show-error http://127.0.0.1:18091/healthz/
+          health() { docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$(docker compose ps -q "$1")"; }
+          for service in web db redis notify-worker push-worker; do
+            test "$(health "$service")" = "healthy" || { echo "$service: $(health "$service")"; exit 1; }
           done
-          # The db service must load the mounted config/postgresql.conf. Assert
-          # the EXACT config_file path the compose command sets, otherwise the
-          # read-only mount would be silently ignored and the official image
-          # would fall back to $PGDATA defaults (shared_buffers=128MB).
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            'SHOW config_file')" = "/etc/postgresql/postgresql.conf"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            'SHOW shared_buffers')" = "2GB"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            'SHOW max_connections')" = "200"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')")" = "f"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'SELECT')")" = "t"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'INSERT')")" = "f"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'UPDATE')")" = "f"
-          test "$(docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc \
-            "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'DELETE')")" = "f"
+          for service in feed-worker backup; do
+            test "$(docker inspect -f '{{.State.Status}}' "$(docker compose ps -q "$service")")" = "running"
+          done
+          # notify-worker must really talk to the database (K1).
+          docker compose logs notify-worker | grep -q "Datenbank erreichbar"
+          # The db image ships config/postgresql.conf; assert the EXACT
+          # config_file path, otherwise the file would be silently ignored and
+          # the official image would fall back to $PGDATA defaults. The small
+          # defaults (128MB/50) keep the stack bootable on 1-2 GB hosts.
+          # statement_timeout is only set in the file and proves it is read.
+          q() { docker compose exec -T db psql -U rwsth_owner -d rwsth -tAc "$1"; }
+          test "$(q 'SHOW config_file')" = "/etc/postgresql/postgresql.conf"
+          test "$(q 'SHOW shared_buffers')" = "128MB"
+          test "$(q 'SHOW max_connections')" = "50"
+          test "$(q 'SHOW statement_timeout')" = "1min"
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'SELECT')")" = "t"
+          test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'INSERT')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'UPDATE')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'DELETE')")" = "f"
+          # Backup dump and restore probe.
+          docker compose exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once
+          docker compose run --rm restore-test
       - name: Show logs after failure
         if: failure()
-        run: docker compose logs --no-color
-      - name: Remove isolated stack
+        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml docker compose logs --no-color
+      - name: Remove stack
         if: always()
-        run: docker compose down --volumes --remove-orphans
+        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml docker compose --profile ops down --volumes --remove-orphans
+      - name: Installer end-to-end (local build, two runs)
+        run: |
+          target="$RUNNER_TEMP/wachbuch"
+          sh install.sh --source "$GITHUB_WORKSPACE" --build --yes --mode local \
+            --port 18092 --project wbci --name "RW CI-Wache" --dir "$target"
+          cp "$target/.env" "$RUNNER_TEMP/env-first-run"
+          sh install.sh --source "$GITHUB_WORKSPACE" --build --yes --dir "$target"
+          diff "$RUNNER_TEMP/env-first-run" "$target/.env"
+          test "$(stat -c %a "$target/.env")" = "600"
+          curl --fail --silent --show-error http://127.0.0.1:18092/healthz/
+          curl --fail --silent --show-error -o /dev/null http://localhost:18092/setup/
+          "$target/wachbuch" status
+          "$target/wachbuch" backup
+          ls "$target"/backups/rwsth-*.dump
+      - name: Installer logs after failure
+        if: failure()
+        run: cd "$RUNNER_TEMP/wachbuch" && docker compose logs --no-color || true
+      - name: Uninstall
+        if: always()
+        run: |
+          if [ -x "$RUNNER_TEMP/wachbuch/wachbuch" ]; then
+            "$RUNNER_TEMP/wachbuch/wachbuch" uninstall --purge --yes
+          fi

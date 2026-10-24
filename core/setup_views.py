@@ -249,7 +249,7 @@ def _finish_setup(request, station, user, cleaned):
             code_set = True
         if cleaned.get("register_terminal"):
             terminal, raw_terminal = create_terminal_device(station, label="Wachenterminal", created_by=user)
-            audit(user, station, "terminal.created", terminal, {"label": terminal.label, "via": "setup"})
+            audit(user, station, "terminal.created", terminal, {"fields": ["label"], "via": "setup"})
             register = True
     request.session[SETUP_DONE_KEY] = {
         "station": station.name,
@@ -339,6 +339,10 @@ def setup_weather_preview(request):
             "city",
             "timezone_name",
             "weather_enabled",
+            "traffic_enabled",
+            "traffic_roads",
+            "traffic_radius_km",
+            "traffic_warning_areas",
             "admin_username",
             "admin_first_name",
             "admin_last_name",
@@ -422,7 +426,10 @@ def activate_account(request, token):
         response = render(request, "core/activate_account.html", {"form": form, "activation": activation})
 
     response["Cache-Control"] = "no-store, max-age=0"
-    response["Referrer-Policy"] = "no-referrer"
+    # same-origin statt no-referrer: Bei no-referrer senden Browser für das
+    # eigene Formular „Origin: null“, und die CSRF-Prüfung lehnt ab. Fremde
+    # Seiten erhalten weiterhin keinen Referer mit dem Einmal-Token.
+    response["Referrer-Policy"] = "same-origin"
     return response
 
 
@@ -472,7 +479,8 @@ def team_invite_create(request):
             },
         )
         response["Cache-Control"] = "no-store, max-age=0"
-        response["Referrer-Policy"] = "no-referrer"
+        # Die Seite enthält Formulare (z. B. Abmelden); siehe activate_account.
+        response["Referrer-Policy"] = "same-origin"
         return response
     return render(request, "core/team_invite_form.html", {"form": form})
 

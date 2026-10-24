@@ -4,7 +4,9 @@
 # until you intentionally rotate POSTGRES_PASSWORD via a dump/restore cycle.
 set -eu
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+# Im Repository-Checkout: Elternordner von scripts/. Bei einer install.sh-
+# Installation: WACHBUCH_DIR=/opt/wachbuch scripts/rotate-db-passwords.sh
+ROOT_DIR=${WACHBUCH_DIR:-$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)}
 cd "$ROOT_DIR"
 
 if [ ! -f .env ]; then
@@ -12,8 +14,8 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-# shellcheck disable=SC1091
 set -a
+# shellcheck disable=SC1091
 . ./.env
 set +a
 
@@ -63,6 +65,6 @@ awk -v app="$NEW_APP" -v feed="$NEW_FEED" -v backup="$NEW_BACKUP" -v push="$NEW_
 ' .env > "$TMP"
 cp "$TMP" .env
 
-echo "Updated .env. Restarting web, feed-worker, backup and push-worker ..."
-docker compose up -d --force-recreate web feed-worker backup push-worker
+echo "Updated .env. Restarting web, notify-worker, feed-worker, backup and push-worker ..."
+docker compose up -d --force-recreate web notify-worker feed-worker backup push-worker
 echo "Done. Verify /healthz/ and worker logs."

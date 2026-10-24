@@ -1,6 +1,6 @@
 # Raspberry Pi 4 (4 GB) als Wachen-Server mit eigenem WLAN und Touch-Terminal.
 #
-#   docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml up -d --build
+#   docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml up -d --build
 #
 # Ergänzt die Standard-Compose-Datei um:
 # - TLS-Proxy (nginx) auf Port 443 mit dem lokalen Zertifikat aus setup-pi.sh,

@@ -15,7 +15,20 @@ class Command(BaseCommand):
         push_role = checked_role("PUSH_DB_USER", default="rwsth_push")
         owner = checked_role("POSTGRES_USER", default="rwsth_owner")
         database = checked_role("POSTGRES_DB", default="rwsth")
+        # Ältere Volumes wurden vor Einführung einzelner Rollen (z. B. rwsth_push)
+        # initialisiert; init-db.sh läuft nur beim ersten Start. Fehlende Rollen
+        # deshalb hier idempotent anlegen, sonst scheitern die GRANTs.
+        role_passwords = (
+            (app_role, "APP_DB_PASSWORD"),
+            (feed_role, "FEED_DB_PASSWORD"),
+            (backup_role, "BACKUP_DB_PASSWORD"),
+            (push_role, "PUSH_DB_PASSWORD"),
+        )
         statements = [
+            ensure_role_statement(role, os.getenv(password_env, ""))
+            for role, password_env in role_passwords
+        ]
+        statements += [
             f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC",
             f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC",
             f"GRANT CONNECT ON DATABASE {database} TO {app_role}, {feed_role}, {backup_role}, {push_role}",
@@ -49,6 +62,33 @@ class Command(BaseCommand):
             for statement in statements:
                 cursor.execute(statement)
         self.stdout.write(self.style.SUCCESS("Datenbank-Laufzeitrechte sind gesetzt."))
+
+
+DOLLAR_TAG = "$rwsth_role$"
+
+
+def sql_literal(value):
+    """SQL-Stringliteral (standard_conforming_strings ist seit PG 9.1 Standard)."""
+    if "\x00" in value:
+        raise CommandError("Passwort enthält ein NUL-Zeichen.")
+    return "'" + value.replace("'", "''") + "'"
+
+
+def ensure_role_statement(role, password):
+    """Legt eine fehlende Rolle an; bestehende Rollen und Passwörter bleiben unverändert.
+
+    Ohne Passwort entsteht eine NOLOGIN-Rolle, damit die GRANTs gelingen; der
+    zugehörige Dienst kann sich dann erst nach dem Setzen eines Passworts anmelden.
+    """
+    if DOLLAR_TAG in password:
+        raise CommandError("Passwort enthält eine nicht erlaubte Zeichenfolge.")
+    login = f"LOGIN PASSWORD {sql_literal(password)}" if password else "NOLOGIN"
+    return (
+        f"DO {DOLLAR_TAG} BEGIN "
+        f"IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = {sql_literal(role)}) THEN "
+        f"CREATE ROLE {role} {login}; "
+        f"END IF; END {DOLLAR_TAG}"
+    )
 
 
 def checked_role(name, default=None):

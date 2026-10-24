@@ -1,36 +1,57 @@
-# Wachbuch-Vorführung
+# Wachwerk-Vorführung (Folien)
 
-Die produktive Vorführung liegt in der Web-PWA unter **`/vorfuehrung/`**
-(CSP-konform, Design-Tokens der App, Musik nur nach Klick).
+Die Vorführung in der Web-App liegt unter **`/vorfuehrung/`** (CSP-konform,
+Musik nur nach Klick). Dieses Verzeichnis ist die eigenständige Fassung
+derselben acht Folien für Video-Export und Vorträge ohne laufenden
+Django-Prozess. Sie wird **nicht** über die App ausgeliefert.
 
-Dieses Verzeichnis bleibt die eigenständige Folienfassung für Video-Export
-und Vorführungen ohne laufenden Django-Prozess. **Nicht** über die PWA
-ausgeliefert.
+## Aufbau
 
-## Live zeigen (ohne Django)
+- `index.html` – acht Folien, 16:9, ohne Inline-Skripte und -Styles
+- `slides.css` – nur die Bühne; Maßstab 80 × 45 rem (bei 1920 × 1080 ist 1 rem = 24 px)
+- `slides.js` – Blättern, Fortschritt, Musik
+- `design/` – Kopien von `tokens.css`, `fonts.css`, `public.css`, Schrift und
+  Aufnahmen aus `core/static/core/`. Nicht von Hand ändern, sondern
+  `python scripts/sync_design_assets.py` ausführen.
 
-Vom Repository-Root:
+Die Folien folgen der Design-Sprache „Wachbuch Klar 2“: echte Aufnahmen der
+Oberfläche (synthetische Daten der „Rettungswache Nord“) statt Stockfotos,
+Warnmarkierung nur als Kante oben und als Rahmen der Produktgrenze, Farbe nur
+für Zustand.
+
+## Live zeigen
 
 ```bash
-python3 -m http.server 8765
+python3 -m http.server 8772 --directory docs/praesentation
 ```
 
-Dann im Browser:
+Dann `http://127.0.0.1:8772/` öffnen. Die Datei funktioniert auch direkt per
+Doppelklick (`file://`).
 
-`http://127.0.0.1:8765/docs/praesentation/index.html`
-
-- Pfeiltasten oder **Weiter** / **Zurück**
+- Pfeiltasten, Leertaste oder **Weiter** / **Zurück**
+- `#3` öffnet Folie 3
 - `?autoplay=1` blättert automatisch
-- **Musik** startet eine kurze, eigens erzeugte Ambient-Figur (keine fremden Aufnahmen, keine GEMA-pflichtigen Titel)
+- `?theme=dark` oder `?theme=light` erzwingt Nacht- bzw. Tagansicht
+  (sonst folgt die Ansicht dem System)
+- `?record=1` blendet die Steuerleiste aus
+- **Musik** startet eine kurze, eigens erzeugte Ambient-Figur (keine fremden
+  Aufnahmen, keine GEMA-pflichtigen Titel)
 
 ## Video erzeugen
 
 ```bash
-python3 docs/praesentation/render_video.py
+pip install playwright && playwright install chromium   # einmalig
+python3 docs/praesentation/render_video.py --capture                # hell
+python3 docs/praesentation/render_video.py --capture --theme dark   # Nachtdienst
 ```
 
-schreibt `docs/praesentation/wachbuch-vorfuehrung.mp4` (lokal, nicht für Git vorgesehen).
+nimmt jede Folie in 1920 × 1080 auf und schreibt
+`docs/praesentation/wachbuch-vorfuehrung.mp4` (5 s je Folie, lokal, nicht für
+Git vorgesehen). Benötigt `ffmpeg`. Mit eigenen Bildern:
+`render_video.py FRAMES_DIR [OUT.mp4]` (erwartet `slide-1.png` … `slide-8.png`).
 
 ## Inhaltliche Grenze
 
-Die Folien nennen ausdrücklich: internes Wachenbuch, kein Einsatz-, Alarm- oder Patientensystem.
+Die Folien nennen ausdrücklich: internes Wachbuch, kein Einsatzleit-,
+Patientendokumentations- oder Dienstplanungssystem, Vorproduktion ohne
+Produktionsfreigabe.

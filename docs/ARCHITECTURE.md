@@ -94,7 +94,7 @@ graph TD
 
 ### **2. Datenbank (PostgreSQL)**
 
-- **Version**: PostgreSQL 17.10
+- **Version**: PostgreSQL 17.11
 - **Rollen**: Getrennte Rollen für App, Feed, Backup
 - **Schema**: Ein Schema (`public`) mit klaren Tabellen
 - **Indexes**: Optimierte Indexes für häufige Abfragen
@@ -336,7 +336,7 @@ graph LR
 |------------|-------------|---------|-------|
 | **Framework** | Django | 6.0.7 | Web-Anwendung |
 | **ORM** | Django ORM | 6.0.7 | Datenbankzugriff |
-| **Datenbank** | PostgreSQL | 17.10 | Datenpersistenz |
+| **Datenbank** | PostgreSQL | 17.11 | Datenpersistenz |
 | **Cache** | Redis | 7.4 | Caching |
 | **Web Server** | Gunicorn | 26.0.0 | HTTP-Server |
 | **Async** | Celery | (geplant) | Hintergrundaufgaben |

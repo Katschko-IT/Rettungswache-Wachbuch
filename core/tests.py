@@ -66,8 +66,8 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_brand_uses_station_subtitle(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'class="brand-logo"', html=False)
-        self.assertContains(response, 'alt="Wachwerk"', html=False)
+        self.assertContains(response, 'class="brand-mark"', html=False)
+        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False)
         self.assertContains(response, self.station.name)
         self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
@@ -101,20 +101,26 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_and_manifest_use_bos_theme_tokens(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'name="theme-color" content="#0d47a1"')
-        self.assertContains(response, 'class="brand-logo"', html=False)
-        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
+        self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
+        self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
+        self.assertContains(response, 'class="brand-mark"', html=False)
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "tokens.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("--brand: #0d47a1", css)
-        self.assertIn("--priority-urgent: #dc2626", css)
+        self.assertIn("--brand: #0e4aa8", css)
+        self.assertIn("--priority-urgent: var(--danger)", css)
         self.assertIn("--touch: 3rem", css)
-        self.assertIn('font-family: "Source Sans 3"', css)
-        font = Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts" / "SourceSans3-Regular.woff2"
+        self.assertIn("prefers-color-scheme: dark", css)
+        fonts = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts.css").read_text(encoding="utf-8")
+        self.assertIn('font-family: "Atkinson Hyperlegible Next"', fonts)
+        font = (
+            Path(settings.BASE_DIR) / "core" / "static" / "core" / "fonts"
+            / "atkinson-hyperlegible-next-latin-400-normal.woff2"
+        )
         self.assertTrue(font.is_file())
         manifest = self.client.get(reverse("web_manifest")).json()
-        self.assertEqual(manifest["theme_color"], "#0d47a1")
-        self.assertEqual(manifest["background_color"], "#f7f9fc")
+        self.assertEqual(manifest["theme_color"], "#ffffff")
+        self.assertEqual(manifest["background_color"], "#f5f7f6")
         self.assertNotIn("medical", manifest.get("categories", []))
 
     def test_landing_uses_public_service_copy(self):
@@ -131,17 +137,21 @@ class ProgressiveWebAppTests(PilotTestCase):
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("background: transparent !important;", css)
-        self.assertIn("border-color: rgba(255, 255, 255, .55) !important;", css)
-        self.assertIn(".header-login:hover { background: rgba(255, 255, 255, .12) !important; }", css)
+        # Heller Kopf (Wachbuch Klar 2): Aktionsfarbe statt Weiß auf Blau,
+        # über Tokens, damit es auch im Nachtdienst-Modus lesbar bleibt.
+        self.assertIn("color: var(--brand) !important;", css)
+        self.assertIn("border-color: var(--brand) !important;", css)
+        self.assertIn(".header-login:hover { background: var(--accent-soft) !important; }", css)
+        self.assertNotIn("rgba(255, 255, 255, .55)", css)
 
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))
-        self.assertContains(response, 'alt="Wachwerk"', html=False, count=1)
+        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False, count=1)
         self.assertNotContains(response, "brand-hero")
-        self.assertContains(response, "landing-hero-art")
-        self.assertContains(response, "Pexels")
+        # Die Startseite zeigt die echte Oberfläche (synthetische Daten) statt eines Stockfotos.
+        self.assertContains(response, "core/screens/overview-desktop-light")
+        self.assertNotContains(response, "Pexels")
         self.assertContains(response, "Alles, was eine Schicht braucht")
         self.assertContains(response, "quelloffene Apps für iOS und Android")
         self.assertNotContains(response, "Zur Anmeldung")
@@ -169,11 +179,21 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("vorfuehrung"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-demo-deck")
-        self.assertContains(response, "Für die Wache. Nicht für den Einsatz.")
-        self.assertContains(response, "kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem")
-        self.assertContains(response, "Im Umfang")
-        self.assertContains(response, "Nicht im Umfang")
+        self.assertContains(response, "data-demo-slide", count=8)
+        # Die Produktgrenze steht als eigene Folie im Warnrahmen.
+        self.assertContains(response, "Was bewusst nicht hineingehört")
+        self.assertContains(response, 'class="boundary"')
+        self.assertContains(response, "Kein Einsatzleitsystem")
+        self.assertContains(response, "Kein Patientendokumentationssystem")
+        self.assertContains(response, "Keine Dienstplanung")
+        self.assertContains(response, "Keine Produktionsfreigabe.")
+        self.assertContains(response, "core/public.css")
         self.assertContains(response, "core/demo.css")
+        # Echte Aufnahmen der Oberfläche statt Stockfoto.
+        self.assertContains(response, "core/screens/overview-desktop-light")
+        self.assertContains(response, "core/screens/handovers-phone-light")
+        self.assertNotContains(response, "landing-hero")
+        self.assertNotContains(response, "Pexels")
         self.assertContains(response, reverse("login"))
         self.assertNotContains(response, "Demo starten")
         self.assertNotContains(response, reverse("demo_login"))
@@ -182,7 +202,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("vorfuehrung"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-demo-deck")
-        self.assertContains(response, "Für die Wache. Nicht für den Einsatz.")
+        self.assertContains(response, "Was bewusst nicht hineingehört")
 
     def test_vorfuehrung_template_is_csp_safe(self):
         source = (Path(settings.BASE_DIR) / "templates" / "core" / "vorfuehrung.html").read_text(
@@ -196,10 +216,14 @@ class ProgressiveWebAppTests(PilotTestCase):
             encoding="utf-8"
         )
         self.assertIn("prefers-reduced-motion", css)
+        self.assertNotIn("landing-hero", css)
+        # Folie und Steuerleiste füllen den Bildschirm; der Fuß überlappt nicht.
+        self.assertIn("body.demo-deck-active .site-footer { display: none; }", css)
         js = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "app.js").read_text(
             encoding="utf-8"
         )
         self.assertIn("[data-demo-deck]", js)
+        self.assertIn("demo-deck-active", js)
         self.assertIn("prefers-reduced-motion", js)
         self.assertNotIn("innerHTML", js)
 
@@ -416,7 +440,12 @@ class MinimalInterfaceTests(PilotTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Für die nächste Schicht")
         self.assertContains(response, "Nächste Termine")
-        self.assertContains(response, "Schnellzugriff")
+        # Dringende Übergaben erscheinen als erster Punkt der Aufmerksamkeitsliste.
+        HandoverEntry.objects.create(
+            station=self.station, title="Dringend", details="x", category="station",
+            priority=HandoverEntry.Priority.URGENT, author=self.user,
+        )
+        response = self.client.get(reverse("dashboard"))
         self.assertContains(response, reverse("handover_list") + "?ansicht=dringend")
         self.assertNotContains(response, "Aktuelle Meldungen")
         self.assertNotContains(response, "Datenraum")
@@ -472,8 +501,9 @@ class MinimalInterfaceTests(PilotTestCase):
             "task_total": 8,
             "task_done": 0,
         })
-        self.assertContains(response, "Wachalltag im Blick")
-        self.assertContains(response, "1 Mängel")
+        self.assertContains(response, "Punkte brauchen Aufmerksamkeit")
+        defects = next(item for item in response.context["attention_items"] if item["key"] == "defects")
+        self.assertEqual((defects["value"], defects["title"]), (1, "Mangel"))
         self.assertNotContains(response, "Fremder Mangel")
 
         normal = self.create_handover("Normal", HandoverEntry.Priority.NORMAL)

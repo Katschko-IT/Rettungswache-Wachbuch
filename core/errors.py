@@ -53,6 +53,7 @@ ERROR_CODE_MFA_SETUP_REQUIRED = "mfa_setup_required"
 ERROR_CODE_CONFLICT = "conflict"
 ERROR_CODE_PAYLOAD_TOO_LARGE = "payload_too_large"
 ERROR_CODE_UNSUPPORTED_MEDIA_TYPE = "unsupported_media_type"
+ERROR_CODE_NO_ACTIVE_MEMBERSHIP = "no_active_membership"
 
 ERROR_CODES: dict[str, dict[str, Any]] = {
     ERROR_CODE_VALIDATION: {"status": 400, "label": _("Ungültige Anfrage.")},
@@ -66,6 +67,7 @@ ERROR_CODES: dict[str, dict[str, Any]] = {
     ERROR_CODE_CONFLICT: {"status": 409, "label": _("Konflikt mit dem aktuellen Stand.")},
     ERROR_CODE_PAYLOAD_TOO_LARGE: {"status": 413, "label": _("Datei oder Anfrage ist zu groß.")},
     ERROR_CODE_UNSUPPORTED_MEDIA_TYPE: {"status": 415, "label": _("Dateityp wird nicht unterstützt.")},
+    ERROR_CODE_NO_ACTIVE_MEMBERSHIP: {"status": 403, "label": _("Kein aktiver Wachenzugang.")},
 }
 
 

@@ -17,7 +17,12 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
-from .api.wachalltag import ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES, attachment_is_valid
+from .api.wachalltag import (
+    ALLOWED_ATTACHMENT_TYPES,
+    MAX_ATTACHMENT_BYTES,
+    attachment_is_valid,
+    defect_attachment_limit_error,
+)
 from .attachments import read_uploads
 from .device_status import IN_SERVICE, asset_release_blockers
 from .models import Checklist, Membership
@@ -38,7 +43,10 @@ from .wachalltag_models import (
 def _parse_local_datetime(value):
     if not value:
         return None
-    parsed = parse_datetime(value)
+    try:
+        parsed = parse_datetime(value)
+    except ValueError:  # formal korrekt, aber unmöglich (z. B. 30. Februar)
+        return None
     if parsed is None:
         try:
             parsed = datetime.fromisoformat(value)
@@ -198,6 +206,10 @@ def defect_detail(request, pk):
                     messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
                 else:
                     with transaction.atomic():
+                        locked = Defect.objects.select_for_update().get(pk=item.pk)
+                        if limit := defect_attachment_limit_error(locked, len(raw)):
+                            messages.error(request, limit[0])
+                            return redirect("defect_detail_web", pk=item.pk)
                         attachment = DefectAttachment.objects.create(
                             defect=item,
                             station=station,

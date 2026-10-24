@@ -232,14 +232,18 @@ def verify_code(terminal, code: str) -> bool:
         StationTerminal.objects.filter(pk=terminal.pk).update(failed_attempts=0, locked_until=None)
         terminal.failed_attempts, terminal.locked_until = 0, None
         return True
-    failures = terminal.failed_attempts + 1
-    locked_until = None
-    if failures % 5 == 0:
-        for threshold, duration in LOCK_STEPS:
-            if failures >= threshold:
-                locked_until = timezone.now() + duration
-                break
-    StationTerminal.objects.filter(pk=terminal.pk).update(failed_attempts=failures, locked_until=locked_until)
+    # Zähler unter Zeilensperre erhöhen: parallele Fehlversuche dürfen sich
+    # nicht gegenseitig überschreiben und so die Sperre aushebeln.
+    with transaction.atomic():
+        current = StationTerminal.objects.select_for_update().get(pk=terminal.pk)
+        failures = current.failed_attempts + 1
+        locked_until = current.locked_until
+        if failures % 5 == 0:
+            for threshold, duration in LOCK_STEPS:
+                if failures >= threshold:
+                    locked_until = timezone.now() + duration
+                    break
+        StationTerminal.objects.filter(pk=terminal.pk).update(failed_attempts=failures, locked_until=locked_until)
     terminal.failed_attempts, terminal.locked_until = failures, locked_until
     return False
 

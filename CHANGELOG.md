@@ -2,6 +2,109 @@
 
 ## Unveröffentlicht
 
+Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
+
+- **Automatische Updates:** `wachbuch auto-update an [sicherheit|alle]`
+  spielt nachts Updates ein – vorher Backup, bei gescheitertem Start
+  automatischer Rollback auf die vorherigen Images und Dateien (über
+  Sicherungs-Tags, da Docker 29 Images nach dem Pull nicht mehr per ID
+  zurückholen kann). `alle` überspringt neue Hauptversionen. Der Installer
+  fragt danach (`--auto-update`). Zeitplan per systemd-Timer oder crontab.
+- **Wöchentlicher Neubau** des aktuellen Releases (`refresh-images.yml`) mit
+  Sicherheitsscan und Starttest als Sperre; das Postgres-Image spielt dabei
+  ebenfalls Alpine-Updates ein.
+- `WACHBUCH_REGISTRY` für einen eigenen Image-Spiegel.
+
+- **Installation mit einem Befehl**: `curl -fsSL …/install.sh | sh` prüft Docker,
+  Compose (ab 2.20), Architektur (amd64/arm64), RAM und Ports, legt
+  `/opt/wachbuch` bzw. `~/wachbuch` an, erzeugt eine `.env` mit unabhängigen
+  Zufallswerten (inkl. `CRYPTO_MASTER_KEY`, `RATELIMIT_KEY_SALT`,
+  Einrichtungscode) und startet alles mit `up --wait`. Betriebsarten `local`,
+  `lan` (Caddy mit eigener CA) und `domain` (Let's Encrypt); wiederholbar ohne
+  Verlust von Geheimnissen.
+- **Vorgefertigte Images** `ghcr.io/katschko-it/rettungswache-wachbuch`,
+  `-backup` und neu `-db` (PostgreSQL mit eingebautem Rollen-Init und
+  `postgresql.conf`) für amd64 und arm64; kein Git-Checkout und keine
+  Bind-Mounts mehr nötig. Lokaler Build über `compose.build.yml`.
+- **`wachbuch`-CLI** im Installationsordner: `status`, `logs`, `backup`,
+  `restore`, `update`, `setup-code`, `start`, `stop`, `uninstall`.
+- Optionaler **Caddy-TLS-Proxy** im Compose-Profil `https`.
+- **notify-worker** lag in keinem Netz mit der Datenbank und wirkte trotzdem
+  gesund; jetzt im Netz `app-db`, gehärtet, mit Heartbeat-Healthcheck und
+  Fehlercode nach wiederholten Datenbankfehlern.
+- **PostgreSQL** startet auf 1–2-GB-Systemen: kleine Standardwerte
+  (128MB/50/64MB), Tuning über `.env`, `shm_size` 256 MB.
+- **Healthcheck** scheitert nicht mehr an einem eingeschränkten
+  `ALLOWED_HOSTS` (Host `localhost`, Loopback immer erlaubt).
+- **Backup**: Offsite-Ziel als Host-Ordner (`BACKUP_OFFSITE_DIR`), GnuPG im
+  read-only Container (öffentlicher Schlüssel aus `BACKUP_GPG_KEY_DIR`), kein
+  Klartext-Offsite ohne Schlüssel, keine Dump-Serien nach Fehlern oder Neustarts.
+- `grant_database_access` legt fehlende Rollen (z. B. `rwsth_push` auf alten
+  Volumes) an; Push-Rollen-Defaults einheitlich.
+- `.env`-Werte, die bisher nicht ankamen, werden durchgereicht
+  (`PUSH_ALLOWED_ENDPOINT_HOSTS`, `RATELIMIT_KEY_SALT`, `ERROR_EVENT_*`,
+  `APP_VERSION`, `GUNICORN_*`); Gunicorn nutzt `config/gunicorn.py`.
+- Doku: „In 5 Minuten installieren“ im README, `docs/DEPLOYMENT.md` neu
+  (Setup-Assistent als einziger Erstadmin-Weg, korrigierte nginx-/Caddy-Beispiele,
+  Traefik-/Helm-Beispiele mit nie veröffentlichtem Tag entfernt).
+- CI startet alle Dienste mit `up --wait`, prüft Worker-Gesundheit, Backup und
+  Restore-Probe, führt `install.sh` zweimal aus und prüft Skripte mit shellcheck.
+
+Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
+
+- API: „zuletzt genutzt“ eines App-Tokens wird minutengenau gespeichert statt
+  bei jeder Anfrage – ein Schreibzugriff weniger pro Lese-Anfrage.
+- Rate-Limit: zwei gleichzeitige erste Anfragen im selben Zeitfenster
+  (z. B. App lädt `me` und Übergaben parallel) endeten mit 500. Jetzt wird
+  die Zeile der parallelen Anfrage nachgelesen und weitergezählt.
+- Gunicorn hält Keep-alive-Verbindungen 20 s statt 2 s offen – länger als
+  der Leerlauf-Timeout der App, sonst brach ein POST gelegentlich mit
+  „Connection closed before full header was received“ ab.
+- Kontoaktivierung im Browser repariert: Die Seite sendete
+  `Referrer-Policy: no-referrer`, Browser schickten daraufhin `Origin: null`
+  und die CSRF-Prüfung lehnte das Formular ab – neue Konten ließen sich nicht
+  aktivieren. Jetzt `same-origin` (kein Referer an fremde Seiten).
+
+- Sicherheit: `MFA_REQUIRED` wird jetzt durchgesetzt; das Dienstkonto
+  „Wachenterminal“ kann keine Neuigkeiten mehr quittieren; Admins koppeln keine
+  Handys für Personen mit Zwei-Faktor-Anmeldung; Terminal-Fehlversuche werden
+  zuverlässig gezählt; Client-IP hinter dem Reverse-Proxy aus dem vom Proxy
+  angehängten Eintrag (auch für die Anmeldesperre).
+- API: Mängelliste fachlich sortiert (offen vor erledigt, dringend vor normal)
+  und paginiert (`limit`, `offset`, `next`, `active=1`); Kalender liefert
+  laufende Termine und die Beschreibung; Kaffeekasse liefert `scope`;
+  Rate-Limits pro Person mit `Retry-After`; JSON ohne Objekt ergibt 400 statt 500.
+- Web: Checklisten-Abschluss schaltet das Prüfintervall weiter; Anhänge an
+  Mängeln mit denselben Grenzen wie in der App; unmögliche Datumswerte ergeben
+  eine Fehlermeldung statt eines Serverfehlers.
+
+Verkehrslage je Wache konfigurierbar statt fest auf Gütersloh/Steinhagen
+verdrahtet (portiert aus Draft-PR #116). Autobahnen, Umkreis, Warngebiete
+(BBK/NINA), kommunale Quellen und Koordinaten der Wache stehen in den
+Einstellungen, Straßen, Umkreis und Warngebiete auch in der Ersteinrichtung.
+Ohne Koordinaten keine Autobahnquelle, ohne Warngebiet oder Ort keine Warnungen;
+Straßen werden auf `A2`/`B61`-Form geprüft (höchstens 6); der Cache-Schlüssel
+enthält einen Konfigurations-Hash. Die Parser für Steinhagen und den Kreis
+Gütersloh sind nur noch je Wache zuschaltbar (Standard aus). Bestehende Wachen
+mit Verkehrslage behalten ihre bisherigen Werte (Migrationen 0055/0056); der
+feste Ersatzstandort entfällt, fehlende Koordinaten müssen nachgetragen werden.
+
+Abhängigkeiten und Basis-Images auf den Stand vom 24.10.2026 gebracht.
+
+- Python-Pakete: Django 6.1.2, psycopg 3.3.6, cryptography 50.0.2,
+  pywebpush 2.5.0, webauthn 3.0.1, certifi 2026.10.23, Ruff 0.17.2; alle
+  Lockfiles mit Hashes per `uv pip compile` neu erzeugt.
+- Images: Python 3.14.9 auf Debian 13 (`slim-trixie`), PostgreSQL 17.11,
+  Redis 8.8.3. Das Backup-Image nutzt jetzt dieselbe PostgreSQL-Hauptversion
+  (17) wie die Datenbank, damit Dumps mit `pg_restore` der Datenbank
+  zurückspielbar sind. Die Datenbank bleibt bewusst auf Version 17; ein Sprung
+  auf 18 braucht einen eigenen Upgrade-Weg für bestehende Volumes.
+- GitHub Actions auf aktuelle Releases mit SHA-Pin, `setup-uv` und
+  `setup-node` erstmals gepinnt, CodeQL-Upload auf v4; die CI testet mit
+  Python 3.14 wie das ausgelieferte Image.
+- Test `test_display_data_collects_urgent_tasks` hing an einem festen Datum und
+  schlug ab dem 24.10.2026 fehl.
+
 Ersteinrichtung für den Raspberry Pi überarbeitet.
 
 - Der Touch-Bildschirm öffnet vor der Einrichtung direkt den Assistenten statt

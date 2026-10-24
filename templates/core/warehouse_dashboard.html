@@ -9,140 +9,133 @@
     <h1>{% translate "Lager & Material" %}</h1>
     <p class="lead">{% translate "Bestand nach Lagerort, Chargen mit Verfallsdatum (was zuerst abläuft, wird zuerst verbraucht) und Mindestbestände." %}</p>
   </div>
-  <div class="page-actions-bar ms-2a0ca83">
+  <div class="page-actions-bar">
     {% if can_manage %}
-      <a class="button" href="{% url 'warehouse_item_create' %}">
-        <span class="icon" aria-hidden="true">➕</span> {% translate "Neuer Artikel" %}
+      <a class="button primary" href="{% url 'warehouse_item_create' %}">
+        {% include "core/_icon.html" with name="plus" %}{% translate "Neuer Artikel" %}
       </a>
     {% endif %}
-    <a class="button secondary" href="{% url 'warehouse_reorder_proposal' %}">
-      <span class="icon" aria-hidden="true">📋</span> {% translate "Bestellschein" %}
-    </a>
-    <a class="button secondary ms-1280362" href="{% url 'warehouse_batch_recall' %}">
-      <span class="icon" aria-hidden="true">🚨</span> {% translate "BfArM-Rückruf-Filter" %}
-    </a>
-    <a class="button secondary" href="{% url 'warehouse_export_fefo' %}">
-      <span class="icon" aria-hidden="true">📥</span> {% translate "FEFO-Bestand (CSV)" %}
-    </a>
     <button type="button" class="button secondary" data-modal-open="scanner-modal">
-      <span class="icon" aria-hidden="true">📷</span> {% translate "GS1-Scanner" %}
+      {% include "core/_icon.html" with name="camera" %}{% translate "GS1-Scanner" %}
     </button>
+    <a class="button secondary" href="{% url 'warehouse_reorder_proposal' %}">
+      {% include "core/_icon.html" with name="cart" %}{% translate "Bestellschein" %}
+    </a>
+    <a class="button secondary" href="{% url 'warehouse_batch_recall' %}">
+      {% include "core/_icon.html" with name="lock" %}{% translate "BfArM-Rückruf-Filter" %}
+    </a>
+    <a class="button ghost" href="{% url 'warehouse_export_fefo' %}">
+      {% include "core/_icon.html" with name="download" %}{% translate "FEFO-Bestand (CSV)" %}
+    </a>
   </div>
 </header>
 
-{# 5-Stufen FEFO & Nachbestell-Radar KPI Board #}
+{# Verfall und Nachbestellung auf einen Blick; Kante nur bei Handlungsbedarf #}
 <div class="kpi-grid">
   <div class="kpi-card{% if overdue_count or recalled_count %} border-danger{% endif %}">
-    <span class="kpi-value text-danger">{{ overdue_count|add:recalled_count }}</span>
+    <span class="kpi-value">{{ overdue_count|add:recalled_count }}</span>
     <span class="kpi-label">{% translate "Abgelaufen / Gesperrt" %}</span>
   </div>
   <div class="kpi-card{% if critical_count %} border-warning{% endif %}">
-    <span class="kpi-value ms-f24f64e">{{ critical_count }}</span>
+    <span class="kpi-value">{{ critical_count }}</span>
     <span class="kpi-label">{% translate "Verfällt ≤ 30 Tage" %}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value ms-69caa73">{{ warning_count }}</span>
+    <span class="kpi-value">{{ warning_count }}</span>
     <span class="kpi-label">{% translate "Vorwarnung 31–90 Tage" %}</span>
   </div>
   <div class="kpi-card">
-    <span class="kpi-value text-success">{{ ok_count }}</span>
+    <span class="kpi-value">{{ ok_count }}</span>
     <span class="kpi-label">{% translate "Haltbar > 90 Tage" %}</span>
   </div>
   <div class="kpi-card{% if low_stock_count %} border-warning{% endif %}">
-    <span class="kpi-value ms-518b095">{{ low_stock_count }}</span>
+    <span class="kpi-value">{{ low_stock_count }}</span>
     <span class="kpi-label">{% translate "Unter Mindestbestand" %}</span>
   </div>
 </div>
 
-{# Filter & Suchleiste #}
-<nav class="filter-nav ms-8580457" aria-label="{% translate 'Lageransicht' %}">
-  <a href="?filter=all{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Artikel" %} ({{ items|length }})</a>
-  <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}>🚨 {% translate "Akut fällig / Abgelaufen" %} ({{ overdue_count|add:critical_count }})</a>
-  <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}>⚠️ {% translate "Vorwarnung 31–90 Tage" %} ({{ warning_count }})</a>
-  <a href="?filter=low_stock{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'low_stock' %}aria-current="page"{% endif %}>📦 {% translate "Nachbestell-Bedarf" %} ({{ low_stock_count }})</a>
-  <a href="?filter=recalled{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'recalled' %}aria-current="page"{% endif %}>⛔ {% translate "Gesperrte Rückrufe" %} ({{ recalled_count }})</a>
+{# Filter und Suche #}
+<nav class="filter-tabs" aria-label="{% translate 'Lageransicht' %}">
+  <a href="?filter=all{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Artikel" %} <span class="count">{{ items|length }}</span></a>
+  <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Akut fällig / Abgelaufen" %} <span class="count">{{ overdue_count|add:critical_count }}</span></a>
+  <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Vorwarnung 31–90 Tage" %} <span class="count">{{ warning_count }}</span></a>
+  <a href="?filter=low_stock{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'low_stock' %}aria-current="page"{% endif %}><span class="dot dot-info" aria-hidden="true"></span>{% translate "Nachbestell-Bedarf" %} <span class="count">{{ low_stock_count }}</span></a>
+  <a href="?filter=recalled{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'recalled' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Gesperrte Rückrufe" %} <span class="count">{{ recalled_count }}</span></a>
 </nav>
 
-<form method="get" class="search-form ms-06174bc">
+<form method="get" class="search-form">
   <input type="hidden" name="filter" value="{{ filter_mode }}">
-  <input class="ms-3069a23" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Artikelname, PZN, GTIN, Lot-Nr...' %}">
-  <select class="ms-1e5879f" name="category" data-auto-submit>
+  <input class="form-input" type="search" name="q" value="{{ query }}" placeholder="{% translate 'Suche nach Artikelname, PZN, GTIN, Lot-Nr...' %}" aria-label="{% translate 'Suche nach Artikelname, PZN, GTIN, Lot-Nr...' %}">
+  <select class="form-select" name="category" data-auto-submit aria-label="{% translate 'Alle Kategorien' %}">
     <option value="">{% translate "Alle Kategorien" %}</option>
     {% for cat_key, cat_label in categories %}
       <option value="{{ cat_key }}" {% if category == cat_key %}selected{% endif %}>{{ cat_label }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="button secondary">{% translate "Filtern" %}</button>
+  <button type="submit" class="button secondary">{% include "core/_icon.html" with name="search" %}{% translate "Filtern" %}</button>
   {% if query or category %}
-    <a href="?filter={{ filter_mode }}" class="button secondary">{% translate "Zurücksetzen" %}</a>
+    <a href="?filter={{ filter_mode }}" class="button ghost">{% translate "Zurücksetzen" %}</a>
   {% endif %}
 </form>
 
 {# Artikelliste mit FEFO-Status #}
 <section class="section-block">
-  <h2>📦 {% translate "Materialbestand & FEFO-Verfallsstatus" %}</h2>
-  
+  <h2>{% translate "Materialbestand & FEFO-Verfallsstatus" %}</h2>
+
   <div class="item-list">
     {% for item in items %}
       {% with eb=item.earliest_batch %}
       <div class="list-row module-row{% if eb and eb.urgency.level == 'overdue' %} module-row-overdue{% elif eb and eb.urgency.level == 'critical' %} module-row-critical{% elif eb and eb.urgency.level == 'warning' %} module-row-warning{% endif %}">
-        
-        <div class="ms-50f3efa">
-          <div class="ms-756d4ee">
-            <strong><a class="ms-ec76253" href="{% url 'warehouse_item_detail' item.slug %}">{{ item.name }}</a></strong>
-            <span class="badge ms-8b85496">{{ item.get_category_display }}</span>
+
+        <div class="row-main">
+          <div class="cluster">
+            <strong><a href="{% url 'warehouse_item_detail' item.slug %}">{{ item.name }}</a></strong>
+            <span class="badge badge-neutral">{{ item.get_category_display }}</span>
             {% if item.requires_cooling %}
-              <span class="badge ms-cde6877">❄️ 2–8 °C{% if item.room_temp_max_days %} (RT max. {{ item.room_temp_max_days }}d){% endif %}</span>
+              <span class="badge badge-info">2–8 °C{% if item.room_temp_max_days %} (RT max. {{ item.room_temp_max_days }}d){% endif %}</span>
             {% endif %}
           </div>
-          <small class="ms-236cf06">
+          <small>
             {% if item.pzn %}PZN: {{ item.pzn }} &middot; {% endif %}
             {% if item.gtin %}GTIN: {{ item.gtin }} &middot; {% endif %}
             {{ item.batches.count }} {% translate "aktive Charge(n)" %}
           </small>
         </div>
 
-        {# Bestandsanzeige #}
-        <div class="ms-1e8ea8e">
-          <div class="stock-figure {% if item.is_under_min_stock %}stock-low{% else %}stock-ok{% endif %}">
+        {# Bestand #}
+        <div class="row-due">
+          <span class="stock-figure{% if item.is_under_min_stock %} stock-low{% endif %}">
             {{ item.total_stock }} {{ item.get_unit_display }}
-          </div>
-          <small class="ms-3dca5e5">
+          </span>
+          <small>
             Min: {{ item.min_stock }} / Soll: {{ item.target_stock }}
             {% if item.is_under_min_stock %}
-              <span class="badge ms-e0949c8">Bestellen</span>
+              &middot; <span class="state warning">Bestellen</span>
             {% endif %}
           </small>
         </div>
 
-        {# Nächstes FEFO-Ablaufdatum #}
-        <div class="ms-07f320a">
+        {# Nächstes Ablaufdatum (FEFO) #}
+        <div class="row-due">
           {% if eb %}
             {% with urg=eb.urgency %}
-              {% if urg.level == 'recalled' %}
-                <span class="badge ms-af9a0a3">{{ urg.label }}</span>
-              {% elif urg.level == 'overdue' %}
-                <span class="badge ms-af9a0a3">🔴 {{ urg.label }}</span>
-              {% elif urg.level == 'critical' %}
-                <span class="badge ms-28671ec">🟠 {{ urg.label }}</span>
-              {% elif urg.level == 'warning' %}
-                <span class="badge ms-d86b0ad">🟡 {{ urg.label }}</span>
+              {% if urg.level == 'recalled' or urg.level == 'overdue' %}
+                <span class="state danger">{{ urg.label }}</span>
+              {% elif urg.level == 'critical' or urg.level == 'warning' %}
+                <span class="state warning">{{ urg.label }}</span>
               {% else %}
-                <span class="badge ms-0389136">🟢 {{ urg.label }}</span>
+                <span class="state success">{{ urg.label }}</span>
               {% endif %}
-              <div class="ms-9ba66e9">
-                FEFO-Lot: <code>{{ eb.batch_number }}</code>
-              </div>
+              <small>FEFO-Lot: <code>{{ eb.batch_number }}</code></small>
             {% endwith %}
           {% else %}
-            <span class="ms-351e7ae"><em>{% translate "Kein Bestand / Keine Charge" %}</em></span>
+            <span class="muted">{% translate "Kein Bestand / Keine Charge" %}</span>
           {% endif %}
         </div>
 
-        {# Aktionen #}
-        <div>
-          <a href="{% url 'warehouse_item_detail' item.slug %}" class="button secondary small">
-            {% translate "Chargen & Lager" %} →
+        <div class="row-actions cluster">
+          <a href="{% url 'warehouse_item_detail' item.slug %}" class="button secondary">
+            {% include "core/_icon.html" with name="box" %}{% translate "Chargen & Lager" %}
           </a>
         </div>
 
@@ -151,63 +144,60 @@
     {% empty %}
       <p class="empty-state">
         {% translate "Keine Artikel gefunden." %}
-        {% if can_manage %}
-          <br><br>
-          <a class="button" href="{% url 'warehouse_item_create' %}">{% translate "Ersten Artikel erfassen" %}</a>
-        {% endif %}
+        {% if can_manage %}<a href="{% url 'warehouse_item_create' %}">{% translate "Ersten Artikel erfassen" %}</a>{% endif %}
       </p>
     {% endfor %}
   </div>
 </section>
 
-{# Buchungsjournal (Letzte Bewegungen) #}
-<section class="section-block ms-daaaf95">
-  <h3>📋 {% translate "Letzte Materialbewegungen (Audit-Journal)" %}</h3>
+{# Buchungsjournal (letzte Bewegungen) #}
+<section class="section-block">
+  <h2>{% translate "Letzte Materialbewegungen (Audit-Journal)" %}</h2>
   <div class="item-list">
     {% for m in recent_movements %}
       <div class="list-row">
         <span class="row-content">
-          <strong>{{ m.item.name }}</strong> &middot; {{ m.quantity }} {{ m.item.get_unit_display }} (Lot: <code>{{ m.batch.batch_number }}</code>)
+          <strong>{{ m.item.name }} &middot; {{ m.quantity }} {{ m.item.get_unit_display }} (Lot: <code>{{ m.batch.batch_number }}</code>)</strong>
           <small>
             {{ m.created_at|date:"d.m.Y H:i" }} &middot;
             {{ m.get_kind_display }}:
             {% if m.source_location %}{{ m.source_location.name }}{% else %}Lieferant{% endif %} →
             {% if m.target_location %}{{ m.target_location.name }}{% else %}Verbrauch/Ausscheidung{% endif %}
             &middot; {{ m.actor.get_full_name|default:m.actor.username }}
-            {% if m.note %} &middot; <em>{{ m.note }}</em>{% endif %}
           </small>
+          {% if m.note %}<span class="row-note">{{ m.note }}</span>{% endif %}
         </span>
       </div>
     {% empty %}
-      <p class="empty-state small">{% translate "Bisher keine Materialbuchungen erfasst." %}</p>
+      <p class="empty-state">{% translate "Bisher keine Materialbuchungen erfasst." %}</p>
     {% endfor %}
   </div>
 </section>
 
-{# Modal: Zero-Install GS1-DataMatrix Barcode-Scanner #}
-<div id="scanner-modal" class="wb-modal" hidden role="dialog" aria-modal="true" data-scanner data-scanner-gs1 data-scanner-search="{% url 'warehouse_dashboard' %}" data-scanner-formats="data_matrix,qr_code,ean_13,code_128" data-msg-active="{% translate 'Kamera aktiv - Barcode fokussieren' %}" data-msg-detected="{% translate 'Erkannt: ' %}" data-msg-manual="{% translate 'Kamera nicht verfügbar. Bitte manuell eingeben.' %}" data-msg-denied="{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}">
-  <div class="ms-988625a">
-    <h3 class="ms-ec0f7ff">📷 {% translate "GS1-DataMatrix / Barcode scannen" %}</h3>
-    <p class="ms-b2b8c2f">
+{# Dialog: GS1-DataMatrix-/Barcode-Scanner ohne Installation #}
+<div id="scanner-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title" data-scanner data-scanner-gs1 data-scanner-search="{% url 'warehouse_dashboard' %}" data-scanner-formats="data_matrix,qr_code,ean_13,code_128" data-msg-active="{% translate 'Kamera aktiv - Barcode fokussieren' %}" data-msg-detected="{% translate 'Erkannt: ' %}" data-msg-manual="{% translate 'Kamera nicht verfügbar. Bitte manuell eingeben.' %}" data-msg-denied="{% translate 'Kamerazugriff nicht verfügbar oder verweigert.' %}">
+  <div class="modal-panel">
+    <h2 id="scanner-modal-title">{% translate "GS1-DataMatrix / Barcode scannen" %}</h2>
+    <p class="muted text-small">
       {% translate "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und Standard-Barcodes (EAN/GTIN)." %}
     </p>
 
-    <div class="ms-f3972cb">
-      <video class="ms-b19d6a5" id="gs1-video" data-scanner-video muted></video>
-      <div class="ms-3694989" id="gs1-status" data-scanner-status role="status">
+    <div class="scanner-view section-gap">
+      <video id="gs1-video" data-scanner-video muted></video>
+      <div class="scanner-status" id="gs1-status" data-scanner-status role="status">
         {% translate "Kamera wird initialisiert..." %}
       </div>
     </div>
 
-    <div class="ms-a6cb65c">
-      <label class="ms-e575c43" for="manual-pzn">{% translate "Manuelle PZN / Lot-Suche:" %}</label>
-      <div class="ms-b378622">
-        <input class="ms-023bb84" type="text" id="manual-pzn" data-scanner-input placeholder="z. B. PZN oder Lot-Nr.">
-        <button type="button" class="button" data-scanner-submit>{% translate "Suchen" %}</button>
+    <div class="field">
+      <label for="manual-pzn">{% translate "Manuelle PZN / Lot-Suche:" %}</label>
+      <div class="input-with-button">
+        <input type="text" id="manual-pzn" data-scanner-input placeholder="z. B. PZN oder Lot-Nr.">
+        <button type="button" class="button primary" data-scanner-submit>{% include "core/_icon.html" with name="search" %}{% translate "Suchen" %}</button>
       </div>
     </div>
 
-    <div class="ms-c9c355d">
+    <div class="modal-actions">
       <button type="button" class="button secondary" data-modal-close>{% translate "Schließen" %}</button>
     </div>
   </div>

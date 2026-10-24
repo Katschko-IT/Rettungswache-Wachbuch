@@ -27,7 +27,7 @@
     {% csrf_token %}
     <input type="text" name="note" maxlength="300" placeholder="{% translate 'Notiz (optional)' %}">
     <div class="form-actions">
-      <button class="button primary" type="submit">{% translate "Als erledigt vermerken" %}</button>
+      <button class="button secondary" type="submit">{% include "core/_icon.html" with name="check" %}{% translate "Als erledigt vermerken" %}</button>
     </div>
   </form>
 </section>

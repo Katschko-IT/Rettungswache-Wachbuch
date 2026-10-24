@@ -1,3 +1,12 @@
+# Rettungswache-Wachbuch – Docker Compose
+#
+# Endnutzer: install.sh legt diese Datei als compose.yml in den Zielordner und
+# erzeugt .env (docs/DEPLOYMENT.md). Die Dienste nutzen vorgefertigte Images
+# aus ghcr.io; WACHBUCH_VERSION wählt die Version (Standard latest).
+# Entwickler bauen lokal:
+#   docker compose -f docker-compose.yml -f compose.build.yml up -d --build
+# Optionaler TLS-Proxy (Caddy): Profil "https" (COMPOSE_PROFILES=https).
+
 name: rettungswache-wachbuch
 
 x-logging: &default-logging
@@ -9,13 +18,34 @@ x-logging: &default-logging
 services:
 
   db:
-    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    # PostgreSQL 17 mit eingebautem Rollen-Init (scripts/init-db.sh) und
+    # config/postgresql.conf (Dockerfile.backup, Ziel "db"). Damit braucht
+    # niemand einen Git-Checkout für Bind-Mounts.
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-db:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # The official image reads its configuration from $PGDATA/postgresql.conf,
-    # NOT from /etc/postgresql. Without this explicit config_file the read-only
-    # mount below is silently ignored, so the tuning settings never apply.
-    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    # NOT from /etc/postgresql. Without this explicit config_file the file
+    # baked into the image is silently ignored.
+    # Speicherwerte: kleine Standardwerte für 1-2-GB-Systeme, per .env anhebbar
+    # (siehe config/postgresql.conf und docs/OPERATIONS.md).
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}
+      - -c
+      - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-512MB}
+      - -c
+      - work_mem=${POSTGRES_WORK_MEM:-4MB}
+      - -c
+      - maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-50}
+    # Docker gibt Containern standardmäßig nur 64 MB /dev/shm; PostgreSQL legt
+    # dort Shared Memory für parallele Abfragen ab.
+    shm_size: ${POSTGRES_SHM_SIZE:-256mb}
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -27,7 +57,7 @@ services:
       BACKUP_DB_USER: ${BACKUP_DB_USER}
       BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD}
       PUSH_DB_USER: ${PUSH_DB_USER:-rwsth_push}
-      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-disabled}
+      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -35,8 +65,6 @@ services:
       retries: 10
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/10-rwsth-roles.sh:ro
-      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
     networks:
       - app-db
       - worker-db
@@ -45,7 +73,7 @@ services:
       - no-new-privileges:true
 
   redis:
-    image: redis:7.4.10-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
+    image: redis:8.8.3-alpine@sha256:dc95ea2fcf5d5c4253be0f967c28143d0f625846197eed2fd32c748eb99abfca
     restart: unless-stopped
     logging: *default-logging
     # Redis is an expendable cache only. Sessions remain durable in PostgreSQL
@@ -62,8 +90,7 @@ services:
       - no-new-privileges:true
 
   migrate:
-    build: .
-    image: rettungswache-wachbuch:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     command: ["/app/scripts/migrate.sh"]
     restart: "no"
     environment:
@@ -78,10 +105,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
       FEED_DB_USER: ${FEED_DB_USER}
+      FEED_DB_PASSWORD: ${FEED_DB_PASSWORD}
       BACKUP_DB_USER: ${BACKUP_DB_USER}
+      BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD}
       PUSH_DB_USER: ${PUSH_DB_USER:-rwsth_push}
-      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-disabled}
+      PUSH_DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
       DEFAULT_STATION_NAME: ${DEFAULT_STATION_NAME:-Rettungswache}
       DEFAULT_STATION_SLUG: ${DEFAULT_STATION_SLUG:-rettungswache}
       DEMO_MODE: ${DEMO_MODE:-false}
@@ -105,8 +135,7 @@ services:
       - no-new-privileges:true
 
   web:
-    build: .
-    image: rettungswache-wachbuch:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     environment:
@@ -132,7 +161,7 @@ services:
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:8090}
       DEFAULT_STATION_NAME: ${DEFAULT_STATION_NAME:-Rettungswache}
       DEFAULT_STATION_SLUG: ${DEFAULT_STATION_SLUG:-rettungswache}
-      APP_NAME: ${APP_NAME:-Wachbuch}
+      APP_NAME: ${APP_NAME:-Wachwerk}
       SOURCE_URL: ${SOURCE_URL:-https://github.com/Katschko-IT/Rettungswache-Wachbuch}
       FEED_ALLOWED_HOSTS: ${FEED_ALLOWED_HOSTS:-}
       RETENTION_FEED_DAYS: ${RETENTION_FEED_DAYS:-90}
@@ -150,7 +179,19 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
+      PUSH_ALLOWED_ENDPOINT_HOSTS: ${PUSH_ALLOWED_ENDPOINT_HOSTS:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      RATELIMIT_KEY_SALT: ${RATELIMIT_KEY_SALT:-wachbuch}
+      ERROR_EVENT_RETENTION_DAYS: ${ERROR_EVENT_RETENTION_DAYS:-30}
+      ERROR_EVENT_EXPORT_LIMIT: ${ERROR_EVENT_EXPORT_LIMIT:-200}
+      # Ohne Wert: nur durchreichen, wenn in .env gesetzt (sonst gilt die
+      # Version aus core/version.py; ein leerer Wert würde sie verdecken).
+      APP_VERSION:
+      # Gunicorn (config/gunicorn.py); für mehr Last Worker erhöhen und
+      # POSTGRES_MAX_CONNECTIONS mitziehen.
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-60}
       # Wachenterminal und lokales Zertifikat (docs/PI-WACHENTERMINAL.md)
       TERMINAL_ENABLED: ${TERMINAL_ENABLED:-false}
       TERMINAL_IDLE_SECONDS: ${TERMINAL_IDLE_SECONDS:-120}
@@ -165,7 +206,7 @@ services:
     ports:
       - "${HTTP_BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8090}:8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=3)"]
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/healthz/', headers={'Host': 'localhost'}), timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -182,15 +223,20 @@ services:
       - no-new-privileges:true
 
   feed-worker:
-    image: rettungswache-wachbuch:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-worker.sh"]
-    # The shared image probes Gunicorn on port 8000. This worker has no HTTP
-    # listener, so inheriting that healthcheck creates a false unhealthy.
+    # Kein HTTP-Listener: Statt des Gunicorn-Checks aus dem Image prüft der
+    # Healthcheck das Lebenszeichen, das sync_feeds jede Minute schreibt.
     healthcheck:
-      disable: true
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/feed_worker.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
+      FEED_HEARTBEAT_FILE: /tmp/feed_worker.alive
       DJANGO_SECRET_KEY: ${FEED_WORKER_SECRET_KEY}
       DJANGO_DEBUG: "false"
       DB_HOST: db
@@ -199,7 +245,8 @@ services:
       DB_PASSWORD: ${FEED_DB_PASSWORD}
       ALLOWED_HOSTS: localhost
       FEED_ALLOWED_HOSTS: ${FEED_ALLOWED_HOSTS:-}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Kein REDIS_URL: der Worker liegt nicht im Redis-Netz (app-db) und nutzt
+      # den prozesslokalen Cache.
     depends_on:
       web:
         condition: service_healthy
@@ -215,14 +262,22 @@ services:
       - no-new-privileges:true
 
   notify-worker:
-    image: rettungswache-wachbuch:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
     # Besatzung (kein automatischer Statuswechsel). Kein HTTP-Listener.
-    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30"]
+    # Nach jedem erfolgreichen Durchlauf wird die Heartbeat-Datei erneuert;
+    # nach 10 Fehlversuchen in Folge beendet sich der Befehl mit Fehler und
+    # Docker startet ihn neu.
+    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30",
+              "--heartbeat-file", "/tmp/notify_crew.alive"]
     healthcheck:
-      disable: true
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/notify_crew.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_DEBUG: "false"
@@ -237,9 +292,20 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Ohne eigenes Netz läge der Dienst nur im Default-Netz und erreichte
+    # weder db noch redis ("failed to resolve host 'db'").
+    networks:
+      - app-db
+    tmpfs:
+      - /tmp
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
 
   push-worker:
-    image: rettungswache-wachbuch:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-push-worker.sh"]
@@ -248,8 +314,8 @@ services:
       DJANGO_DEBUG: "false"
       DB_HOST: db
       DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${PUSH_DB_USER}
-      DB_PASSWORD: ${PUSH_DB_PASSWORD}
+      DB_USER: ${PUSH_DB_USER:-rwsth_push}
+      DB_PASSWORD: ${PUSH_DB_PASSWORD:-}
       ALLOWED_HOSTS: localhost
       WEB_PUSH_ENABLED: ${WEB_PUSH_ENABLED:-false}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
@@ -257,7 +323,8 @@ services:
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
       PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
       PUSH_RELAY_TOKEN: ${PUSH_RELAY_TOKEN:-}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      PUSH_ALLOWED_ENDPOINT_HOSTS: ${PUSH_ALLOWED_ENDPOINT_HOSTS:-}
+      # Kein REDIS_URL: der Worker liegt nicht im Redis-Netz (app-db).
     depends_on:
       web:
         condition: service_healthy
@@ -279,15 +346,21 @@ services:
       - no-new-privileges:true
 
   backup-init:
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    image: rettungswache-wachbuch-backup:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "0:0"
-    command: ["/bin/sh", "-ec", "chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /backups && chmod 0700 /backups"]
+    # /offsite best effort: ein NFS-Ziel mit root_squash lässt kein chown zu;
+    # dann muss der Ordner auf dem Host bereits UID/GID 70 gehören.
+    command:
+      - /bin/sh
+      - -ec
+      - >-
+        chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /backups && chmod 0700 /backups;
+        chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /offsite 2>/dev/null && chmod 0700 /offsite
+        || echo "Hinweis: /offsite (BACKUP_OFFSITE_DIR) nicht anpassbar; Besitzer auf dem Host pruefen."
     volumes:
       - backups-data:/backups
+      - ${BACKUP_OFFSITE_DIR:-backups-offsite}:/offsite
     cap_drop:
       - ALL
     cap_add:
@@ -297,10 +370,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    image: rettungswache-wachbuch-backup:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
@@ -314,15 +384,30 @@ services:
       BACKUP_GPG_RECIPIENT: ${BACKUP_GPG_RECIPIENT:-}
       BACKUP_OFF_TARGET: ${BACKUP_OFF_TARGET:-}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_RETRY_SECONDS: ${BACKUP_RETRY_SECONDS:-3600}
+      BACKUP_UID: ${BACKUP_UID:-70}
+      # Read-only Container: Schlüsselbund im tmpfs, Import beim Start aus
+      # dem read-only gemounteten Schlüsselordner.
+      GNUPGHOME: /tmp/gnupg
+      BACKUP_GPG_KEY_DIR: /run/backup-gpg
     depends_on:
       backup-init:
         condition: service_completed_successfully
       db:
         condition: service_healthy
+      # Erster Dump erst nach den Migrationen, sonst sichert er ein leeres Schema.
+      migrate:
+        condition: service_completed_successfully
     networks:
       - backup-db
     volumes:
       - backups-data:/backups
+      # Offsite-Ziel: Host-Ordner (z. B. NAS-Mount) per BACKUP_OFFSITE_DIR,
+      # dazu BACKUP_OFF_TARGET=file:///offsite. Ohne Angabe ein leeres Volume.
+      - ${BACKUP_OFFSITE_DIR:-backups-offsite}:/offsite
+      # Öffentliche GnuPG-Schlüssel (*.asc) für BACKUP_ENCRYPT_REMOTE=true.
+      - ${BACKUP_GPG_KEY_DIR:-backups-gpg-keys}:/run/backup-gpg:ro
     read_only: true
     tmpfs:
       - /tmp
@@ -333,7 +418,7 @@ services:
 
   restore-test:
     profiles: ["ops"]
-    image: rettungswache-wachbuch-backup:local
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
     entrypoint: ["/bin/sh", "/usr/local/bin/rwsth-restore-test"]
@@ -358,6 +443,40 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Optionaler TLS-Proxy: COMPOSE_PROFILES=https (install.sh --mode lan|domain).
+  # LAN: CADDY_TLS=internal (eigene CA); Domain: CADDY_TLS=<E-Mail> für
+  # Let's Encrypt. Konfiguration: deploy/caddy/Caddyfile.
+  caddy:
+    profiles: ["https"]
+    image: caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTP_REDIRECT_PORT:-80}:80"
+    environment:
+      WACHBUCH_HOSTNAME: ${WACHBUCH_HOSTNAME:-localhost}
+      CADDY_TLS: ${CADDY_TLS:-internal}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Zertifikate, Schlüssel und die interne CA; mit .env sichern.
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - web-ingress
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   # Internal only: no outbound internet, no host exposure.
   app-db:
@@ -374,4 +493,9 @@ networks:
 volumes:
   postgres-data:
   backups-data:
-  redis-data:
+  # Platzhalter, solange BACKUP_OFFSITE_DIR / BACKUP_GPG_KEY_DIR leer sind.
+  backups-offsite:
+  backups-gpg-keys:
+  # TLS-Proxy (Profil https)
+  caddy-data:
+  caddy-config:

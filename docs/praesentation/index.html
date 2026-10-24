@@ -1,445 +1,161 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wachbuch – Vorführung</title>
-  <style>
-    @font-face {
-      font-family: "Source Sans 3";
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-      src: url("../../core/static/core/fonts/SourceSans3-Regular.woff2") format("woff2");
-    }
-    @font-face {
-      font-family: "Source Sans 3";
-      font-weight: 600;
-      font-style: normal;
-      font-display: swap;
-      src: url("../../core/static/core/fonts/SourceSans3-Semibold.woff2") format("woff2");
-    }
-    @font-face {
-      font-family: "Source Sans 3";
-      font-weight: 700;
-      font-style: normal;
-      font-display: swap;
-      src: url("../../core/static/core/fonts/SourceSans3-Bold.woff2") format("woff2");
-    }
-    :root {
-      --bg: #f7f9fc;
-      --brand: #0d47a1;
-      --brand-deep: #082e63;
-      --ink: #17343d;
-      --text: #172033;
-      --muted: #445066;
-      --line: #dce4ef;
-      --urgent: #dc2626;
-      --important: #f59e0b;
-      --done: #16a34a;
-      --accent: #2563eb;
-      --surface: #ffffff;
-    }
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    }
-    body { overflow: hidden; }
-    .stage {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    .slide {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 6vh 8vw;
-      opacity: 0;
-      transform: translateY(28px) scale(.985);
-      pointer-events: none;
-      transition: opacity .7s ease, transform .8s cubic-bezier(.2,.8,.2,1);
-    }
-    .slide.is-on {
-      opacity: 1;
-      transform: none;
-      pointer-events: auto;
-      z-index: 2;
-    }
-    .kicker {
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      font-size: .85rem;
-      font-weight: 700;
-      color: var(--brand);
-      margin: 0 0 1rem;
-    }
-    h1, h2 {
-      margin: 0 0 1rem;
-      color: var(--ink);
-      line-height: 1.12;
-      font-weight: 700;
-    }
-    h1 { font-size: clamp(2.4rem, 5.4vw, 4.4rem); max-width: 16ch; }
-    h2 { font-size: clamp(2rem, 4vw, 3.2rem); max-width: 22ch; }
-    .lead {
-      font-size: clamp(1.15rem, 2vw, 1.55rem);
-      max-width: 42rem;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(105deg, rgba(8,46,99,.88), rgba(13,71,161,.45)),
-        url("../../core/static/core/landing-hero.jpg") center/cover;
-      transform: scale(1.08);
-      animation: drift 18s ease-in-out infinite alternate;
-    }
-    .hero-bg + .copy { position: relative; z-index: 1; color: #fff; }
-    .hero .kicker, .hero h1, .hero .lead { color: #fff; }
-    .hero h1 { max-width: 14ch; }
-    @keyframes drift { from { transform: scale(1.08) translateX(0); } to { transform: scale(1.14) translateX(-2%); } }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-      gap: 1.1rem;
-      margin-top: 1.6rem;
-      max-width: 70rem;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 1rem;
-      padding: 1.15rem 1.2rem;
-      min-height: 8.5rem;
-      animation: rise .7s ease both;
-    }
-    .card:nth-child(2) { animation-delay: .08s; }
-    .card:nth-child(3) { animation-delay: .16s; }
-    .card:nth-child(4) { animation-delay: .24s; }
-    .card strong { display: block; color: var(--ink); font-size: 1.15rem; margin-bottom: .35rem; }
-    .card p { margin: 0; color: var(--muted); }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: none; }
-    }
-    .badges { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      min-height: 48px;
-      padding: 0 1rem;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      font-weight: 600;
-    }
-    .dot { width: .7rem; height: .7rem; border-radius: 50%; }
-    .dot.urgent { background: var(--urgent); }
-    .dot.important { background: var(--important); }
-    .dot.normal { background: var(--accent); }
-    .dot.done { background: var(--done); }
-    .phones {
-      display: flex;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-      align-items: stretch;
-    }
-    .phone {
-      width: 15rem;
-      border: 1px solid var(--line);
-      border-radius: 1.4rem;
-      padding: 1rem;
-      background: #fff;
-      box-shadow: 0 18px 40px rgba(8,46,99,.08);
-      animation: rise .8s ease both;
-    }
-    .phone h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--brand); }
-    .phone ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
-    .bar {
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: .7rem 1.2rem calc(.7rem + env(safe-area-inset-bottom));
-      background: rgba(247,249,252,.92);
-      border-top: 1px solid var(--line);
-      z-index: 5;
-      font-size: .9rem;
-    }
-    .progress {
-      height: 4px;
-      background: var(--line);
-      flex: 1;
-      margin: 0 1rem;
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress > span {
-      display: block;
-      height: 100%;
-      width: 0;
-      background: var(--brand);
-      transition: width .4s ease;
-    }
-    button {
-      min-height: 48px;
-      min-width: 48px;
-      border: 1px solid var(--brand);
-      background: var(--brand);
-      color: #fff;
-      border-radius: .7rem;
-      font: inherit;
-      font-weight: 700;
-      padding: 0 1rem;
-      cursor: pointer;
-    }
-    button.ghost {
-      background: transparent;
-      color: var(--brand);
-    }
-    .no { color: var(--urgent); font-weight: 700; }
-    .yes { color: var(--done); font-weight: 700; }
-    .split { display: grid; grid-template-columns: 1.1fr .9fr; gap: 2rem; align-items: center; }
-    @media (max-width: 900px) {
-      .split, .phones { display: block; }
-      .phone { margin-top: 1rem; width: 100%; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Wachwerk – Vorführung</title>
+<!-- Design-Sprache „Wachbuch Klar 2“: Kopien aus core/static/core/ (scripts/sync_design_assets.py). -->
+<link rel="stylesheet" href="design/fonts.css">
+<link rel="stylesheet" href="design/tokens.css">
+<link rel="stylesheet" href="design/public.css">
+<link rel="stylesheet" href="slides.css">
+<script src="slides.js" defer></script>
 </head>
-<body>
-  <div class="stage" id="stage">
-    <section class="slide hero is-on" data-title="Titel">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="copy">
-        <p class="kicker">Wachbuch</p>
-        <h1>Wachorganisation, die im Schichtalltag lesbar bleibt.</h1>
-        <p class="lead">Übergaben, Aufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Selbst gehostet. Mobil auf iOS und Android.</p>
+<body class="pub">
+<div class="deck" data-deck>
+  <header class="pub-header deck-header">
+    <div class="pub-wrap pub-header-inner">
+      <span class="pub-brand"><span class="pub-brand-mark" aria-hidden="true"></span>Wachwerk</span>
+      <span class="deck-count" data-count aria-live="polite">1 / 8</span>
+    </div>
+  </header>
+
+  <main class="deck-stage">
+    <section class="slide is-on" data-title="Übersicht">
+      <div class="pub-wrap split">
+        <div class="copy">
+          <p class="pub-kicker">Wachbuch für Rettungswachen</p>
+          <h2>Was die Schicht wissen muss. Auf einen Blick.</h2>
+          <p class="pub-lead">Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile.</p>
+        </div>
+        <div class="media media-duo">
+          <figure class="device"><img src="design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: fünf Punkte brauchen Aufmerksamkeit, darunter eine dringende Übergabe und fällige Fahrzeugfristen."></figure>
+          <figure class="device device-phone"><img src="design/screens/overview-phone-dark.webp" width="390" height="844" alt="Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus."></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Übergaben">
+      <div class="pub-wrap split">
+        <div class="copy">
+          <p class="pub-kicker">Schichtübergabe</p>
+          <h2>Übergaben statt Zettel und Zuruf.</h2>
+          <p class="pub-lead">Jede Übergabe trägt Priorität, Status und Verlauf. Die nächste Schicht sieht sofort, was dringend ist, und quittiert, was sie gelesen hat.</p>
+        </div>
+        <div class="media media-phone">
+          <figure class="device device-phone"><img src="design/screens/handovers-phone-light.webp" width="390" height="844" alt="Liste der Übergaben auf dem Handy, nach Priorität sortiert: dringend, wichtig, normal."></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Fuhrpark und Medizingeräte">
+      <div class="pub-wrap split">
+        <div class="copy">
+          <p class="pub-kicker">Fuhrpark und Medizingeräte</p>
+          <h2>Fristen sehen, bevor sie ablaufen.</h2>
+          <p class="pub-lead">Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizingeräte mit STK- und MTK-Fristen; ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt.</p>
+        </div>
+        <div class="media media-pair">
+          <figure class="device"><img src="design/screens/fleet-desktop-light.webp" width="1440" height="900" alt="Fuhrpark mit Einsatzbereitschaft, Füllständen und fälligen Fristen je Fahrzeug."></figure>
+          <figure class="device device-second"><img src="design/screens/mpg-desktop-dark.webp" width="1440" height="900" alt="Medizingeräte mit Prüffristen und gesperrten Geräten im dunklen Modus."></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Lager und Material">
+      <div class="pub-wrap split">
+        <div class="copy">
+          <p class="pub-kicker">Lager und Material</p>
+          <h2>Knappes Material fällt auf, bevor es fehlt.</h2>
+          <p class="pub-lead">Bestände mit Chargen und Verfallsdaten. Was unter den Mindestbestand fällt, landet im Bestellvorschlag.</p>
+        </div>
+        <div class="media media-desktop">
+          <figure class="device"><img src="design/screens/warehouse-desktop-light.webp" width="1440" height="900" alt="Lager mit Beständen, Chargen, Verfallsdaten und einem Artikel unter Mindestbestand."></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Tag und Nacht">
+      <div class="pub-wrap split">
+        <div class="copy">
+          <p class="pub-kicker">Tag und Nacht</p>
+          <h2>Hell in der Halle, ruhig im Nachtdienst.</h2>
+          <p class="pub-lead">Nachts dunkle Flächen und gedämpfte Signale, damit der Bildschirm nicht blendet; tagsüber hell für Sonnenlicht. Die Ansicht folgt dem Gerät oder einem Schalter.</p>
+        </div>
+        <div class="media media-duo">
+          <figure class="device"><img src="design/screens/overview-desktop-dark.webp" width="1440" height="900" alt="Übersicht am Desktop im dunklen Nachtdienst-Modus mit gedämpften Farben."></figure>
+          <figure class="device device-phone"><img src="design/screens/overview-phone-light.webp" width="390" height="844" alt="Übersicht auf dem Handy in der hellen Tagesansicht."></figure>
+        </div>
       </div>
     </section>
 
     <section class="slide" data-title="Grenze">
-      <p class="kicker">Produktgrenze</p>
-      <h2>Für die Wache. Nicht für den Einsatz.</h2>
-      <p class="lead">Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem.</p>
-      <div class="grid">
-        <article class="card"><strong class="yes">Im Umfang</strong><p>Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team.</p></article>
-        <article class="card"><strong class="no">Nicht im Umfang</strong><p>Alarmierung, Einsatzleitung, eProtokoll, Patienten- oder Vorgangsdaten.</p></article>
-      </div>
-    </section>
-
-    <section class="slide" data-title="Organisationen">
-      <p class="kicker">Für den öffentlichen Dienst</p>
-      <h2>Eine Oberfläche, vier Wachprofile.</h2>
-      <div class="grid">
-        <article class="card"><strong>Rettungsdienst</strong><p>Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks.</p></article>
-        <article class="card"><strong>Berufsfeuerwehr</strong><p>Mängel, Pools, Quittierung – feldlesbar, nicht bunt.</p></article>
-        <article class="card"><strong>Freiwillige Feuerwehr</strong><p>Klar auf dem Handy, auch nach der Alarmierung auf der Wache.</p></article>
-        <article class="card"><strong>Polizei / vergleichbar</strong><p>Interne Wachenabläufe ohne Vorgangs- oder Einsatzdaten.</p></article>
-      </div>
-    </section>
-
-    <section class="slide" data-title="Alltag">
-      <p class="kicker">Wachalltag</p>
-      <h2>Was die Schicht wirklich braucht.</h2>
-      <div class="badges">
-        <span class="badge"><i class="dot urgent"></i> Dringend – sofort</span>
-        <span class="badge"><i class="dot important"></i> Wichtig – zeitnah</span>
-        <span class="badge"><i class="dot normal"></i> Normal – regulär</span>
-        <span class="badge"><i class="dot done"></i> Erledigt</span>
-      </div>
-      <div class="grid">
-        <article class="card"><strong>Übergaben</strong><p>Versioniert, priorisiert, stationsbezogen. Farbe plus ausgeschriebener Status.</p></article>
-        <article class="card"><strong>Tagesaufgaben</strong><p>Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen.</p></article>
-        <article class="card"><strong>Mängel &amp; Geräte</strong><p>Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar.</p></article>
-        <article class="card"><strong>Checklisten</strong><p>Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen.</p></article>
-      </div>
-    </section>
-
-    <section class="slide" data-title="Web und Apps">
-      <p class="kicker">Drei Oberflächen, ein Vertrag</p>
-      <h2>Web-PWA, iOS und Android.</h2>
-      <div class="phones">
-        <div class="phone">
-          <h3>Web-PWA</h3>
-          <ul>
-            <li>Übersicht, Übergaben, Kalender, Mehr</li>
-            <li>Installierbar, offline lesbar</li>
-            <li>Ohne CDN, ohne Tracking-Cookies</li>
-          </ul>
-        </div>
-        <div class="phone" style="animation-delay:.12s">
-          <h3>iOS / iPadOS</h3>
-          <ul>
-            <li>Bundle <code>de.wachbuch.wachbuchMobile</code></li>
-            <li>TestFlight-fähig, VoiceOver-tauglich</li>
-            <li>Solar-Hell/Dunkel + High Contrast</li>
-          </ul>
-        </div>
-        <div class="phone" style="animation-delay:.24s">
-          <h3>Android</h3>
-          <ul>
-            <li>Paket <code>de.wachbuch.mobile</code></li>
-            <li>Signiertes AAB, Play-interner Test</li>
-            <li>Dieselben Tokens wie die Web-PWA</li>
+      <div class="pub-wrap">
+        <div class="boundary">
+          <p class="pub-kicker">Produktgrenze</p>
+          <h2>Was bewusst nicht hineingehört</h2>
+          <p class="pub-lead">Wachwerk organisiert den Betrieb einer Wache, nicht den Einsatz. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach.</p>
+          <ul class="boundary-list">
+            <li><strong>Kein Einsatzleitsystem</strong><span>Keine Alarmierung, keine Einsatzführung, keine Leitstellenanbindung.</span></li>
+            <li><strong>Kein Patientendokumentationssystem</strong><span>Kein Feld für Patienten-, Diagnose- oder Einsatzdaten.</span></li>
+            <li><strong>Keine Dienstplanung</strong><span>Keine Schichtpläne, Zeitkonten oder Leistungsbewertung.</span></li>
+            <li><strong>Kein Cloud-Dienst</strong><span>Eine Instanz gehört einer Wache. Keine zentrale Betreiberinstanz, keine Telemetrie.</span></li>
           </ul>
         </div>
       </div>
     </section>
 
-    <section class="slide" data-title="Sicherheit">
-      <p class="kicker">Vertrauen</p>
-      <h2>Selbst gehostet. Nachvollziehbar. Ohne Tracking.</h2>
-      <div class="grid">
-        <article class="card"><strong>Eigene Infrastruktur</strong><p>Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache.</p></article>
-        <article class="card"><strong>Rollen &amp; Station</strong><p>Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte.</p></article>
-        <article class="card"><strong>Audit append-only</strong><p>Kasse, Checklisten und Übergaben werden korrigiert durch neue Sätze, nicht durch Stille.</p></article>
-        <article class="card"><strong>Chat verschlüsselt</strong><p>Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des Vertrauensmodells.</p></article>
+    <section class="slide" data-title="Installation">
+      <div class="pub-wrap">
+        <div class="copy">
+          <p class="pub-kicker">Installation</p>
+          <h2>In 5 Minuten installiert.</h2>
+          <p class="pub-lead">Ein 64-Bit-Rechner mit Docker und Compose v2 genügt: ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles und erzeugt sämtliche Schlüssel selbst.</p>
+        </div>
+        <pre class="code-block"><code>curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh | sh</code></pre>
+        <ol class="steps install-steps">
+          <li><div><h3>Betriebsart wählen</h3><p>Nur dieser Rechner, Wachen-WLAN mit eigener CA oder eigene Domain mit Let's Encrypt.</p></div></li>
+          <li><div><h3>Wache einrichten</h3><p>Der Assistent legt mit dem Einrichtungscode Wache und erstes Admin-Konto an.</p></div></li>
+          <li><div><h3>Team einladen</h3><p>Jede Person aktiviert ihr Konto per Einmal-Link oder QR-Code.</p></div></li>
+          <li><div><h3>Updates laufen lassen</h3><p>Nachts mit Backup vorher; startet die neue Fassung nicht, läuft wieder die vorherige.</p></div></li>
+        </ol>
       </div>
     </section>
 
-    <section class="slide" data-title="Arbeitgeber">
-      <p class="kicker">Für die Dienststelle</p>
-      <h2>Betrieb, der sich gegenüber Datenschutz vertreten lässt.</h2>
-      <p class="lead">Verantwortliche Stelle, VVT und Mitbestimmung bleiben bei euch. Das Produkt liefert die technische Baseline: keine Patientenfelder, nur notwendige Cookies, dokumentierte Löschpfade.</p>
-      <div class="grid">
-        <article class="card"><strong>Datenschutz</strong><p>Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern.</p></article>
-        <article class="card"><strong>Store-Kandidat 1.0</strong><p>CI-Gates für iOS und Android sind da. Konten und Signatur liegen bei der Dienststelle.</p></article>
+    <section class="slide" data-title="Quelloffen">
+      <div class="pub-wrap split split-even">
+        <div class="copy">
+          <p class="pub-kicker">Quelloffen, selbst gehostet</p>
+          <h2>Ein Server in der eigenen Wache.</h2>
+          <p class="pub-lead">Der vollständige Quellcode steht unter der AGPL-3.0. Es gibt keine zentrale Betreiberinstanz; die Daten bleiben auf dem eigenen Server.</p>
+          <p class="source-link">github.com/Katschko-IT/Rettungswache-Wachbuch</p>
+        </div>
+        <div>
+          <table class="facts">
+            <tbody>
+              <tr><th scope="row">Lizenz</th><td>AGPL-3.0, vollständiger Quellcode</td></tr>
+              <tr><th scope="row">Betrieb</th><td>Docker Compose, Images für amd64 und arm64</td></tr>
+              <tr><th scope="row">Zugang</th><td>Browser als Web-App, quelloffene Apps für iOS und Android</td></tr>
+              <tr><th scope="row">Stand</th><td>Vorproduktion</td></tr>
+            </tbody>
+          </table>
+          <p class="note"><strong>Keine Produktionsfreigabe.</strong> Externe Abnahmen, Datenschutzfolgenabschätzung beim Betreiber und eine unabhängige Sicherheitsprüfung stehen noch aus.</p>
+        </div>
       </div>
     </section>
+  </main>
 
-    <section class="slide hero" data-title="Schluss">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="copy">
-        <p class="kicker">Nächster Schritt</p>
-        <h1>Vorführen. Pilotieren. Selbst hosten.</h1>
-        <p class="lead">Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz.</p>
+  <nav class="deck-bar" data-bar aria-label="Folien">
+    <div class="deck-progress" aria-hidden="true"><span data-progress></span></div>
+    <div class="pub-wrap deck-bar-inner">
+      <button class="pub-button" type="button" data-prev>Zurück</button>
+      <div class="deck-bar-end">
+        <button class="pub-button" type="button" data-music aria-pressed="false">Musik</button>
+        <button class="pub-button primary" type="button" data-next>Weiter</button>
       </div>
-    </section>
-  </div>
-
-  <div class="bar">
-    <button class="ghost" type="button" id="prev" aria-label="Vorherige Folie">Zurück</button>
-    <div class="progress" aria-hidden="true"><span id="bar"></span></div>
-    <span id="count">1 / 8</span>
-    <button type="button" id="music" aria-pressed="false">Musik</button>
-    <button type="button" id="next">Weiter</button>
-  </div>
-
-  <script>
-    const slides = [...document.querySelectorAll(".slide")];
-    const bar = document.getElementById("bar");
-    const count = document.getElementById("count");
-    let i = 0;
-    let timer = null;
-    const AUTO_MS = 6200;
-
-    function show(n) {
-      i = (n + slides.length) % slides.length;
-      slides.forEach((s, idx) => s.classList.toggle("is-on", idx === i));
-      bar.style.width = ((i + 1) / slides.length * 100) + "%";
-      count.textContent = (i + 1) + " / " + slides.length;
-      document.title = "Wachbuch – " + (slides[i].dataset.title || "Vorführung");
-    }
-
-    function next() { show(i + 1); }
-    function prev() { show(i - 1); }
-
-    function armAuto() {
-      clearInterval(timer);
-      if (new URLSearchParams(location.search).get("autoplay") === "1") {
-        timer = setInterval(next, AUTO_MS);
-      }
-    }
-
-    document.getElementById("next").addEventListener("click", () => { next(); armAuto(); });
-    document.getElementById("prev").addEventListener("click", () => { prev(); armAuto(); });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); armAuto(); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); prev(); armAuto(); }
-    });
-
-    /* Original, kurzes Ambient – keine fremden Aufnahmen. */
-    let audioCtx = null;
-    let playing = false;
-    function startMusic() {
-      if (playing) return;
-      audioCtx = audioCtx || new AudioContext();
-      const master = audioCtx.createGain();
-      master.gain.value = 0.07;
-      master.connect(audioCtx.destination);
-      const notes = [196, 246.94, 293.66, 329.63, 392, 329.63, 293.66, 246.94];
-      notes.forEach((freq, idx) => {
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        g.gain.value = 0;
-        osc.connect(g);
-        g.connect(master);
-        const t0 = audioCtx.currentTime + idx * 0.85;
-        g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(0.22, t0 + 0.12);
-        g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.6);
-        osc.start(t0);
-        osc.stop(t0 + 1.7);
-      });
-      const pad = audioCtx.createOscillator();
-      const pg = audioCtx.createGain();
-      pad.type = "triangle";
-      pad.frequency.value = 98;
-      pg.gain.value = 0.04;
-      pad.connect(pg);
-      pg.connect(master);
-      pad.start();
-      playing = true;
-      document.getElementById("music").setAttribute("aria-pressed", "true");
-      setInterval(() => {
-        if (!playing) return;
-        startPhrase(audioCtx, master);
-      }, 6800);
-    }
-    function startPhrase(ctx, master) {
-      const seq = [261.63, 329.63, 392, 440, 392, 329.63];
-      seq.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        g.gain.value = 0;
-        osc.connect(g);
-        g.connect(master);
-        const t0 = ctx.currentTime + idx * 0.95;
-        g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(0.18, t0 + 0.1);
-        g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.4);
-        osc.start(t0);
-        osc.stop(t0 + 1.5);
-      });
-    }
-    document.getElementById("music").addEventListener("click", () => {
-      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-      startMusic();
-    });
-
-    if (new URLSearchParams(location.search).get("record") === "1") {
-      document.querySelector(".bar").style.display = "none";
-    }
-    if (new URLSearchParams(location.search).get("autoplay") === "1") {
-      show(0);
-      armAuto();
-      window.addEventListener("pointerdown", startMusic, { once: true });
-    }
-  </script>
+    </div>
+  </nav>
+</div>
 </body>
 </html>

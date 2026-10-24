@@ -45,5 +45,5 @@ class Command(BaseCommand):
             token_hash=hash_secret(raw),
             created_by=admin.user,
         )
-        audit(admin.user, station, "terminal.created", terminal, {"label": terminal.label, "via": "manage.py"})
+        audit(admin.user, station, "terminal.created", terminal, {"fields": ["label"], "via": "manage.py"})
         self.stdout.write(reverse("terminal_start", args=[raw]))

@@ -30,7 +30,7 @@
       <button class="button secondary" type="submit">{% translate "Wieder öffnen" %}</button>
     {% else %}
       <input type="hidden" name="erledigt" value="1">
-      <button class="button primary" type="submit">{% translate "Erledigt" %}</button>
+      <button class="button secondary" type="submit">{% include "core/_icon.html" with name="check" %}{% translate "Erledigt" %}</button>
     {% endif %}
   </form>
 </article>

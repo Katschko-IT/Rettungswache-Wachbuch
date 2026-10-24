@@ -235,6 +235,42 @@ i18n-Check, `makemigrations --check`, `check --deploy`; Browserlauf
 Offen bis `[x]`: GitHub-Jobs `django`/`docker` auf dem PR-Head, manuelle
 Prüfung der Scanner auf einem echten Gerät über HTTPS.
 
+### [~] R-026 Gesamtreview und Fertigstellung 2026-10-24
+
+Ursache: Vier unabhängige Prüfungen (Server-Sicherheit, Docker/Installation,
+Client↔Server-Vertrag, UI/UX) auf Server 0.24.0 und Client 1.0.0+12. Details
+und Befundliste: [`REVIEW-2026-10-24.md`](REVIEW-2026-10-24.md).
+
+Umgesetzt (Server-Fixes, Branch `fix/review-2026-10-24`):
+
+- S1 `MFA_REQUIRED` wird für Web-Sitzungen per Middleware durchgesetzt; auch die
+  Terminal-Kopplung gibt ohne zweiten Faktor kein App-Token aus.
+- S2 Dienstkonto „Wachenterminal“ ist kein Leser von Neuigkeiten und kann
+  nicht quittieren.
+- S3 Admins koppeln keine Handys für Personen mit (Pflicht-)MFA.
+- S4 Fehlversuche am Terminal werden unter Zeilensperre gezählt.
+- S5 Client-IP hinter dem Proxy aus dem rechten `X-Forwarded-For`-Eintrag,
+  auch für django-axes; API-Rate-Limits pro Person, `Retry-After`.
+- S6 Web-Abschluss einer Checkliste schaltet das Intervall weiter.
+- S7 Web-Upload an Mängeln mit denselben Grenzen wie die API.
+- S8/S9 Nicht-Objekt-JSON und unmögliche Datumswerte liefern 4xx statt 500.
+- S10 Terminal-Bezeichnungen nicht mehr als Freitext im Audit.
+- S11 Mängel fachlich sortiert und paginiert (vorher konnten 200 erledigte
+  Mängel alle offenen aus der App verdrängen).
+- S12/S13 Kalender mit laufenden Terminen und `description`, Kaffeekasse mit
+  `scope`.
+
+Nachweise: `core/test_review_2026_10_24.py` (24 Regressionstests), volle
+Suite 1031 Tests grün, Ruff-Baseline, `makemigrations --check`.
+
+Ebenfalls umgesetzt: Client-Fixes C1–C11, Docker-Installation mit einem
+Befehl, Verkehrslage je Wache, Redesign „Wachbuch Klar 2“ (Web und App),
+Ende-zu-Ende-Test gegen die Docker-Installation (Browser 23/23; dabei die
+blockierte Kontoaktivierung gefunden und behoben).
+
+Offen bis `[x]`: GitHub-Jobs auf dem PR-Head, veröffentlichtes Release mit
+Images auf GHCR, Abnahme auf echter Hardware (Pi, Handy im Wachen-WLAN).
+
 ## Wave 3 – Pilot- und Produktionsabnahme
 
 ### [ ] R-015 Externe ASVS-L2-Prüfung und Penetrationstest

@@ -213,17 +213,11 @@ class RepositoryCatalogTests(SimpleTestCase):
         # nicht hierher, sondern in den Katalog.
         identical_ok = {
             # Produkt-, Plattform- und Eigennamen
-            "Android": "Plattformname",
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
-            "iOS / iPadOS": "Plattformnamen",
-            "Web-PWA": "Produktbegriff",
-            "Bundle de.wachbuch.wachbuchMobile": "iOS-Bundle-Identifier",
-            "Antonio Batinic / Pexels": "Fotografen-Credit (Eigenname)",
             "openapi.yaml": "Dateiname",
             "/anmelden/qr/": "Route, laut Projektregel unveraenderlich",
             # Protokoll-, Header- und Sicherheitsbegriffe
             "Audit": "Fachbegriff, im Englischen identisch",
-            "Audit append-only": "Protokoll-/Audit-Fachbegriff",
             "MFA": "Akronym",
             "E2EE": "Akronym",
             "ID": "Akronym",

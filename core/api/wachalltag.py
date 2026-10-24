@@ -33,6 +33,7 @@ from core.services import audit
 from core.wachalltag_models import (
     AssetEvent,
     ChecklistSchedule,
+    DEFECT_WORKFLOW_ORDERING,
     Defect,
     DefectAttachment,
     DefectEvent,
@@ -380,14 +381,38 @@ def _advance_schedule(schedule):
     schedule.save(update_fields=["due_next", "updated_at"])
 
 
+def advance_checklist_schedule(checklist_id):
+    """Nach einem Abschluss das Prüfintervall weiterschalten (Web und API)."""
+    schedule = ChecklistSchedule.objects.select_for_update().filter(checklist_id=checklist_id).first()
+    if schedule is not None:
+        _advance_schedule(schedule)
+    return schedule
+
+
+def defect_attachment_limit_error(locked_defect, size):
+    """Prüft Anzahl und Gesamtgröße der Anhänge eines (gesperrten) Mangels.
+
+    Liefert ``(Meldung, HTTP-Status)`` oder ``None``. Aufrufer halten die
+    Zeilensperre auf ``locked_defect`` bis zum Anlegen des Anhangs.
+    """
+    stats = DefectAttachment.objects.filter(defect=locked_defect).aggregate(
+        count=Count("id"),
+        total=Sum("size"),
+    )
+    if int(stats["count"] or 0) >= MAX_ATTACHMENTS_PER_DEFECT:
+        return f"Maximal {MAX_ATTACHMENTS_PER_DEFECT} Fotos pro Mangel sind erlaubt.", 409
+    if int(stats["total"] or 0) + size > MAX_ATTACHMENT_TOTAL_BYTES:
+        return "Gesamtgroesse der Fotos pro Mangel darf 12 MiB nicht ueberschreiten.", 413
+    return None
+
+
 @csrf_exempt
 @require_POST
 def checklist_complete_api(request, pk):
     response = base.checklist_complete_api(request, pk)
     if response.status_code in {200, 201}:
-        schedule = ChecklistSchedule.objects.filter(checklist_id=pk).first()
-        if schedule is not None:
-            _advance_schedule(schedule)
+        with transaction.atomic():
+            schedule = advance_checklist_schedule(pk)
         data = _payload(response)
         if schedule is not None:
             data["interval"] = schedule.interval
@@ -398,6 +423,22 @@ def checklist_complete_api(request, pk):
 
 
 # ---- Defects ---------------------------------------------------------------
+
+
+def _int_param(request, name, *, default, minimum, maximum):
+    try:
+        value = int(request.GET.get(name, default))
+    except (TypeError, ValueError):
+        return default
+    return max(minimum, min(maximum, value))
+
+
+def _page_link(request, offset, limit):
+    """Relativer Link auf eine andere Seite derselben Liste (Filter bleiben erhalten)."""
+    query = request.GET.copy()
+    query["offset"] = str(offset)
+    query["limit"] = str(limit)
+    return f"{request.path}?{query.urlencode()}"
 
 
 @csrf_exempt
@@ -412,6 +453,7 @@ def defects_list(request):
             Defect.objects.filter(station=station)
             .select_related("owner")
             .annotate(attachment_total=Count("attachments"))
+            .order_by(*DEFECT_WORKFLOW_ORDERING)
         )
         status = request.GET.get("status")
         priority = request.GET.get("priority")
@@ -421,8 +463,19 @@ def defects_list(request):
             qs = qs.filter(priority=priority)
         if request.GET.get("overdue") in {"1", "true", "yes"}:
             qs = qs.filter(due_at__lt=timezone.now()).exclude(status=Defect.Status.DONE)
-        results = [_defect_json(item) for item in qs[:200]]
-        return JsonResponse({"ok": True, "count": len(results), "results": results})
+        if request.GET.get("active") in {"1", "true", "yes"}:
+            qs = qs.exclude(status=Defect.Status.DONE)
+        limit = _int_param(request, "limit", default=100, minimum=1, maximum=200)
+        offset = _int_param(request, "offset", default=0, minimum=0, maximum=10**6)
+        total = qs.count()
+        results = [_defect_json(item) for item in qs[offset:offset + limit]]
+        return JsonResponse({
+            "ok": True,
+            "count": total,
+            "results": results,
+            "next": _page_link(request, offset + limit, limit) if offset + limit < total else None,
+            "previous": _page_link(request, max(0, offset - limit), limit) if offset > 0 else None,
+        })
 
     if (error := _scope(request, "write:handovers")) or (error := _content_role(request)):
         return error
@@ -815,23 +868,9 @@ def defect_attachments(request, pk):
         locked_defect = Defect.objects.select_for_update().filter(pk=pk, station=station).first()
         if locked_defect is None:
             return base._json_error(request, "Mangel nicht gefunden.", status=404)
-        stats = DefectAttachment.objects.filter(defect=locked_defect).aggregate(
-            count=Count("id"),
-            total=Sum("size"),
-        )
-        if int(stats["count"] or 0) >= MAX_ATTACHMENTS_PER_DEFECT:
-            return base._json_error(
-                request,
-                f"Maximal {MAX_ATTACHMENTS_PER_DEFECT} Fotos pro Mangel sind erlaubt.",
-                status=409,
-            )
-        current_total = int(stats["total"] or 0)
-        if current_total + len(raw) > MAX_ATTACHMENT_TOTAL_BYTES:
-            return base._json_error(
-                request,
-                "Gesamtgroesse der Fotos pro Mangel darf 12 MiB nicht ueberschreiten.",
-                status=413,
-            )
+        if limit := defect_attachment_limit_error(locked_defect, len(raw)):
+            message, status = limit
+            return base._json_error(request, message, status=status)
         item = DefectAttachment.objects.create(
             defect=locked_defect,
             station=station,

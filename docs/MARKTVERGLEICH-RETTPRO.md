@@ -1,115 +1,156 @@
-# Marktvergleich: Wachbuch und RETTpro
+# Marktvergleich: Wachwerk und RETTpro
 
-Stand 22.10.2026. Grundlage für RETTpro sind ausschließlich die öffentlichen Seiten von
-rettpro.de (Startseite, Funktionen, Software, Zusatz-Module, Preise, Kunden, Unternehmen,
-Impressum, Datenschutz). Was dort nicht steht, ist als „nicht genannt“ markiert – es kann
-im Produkt trotzdem existieren. Für das Wachbuch gilt der Stand dieses Repositorys.
+Stand 24.10.2026. Grundlage für RETTpro sind ausschließlich die öffentlichen Seiten von
+rettpro.de (deutsch und englisch, abgerufen am 24.10.2026; Quellen am Ende). Was dort
+nicht steht, ist als „nicht genannt“ markiert – es kann im Produkt trotzdem existieren.
+Für Wachwerk gilt der Stand dieses Repositorys (Branch der Gesamtreview 2026-10-24,
+siehe [`REVIEW-2026-10-24.md`](REVIEW-2026-10-24.md)).
 
 ## 1. Steckbrief
 
-| | RETTpro | Wachbuch |
+| | RETTpro (EN: „Emergency Digital PRO“) | Wachwerk |
 | --- | --- | --- |
-| Anbieter | SEMAsystems GmbH, Schönberg (Bayern); seit 2012 am Markt | Open-Source-Projekt (AGPL-3.0), selbst betrieben |
-| Verbreitung | laut Website über 150 Organisationen, rund 15.000 Nutzer (DRK, JUH, ASB, MHD, Berufsfeuerwehren, Bundeswehr) | Pilotphase, keine Produktionsfreigabe |
-| Betrieb | Cloud („Unsere Software arbeitet online“), Serverstandort nicht genannt | eigener Server oder Raspberry Pi auf der Wache, funktioniert ohne Internet |
-| Preis | Gesamtpaket ab 190 €/Monat zzgl. 0,40 € je Nutzer und MwSt.; LAGERpro ab 109 €, MPGpro ab 99 € | Software kostenlos; einmalig Hardware (Pi 4, SSD, RTC, 14″-Touch-Monitor: grob 300–450 €) und eigene Betreuung |
-| Endgeräte | Browser auf allen Geräten; eine native App ist nicht eindeutig genannt | Browser, Flutter-App für iOS/Android mit Offline-Lesecache, Touch-Terminal, Wachen-Display |
-| Support | Telefon, E-Mail, Ticketsystem in der Software, Webinare | GitHub, eigene Betreuung |
+| Anbieter | SEMAsystems GmbH, Schönberg (Bayern); Software seit 2012 | Open-Source-Projekt (AGPL-3.0), selbst betrieben |
+| Verbreitung | laut Firmenchronik 2022: über 150 Organisationen, rund 15.000 aktive Nutzer (DRK, JUH, ASB, Feuerwehren, Bundeswehr) | Vorproduktion, keine Produktionsfreigabe |
+| Betrieb | Cloud: „Our software operates online“; Serverstandort der Anwendung nicht genannt | eigener Server, Mini-PC, Raspberry Pi oder Mac; Installation mit einem Befehl (Docker), läuft im Wachennetz ohne Internet |
+| Preis (Liste, zzgl. MwSt.) | RETTpro ab 190 €/Monat, LAGERpro ab 109 €, MPGpro ab 99 €, jeweils zzgl. 0,40 € je Nutzer; SSO 1.500 € einmalig + 25 €/Monat; RFID-Beispiel 3.725 € + 204,50 €/Jahr | Software kostenlos; einmalig Hardware (grob 300–450 € für Pi, SSD, Touch-Monitor) und eigene Betreuung |
+| Endgeräte | jedes internetfähige Gerät per Browser; native App nicht genannt | Browser/PWA, quelloffene App für iOS und Android, Touch-Wachenterminal, Wachen-Display |
+| Updates | durch den Anbieter (Cloud) | `wachbuch update` oder nächtlich automatisch mit Backup und Rollback; Images wöchentlich mit Sicherheitsupdates neu gebaut |
+| Support | Telefon, E-Mail, Ticketsystem in der Software, Webinare, Demo | GitHub, eigene Betreuung |
 
 ## 2. Funktionsvergleich
 
 Legende: ● vorhanden · ◐ teilweise · – nicht vorhanden / nicht genannt
 
-| Bereich | RETTpro | Wachbuch | Anmerkung |
+| Bereich | RETTpro | Wachwerk | Anmerkung |
 | --- | :-: | :-: | --- |
-| Wachbuch / Übergaben | ● | ● | Wachbuch: dringende Übergaben, Lesebestätigung, Anhänge, Revisionen |
-| Mängelmeldung | ● | ● | Wachbuch: Mangel sperrt Fahrzeug/Gerät, Freigabe nur durch Leitung |
-| Fahrzeuge, Fristen (HU/UVV/Wartung) | ● | ● | Wachbuch zusätzlich BOS-Status und 3-Minuten-Schichtübernahme |
-| Desinfektion nach Hygieneplan | ● | ● | Wachbuch: Einwirkzeit-Sperre, Besatzung wird benachrichtigt, keine Auto-Freigabe |
-| Medizinprodukte (STK/MTK, Medizinproduktebuch, Einweisungen) | ● | ● | beide; Wachbuch mit QR-Kontrolle am Gerät |
-| Lager / Material, Mindestbestand, Bestellvorschlag | ● | ● | Wachbuch: Chargen, Haltbarkeit (FEFO), Rückruf |
+| Wachbuch / Übergaben | ● | ● | Wachwerk: Priorität, Revisionen, Quittierung je Person, Anhänge |
+| Dashboard / Information | ● | ● | Wachwerk: Übersicht zeigt zuerst den Handlungsbedarf aller Module |
+| Mängelmeldung | ● | ● | Wachwerk: offener Mangel sperrt Fahrzeug/Gerät, Freigabe nur durch Leitung |
+| Fahrzeuge, Fristen (HU/UVV/Wartung) | ● | ● | Wachwerk zusätzlich Status 1–6 und Schichtübernahme |
+| Desinfektion | ● | ● | Wachwerk: Einwirkzeit-Sperre, Besatzung wird benachrichtigt |
+| Medizinprodukte (STK/MTK, Einweisungen) | ● | ● | beide; Wachwerk mit QR-Kontrolle am Gerät |
+| Lager / Material, Mindestbestand, Bestellvorschlag | ● | ● | Wachwerk: Chargen, Verfall (FEFO), Rückruf |
 | Barcode-Scan | ● | ● | |
-| Checklisten | ● | ● | Wachbuch mit Prüfintervallen |
-| Kalender, Aufgaben | ● | ● | Wachbuch: Tages-/Wochen-/Monatsaufgaben, ICS-Abo |
-| Dokumente mit Lesebestätigung | ● | ● | Wachbuch: Dienstanweisungen (SOP) mit Revisionen und Quittierung |
+| Checklisten | ● | ● | Wachwerk mit Prüfintervallen |
+| Kalender (ICS), Aufgaben | ● | ● | Wachwerk: Tages-/Wochenaufgaben, Feiertage, ICS-Abo |
+| Dokumente mit Lesebestätigung | ● | ● | Wachwerk: Dienstanweisungen mit Revisionen |
 | Telefonbuch | ● | ● | |
-| Interne Kommunikation | ◐ (E-Mail-Client) | ● | Wachbuch: Wachenchat, Gruppen, Ende-zu-Ende-verschlüsselte Post |
-| Information/Dashboard | ● | ● | Wachbuch: Übersicht, Pinnwand, Neuigkeiten, Wiki |
-| **Dienstplan, Diensttausch, Urlaub** | ● | – | größte Lücke |
-| **Mitarbeiterakte** (Fortbildungsstunden, Nachweise, Impfstatus) | ● | – | |
-| **Fortbildungen** (Anmeldung, Nachweis-Upload) | ● | – | |
-| **Führerscheinkontrolle** (auch NFC-Siegel) | ● | – | |
-| **CIRS** (anonym) | ● | – | |
-| **QM-Modul** (Fehlermeldungen, Verbesserungsvorschläge, Zuständigkeiten) | ● | ◐ | Wachbuch hat nur Mängel und Auswertung |
-| **Verbandbuch** | ● | – | |
-| Umfragen, E-Learning (Multiple Choice) | ● | – | |
-| Arbeitszeiterfassung (ARBEITSZEITpro) | ● | – | |
-| Kleidungsverwaltung | ● | – | |
-| Digitalfunkgeräte | ● | ◐ | Wachbuch: als „Geräte“ erfassbar, ohne Funk-Spezifika |
-| Schlüsselverwaltung, Fahrtenbuch | ● | – | |
+| Interne Kommunikation | ◐ | ● | RETTpro: E-Mail-Client; Wachwerk: Chat, Gruppen, verschlüsselte Post |
+| Schlüsselverwaltung | ● | ◐ | Wachwerk: als Inventar mit Ausgabe/Rückgabe, ohne Immobilienbezug |
 | Ressourcen reservieren | ● | – | |
-| Temperaturkontrolle (Kühlschrank, optional Logger) | ● | ◐ | Wachbuch: nur per Checkliste |
-| Einsatz-/Spitzenabdeckungs-Erfassung | ● | – | |
-| Schnittstellen (SSO, RFID, WEINMANN Connect, Mercedes-Benz, Bestellung bei meetB) | ● | – | |
-| **Touch-Terminal auf der Wache mit Wachen-Code** | – | ● | eigenes WLAN, Bildschirmtastatur, Sperrbildschirm-Dashboard |
-| **Wachen-Display (Monitor)** | – | ● | Fahrzeugstatus, Wetter, Termine, Müll, Verkehr |
-| **Offline-Betrieb ohne Internet** | – | ● | |
-| **Native App mit Push und Offline-Cache** | nicht genannt | ● | |
-| Zwei-Faktor, Passkeys, QR-Login | nicht genannt | ● | |
-| Revisionssicheres Audit-Log, Löschfristen | nicht genannt | ● | |
-| Mehrere Standorte / Träger-Ebene | ● | ◐ | Wachbuch: eine Wache je Installation |
+| Temperaturkontrolle | ● | ◐ | Wachwerk: per Checkliste, kein Logger |
+| Digitalfunkgeräte | ● | ◐ | Wachwerk: als Gerät erfassbar, ohne Funk-Spezifika |
+| QM-Modul (Fehlermeldungen, Zuständigkeiten) | ● | ◐ | Wachwerk: Mängel mit Zuständigkeit und Auswertung |
+| **Dienstplan, Tausch, Urlaub** | ● | – | bewusst nicht im Produkt (Produktgrenze), Anbindung denkbar |
+| **Mitarbeiterakte, Impfstatus** | ● | – | Gesundheitsdaten – bewusst nicht im Produkt |
+| **Fortbildungen** | ● | – | |
+| **Führerscheinkontrolle** (auch NFC) | ● | – | |
+| **CIRS** (anonym) | ● | – | |
+| **Verbandbuch** | ● | – | Gesundheitsdaten – Produktgrenze prüfen |
+| Umfragen, E-Learning | ● | – | |
+| Arbeitszeiterfassung | ● | – | |
+| Kleidungsverwaltung | ● | – | |
+| Fahrtenbuch | ● | – | |
+| Einsatz-/Spitzenabdeckung | ● | – | Einsatzdaten – Produktgrenze |
+| Schnittstellen (SSO, RFID, WEINMANN, Mercedes-Benz, meetB) | ● | ◐ | Wachwerk: offene, versionierte API; keine Hersteller-Anbindungen |
+| Mehrere Standorte eines Trägers | ● | ◐ | Wachwerk: eine Wache je Installation |
+| **Betrieb ohne Internet** | nicht genannt | ● | durch Tests mit blockierten externen Aufrufen belegt |
+| **Selbst gehostet, Daten beim Träger** | – | ● | |
+| **Installation mit einem Befehl, Auto-Update mit Rollback** | – (Cloud) | ● | |
+| **Native App (iOS/Android)** | nicht genannt | ● | quelloffen, mit Push und verschlüsseltem Lesecache |
+| **Zwei-Faktor, Passkeys, QR-Login** | nicht genannt | ● | RETTpro nennt nur SSO (Zusatzmodul) |
+| **Touch-Wachenterminal mit Wachen-Code** | nicht genannt | ● | Sperrbildschirm, Bildschirmtastatur, WLAN-QR |
+| **Wachen-Display (Monitor)** | nicht genannt | ● | Fahrzeugstatus, Wetter, Termine, Verkehr |
+| **Tag- und Nachtansicht** | nicht genannt | ● | Nachtdienst-Modus, auf Lesbarkeit ausgelegte Schrift |
+| Audit-Log, Löschfristen | nicht genannt | ● | |
 | Wetter, Müllkalender, Geburtstage, Kaffeekasse | – | ● | Komfort für den Wachalltag |
 
-## 3. Was RETTpro besser macht
+## 3. Wie weit Wachwerk ist – in Zahlen
 
-1. **Personal- und Organisationsseite**: Dienstplan, Mitarbeiterakte, Fortbildungen,
-   Führerscheinkontrolle, Arbeitszeit. Damit deckt RETTpro die Arbeit der Wachleitung
-   und Verwaltung ab, nicht nur den Wachalltag.
-2. **Qualitätsmanagement**: CIRS, QM-Meldungen mit Zuständigkeiten, Verbandbuch,
-   Umfragen. Das wird bei Audits (z. B. QM-Zertifizierung des Trägers) erwartet.
-3. **Reife und Vertrauen**: 14 Jahre am Markt, große Referenzliste, Support mit
-   Ansprechpartner, Datenübernahme aus Altsystemen.
-4. **Integrationen**: SSO, RFID-Gerätecheck, Hersteller- und Fahrzeugdaten, Shop-Anbindung.
-5. **Mehrere Standorte** eines Trägers in einem System.
+Gezählt aus der Tabelle oben (● = 1, ◐ = ½):
 
-## 4. Was das Wachbuch besser macht
+| Blick | Ergebnis |
+| --- | --- |
+| RETTpro-Funktionen insgesamt (● oder ◐ bei RETTpro) | 31 Bereiche |
+| davon in Wachwerk vorhanden | 13 vollständig, 6 teilweise → **16 von 31 (52 %)** |
+| davon ohne die bewusst ausgeschlossenen Bereiche (Dienstplan, Mitarbeiterakte, Verbandbuch, Einsatzabdeckung, Arbeitszeit) | **16 von 26 (62 %)** |
+| **Kernbetrieb einer Wache** (Wachbuch, Dashboard, Mängel, Fahrzeuge, Desinfektion, Medizinprodukte, Lager, Barcode, Checklisten, Kalender, Dokumente, Telefonbuch) | **12 von 12 (100 %)** |
+| Bereiche, die nur Wachwerk bietet bzw. RETTpro nicht nennt | 10 |
 
-1. **Läuft auf der Wache, auch ohne Internet**: Pi mit eigenem WLAN, Touch-Terminal,
-   Wachen-Display. Fällt das Internet aus, arbeitet die Wache weiter.
-2. **Daten bleiben beim Träger**: selbst gehostet, offener Quellcode, keine
-   Nutzerlizenzen, kein Auftragsverarbeiter.
-3. **Sicherheit**: Zwei-Faktor, Passkeys, QR-Login, Audit-Log, Ende-zu-Ende-verschlüsselte
-   Post, Löschfristen.
-4. **Sicherheitslogik im Fachablauf**: Mängel und Einwirkzeiten sperren Fahrzeuge und
-   Geräte; Freigabe nur bewusst durch Menschen, Besatzung wird benachrichtigt.
-5. **Bedienung an der Wache**: Sperrbildschirm mit Tagesüberblick, Wachen-Code,
-   Bildschirmtastatur, WLAN- und App-QR, native App mit Push.
+Lesart: Im Wachalltag ist Wachwerk gleichauf und in Betrieb, Sicherheit und Bedienung
+an der Wache voraus. Die Lücke liegt in der Personal- und Verwaltungsseite (Dienstplan,
+Fortbildung, Führerscheine, CIRS, QM) und bei Integrationen – teils bewusst, weil diese
+Bereiche Gesundheits- oder Einsatzdaten berühren, die die Produktgrenze ausschließt.
 
-## 5. Optimierungsbedarf (Vorschlag, nach Nutzen und Aufwand)
+## 4. Was RETTpro besser macht
+
+1. **Personal und Verwaltung**: Dienstplan, Mitarbeiterakte, Fortbildungen,
+   Führerscheinkontrolle, Arbeitszeit – die Arbeit der Wachleitung und Verwaltung.
+2. **Qualitätsmanagement**: CIRS, QM-Meldungen, Verbandbuch, Umfragen und E-Learning.
+3. **Reife und Vertrauen**: seit 2012 am Markt, lange Referenzliste, Ansprechpartner,
+   Datenübernahme beim Wechsel aus einem Altsystem.
+4. **Integrationen**: SSO zu Dienstplanprogrammen, RFID-Gerätecheck mit Handscanner,
+   Hersteller-, Fahrzeug- und Lieferantenanbindung.
+5. **Mehrere Standorte** eines Trägers in einem System, ohne eigene IT.
+
+## 5. Wo Wachwerk besser ist
+
+1. **Läuft in der Wache, auch ohne Internet**: eigener Server oder Pi im Wachennetz;
+   fällt das Internet aus, arbeitet die Wache weiter.
+2. **Daten bleiben beim Träger**: selbst gehostet, quelloffen, keine Nutzerlizenzen,
+   kein Auftragsverarbeiter, keine Analyse- oder Marketing-Dienste im Produkt.
+3. **Kosten**: keine laufenden Lizenzkosten (Rechenbeispiel unten).
+4. **Sicherheit, nachprüfbar**: Zwei-Faktor und Passkeys (MFA-Pflicht durchsetzbar),
+   QR-Login, Audit-Log, verschlüsselte Post, Löschfristen; Quellcode und
+   Review-Berichte sind öffentlich.
+5. **Sicherheitslogik im Fachablauf**: Mängel und Einwirkzeiten sperren Fahrzeuge und
+   Geräte; Freigabe nur bewusst durch Menschen.
+6. **Bedienung**: Übersicht mit Handlungsbedarf zuerst, Nachtdienst-Modus,
+   Touch-Terminal mit Wachen-Code, Wachen-Display, native App.
+7. **Betrieb ohne IT-Abteilung**: Installation mit einem Befehl, nächtliche Updates
+   mit Backup und automatischem Rollback, wöchentlich neu gebaute Images.
+
+### Rechenbeispiel Kosten (Listenpreise, ohne MwSt.)
+
+Wache mit 30 Nutzern, RETTpro mit LAGERpro und MPGpro, drei Jahre:
+
+| | RETTpro | Wachwerk |
+| --- | --: | --: |
+| Monatlich | 190 + 109 + 99 € + 3 × 30 × 0,40 € = **434 €** | 0 € |
+| Drei Jahre | **15.624 €** (ohne SSO/RFID) | einmalig ~300–450 € Hardware + eigene Betreuung |
+
+Die eigene Betreuung (Updates prüfen, Backups sichern, Ansprechpartner vor Ort) ist bei
+Wachwerk der eigentliche Kostenfaktor und muss ehrlich eingeplant werden.
+
+## 6. Nächste Schritte (nach Nutzen und Aufwand)
 
 | Priorität | Vorhaben | Aufwand | Warum |
 | --- | --- | --- | --- |
-| 1 | **Produktionsreife**: Freigabe-Checkliste, Update- und Backup-Routine am Pi (USB-Stick automatisch), Wiederherstellungstest, Betriebshandbuch | mittel | Ohne Freigabe kein Echtbetrieb |
-| 2 | **CIRS + QM-Meldungen**: anonyme Meldung (ohne Benutzerbezug gespeichert), Kategorien, Zuständige, Bearbeitungsstatus | klein | Baut auf „Mängel“ auf; hoher Nutzen für QM |
-| 3 | **Verbandbuch** mit stark eingeschränkter Einsicht | klein | Pflichtdokumentation, einfach umzusetzen |
-| 4 | **Fortbildungsnachweise und Führerscheinkontrolle**: Stunden je Jahr, Nachweis-Upload, Kontrolltermine mit Erinnerung | mittel | Häufige Prüffragen der Wachleitung |
-| 5 | **Temperaturkontrolle Medikamentenkühlschrank**: Checklisten-Vorlage, Grenzwerte, Alarm; später Sensor | klein | Arzneimittellagerung |
-| 6 | **Dienstplan-Anbindung**: Import (ICS/CSV) statt eigenem Planer; „Wer ist heute im Dienst“ für Benachrichtigungen | mittel | Dienstplan selbst zu bauen ist groß; Anbindung reicht für den Wachalltag |
-| 7 | **Mehrere Wachen eines Trägers**: Träger-Ansicht, wachenübergreifende Auswertungen | groß | Voraussetzung für Kreisverbände |
-| 8 | **Nachbestellung aus dem Lager** als PDF/E-Mail an Lieferanten | klein | Bestellvorschlag existiert schon |
-| 9 | **SSO (OpenID Connect)** für Träger mit zentraler Benutzerverwaltung | mittel | Erwartung größerer Organisationen |
-| 10 | **Umfragen und kurze Lernkontrollen** zu Dienstanweisungen | mittel | Ergänzt die Quittierung |
+| 1 | **Produktionsfreigabe**: externe Abnahmen (R-015 bis R-019), Release 0.25.0, Pilotwache | mittel | ohne Freigabe kein Echtbetrieb |
+| 2 | **CIRS + QM-Meldungen**: anonyme Meldung ohne Benutzerbezug, Kategorien, Zuständige, Status | klein | baut auf Mängeln auf; großer Nutzen für QM |
+| 3 | **Fortbildungsnachweise und Führerscheinkontrolle**: Stunden, Nachweis, Kontrolltermine mit Erinnerung | mittel | häufige Prüffragen der Wachleitung |
+| 4 | **Temperaturkontrolle** Medikamentenkühlschrank: Vorlage, Grenzwerte, Hinweis in der Übersicht | klein | Arzneimittellagerung |
+| 5 | **Mehrere Wachen eines Trägers**: Träger-Ansicht, wachenübergreifende Auswertung | groß | Voraussetzung für Kreisverbände |
+| 6 | **SSO (OpenID Connect)** | mittel | Erwartung größerer Träger; bei RETTpro kostenpflichtiges Zusatzmodul |
+| 7 | **Dienstplan-Anbindung** (Import ICS/CSV, „wer ist heute im Dienst“) statt eigenem Planer | mittel | Benachrichtigungen an die diensthabende Besatzung |
+| 8 | **Ressourcen reservieren** und **Fahrtenbuch** | klein | einfache Ergänzungen zu Fuhrpark und Inventar |
 
-Nicht empfohlen: Arbeitszeiterfassung und Kleidungsverwaltung – eigene Fachgebiete mit
-Tarif- und Mitbestimmungsfragen, besser über Schnittstellen.
+Bewusst nicht empfohlen: Mitarbeiterakte mit Impfstatus, Verbandbuch und
+Einsatzabdeckung (Gesundheits- und Einsatzdaten, Produktgrenze), eigene
+Arbeitszeiterfassung und Kleidungsverwaltung (eigene Fachgebiete mit Tarif- und
+Mitbestimmungsfragen – besser über Schnittstellen).
 
-## 6. Quellen
+## 7. Quellen (abgerufen am 24.10.2026)
 
-- https://www.rettpro.de/
-- https://www.rettpro.de/rettpro/rettungsdienst-software-funktionen/
-- https://www.rettpro.de/rettungsdienst-software/
-- https://www.rettpro.de/rettungsdienst-software-zusatz-module/
-- https://www.rettpro.de/rettungsdienst-software-preise-pakete/
-- https://www.rettpro.de/rettungsdienst-software-kunden/
-- https://www.rettpro.de/rettungsdienst-software-unternehmen-semasystems/
-- https://www.rettpro.de/impressum/
+- https://www.rettpro.de/en/
+- https://www.rettpro.de/en/rettpro/emergency-medical-services-software-features/
+- https://www.rettpro.de/en/emergency-medical-services-software/
+- https://www.rettpro.de/en/emergency-medical-services-software-additional-modules/
+- https://www.rettpro.de/en/ambulance-service-software-prices-packages/
+- https://www.rettpro.de/en/emergency-services-software-customers/
+- https://www.rettpro.de/en/emergency-medical-services-software-company-semasystems/
+- https://www.rettpro.de/en/elementor-4066/ (SSO)
+- https://www.rettpro.de/en/rfid-device-check/ (RFID)
+- https://www.rettpro.de/en/data-protection/
+- deutsche Fassungen der Funktions-, Software-, Modul-, Preis- und Kundenseiten
