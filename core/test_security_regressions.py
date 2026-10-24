@@ -196,7 +196,9 @@ class ErrorHandlerRegressionTests(SimpleTestCase):
             "not_found", "rate_limit", "server_error",
             "mfa_required", "mfa_setup_required",
             "conflict", "payload_too_large", "unsupported_media_type",
+            "no_active_membership",
         })
+        self.assertEqual(ERROR_CODES["no_active_membership"]["status"], 403)
         self.assertEqual(ERROR_CODES["conflict"]["status"], 409)
         self.assertEqual(ERROR_CODES["payload_too_large"]["status"], 413)
         self.assertEqual(ERROR_CODES["unsupported_media_type"]["status"], 415)

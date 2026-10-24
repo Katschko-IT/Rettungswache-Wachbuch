@@ -361,3 +361,18 @@ class ApiListContractTests(TestCase):
     def test_coffee_reports_scope(self):
         self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.auth).json()["scope"], "station")
         self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.member_auth).json()["scope"], "own")
+
+
+class NoMembershipErrorCodeTests(TestCase):
+    """Entzogene Mitgliedschaft hat einen eigenen Fehlercode für Clients."""
+
+    def test_token_without_membership_reports_specific_code(self):
+        station = Station.objects.create(name="RW", slug="rw")
+        user = User.objects.create_user(username="ex", password=PASSWORD)
+        membership = Membership.objects.create(user=user, station=station, role=Membership.Role.MEMBER)
+        auth = _make_token(user, "wb_review_token_ffffffffffffffffff")
+        membership.is_active = False
+        membership.save(update_fields=["is_active"])
+        response = self.client.get("/api/v1/me/", **auth)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"]["code"], "no_active_membership")

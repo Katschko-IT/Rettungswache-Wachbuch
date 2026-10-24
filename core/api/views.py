@@ -32,6 +32,7 @@ from ..errors import (
     ERROR_CODE_AUTH_REQUIRED,
     ERROR_CODE_CONFLICT,
     ERROR_CODE_FORBIDDEN,
+    ERROR_CODE_NO_ACTIVE_MEMBERSHIP,
     ERROR_CODE_NOT_FOUND,
     ERROR_CODE_PAYLOAD_TOO_LARGE,
     ERROR_CODE_RATE_LIMIT,
@@ -245,7 +246,7 @@ def api_token_required(view):
             return _json_error(request, "Ungültiges oder widerrufenes API-Token.", status=401)
         membership = get_membership(token.user)
         if membership is None:
-            return _json_error(request, "Kein aktiver Wachenzugang.", status=403)
+            return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
         ApiToken.objects.filter(pk=token.pk).update(last_used_at=timezone.now())
         request.user = token.user
         request.membership = membership
@@ -390,7 +391,7 @@ def obtain_token(request):
         return _json_error(request, "Anmeldung fehlgeschlagen.", status=401)
     membership = get_membership(user)
     if membership is None:
-        return _json_error(request, "Kein aktiver Wachenzugang.", status=403)
+        return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
     from ..mfa import mfa_required, user_has_confirmed_mfa
 
     if user_has_confirmed_mfa(user):

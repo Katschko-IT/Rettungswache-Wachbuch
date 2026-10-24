@@ -53,7 +53,7 @@ Fehlerantworten verwenden:
 }
 ```
 
-Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `mfa_required`, `mfa_setup_required`, `not_found`, `rate_limit`, `server_error`.
+Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_membership` (Token gültig, Mitgliedschaft entzogen – Client meldet ab), `mfa_required`, `mfa_setup_required`, `not_found`, `conflict`, `payload_too_large`, `unsupported_media_type`, `rate_limit`, `server_error`.
 
 ## Endpunkte v1
 
