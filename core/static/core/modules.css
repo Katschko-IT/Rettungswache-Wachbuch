@@ -1,175 +1,266 @@
-/* --- Gemeinsame Bausteine der Fachmodule -------------------------------- */
+/* Wachbuch Klar 2 – Fachmodule (MPG, Lager, Fuhrpark, Orga, Display, Mehr)
+   Lädt nach app.css. Farben ausschließlich über Tokens aus app.css, damit
+   hell und Nachtdienst gleich funktionieren. Basiskomponenten (.button,
+   .status-label, .badge, .kpi-card, .section-block, .card, .empty-state,
+   .alert) stehen in app.css – hier nur, was die Module zusätzlich brauchen. */
 
-/* Modal-Dialoge (gesteuert über data-modal-open/-close in ui.js). */
-.wb-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(0, 0, 0, .6);
-  overflow-y: auto;
-}
-.wb-modal[hidden],
-[data-filter-item][hidden],
-[data-filter-group][hidden] { display: none !important; }
-body.has-open-modal { overflow: hidden; }
-
-/* Listenzeilen mit Fristenampel. */
-.module-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: .85rem 1rem;
-  border-bottom: 1px solid var(--line);
-}
-.module-row-overdue { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, .04); }
-.module-row-critical { border-left: 4px solid #f97316; background: rgba(249, 115, 22, .04); }
-.module-row-warning { border-left: 4px solid #eab308; }
-
-/* Schmale Bildschirme (Handy, Tablet hochkant): Zeilen umbrechen, feste
-   Mindestbreiten und mehrspaltige Formularraster aufheben – nichts darf seitlich
-   aus dem Bildschirm laufen. Die ms-*-Klassen tragen !important. */
-@media (max-width: 760px) {
-  .module-row { flex-wrap: wrap; }
-  .module-row > * { flex: 1 1 auto !important; }
-  main [class*="ms-"] { min-width: 0 !important; }
-  main input, main select, main textarea { min-width: 0; max-width: 100% !important; }
-  main .badge { max-width: 100%; white-space: normal; }
-  /* „main“ erhöht die Spezifität: die ms-Regeln stehen weiter unten. */
-  main .ms-3a847b4, main .ms-a7375ee, main .ms-ba35d0a,
-  main .ms-e8fa32b, main .ms-f3c36d4, main .ms-f5004db {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-}
-
-/* Prüf-Ergebnisse. */
-.badge-pass { background: var(--success-soft); color: #166534; }
-.badge-fail { background: var(--danger-soft); color: #991b1b; }
-.badge-neutral { background: var(--surface-soft); }
-
-/* Bestandsanzeige im Lager. */
-.stock-figure { font-weight: bold; font-size: 1.1rem; }
-.stock-low { color: var(--danger); }
-.stock-ok { color: var(--success); }
-
-/* Füllstandsbalken (Breite über data-bar in ui.js). */
-.gauge-fill { height: 100%; width: 0; }
-.gauge-red { background: #ef4444; }
-.gauge-amber { background: #f59e0b; }
-.gauge-green { background: #10b981; }
-.gauge-cyan { background: #06b6d4; }
-.gauge-blue { background: #3b82f6; }
-
-.more-search-hint { color: var(--muted); }
-
-/* --- Komponenten-Vokabular der Fachmodule ----------------------------- */
-/* Die Modul-Templates nutzen diese Klassen; sie sind hier auf die Tokens
-   aus app.css abgebildet, damit alle Seiten gleich aussehen. */
-
-.button:not(.primary):not(.secondary):not(.ghost):not(.danger) {
-  color: var(--on-primary);
-  background: var(--brand);
-}
-.button:not(.primary):not(.secondary):not(.ghost):not(.danger):hover { background: var(--brand-deep); }
-.button.small {
-  min-width: 2.75rem;
-  min-height: 2.75rem; /* 44 px: noch sicher mit dem Finger zu treffen */
-  padding: .35rem .75rem;
-  font-size: .9rem;
-}
-/* Abstand kommt aus gap in .button; Icons tragen keinen eigenen Rand. */
-
-.page-actions-bar {
+/* —— Layout-Hilfen ———————————————————————————————————————————————— */
+/* Senkrechter Stapel mit gleichmäßigem Abstand. */
+.stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.stack-sm { display: flex; flex-direction: column; gap: var(--space-1); }
+.stack-lg { display: flex; flex-direction: column; gap: var(--space-5); }
+/* Waagerechte Gruppe, die umbricht (Knöpfe, Etiketten). */
+.cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.cluster-end { justify-content: flex-end; }
+/* Zwei Enden: Titel links, Aktion/Etikett rechts. */
+.split {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .6rem;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
 }
-
-.breadcrumb-nav, .breadcrumbs { margin: 0 0 1rem; font-size: .92rem; }
-.breadcrumb-nav a, .breadcrumbs a { font-weight: 650; }
-
-.kpi-grid {
+.split > :first-child { min-width: 0; }
+/* Raster, das sich nach verfügbarer Breite richtet (Handy einspaltig). */
+.grid-auto {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  gap: .75rem;
-  margin: 0 0 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
 }
-.kpi-card {
-  display: flex;
-  flex-direction: column;
-  gap: .25rem;
-  padding: .9rem 1rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--line-strong);
-  border-radius: var(--radius);
+.grid-auto-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: var(--space-3);
 }
-.kpi-card.border-danger { border-left-color: var(--danger); }
-.kpi-card.border-warning { border-left-color: var(--warning); }
-.kpi-card.border-success { border-left-color: var(--success); }
-.kpi-value { font-size: 1.75rem; font-weight: 800; line-height: 1.1; }
-.kpi-label { color: var(--muted); font-size: .85rem; font-weight: 600; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+@media (min-width: 48rem) {
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.section-gap { margin-bottom: var(--space-5); }
+.flow > * + * { margin-top: var(--space-3); }
 
+/* Text */
+.muted { color: var(--muted); }
+.text-small { font-size: .875rem; }
+.text-strong { font-weight: 700; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.mono { font-family: var(--mono); overflow-wrap: anywhere; }
+.nowrap { white-space: nowrap; }
+.m-0 { margin: 0; }
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
 .text-warning { color: var(--warning); }
 .text-muted, .subtitle { color: var(--muted); }
+.inline { display: inline; margin: 0; }
 
-.badge {
+/* Zustandspunkt vor einer Aussage (statt farbiger Emojis). */
+.dot {
+  display: inline-block;
+  width: .625rem;
+  height: .625rem;
+  flex: none;
+  margin-right: .4rem;
+  border-radius: 50%;
+  background: var(--line-strong);
+  vertical-align: .05em;
+}
+.dot-danger { background: var(--danger); }
+.dot-warning { background: var(--warning-accent); }
+.dot-success { background: var(--success); }
+.dot-info { background: var(--brand); }
+
+/* Aussage mit Zustand: Text in Zustandsfarbe, Punkt davor. */
+.state {
   display: inline-flex;
   align-items: center;
-  gap: .3rem;
-  padding: .15rem .5rem;
-  border: 1px solid var(--line);
-  border-radius: .45rem;
-  background: var(--surface-soft);
-  color: var(--text);
-  font-size: .78rem;
   font-weight: 700;
-  white-space: nowrap;
 }
-
-.alert, .callout {
-  margin: 0 0 1rem;
-  padding: .85rem 1rem;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--info);
-  border-radius: var(--radius);
-  background: var(--info-soft);
+.state::before {
+  content: "";
+  width: .625rem;
+  height: .625rem;
+  flex: none;
+  margin-right: .5rem;
+  border-radius: 50%;
+  background: currentColor;
 }
-.alert-warning, .alert.warning { border-left-color: var(--warning); background: var(--warning-soft); }
-.alert-error, .alert-danger, .alert.danger { border-left-color: var(--danger); background: var(--danger-soft); }
-.alert-success, .alert.success { border-left-color: var(--success); background: var(--success-soft); }
+.state.danger { color: var(--danger); }
+.state.warning { color: var(--warning); }
+.state.warning::before { background: var(--warning-accent); }
+.state.success { color: var(--success); }
+.state.info { color: var(--brand); }
+.state.large { font-size: 1.25rem; }
 
-.status-label.status-done { color: var(--priority-done); background: var(--success-soft); }
-.status-label.status-waiting { color: #92400e; background: var(--warning-soft); }
-.status-label.status-in_progress { color: var(--info); background: var(--info-soft); }
-.status-label.status-open { color: var(--danger); background: var(--danger-soft); }
-
-.search-form {
+/* —— Navigation, Kopf und Aktionen ——————————————————————————————— */
+.page-actions-bar,
+.action-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: .6rem;
-  margin: 0 0 1.25rem;
+  align-items: center;
+  gap: var(--space-2);
 }
-.search-form input[type="search"], .search-form input[type="text"] { flex: 1 1 14rem; }
+.action-bar { margin: 0 0 var(--space-5); }
+.breadcrumb-nav, .breadcrumbs { margin: 0 0 var(--space-4); font-size: .95rem; }
+.breadcrumb-nav .back-link { margin: 0; }
+.breadcrumb-nav a, .breadcrumbs a { font-weight: 600; }
+.page-header { margin: 0 0 var(--space-5); }
+.meta-line { margin: var(--space-2) 0 0; color: var(--muted); }
+.meta-line .icon { width: 1rem; height: 1rem; margin-right: .2rem; }
 
-.form-input, .form-select {
-  width: 100%;
+/* Kleine Knöpfe: 44 px bleiben sicher mit dem Finger zu treffen. */
+.button.small {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: .35rem .75rem;
+  font-size: .9rem;
+}
+.button.block { width: 100%; }
+/* Knöpfe ohne Variante verhalten sich wie primary (Altbestand). */
+.button:not(.primary):not(.secondary):not(.ghost):not(.danger) {
+  color: var(--on-primary);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.button:not(.primary):not(.secondary):not(.ghost):not(.danger):hover {
+  background: var(--brand-deep);
+  border-color: var(--brand-deep);
+}
+
+/* Filterreiter (z. B. Fahrzeugstatus): Text und Zähler, Zustand als Punkt. */
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+.filter-tabs a,
+.filter-tabs button {
   min-height: var(--touch);
-  padding: .55rem .75rem;
-  border: 1px solid var(--line-strong);
-  border-radius: .6rem;
-  background: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: 0 .9rem;
   color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
 }
-.form-error { margin: .25rem 0 0; color: var(--danger); font-size: .88rem; }
+.filter-tabs a:hover,
+.filter-tabs button:hover { background: var(--surface-soft); }
+.filter-tabs [aria-current="page"],
+.filter-tabs [aria-pressed="true"],
+.filter-tabs .is-active {
+  color: var(--brand);
+  background: var(--accent-soft);
+  border-color: var(--brand);
+  font-weight: 700;
+}
+.filter-tabs .count { color: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* —— Kennzahlen ————————————————————————————————————————————————— */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+}
+.kpi-grid.wide { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: .9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  text-decoration: none;
+}
+a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-strong); }
+.kpi-card.border-danger { border-left: 4px solid var(--danger); }
+.kpi-card.border-warning { border-left: 4px solid var(--warning-accent); }
+.kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.kpi-label { color: var(--muted); font-size: .875rem; font-weight: 600; }
+.kpi-note { color: var(--muted); font-size: .875rem; }
+
+/* —— Hinweise und Karten (Farben in app.css) ————————————————————— */
+.card { padding: 1.25rem; }
+.alert, .callout { margin: 0 0 var(--space-4); padding: .85rem 1rem; }
+.alert.warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
+.alert.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
+.alert.success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
+.alert > :last-child, .callout > :last-child { margin-bottom: 0; }
+
+/* —— Abschnitte und Listen ——————————————————————————————————————— */
+.section-block > h2,
+.section-block > header { margin-bottom: var(--space-3); }
+.section-block > h2 { display: flex; align-items: center; gap: var(--space-2); }
+.section-block h3 { margin: 0 0 var(--space-2); font-size: 1.05rem; }
+.section-block + .section-block,
+.grid-auto + .section-block,
+.grid-2 + .section-block,
+.section-block + .grid-2,
+.section-block + .grid-auto,
+.grid-2 + .grid-2 { margin-top: var(--space-4); }
+.grid-2 > *, .grid-auto > *, .grid-auto-sm > *, .kpi-grid > *,
+.grid-2 > .section-block + .section-block,
+.grid-auto > .section-block + .section-block { margin-top: 0; margin-bottom: 0; }
+/* Innerhalb eines Abschnitts: keine zweite Karte, nur Trennlinien. */
+.section-block .summary-list,
+.section-block .table-wrap,
+.section-block .card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.section-block .summary-list > div { padding-inline: 0; }
+.section-block .card { padding: 0; }
+.section-block .item-list { margin-inline: -1.25rem; }
+.section-block .item-list .list-row { padding-inline: 1.25rem; }
+/* Leerer Zustand innerhalb eines Abschnitts: kein zweiter Rahmen. */
+.section-block .empty-state {
+  margin-top: var(--space-2);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-radius: 0;
+}
+.section-block .item-list > .empty-state { padding-inline: 1.25rem; }
+.legend-chip { gap: .4rem; }
+
+/* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein. */
+.list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
+.row-content .row-note { display: block; margin-top: var(--space-1); color: var(--text); font-size: .9rem; }
+
+/* Listenzeilen mit Fristenampel: Kante nur bei Handlungsbedarf. */
+.module-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.module-row-overdue { border-left: 4px solid var(--danger); background: color-mix(in srgb, var(--danger-soft) 60%, transparent); }
+.module-row-critical { border-left: 4px solid var(--warning-accent); }
+.module-row-warning { border-left: 4px solid var(--warning-accent); }
+
+/* Notiz-/Hinweisfläche innerhalb eines Abschnitts (keine eigene Karte). */
+.note-box {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text);
+  background: var(--surface-soft);
+  border-radius: var(--radius);
+}
+.note-box.warning { background: var(--warning-soft); }
+.note-box.danger { background: var(--danger-soft); }
+
+/* —— Tabellen ———————————————————————————————————————————————————— */
 .table-responsive { width: 100%; overflow-x: auto; }
 .data-table, .table, .table-compact {
   width: 100%;
@@ -184,42 +275,285 @@ body.has-open-modal { overflow: hidden; }
   text-align: left;
   vertical-align: top;
 }
-.table-compact th, .table-compact td { padding: .4rem .5rem; }
+.table-compact th, .table-compact td { padding: .45rem .5rem; }
 .data-table th, .table th, .table-compact th {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: .875rem;
   font-weight: 700;
-  letter-spacing: .03em;
-  text-transform: uppercase;
+}
+.data-table thead th, .table thead th { background: var(--surface-soft); }
+.data-table td.num, .table td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-sticky th:first-child, .table-sticky td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
 }
 
-.card {
-  padding: 1.25rem;
-  background: var(--surface);
+/* —— Etiketten und Zustände ——————————————————————————————————————— */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.badge-neutral { background: var(--surface-soft); }
+.badge-info { color: var(--brand); background: var(--accent-soft); border-color: color-mix(in srgb, var(--brand) 35%, transparent); }
+
+/* Bestandsanzeige im Lager. */
+.stock-figure { font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.stock-low { color: var(--danger); }
+.stock-ok { color: var(--success); }
+
+/* Füllstandsbalken (Breite über data-bar in ui.js). */
+.gauge {
+  height: .5rem;
+  overflow: hidden;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.gauge-fill { height: 100%; width: 0; background: var(--brand); }
+.gauge-red { background: var(--danger); }
+.gauge-amber { background: var(--warning-accent); }
+.gauge-green { background: var(--success); }
+.gauge-cyan, .gauge-blue { background: var(--brand); }
+
+/* —— Formulare ——————————————————————————————————————————————————— */
+.form-input, .form-select {
+  width: 100%;
+  min-height: var(--touch);
+  padding: .55rem .75rem;
+}
+.form-error { margin: var(--space-1) 0 0; color: var(--danger); font-size: .9rem; }
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+}
+.search-form input[type="search"], .search-form input[type="text"] { flex: 1 1 14rem; width: auto; }
+.search-form select { flex: 0 1 14rem; width: auto; }
+/* Formularfelder in Modulformularen und Dialogen. */
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select,
+.field textarea { min-height: var(--touch); }
+.field textarea { min-height: 6rem; }
+.field .field-label { display: block; margin-bottom: .35rem; font-weight: 700; }
+.back-link .icon, .lead .icon { width: 1.1rem; height: 1.1rem; }
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0 var(--space-4);
+}
+fieldset.form-section {
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  border: 0;
+}
+fieldset.form-section > legend {
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+/* Ganze Zeile mit Kästchen ist antippbar. */
+.checkbox-field,
+.check-list label {
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: 0;
+  padding: .35rem .75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
 }
-.page-header { margin: 0 0 1.5rem; }
+.checkbox-field:hover,
+.check-list label:hover { background: var(--surface-soft); }
+.checkbox-field:has(input:checked),
+.check-list label:has(input:checked) { border-color: var(--brand); background: var(--accent-soft); }
+.checkbox-field input,
+.check-list input { margin: 0; flex: none; }
+.check-list { display: grid; gap: var(--space-2); margin: 0 0 var(--space-4); padding: 0; list-style: none; }
+.check-list ul { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.scroll-box {
+  max-height: 12rem;
+  overflow-y: auto;
+  padding: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+
+/* Datei-Auswahl im Stil von .button.secondary. */
+input[type="file"] { max-width: 100%; color: var(--muted); }
+input[type="file"]::file-selector-button {
+  min-height: var(--touch);
+  margin-right: var(--space-3);
+  padding: 0 1rem;
+  color: var(--brand);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button:hover { background: var(--accent-soft); border-color: var(--brand); }
+
+/* —— Dialoge (data-modal-open/-close in ui.js) ———————————————————— */
+.wb-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--scrim);
+  overflow-y: auto;
+}
+.wb-modal[hidden],
+[data-filter-item][hidden],
+[data-filter-group][hidden] { display: none !important; }
+body.has-open-modal { overflow: hidden; }
+.modal-panel {
+  width: 100%;
+  max-width: 30rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: var(--space-5);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+}
+.modal-panel.wide { max-width: 40rem; }
+.modal-panel > h2,
+.modal-panel > h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  font-size: 1.2rem;
+}
+.modal-panel .modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.modal-panel details {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-soft);
+  border-radius: var(--radius);
+}
+.modal-panel summary { min-height: var(--touch); display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+
+/* —— QR-Etiketten: Druckfläche bleibt in jedem Modus hell. —————————— */
+.qr-sticker {
+  width: fit-content;
+  margin: var(--space-4) auto;
+  padding: var(--space-4);
+  color: var(--paper-ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.qr-sticker img { display: block; width: 11.25rem; height: 11.25rem; margin: 0 auto; }
+.qr-sticker strong { display: block; margin-top: var(--space-2); font-size: .9rem; }
+.qr-sticker small { display: block; font-size: .75rem; }
+
+/* —— Kamera-Scanner (data-scanner in ui.js) ————————————————————————— */
+.scanner-view {
+  position: relative;
+  height: 16rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Kamerabild: dunkle Fläche in jedem Modus. */
+  background: var(--paper-ink);
+  border-radius: var(--radius);
+}
+.scanner-view video { width: 100%; height: 100%; object-fit: cover; }
+.scanner-status {
+  position: absolute;
+  bottom: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  color: var(--paper);
+  background: color-mix(in srgb, var(--paper-ink) 75%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: .85rem;
+}
+.input-with-button { display: flex; gap: var(--space-2); }
+.input-with-button input { flex: 1; min-width: 0; }
+
+/* Geräte-/Artikel-/Fahrzeugzeilen in Modullisten: Inhalt, Frist, Aktionen. */
+.module-row .row-main { flex: 2 1 14rem; min-width: 0; }
+.module-row .row-due { flex: 1.5 1 11rem; }
+.module-row .row-actions { flex: 0 1 auto; justify-content: flex-end; }
+.module-row .row-main small,
+.module-row .row-due small { display: block; margin-top: var(--space-1); color: var(--muted); font-size: .85rem; }
+
+/* —— Altbestand ——————————————————————————————————————————————————— */
 .markdown-body { max-width: 72ch; line-height: 1.6; }
+.more-search-hint { color: var(--muted); }
+.operations-summary .quick-actions a.has-attention { border-left-color: var(--warning-accent); }
 
-/* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein,
-   statt in der schmalen Etikett-Spalte umzubrechen. */
-.list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
+/* Schmale Bildschirme: Zeilen umbrechen, nichts läuft seitlich hinaus. */
+@media (max-width: 760px) {
+  .module-row { flex-wrap: wrap; }
+  .module-row > * { flex: 1 1 auto; }
+  main input, main select, main textarea { min-width: 0; max-width: 100%; }
+  main .badge { max-width: 100%; white-space: normal; }
+}
 
-/* Übersicht: Karten mit Handlungsbedarf hervorheben. */
-.operations-summary .quick-actions a.has-attention { border-left-color: var(--warning); }
+/* —— Modul: Fuhrpark —— */
+.fleet-status-buttons { margin-top: var(--space-4); }
+.fleet-actions { margin-top: var(--space-4); }
+.fleet-call-sign { font-size: 1.1rem; }
+/* Filterreiter auf dem Handy in einer wischbaren Zeile statt fünf Zeilen. */
+@media (max-width: 760px) {
+  .fleet-filter { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-1); }
+  .fleet-filter a { flex: none; }
+}
 
-/* --- Aus früheren style-Attributen übernommene Regeln -------------------- */
+/* —— Modul: Orga —— */
+/* Zeilen mit Aktionen im Abschnitt: bündig wie .item-list .list-row. */
+.orga-list > .module-row { padding-inline: 1.25rem; }
+.orga-list > .module-row:last-child { border-bottom: 0; }
+.orga-list .row-content h3 { margin: 0; font-size: 1.05rem; }
+.section-block .orga-subheading { margin-top: var(--space-5); }
 
-/*
- * Layout der Fachmodule (MPG, Lager, Fuhrpark, Orga, Display, Mehr).
- *
- * Die Regeln stammen aus früheren style-Attributen, die die CSP
- * (style-src 'self') im Browser blockiert hat. !important bildet den
- * Vorrang des ursprünglichen Inline-Styles nach. Neue Templates bitte
- * mit den Komponenten aus app.css statt mit weiteren ms-Klassen bauen.
- */
+/* —— Modul: Display —— */
+.display-module-table td { vertical-align: middle; }
+.display-module-table td small { display: block; }
+.display-module-table input[type="checkbox"] { width: 1.5rem; height: 1.5rem; }
+/* Handy: je Baustein ein Block – Kästchen + Name, darunter Zone und Titel. */
+@media (max-width: 48rem) {
+  .display-module-table thead { display: none; }
+  .display-module-table tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .display-module-table td { padding: 0; border: 0; }
+  .display-module-table td:nth-child(n+3) { grid-column: 1 / -1; }
+}
+.display-token-row { padding-inline: 1.25rem; }
+.display-token-row:last-child { border-bottom: 0; }
+.display-tasks-urgent { margin-top: .5rem; }
 
+/* —— Modul: Aufgaben —— */
+.task-legend .urgency-ok { margin-left: auto; }
 .ms-023bb84 { flex: 1 !important; padding: 0.5rem !important; border: 1px solid var(--line) !important; border-radius: 6px !important; }
 .ms-0389136 { background: #dcfce7 !important; color: #166534 !important; padding: 0.2rem 0.5rem !important; border-radius: 9999px !important; }
 .ms-0430e42 { font-size: 0.75rem !important; color: #555 !important; }
