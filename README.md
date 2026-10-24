@@ -302,10 +302,10 @@ Löschfristen oder organisatorische Freigabe. Details stehen in
 
 ## Projektstand
 
-Version **0.24.0** ist ein Pilotstand für Entwicklung, Erprobung und
+Version **0.25.0** ist ein Pilotstand für Entwicklung, Erprobung und
 Präsentation, **keine Produktionsfreigabe**. Alle Seiten werden automatisiert und
 per Browserlauf über alle Rollen geprüft (siehe
-[`docs/REVIEW-2026-10-22.md`](docs/REVIEW-2026-10-22.md)); das ersetzt keine reale
+[`docs/REVIEW-2026-10-24.md`](docs/REVIEW-2026-10-24.md)); das ersetzt keine reale
 Geräte- und Betriebsabnahme.
 
 Vor einem Produktivbetrieb bleiben offen: Hardware- und Netzbetrieb in der Wache,

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unveröffentlicht
+## 0.25.0 - 2026-10-24
 
 Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
 
