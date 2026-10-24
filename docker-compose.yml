@@ -9,7 +9,7 @@ x-logging: &default-logging
 services:
 
   db:
-    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    image: postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
     restart: unless-stopped
     logging: *default-logging
     # The official image reads its configuration from $PGDATA/postgresql.conf,
@@ -45,7 +45,7 @@ services:
       - no-new-privileges:true
 
   redis:
-    image: redis:7.4.10-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
+    image: redis:8.8.3-alpine@sha256:dc95ea2fcf5d5c4253be0f967c28143d0f625846197eed2fd32c748eb99abfca
     restart: unless-stopped
     logging: *default-logging
     # Redis is an expendable cache only. Sessions remain durable in PostgreSQL

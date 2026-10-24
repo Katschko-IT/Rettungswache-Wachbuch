@@ -2,6 +2,22 @@
 
 ## Unveröffentlicht
 
+Abhängigkeiten und Basis-Images auf den Stand vom 24.10.2026 gebracht.
+
+- Python-Pakete: Django 6.1.2, psycopg 3.3.6, cryptography 50.0.2,
+  pywebpush 2.5.0, webauthn 3.0.1, certifi 2026.10.23, Ruff 0.17.2; alle
+  Lockfiles mit Hashes per `uv pip compile` neu erzeugt.
+- Images: Python 3.14.9 auf Debian 13 (`slim-trixie`), PostgreSQL 17.11,
+  Redis 8.8.3. Das Backup-Image nutzt jetzt dieselbe PostgreSQL-Hauptversion
+  (17) wie die Datenbank, damit Dumps mit `pg_restore` der Datenbank
+  zurückspielbar sind. Die Datenbank bleibt bewusst auf Version 17; ein Sprung
+  auf 18 braucht einen eigenen Upgrade-Weg für bestehende Volumes.
+- GitHub Actions auf aktuelle Releases mit SHA-Pin, `setup-uv` und
+  `setup-node` erstmals gepinnt, CodeQL-Upload auf v4; die CI testet mit
+  Python 3.14 wie das ausgelieferte Image.
+- Test `test_display_data_collects_urgent_tasks` hing an einem festen Datum und
+  schlug ab dem 24.10.2026 fehl.
+
 Ersteinrichtung für den Raspberry Pi überarbeitet.
 
 - Der Touch-Bildschirm öffnet vor der Einrichtung direkt den Assistenten statt

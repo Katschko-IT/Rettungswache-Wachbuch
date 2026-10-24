@@ -3,6 +3,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.utils import timezone
 
 from core.display import display_payload
 from core.forms import StationTaskForm
@@ -314,7 +315,8 @@ class TaskUrgencyTests(TestCase):
         StationTask.objects.create(
             station=self.station,
             title="Wichtiges Audit",
-            due_date=self.today + timedelta(days=1),
+            # display_payload rechnet mit dem echten Datum, nicht mit self.today.
+            due_date=timezone.localdate() + timedelta(days=1),
         )
         data = display_payload(self.station)
         self.assertIn("tasks", data)

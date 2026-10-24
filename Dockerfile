@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Build: dependencies + collectstatic ---
-FROM python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30 AS builder
+FROM python:3.14.9-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -26,9 +26,9 @@ RUN SECRET_KEY=build-only-secret-key-not-used-at-runtime \
     python manage.py collectstatic --noinput
 
 # --- Runtime: slim image ---
-FROM python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30 AS runtime
+FROM python:3.14.9-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS runtime
 # Patch OS packages so the runtime image does not ship known HIGH/CRITICAL CVEs
-# (perl-base/openssl advisories are fixed in bookworm-updates).
+# (security fixes land in trixie-security before the next image rebuild).
 RUN apt-get update \
     && apt-get upgrade --yes --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*

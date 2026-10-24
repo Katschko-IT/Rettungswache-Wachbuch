@@ -21,14 +21,14 @@ jobs:
       REDIS_HOST: ""
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
       - name: Isolated Python environment
         run: |
-          uv venv --seed --managed-python --python 3.13 "$RUNNER_TEMP/wachbuch-venv"
+          uv venv --seed --managed-python --python 3.14 "$RUNNER_TEMP/wachbuch-venv"
           echo "$RUNNER_TEMP/wachbuch-venv/bin" >> "$GITHUB_PATH"
           echo "DATABASE_URL=sqlite:///$RUNNER_TEMP/wachbuch-ci-$GITHUB_RUN_ID.sqlite3" >> "$GITHUB_ENV"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
       - name: Install locked dependencies with hash verification
@@ -77,7 +77,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate Compose
         run: cp .env.example .env && docker compose config --quiet
       - name: Build web image
