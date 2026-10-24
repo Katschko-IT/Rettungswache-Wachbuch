@@ -263,9 +263,13 @@ Umgesetzt (Server-Fixes, Branch `fix/review-2026-10-24`):
 Nachweise: `core/test_review_2026_10_24.py` (24 Regressionstests), volle
 Suite 1031 Tests grün, Ruff-Baseline, `makemigrations --check`.
 
-Offen bis `[x]`: Client-Fixes, Docker-Installation, Verkehrslage pro Wache,
-UI-Redesign und Ende-zu-Ende-Abnahme (siehe Review-Bericht), GitHub-Jobs auf
-dem PR-Head.
+Ebenfalls umgesetzt: Client-Fixes C1–C11, Docker-Installation mit einem
+Befehl, Verkehrslage je Wache, Redesign „Wachbuch Klar 2“ (Web und App),
+Ende-zu-Ende-Test gegen die Docker-Installation (Browser 23/23; dabei die
+blockierte Kontoaktivierung gefunden und behoben).
+
+Offen bis `[x]`: GitHub-Jobs auf dem PR-Head, veröffentlichtes Release mit
+Images auf GHCR, Abnahme auf echter Hardware (Pi, Handy im Wachen-WLAN).
 
 ## Wave 3 – Pilot- und Produktionsabnahme
 
