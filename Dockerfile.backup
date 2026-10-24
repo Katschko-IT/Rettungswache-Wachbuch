@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-#
 # PostgreSQL-Images des Wachbuchs aus EINER Basis, damit Datenbank und
 # Backup immer dieselbe Hauptversion nutzen (pg_dump muss zur DB passen):
 #
@@ -21,6 +19,9 @@ FROM pgbase AS db
 LABEL org.opencontainers.image.title="Rettungswache-Wachbuch PostgreSQL" \
       org.opencontainers.image.description="PostgreSQL mit Rollen-Init und Konfiguration fuer das Wachbuch"
 COPY --chmod=0755 scripts/init-db.sh /docker-entrypoint-initdb.d/10-rwsth-roles.sh
+# Ordner vorher anlegen: COPY --chmod würde einen neuen Elternordner sonst mit
+# 0644 (ohne x-Bit) anlegen, und postgres könnte die Datei nicht lesen.
+RUN install -d -m 0755 /etc/postgresql
 COPY --chmod=0644 config/postgresql.conf /etc/postgresql/postgresql.conf
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
