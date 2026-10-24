@@ -200,3 +200,22 @@ class GrantCreatesMissingRolesTests(TestCase):
     def test_dollar_quote_breakout_is_rejected(self):
         with self.assertRaises(CommandError):
             self.run_grant(PUSH_DB_PASSWORD="x$rwsth_role$; DROP ROLE rwsth_owner; --")
+
+
+class FeedWorkerHeartbeatTests(SimpleTestCase):
+    """feed-worker braucht einen echten Healthcheck (CI: `up --wait` verlangt ihn)."""
+
+    def test_wait_writes_heartbeat_every_minute(self):
+        from core.management.commands.sync_feeds import wait_with_heartbeat
+
+        writes, sleeps = [], []
+        wait_with_heartbeat(900, "/tmp/feed.alive", sleep=sleeps.append, beat=writes.append)
+        self.assertEqual(sum(sleeps), 900)
+        self.assertTrue(all(chunk <= 60 for chunk in sleeps))
+        self.assertGreaterEqual(len(writes), 15)
+
+    def test_compose_has_feed_worker_healthcheck(self):
+        compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+        block = compose.split("  feed-worker:", 1)[1].split("\n  notify-worker:", 1)[0]
+        self.assertNotIn("disable: true", block)
+        self.assertIn("feed_worker.alive", block)

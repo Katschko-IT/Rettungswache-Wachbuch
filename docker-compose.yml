@@ -227,11 +227,16 @@ services:
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-worker.sh"]
-    # The shared image probes Gunicorn on port 8000. This worker has no HTTP
-    # listener, so inheriting that healthcheck creates a false unhealthy.
+    # Kein HTTP-Listener: Statt des Gunicorn-Checks aus dem Image prüft der
+    # Healthcheck das Lebenszeichen, das sync_feeds jede Minute schreibt.
     healthcheck:
-      disable: true
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/feed_worker.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
+      FEED_HEARTBEAT_FILE: /tmp/feed_worker.alive
       DJANGO_SECRET_KEY: ${FEED_WORKER_SECRET_KEY}
       DJANGO_DEBUG: "false"
       DB_HOST: db
