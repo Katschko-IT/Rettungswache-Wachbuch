@@ -323,9 +323,18 @@ services:
     image: rettungswache-wachbuch-backup:local
     restart: "no"
     user: "0:0"
-    command: ["/bin/sh", "-ec", "chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /backups && chmod 0700 /backups"]
+    # /offsite best effort: ein NFS-Ziel mit root_squash lässt kein chown zu;
+    # dann muss der Ordner auf dem Host bereits UID/GID 70 gehören.
+    command:
+      - /bin/sh
+      - -ec
+      - >-
+        chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /backups && chmod 0700 /backups;
+        chown ${BACKUP_UID:-70}:${BACKUP_GID:-70} /offsite 2>/dev/null && chmod 0700 /offsite
+        || echo "Hinweis: /offsite (BACKUP_OFFSITE_DIR) nicht anpassbar; Besitzer auf dem Host pruefen."
     volumes:
       - backups-data:/backups
+      - ${BACKUP_OFFSITE_DIR:-backups-offsite}:/offsite
     cap_drop:
       - ALL
     cap_add:
@@ -352,6 +361,13 @@ services:
       BACKUP_GPG_RECIPIENT: ${BACKUP_GPG_RECIPIENT:-}
       BACKUP_OFF_TARGET: ${BACKUP_OFF_TARGET:-}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_RETRY_SECONDS: ${BACKUP_RETRY_SECONDS:-3600}
+      BACKUP_UID: ${BACKUP_UID:-70}
+      # Read-only Container: Schlüsselbund im tmpfs, Import beim Start aus
+      # dem read-only gemounteten Schlüsselordner.
+      GNUPGHOME: /tmp/gnupg
+      BACKUP_GPG_KEY_DIR: /run/backup-gpg
     depends_on:
       backup-init:
         condition: service_completed_successfully
@@ -361,6 +377,11 @@ services:
       - backup-db
     volumes:
       - backups-data:/backups
+      # Offsite-Ziel: Host-Ordner (z. B. NAS-Mount) per BACKUP_OFFSITE_DIR,
+      # dazu BACKUP_OFF_TARGET=file:///offsite. Ohne Angabe ein leeres Volume.
+      - ${BACKUP_OFFSITE_DIR:-backups-offsite}:/offsite
+      # Öffentliche GnuPG-Schlüssel (*.asc) für BACKUP_ENCRYPT_REMOTE=true.
+      - ${BACKUP_GPG_KEY_DIR:-backups-gpg-keys}:/run/backup-gpg:ro
     read_only: true
     tmpfs:
       - /tmp
@@ -412,3 +433,6 @@ networks:
 volumes:
   postgres-data:
   backups-data:
+  # Platzhalter, solange BACKUP_OFFSITE_DIR / BACKUP_GPG_KEY_DIR leer sind.
+  backups-offsite:
+  backups-gpg-keys:
