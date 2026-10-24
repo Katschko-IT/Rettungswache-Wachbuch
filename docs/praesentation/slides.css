@@ -1,0 +1,118 @@
+/* Folien „Wachwerk“ – 16:9, Wachbuch Klar 2.
+   Farben, Schrift und Bausteine aus design/ (tokens.css, fonts.css,
+   public.css – Kopien aus der App). Hier nur die Bühne.
+
+   Maßstab: Die Bühne ist immer 80 × 45 rem. Die Grundschrift wächst mit dem
+   Fenster (bei 1920 × 1080 sind 1 rem = 24 px), deshalb skaliert alles aus
+   public.css mit und das Bild bleibt im Video wie im Browser gleich. */
+
+:root { font-size: min(1.25vw, 2.2222vh); }
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; background: var(--bg); line-height: 1.5; }
+
+.deck {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 80rem;
+  height: 45rem;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.pub .pub-wrap { --pub-gutter: 4rem; width: min(72rem, 100% - 2 * var(--pub-gutter)); }
+
+/* Kopf: Warnkante, Marke, Foliennummer */
+.deck-header { flex: none; }
+.deck-header .pub-header-inner { min-height: 3.5rem; }
+.deck-header .pub-brand { font-size: 1.05rem; }
+.deck-header .pub-brand-mark { width: 1.4rem; height: 1.4rem; }
+.deck-count { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Bühne */
+.deck-stage { position: relative; flex: 1 1 auto; min-height: 0; }
+.slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  opacity: 0;
+  visibility: hidden;
+}
+.slide.is-on { opacity: 1; visibility: visible; }
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 3.5rem;
+  align-items: center;
+}
+.split-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+.slide h2 {
+  margin: 0 0 1.1rem;
+  max-width: 15ch;
+  color: var(--text);
+  font-size: 2.9rem;
+  line-height: 1.06;
+  letter-spacing: -.03em;
+  font-weight: 700;
+}
+.slide .pub-kicker { margin-bottom: .9rem; font-size: .95rem; }
+.slide .pub-lead { margin: 0; font-size: 1.05rem; max-width: 30rem; }
+
+/* Aufnahmen */
+.media { position: relative; width: 100%; justify-self: center; }
+.media .device img { width: 100%; }
+.media-duo { padding: 0 6% 2.5rem 0; }
+.media-phone { max-width: 14.5rem; }
+.media-phone .device-phone { position: static; width: 100%; }
+.media-pair { padding: 0 16% 20% 0; }
+.media-pair .device-second { position: absolute; right: 0; bottom: 0; width: 56%; }
+
+/* Grenze */
+.slide .boundary h2 { max-width: none; }
+.slide .boundary .pub-lead { max-width: 40rem; }
+.slide .boundary-list { margin-top: 2rem; gap: 1.4rem 3rem; }
+.slide .boundary-list strong { font-size: 1.05rem; margin-bottom: .2rem; }
+
+/* Installation */
+.slide .copy + .code-block { margin-top: 1.75rem; }
+.slide .pub-wrap > .copy h2 { max-width: none; }
+.slide .pub-wrap > .copy .pub-lead { max-width: 42rem; }
+.slide .code-block { font-size: .8rem; }
+.install-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1.75rem; }
+.install-steps li { grid-template-columns: 1fr; align-content: start; gap: .6rem; }
+.install-steps li::before { width: 2rem; height: 2rem; font-size: .85rem; }
+.install-steps h3 { margin: 0; font-size: .95rem; line-height: 1.3; }
+.install-steps p { font-size: .82rem; line-height: 1.45; }
+
+/* Schluss */
+.source-link { margin: 1.75rem 0 0; font-family: var(--mono); font-size: .85rem; color: var(--text); }
+.slide .facts { font-size: .85rem; }
+.slide .note { margin-top: 1.25rem; font-size: .85rem; }
+
+/* Steuerleiste */
+.deck-bar {
+  position: relative;
+  flex: none;
+  padding: .6rem 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.deck-bar-inner { display: flex; justify-content: space-between; align-items: center; }
+.deck-bar-end { display: flex; gap: .5rem; }
+.deck-bar .pub-button { min-height: 2.4rem; padding: .4rem 1rem; font-size: .85rem; }
+.deck-bar [data-music][aria-pressed="true"] { color: var(--on-primary); background: var(--text); border-color: var(--text); }
+.deck-progress { position: absolute; inset: -1px 0 auto; height: 3px; }
+.deck-progress span { display: block; height: 100%; width: 12.5%; background: var(--brand); }
+
+/* Aufnahme fürs Video: ohne Leiste (?record=1) */
+.is-record .deck-bar { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .slide { transition: opacity .35s ease, visibility 0s linear .35s; }
+  .slide.is-on { transition: opacity .35s ease, visibility 0s; }
+  .deck-progress span { transition: width .35s ease; }
+  .is-record .slide { transition: none; }
+}
