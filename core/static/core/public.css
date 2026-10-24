@@ -93,6 +93,7 @@
 .pub-button.primary { color: var(--on-primary); background: var(--brand); border-color: var(--brand); }
 .pub-button.primary:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
 .pub-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.pub-actions form { margin: 0; display: flex; }
 
 /* —— Bühne —— */
 .pub-hero { padding: clamp(2.5rem, 7vw, 5.5rem) 0 clamp(2rem, 5vw, 4rem); }
@@ -305,7 +306,7 @@
   .facts th { width: 40%; }
 }
 @media (max-width: 46rem) {
-  .pub-actions .pub-button { flex: 1 1 100%; }
+  .pub-actions .pub-button, .pub-actions form { flex: 1 1 100%; }
 }
 /* Terminalblock im Nachtdienst eine Stufe heller als die Seite, sonst verschwindet er. */
 :root[data-theme="dark"] .code-block { background: var(--surface-raised); }

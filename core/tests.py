@@ -149,8 +149,9 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("landing"))
         self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False, count=1)
         self.assertNotContains(response, "brand-hero")
-        self.assertContains(response, "landing-hero-art")
-        self.assertContains(response, "Pexels")
+        # Die Startseite zeigt die echte Oberfläche (synthetische Daten) statt eines Stockfotos.
+        self.assertContains(response, "core/screens/overview-desktop-light")
+        self.assertNotContains(response, "Pexels")
         self.assertContains(response, "Alles, was eine Schicht braucht")
         self.assertContains(response, "quelloffene Apps für iOS und Android")
         self.assertNotContains(response, "Zur Anmeldung")
