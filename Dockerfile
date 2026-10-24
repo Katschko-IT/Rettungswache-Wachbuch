@@ -51,6 +51,13 @@ WORKDIR /app
 RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home app
 
 COPY --from=builder /opt/venv /opt/venv
+# pip wird zur Laufzeit nicht gebraucht und bringt eigene, oft ältere
+# Bibliotheken mit (urllib3, msgpack, setuptools), die Scanner zu Recht melden.
+RUN rm -rf /opt/venv/bin/pip* /opt/venv/lib/python3.*/site-packages/pip \
+        /opt/venv/lib/python3.*/site-packages/pip-*.dist-info \
+        /usr/local/bin/pip* /usr/local/lib/python3.*/site-packages/pip \
+        /usr/local/lib/python3.*/site-packages/pip-*.dist-info \
+        /usr/local/lib/python3.*/ensurepip
 COPY --chown=app:app manage.py .
 COPY --chown=app:app config config
 COPY --chown=app:app core core

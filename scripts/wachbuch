@@ -44,7 +44,9 @@ while [ -L "$self" ]; do
 done
 WACHBUCH_DIR="${WACHBUCH_DIR:-$(cd "$(dirname "$self")" && pwd)}"
 cd "$WACHBUCH_DIR"
-[ -f .env ] && [ -f compose.yml ] || die "$WACHBUCH_DIR ist kein Wachbuch-Ordner (compose.yml/.env fehlen)."
+if [ ! -f .env ] || [ ! -f compose.yml ]; then
+    die "$WACHBUCH_DIR ist kein Wachbuch-Ordner (compose.yml/.env fehlen)."
+fi
 
 # Compose liest COMPOSE_FILE, COMPOSE_PROJECT_NAME und COMPOSE_PROFILES aus .env.
 dc() { docker compose "$@"; }

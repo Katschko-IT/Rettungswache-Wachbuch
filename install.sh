@@ -68,7 +68,11 @@ BUILD=0
 ASSUME_YES=0
 NO_START=0
 
-need_value() { [ $# -ge 2 ] && [ -n "$2" ] || die "Option $1 braucht einen Wert."; }
+need_value() {
+    if [ $# -lt 2 ] || [ -z "$2" ]; then
+        die "Option $1 braucht einen Wert."
+    fi
+}
 
 while [ $# -gt 0 ]; do
     case "$1" in
