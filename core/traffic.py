@@ -1,12 +1,17 @@
 """Verkehrs- und Baustellenlage rund um die Wache.
 
-Drei Quellen, jede für sich optional:
+Welche Quellen eine Wache nutzt, steht in ihren Einstellungen (Straßen,
+Umkreis, Warngebiete, kommunale Quellen). Es gibt keine festen Standort- oder
+Regionswerte: Ohne Koordinaten der Wache entfällt die Autobahnquelle, ohne
+Warngebiet (oder Ort der Wache) entfallen die Bevölkerungswarnungen.
 
 * **Autobahn GmbH** (``verkehr.autobahn.de``) liefert Baustellen und Sperrungen
   der Bundesautobahnen als JSON – ohne Schlüssel und ohne Registrierung.
-* **Gemeinde Steinhagen** veröffentlicht Straßenbauarbeiten im Ortsgebiet als
-  HTML-Seite; Zeitraum und Sperrart stehen im Fließtext.
-* **Kreis Gütersloh** listet die laufenden Bauabschnitte an Kreisstraßen.
+* **BBK/NINA** (``warnung.bund.de``) liefert Bevölkerungswarnungen; gefiltert
+  wird auf die konfigurierten Gebiete.
+* Kommunale Quellen (nur je Wache zuschaltbar, Standard aus) sind
+  ortsspezifische HTML-Auswertungen: **Gemeinde Steinhagen** (Straßenbau im
+  Ortsgebiet) und **Kreis Gütersloh** (Bauabschnitte an Kreisstraßen).
 
 Fällt eine Quelle aus, liefert sie eine leere Liste – die Anzeige bleibt
 bestehen und zeigt die übrigen Quellen. Es gibt keine erfundenen Ersatzdaten.
@@ -14,6 +19,7 @@ bestehen und zeigt die übrigen Quellen. Es gibt keine erfundenen Ersatzdaten.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import math
@@ -22,10 +28,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from html.parser import HTMLParser
 
 from django.core.cache import cache
+from django.utils import timezone
 
 TIMEOUT_SECONDS = 12
 MAX_RESPONSE_BYTES = 3 * 1024 * 1024
@@ -44,11 +51,64 @@ ALLOWED_HOSTS = {
     "steinhagen.de",
     "www.kreis-guetersloh.de",
     "kreis-guetersloh.de",
+    "warnung.bund.de",
 }
 
-# Autobahnen im Einzugsbereich der Wache (A2 Bielefeld/Gütersloh, A33 Bielefeld).
-DEFAULT_ROADS = ("A2", "A33")
+NINA_URL = "https://warnung.bund.de/api31/mowas/mapData.json"
+
 DEFAULT_RADIUS_KM = 25.0
+MIN_RADIUS_KM = 1
+MAX_RADIUS_KM = 200
+
+# Die Straßenkennung geht in die Abruf-URL ein und wird deshalb streng geprüft.
+ROAD_PATTERN = re.compile(r"^[AB]\d{1,3}$")
+MAX_ROADS = 6
+MAX_WARNING_AREAS = 8
+
+
+def parse_roads(text: str | None) -> tuple[str, ...]:
+    """Kommagetrennte Straßenkennungen (``A2, A33, B61``) normalisieren.
+
+    Wirft ``ValueError`` bei unbekanntem Format oder mehr als ``MAX_ROADS``
+    Einträgen; Duplikate werden entfernt.
+    """
+    roads: list[str] = []
+    for part in re.split(r"[,;\s]+", (text or "").upper()):
+        if not part:
+            continue
+        if not ROAD_PATTERN.match(part):
+            raise ValueError(part)
+        if part not in roads:
+            roads.append(part)
+    if len(roads) > MAX_ROADS:
+        raise ValueError("zu viele Straßen")
+    return tuple(roads)
+
+
+def split_areas(text: str | None) -> list[str]:
+    """Kommagetrennte Orts- oder Kreisnamen, normalisiert und ohne Duplikate."""
+    areas: list[str] = []
+    seen: set[str] = set()
+    for part in (text or "").split(","):
+        name = " ".join(part.split())
+        if name and name.casefold() not in seen:
+            seen.add(name.casefold())
+            areas.append(name)
+    return areas
+
+
+def parse_areas(text: str | None) -> tuple[str, ...]:
+    """Wie ``split_areas``, aber auf ``MAX_WARNING_AREAS`` begrenzt."""
+    return tuple(split_areas(text)[:MAX_WARNING_AREAS])
+
+
+def warning_areas_for(station) -> tuple[str, ...]:
+    """Warngebiete der Wache; leer bedeutet: Ort der Wache, sonst keine."""
+    areas = parse_areas(getattr(station, "traffic_warning_areas", ""))
+    if areas:
+        return areas
+    return parse_areas(getattr(station, "city", ""))
+
 
 USER_AGENT = "Wachbuch/1.0 (interner Wachenbetrieb)"
 
@@ -388,12 +448,14 @@ def _autobahn_items(
 def fetch_autobahn(
     origin: tuple[float, float],
     *,
-    roads: tuple[str, ...] = DEFAULT_ROADS,
+    roads: tuple[str, ...],
     radius_km: float = DEFAULT_RADIUS_KM,
 ) -> list[TrafficItem]:
     """Baustellen und Sperrungen der angegebenen Autobahnen im Umkreis."""
     items: list[TrafficItem] = []
     for road in roads:
+        if not ROAD_PATTERN.match(road):
+            continue
         for service in ("closure", "roadworks"):
             try:
                 items.extend(_autobahn_items(road, service, origin))
@@ -581,15 +643,19 @@ def fetch_kreis_guetersloh() -> list[TrafficItem]:
 # NINA-Warnungen (BBK)
 # --------------------------------------------------------------------------- #
 
-NINA_AREAS = ("Gütersloh", "Bielefeld", "Steinhagen", "Kreis Gütersloh")
+def fetch_nina_warnings(areas: tuple[str, ...] = (), limit: int = 5) -> list[dict]:
+    """Bevölkerungswarnungen des BBK, gefiltert auf die übergebenen Gebiete.
 
-
-def fetch_nina_warnings(limit: int = 5) -> list[dict]:
-    """Bevölkerungswarnungen des BBK, gefiltert auf den Wachenbereich."""
+    Ohne Gebiete wird nichts abgerufen. Meldungen ohne Gebietsangabe werden
+    nicht angezeigt, weil sie keiner Wache zugeordnet werden können.
+    """
+    if not areas:
+        return []
     try:
         raw = _guarded_request_nina()
     except TrafficUnavailable:
         return []
+    wanted = [area.casefold() for area in areas]
     warnings: list[dict] = []
     for entry in raw:
         if not isinstance(entry, dict):
@@ -603,8 +669,8 @@ def fetch_nina_warnings(limit: int = 5) -> list[dict]:
                 (entry.get("transKeys") or {}).get("area"),
             )
             if part
-        )
-        if NINA_AREAS and area_text and not any(area in area_text for area in NINA_AREAS):
+        ).casefold()
+        if not area_text or not any(area in area_text for area in wanted):
             continue
         if not title:
             continue
@@ -621,22 +687,8 @@ def fetch_nina_warnings(limit: int = 5) -> list[dict]:
     return warnings
 
 
-def _guarded_request_nina() -> list:
-    url = "https://warnung.bund.de/api31/mowas/mapData.json"
-    _validate_traffic_url(url, {"warnung.bund.de"}, "Warnquelle")
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
-    try:
-        with _urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            status = getattr(response, "status", getattr(response, "code", 200))
-            if status != 200:
-                raise TrafficUnavailable("Warnquelle antwortet nicht.")
-            raw = response.read(MAX_RESPONSE_BYTES + 1)
-    except TrafficUnavailable:
-        raise
-    except (urllib.error.URLError, OSError, ValueError) as exc:
-        raise TrafficUnavailable("Warnquelle nicht erreichbar.") from exc
-    if len(raw) > MAX_RESPONSE_BYTES:
-        raise TrafficUnavailable("Antwort der Warnquelle ist zu groß.")
+def _fetch_json_list(url: str) -> list:
+    raw = _guarded_request(url, accept="application/json")
     try:
         data = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -646,46 +698,98 @@ def _guarded_request_nina() -> list:
     return data
 
 
+def _guarded_request_nina() -> list:
+    """NINA-Abruf über denselben abgesicherten Transport wie alle Quellen."""
+    return _fetch_json_list(NINA_URL)
+
+
 # --------------------------------------------------------------------------- #
 # Zusammenführung
 # --------------------------------------------------------------------------- #
 
 
-def _origin(station) -> tuple[float, float]:
+def _origin(station) -> tuple[float, float] | None:
+    """Koordinaten der Wache oder ``None`` – bewusst ohne festen Ersatzstandort."""
     latitude = getattr(station, "latitude", None)
     longitude = getattr(station, "longitude", None)
     if latitude is None or longitude is None:
-        # Fallback nur für die Anzeige, keine gespeicherten Nutzerdaten.
-        return (52.0200, 8.4200)
+        return None
     return (float(latitude), float(longitude))
+
+
+def _radius_km(station) -> float:
+    try:
+        value = float(getattr(station, "traffic_radius_km", None) or DEFAULT_RADIUS_KM)
+    except (TypeError, ValueError):
+        return DEFAULT_RADIUS_KM
+    return min(max(value, MIN_RADIUS_KM), MAX_RADIUS_KM)
+
+
+def _config_signature(origin, roads, radius, areas, local_sources, limit) -> str:
+    """Kurzer Hash der wirksamen Konfiguration für den Cache-Schlüssel.
+
+    Ändert eine Wache Straßen, Umkreis, Gebiete, Quellen oder Koordinaten,
+    greift die neue Konfiguration sofort statt erst nach Ablauf des Caches.
+    """
+    raw = "|".join(
+        [
+            repr(origin),
+            ",".join(roads),
+            repr(radius),
+            ",".join(area.casefold() for area in areas),
+            str(bool(local_sources)),
+            str(limit),
+        ]
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
 def traffic_payload(station, *, limit: int = 6) -> dict:
     """Aggregierte Verkehrslage für Anzeige und Display.
 
-    Das Ergebnis enthält niemals Personendaten. Jede Quelle wird einzeln
-    abgesichert; ein Ausfall verkleinert die Liste, statt die Anzeige zu kippen.
+    Straßen, Umkreis, Warngebiete und kommunale Quellen kommen aus den
+    Einstellungen der Wache. Das Ergebnis enthält niemals Personendaten. Jede
+    Quelle wird einzeln abgesichert; ein Ausfall verkleinert die Liste, statt
+    die Anzeige zu kippen, und wird in ``failed_sources`` genannt.
     """
     if station is None:
-        return {"items": [], "warnings": [], "sources": [], "updated_at": None}
+        return {"items": [], "warnings": [], "sources": [], "failed_sources": [], "updated_at": None}
 
-    cache_key = f"traffic:{getattr(station, 'pk', 0)}:{limit}"
+    origin = _origin(station)
+    try:
+        roads = parse_roads(getattr(station, "traffic_roads", ""))
+    except ValueError:
+        roads = ()
+    radius = _radius_km(station)
+    areas = warning_areas_for(station)
+    local_sources = bool(getattr(station, "traffic_local_sources", False))
+
+    signature = _config_signature(origin, roads, radius, areas, local_sources, limit)
+    cache_key = f"traffic:{getattr(station, 'pk', 0)}:{signature}"
     cached = cache.get(cache_key)
     if isinstance(cached, dict):
         return cached
 
-    origin = _origin(station)
+    loaders = []
+    if roads and origin is not None:
+        loaders.append(
+            (
+                "Autobahn " + "/".join(roads),
+                lambda: fetch_autobahn(origin, roads=roads, radius_km=radius),
+            )
+        )
+    if local_sources:
+        loaders.append(("Gemeinde Steinhagen", fetch_steinhagen))
+        loaders.append(("Kreis Gütersloh", fetch_kreis_guetersloh))
+
     collected: list[TrafficItem] = []
     active_sources: list[str] = []
-
-    for label, loader in (
-        ("Autobahn A2/A33", lambda: fetch_autobahn(origin)),
-        ("Gemeinde Steinhagen", fetch_steinhagen),
-        ("Kreis Gütersloh", fetch_kreis_guetersloh),
-    ):
+    failed_sources: list[str] = []
+    for label, loader in loaders:
         try:
             found = loader()
         except TrafficUnavailable:
+            failed_sources.append(label)
             continue
         if found:
             active_sources.append(label)
@@ -695,9 +799,10 @@ def traffic_payload(station, *, limit: int = 6) -> dict:
     payload = {
         "items": [item.as_dict() for item in collected[:limit]],
         "total": len(collected),
-        "warnings": fetch_nina_warnings(),
+        "warnings": fetch_nina_warnings(areas),
         "sources": active_sources,
-        "updated_at": datetime.now().isoformat(timespec="seconds"),
+        "failed_sources": failed_sources,
+        "updated_at": timezone.now().isoformat(timespec="seconds"),
     }
     cache.set(cache_key, payload, CACHE_SECONDS)
     return payload
