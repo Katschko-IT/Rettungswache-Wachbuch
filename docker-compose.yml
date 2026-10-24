@@ -1,3 +1,12 @@
+# Rettungswache-Wachbuch – Docker Compose
+#
+# Endnutzer: install.sh legt diese Datei als compose.yml in den Zielordner und
+# erzeugt .env (docs/DEPLOYMENT.md). Die Dienste nutzen vorgefertigte Images
+# aus ghcr.io; WACHBUCH_VERSION wählt die Version (Standard latest).
+# Entwickler bauen lokal:
+#   docker compose -f docker-compose.yml -f compose.build.yml up -d --build
+# Optionaler TLS-Proxy (Caddy): Profil "https" (COMPOSE_PROFILES=https).
+
 name: rettungswache-wachbuch
 
 x-logging: &default-logging
@@ -9,12 +18,15 @@ x-logging: &default-logging
 services:
 
   db:
-    image: postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+    # PostgreSQL 17 mit eingebautem Rollen-Init (scripts/init-db.sh) und
+    # config/postgresql.conf (Dockerfile.backup, Ziel "db"). Damit braucht
+    # niemand einen Git-Checkout für Bind-Mounts.
+    image: ghcr.io/katschko-it/rettungswache-wachbuch-db:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # The official image reads its configuration from $PGDATA/postgresql.conf,
-    # NOT from /etc/postgresql. Without this explicit config_file the read-only
-    # mount below is silently ignored, so the tuning settings never apply.
+    # NOT from /etc/postgresql. Without this explicit config_file the file
+    # baked into the image is silently ignored.
     # Speicherwerte: kleine Standardwerte für 1-2-GB-Systeme, per .env anhebbar
     # (siehe config/postgresql.conf und docs/OPERATIONS.md).
     command:
@@ -53,8 +65,6 @@ services:
       retries: 10
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/10-rwsth-roles.sh:ro
-      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
     networks:
       - app-db
       - worker-db
@@ -80,8 +90,7 @@ services:
       - no-new-privileges:true
 
   migrate:
-    build: .
-    image: rettungswache-wachbuch:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     command: ["/app/scripts/migrate.sh"]
     restart: "no"
     environment:
@@ -126,8 +135,7 @@ services:
       - no-new-privileges:true
 
   web:
-    build: .
-    image: rettungswache-wachbuch:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     environment:
@@ -215,7 +223,7 @@ services:
       - no-new-privileges:true
 
   feed-worker:
-    image: rettungswache-wachbuch:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-worker.sh"]
@@ -249,7 +257,7 @@ services:
       - no-new-privileges:true
 
   notify-worker:
-    image: rettungswache-wachbuch:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
@@ -292,7 +300,7 @@ services:
       - no-new-privileges:true
 
   push-worker:
-    image: rettungswache-wachbuch:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     command: ["/app/scripts/start-push-worker.sh"]
@@ -333,10 +341,7 @@ services:
       - no-new-privileges:true
 
   backup-init:
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    image: rettungswache-wachbuch-backup:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "0:0"
     # /offsite best effort: ein NFS-Ziel mit root_squash lässt kein chown zu;
@@ -360,10 +365,7 @@ services:
       - no-new-privileges:true
 
   backup:
-    build:
-      context: .
-      dockerfile: Dockerfile.backup
-    image: rettungswache-wachbuch-backup:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: unless-stopped
     logging: *default-logging
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
@@ -408,7 +410,7 @@ services:
 
   restore-test:
     profiles: ["ops"]
-    image: rettungswache-wachbuch-backup:local
+    image: ghcr.io/katschko-it/rettungswache-wachbuch-backup:${WACHBUCH_VERSION:-latest}
     restart: "no"
     user: "${BACKUP_UID:-70}:${BACKUP_GID:-70}"
     entrypoint: ["/bin/sh", "/usr/local/bin/rwsth-restore-test"]

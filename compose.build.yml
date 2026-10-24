@@ -1,0 +1,42 @@
+# Lokaler Build statt vorgefertigter Images (Entwicklung, eigene Änderungen):
+#
+#   docker compose -f docker-compose.yml -f compose.build.yml up -d --build
+#
+# Die Images heißen dann rettungswache-wachbuch*:local und werden nie aus
+# einer Registry gezogen (pull_policy: build). WACHBUCH_SOURCE zeigt auf den
+# Quellcode-Ordner; im Repository ist das ".". install.sh --build setzt den
+# absoluten Pfad in .env, damit der Build auch aus dem Zielordner klappt.
+
+x-app-build: &app-build
+  image: rettungswache-wachbuch:local
+  pull_policy: build
+  build:
+    context: ${WACHBUCH_SOURCE:-.}
+    dockerfile: Dockerfile
+
+x-backup-build: &backup-build
+  image: rettungswache-wachbuch-backup:local
+  pull_policy: build
+  build:
+    context: ${WACHBUCH_SOURCE:-.}
+    dockerfile: Dockerfile.backup
+    target: backup
+
+services:
+  db:
+    image: rettungswache-wachbuch-db:local
+    pull_policy: build
+    build:
+      context: ${WACHBUCH_SOURCE:-.}
+      dockerfile: Dockerfile.backup
+      target: db
+
+  migrate: *app-build
+  web: *app-build
+  feed-worker: *app-build
+  notify-worker: *app-build
+  push-worker: *app-build
+
+  backup-init: *backup-build
+  backup: *backup-build
+  restore-test: *backup-build

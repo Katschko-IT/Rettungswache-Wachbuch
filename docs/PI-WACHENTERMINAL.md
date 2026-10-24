@@ -161,20 +161,24 @@ der Bereich am Terminal gesperrt.
 
 ## 7. Betrieb
 
-- **Updates**: LAN-Kabel anstecken, dann
-  `git pull && docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml up -d --build`.
+- **Updates**: LAN-Kabel anstecken, dann im Repository-Ordner
+  `git pull && sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml up -d --build`.
+  Der Pi baut die Images aus dem Checkout (`compose.build.yml`), damit Code und Images
+  zusammenpassen.
 - **Backups**: Der `backup`-Dienst legt einmal täglich einen Dump (`rwsth-*.dump`) im
   Docker-Volume `backups-data` ab und behält 7 Tage (`BACKUP_RETENTION_DAYS`). Das Volume
   liegt auf derselben SSD – fällt sie aus, sind auch die Backups weg. Deshalb regelmäßig
   auf einen USB-Stick kopieren (Stick einstecken, er erscheint unter `/media/<Benutzer>/…`):
   ```bash
-  BACKUPS=$(sudo docker volume inspect -f '{{ .Mountpoint }}' $(sudo docker volume ls -q | grep backups-data))
-  # Der Ordner gehört dem Backup-Dienst: Stern erst innerhalb von sudo auflösen.
-  sudo sh -c 'cp "$(ls -t "$1"/rwsth-*.dump | head -n 1)" "$2"' _ "$BACKUPS" /media/$USER/<STICK>/
+  COMPOSE="sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml"
+  NEWEST=$($COMPOSE exec -T backup sh -c 'ls -1t /backups/rwsth-*.dump | head -n 1')
+  $COMPOSE cp "backup:$NEWEST" /media/$USER/<STICK>/
   ```
-  `BACKUP_OFF_TARGET` aus `docs/OPERATIONS.md` greift auf dem Pi nicht, weil das Ziel nicht in
-  den Container eingebunden ist. Wiederherstellung prüfen:
-  `docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
+  Automatisch geht es mit einem fest eingebundenen Ziel: in `.env`
+  `BACKUP_OFFSITE_DIR=/media/<Benutzer>/<STICK>/wachbuch` und
+  `BACKUP_OFF_TARGET=file:///offsite` setzen (Ordner vorher anlegen; er muss UID 70
+  gehören oder `backup-init` setzt den Besitzer). Wiederherstellung prüfen:
+  `sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
 - **Zeit**: RTC-Modul einbauen oder LAN mit NTP anschließen. Die Uhrzeit auf dem
   Ruhebildschirm regelmäßig prüfen.
 - **Strom**: USV oder zumindest ein sauberes Herunterfahren (`sudo poweroff`) vor dem Ausstecken.

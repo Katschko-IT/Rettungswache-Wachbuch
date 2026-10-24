@@ -1,5 +1,33 @@
-FROM postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+# syntax=docker/dockerfile:1
+#
+# PostgreSQL-Images des Wachbuchs aus EINER Basis, damit Datenbank und
+# Backup immer dieselbe Hauptversion nutzen (pg_dump muss zur DB passen):
+#
+#   docker build -f Dockerfile.backup --target db     .   -> rettungswache-wachbuch-db
+#   docker build -f Dockerfile.backup --target backup .   -> rettungswache-wachbuch-backup
+#
+# Ohne --target entsteht das Backup-Image (letzte Stufe).
 
+FROM postgres:17.11-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb AS pgbase
+
+ARG APP_VERSION=dev
+LABEL org.opencontainers.image.source="https://github.com/Katschko-IT/Rettungswache-Wachbuch" \
+      org.opencontainers.image.licenses="AGPL-3.0-or-later" \
+      org.opencontainers.image.version="${APP_VERSION}"
+
+# --- Datenbank: Rollen-Init und Konfiguration eingebaut ---
+# Endnutzer brauchen so keinen Git-Checkout für Bind-Mounts.
+FROM pgbase AS db
+LABEL org.opencontainers.image.title="Rettungswache-Wachbuch PostgreSQL" \
+      org.opencontainers.image.description="PostgreSQL mit Rollen-Init und Konfiguration fuer das Wachbuch"
+COPY --chmod=0755 scripts/init-db.sh /docker-entrypoint-initdb.d/10-rwsth-roles.sh
+COPY --chmod=0644 config/postgresql.conf /etc/postgresql/postgresql.conf
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+
+# --- Backup: pg_dump-Schleife, Restore-Test, GnuPG ---
+FROM pgbase AS backup
+LABEL org.opencontainers.image.title="Rettungswache-Wachbuch Backup" \
+      org.opencontainers.image.description="pg_dump-Schleife und Restore-Test fuer das Wachbuch"
 RUN apk add --no-cache gnupg
 
 COPY --chmod=0755 scripts/backup-loop.sh /usr/local/bin/rwsth-backup-loop
