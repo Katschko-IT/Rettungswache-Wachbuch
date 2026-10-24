@@ -195,7 +195,7 @@ class ItemBatch(models.Model):
                 "level": "recalled",
                 "days": -999,
                 "color": "rose",
-                "label": f"⛔ GESPERRT: {self.recall_reason or 'Rückruf'}",
+                "label": f"Gesperrt: {self.recall_reason or 'Rückruf'}",
             }
 
         today = timezone.localdate()
@@ -262,7 +262,7 @@ class StockMovement(models.Model):
 
     class Kind(models.TextChoices):
         INBOUND = "inbound", "Wareneingang / Beschaffung"
-        OUTBOUND = "outbound", "Verbrauch am Patienten / Einsatz"
+        OUTBOUND = "outbound", "Verbrauch"
         TRANSFER = "transfer", "Umlagerung (z. B. Lager → RTW)"
         DISCARD_EXPIRED = "discard_expired", "Ausscheidung (Verfall)"
         RECALL_QUARANTINE = "recall_quarantine", "Sperrung (BfArM-Rückruf)"

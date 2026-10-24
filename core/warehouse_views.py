@@ -372,14 +372,14 @@ def stock_transfer(request, batch_id: int):
 @require_POST
 @transaction.atomic
 def stock_consume(request, batch_id: int):
-    """Verbrauch am Patienten / Verfallsausscheidung verbuchen."""
+    """Verbrauch oder Verfallsausscheidung verbuchen."""
     station = request.membership.station
     batch = get_object_or_404(ItemBatch, station=station, id=batch_id)
     item = batch.item
 
     loc_id = request.POST.get("location_id")
     qty = int(request.POST.get("quantity", 1))
-    reason = request.POST.get("reason", "Einsatzverbrauch")
+    reason = request.POST.get("reason", "Verbrauch aus dem Bestand")
     is_discard = request.POST.get("is_discard") == "1"
 
     loc = get_object_or_404(StorageLocation, station=station, id=loc_id)
@@ -511,7 +511,7 @@ def export_fefo_csv(request):
             si.location.name,
             si.quantity,
             si.item.get_unit_display(),
-            "GESPERRT: " + si.batch.recall_reason if si.batch.is_recalled else si.batch.urgency["label"],
+            "Gesperrt: " + si.batch.recall_reason if si.batch.is_recalled else si.batch.urgency["label"],
         ])
 
     return response
@@ -564,7 +564,7 @@ def warehouse_reorder_proposal(request):
             messages.info(request, "Alle Artikel haben ausreichenden Bestand. Keine Nachbestellung nötig.")
             return redirect("warehouse_reorder_proposal")
 
-        task_title = f"📦 Apotheken-Bestellung auslösen: {len(low_stock_proposals)} Artikel unter Mindestbestand"
+        task_title = f"Apotheken-Bestellung auslösen: {len(low_stock_proposals)} Artikel unter Mindestbestand"
         if not StationTask.objects.filter(station=station, title=task_title).exists():
             StationTask.objects.create(
                 station=station,
@@ -669,6 +669,6 @@ def warehouse_express_transfer(request):
 
     messages.success(
         request,
-        f"✅ {quantity}x {batch.item.name} (Lot {batch.batch_number}) erfolgreich nach '{target_loc.name}' aufgerüstet.",
+        f"{quantity}x {batch.item.name} (Lot {batch.batch_number}) erfolgreich nach '{target_loc.name}' aufgerüstet.",
     )
     return redirect("warehouse_dashboard")
