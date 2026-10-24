@@ -514,7 +514,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   min-height: var(--touch);
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   font-weight: 700;
+  white-space: nowrap;
 }
 .mfa-secret { margin: 0 0 1.25rem; padding: 1rem 0; }
 .mfa-key, .mfa-uri {
@@ -585,7 +587,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .agenda-row p { max-width: 65ch; margin: .25rem 0; color: var(--muted); }
 .agenda-row small { color: var(--muted); }
-.compact-agenda .agenda-row { padding-inline: 0; }
+.compact-agenda .agenda-row { padding-inline: 0; font-size: .9375rem; }
+.compact-agenda .agenda-row p { font-size: .875rem; }
 .compact-agenda .agenda-row[class*="agenda-holiday"],
 .compact-agenda .agenda-row[class*="agenda-waste"],
 .compact-agenda .agenda-row[class*="agenda-birthday"] {
