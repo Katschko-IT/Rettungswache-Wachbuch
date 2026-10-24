@@ -171,7 +171,19 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
+      PUSH_ALLOWED_ENDPOINT_HOSTS: ${PUSH_ALLOWED_ENDPOINT_HOSTS:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      RATELIMIT_KEY_SALT: ${RATELIMIT_KEY_SALT:-wachbuch}
+      ERROR_EVENT_RETENTION_DAYS: ${ERROR_EVENT_RETENTION_DAYS:-30}
+      ERROR_EVENT_EXPORT_LIMIT: ${ERROR_EVENT_EXPORT_LIMIT:-200}
+      # Ohne Wert: nur durchreichen, wenn in .env gesetzt (sonst gilt die
+      # Version aus core/version.py; ein leerer Wert würde sie verdecken).
+      APP_VERSION:
+      # Gunicorn (config/gunicorn.py); für mehr Last Worker erhöhen und
+      # POSTGRES_MAX_CONNECTIONS mitziehen.
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-60}
       # Wachenterminal und lokales Zertifikat (docs/PI-WACHENTERMINAL.md)
       TERMINAL_ENABLED: ${TERMINAL_ENABLED:-false}
       TERMINAL_IDLE_SECONDS: ${TERMINAL_IDLE_SECONDS:-120}
@@ -298,6 +310,7 @@ services:
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
       PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
       PUSH_RELAY_TOKEN: ${PUSH_RELAY_TOKEN:-}
+      PUSH_ALLOWED_ENDPOINT_HOSTS: ${PUSH_ALLOWED_ENDPOINT_HOSTS:-}
       # Kein REDIS_URL: der Worker liegt nicht im Redis-Netz (app-db).
     depends_on:
       web:

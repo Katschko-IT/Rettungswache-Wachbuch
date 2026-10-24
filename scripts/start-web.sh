@@ -1,5 +1,6 @@
 #!/bin/sh
+# Startet Gunicorn mit config/gunicorn.py. Worker, Threads und Timeout kommen
+# aus GUNICORN_WORKERS/GUNICORN_THREADS/GUNICORN_TIMEOUT (Standard 2/4/60).
 set -eu
 
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile - \
-  --logger-class core.gunicorn_logging.RedactingGunicornLogger
+exec gunicorn --config /app/config/gunicorn.py config.wsgi:application

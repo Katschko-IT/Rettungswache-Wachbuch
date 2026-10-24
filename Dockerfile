@@ -33,11 +33,14 @@ RUN apt-get update \
     && apt-get upgrade --yes --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Version kommt beim Release aus dem Git-Tag (publish-image.yml); die
+# Laufzeitversion selbst steht in core/version.py.
+ARG APP_VERSION=dev
 LABEL org.opencontainers.image.title="Rettungswache-Wachbuch" \
       org.opencontainers.image.description="Selbst gehostetes Wachbuch fuer Rettungswachen" \
       org.opencontainers.image.source="https://github.com/Katschko-IT/Rettungswache-Wachbuch" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
-      org.opencontainers.image.version="0.15.0"
+      org.opencontainers.image.version="${APP_VERSION}"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
