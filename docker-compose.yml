@@ -435,6 +435,40 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Optionaler TLS-Proxy: COMPOSE_PROFILES=https (install.sh --mode lan|domain).
+  # LAN: CADDY_TLS=internal (eigene CA); Domain: CADDY_TLS=<E-Mail> für
+  # Let's Encrypt. Konfiguration: deploy/caddy/Caddyfile.
+  caddy:
+    profiles: ["https"]
+    image: caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTP_REDIRECT_PORT:-80}:80"
+    environment:
+      WACHBUCH_HOSTNAME: ${WACHBUCH_HOSTNAME:-localhost}
+      CADDY_TLS: ${CADDY_TLS:-internal}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Zertifikate, Schlüssel und die interne CA; mit .env sichern.
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - web-ingress
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   # Internal only: no outbound internet, no host exposure.
   app-db:
@@ -454,3 +488,6 @@ volumes:
   # Platzhalter, solange BACKUP_OFFSITE_DIR / BACKUP_GPG_KEY_DIR leer sind.
   backups-offsite:
   backups-gpg-keys:
+  # TLS-Proxy (Profil https)
+  caddy-data:
+  caddy-config:

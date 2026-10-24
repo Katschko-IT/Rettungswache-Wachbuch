@@ -1,0 +1,24 @@
+# TLS-Proxy für das Wachbuch (Compose-Profil "https", Dienst caddy).
+#
+# Werte aus .env (install.sh setzt sie je nach Betriebsart):
+#   WACHBUCH_HOSTNAME  Name oder IP-Adresse, unter der die Wache das Wachbuch
+#                      aufruft, z. B. wache.example.org oder 192.168.1.20
+#   CADDY_TLS          "internal"  -> eigene Caddy-CA (LAN ohne Internet);
+#                                     Geräte zeigen eine Zertifikatswarnung,
+#                                     bis die CA importiert ist
+#                      E-Mail      -> Zertifikat von Let's Encrypt (Domain,
+#                                     Ports 80/443 aus dem Internet erreichbar)
+#
+# Caddy leitet HTTP auf HTTPS um und setzt X-Forwarded-Proto/-For selbst;
+# vom Client gesendete X-Forwarded-*-Header werden verworfen. Deshalb darf
+# web mit TRUSTED_PROXY=true laufen (web selbst lauscht nur auf Loopback).
+
+{
+	admin off
+}
+
+{$WACHBUCH_HOSTNAME} {
+	tls {$CADDY_TLS}
+	encode zstd gzip
+	reverse_proxy web:8000
+}
