@@ -428,3 +428,33 @@ class ActivationFormRefererPolicyTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Referrer-Policy"], "same-origin")
+
+
+class RateLimitRaceTests(TestCase):
+    """E2E-Befund: zwei gleichzeitige erste Anfragen im Zeitfenster → IntegrityError/500."""
+
+    def test_concurrent_first_insert_is_counted_not_raised(self):
+        from unittest import mock
+
+        from django.db.models.query import QuerySet
+
+        from core.models import RateLimit
+        from core.rate_limit import consume
+
+        # Die parallele Anfrage hat ihre Zeile schon angelegt; unser erstes
+        # Lesen lief davor und fand nichts. Das Anlegen trifft dann den echten
+        # Unique-Index.
+        consume("race", "key", limit=5, window_seconds=60)
+        real_get = QuerySet.get
+        calls = {"n": 0}
+
+        def first_get_misses(qs, *args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RateLimit.DoesNotExist
+            return real_get(qs, *args, **kwargs)
+
+        with mock.patch.object(QuerySet, "get", autospec=True, side_effect=first_get_misses):
+            allowed = consume("race", "key", limit=5, window_seconds=60)
+        self.assertTrue(allowed)
+        self.assertEqual(RateLimit.objects.get(bucket="race").count, 2)

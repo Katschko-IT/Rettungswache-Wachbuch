@@ -41,6 +41,12 @@ Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CL
 
 Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
 
+- Rate-Limit: zwei gleichzeitige erste Anfragen im selben Zeitfenster
+  (z. B. App lädt `me` und Übergaben parallel) endeten mit 500. Jetzt wird
+  die Zeile der parallelen Anfrage nachgelesen und weitergezählt.
+- Gunicorn hält Keep-alive-Verbindungen 20 s statt 2 s offen – länger als
+  der Leerlauf-Timeout der App, sonst brach ein POST gelegentlich mit
+  „Connection closed before full header was received“ ab.
 - Kontoaktivierung im Browser repariert: Die Seite sendete
   `Referrer-Policy: no-referrer`, Browser schickten daraufhin `Origin: null`
   und die CSRF-Prüfung lehnte das Formular ab – neue Konten ließen sich nicht

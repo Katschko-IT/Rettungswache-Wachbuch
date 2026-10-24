@@ -49,7 +49,10 @@ graceful_timeout = int(os.getenv("GUNICORN_GRACEFUL_TIMEOUT", 30))
 
 # Keepalive settings (seconds)
 # Time to wait for connections on a Keep-Alive connection
-keepalive = int(os.getenv("GUNICORN_KEEPALIVE", 2))
+# Länger als der Leerlauf-Timeout der Clients (Dart-HttpClient: 15 s). Sonst
+# schließt Gunicorn eine Verbindung, die der Client gerade wiederverwendet, und
+# ein POST endet mit „Connection closed before full header was received“.
+keepalive = int(os.getenv("GUNICORN_KEEPALIVE", 20))
 
 # Server Settings
 # ---------------

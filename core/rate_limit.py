@@ -32,23 +32,21 @@ def consume(bucket: str, raw_key: str, *, limit: int, window_seconds: int) -> bo
         seconds=int(window_start.timestamp()) % window_seconds
     )
 
-    from django.db import transaction
+    from django.db import IntegrityError, transaction
 
+    lookup = {"bucket": bucket, "key_hash": key_hash, "window_start": window_start}
     with transaction.atomic():
         try:
-            row = (
-                RateLimit.objects
-                .select_for_update()
-                .get(bucket=bucket, key_hash=key_hash, window_start=window_start)
-            )
+            row = RateLimit.objects.select_for_update().get(**lookup)
         except RateLimit.DoesNotExist:
-            row = RateLimit.objects.create(
-                bucket=bucket,
-                key_hash=key_hash,
-                window_start=window_start,
-                count=1,
-            )
-            return True
+            try:
+                # Savepoint: Legt eine parallele Anfrage die Zeile im selben
+                # Zeitfenster zuerst an, bleibt die äußere Transaktion gültig.
+                with transaction.atomic():
+                    RateLimit.objects.create(**lookup, count=1)
+                return True
+            except IntegrityError:
+                row = RateLimit.objects.select_for_update().get(**lookup)
         if row.count >= limit:
             return False
         row.count = row.count + 1
