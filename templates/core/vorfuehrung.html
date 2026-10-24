@@ -3,150 +3,165 @@
 {% load static %}
 {% block title %}{% translate "Vorführung" %} – {{ app_name }}{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/public.css' %}">
 <link rel="stylesheet" href="{% static 'core/demo.css' %}">
 {% endblock %}
-{% block body_class %}is-landing is-vorfuehrung{% endblock %}
+{% block body_class %}is-vorfuehrung{% endblock %}
 {% block content %}
 <h1 class="visually-hidden">{% translate "Wachbuch-Vorführung" %}</h1>
 <noscript>
   <p class="demo-noscript-hint">{% translate "Ohne JavaScript erscheinen alle Folien untereinander. Musik steht nur mit JavaScript und nach einem Klick zur Verfügung." %}</p>
 </noscript>
 
-<section class="demo-deck" data-demo-deck data-demo-index="0" aria-label="{% translate 'Vorführungsfolien' %}">
-  <article class="demo-slide demo-slide-hero is-on" data-demo-slide data-title="{% translate 'Titel' %}" aria-hidden="false">
-    <div class="demo-hero-bg" aria-hidden="true"></div>
-    <div class="demo-copy">
-      <p class="demo-kicker">{% translate "Wachbuch" %}</p>
-      <h2>{% translate "Wachorganisation, die im Schichtalltag lesbar bleibt." %}</h2>
-      <p class="demo-lead">{% translate "Übergaben, Aufgaben und Teamrollen für Rettungswache, Feuerwehr und vergleichbare Dienste. Selbst gehostet. Mobil auf iOS und Android." %}</p>
+{# Acht Folien, je eine Aussage und eine echte Aufnahme der Oberfläche (synthetische Daten). #}
+<section class="pub demo-deck" data-demo-deck data-demo-index="0" aria-label="{% translate 'Vorführungsfolien' %}">
+  <div class="demo-stage">
+
+  <article class="demo-slide is-on" data-demo-slide data-title="{% translate 'Übersicht' %}" aria-hidden="false">
+    <div class="demo-split">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Wachbuch für Rettungswachen" %}</p>
+        <h2>{% translate "Was die Schicht wissen muss. Auf einen Blick." %}</h2>
+        <p class="demo-lead">{% translate "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile." %}</p>
+      </div>
+      <div class="demo-media demo-media-duo">
+        <figure class="device"><img src="{% static 'core/screens/overview-desktop-light.webp' %}" width="1440" height="900" alt="{% translate 'Übersicht einer Wache am Desktop: fünf Punkte brauchen Aufmerksamkeit, darunter eine dringende Übergabe und fällige Fahrzeugfristen.' %}"></figure>
+        <figure class="device device-phone"><img src="{% static 'core/screens/overview-phone-dark.webp' %}" width="390" height="844" alt="{% translate 'Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus.' %}"></figure>
+      </div>
+    </div>
+  </article>
+
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Übergaben' %}" aria-hidden="true">
+    <div class="demo-split">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Schichtübergabe" %}</p>
+        <h2>{% translate "Übergaben statt Zettel und Zuruf." %}</h2>
+        <p class="demo-lead">{% translate "Jede Übergabe trägt Priorität, Status und Verlauf. Die nächste Schicht sieht sofort, was dringend ist, und quittiert, was sie gelesen hat." %}</p>
+      </div>
+      <div class="demo-media demo-media-phone">
+        <figure class="device device-phone"><img src="{% static 'core/screens/handovers-phone-light.webp' %}" width="390" height="844" alt="{% translate 'Liste der Übergaben auf dem Handy, nach Priorität sortiert: dringend, wichtig, normal.' %}" loading="lazy"></figure>
+      </div>
+    </div>
+  </article>
+
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Fuhrpark und Medizingeräte' %}" aria-hidden="true">
+    <div class="demo-split">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Fuhrpark und Medizingeräte" %}</p>
+        <h2>{% translate "Fristen sehen, bevor sie ablaufen." %}</h2>
+        <p class="demo-lead">{% translate "Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizingeräte mit STK- und MTK-Fristen; ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt." %}</p>
+      </div>
+      <div class="demo-media demo-media-pair">
+        <figure class="device"><img src="{% static 'core/screens/fleet-desktop-light.webp' %}" width="1440" height="900" alt="{% translate 'Fuhrpark mit Einsatzbereitschaft, Füllständen und fälligen Fristen je Fahrzeug.' %}" loading="lazy"></figure>
+        <figure class="device device-second"><img src="{% static 'core/screens/mpg-desktop-dark.webp' %}" width="1440" height="900" alt="{% translate 'Medizingeräte mit Prüffristen und gesperrten Geräten im dunklen Modus.' %}" loading="lazy"></figure>
+      </div>
+    </div>
+  </article>
+
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Lager und Material' %}" aria-hidden="true">
+    <div class="demo-split">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Lager und Material" %}</p>
+        <h2>{% translate "Knappes Material fällt auf, bevor es fehlt." %}</h2>
+        <p class="demo-lead">{% translate "Bestände mit Chargen und Verfallsdaten. Was unter den Mindestbestand fällt, landet im Bestellvorschlag." %}</p>
+      </div>
+      <div class="demo-media demo-media-desktop">
+        <figure class="device"><img src="{% static 'core/screens/warehouse-desktop-light.webp' %}" width="1440" height="900" alt="{% translate 'Lager mit Beständen, Chargen, Verfallsdaten und einem Artikel unter Mindestbestand.' %}" loading="lazy"></figure>
+      </div>
+    </div>
+  </article>
+
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Tag und Nacht' %}" aria-hidden="true">
+    <div class="demo-split">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Tag und Nacht" %}</p>
+        <h2>{% translate "Hell in der Halle, ruhig im Nachtdienst." %}</h2>
+        <p class="demo-lead">{% translate "Nachts dunkle Flächen und gedämpfte Signale, damit der Bildschirm nicht blendet; tagsüber hell für Sonnenlicht. Die Ansicht folgt dem Gerät oder einem Schalter." %}</p>
+      </div>
+      <div class="demo-media demo-media-duo">
+        <figure class="device"><img src="{% static 'core/screens/overview-desktop-dark.webp' %}" width="1440" height="900" alt="{% translate 'Übersicht am Desktop im dunklen Nachtdienst-Modus mit gedämpften Farben.' %}" loading="lazy"></figure>
+        <figure class="device device-phone"><img src="{% static 'core/screens/overview-phone-light.webp' %}" width="390" height="844" alt="{% translate 'Übersicht auf dem Handy in der hellen Tagesansicht.' %}" loading="lazy"></figure>
+      </div>
     </div>
   </article>
 
   <article class="demo-slide" data-demo-slide data-title="{% translate 'Grenze' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Produktgrenze" %}</p>
-    <h2>{% translate "Für die Wache. Nicht für den Einsatz." %}</h2>
-    <p class="demo-lead">{% translate "Wachbuch organisiert interne Abläufe hinter der Fahrzeughalle. Es ist kein Leitstellen-, Alarmierungs-, Diagnose- oder Patientensystem." %}</p>
-    <div class="demo-grid">
-      <article class="demo-card">
-        <strong class="demo-yes">{% translate "Im Umfang" %}</strong>
-        <p>{% translate "Übergaben, Mängel, Checklisten, Geräte, Schlüssel, Kalender, Kasse, Team." %}</p>
-      </article>
-      <article class="demo-card">
-        <strong class="demo-no">{% translate "Nicht im Umfang" %}</strong>
-        <p>{% translate "Alarmierung, Einsatzleitung, eProtokoll, Patienten- oder Vorgangsdaten." %}</p>
-      </article>
-    </div>
-  </article>
-
-  <article class="demo-slide" data-demo-slide data-title="{% translate 'Organisationen' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Für den öffentlichen Dienst" %}</p>
-    <h2>{% translate "Eine Oberfläche, vier Wachprofile." %}</h2>
-    <div class="demo-grid">
-      <article class="demo-card"><strong>{% translate "Rettungsdienst" %}</strong><p>{% translate "Schichtübergabe, Fahrzeugstatus, wiederkehrende Checks." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Berufsfeuerwehr" %}</strong><p>{% translate "Mängel, Pools, Quittierung – feldlesbar, nicht bunt." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Freiwillige Feuerwehr" %}</strong><p>{% translate "Klar auf dem Handy, auch nach der Alarmierung auf der Wache." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Polizei / vergleichbar" %}</strong><p>{% translate "Interne Wachenabläufe ohne Vorgangs- oder Einsatzdaten." %}</p></article>
-    </div>
-  </article>
-
-  <article class="demo-slide" data-demo-slide data-title="{% translate 'Alltag' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Wachalltag" %}</p>
-    <h2>{% translate "Was die Schicht wirklich braucht." %}</h2>
-    <div class="demo-badges">
-      <span class="demo-badge"><i class="demo-dot demo-dot-urgent" aria-hidden="true"></i> {% translate "Dringend – sofort" %}</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-important" aria-hidden="true"></i> {% translate "Wichtig – zeitnah" %}</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-normal" aria-hidden="true"></i> {% translate "Normal – regulär" %}</span>
-      <span class="demo-badge"><i class="demo-dot demo-dot-done" aria-hidden="true"></i> {% translate "Erledigt" %}</span>
-    </div>
-    <div class="demo-grid">
-      <article class="demo-card"><strong>{% translate "Übergaben" %}</strong><p>{% translate "Versioniert, priorisiert, stationsbezogen. Farbe plus ausgeschriebener Status." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Tagesaufgaben" %}</strong><p>{% translate "Wandbogen digital: Grün, Gelb, Blau. 48-Pixel-Ziele mit Handschuhen." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Mängel &amp; Geräte" %}</strong><p>{% translate "Foto nur am Mangel, kein allgemeines Archiv. Pools und Schlüssel nachvollziehbar." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Checklisten" %}</strong><p>{% translate "Wiederkehrend, quittiert, auditierbar. Keine stillen Änderungen." %}</p></article>
-    </div>
-  </article>
-
-  <article class="demo-slide" data-demo-slide data-title="{% translate 'Web und Apps' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Drei Oberflächen, ein Vertrag" %}</p>
-    <h2>{% translate "Web-PWA, iOS und Android." %}</h2>
-    <div class="demo-phones">
-      <div class="demo-phone">
-        <h3>{% translate "Web-PWA" %}</h3>
-        <ul>
-          <li>{% translate "Übersicht, Übergaben, Kalender, Mehr" %}</li>
-          <li>{% translate "Installierbar, offline lesbar" %}</li>
-          <li>{% translate "Ohne CDN, ohne Tracking-Cookies" %}</li>
-        </ul>
-      </div>
-      <div class="demo-phone">
-        <h3>{% translate "iOS / iPadOS" %}</h3>
-        <ul>
-          <li>{% translate "Bundle de.wachbuch.wachbuchMobile" %}</li>
-          <li>{% translate "TestFlight-fähig, VoiceOver-tauglich" %}</li>
-          <li>{% translate "Solar-Hell/Dunkel plus High Contrast" %}</li>
-        </ul>
-      </div>
-      <div class="demo-phone">
-        <h3>{% translate "Android" %}</h3>
-        <ul>
-          <li>{% translate "Paket de.wachbuch.mobile" %}</li>
-          <li>{% translate "Signiertes AAB, Play-interner Test" %}</li>
-          <li>{% translate "Dieselben Tokens wie die Web-PWA" %}</li>
+    <div class="demo-single">
+      <div class="boundary">
+        <p class="demo-kicker">{% translate "Produktgrenze" %}</p>
+        <h2>{% translate "Was bewusst nicht hineingehört" %}</h2>
+        <p class="demo-lead">{% translate "Das Wachbuch organisiert den Betrieb einer Wache, nicht den Einsatz. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach." %}</p>
+        <ul class="boundary-list">
+          <li><strong>{% translate "Kein Einsatzleitsystem" %}</strong><span>{% translate "Keine Alarmierung, keine Einsatzführung, keine Leitstellenanbindung." %}</span></li>
+          <li><strong>{% translate "Kein Patientendokumentationssystem" %}</strong><span>{% translate "Kein Feld für Patienten-, Diagnose- oder Einsatzdaten." %}</span></li>
+          <li><strong>{% translate "Keine Dienstplanung" %}</strong><span>{% translate "Keine Schichtpläne, Zeitkonten oder Leistungsbewertung." %}</span></li>
+          <li><strong>{% translate "Kein Cloud-Dienst" %}</strong><span>{% translate "Eine Instanz gehört einer Wache. Keine zentrale Betreiberinstanz, keine Telemetrie." %}</span></li>
         </ul>
       </div>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="{% translate 'Sicherheit' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Vertrauen" %}</p>
-    <h2>{% translate "Selbst gehostet. Nachvollziehbar. Ohne Tracking." %}</h2>
-    <div class="demo-grid">
-      <article class="demo-card"><strong>{% translate "Eigene Infrastruktur" %}</strong><p>{% translate "Docker, TLS-Proxy, lokale Konten. Kein gemeinsames Cloud-Konto für die Wache." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Rollen &amp; Station" %}</strong><p>{% translate "Jede Fachabfrage bleibt an die eigene Wache gebunden. Auditoren ohne Freitexte." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Audit append-only" %}</strong><p>{% translate "Kasse, Checklisten und Übergaben werden korrigiert durch neue Sätze, nicht durch Stille." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Chat verschlüsselt" %}</strong><p>{% translate "Gespeicherter Ciphertext ist geschützt. Der Webclient bleibt Teil des Vertrauensmodells." %}</p></article>
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Installation' %}" aria-hidden="true">
+    <div class="demo-single">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Installation" %}</p>
+        <h2>{% translate "In 5 Minuten installiert." %}</h2>
+        <p class="demo-lead">{% translate "Ein 64-Bit-Rechner mit Docker und Compose v2 genügt: ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles und erzeugt sämtliche Schlüssel selbst." %}</p>
+      </div>
+      <pre class="code-block"><code>curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh | sh</code></pre>
+      <ol class="steps demo-steps">
+        <li><div><h3>{% translate "Betriebsart wählen" %}</h3><p>{% translate "Nur dieser Rechner, Wachen-WLAN mit eigener CA oder eigene Domain mit Let's Encrypt." %}</p></div></li>
+        <li><div><h3>{% translate "Wache einrichten" %}</h3><p>{% translate "Der Assistent legt mit dem Einrichtungscode Wache und erstes Admin-Konto an." %}</p></div></li>
+        <li><div><h3>{% translate "Team einladen" %}</h3><p>{% translate "Jede Person aktiviert ihr Konto per Einmal-Link oder QR-Code." %}</p></div></li>
+        <li><div><h3>{% translate "Updates laufen lassen" %}</h3><p>{% translate "Nachts mit Backup vorher; startet die neue Fassung nicht, läuft wieder die vorherige." %}</p></div></li>
+      </ol>
     </div>
   </article>
 
-  <article class="demo-slide" data-demo-slide data-title="{% translate 'Arbeitgeber' %}" aria-hidden="true">
-    <p class="demo-kicker">{% translate "Für die Dienststelle" %}</p>
-    <h2>{% translate "Betrieb, der sich gegenüber Datenschutz vertreten lässt." %}</h2>
-    <p class="demo-lead">{% translate "Verantwortliche Stelle, VVT und Mitbestimmung bleiben bei euch. Das Produkt liefert die technische Baseline: keine Patientenfelder, nur notwendige Cookies, dokumentierte Löschpfade." %}</p>
-    <div class="demo-grid">
-      <article class="demo-card"><strong>{% translate "Datenschutz" %}</strong><p>{% translate "Keine Analytics, kein Scoring, AI Act: kein KI-System im Produktkern." %}</p></article>
-      <article class="demo-card"><strong>{% translate "Store-Kandidat 1.0" %}</strong><p>{% translate "CI-Gates für iOS und Android sind da. Konten und Signatur liegen bei der Dienststelle." %}</p></article>
-    </div>
-  </article>
-
-  <article class="demo-slide demo-slide-hero" data-demo-slide data-title="{% translate 'Schluss' %}" aria-hidden="true">
-    <div class="demo-hero-bg" aria-hidden="true"></div>
-    <div class="demo-copy">
-      <p class="demo-kicker">{% translate "Nächster Schritt" %}</p>
-      <h2>{% translate "Vorführen. Pilotieren. Selbst hosten." %}</h2>
-      <p class="demo-lead">{% translate "Demo-Modus mit Musterwache, oder eure Instanz hinter dem eigenen Proxy. Wachbuch bleibt ein Wachenbuch – und wird keins für den Einsatz." %}</p>
-      <div class="form-actions demo-cta">
-        <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
-        <a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
-        {% if demo_mode %}
-        <form method="post" action="{% url 'demo_login' %}">
-          {% csrf_token %}
-          <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
-        </form>
-        {% endif %}
+  <article class="demo-slide" data-demo-slide data-title="{% translate 'Quelloffen' %}" aria-hidden="true">
+    <div class="demo-split demo-split-even">
+      <div class="demo-copy">
+        <p class="demo-kicker">{% translate "Quelloffen, selbst gehostet" %}</p>
+        <h2>{% translate "Ein Server in der eigenen Wache." %}</h2>
+        <p class="demo-lead">{% translate "Der vollständige Quellcode steht unter der AGPL-3.0. Es gibt keine zentrale Betreiberinstanz; die Daten bleiben auf dem eigenen Server." %}</p>
+        <div class="pub-actions demo-cta">
+          {% if demo_mode %}
+          <form method="post" action="{% url 'demo_login' %}">
+            {% csrf_token %}
+            <button type="submit" class="pub-button primary">{% translate "Demo starten" %}</button>
+          </form>
+          {% else %}
+          <a class="pub-button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+          {% endif %}
+          <a class="pub-button" href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
+        </div>
+      </div>
+      <div class="demo-facts">
+        <table class="facts">
+          <caption class="visually-hidden">{% translate "Eckdaten" %}</caption>
+          <tbody>
+            <tr><th scope="row">{% translate "Lizenz" %}</th><td>{% translate "AGPL-3.0, vollständiger Quellcode" %}</td></tr>
+            <tr><th scope="row">{% translate "Betrieb" %}</th><td>{% translate "Docker Compose, Images für amd64 und arm64" %}</td></tr>
+            <tr><th scope="row">{% translate "Zugang" %}</th><td>{% translate "Browser als Web-App, quelloffene Apps für iOS und Android" %}</td></tr>
+            <tr><th scope="row">{% translate "Stand" %}</th><td>{% translate "Vorproduktion" %}</td></tr>
+          </tbody>
+        </table>
+        <p class="note"><strong>{% translate "Keine Produktionsfreigabe." %}</strong> {% translate "Externe Abnahmen, Datenschutzfolgenabschätzung beim Betreiber und eine unabhängige Sicherheitsprüfung stehen noch aus." %}</p>
+        <p class="demo-legal"><a href="{% url 'privacy' %}">{% translate "Datenschutz & Cookies" %}</a> · <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a> · {% translate "Version" %} {{ app_version }}</p>
       </div>
     </div>
   </article>
+
+  </div>
 
   <div class="demo-bar" data-demo-bar hidden>
-    <button class="button secondary" type="button" data-demo-prev aria-label="{% translate 'Vorherige Folie' %}">{% translate "Zurück" %}</button>
     <div class="demo-progress" aria-hidden="true"><span class="demo-progress-fill"></span></div>
+    <button class="pub-button" type="button" data-demo-prev aria-label="{% translate 'Vorherige Folie' %}">{% translate "Zurück" %}</button>
     <span class="demo-count" data-demo-count aria-live="polite">1 / 8</span>
-    <button class="button secondary" type="button" data-demo-music aria-pressed="false">{% translate "Musik" %}</button>
-    <button class="button primary" type="button" data-demo-next>{% translate "Weiter" %}</button>
+    <div class="demo-bar-end">
+      <button class="pub-button demo-music" type="button" data-demo-music aria-pressed="false">{% translate "Musik" %}</button>
+      <button class="pub-button primary" type="button" data-demo-next>{% translate "Weiter" %}</button>
+    </div>
   </div>
 </section>
-
-<figure class="demo-photo-credit">
-  <figcaption>{% translate "Foto:" %} <a href="https://www.pexels.com/photo/ambulances-on-a-parking-lot-5364345/" rel="noopener noreferrer">{% translate "Antonio Batinic / Pexels" %}</a></figcaption>
-</figure>
 {% endblock %}
