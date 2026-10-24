@@ -217,7 +217,8 @@ services:
       DB_PASSWORD: ${FEED_DB_PASSWORD}
       ALLOWED_HOSTS: localhost
       FEED_ALLOWED_HOSTS: ${FEED_ALLOWED_HOSTS:-}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Kein REDIS_URL: der Worker liegt nicht im Redis-Netz (app-db) und nutzt
+      # den prozesslokalen Cache.
     depends_on:
       web:
         condition: service_healthy
@@ -238,9 +239,17 @@ services:
     logging: *default-logging
     # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
     # Besatzung (kein automatischer Statuswechsel). Kein HTTP-Listener.
-    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30"]
+    # Nach jedem erfolgreichen Durchlauf wird die Heartbeat-Datei erneuert;
+    # nach 10 Fehlversuchen in Folge beendet sich der Befehl mit Fehler und
+    # Docker startet ihn neu.
+    command: ["python", "manage.py", "notify_crew", "--watch", "--interval", "30",
+              "--heartbeat-file", "/tmp/notify_crew.alive"]
     healthcheck:
-      disable: true
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/notify_crew.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_DEBUG: "false"
@@ -255,6 +264,17 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Ohne eigenes Netz läge der Dienst nur im Default-Netz und erreichte
+    # weder db noch redis ("failed to resolve host 'db'").
+    networks:
+      - app-db
+    tmpfs:
+      - /tmp
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
 
   push-worker:
     image: rettungswache-wachbuch:local
@@ -275,7 +295,7 @@ services:
       VAPID_ADMIN_EMAIL: ${VAPID_ADMIN_EMAIL:-ops@localhost}
       PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
       PUSH_RELAY_TOKEN: ${PUSH_RELAY_TOKEN:-}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Kein REDIS_URL: der Worker liegt nicht im Redis-Netz (app-db).
     depends_on:
       web:
         condition: service_healthy
@@ -392,4 +412,3 @@ networks:
 volumes:
   postgres-data:
   backups-data:
-  redis-data:
