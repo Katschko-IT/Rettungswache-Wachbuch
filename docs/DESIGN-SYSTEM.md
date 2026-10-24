@@ -96,6 +96,28 @@ Neben der viergliedrigen Fachnavigation (`Uebersicht`, `Uebergaben`, `Kalender`,
 - **Mobiles Verhalten:** Im Viewport unter 48rem bricht `.public-nav` sauber um (kein horizontales Scrollen bei 320 CSS-Pixeln) und überdeckt niemals die fixe mobile `app-nav` am unteren Bildschirmrand.
 
 
+## Fachmodule (`modules.css`)
+
+Die Modulseiten (MPG, Lager, Fuhrpark, Orga, Display, Mehr) nutzen nur
+Komponenten aus `app.css` und ein kleines Vokabular in `modules.css`:
+
+- Layout: `.stack`, `.cluster`, `.split`, `.grid-auto`, `.grid-2`,
+  `.muted`, `.text-small`, `.mono`.
+- Bausteine: `.filter-tabs`, `.state`/`.dot` (Zustand als Punkt + Text),
+  `.module-row` mit `.row-main`/`.row-due`/`.row-actions`, `.note-box`,
+  `.modal-panel`, `.field-row`, `.check-list`/`.checkbox-field`,
+  `.scanner-view`, `.qr-sticker` (QR und Druck bleiben hell).
+- Keine Hash-Klassen, kein `!important`, keine festen Farben: Farben nur
+  über Tokens, damit hell und Nachtdienst gleich funktionieren. Feste
+  Werte stehen ausschließlich in Token-Blöcken (`:root`, `--lock-*` für den
+  bewusst dunklen Sperrbildschirm, `--hero-*` für die Startseiten-Bühne).
+- Symbole aus `core/static/core/icons.svg` (`core/_icon.html`), keine Emojis.
+
+Statusfarben (gleich wie in der Flutter-App): dringend = danger, offen =
+info, in Arbeit = warning, wartend = neutral, erledigt = success. Für
+Zustände ohne Modellstatus gibt es die Töne `.status-label.danger`,
+`.warning`, `.info`, `.success`.
+
 ## Installierbare App (PWA)
 
 Die Webapp bleibt serverseitig gerendert und kann als Standalone-App auf Handy
