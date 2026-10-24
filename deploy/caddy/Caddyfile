@@ -15,6 +15,9 @@
 
 {
 	admin off
+	# Die interne CA nicht in den (read-only) Container-Truststore eintragen;
+	# Geräte importieren /data/caddy/pki/authorities/local/root.crt selbst.
+	skip_install_trust
 }
 
 {$WACHBUCH_HOSTNAME} {
