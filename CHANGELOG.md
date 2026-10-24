@@ -41,6 +41,11 @@ Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CL
 
 Gesamtreview vom 24.10.2026 (Details: `docs/REVIEW-2026-10-24.md`).
 
+- Kontoaktivierung im Browser repariert: Die Seite sendete
+  `Referrer-Policy: no-referrer`, Browser schickten daraufhin `Origin: null`
+  und die CSRF-Prüfung lehnte das Formular ab – neue Konten ließen sich nicht
+  aktivieren. Jetzt `same-origin` (kein Referer an fremde Seiten).
+
 - Sicherheit: `MFA_REQUIRED` wird jetzt durchgesetzt; das Dienstkonto
   „Wachenterminal“ kann keine Neuigkeiten mehr quittieren; Admins koppeln keine
   Handys für Personen mit Zwei-Faktor-Anmeldung; Terminal-Fehlversuche werden

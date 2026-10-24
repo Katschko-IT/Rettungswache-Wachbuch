@@ -1,5 +1,6 @@
 """Regressionstests zu den Befunden aus docs/REVIEW-2026-10-24.md."""
 import json
+import re
 from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
@@ -376,3 +377,54 @@ class NoMembershipErrorCodeTests(TestCase):
         response = self.client.get("/api/v1/me/", **auth)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["error"]["code"], "no_active_membership")
+
+
+class ActivationFormRefererPolicyTests(TestCase):
+    """E2E-Befund: no-referrer lässt Browser Origin: null senden → CSRF 403.
+
+    Formularseiten mit Einmal-Token brauchen same-origin: kein Referer an
+    fremde Seiten, aber ein gültiger Origin für das eigene Formular.
+    """
+
+    def setUp(self):
+        from core.setup_wizard import create_activation
+
+        self.station = Station.objects.create(name="RW", slug="rw")
+        self.admin = User.objects.create_user(username="admin1", password=PASSWORD)
+        Membership.objects.create(user=self.admin, station=self.station, role=Membership.Role.ADMIN)
+        self.employee = User.objects.create_user("neu1", password=None)
+        self.employee.set_unusable_password()
+        self.employee.is_active = False
+        self.employee.save()
+        Membership.objects.create(user=self.employee, station=self.station, role=Membership.Role.MEMBER)
+        _, self.raw = create_activation(user=self.employee, station=self.station, created_by=self.admin)
+
+    def test_activation_form_sends_same_origin_policy(self):
+        response = self.client.get(reverse("activate_account", kwargs={"token": self.raw}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Referrer-Policy"], "same-origin")
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=["https://wache.example"], ALLOWED_HOSTS=["wache.example"])
+    def test_browser_post_with_real_origin_activates(self):
+        client = Client(enforce_csrf_checks=True)
+        url = reverse("activate_account", kwargs={"token": self.raw})
+        page = client.get(url, secure=True, HTTP_HOST="wache.example")
+        token = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page.content.decode()).group(1)
+        response = client.post(
+            url,
+            {"password1": "Lang-und-Sicher-2026!x", "password2": "Lang-und-Sicher-2026!x", "csrfmiddlewaretoken": token},
+            secure=True,
+            HTTP_HOST="wache.example",
+            HTTP_ORIGIN="https://wache.example",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.employee.refresh_from_db()
+        self.assertTrue(self.employee.is_active)
+
+    def test_invite_result_page_sends_same_origin_policy(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("team_invite_create"), {"username": "kim", "role": Membership.Role.MEMBER}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Referrer-Policy"], "same-origin")

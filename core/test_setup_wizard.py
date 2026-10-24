@@ -175,7 +175,7 @@ class ActivationTests(TestCase):
         response = self.client.get(reverse("activate_account", kwargs={"token": self.raw}))
         self.assertEqual(response.status_code, 200)
         self.assertIn("no-store", response["Cache-Control"])
-        self.assertIn("no-referrer", response["Referrer-Policy"])
+        self.assertEqual(response["Referrer-Policy"], "same-origin")  # sonst Origin: null → CSRF 403
         response = self.client.post(
             reverse("activate_account", kwargs={"token": self.raw}),
             {"password1": PASSWORD, "password2": PASSWORD},

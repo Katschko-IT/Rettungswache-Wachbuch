@@ -86,8 +86,9 @@ class ComposeNetworkContractTests(SimpleTestCase):
         with tempfile.TemporaryDirectory(prefix="wachbuch-compose-net-") as home:
             env = {"PATH": os.environ.get("PATH", os.defpath), "HOME": home,
                    "COMPOSE_PROFILES": "ops,https"}
-            if os.environ.get("DOCKER_CONFIG"):
-                env["DOCKER_CONFIG"] = os.environ["DOCKER_CONFIG"]
+            # Ohne DOCKER_CONFIG sucht die CLI Plugins unter $HOME/.docker – das
+            # ist hier ein leeres Temp-Verzeichnis. Deshalb das echte durchreichen.
+            env["DOCKER_CONFIG"] = os.environ.get("DOCKER_CONFIG") or os.path.expanduser("~/.docker")
             result = subprocess.run(
                 command + ["--env-file", os.devnull, "-f", str(ROOT / "docker-compose.yml"),
                            "config", "--format", "json"],

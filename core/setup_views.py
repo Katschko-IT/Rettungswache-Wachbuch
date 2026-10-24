@@ -426,7 +426,10 @@ def activate_account(request, token):
         response = render(request, "core/activate_account.html", {"form": form, "activation": activation})
 
     response["Cache-Control"] = "no-store, max-age=0"
-    response["Referrer-Policy"] = "no-referrer"
+    # same-origin statt no-referrer: Bei no-referrer senden Browser für das
+    # eigene Formular „Origin: null“, und die CSRF-Prüfung lehnt ab. Fremde
+    # Seiten erhalten weiterhin keinen Referer mit dem Einmal-Token.
+    response["Referrer-Policy"] = "same-origin"
     return response
 
 
@@ -476,7 +479,8 @@ def team_invite_create(request):
             },
         )
         response["Cache-Control"] = "no-store, max-age=0"
-        response["Referrer-Policy"] = "no-referrer"
+        # Die Seite enthält Formulare (z. B. Abmelden); siehe activate_account.
+        response["Referrer-Policy"] = "same-origin"
         return response
     return render(request, "core/team_invite_form.html", {"form": form})
 
