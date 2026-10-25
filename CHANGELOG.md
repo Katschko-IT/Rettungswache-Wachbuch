@@ -2,6 +2,8 @@
 
 ## Unveröffentlicht
 
+- Neues **App-Icon**: blaues Feld im Logo-Blau mit weißem kursivem „W“
+  (Web-App, Favicon der Projektseite); erzeugt mit `scripts/make_app_icons.py`.
 - Das eigene **Wachwerk-Logo** steht wieder in der Kopfleiste (statt der
   rot-weißen Text-Marke).
 - **Keine rot-weißen Warnstreifen** mehr: entfernt aus Kopfleiste, Logo-Feld,
