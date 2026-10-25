@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "core" / "static" / "core"
 TARGETS = [ROOT / "site" / "assets" / "design", ROOT / "docs" / "praesentation" / "design"]
-FILES = ["tokens.css", "fonts.css", "public.css", "icons.svg"]
+FILES = ["tokens.css", "fonts.css", "public.css", "icons.svg", "brand-wachwerk.png"]
 
 
 def design_files() -> list[Path]:

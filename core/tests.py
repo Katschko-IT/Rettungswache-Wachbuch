@@ -66,8 +66,10 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_brand_uses_station_subtitle(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'class="brand-mark"', html=False)
-        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False)
+        # Eigenes Wachwerk-Logo statt Text-Marke.
+        self.assertContains(response, 'class="brand-logo"', html=False)
+        self.assertContains(response, 'core/brand-wachwerk', html=False)
+        self.assertContains(response, 'alt="Wachwerk"', html=False)
         self.assertContains(response, self.station.name)
         self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
@@ -103,7 +105,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         response = self.client.get(reverse("dashboard"))
         self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
         self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
-        self.assertContains(response, 'class="brand-mark"', html=False)
+        self.assertContains(response, 'class="brand-logo"', html=False)
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "tokens.css").read_text(
             encoding="utf-8"
         )
@@ -147,7 +149,7 @@ class ProgressiveWebAppTests(PilotTestCase):
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))
-        self.assertContains(response, '<span class="brand-name">Wachwerk</span>', html=False, count=1)
+        self.assertContains(response, 'class="brand-logo"', html=False, count=1)
         self.assertNotContains(response, "brand-hero")
         # Die Startseite zeigt die echte Oberfläche (synthetische Daten) statt eines Stockfotos.
         self.assertContains(response, "core/screens/overview-desktop-light")

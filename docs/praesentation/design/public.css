@@ -14,7 +14,8 @@
   background: var(--bg);
 }
 .pub *, .pub *::before, .pub *::after { box-sizing: border-box; }
-.pub img { max-width: 100%; height: auto; display: block; }
+/* Das Logo in der Kopfleiste behält seine feste Höhe. */
+.pub img:not(.brand-logo):not(.pub-brand-logo) { max-width: 100%; height: auto; display: block; }
 .pub a { color: var(--accent-dark); text-underline-offset: .18em; }
 .pub :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
@@ -28,13 +29,6 @@
   position: relative;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
-}
-.pub-header::before,
-.warn-stripe {
-  content: "";
-  display: block;
-  height: .3125rem;
-  background: repeating-linear-gradient(-45deg, var(--stripe-red) 0 .625rem, var(--stripe-white) .625rem 1.25rem);
 }
 .pub-header-inner {
   min-height: 4rem;
@@ -53,14 +47,7 @@
   letter-spacing: -.015em;
   text-decoration: none;
 }
-.pub-brand-mark {
-  width: 1.75rem;
-  height: 1.75rem;
-  flex: none;
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent);
-  background: repeating-linear-gradient(-45deg, var(--stripe-red) 0 .3rem, var(--stripe-white) .3rem .6rem);
-}
+.pub-brand-logo { display: block; height: 2.4rem; width: auto; }
 .pub-nav { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; }
 .pub-nav a {
   min-height: var(--touch);
@@ -196,7 +183,7 @@
 .boundary {
   position: relative;
   padding: clamp(1.5rem, 4vw, 2.5rem);
-  padding-left: calc(clamp(1.5rem, 4vw, 2.5rem) + 1.25rem);
+  padding-left: calc(clamp(1.5rem, 4vw, 2.5rem) + .5rem);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -206,8 +193,8 @@
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 1rem;
-  background: repeating-linear-gradient(-45deg, var(--stripe-red) 0 .625rem, var(--stripe-white) .625rem 1.25rem);
+  width: .375rem;
+  background: var(--brand);
 }
 .boundary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 2.5rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
 .boundary-list strong { display: block; }

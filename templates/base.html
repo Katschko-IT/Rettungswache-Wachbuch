@@ -35,8 +35,7 @@
   <header class="app-header">
     <div class="header-inner">
       <a class="brand" href="{% if terminal_open_mode %}{% url 'terminal_menu' %}{% elif current_membership %}{% if current_membership.role == 'auditor' %}{% url 'audit_log' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">{{ app_name }}</span>
+        <img class="brand-logo" src="{% static 'core/brand-wachwerk.png' %}" alt="{{ app_name }}" width="480" height="176" decoding="async">
       </a>
       {% if current_membership %}
       <p class="header-station">{{ current_membership.station.name }}</p>
