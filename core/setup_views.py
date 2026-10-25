@@ -227,6 +227,11 @@ def setup_wizard(request):
         initial = dict(request.session.get(DRAFT_SESSION_KEY) or {})
         # Am Touch-Bildschirm des Servers ist „dieses Gerät“ das Terminal.
         initial.setdefault("register_terminal", is_local_request(request))
+        # Über eine echte Domain aufgerufen: vermutlich öffentlich erreichbar.
+        public = _looks_public(request)
+        initial.setdefault("public_site", public)
+        initial.setdefault("mfa_required", public)
+        initial.setdefault("server_location", "germany" if public else "station")
         form = SetupWizardForm(initial=initial)
 
     return _render_wizard(
@@ -234,6 +239,23 @@ def setup_wizard(request):
         form,
         weather_preview=request.session.get(WEATHER_SESSION_KEY),
     )
+
+
+def _looks_public(request) -> bool:
+    """Aufruf über einen Domainnamen statt über IP, localhost oder einen LAN-Namen."""
+    import ipaddress
+
+    try:
+        host = request.get_host().rsplit(":", 1)[0].strip("[]").lower()
+    except Exception:  # DisallowedHost: nichts vermuten
+        return False
+    if is_local_request(request) or host.endswith((".lan", ".local", ".home", ".internal")) or "." not in host:
+        return False
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return True
+    return False
 
 
 def _finish_setup(request, station, user, cleaned):
@@ -258,6 +280,8 @@ def _finish_setup(request, station, user, cleaned):
         "terminal_registered": register,
         "code_set": code_set,
         "weather": bool(station.weather_enabled),
+        "public_site": bool(cleaned.get("public_site")),
+        "mfa_required": bool(cleaned.get("mfa_required")),
     }
     response = redirect("setup_done")
     if raw_terminal:
@@ -347,6 +371,20 @@ def setup_weather_preview(request):
             "admin_first_name",
             "admin_last_name",
             "admin_email",
+            "public_site",
+            "operator_name",
+            "operator_represented_by",
+            "operator_street",
+            "operator_postal_code",
+            "operator_city",
+            "operator_email",
+            "operator_phone",
+            "dpo_name",
+            "dpo_email",
+            "server_location",
+            "hosting_provider",
+            "supervisory_authority",
+            "mfa_required",
         )
     }
     request.session[WEATHER_SESSION_KEY] = {

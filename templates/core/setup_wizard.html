@@ -95,6 +95,34 @@
     </section>
   {% endif %}
 
+  <section class="section-block">
+    <h2>{% translate "Impressum (Anbieter)" %}</h2>
+    <p class="help-text">{% translate "Wer betreibt diese Wachwerk-Installation? Bei öffentlicher Erreichbarkeit verlangt § 5 DDG ein Impressum. Leere Felder übernehmen die Angaben der Wache bzw. des Admin-Kontos." %}</p>
+    {% include "core/_setup_field.html" with field=form.public_site %}
+    {% include "core/_setup_field.html" with field=form.operator_name %}
+    {% include "core/_setup_field.html" with field=form.operator_represented_by %}
+    {% include "core/_setup_field.html" with field=form.operator_street %}
+    {% include "core/_setup_field.html" with field=form.operator_postal_code %}
+    {% include "core/_setup_field.html" with field=form.operator_city %}
+    {% include "core/_setup_field.html" with field=form.operator_email %}
+    {% include "core/_setup_field.html" with field=form.operator_phone %}
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Datenschutz" %}</h2>
+    <p class="help-text">{% translate "Diese Angaben erscheinen in der Datenschutzinformation (Art. 13 DSGVO). Verantwortlich ist der Anbieter aus dem Impressum." %}</p>
+    {% include "core/_setup_field.html" with field=form.dpo_name %}
+    {% include "core/_setup_field.html" with field=form.dpo_email %}
+    {% include "core/_setup_field.html" with field=form.server_location %}
+    {% include "core/_setup_field.html" with field=form.hosting_provider %}
+    {% include "core/_setup_field.html" with field=form.supervisory_authority %}
+  </section>
+
+  <section class="section-block">
+    <h2>{% translate "Sicherheit" %}</h2>
+    {% include "core/_setup_field.html" with field=form.mfa_required %}
+  </section>
+
   <p class="help-text">{% translate "Angelegt werden genau eine Wache und dein Admin-Konto. Mitarbeitende erhalten danach persönliche Einladungslinks." %}</p>
   <button class="button primary" type="submit">{% translate "Einrichtung abschließen" %}</button>
 </form>

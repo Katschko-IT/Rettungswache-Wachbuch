@@ -82,7 +82,7 @@ from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, Station
 from .waste_sync import store_station_waste
 from .mfa import (
     confirm_device,
-    create_pending_device,
+    pending_device,
     mfa_enabled,
     mfa_required,
     provisioning_uri,
@@ -298,6 +298,14 @@ def privacy_notice(request):
         "csrf_cookie_age": csrf_cookie_age,
         "csrf_exact_days": csrf_cookie_age // 86400 if csrf_cookie_age and csrf_cookie_age % 86400 == 0 else None,
     })
+
+
+@require_GET
+def legal_notice(request):
+    """Impressum (§ 5 DDG) aus den Betreiberangaben des Einrichtungsassistenten."""
+    from .site_profile import SiteProfile
+
+    return render(request, "core/impressum.html", {"profile": SiteProfile.current()})
 
 
 @require_GET
@@ -1271,7 +1279,23 @@ def membership_update(request, pk):
     return render(request, "core/membership_form.html", {
         "form": form,
         "edited_membership": membership,
+        "member_has_totp": TotpDevice.objects.filter(user=membership.user, is_confirmed=True).exists(),
     })
+
+
+@membership_required({Membership.Role.ADMIN})
+@require_POST
+def membership_mfa_reset(request, pk):
+    """Zwei-Faktor einer Person zurücksetzen (z. B. Handy verloren); nur Admins, mit Audit."""
+    membership = get_object_or_404(Membership, pk=pk, station=request.membership.station)
+    removed, _details = TotpDevice.objects.filter(user=membership.user).delete()
+    if removed:
+        from .qr_login import revoke_open_requests_for_user
+
+        revoke_open_requests_for_user(membership.user)
+        audit(request.user, request.membership.station, "mfa.reset", membership, {"fields": ["totp"]})
+        messages.success(request, _("Zwei-Faktor-Anmeldung wurde zurückgesetzt."))
+    return redirect("membership_update", pk=membership.pk)
 
 
 @membership_required({Membership.Role.ADMIN})
@@ -1305,6 +1329,38 @@ def presentation_settings(request):
     rows += [option for option in config["options"] if not option["selected"]]
 
     return render(request, "core/presentation.html", {"rows": rows})
+
+
+@membership_required({Membership.Role.ADMIN})
+@require_http_methods(["GET", "POST"])
+def legal_settings(request):
+    """Impressum, Datenschutz-Information und 2FA-Pflicht pflegen."""
+    from .forms import SiteProfileForm
+    from .privacy_models import DataProtectionOfficer
+    from .site_profile import SiteProfile
+
+    station = request.membership.station
+    profile = SiteProfile.current() or SiteProfile(operator_name=station.name, street=station.street,
+                                                    postal_code=station.postal_code, city=station.city)
+    dpo = DataProtectionOfficer.objects.filter(station=station, is_primary=True).first()
+    initial = {"dpo_name": dpo.display_name, "dpo_email": dpo.email, "dpo_phone": dpo.phone} if dpo else {}
+    form = SiteProfileForm(request.POST or None, instance=profile, initial=initial)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            saved = form.save(commit=False)
+            saved.updated_by = request.user
+            saved.save()
+            name, email = form.cleaned_data.get("dpo_name"), form.cleaned_data.get("dpo_email")
+            if name and email:
+                dpo = dpo or DataProtectionOfficer(station=station, is_primary=True, publish_in_privacy_notice=True)
+                dpo.display_name, dpo.email, dpo.phone = name, email, form.cleaned_data.get("dpo_phone") or ""
+                dpo.save()
+            elif dpo:
+                dpo.delete()
+            audit(request.user, station, "legal.updated", saved, {"fields": sorted(form.changed_data)})
+        messages.success(request, _("Impressum und Datenschutzangaben gespeichert."))
+        return redirect("legal_settings")
+    return render(request, "core/legal_settings.html", {"form": form})
 
 
 @membership_required({Membership.Role.ADMIN})
@@ -1424,7 +1480,7 @@ def mfa_setup(request):
             "passkeys": passkeys,
             "webauthn_enabled": webauthn_enabled(),
         })
-    device = create_pending_device(request.user)
+    device = pending_device(request.user)
     form = TotpConfirmForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         if confirm_device(device, form.cleaned_data["token"]):
@@ -1432,13 +1488,34 @@ def mfa_setup(request):
             return redirect("mfa_setup")
         form.add_error("token", _("Code ungültig. Bitte erneut scannen und prüfen."))
         device = TotpDevice.objects.get(pk=device.pk)
-    return render(request, "registration/mfa_setup.html", {
+    secret = totp_plaintext(device)
+    uri = provisioning_uri(device)
+    response = render(request, "registration/mfa_setup.html", {
         "form": form,
-        "secret": totp_plaintext(device),
-        "provisioning_uri": provisioning_uri(device),
+        "secret": secret,
+        "secret_groups": [secret[i:i + 4] for i in range(0, len(secret), 4)],
+        "provisioning_uri": uri,
+        "qr_data_uri": _qr_data_uri(uri),
         "webauthn_enabled": webauthn_enabled(),
         "passkeys": passkeys,
+        "mfa_required": mfa_required(),
     })
+    # Enthält das TOTP-Geheimnis: nie zwischenspeichern.
+    response["Cache-Control"] = "no-store, max-age=0"
+    response["Referrer-Policy"] = "same-origin"  # no-referrer liesse Chrome Origin: null senden (CSRF)
+    return response
+
+
+def _qr_data_uri(payload: str) -> str:
+    import base64
+    import io
+
+    import qrcode
+
+    image = qrcode.make(payload, box_size=6, border=2)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii")
 
 
 @require_POST

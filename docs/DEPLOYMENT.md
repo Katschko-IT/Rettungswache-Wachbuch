@@ -308,7 +308,7 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 | `POSTGRES_SHARED_BUFFERS` u. a. | `128MB` … | PostgreSQL-Speicher, siehe OPERATIONS.md |
 | `BACKUP_RETENTION_DAYS` | `7` | lokale Aufbewahrung der Dumps |
 | `BACKUP_OFFSITE_DIR` / `BACKUP_OFF_TARGET` | leer | Offsite-Kopie (Host-Ordner als `/offsite`) |
-| `MFA_REQUIRED` | `false` | Zweitfaktor erzwingen |
+| `MFA_REQUIRED` | `false` | Zweitfaktor erzwingen (alternativ im Assistenten bzw. unter Einstellungen → Impressum & Datenschutz) |
 | `FEED_ALLOWED_HOSTS` | leer | erlaubte HTTPS-Feedquellen |
 
 ## Sicherheitshärtung
@@ -317,7 +317,8 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 - [ ] TLS aktiv (`lan`/`domain` oder eigener Proxy), `SECURE_COOKIES=true`
 - [ ] `DJANGO_DEBUG=false`, `DEMO_MODE=false`
 - [ ] Einrichtungscode nach der Ersteinrichtung aus `.env` entfernt
-- [ ] `MFA_REQUIRED=true` für den Produktivbetrieb
+- [ ] Zwei-Faktor-Pflicht aktiv (`MFA_REQUIRED=true` oder Häkchen im Assistenten)
+- [ ] Impressum und Datenschutz unter Einstellungen → Impressum & Datenschutz vollständig und rechtlich geprüft (bei öffentlicher Domain Pflicht)
 - [ ] Firewall: nur 80/443 (bzw. nichts bei `local`); Port 8090 bleibt auf Loopback
 - [ ] Backups geprüft: `wachbuch backup`, `docker compose run --rm restore-test`,
       Offsite-Kopie eingerichtet

@@ -1641,3 +1641,6 @@ from .display_models import DisplayToken  # noqa: E402,F401
 
 # Wachenterminal (Touch-Bildschirm mit gemeinsamem Wachen-Code)
 from .terminal_models import StationTerminal, StationTerminalCode, TerminalPairing  # noqa: E402,F401
+
+# Betreiberangaben (Impressum, Datenschutz-Information, 2FA-Pflicht)
+from .site_profile import SiteProfile  # noqa: E402,F401

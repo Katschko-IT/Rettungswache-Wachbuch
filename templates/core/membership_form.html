@@ -1,4 +1,15 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block title %}{% translate "Mitglied bearbeiten" %} | {{ app_name }}{% endblock %}
-{% block content %}<a class="back-link" href="{% url 'team' %}">{% translate "Zurück zum Team" %}</a><header class="page-heading narrow"><p class="context-line">{{ edited_membership.user.username }}</p><h1>{{ edited_membership.user.first_name|default:edited_membership.user.username }} {% translate "bearbeiten" %}</h1></header><form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">{% translate "Änderungen speichern" %}</button><a class="button secondary" href="{% url 'team' %}">{% translate "Abbrechen" %}</a></div></form>{% endblock %}
+{% block content %}<a class="back-link" href="{% url 'team' %}">{% translate "Zurück zum Team" %}</a><header class="page-heading narrow"><p class="context-line">{{ edited_membership.user.username }}</p><h1>{{ edited_membership.user.first_name|default:edited_membership.user.username }} {% translate "bearbeiten" %}</h1></header><form method="post" class="form-card narrow">{% csrf_token %}{% include "core/form_errors.html" %}{{ form.as_p }}<div class="form-actions"><button class="button primary" type="submit">{% translate "Änderungen speichern" %}</button><a class="button secondary" href="{% url 'team' %}">{% translate "Abbrechen" %}</a></div></form>
+{% if member_has_totp %}
+<section class="form-card narrow">
+  <h2>{% translate "Zwei-Faktor-Anmeldung" %}</h2>
+  <p>{% translate "Handy verloren oder gewechselt? Nach dem Zurücksetzen richtet die Person bei der nächsten Anmeldung eine Authenticator-App neu ein." %}</p>
+  <form method="post" action="{% url 'membership_mfa_reset' edited_membership.pk %}" data-confirm="{% translate 'Zwei-Faktor-Anmeldung dieser Person wirklich zurücksetzen?' %}">
+    {% csrf_token %}
+    <button class="button secondary" type="submit">{% translate "Zwei-Faktor zurücksetzen" %}</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

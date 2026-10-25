@@ -2,6 +2,26 @@
 
 ## Unveröffentlicht
 
+- **Impressum, Datenschutz und Zwei-Faktor im Einrichtungsassistenten**: Der
+  Assistent fragt jetzt, ob Wachwerk öffentlich im Internet erreichbar ist
+  (bei einer Domain vorausgewählt), und erfasst Anbieter, Vertretung,
+  Anschrift und Kontakt für das Impressum (§ 5 DDG), Datenschutzbeauftragte,
+  Serverstandort, Hosting-Anbieter und Aufsichtsbehörde für die
+  Datenschutzinformation (Art. 13 DSGVO) sowie die Zwei-Faktor-Pflicht für
+  alle Konten. Leere Felder übernehmen Wache und Admin-Konto.
+  - Neue Seite **/impressum/** (Link im Fußbereich); Admins pflegen alles unter
+    Einstellungen → Impressum & Datenschutz.
+  - Die Datenschutzseite nennt den Verantwortlichen, Hosting und
+    Aufsichtsbehörde aus diesen Angaben.
+  - **Zwei-Faktor mit Google Authenticator, Microsoft Authenticator, Aegis,
+    2FAS oder der iPhone-Passwörter-App**: Einrichtung mit QR-Code,
+    Schlüssel zum Abtippen und Schritt-für-Schritt-Anleitung. Admins können
+    die Zwei-Faktor-Anmeldung bei verlorenem Handy im Team zurücksetzen
+    (protokolliert).
+- Zwei-Faktor-Einrichtung im Browser schlug immer fehl: Jeder Aufruf – auch
+  das Absenden des Codes – erzeugte einen neuen Schlüssel, der Code aus der
+  App passte daher nie. Der unbestätigte Schlüssel bleibt jetzt bis zur
+  Bestätigung gleich.
 - Neues **App-Icon**: blaues Feld im Logo-Blau mit weißem kursivem „W“
   (Web-App, Favicon der Projektseite); erzeugt mit `scripts/make_app_icons.py`.
 - Das eigene **Wachwerk-Logo** steht wieder in der Kopfleiste (statt der

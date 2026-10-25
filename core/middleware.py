@@ -175,6 +175,7 @@ class MfaEnforcementMiddleware:
         "/healthz/",
         "/offline/",
         "/datenschutz/",
+        "/impressum/",
         "/manifest.webmanifest",
         "/service-worker.js",
         "/favicon.ico",
@@ -198,7 +199,8 @@ class MfaEnforcementMiddleware:
         from .mfa import mfa_enabled, mfa_required, user_has_confirmed_mfa
 
         user = getattr(request, "user", None)
-        if not (mfa_enabled() and mfa_required() and user is not None and user.is_authenticated):
+        # Erst Anmeldung prüfen: anonyme Aufrufe (auch Fehlerseiten) brauchen keine Datenbank.
+        if user is None or not user.is_authenticated or not (mfa_enabled() and mfa_required()):
             return False
         path = request.path_info
         # QR-Bestätigung meldet eine andere Sitzung an und braucht daher selbst

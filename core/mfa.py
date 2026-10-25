@@ -12,7 +12,12 @@ def mfa_enabled():
 
 
 def mfa_required():
-    return bool(getattr(settings, "MFA_REQUIRED", False))
+    """Pflicht per Umgebung (MFA_REQUIRED) oder durch den Betreiber im Assistenten/Einstellungen."""
+    if getattr(settings, "MFA_REQUIRED", False):
+        return True
+    from .site_profile import site_mfa_required
+
+    return site_mfa_required()
 
 
 def user_has_confirmed_mfa(user):
@@ -56,6 +61,12 @@ def create_pending_device(user):
         },
     )
     return device
+
+
+def pending_device(user):
+    """Unbestätigtes Gerät weiterverwenden: der Schlüssel muss zwischen QR-Anzeige und Bestätigung gleich bleiben."""
+    device = TotpDevice.objects.filter(user=user, is_confirmed=False).first()
+    return device or create_pending_device(user)
 
 
 def verify_totp(device, token):
