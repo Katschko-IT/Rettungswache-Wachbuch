@@ -59,6 +59,19 @@
         </li>
       {% endfor %}
     </ol>
+    {% if email_reminders_offered %}
+      <form method="post" action="{% url 'coffee_email_preference' %}" class="coffee-email-pref">
+        {% csrf_token %}
+        {% if participant.email_reminders %}
+          <span>{% translate "Erinnerung per E-Mail mit Überweisungs-QR ist an." %}</span>
+          <button class="text-action" type="submit">{% translate "E-Mail-Erinnerung abbestellen" %}</button>
+        {% else %}
+          <input type="hidden" name="email_reminders" value="on">
+          <span>{% translate "Erinnerung per E-Mail ist abbestellt." %}</span>
+          <button class="text-action" type="submit">{% translate "Wieder per E-Mail erinnern" %}</button>
+        {% endif %}
+      </form>
+    {% endif %}
   {% elif fund.monthly_fee_cents %}
     <p class="help-text">{% translate "Du bist (noch) nicht für den Monatsbeitrag eingetragen. Sprich bitte den Kassenwart an." %}</p>
   {% endif %}

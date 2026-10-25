@@ -199,6 +199,14 @@ services:
       LOCAL_TLS_CERT_SHA256: ${LOCAL_TLS_CERT_SHA256:-}
       TERMINAL_WIFI_SSID: ${TERMINAL_WIFI_SSID:-}
       TERMINAL_WIFI_PASSWORD: ${TERMINAL_WIFI_PASSWORD:-}
+      # E-Mail (optional, SMTP): Kaffeekassen-Erinnerung, Test-E-Mail.
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-}
       # Signal (Profil "signal"): Kopplung und Gruppenwahl in der Weboberfläche.
       SIGNAL_API_URL: ${SIGNAL_API_URL:-}
       SIGNAL_NUMBER: ${SIGNAL_NUMBER:-}
@@ -297,6 +305,13 @@ services:
       SIGNAL_API_URL: ${SIGNAL_API_URL:-}
       SIGNAL_NUMBER: ${SIGNAL_NUMBER:-}
       SITE_URL: ${SITE_URL:-}
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-}
     depends_on:
       web:
         condition: service_healthy
@@ -305,6 +320,8 @@ services:
     networks:
       - app-db
       - signal-api
+      # Ausgehend nur für SMTP (E-Mail-Erinnerungen), falls EMAIL_HOST gesetzt ist.
+      - egress
     tmpfs:
       - /tmp
     read_only: true

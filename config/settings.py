@@ -363,6 +363,22 @@ PUSH_RELAY_URL = os.getenv("PUSH_RELAY_URL", "").strip()
 PUSH_RELAY_TOKEN = os.getenv("PUSH_RELAY_TOKEN", "").strip()
 if PUSH_RELAY_URL and not PUSH_RELAY_URL.startswith("https://"):
     raise ImproperlyConfigured("PUSH_RELAY_URL muss eine https://-Adresse sein.")
+# Optional: E-Mail über SMTP (z. B. Erinnerungen der Kaffeekasse mit
+# Überweisungs-QR). Ohne EMAIL_HOST verschickt Wachwerk keine E-Mails.
+EMAIL_HOST = os.getenv("EMAIL_HOST", "").strip()
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587") or 587)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+# Leer (wie Compose ungesetzte Variablen weitergibt) = Standard, nicht „aus“:
+# sonst liefe SMTP auf Port 587 still unverschlüsselt.
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL") if os.getenv("EMAIL_USE_SSL", "").strip() else EMAIL_PORT == 465
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS") if os.getenv("EMAIL_USE_TLS", "").strip() else not EMAIL_USE_SSL
+EMAIL_TIMEOUT = 20
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "").strip() or EMAIL_HOST_USER or "wachwerk@localhost"
+if not EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+if EMAIL_USE_SSL and EMAIL_USE_TLS:
+    raise ImproperlyConfigured("EMAIL_USE_SSL und EMAIL_USE_TLS schließen sich aus.")
 # Optional: Benachrichtigungen per Signal über einen signal-cli-rest-api-
 # Container im internen Netz (docs/SIGNAL.md). Leer = Signal aus.
 SIGNAL_API_URL = os.getenv("SIGNAL_API_URL", "").strip().rstrip("/")

@@ -5,7 +5,7 @@ import datetime as dt
 from unittest import mock
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from core import coffee as logic
@@ -280,3 +280,80 @@ class YearOverviewTests(CoffeeFixture):
         member.force_login(self.member)
         own = member.get(reverse("coffee") + f"?jahr={last_year}")
         self.assertContains(own, f"Meine Monate {last_year}")
+
+
+@override_settings(EMAIL_HOST="smtp.example.test", SITE_URL="https://rwsth.de", LANGUAGE_CODE="de")
+class CoffeeEmailTests(CoffeeFixture):
+    def setUp(self):
+        super().setUp()
+        from django.core import mail
+
+        self.mail = mail
+        self.fund.email_reminder = True
+        self.fund.reminder_day = 1
+        self.fund.account_holder = "Kaffeekasse RW Nord"
+        self.fund.save()
+        self.member.email = "mara@example.test"
+        self.member.save()
+        month = logic.month_start(logic.station_today(self.station))
+        self.participant = self.join(self.member, month)
+
+    def test_monthly_email_has_girocode_and_iban(self):
+        logic.remind_open_fees()
+        logic.remind_open_fees()
+        self.assertEqual(len(self.mail.outbox), 1)
+        message = self.mail.outbox[0]
+        self.assertEqual(message.to, ["mara@example.test"])
+        self.assertIn("5,00 € offen", message.subject)
+        self.assertIn("DE89370400440532013000", message.body)
+        self.assertIn("Kaffeekasse RW Nord Mara Muster", message.body)
+        self.assertIn("https://rwsth.de/kaffeekasse/", message.body)
+        html = message.alternatives[0][0]
+        self.assertIn('src="cid:girocode"', html)
+        mime = message.message()
+        related = mime.get_body(preferencelist=("related",))
+        self.assertIsNotNone(related)
+        images = [part for part in mime.walk() if part.get("Content-ID") == "<girocode>"]
+        self.assertEqual(len(images), 1)
+        self.assertEqual(images[0].get_content_type(), "image/png")
+        self.assertTrue(images[0].get_content().startswith(b"\x89PNG"))
+
+    def test_opt_out_and_missing_address_skip_email(self):
+        self.client.force_login(self.member)
+        self.assertContains(self.client.get(reverse("coffee")), "E-Mail-Erinnerung abbestellen")
+        self.client.post(reverse("coffee_email_preference"), {})
+        self.participant.refresh_from_db()
+        self.assertFalse(self.participant.email_reminders)
+        logic.remind_open_fees()
+        self.assertEqual(self.mail.outbox, [])
+        self.assertTrue(UserNotification.objects.filter(user=self.member).exists())  # Posteingang bleibt
+
+    def test_cashier_sends_reminder_once_a_day(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        logic.ensure_fees(self.station)
+        self.client.force_login(self.cashier)
+        self.assertContains(self.client.get(reverse("coffee_book")), "Erinnerung per E-Mail an Mara Muster")
+        url = reverse("coffee_email_reminder", args=[self.member.pk])
+        self.client.post(url)
+        self.client.post(url)
+        self.assertEqual(len(self.mail.outbox), 1)
+        self.assertTrue(AuditEvent.objects.filter(action="coffee.reminder_emailed").exists())
+
+    def test_admin_sends_test_email_to_self(self):
+        self.admin.email = "chef@example.test"
+        self.admin.save()
+        self.client.force_login(self.admin)
+        self.assertContains(self.client.get(reverse("coffee_settings")), "Monatliche Erinnerung per E-Mail")
+        self.client.post(reverse("coffee_test_email"))
+        self.assertEqual(self.mail.outbox[0].to, ["chef@example.test"])
+        self.assertIn("Zahlungsangaben", self.mail.outbox[0].subject)
+
+    def test_without_smtp_nothing_is_offered(self):
+        with self.settings(EMAIL_HOST=""):
+            from core.forms import CoffeeFundForm
+
+            self.assertNotIn("email_reminder", CoffeeFundForm(instance=self.fund).fields)
+            logic.remind_open_fees()
+            self.assertEqual(self.mail.outbox, [])

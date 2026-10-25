@@ -62,6 +62,12 @@
           <td class="coffee-cell">{{ row.paid_count }}{% if row.open_year_euros %} <small class="amount negative">−{{ row.open_year_euros|floatformat:2 }} €</small>{% endif %}</td>
           <td class="amount {% if row.status.open_cents %}negative{% endif %}">{% if row.status.open_cents %}−{{ row.status.open_euros|floatformat:2 }} €{% elif row.status.credit_cents %}+{{ row.status.credit_euros|floatformat:2 }} €{% else %}0,00 €{% endif %}</td>
           <td>
+            {% if email_enabled and row.user.email and row.status.open_cents %}
+            <form method="post" action="{% url 'coffee_email_reminder' row.user.pk %}" class="coffee-row-mail">
+              {% csrf_token %}
+              <button class="button secondary small" type="submit" aria-label="{% blocktranslate with person=row.user.get_full_name|default:row.user.username %}Erinnerung per E-Mail an {{ person }}{% endblocktranslate %}">✉ {% translate "E-Mail" %}</button>
+            </form>
+            {% endif %}
             {% if fund.monthly_fee_cents and row.active %}
             <form method="post" action="{% url 'coffee_cash_received' row.user.pk %}">
               {% csrf_token %}

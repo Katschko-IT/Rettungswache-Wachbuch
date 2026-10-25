@@ -20,4 +20,16 @@
     <a class="button secondary" href="{% url 'coffee' %}">{% translate "Abbrechen" %}</a>
   </div>
 </form>
+<section class="form-card narrow coffee-mail-card">
+  <h2>{% translate "E-Mail" %}</h2>
+  {% if email_enabled %}
+    <p>{% translate "Die Erinnerung enthält Betrag, offene Monate, IBAN, Verwendungszweck und den Überweisungs-QR (GiroCode). Schick dir zuerst eine Test-E-Mail." %}</p>
+    <form method="post" action="{% url 'coffee_test_email' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit">{% translate "Test-E-Mail an mich" %}</button>
+    </form>
+  {% else %}
+    <p class="help-text">{% translate "Der E-Mail-Versand ist auf diesem Server nicht eingerichtet. Dafür in der Datei .env EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD und DEFAULT_FROM_EMAIL setzen (docs/DEPLOYMENT.md)." %}</p>
+  {% endif %}
+</section>
 {% endblock %}

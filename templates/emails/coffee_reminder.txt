@@ -1,0 +1,24 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate with name=person %}Hallo {{ name }},{% endblocktranslate %}
+
+{% if open_euros %}{% blocktranslate with amount=open_euros|floatformat:2 station=station.name %}in der Kaffeekasse der {{ station }} sind {{ amount }} € offen.{% endblocktranslate %}
+{% if open_months %}{% translate "Offene Monate" %}: {{ open_months|join:", " }}
+{% endif %}{% else %}{% blocktranslate with fee=fee_euros|floatformat:2 station=station.name %}hier die Zahlungsangaben der Kaffeekasse der {{ station }} (Monatsbeitrag {{ fee }} €).{% endblocktranslate %}
+{% endif %}
+{% translate "Bar: einfach in die Kasse legen und danach in Wachwerk unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}
+{% if transfer %}
+{% translate "Überweisung" %}:
+  {% translate "Empfänger" %}: {{ transfer.name }}
+  {% translate "IBAN" %}: {{ transfer.iban }}{% if transfer.bic %}
+  {% translate "BIC" %}: {{ transfer.bic }}{% endif %}{% if transfer.amount_euros %}
+  {% translate "Betrag" %}: {{ transfer.amount_euros|floatformat:2 }} €{% endif %}
+  {% translate "Verwendungszweck" %}: {{ transfer.text }}
+{% translate "In der HTML-Ansicht dieser E-Mail steckt ein QR-Code (GiroCode) für die Banking-App." %}
+{% endif %}{% if paypal_url %}{% translate "PayPal" %}: {{ paypal_url }}
+{% endif %}{% if wero_url %}{% translate "Wero" %}: {{ wero_url }}
+{% endif %}{% if note %}
+{{ note }}
+{% endif %}{% if coffee_url %}
+{{ coffee_url }}
+{% endif %}
+{% blocktranslate with app=app_name %}Diese Erinnerung kommt automatisch von {{ app }}. Abbestellen: Kaffeekasse → „E-Mail-Erinnerung abbestellen“.{% endblocktranslate %}
+{% endautoescape %}

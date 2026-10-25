@@ -33,6 +33,10 @@ class CoffeeFund(models.Model):
         _("Kontoinhaber für Überweisungen"), max_length=70, blank=True, default="",
         help_text=_("Name für den Überweisungs-QR (GiroCode). Am besten ein eigenes Konto der Kasse."),
     )
+    email_reminder = models.BooleanField(
+        _("Monatliche Erinnerung per E-Mail"), default=False,
+        help_text=_("Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."),
+    )
     signal_group_reminder = models.BooleanField(
         _("Monatliche Erinnerung in die Signal-Gruppe"), default=False,
         help_text=_("Ohne Namen: „Der Beitrag für November ist fällig – 5 von 12 haben schon bezahlt.“"),
@@ -63,6 +67,8 @@ class CoffeeParticipant(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="coffee_participations")
     since = models.DateField(_("Beitrag ab Monat"))
     until = models.DateField(_("Beitrag bis Monat"), null=True, blank=True)
+    # Jede Person kann die E-Mail-Erinnerung für sich abbestellen.
+    email_reminders = models.BooleanField(_("Erinnerung per E-Mail"), default=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="+")
     created_at = models.DateTimeField(auto_now_add=True)
 

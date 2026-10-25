@@ -2,6 +2,16 @@
 
 ## Unveröffentlicht
 
+- **E-Mail-Erinnerung der Kaffeekasse mit Überweisungs-QR.**
+  - Neu: optionaler SMTP-Versand (`EMAIL_HOST` usw., Standard Port 587 mit
+    STARTTLS; leere Compose-Variablen schalten TLS nicht ab).
+  - Bei offenem Beitrag kommt einmal im Monat eine E-Mail mit Betrag,
+    offenen Monaten, IBAN, Verwendungszweck und eingebettetem GiroCode
+    (multipart/related, mit Banking-App geprüft lesbar).
+  - Jede Person kann die E-Mail selbst abbestellen.
+  - Der Kassenwart schickt sie aus der Mappe sofort (höchstens einmal am Tag
+    je Person); dazu eine Test-E-Mail an die eigene Adresse.
+  - Der `notify-worker` darf dafür ausgehend ins Netz (`egress`).
 - **Kaffeekasse: Jahresübersicht.** Die Mappe des Kassenwarts zeigt ein
   ganzes Jahr (Januar bis Dezember, frühere Jahre umschaltbar):
   - wer welchen Monat bezahlt hat, wer nicht und wer befreit ist;

@@ -134,6 +134,22 @@ Erinnerungen gehen nur an die betroffene Person, über den Posteingang und Push.
   - Ausgeschiedene Teilnehmende bleiben in den Jahren sichtbar, in denen sie gezahlt haben.
 - **Eigene Ansicht:** Jede Person sieht ihre eigenen zwölf Monate je Jahr.
 
+### E-Mail mit Überweisungs-QR
+
+Ist SMTP eingerichtet, kann der Kassenwart unter Kaffeekasse → Einstellungen
+die **monatliche Erinnerung per E-Mail** einschalten (`EMAIL_HOST` usw. in
+`.env`, siehe `docs/DEPLOYMENT.md`).
+
+- **Wer sie bekommt:** Teilnehmende mit offenem Beitrag und E-Mail-Adresse im Konto, einmal im Monat ab dem Erinnerungstag.
+- **Was drinsteht:**
+  - offener Betrag und offene Monate
+  - IBAN, Kontoinhaber und Verwendungszweck aus den Einstellungen
+  - eingebetteter **GiroCode** zum Scannen mit der Banking-App
+  - PayPal- und Wero-Link, falls hinterlegt
+- **Abbestellen:** Jede Person kann die E-Mail auf der Kaffeekassen-Seite selbst abbestellen. Der Posteingang bleibt.
+- **Kassenwart:** In der Mappe schickt „✉ E-Mail“ die Erinnerung sofort, höchstens einmal am Tag je Person.
+- **Test-E-Mail:** In den Einstellungen gibt es eine Test-E-Mail an die eigene Adresse.
+
 ### Signal
 
 Optional erinnert Wachwerk auch per Signal (Einrichtung: `docs/SIGNAL.md`):

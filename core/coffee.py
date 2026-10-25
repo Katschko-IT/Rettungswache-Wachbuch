@@ -14,12 +14,14 @@ Regeln (docs/KAFFEEKASSE.md):
 from __future__ import annotations
 
 import datetime as dt
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, transaction
 from django.db.models import Sum
 from django.urls import reverse
@@ -28,6 +30,8 @@ from django.utils.translation import gettext as _
 
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
 from .models import CoffeeEntry, Membership
+
+logger = logging.getLogger(__name__)
 
 PAID = "paid"
 OPEN = "open"
@@ -331,6 +335,85 @@ def transfer_text(station, user) -> str:
     return f"Kaffeekasse {station.name} {person}"
 
 
+def girocode_png(payload: str) -> bytes:
+    import io
+
+    import qrcode
+
+    buffer = io.BytesIO()
+    qrcode.make(payload, box_size=6, border=2).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def transfer_details(station, fund, user, amount_cents: int) -> dict | None:
+    """Überweisungsangaben samt GiroCode-Nutzdaten – oder None ohne IBAN."""
+    if not station.iban:
+        return None
+    name = fund.account_holder or station.name
+    text = transfer_text(station, user)
+    try:
+        payload = epc_payload(name=name, iban=station.iban, bic=station.bic, amount_cents=amount_cents, text=text)
+    except ValueError:
+        return None
+    return {"payload": payload, "name": name, "iban": normalize_iban(station.iban), "bic": station.bic,
+            "amount_euros": amount_cents / 100, "text": text}
+
+
+# --- E-Mail -----------------------------------------------------------------
+
+class HtmlWithImages(EmailMultiAlternatives):
+    """HTML-Teil als multipart/related mit eingebetteten PNG-Bildern (``cid:…``)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inline_images = []
+
+    def message(self, *args, **kwargs):
+        msg = super().message(*args, **kwargs)
+        html = msg.get_body(preferencelist=("html",))
+        for cid, data in self.inline_images:
+            html.add_related(data, "image", "png", cid=f"<{cid}>", disposition="inline", filename=f"{cid}.png")
+        return msg
+
+
+def email_enabled() -> bool:
+    return bool(getattr(settings, "EMAIL_HOST", ""))
+
+
+def send_reminder_email(station, user, *, fund=None, status=None) -> bool:
+    """Erinnerung mit Überweisungs-QR an die E-Mail-Adresse der Person."""
+    from django.template.loader import render_to_string
+
+    if not email_enabled() or not user.email:
+        return False
+    fund = fund or fund_for(station)
+    status = status or member_status(station, user)
+    amount = status.open_cents or fund.monthly_fee_cents
+    transfer = transfer_details(station, fund, user, amount)
+    site = getattr(settings, "SITE_URL", "")
+    with translation.override(settings.LANGUAGE_CODE):
+        context = {
+            "station": station, "person": user.get_full_name() or user.get_username(),
+            "open_euros": status.open_cents / 100, "fee_euros": fund.monthly_fee_cents / 100,
+            "open_months": [m.label for m in status.open_months], "transfer": transfer,
+            "paypal_url": station.paypal_me_url, "wero_url": station.wero_link, "note": station.payment_note,
+            "coffee_url": f"{site}{reverse('coffee')}" if site else "", "app_name": settings.APP_NAME,
+        }
+        if status.open_cents:
+            subject = _("Kaffeekasse %(station)s: %(amount)s offen") % {
+                "station": station.name, "amount": euro(status.open_cents)}
+        else:
+            subject = _("Kaffeekasse %(station)s: Zahlungsangaben") % {"station": station.name}
+        text = render_to_string("emails/coffee_reminder.txt", context)
+        html = render_to_string("emails/coffee_reminder.html", context)
+    message = HtmlWithImages(subject, text, to=[user.email])
+    message.attach_alternative(html, "text/html")
+    if transfer:
+        message.inline_images.append(("girocode", girocode_png(transfer["payload"])))
+    message.send()
+    return True
+
+
 # --- Erinnerung ------------------------------------------------------------
 
 def remind_open_fees(now=None) -> int:
@@ -385,6 +468,11 @@ def _remind_open_fees(now=None) -> int:
                         created += 1
             except IntegrityError:
                 continue
+            if was_created and fund.email_reminder and participant.email_reminders:
+                try:
+                    send_reminder_email(station, participant.user, fund=fund, status=status)
+                except Exception:  # SMTP-Fehler dürfen die übrigen Erinnerungen nicht aufhalten
+                    logger.exception("Kaffeekasse: E-Mail-Erinnerung an Nutzer %s fehlgeschlagen", participant.user_id)
     return created
 
 

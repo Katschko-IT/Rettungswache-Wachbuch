@@ -216,6 +216,8 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
             "Filter": "im Englischen identisch",
             "Signal": "Produktname (Messenger)",
+            "PayPal": "Produktname",
+            "Wero": "Produktname",
             "Export (CSV)": "im Englischen identisch",
             "BIC (optional)": "Bankbegriff, im Englischen identisch",
             "openapi.yaml": "Dateiname",

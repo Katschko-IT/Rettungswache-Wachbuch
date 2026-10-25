@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q
@@ -36,6 +38,8 @@ from .forms import (
 )
 from .models import CoffeeEntry, Membership
 from .services import audit
+
+logger = logging.getLogger(__name__)
 
 CASHIER = {Membership.Role.CASHIER}
 SETUP_ROLES = {Membership.Role.CASHIER, Membership.Role.ADMIN}
@@ -123,6 +127,7 @@ def coffee(request):
         "girocode": girocode,
         "is_cashier": _is_cashier(request),
         "can_setup": request.membership.role in SETUP_ROLES,
+        "email_reminders_offered": bool(participant and fund.email_reminder and logic.email_enabled()),
     })
 
 
@@ -246,6 +251,7 @@ def coffee_book(request):
         "others": others,
         "former_ids": former_ids,
         "open_total_euros": open_total / 100,
+        "email_enabled": logic.email_enabled(),
         "pots": logic.pots(station),
     })
 
@@ -271,6 +277,68 @@ def coffee_cash_received(request, user_id):
         "amount": logic.euro(fund.monthly_fee_cents), "person": _person(participant.user),
     })
     return redirect("coffee_book")
+
+
+@membership_required(CASHIER)
+@station_module_required("coffee_enabled")
+@require_POST
+def coffee_email_reminder(request, user_id):
+    """Erinnerung mit Überweisungs-QR sofort per E-Mail schicken (höchstens einmal am Tag je Person)."""
+    station = request.membership.station
+    participant = get_object_or_404(CoffeeParticipant.objects.select_related("user"), station=station, user_id=user_id)
+    user = participant.user
+    if not logic.email_enabled() or not user.email:
+        messages.error(request, _("Für %(person)s ist keine E-Mail-Adresse hinterlegt oder der E-Mail-Versand ist nicht eingerichtet.")
+                       % {"person": _person(user)})
+        return redirect("coffee_book")
+    key = f"coffee-mail:{station.pk}:{user.pk}:{logic.station_today(station):%Y-%m-%d}"
+    if not cache.add(key, 1, 24 * 3600):
+        messages.info(request, _("%(person)s hat heute schon eine Erinnerung bekommen.") % {"person": _person(user)})
+        return redirect("coffee_book")
+    try:
+        logic.send_reminder_email(station, user)
+    except Exception:
+        cache.delete(key)
+        logger.exception("Kaffeekasse: E-Mail an Nutzer %s fehlgeschlagen", user.pk)
+        messages.error(request, _("Die E-Mail konnte nicht gesendet werden. Bitte die E-Mail-Einstellungen prüfen."))
+        return redirect("coffee_book")
+    audit(request.user, station, "coffee.reminder_emailed", participant, {"fields": ["user"]})
+    messages.success(request, _("Erinnerung an %(person)s gesendet.") % {"person": _person(user)})
+    return redirect("coffee_book")
+
+
+@membership_required(SETUP_ROLES)
+@station_module_required("coffee_enabled")
+@require_POST
+def coffee_test_email(request):
+    """Vorschau der Erinnerung an die eigene Adresse – prüft SMTP und Zahlungsangaben."""
+    station = request.membership.station
+    if not logic.email_enabled() or not request.user.email:
+        messages.error(request, _("Für dein Konto ist keine E-Mail-Adresse hinterlegt oder der E-Mail-Versand ist nicht eingerichtet."))
+        return redirect("coffee_settings")
+    try:
+        logic.send_reminder_email(station, request.user)
+    except Exception as exc:
+        logger.exception("Kaffeekasse: Test-E-Mail fehlgeschlagen")
+        messages.error(request, _("Senden fehlgeschlagen: %(error)s") % {"error": exc.__class__.__name__})
+        return redirect("coffee_settings")
+    messages.success(request, _("Test-E-Mail an %(email)s gesendet.") % {"email": request.user.email})
+    return redirect("coffee_settings")
+
+
+@membership_required(CONTENT_ROLES)
+@station_module_required("coffee_enabled")
+@require_POST
+def coffee_email_preference(request):
+    """E-Mail-Erinnerung für sich selbst an- oder abbestellen."""
+    participant = get_object_or_404(CoffeeParticipant, station=request.membership.station, user=request.user)
+    participant.email_reminders = request.POST.get("email_reminders") == "on"
+    participant.save(update_fields=["email_reminders"])
+    if participant.email_reminders:
+        messages.success(request, _("Du bekommst die Erinnerung wieder per E-Mail."))
+    else:
+        messages.success(request, _("E-Mail-Erinnerung abbestellt."))
+    return redirect("coffee")
 
 
 @membership_required(CASHIER)
@@ -446,7 +514,9 @@ def coffee_settings(request):
             })
         messages.success(request, _("Einstellungen der Kaffeekasse gespeichert."))
         return redirect("coffee")
-    return render(request, "core/coffee_settings.html", {"fund_form": fund_form, "ways_form": ways_form})
+    return render(request, "core/coffee_settings.html", {
+        "fund_form": fund_form, "ways_form": ways_form, "email_enabled": logic.email_enabled(),
+    })
 
 
 @membership_required(CONTENT_ROLES)
