@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Mappe" %} | {% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee' %}">{% translate "Zurück zur Kaffeekasse" %}</a>
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">{% translate "Kaffeekasse · nur für den Kassenwart" %}</p>
+    <h1>{% translate "Mappe" %}</h1>
+    <p class="lead">{% translate "Wer hat welchen Monat bezahlt? Einzahlungen tilgen immer den ältesten offenen Monat zuerst." %}</p>
+  </div>
+  <a class="button secondary" href="{% url 'coffee_export' %}">{% translate "Export (CSV)" %}</a>
+</header>
+<div class="balance-row">
+  <div class="{% if open_total_euros %}is-open{% else %}is-clear{% endif %}"><span>{% translate "Offen insgesamt" %}</span><strong>{{ open_total_euros|floatformat:2 }} €</strong></div>
+  <div><span>{% translate "Bargeld in der Kasse (laut Buchungen)" %}</span><strong>{{ pots.cash_euros|floatformat:2 }} €</strong></div>
+  <div><span>{% translate "Monatsbeitrag" %}</span><strong>{{ fund.monthly_fee_euros|floatformat:2 }} €</strong></div>
+</div>
+{% if not fund.monthly_fee_cents %}
+  <div class="alert" role="status">{% translate "Es ist noch kein Monatsbeitrag festgelegt." %} <a href="{% url 'coffee_settings' %}">{% translate "Einstellungen öffnen" %}</a></div>
+{% endif %}
+{% if rows %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Mappe, horizontal scrollbar auf kleinen Bildschirmen' %}">
+  <table class="coffee-book">
+    <caption class="visually-hidden">{% translate "Monatsbeiträge aller Teilnehmenden" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Person" %}</th>
+        {% for month in months %}<th scope="col">{{ month|date:"M y" }}</th>{% endfor %}
+        <th scope="col">{% translate "Stand" %}</th>
+        <th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <th scope="row"><a href="{% url 'coffee_ledger' %}?person={{ row.user.pk }}">{{ row.user.get_full_name|default:row.user.username }}</a></th>
+          {% for cell in row.cells %}
+            <td class="coffee-cell">
+              <span class="coffee-badge is-{{ cell.status }}">{% if cell.status == "paid" %}✓ {% translate "bezahlt" %}{% elif cell.status == "open" %}{% translate "offen" %}{% elif cell.status == "waived" %}{% translate "befreit" %}{% else %}–{% endif %}</span>
+              {% if cell.status == "open" %}
+                <details class="coffee-waive">
+                  <summary>{% translate "befreien" %}</summary>
+                  <form method="post" action="{% url 'coffee_waive' row.user.pk cell.period|date:'Y-m-d' %}">
+                    {% csrf_token %}
+                    <label class="visually-hidden" for="waive-{{ row.user.pk }}-{{ forloop.counter }}">{% translate "Grund" %}</label>
+                    <input id="waive-{{ row.user.pk }}-{{ forloop.counter }}" name="reason" maxlength="150" placeholder="{% translate 'z. B. Elternzeit' %}">
+                    <button class="button secondary small" type="submit">{% translate "Monat befreien" %}</button>
+                  </form>
+                </details>
+              {% endif %}
+            </td>
+          {% endfor %}
+          <td class="amount {% if row.status.open_cents %}negative{% endif %}">{% if row.status.open_cents %}−{{ row.status.open_euros|floatformat:2 }} €{% elif row.status.credit_cents %}+{{ row.status.credit_euros|floatformat:2 }} €{% else %}0,00 €{% endif %}</td>
+          <td>
+            {% if fund.monthly_fee_cents %}
+            <form method="post" action="{% url 'coffee_cash_received' row.user.pk %}">
+              {% csrf_token %}
+              <button class="button primary small" type="submit">{% blocktranslate with fee=fund.monthly_fee_euros|floatformat:2 %}{{ fee }} € bar erhalten{% endblocktranslate %}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="help-text">{% translate "Noch niemand zahlt den Monatsbeitrag." %} <a href="{% url 'coffee_participants' %}">{% translate "Teilnehmende eintragen" %}</a></p>
+{% endif %}
+
+{% if others %}
+<section class="coffee-section" aria-labelledby="coffee-others">
+  <h2 id="coffee-others">{% translate "Weitere Konten mit Stand" %}</h2>
+  <p class="help-text">{% translate "Personen ohne Monatsbeitrag oder ausgeschiedene Mitglieder mit offenem Betrag oder Guthaben. Vor dem Austritt bitte ausgleichen (auszahlen oder einziehen)." %}</p>
+  <ul class="coffee-movements">
+    {% for other in others %}
+      <li><span><a href="{% url 'coffee_ledger' %}?person={{ other.user.pk }}">{{ other.user.get_full_name|default:other.user.username }}</a>{% if other.user.pk in former_ids %} · {% translate "ausgeschieden" %}{% endif %}</span> <strong class="amount{% if other.status.open_cents %} negative{% endif %}">{% if other.status.open_cents %}−{{ other.status.open_euros|floatformat:2 }}{% else %}+{{ other.status.credit_euros|floatformat:2 }}{% endif %} €</strong></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

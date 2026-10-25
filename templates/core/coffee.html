@@ -3,10 +3,62 @@
 {% block title %}{% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading heading-with-action">
-  <div><p class="context-line">{% translate "Gemeinschaftskasse" %}</p><h1>{% translate "Kaffeekasse" %}</h1><p class="lead">{% translate "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert." %}</p></div>
-  {% if can_book %}<a class="button primary" href="{% url 'coffee_create' %}">{% translate "Buchung erfassen" %}</a>{% endif %}
+  <div>
+    <p class="context-line">{% translate "Gemeinschaftskasse" %}</p>
+    <h1>{% translate "Kaffeekasse" %}</h1>
+    {% if fund.monthly_fee_cents %}
+      <p class="lead">{% blocktranslate with fee=fund.monthly_fee_euros|floatformat:2 %}Monatsbeitrag {{ fee }} €: bar in die Kasse legen oder überweisen – und hier abhaken.{% endblocktranslate %}</p>
+    {% else %}
+      <p class="lead">{% translate "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert." %}</p>
+    {% endif %}
+  </div>
+  <a class="button primary" href="{% url 'coffee_pay' %}">{% translate "Ich habe bezahlt" %}</a>
 </header>
-<div class="balance-row"><div><span>{% translate "Mein Stand" %}</span><strong>{{ own_euros|floatformat:2 }} €</strong></div>{% if can_book %}<div><span>{% translate "Gesamtsaldo" %}</span><strong>{{ total_euros|floatformat:2 }} €</strong></div>{% endif %}</div>
+
+{% if is_cashier or can_setup %}
+<nav class="coffee-tools" aria-label="{% translate 'Kasse verwalten' %}">
+  {% if is_cashier %}
+    <a class="button secondary" href="{% url 'coffee_book' %}">{% translate "Mappe" %}</a>
+    <a class="button secondary" href="{% url 'coffee_ledger' %}">{% translate "Alle Buchungen" %}</a>
+    <a class="button secondary" href="{% url 'coffee_create' %}">{% translate "Buchung erfassen" %}</a>
+    <a class="button secondary" href="{% url 'coffee_count' %}">{% translate "Kassensturz" %}</a>
+  {% endif %}
+  <a class="button secondary" href="{% url 'coffee_participants' %}">{% translate "Teilnehmende" %}</a>
+  <a class="button secondary" href="{% url 'coffee_settings' %}">{% translate "Einstellungen" %}</a>
+</nav>
+{% if not is_cashier %}<p class="help-text">{% translate "Stände und Buchungen einzelner Personen sieht nur der Kassenwart. Wer Kassenwart ist, legst du unter Team fest." %}</p>{% endif %}
+{% endif %}
+
+<section class="coffee-section" aria-labelledby="coffee-own">
+  <h2 id="coffee-own">{% translate "Mein Stand" %}</h2>
+  <div class="balance-row">
+    {% if status.open_cents %}
+      <div class="is-open"><span>{% translate "Offen" %}</span><strong>{{ status.open_euros|floatformat:2 }} €</strong></div>
+    {% elif status.credit_cents %}
+      <div class="is-clear"><span>{% translate "Guthaben" %}</span><strong>{{ status.credit_euros|floatformat:2 }} €</strong></div>
+    {% else %}
+      <div class="is-clear"><span>{% translate "Mein Stand" %}</span><strong>{% translate "Alles bezahlt" %}</strong></div>
+    {% endif %}
+    {% if prepaid_months %}
+      <div><span>{% translate "Im Voraus bezahlt bis einschließlich" %}</span><strong>{{ prepaid_until|date:"F Y" }}</strong></div>
+    {% endif %}
+  </div>
+  {% if months %}
+    <ol class="coffee-months" aria-label="{% translate 'Meine Monate, neuester zuerst' %}">
+      {% for month in months %}
+        <li class="coffee-month is-{{ month.status }}">
+          <span class="coffee-month-name">{{ month.short_label }}</span>
+          <span class="coffee-month-state">
+            {% if month.status == "paid" %}{% translate "bezahlt" %}{% elif month.status == "open" %}{% blocktranslate with amount=month.remaining_euros|floatformat:2 %}offen {{ amount }} €{% endblocktranslate %}{% elif month.status == "waived" %}{% translate "befreit" %}{% else %}–{% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% elif fund.monthly_fee_cents %}
+    <p class="help-text">{% translate "Du bist (noch) nicht für den Monatsbeitrag eingetragen. Sprich bitte den Kassenwart an." %}</p>
+  {% endif %}
+</section>
+
 {% if station.paypal_me_url or station.wero_link or station.iban or station.payment_note %}
 <section class="payment-hints" aria-label="{% translate 'Zahlungswege' %}">
   <h2>{% translate "Einzahlen an die Gemeinschaftskasse" %}</h2>
@@ -23,15 +75,70 @@
     </li>
     {% endif %}
   </ul>
+  {% if girocode %}
+    <figure class="coffee-girocode">
+      <img src="{{ girocode.image }}" width="180" height="180" alt="{% translate 'Überweisungs-QR-Code (GiroCode)' %}">
+      <figcaption>
+        <strong>{% translate "Mit der Banking-App scannen" %}</strong>
+        <span>{% translate "Empfänger" %}: {{ girocode.name }}</span>
+        <span>{% translate "IBAN" %}: {{ girocode.iban }}</span>
+        {% if girocode.amount_euros %}<span>{% translate "Betrag" %}: {{ girocode.amount_euros|floatformat:2 }} €</span>{% endif %}
+        <span>{% translate "Verwendungszweck" %}: {{ girocode.text }}</span>
+      </figcaption>
+    </figure>
+  {% endif %}
   <p class="payment-privacy">{% translate "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert." %}</p>
 </section>
 {% endif %}
-<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen' %}">
-  <table class="responsive-table">
-    <caption>{% translate "Kassenbuchungen" %}</caption>
-    <thead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Person" %}</th><th scope="col">{% translate "Grund" %}</th><th scope="col">{% translate "Betrag" %}</th>{% if can_book %}<th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th>{% endif %}</tr></thead>
-    <tbody>{% for entry in page_obj %}<tr><td data-label="Datum"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d.m.Y H:i" }}</time></td><td data-label="Person">{{ entry.member.first_name|default:entry.member.username }}</td><td data-label="Grund">{{ entry.reason }}{% if entry.correction_of %}<small>{% translate "Gegenbuchung zu #" %}{{ entry.correction_of_id }}</small>{% endif %}</td><td data-label="Betrag" class="amount {% if entry.amount_cents < 0 %}negative{% endif %}">{{ entry.amount_euros|floatformat:2 }} €</td>{% if can_book %}<td data-label="Aktion">{% if not entry.correction_of and not entry.corrections.exists %}<a class="text-action" href="{% url 'coffee_correct' entry.pk %}">{% translate "Korrigieren" %}</a>{% endif %}</td>{% endif %}</tr>{% empty %}<tr><td colspan="5">{% translate "Noch keine Buchungen." %}</td></tr>{% endfor %}</tbody>
-  </table>
-</div>
-{% include "core/pagination.html" %}
+
+<section class="coffee-section" aria-labelledby="coffee-pot">
+  <div class="heading-with-action">
+    <h2 id="coffee-pot">{% translate "Die Kasse" %}</h2>
+    <a class="text-action" href="{% url 'coffee_cash' %}">{% translate "Alle Bewegungen" %}</a>
+  </div>
+  <p class="help-text">{% translate "Für alle sichtbar: Bestand, Einkäufe und Kassenstürze – ohne Angaben zu einzelnen Personen." %}</p>
+  <div class="balance-row">
+    <div><span>{% translate "Bargeld in der Kasse (laut Buchungen)" %}</span><strong>{{ pots.cash_euros|floatformat:2 }} €</strong></div>
+    {% if pots.bank_cents or station.iban %}<div><span>{% translate "Auf dem Konto" %}</span><strong>{{ pots.bank_euros|floatformat:2 }} €</strong></div>{% endif %}
+    {% if summary and summary.total %}
+      <div><span>{% blocktranslate with month=current_month|date:"F" %}Beitrag {{ month }}{% endblocktranslate %}</span><strong>{% blocktranslate with paid=summary.paid total=summary.total %}{{ paid }} von {{ total }} bezahlt{% endblocktranslate %}</strong></div>
+    {% endif %}
+  </div>
+  {% if last_count %}
+    <p class="coffee-count-note">
+      {% blocktranslate with date=last_count.created_at|date:"d.m.Y" %}Zuletzt gezählt am {{ date }}{% endblocktranslate %}{% if last_count.witness %} {% translate "(zu zweit)" %}{% endif %}:
+      {% if last_count.amount_cents %}{% blocktranslate with diff=last_count.amount_euros|floatformat:2 %}Differenz {{ diff }} €{% endblocktranslate %}{% else %}{% translate "Kasse stimmte." %}{% endif %}
+    </p>
+  {% endif %}
+  {% if movements %}
+    <ul class="coffee-movements">
+      {% for movement in movements %}
+        <li><time datetime="{{ movement.created_at|date:'c' }}">{{ movement.created_at|date:"d.m." }}</time> <span>{{ movement.get_kind_display }}: {{ movement.reason }}</span> <strong class="amount{% if movement.amount_cents < 0 %} negative{% endif %}">{{ movement.amount_euros|floatformat:2 }} €</strong></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <p><a class="button secondary" href="{% url 'coffee_purchase' %}">{% translate "Einkauf eintragen" %}</a></p>
+</section>
+
+<section class="coffee-section" aria-labelledby="coffee-entries">
+  <h2 id="coffee-entries">{% translate "Meine Buchungen" %}</h2>
+  <div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen' %}">
+    <table class="responsive-table">
+      <caption>{% translate "Kassenbuchungen" %}</caption>
+      <thead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Grund" %}</th><th scope="col">{% translate "Betrag" %}</th></tr></thead>
+      <tbody>
+        {% for entry in page_obj %}
+          <tr>
+            <td data-label="{% translate 'Datum' %}"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d.m.Y H:i" }}</time></td>
+            <td data-label="{% translate 'Grund' %}">{{ entry.reason }}{% if entry.correction_of %}<small>{% translate "Gegenbuchung zu #" %}{{ entry.correction_of_id }}</small>{% endif %}</td>
+            <td data-label="{% translate 'Betrag' %}" class="amount {% if entry.amount_cents < 0 %}negative{% endif %}">{{ entry.amount_euros|floatformat:2 }} €</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3">{% translate "Noch keine Buchungen." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "core/pagination.html" %}
+</section>
 {% endblock %}

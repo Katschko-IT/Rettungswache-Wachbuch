@@ -2,6 +2,28 @@
 
 ## Unveröffentlicht
 
+- **Kaffeekasse mit Monatsbeitrag** (Recherche und Konzept:
+  `docs/KAFFEEKASSE.md`): die digitale „Mappe“ für Wachen, die einen festen
+  Monatsbeitrag bar in die Dose zahlen.
+  - Teilnehmende mit Beginn-Monat; jeder Monat wird automatisch belastet
+    (Betrag festgeschrieben). Einzahlungen tilgen den ältesten offenen Monat
+    zuerst, der Rest ist Guthaben.
+  - **„Ich habe bezahlt“**: jede Person hakt selbst ab (bar, Überweisung,
+    PayPal, Wero) – wie das Kreuz in der Mappe.
+  - **Mappe** für den Kassenwart: Monatsübersicht aller Teilnehmenden, „bar
+    erhalten“ mit einem Tipp, Monat befreien (Urlaub, Elternzeit), CSV-Export.
+  - **Kasse für alle sichtbar**: Bestand von Dose und Konto, Einkäufe (darf
+    jedes Mitglied eintragen), Kassensturz mit Soll/Ist und optional zweiter
+    Person, Bargeld aufs Konto, Korrektur nur per Gegenbuchung.
+  - **Erinnerung** einmal im Monat bei offenem Beitrag (Posteingang/Push,
+    über den `notify-worker`), **GiroCode** zum Überweisen mit Betrag und
+    Verwendungszweck.
+  - **Einsicht nur für den Kassenwart**: Admins richten die Kasse ein, sehen
+    aber keine Einzelstände mehr (Datenschutz, § 87 BetrVG); Buchen und
+    Korrigieren ist dem Kassenwart vorbehalten (Web und API).
+  - `/api/v1/kaffeekasse/` liefert zusätzlich `monthly_fee_euros` und den
+    eigenen Stand (`own`).
+
 - **Impressum, Datenschutz und Zwei-Faktor im Einrichtungsassistenten**: Der
   Assistent fragt jetzt, ob Wachwerk öffentlich im Internet erreichbar ist
   (bei einer Domain vorausgewählt), und erfasst Anbieter, Vertretung,

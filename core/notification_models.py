@@ -19,6 +19,7 @@ from .models import Station
 class UserNotification(models.Model):
     class Kind(models.TextChoices):
         VEHICLE_READY = "vehicle_ready", "Fahrzeug kann freigegeben werden"
+        COFFEE_DUE = "coffee_due", "Kaffeekasse: Beitrag offen"
 
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="user_notifications")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")

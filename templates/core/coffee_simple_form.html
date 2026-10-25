@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee_cash' %}">{% translate "Zurück zur Kasse" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Kaffeekasse" %}</p>
+  <h1>{{ title }}</h1>
+  {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
+</header>
+<form method="post" class="form-card narrow">
+  {% csrf_token %}
+  {% include "core/form_errors.html" %}
+  {% for field in form %}
+    {% if field.field.widget.input_type == "radio" %}
+      <fieldset class="choice-tiles">
+        <legend>{{ field.label }}</legend>
+        {% for choice in field %}<label class="choice-tile" for="{{ choice.id_for_label }}">{{ choice.tag }} {{ choice.choice_label }}</label>{% endfor %}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </fieldset>
+    {% else %}
+      <p>
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+        {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+      </p>
+    {% endif %}
+  {% endfor %}
+  <div class="form-actions">
+    <button class="button primary" type="submit">{{ submit }}</button>
+    <a class="button secondary" href="{% url 'coffee_cash' %}">{% translate "Abbrechen" %}</a>
+  </div>
+</form>
+{% endblock %}

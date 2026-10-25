@@ -9,7 +9,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import IntegrityError, connection, transaction
-from django.db.models import Case, IntegerField, Sum, Value, When
+from django.db.models import Case, IntegerField, Value, When
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -39,8 +39,6 @@ from .errors import (
 from .forms import (
     BirthdayForm,
     CalendarEventForm,
-    CoffeeCorrectionForm,
-    CoffeeEntryForm,
     HandoverEditForm,
     HandoverForm,
     HandoverStatusForm,
@@ -58,7 +56,6 @@ from .models import (
     CalendarEvent,
     Checklist,
     ChecklistCompletion,
-    CoffeeEntry,
     FeedItem,
     FeedSource,
     HandoverAttachment,
@@ -817,93 +814,6 @@ def birthday_settings(request):
         return redirect("birthdays")
     return render(request, "core/birthday_settings.html", {
         "form": form,
-    })
-
-
-@membership_required(CONTENT_ROLES)
-@station_module_required("coffee_enabled")
-def coffee(request):
-    station = request.membership.station
-    can_book = request.membership.role in {Membership.Role.CASHIER, Membership.Role.ADMIN}
-    all_entries = CoffeeEntry.objects.filter(station=station).select_related(
-        "member", "created_by", "correction_of"
-    ).prefetch_related("corrections")
-    visible_entries = all_entries if can_book else all_entries.filter(member=request.user)
-    total_cents = all_entries.aggregate(total=Sum("amount_cents"))["total"] or 0
-    own_cents = all_entries.filter(member=request.user).aggregate(total=Sum("amount_cents"))["total"] or 0
-    return render(request, "core/coffee.html", {
-        "page_obj": page_for(request, visible_entries, 25),
-        "total_euros": total_cents / 100,
-        "own_euros": own_cents / 100,
-        "can_book": can_book,
-        "station": station,
-    })
-
-
-@membership_required({Membership.Role.CASHIER, Membership.Role.ADMIN})
-@station_module_required("coffee_enabled")
-@require_http_methods(["GET", "POST"])
-def coffee_create(request):
-    station = request.membership.station
-    form = CoffeeEntryForm(request.POST or None, station=station)
-    if request.method == "POST" and form.is_valid():
-        with transaction.atomic():
-            entry = CoffeeEntry.objects.create(
-                station=station,
-                member=form.cleaned_data["member"],
-                amount_cents=form.amount_cents(),
-                reason=form.cleaned_data["reason"],
-                created_by=request.user,
-            )
-            audit(request.user, station, "coffee.entry_created", entry, {
-                "fields": ["member", "amount_cents", "reason"]
-            })
-        messages.success(request, _("Kassenbuchung wurde erfasst."))
-        return redirect("coffee")
-    return render(request, "core/coffee_form.html", {"form": form})
-
-
-@membership_required({Membership.Role.CASHIER, Membership.Role.ADMIN})
-@station_module_required("coffee_enabled")
-@require_http_methods(["GET", "POST"])
-def coffee_correct(request, pk):
-    base_qs = CoffeeEntry.objects.select_related("member").filter(
-        pk=pk,
-        station=request.membership.station,
-        correction_of__isnull=True,
-    )
-    original = get_object_or_404(base_qs)
-    if original.corrections.exists():
-        messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
-        return redirect("coffee")
-    form = CoffeeCorrectionForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        try:
-            with transaction.atomic():
-                original = get_object_or_404(base_qs.select_for_update())
-                if original.corrections.exists():
-                    messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
-                    return redirect("coffee")
-                correction = CoffeeEntry.objects.create(
-                    station=original.station,
-                    member=original.member,
-                    amount_cents=-original.amount_cents,
-                    reason=form.cleaned_data["reason"],
-                    created_by=request.user,
-                    correction_of=original,
-                )
-                audit(request.user, original.station, "coffee.entry_corrected", correction, {
-                    "fields": ["reason", "correction_of"]
-                })
-        except IntegrityError:
-            messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
-            return redirect("coffee")
-        messages.success(request, _("Gegenbuchung wurde erfasst."))
-        return redirect("coffee")
-    return render(request, "core/coffee_correction.html", {
-        "form": form,
-        "original": original,
-        "correction_euros": -original.amount_cents / 100,
     })
 
 

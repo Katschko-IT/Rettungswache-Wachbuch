@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Einstellungen" %} | {% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee' %}">{% translate "Zurück zur Kaffeekasse" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Kaffeekasse" %}</p>
+  <h1>{% translate "Einstellungen" %}</h1>
+</header>
+<form method="post" class="form-card narrow">
+  {% csrf_token %}
+  {% if fund_form.errors or ways_form.errors %}{% include "core/form_errors.html" with form=fund_form %}{% endif %}
+  <h2>{% translate "Monatsbeitrag" %}</h2>
+  {{ fund_form.as_p }}
+  <h2>{% translate "Zahlungswege" %}</h2>
+  <p class="help-text">{% translate "Sichtbar für alle im Team. Mit IBAN zeigt Wachwerk einen Überweisungs-QR (GiroCode) mit Betrag und Verwendungszweck. Am besten ein eigenes Konto der Kasse statt eines Privatkontos." %}</p>
+  {{ ways_form.as_p }}
+  <div class="form-actions">
+    <button class="button primary" type="submit">{% translate "Speichern" %}</button>
+    <a class="button secondary" href="{% url 'coffee' %}">{% translate "Abbrechen" %}</a>
+  </div>
+</form>
+{% endblock %}

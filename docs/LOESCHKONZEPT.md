@@ -27,7 +27,7 @@ Dieses Dokument legt **keine pauschalen gesetzlichen Fristen** fest. Der Betreib
 | Inventarereignisse | Ausgabe/Rückgabe | Ablauf Nachweiszweck | `[festlegen]` | kontrollierte Archiv-/Löschroutine | `[Rolle]` |
 | Checklistenabschlüsse | Organisationsnachweis | Ablauf Zweck/Nachweisfrist | `[festlegen]` | Bereinigungsjob | `[Rolle]` |
 | Geburtstagspräferenz | freiwillige Anzeige | Widerruf/Ausscheiden | unverzüglich nach Prozess | bestehende Clear-/Withdraw-Funktion | `[Rolle]` |
-| Kaffeekasse | freiwillige Gemeinschaftskasse | Zweck-/Aufbewahrungsende | `[festlegen]` | Korrekturbuchungen berücksichtigen | `[Rolle]` |
+| Kaffeekasse | freiwillige Gemeinschaftskasse (Monatsbeiträge, Einzahlungen, Kassenbewegungen; siehe docs/KAFFEEKASSE.md) | Zweck-/Aufbewahrungsende | `[festlegen]` | Korrekturbuchungen berücksichtigen | `[Rolle]` |
 | Feed-Daten | externe Information | Ablauf Aktualitätszweck | `[festlegen]` | `RETENTION_FEED_DAYS` | `[Rolle]` |
 | Session/API-Token | Zugriff | Logout, Widerruf, Ablauf | technisch sofort/bei Ablauf | Token löschen/widerrufen | System/Admin |
 | Serverlogs | Betrieb/Sicherheit | Ablauf Fehler-/Security-Zweck | `[festlegen]` | Logrotate/Logbackend-Retention | `[Rolle]` |

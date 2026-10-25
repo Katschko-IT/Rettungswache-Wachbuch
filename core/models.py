@@ -457,11 +457,36 @@ class BirthdayPreference(models.Model):
 
 
 class CoffeeEntry(models.Model):
+    """Persönliches Konto in der Kaffeekasse (nur anhängen, Korrektur per Gegenbuchung).
+
+    Monatsbeiträge sind Belastungen mit ``period``; Einzahlungen tilgen offene
+    Monate in zeitlicher Reihenfolge (core/coffee.py).
+    """
+
+    class Kind(models.TextChoices):
+        MANUAL = "manual", "Sonstige Buchung"
+        FEE = "fee", "Monatsbeitrag"
+        PAYMENT = "payment", "Einzahlung"
+        WAIVER = "waiver", "Befreiung"
+
+    class Method(models.TextChoices):
+        CASH = "cash", "Bar in die Kasse"
+        TRANSFER = "transfer", "Überweisung"
+        PAYPAL = "paypal", "PayPal"
+        WERO = "wero", "Wero"
+
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="coffee_entries")
     member = models.ForeignKey(User, on_delete=models.PROTECT, related_name="coffee_entries")
     amount_cents = models.IntegerField()
     reason = models.CharField(max_length=200)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="recorded_coffee_entries")
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.MANUAL)
+    method = models.CharField(max_length=10, choices=Method.choices, blank=True, default="")
+    # Erster Tag des Monats bei Monatsbeitrag und Befreiung.
+    period = models.DateField(null=True, blank=True)
+    # Leer bei automatisch gebuchten Monatsbeiträgen.
+    created_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, null=True, blank=True, related_name="recorded_coffee_entries"
+    )
     correction_of = models.ForeignKey(
         "self", on_delete=models.PROTECT, null=True, blank=True, related_name="corrections"
     )
@@ -476,9 +501,21 @@ class CoffeeEntry(models.Model):
                 condition=Q(correction_of__isnull=False),
                 name="unique_coffee_correction",
             ),
+            models.UniqueConstraint(
+                fields=["station", "member", "kind", "period"],
+                condition=Q(kind__in=["fee", "waiver"], correction_of__isnull=True),
+                name="unique_coffee_month_entry",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["station", "member"], name="coffee_station_member_idx"),
         ]
 
     def clean(self):
+        if self.kind in (self.Kind.FEE, self.Kind.WAIVER) and not self.period:
+            raise ValidationError("Monatsbeitrag und Befreiung brauchen einen Monat.")
+        if self.method and self.kind != self.Kind.PAYMENT:
+            raise ValidationError("Ein Zahlungsweg gehört nur zu einer Einzahlung.")
         if self.correction_of:
             if self.correction_of.station_id != self.station_id:
                 raise ValidationError("Die Korrektur muss zur gleichen Wache gehören.")
@@ -488,6 +525,10 @@ class CoffeeEntry(models.Model):
                 raise ValidationError("Eine Korrektur muss den exakten Gegenbetrag buchen.")
             if self.correction_of.correction_of_id:
                 raise ValidationError("Eine Korrekturbuchung kann nicht erneut korrigiert werden.")
+            if (self.kind, self.method, self.period) != (
+                self.correction_of.kind, self.correction_of.method, self.correction_of.period,
+            ):
+                raise ValidationError("Eine Korrektur übernimmt Art, Zahlungsweg und Monat der Buchung.")
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -1644,3 +1685,6 @@ from .terminal_models import StationTerminal, StationTerminalCode, TerminalPairi
 
 # Betreiberangaben (Impressum, Datenschutz-Information, 2FA-Pflicht)
 from .site_profile import SiteProfile  # noqa: E402,F401
+
+# Kaffeekasse: Monatsbeitrag, Teilnehmende und Kassenbewegungen
+from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant  # noqa: E402,F401

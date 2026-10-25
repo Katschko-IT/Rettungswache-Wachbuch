@@ -10,7 +10,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .models import BirthdayPreference, CalendarEvent, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
+from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
+from .models import BirthdayPreference, CalendarEvent, CoffeeEntry, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
 from .site_profile import SiteProfile
 
 
@@ -115,31 +116,202 @@ class BirthdayForm(forms.ModelForm):
         return instance
 
 
+def _euro_cents(value) -> int:
+    return int((value * 100).quantize(Decimal("1"), ROUND_HALF_UP))
+
+
+def _member_choices(station):
+    member_ids = Membership.objects.filter(station=station, is_active=True).values("user_id")
+    return User.objects.filter(id__in=member_ids).order_by("first_name", "username")
+
+
 class CoffeeEntryForm(forms.Form):
     member = forms.ModelChoiceField(queryset=User.objects.none(), label=_("Teammitglied"))
     direction = forms.ChoiceField(
-        choices=(("credit", "Einzahlung/Gutschrift"), ("debit", "Entnahme/Verbrauch")),
+        choices=(("credit", _("Einzahlung/Gutschrift")), ("debit", _("Entnahme/Belastung"))),
         label=_("Buchungsart"),
+    )
+    method = forms.ChoiceField(
+        choices=(("", _("– keine Einzahlung –")),) + tuple(CoffeeEntry.Method.choices),
+        required=False, label=_("Zahlungsweg"),
+        help_text=_("Nur bei echten Einzahlungen; Bargeld zählt dann zum Bestand der Kasse."),
     )
     amount_eur = forms.DecimalField(
         min_value=Decimal("0.01"), max_digits=8, decimal_places=2, label=_("Betrag in EUR")
     )
-    reason = forms.CharField(max_length=200, label=_("Grund"))
+    reason = forms.CharField(max_length=200, required=False, label=_("Grund"))
 
     def __init__(self, *args, station, **kwargs):
         super().__init__(*args, **kwargs)
-        member_ids = Membership.objects.filter(station=station, is_active=True).values("user_id")
-        self.fields["member"].queryset = User.objects.filter(id__in=member_ids).order_by(
-            "first_name", "username"
-        )
+        self.fields["member"].queryset = _member_choices(station)
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("method") and cleaned.get("direction") != "credit":
+            self.add_error("method", _("Ein Zahlungsweg gehört nur zu einer Einzahlung."))
+        if not cleaned.get("method") and not cleaned.get("reason"):
+            self.add_error("reason", _("Bitte einen Grund angeben."))
+        return cleaned
 
     def amount_cents(self):
-        cents = int((self.cleaned_data["amount_eur"] * 100).quantize(Decimal("1"), ROUND_HALF_UP))
+        cents = _euro_cents(self.cleaned_data["amount_eur"])
         return cents if self.cleaned_data["direction"] == "credit" else -cents
+
+    def entry_kwargs(self):
+        method = self.cleaned_data.get("method") or ""
+        reason = self.cleaned_data.get("reason") or ""
+        if method:
+            reason = reason or _("Einzahlung (%(method)s)") % {"method": CoffeeEntry.Method(method).label}
+        return {
+            "member": self.cleaned_data["member"],
+            "amount_cents": self.amount_cents(),
+            "reason": reason,
+            "kind": CoffeeEntry.Kind.PAYMENT if method else CoffeeEntry.Kind.MANUAL,
+            "method": method,
+        }
 
 
 class CoffeeCorrectionForm(forms.Form):
     reason = forms.CharField(max_length=200, label=_("Korrekturgrund"))
+
+
+class CoffeePaymentForm(forms.Form):
+    """Selbst abhaken: „Ich habe bezahlt“ – wie das Kreuz in der Mappe."""
+
+    method = forms.ChoiceField(
+        choices=CoffeeEntry.Method.choices, initial=CoffeeEntry.Method.CASH,
+        widget=forms.RadioSelect, label=_("Wie hast du bezahlt?"),
+    )
+    amount_eur = forms.DecimalField(
+        min_value=Decimal("0.01"), max_value=Decimal("500"), max_digits=6, decimal_places=2,
+        label=_("Betrag in EUR"),
+    )
+    note = forms.CharField(max_length=120, required=False, label=_("Notiz (optional)"),
+                           help_text=_("z. B. „für Januar bis März“"))
+
+    def __init__(self, *args, methods=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if methods:
+            self.fields["method"].choices = [c for c in CoffeeEntry.Method.choices if c[0] in methods]
+
+    def amount_cents(self):
+        return _euro_cents(self.cleaned_data["amount_eur"])
+
+
+class CoffeeFundForm(forms.ModelForm):
+    monthly_fee_eur = forms.DecimalField(
+        min_value=Decimal("0"), max_value=Decimal("100"), max_digits=5, decimal_places=2,
+        label=_("Monatsbeitrag in EUR"),
+        help_text=_("0 = kein Monatsbeitrag. Änderungen gelten ab dem nächsten neu gebuchten Monat."),
+    )
+
+    class Meta:
+        model = CoffeeFund
+        fields = ["reminder_day", "account_holder"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["monthly_fee_eur"].initial = Decimal(self.instance.monthly_fee_cents) / 100
+        self.order_fields(["monthly_fee_eur", "reminder_day", "account_holder"])
+
+    def clean_reminder_day(self):
+        value = self.cleaned_data["reminder_day"]
+        if value > 28:
+            raise ValidationError(_("Bitte einen Tag zwischen 1 und 28 wählen (0 = keine Erinnerung)."))
+        return value
+
+    def save(self, commit=True):
+        self.instance.monthly_fee_cents = _euro_cents(self.cleaned_data["monthly_fee_eur"])
+        return super().save(commit=commit)
+
+
+class CoffeePaymentWaysForm(forms.ModelForm):
+    class Meta:
+        model = Station
+        fields = ["paypal_me_url", "wero_link", "iban", "bic", "payment_note"]
+        labels = {
+            "paypal_me_url": _("PayPal.me-Link"),
+            "wero_link": _("Wero-Link"),
+            "iban": _("IBAN"),
+            "bic": _("BIC (optional)"),
+            "payment_note": _("Hinweis zum Bezahlen"),
+        }
+        widgets = {"payment_note": forms.Textarea(attrs={"rows": 3})}
+
+    def clean_iban(self):
+        value = "".join(self.cleaned_data.get("iban", "").split()).upper()
+        if value and not re.fullmatch(r"[A-Z]{2}\d{2}[A-Z0-9]{10,30}", value):
+            raise ValidationError(_("Bitte eine gültige IBAN eingeben."))
+        return value
+
+    def clean_bic(self):
+        value = "".join(self.cleaned_data.get("bic", "").split()).upper()
+        if value and len(value) not in (8, 11):
+            raise ValidationError(_("Die BIC hat 8 oder 11 Zeichen."))
+        return value
+
+
+class CoffeeParticipantForm(forms.Form):
+    user = forms.ModelChoiceField(queryset=User.objects.none(), label=_("Person"))
+    since = forms.ChoiceField(label=_("Beitrag ab"))
+
+    def __init__(self, *args, station, months, **kwargs):
+        super().__init__(*args, **kwargs)
+        taken = CoffeeParticipant.objects.filter(station=station).values("user_id")
+        self.fields["user"].queryset = _member_choices(station).exclude(id__in=taken)
+        self.fields["since"].choices = [(m.isoformat(), label) for m, label in months]
+
+
+class CoffeePurchaseForm(forms.Form):
+    """Einkauf aus der Kasse (z. B. Kaffee, Milch) – alle sehen, wofür Geld ausgegeben wird."""
+
+    what = forms.CharField(max_length=160, label=_("Was wurde gekauft?"))
+    amount_eur = forms.DecimalField(min_value=Decimal("0.01"), max_value=Decimal("1000"), max_digits=7,
+                                    decimal_places=2, label=_("Betrag in EUR"))
+    pot = forms.ChoiceField(choices=CoffeeCashMovement.Pot.choices, initial=CoffeeCashMovement.Pot.CASH,
+                            widget=forms.RadioSelect, label=_("Bezahlt aus"))
+
+    def amount_cents(self):
+        return _euro_cents(self.cleaned_data["amount_eur"])
+
+
+class CoffeeMovementForm(forms.Form):
+    """Kassenwart: Bargeld aufs Konto, Startbestand, Spende, sonstige Auszahlung."""
+
+    kind = forms.ChoiceField(choices=(
+        ("deposit", _("Bargeld aus der Kasse aufs Konto eingezahlt")),
+        ("in", _("Sonstige Einnahme (z. B. Startbestand, Spende)")),
+        ("out", _("Sonstige Ausgabe")),
+    ), label=_("Art"))
+    pot = forms.ChoiceField(choices=CoffeeCashMovement.Pot.choices, initial=CoffeeCashMovement.Pot.CASH,
+                            label=_("Topf"), help_text=_("Bei „aufs Konto eingezahlt“ immer die Kasse."))
+    amount_eur = forms.DecimalField(min_value=Decimal("0.01"), max_value=Decimal("10000"), max_digits=7,
+                                    decimal_places=2, label=_("Betrag in EUR"))
+    reason = forms.CharField(max_length=200, label=_("Grund"))
+
+    def movement_kwargs(self):
+        cents = _euro_cents(self.cleaned_data["amount_eur"])
+        kind = self.cleaned_data["kind"]
+        if kind == "deposit":
+            return {"kind": CoffeeCashMovement.Kind.DEPOSIT, "pot": CoffeeCashMovement.Pot.CASH, "amount_cents": -cents}
+        return {"kind": CoffeeCashMovement.Kind.OTHER, "pot": self.cleaned_data["pot"],
+                "amount_cents": cents if kind == "in" else -cents}
+
+
+class CoffeeCountForm(forms.Form):
+    counted_eur = forms.DecimalField(min_value=Decimal("0"), max_value=Decimal("100000"), max_digits=8,
+                                     decimal_places=2, label=_("Gezähltes Bargeld in EUR"))
+    witness = forms.ModelChoiceField(queryset=User.objects.none(), required=False,
+                                     label=_("Mitgezählt von (optional)"),
+                                     help_text=_("Vier-Augen-Prinzip: eine zweite Person zählt mit."))
+    note = forms.CharField(max_length=160, required=False, label=_("Notiz (optional)"))
+
+    def __init__(self, *args, station, user, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["witness"].queryset = _member_choices(station).exclude(pk=user.pk)
+
+    def counted_cents(self):
+        return _euro_cents(self.cleaned_data["counted_eur"])
 
 
 class MembershipAssignmentForm(forms.Form):

@@ -25,6 +25,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import close_old_connections
 from django.utils import timezone
 
+from core.coffee import remind_open_fees
 from core.crew_notifications import notify_ready_vehicles
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,9 @@ class Command(BaseCommand):
         stop = {"flag": False}
         failures = 0
         started = False
+        # Kaffeekasse: Monatsbeiträge buchen und einmal im Monat erinnern –
+        # das genügt alle 15 Minuten.
+        coffee_due_at = 0.0
 
         def _handle_signal(signum, _frame):  # pragma: no cover - signal path
             stop["flag"] = True
@@ -83,6 +87,9 @@ class Command(BaseCommand):
             close_old_connections()
             try:
                 count = notify_ready_vehicles()
+                if time.monotonic() >= coffee_due_at:
+                    count += remind_open_fees()
+                    coffee_due_at = time.monotonic() + 15 * 60
             except Exception as exc:
                 failures += 1
                 logger.exception(

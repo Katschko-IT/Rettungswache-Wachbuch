@@ -301,12 +301,12 @@ paths:
         "201": { description: Calendar event created }
   /kaffeekasse/:
     get:
-      summary: Coffee ledger balance and recent entries
+      summary: Coffee fund – own monthly-fee status (own); station ledger only for the treasurer
       responses:
         "200": { description: Coffee ledger }
         "404": { $ref: "#/components/responses/Error" }
     post:
-      summary: Append coffee ledger entry
+      summary: Append coffee ledger entry (treasurer only; optional payment method)
       responses:
         "201": { description: Coffee entry created }
   /checklisten/:

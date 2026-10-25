@@ -214,6 +214,9 @@ class RepositoryCatalogTests(SimpleTestCase):
         identical_ok = {
             # Produkt-, Plattform- und Eigennamen
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
+            "Filter": "im Englischen identisch",
+            "Export (CSV)": "im Englischen identisch",
+            "BIC (optional)": "Bankbegriff, im Englischen identisch",
             "openapi.yaml": "Dateiname",
             "/anmelden/qr/": "Route, laut Projektregel unveraenderlich",
             # Protokoll-, Header- und Sicherheitsbegriffe

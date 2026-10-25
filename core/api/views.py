@@ -111,7 +111,8 @@ def api_rate_limit(bucket: str, get_key: callable = None):
 DEFAULT_TOKEN_TTL_DAYS = 90
 TOKEN_LAST_USED_RESOLUTION = timedelta(minutes=1)
 WRITE_ROLES = {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
-CASHIER_ROLES = {Membership.Role.CASHIER, Membership.Role.ADMIN}
+# Stände und Buchungen anderer Personen: nur der Kassenwart (docs/KAFFEEKASSE.md).
+CASHIER_ROLES = {Membership.Role.CASHIER}
 DEFAULT_MOBILE_SCOPES = [
     "read:me",
     "read:handovers",
@@ -801,15 +802,9 @@ def coffee_api(request):
                 fields=form.errors,
             )
         with transaction.atomic():
-            entry = CoffeeEntry.objects.create(
-                station=station,
-                member=form.cleaned_data["member"],
-                amount_cents=form.amount_cents(),
-                reason=form.cleaned_data["reason"],
-                created_by=request.user,
-            )
+            entry = CoffeeEntry.objects.create(station=station, created_by=request.user, **form.entry_kwargs())
             audit(request.user, station, "coffee.entry_created", entry, {
-                "fields": ["member", "amount_cents", "reason"],
+                "fields": ["member", "amount_cents", "reason", "method"],
             })
         return JsonResponse({
             "ok": True,
@@ -840,7 +835,28 @@ def coffee_api(request):
     ]
     # scope sagt dem Client, ob der Saldo die Wache oder nur die eigenen Buchungen meint.
     scope = "station" if request.membership.role in CASHIER_ROLES else "own"
-    return JsonResponse({"ok": True, "balance_euros": total / 100, "scope": scope, "results": results})
+    from .. import coffee as coffee_logic
+
+    fund = coffee_logic.fund_for(station)
+    coffee_logic.ensure_fees(station)
+    own = coffee_logic.member_status(station, request.user)
+    current = coffee_logic.month_start(coffee_logic.station_today(station))
+    return JsonResponse({
+        "ok": True,
+        "balance_euros": total / 100,
+        "scope": scope,
+        "results": results,
+        # Monatsbeitrag: eigener Stand, unabhängig von scope.
+        "monthly_fee_euros": fund.monthly_fee_cents / 100,
+        "own": {
+            "open_euros": own.open_cents / 100,
+            "credit_euros": own.credit_cents / 100,
+            "months": [
+                {"month": m.period.strftime("%Y-%m"), "status": m.status, "open_euros": m.remaining_cents / 100}
+                for m in own.recent(current, 12) if m.status != coffee_logic.NOT_CHARGED
+            ],
+        },
+    })
 
 
 @csrf_exempt

@@ -1,0 +1,363 @@
+"""Kaffeekasse: Monatsbeiträge, Stand pro Person, Kassenbestand, GiroCode.
+
+Regeln (docs/KAFFEEKASSE.md):
+
+- Für jede teilnehmende Person entsteht je Monat genau ein Monatsbeitrag als
+  Belastung (``CoffeeEntry.Kind.FEE``). Der Betrag wird beim Anlegen
+  festgeschrieben; eine spätere Beitragsänderung ändert alte Monate nicht.
+- Einzahlungen tilgen offene Monate der Reihe nach (ältester zuerst). Was
+  übrig bleibt, ist Guthaben für die nächsten Monate.
+- Eine Befreiung (Urlaub, Elternzeit, Krankheit) gleicht genau einen Monat aus.
+- Der Bestand der Kasse ergibt sich aus Bareinzahlungen und Kassenbewegungen.
+  Der Kassensturz vergleicht ihn mit dem gezählten Bargeld.
+"""
+from __future__ import annotations
+
+import datetime as dt
+from collections import defaultdict
+from dataclasses import dataclass, field
+from zoneinfo import ZoneInfo
+
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
+from django.db.models import Q, Sum
+from django.urls import reverse
+from django.conf import settings
+from django.utils import formats, timezone, translation
+from django.utils.translation import gettext as _
+
+from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
+from .models import CoffeeEntry, Membership
+
+PAID = "paid"
+OPEN = "open"
+WAIVED = "waived"
+NOT_CHARGED = "none"
+
+
+def month_start(day: dt.date) -> dt.date:
+    return day.replace(day=1)
+
+
+def add_months(month: dt.date, count: int) -> dt.date:
+    index = month.year * 12 + month.month - 1 + count
+    return dt.date(index // 12, index % 12 + 1, 1)
+
+
+def month_label(month: dt.date) -> str:
+    return formats.date_format(month, "F Y")
+
+
+def station_today(station) -> dt.date:
+    try:
+        zone = ZoneInfo(station.timezone_name or "Europe/Berlin")
+    except Exception:  # unbekannte Zeitzone: Serverzeit
+        zone = timezone.get_current_timezone()
+    return timezone.now().astimezone(zone).date()
+
+
+def fund_for(station) -> CoffeeFund:
+    """Einstellungen der Kasse; ohne Datensatz gelten die Standardwerte (kein Beitrag)."""
+    fund = CoffeeFund.objects.filter(station=station).first()
+    return fund or CoffeeFund(station=station)
+
+
+def euro(cents: int) -> str:
+    return formats.number_format(cents / 100, 2, use_l10n=True, force_grouping=True) + " €"
+
+
+# --- Monatsbeiträge --------------------------------------------------------
+
+def ensure_fees(station, today: dt.date | None = None) -> int:
+    """Bucht fehlende Monatsbeiträge bis einschließlich des laufenden Monats.
+
+    Idempotent (eindeutiger Monat je Person); ausgeschiedene Mitglieder zahlen
+    nicht weiter.
+    """
+    fund = fund_for(station)
+    if not station.coffee_enabled or not fund.pk or not fund.monthly_fee_cents:
+        return 0
+    current = month_start(today or station_today(station))
+    active_users = set(
+        Membership.objects.filter(station=station, is_active=True).values_list("user_id", flat=True)
+    )
+    participants = [
+        p for p in CoffeeParticipant.objects.filter(station=station, since__lte=current)
+        if p.user_id in active_users
+    ]
+    if not participants:
+        return 0
+    existing = defaultdict(set)
+    for user_id, period in CoffeeEntry.objects.filter(
+        station=station, kind=CoffeeEntry.Kind.FEE, correction_of__isnull=True,
+        member_id__in=[p.user_id for p in participants],
+    ).values_list("member_id", "period"):
+        existing[user_id].add(period)
+    created = 0
+    for participant in participants:
+        month = participant.since
+        last = min(current, participant.until) if participant.until else current
+        while month <= last:
+            if month not in existing[participant.user_id]:
+                try:
+                    with transaction.atomic():
+                        CoffeeEntry.objects.create(
+                            station=station,
+                            member_id=participant.user_id,
+                            amount_cents=-fund.monthly_fee_cents,
+                            reason=_("Monatsbeitrag %(month)s") % {"month": month_label(month)},
+                            kind=CoffeeEntry.Kind.FEE,
+                            period=month,
+                        )
+                    created += 1
+                except (IntegrityError, ValidationError):  # paralleler Lauf war schneller
+                    pass
+            month = add_months(month, 1)
+    return created
+
+
+@dataclass
+class MonthStatus:
+    period: dt.date
+    status: str
+    due_cents: int = 0
+    remaining_cents: int = 0
+
+    @property
+    def label(self) -> str:
+        return month_label(self.period)
+
+    @property
+    def short_label(self) -> str:
+        return formats.date_format(self.period, "M y")
+
+    @property
+    def remaining_euros(self) -> float:
+        return self.remaining_cents / 100
+
+
+@dataclass
+class MemberStatus:
+    balance_cents: int = 0
+    months: dict = field(default_factory=dict)
+
+    @property
+    def open_cents(self) -> int:
+        return max(-self.balance_cents, 0)
+
+    @property
+    def credit_cents(self) -> int:
+        return max(self.balance_cents, 0)
+
+    @property
+    def open_euros(self) -> float:
+        return self.open_cents / 100
+
+    @property
+    def credit_euros(self) -> float:
+        return self.credit_cents / 100
+
+    @property
+    def open_months(self) -> list:
+        return [m for m in self.months.values() if m.status == OPEN]
+
+    def recent(self, current: dt.date, count: int) -> list:
+        """Die letzten ``count`` Monate bis ``current`` (neuester zuerst)."""
+        result = []
+        for offset in range(count):
+            month = add_months(current, -offset)
+            result.append(self.months.get(month) or MonthStatus(month, NOT_CHARGED))
+        return result
+
+
+def _status_from_rows(rows) -> MemberStatus:
+    fees = defaultdict(int)
+    waivers = defaultdict(int)
+    pool = 0
+    balance = 0
+    for kind, period, amount in rows:
+        balance += amount
+        if kind == CoffeeEntry.Kind.FEE:
+            fees[period] -= amount
+        elif kind == CoffeeEntry.Kind.WAIVER:
+            waivers[period] += amount
+        else:
+            pool += amount
+    status = MemberStatus(balance_cents=balance)
+    for period in sorted(fees):
+        due = fees[period]
+        if due <= 0:
+            continue  # Beitrag per Gegenbuchung zurückgenommen
+        remaining = max(due - waivers.get(period, 0), 0)
+        if remaining == 0:
+            status.months[period] = MonthStatus(period, WAIVED, due)
+            continue
+        paid = min(max(pool, 0), remaining)
+        pool -= paid
+        remaining -= paid
+        status.months[period] = MonthStatus(period, PAID if remaining == 0 else OPEN, due, remaining)
+    return status
+
+
+def member_status(station, user) -> MemberStatus:
+    rows = CoffeeEntry.objects.filter(station=station, member=user).values_list("kind", "period", "amount_cents")
+    return _status_from_rows(rows)
+
+
+def station_statuses(station) -> dict:
+    """Stand aller Personen mit Buchungen (nur für den Kassenwart)."""
+    grouped = defaultdict(list)
+    for member_id, kind, period, amount in CoffeeEntry.objects.filter(station=station).values_list(
+        "member_id", "kind", "period", "amount_cents"
+    ):
+        grouped[member_id].append((kind, period, amount))
+    return {member_id: _status_from_rows(rows) for member_id, rows in grouped.items()}
+
+
+def month_summary(station, month: dt.date) -> dict:
+    """Wie viele Teilnehmende den Monat bezahlt haben – ohne Namen, für alle sichtbar."""
+    statuses = station_statuses(station)
+    counts = {PAID: 0, OPEN: 0, WAIVED: 0}
+    for status in statuses.values():
+        entry = status.months.get(month)
+        if entry and entry.status in counts:
+            counts[entry.status] += 1
+    counts["total"] = sum(counts.values())
+    return counts
+
+
+# --- Kasse und Konto -------------------------------------------------------
+
+@dataclass
+class Pots:
+    cash_cents: int
+    bank_cents: int
+
+    @property
+    def cash_euros(self) -> float:
+        return self.cash_cents / 100
+
+    @property
+    def bank_euros(self) -> float:
+        return self.bank_cents / 100
+
+
+def pots(station) -> Pots:
+    payments = CoffeeEntry.objects.filter(station=station, kind=CoffeeEntry.Kind.PAYMENT)
+    cash_in = payments.filter(method=CoffeeEntry.Method.CASH).aggregate(s=Sum("amount_cents"))["s"] or 0
+    bank_in = payments.exclude(method=CoffeeEntry.Method.CASH).aggregate(s=Sum("amount_cents"))["s"] or 0
+    movements = CoffeeCashMovement.objects.filter(station=station)
+    cash_moves = movements.filter(pot=CoffeeCashMovement.Pot.CASH).aggregate(s=Sum("amount_cents"))["s"] or 0
+    bank_moves = movements.filter(pot=CoffeeCashMovement.Pot.BANK).aggregate(s=Sum("amount_cents"))["s"] or 0
+    # Bargeld aufs Konto: die Dose wird abgebucht (negativ), das Konto steigt.
+    deposits = movements.filter(kind=CoffeeCashMovement.Kind.DEPOSIT).aggregate(s=Sum("amount_cents"))["s"] or 0
+    return Pots(cash_cents=cash_in + cash_moves, bank_cents=bank_in + bank_moves - deposits)
+
+
+def last_count(station):
+    return (
+        CoffeeCashMovement.objects.filter(station=station, kind=CoffeeCashMovement.Kind.COUNT, correction_of__isnull=True)
+        .exclude(corrections__isnull=False)
+        .select_related("created_by", "witness")
+        .first()
+    )
+
+
+# --- GiroCode (EPC-QR, EPC069-12) -------------------------------------------
+
+EPC_MAX_BYTES = 331
+
+
+def normalize_iban(value: str) -> str:
+    return "".join(value.split()).upper()
+
+
+def epc_payload(*, name: str, iban: str, amount_cents: int = 0, text: str = "", bic: str = "") -> str:
+    """Überweisungsdaten für Banking-Apps (Version 002, UTF-8, SEPA-Überweisung).
+
+    Zeilen: BCD, 002, 1, SCT, BIC, Name, IBAN, Betrag, Zweckcode, Referenz,
+    Verwendungszweck. Nach dem letzten gefüllten Feld folgt kein Zeilenumbruch.
+    """
+    name = " ".join(name.split())[:70]
+    text = " ".join(text.split())[:140]
+    amount = ""
+    if amount_cents > 0:
+        amount = f"EUR{amount_cents // 100}.{amount_cents % 100:02d}"
+    lines = ["BCD", "002", "1", "SCT", normalize_iban(bic), name, normalize_iban(iban), amount, "", "", text]
+    while lines and not lines[-1]:
+        lines.pop()
+    payload = "\n".join(lines)
+    if len(payload.encode("utf-8")) > EPC_MAX_BYTES:
+        raise ValueError("GiroCode zu lang")
+    return payload
+
+
+def transfer_text(station, user) -> str:
+    person = (user.get_full_name() or user.get_username()).strip()
+    return f"Kaffeekasse {station.name} {person}"
+
+
+# --- Erinnerung ------------------------------------------------------------
+
+def remind_open_fees(now=None) -> int:
+    """Erinnert Teilnehmende einmal im Monat an offene Beiträge (Posteingang, Push).
+
+    Der Worker hat keine Anfrage und damit keine Sprache; die Texte folgen der
+    Standardsprache der Installation.
+    """
+    with translation.override(settings.LANGUAGE_CODE):
+        return _remind_open_fees(now)
+
+
+def _remind_open_fees(now=None) -> int:
+    from .crew_notifications import _enqueue_channels
+    from .notification_models import UserNotification
+
+    created = 0
+    funds = CoffeeFund.objects.select_related("station").filter(
+        monthly_fee_cents__gt=0, reminder_day__gt=0, station__coffee_enabled=True, station__is_active=True,
+    )
+    for fund in funds:
+        station = fund.station
+        today = station_today(station) if now is None else timezone.localtime(now).date()
+        ensure_fees(station, today)
+        if today.day < fund.reminder_day:
+            continue
+        key = f"coffee:{today:%Y-%m}"
+        active = set(Membership.objects.filter(station=station, is_active=True).values_list("user_id", flat=True))
+        statuses = station_statuses(station)
+        for participant in CoffeeParticipant.objects.filter(station=station).select_related("user"):
+            status = statuses.get(participant.user_id)
+            if participant.user_id not in active or not status or not status.open_months:
+                continue
+            months = len(status.open_months)
+            title = _("Kaffeekasse: Beitrag offen")
+            body = _("Offen: %(amount)s (%(months)s Monat(e)). Bar in die Kasse oder per Überweisung, danach in Wachwerk abhaken.") % {
+                "amount": euro(status.open_cents), "months": months,
+            }
+            url = reverse("coffee")
+            try:
+                with transaction.atomic():
+                    note, was_created = UserNotification.objects.get_or_create(
+                        user=participant.user, dedupe_key=key,
+                        defaults={"station": station, "kind": UserNotification.Kind.COFFEE_DUE,
+                                  "title": title, "body": body[:300], "url": url},
+                    )
+                    if was_created:
+                        _enqueue_channels(note, {"title": title, "body": body[:300], "url": url,
+                                                 "notification_id": note.pk})
+                        created += 1
+            except IntegrityError:
+                continue
+    return created
+
+
+def former_members_with_balance(station, statuses: dict) -> list:
+    active = set(Membership.objects.filter(station=station, is_active=True).values_list("user_id", flat=True))
+    return [member_id for member_id, status in statuses.items() if member_id not in active and status.balance_cents]
+
+
+def participants_query(station):
+    return CoffeeParticipant.objects.filter(station=station).filter(
+        Q(until__isnull=True) | Q(until__gte=month_start(station_today(station)))
+    )

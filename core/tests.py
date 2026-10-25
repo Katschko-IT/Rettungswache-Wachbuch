@@ -564,7 +564,7 @@ class MinimalInterfaceTests(PilotTestCase):
         self.membership.role = Membership.Role.ADMIN
         self.membership.save(update_fields=["role"])
         handover = self.create_handover("Pruefpunkt", HandoverEntry.Priority.IMPORTANT)
-        coffee = CoffeeEntry.objects.create(
+        CoffeeEntry.objects.create(
             station=self.station,
             member=self.user,
             amount_cents=250,
@@ -582,8 +582,10 @@ class MinimalInterfaceTests(PilotTestCase):
             reverse("birthdays"),
             reverse("birthday_settings"),
             reverse("coffee"),
-            reverse("coffee_create"),
-            reverse("coffee_correct", args=[coffee.pk]),
+            # Buchen und Korrigieren nur Kassenwart (core/test_coffee_fund.py).
+            reverse("coffee_participants"),
+            reverse("coffee_settings"),
+            reverse("coffee_cash"),
             reverse("feeds"),
             reverse("tasks_today"),
             reverse("tasks_week"),
@@ -2734,8 +2736,8 @@ class DatabaseRoleLeastPrivilegeTests(TestCase):
         self.assertTrue(
             any(
                 statement
-                == "REVOKE UPDATE, DELETE ON core_coffeeentry, core_auditevent, core_handoverrevision, "
-                "core_checklistcompletion FROM rwsth_app"
+                == "REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
+                "core_handoverrevision, core_checklistcompletion FROM rwsth_app"
                 for statement in executed
             ),
             executed,
