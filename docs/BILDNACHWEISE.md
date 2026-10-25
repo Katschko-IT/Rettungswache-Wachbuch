@@ -44,3 +44,11 @@ Auf dem Sperrbildschirm steht der Nachweis des jeweils gezeigten Bildes.
 | `bg-34.jpg` | [Rettungswache Lemsahl-Mellingstedt in Hamburg (1).jpg](https://commons.wikimedia.org/wiki/File:Rettungswache_Lemsahl-Mellingstedt_in_Hamburg_(1).jpg) | Minderbinder | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 | `bg-35.jpg` | [Solingen Feuer- und Rettungswache I (2).jpg](https://commons.wikimedia.org/wiki/File:Solingen_Feuer-_und_Rettungswache_I_(2).jpg) | Reise Reise | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 | `bg-36.jpg` | [Cottbus, Rettungswache am Universitätsklinikum (Welzower Straße 25).jpg](https://commons.wikimedia.org/wiki/File:Cottbus,_Rettungswache_am_Universit%C3%A4tsklinikum_(Welzower_Stra%C3%9Fe_25).jpg) | Trio3D | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+
+## App-Icon
+
+Das kursive „W“ im App-Icon (`core/static/core/icons/`, `site/assets/favicon.svg`,
+App-Icons des Flutter-Clients) ist die Glyphe aus **Inter Display SemiBold Italic**
+von Rasmus Andersson, lizenziert unter der SIL Open Font License 1.1
+(https://github.com/rsms/inter). Sie ist als Vektorpfad in `scripts/make_app_icons.py`
+hinterlegt; die Schrift selbst wird nicht mitgeliefert.

@@ -28,8 +28,10 @@ Designsystemen:
 | [Pico CSS](https://github.com/picocss/pico) | MIT | Semantisches HTML als Referenz; bewusst nicht eingebunden |
 | [Source Sans 3](https://github.com/adobe-fonts/source-sans) | SIL OFL 1.1 | Lokale Webfonts (`core/static/core/fonts/`), offline-faehig |
 
-Es wurden keine Logos, Markenfarben oder kopierten Komponentenpakete
-eingebunden. Die eigene CSS-Schicht bleibt klein, lokal und offline-fähig.
+Es wurden keine fremden Logos, Markenfarben oder kopierten Komponentenpakete
+eingebunden. Kopfleiste und Startseite zeigen das eigene Wachwerk-Logo
+(`core/static/core/brand-wachwerk.png`); rot-weiße Warnstreifen werden bewusst
+nicht als Schmuck verwendet. Die eigene CSS-Schicht bleibt klein, lokal und offline-fähig.
 Minimales JavaScript dient ausschließlich der installierbaren PWA
 (Service-Worker, Installationshinweis, Online-Status) und ist keine
 Voraussetzung für die Kernabläufe.

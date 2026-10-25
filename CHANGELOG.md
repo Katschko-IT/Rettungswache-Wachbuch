@@ -1,5 +1,22 @@
 # Changelog
 
+## Unveröffentlicht
+
+- Neues **App-Icon**: blaues Feld im Logo-Blau mit weißem kursivem „W“
+  (Web-App, Favicon der Projektseite); erzeugt mit `scripts/make_app_icons.py`.
+- Das eigene **Wachwerk-Logo** steht wieder in der Kopfleiste (statt der
+  rot-weißen Text-Marke).
+- **Keine rot-weißen Warnstreifen** mehr: entfernt aus Kopfleiste, Logo-Feld,
+  Fehlerseiten und dem Grenzen-Kasten der Start- und Vorführseite (dort jetzt
+  ein ruhiger blauer Rand). Rot bleibt nur für Hinweise wie dringende Übergaben.
+- Ersteinrichtung legte bei Docker-Installationen neben der beim Start
+  automatisch angelegten Standardwache eine **zweite Wache** an (leere
+  Zweitwache mit den Tagesaufgaben; `create_terminal`/`register-terminal.sh`
+  brach mit „genau eine aktive Wache“ ab). Der Assistent übernimmt jetzt die
+  einzige, noch unbenutzte Standardwache; eine benutzte Wache nie.
+- Neuer Test: Jeder Compose-Dienst mit Datenbankzugriff teilt ein Netz mit `db`.
+- Recherche Rollenmodell einer Rettungswache (`docs/ROLLENMODELL-RETTUNGSWACHE.md`).
+
 ## 0.25.0 - 2026-10-24
 
 Docker-Installation für alle: `install.sh`, vorgefertigte Images, `wachbuch`-CLI.
