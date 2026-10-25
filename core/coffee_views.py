@@ -14,6 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -38,7 +39,6 @@ from .services import audit
 
 CASHIER = {Membership.Role.CASHIER}
 SETUP_ROLES = {Membership.Role.CASHIER, Membership.Role.ADMIN}
-MONTHS_SHOWN = 6
 
 
 def _is_cashier(request) -> bool:
@@ -82,6 +82,8 @@ def coffee(request):
     current = logic.month_start(today)
     status = logic.member_status(station, request.user)
     participant = CoffeeParticipant.objects.filter(station=station, user=request.user).first()
+    first_year = logic.first_fee_year(station, request.user)
+    year = logic.chosen_year(request.GET.get("jahr"), current, first_year)
     own_entries = CoffeeEntry.objects.filter(station=station, member=request.user).select_related(
         "created_by", "correction_of"
     )
@@ -105,10 +107,10 @@ def coffee(request):
         "station": station,
         "fund": fund,
         "status": status,
-        "months": [
-            m for m in status.recent(current, 12)
-            if m.status != logic.NOT_CHARGED or (participant and m.period >= participant.since)
-        ],
+        "months": logic.year_cells(status, year, current) if participant or status.months else [],
+        "year": year,
+        "previous_year": year - 1 if first_year and year > first_year else None,
+        "next_year": year + 1 if year < current.year else None,
         "participant": participant,
         "prepaid_months": prepaid_months,
         "prepaid_until": logic.add_months(current, prepaid_months) if prepaid_months else None,
@@ -182,34 +184,68 @@ def _quick_amounts(fund, status) -> list:
 @membership_required(CASHIER)
 @station_module_required("coffee_enabled")
 def coffee_book(request):
-    """Die Mappe: Monatsübersicht aller Teilnehmenden (nur Kassenwart)."""
+    """Die Mappe: Jahresübersicht aller Teilnehmenden – wer hat welchen Monat bezahlt (nur Kassenwart)."""
     station = request.membership.station
     fund = logic.fund_for(station)
     logic.ensure_fees(station)
     current = logic.month_start(logic.station_today(station))
+    first_year = logic.first_fee_year(station)
+    year = logic.chosen_year(request.GET.get("jahr"), current, first_year)
+    months = logic.year_months(year)
     statuses = logic.station_statuses(station)
-    months = [logic.add_months(current, -offset) for offset in range(MONTHS_SHOWN - 1, -1, -1)]
+    year_start, year_end = months[0], months[-1]
+    participants = (
+        CoffeeParticipant.objects.filter(station=station, since__lte=year_end)
+        .filter(Q(until__isnull=True) | Q(until__gte=year_start))
+        .select_related("user").order_by("user__first_name", "user__username")
+    )
     rows = []
-    participants = logic.participants_query(station).select_related("user").order_by("user__first_name", "user__username")
     for participant in participants:
         status = statuses.get(participant.user_id) or logic.MemberStatus()
-        cells = [status.months.get(m) or logic.MonthStatus(m, logic.NOT_CHARGED) for m in months]
-        rows.append({"user": participant.user, "participant": participant, "status": status, "cells": cells})
-    former_ids = logic.former_members_with_balance(station, statuses)
+        cells = logic.year_cells(status, year, current)
+        rows.append({
+            "user": participant.user,
+            "participant": participant,
+            "status": status,
+            "cells": cells,
+            "active": participant.until is None or participant.until >= current,
+            "paid_count": sum(1 for c in cells if c.status == logic.PAID),
+            "open_year_euros": sum(c.remaining_cents for c in cells if c.status == logic.OPEN) / 100,
+        })
+    totals = []
+    for index, month in enumerate(months):
+        states = [row["cells"][index].status for row in rows]
+        charged = sum(1 for st in states if st in (logic.PAID, logic.OPEN, logic.WAIVED))
+        totals.append({
+            "month": month,
+            "future": month > current,
+            "paid": sum(1 for st in states if st == logic.PAID),
+            "open": sum(1 for st in states if st == logic.OPEN),
+            "charged": charged,
+        })
+    # Konten außerhalb der Mappe: ohne Monatsbeitrag oder ausgeschieden.
+    former_ids = set(logic.former_members_with_balance(station, statuses))
+    participant_ids = set(CoffeeParticipant.objects.filter(station=station).values_list("user_id", flat=True))
     others = [
         {"user": user, "status": statuses[user.pk]}
         for user in User.objects.filter(pk__in=[
             uid for uid, s in statuses.items()
-            if s.balance_cents and uid not in {r["user"].pk for r in rows}
+            if s.balance_cents and (uid in former_ids or uid not in participant_ids)
         ]).order_by("first_name", "username")
     ]
+    open_total = sum(s.open_cents for s in statuses.values())
     return render(request, "core/coffee_book.html", {
         "fund": fund,
+        "year": year,
+        "previous_year": year - 1 if first_year and year > first_year else None,
+        "next_year": year + 1 if year < current.year else None,
         "months": months,
+        "current_month": current,
         "rows": rows,
+        "totals": totals,
         "others": others,
-        "former_ids": set(former_ids),
-        "open_total_euros": (sum(r["status"].open_cents for r in rows) + sum(o["status"].open_cents for o in others)) / 100,
+        "former_ids": former_ids,
+        "open_total_euros": open_total / 100,
         "pots": logic.pots(station),
     })
 
@@ -497,6 +533,7 @@ def coffee_count(request):
             audit(request.user, station, "coffee.cash_counted", movement, {
                 "fields": ["counted_cents", "expected_cents"], "difference_cents": difference,
             })
+            logic.announce_count(movement)
         if difference:
             messages.warning(request, _("Kassensturz gespeichert. Differenz: %(diff)s") % {"diff": logic.euro(difference)})
         else:

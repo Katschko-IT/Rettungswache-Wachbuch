@@ -2,6 +2,24 @@
 
 ## Unveröffentlicht
 
+- **Kaffeekasse: Jahresübersicht.** Die Mappe des Kassenwarts zeigt ein
+  ganzes Jahr (Januar bis Dezember, frühere Jahre umschaltbar):
+  - wer welchen Monat bezahlt hat, wer nicht und wer befreit ist;
+  - je Person „im Jahr bezahlt“ und der Stand heute;
+  - eine Fußzeile „bezahlt/berechnet“ je Monat.
+
+  Jede Person sieht ihre eigenen zwölf Monate je Jahr.
+- **Signal-Benachrichtigungen** (optional, `docs/SIGNAL.md`) über
+  `signal-cli-rest-api` als verknüpftes Gerät eines Signal-Kontos der Wache
+  (Compose-Profil `signal`, nur im internen Netz):
+  - **Einrichtung:** Admins koppeln per QR-Code und wählen die Wachengruppe.
+  - **Wachengruppe:** monatliche Kaffeekassen-Erinnerung und
+    Kassensturz-Ergebnis, jeweils ohne Namen.
+  - **Persönlich:** Jede Person kann ihre Nummer per Code bestätigen und
+    bekommt dann ihre Benachrichtigungen (Kaffeekasse, Fahrzeugfreigabe)
+    zusätzlich per Signal.
+  - **Versand:** über einen Postausgang im `notify-worker`, mit Wiederholung
+    bei Fehlern; gesendete Nachrichten werden nach 30 Tagen gelöscht.
 - **Kaffeekasse mit Monatsbeitrag** (Recherche und Konzept:
   `docs/KAFFEEKASSE.md`): die digitale „Mappe“ für Wachen, die einen festen
   Monatsbeitrag bar in die Dose zahlen.

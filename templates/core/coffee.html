@@ -44,12 +44,17 @@
     {% endif %}
   </div>
   {% if months %}
-    <ol class="coffee-months" aria-label="{% translate 'Meine Monate, neuester zuerst' %}">
+    <nav class="year-switch" aria-label="{% translate 'Jahr wählen' %}">
+      {% if previous_year %}<a class="button secondary small" href="?jahr={{ previous_year }}">‹ {{ previous_year }}</a>{% else %}<span></span>{% endif %}
+      <h3>{% blocktranslate with y=year %}Meine Monate {{ y }}{% endblocktranslate %}</h3>
+      {% if next_year %}<a class="button secondary small" href="?jahr={{ next_year }}">{{ next_year }} ›</a>{% else %}<span></span>{% endif %}
+    </nav>
+    <ol class="coffee-months" aria-label="{% blocktranslate with y=year %}Meine Monate {{ y }}{% endblocktranslate %}">
       {% for month in months %}
         <li class="coffee-month is-{{ month.status }}">
-          <span class="coffee-month-name">{{ month.short_label }}</span>
+          <span class="coffee-month-name">{{ month.period|date:"F" }}</span>
           <span class="coffee-month-state">
-            {% if month.status == "paid" %}{% translate "bezahlt" %}{% elif month.status == "open" %}{% blocktranslate with amount=month.remaining_euros|floatformat:2 %}offen {{ amount }} €{% endblocktranslate %}{% elif month.status == "waived" %}{% translate "befreit" %}{% else %}–{% endif %}
+            {% if month.status == "paid" %}✓ {% translate "bezahlt" %}{% elif month.status == "open" %}{% blocktranslate with amount=month.remaining_euros|floatformat:2 %}offen {{ amount }} €{% endblocktranslate %}{% elif month.status == "waived" %}{% translate "befreit" %}{% elif month.status == "future" %}{% translate "kommt noch" %}{% else %}–{% endif %}
           </span>
         </li>
       {% endfor %}

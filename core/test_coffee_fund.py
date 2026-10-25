@@ -167,7 +167,7 @@ class CoffeeViewTests(CoffeeFixture):
         book = self.client.get(reverse("coffee_book"))
         self.assertContains(book, "Mara Muster")
         self.assertContains(book, "Olaf Ohnegeld")
-        self.assertContains(book, "bar erhalten")
+        self.assertContains(book, "€ bar von Mara Muster erhalten")
         self.client.post(reverse("coffee_cash_received", args=[self.member.pk]))
         self.assertEqual(logic.member_status(self.station, self.member).open_cents, 0)
         self.assertContains(self.client.get(reverse("coffee_ledger") + "?selbst=1"), "Olaf Ohnegeld")
@@ -242,3 +242,41 @@ class GiroCodeTests(TestCase):
     def test_epc_payload_without_amount_and_text_ends_after_iban(self):
         payload = logic.epc_payload(name="Kasse", iban="DE89370400440532013000", bic="COBADEFFXXX")
         self.assertEqual(payload, "BCD\n002\n1\nSCT\nCOBADEFFXXX\nKasse\nDE89370400440532013000")
+
+
+class YearOverviewTests(CoffeeFixture):
+    def test_chosen_year_is_clamped(self):
+        self.assertEqual(logic.chosen_year("2025", MONTH, 2024), 2025)
+        self.assertEqual(logic.chosen_year("1999", MONTH, 2024), 2024)
+        self.assertEqual(logic.chosen_year("2099", MONTH, 2024), 2026)
+        self.assertEqual(logic.chosen_year("abc", MONTH, None), 2026)
+
+    def test_year_cells_mark_future_and_unpaid_months(self):
+        self.join(self.member, dt.date(2026, 9, 1))
+        logic.ensure_fees(self.station, MONTH)
+        self.pay(self.member, 500)
+        cells = logic.year_cells(logic.member_status(self.station, self.member), 2026, MONTH)
+        self.assertEqual([c.status for c in cells], ["none"] * 8 + ["paid", "open", "future", "future"])
+
+    def test_cashier_browses_previous_years(self):
+        today = logic.station_today(self.station)
+        last_year = today.year - 1
+        self.join(self.member, dt.date(last_year, 11, 1))
+        self.join(self.other, logic.month_start(today))
+        logic.ensure_fees(self.station)
+        self.pay(self.member, 500)  # tilgt November des Vorjahres
+        self.client.force_login(self.cashier)
+        page = self.client.get(reverse("coffee_book"))
+        self.assertContains(page, f"Jahr {today.year}")
+        self.assertContains(page, f"?jahr={last_year}")
+        self.assertContains(page, "Olaf Ohnegeld")
+        old = self.client.get(reverse("coffee_book") + f"?jahr={last_year}")
+        self.assertContains(old, f"Jahr {last_year}")
+        self.assertContains(old, "Mara Muster")
+        self.assertNotContains(old, "Olaf Ohnegeld")  # erst ab diesem Jahr dabei
+        self.assertContains(old, "1/1")  # November: 1 von 1 bezahlt
+        self.assertEqual(old.context["rows"][0]["paid_count"], 1)
+        member = self.client
+        member.force_login(self.member)
+        own = member.get(reverse("coffee") + f"?jahr={last_year}")
+        self.assertContains(own, f"Meine Monate {last_year}")

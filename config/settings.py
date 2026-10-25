@@ -363,6 +363,12 @@ PUSH_RELAY_URL = os.getenv("PUSH_RELAY_URL", "").strip()
 PUSH_RELAY_TOKEN = os.getenv("PUSH_RELAY_TOKEN", "").strip()
 if PUSH_RELAY_URL and not PUSH_RELAY_URL.startswith("https://"):
     raise ImproperlyConfigured("PUSH_RELAY_URL muss eine https://-Adresse sein.")
+# Optional: Benachrichtigungen per Signal über einen signal-cli-rest-api-
+# Container im internen Netz (docs/SIGNAL.md). Leer = Signal aus.
+SIGNAL_API_URL = os.getenv("SIGNAL_API_URL", "").strip().rstrip("/")
+SIGNAL_NUMBER = os.getenv("SIGNAL_NUMBER", "").strip()
+if SIGNAL_API_URL and not SIGNAL_API_URL.startswith(("http://", "https://")):
+    raise ImproperlyConfigured("SIGNAL_API_URL muss mit http:// oder https:// beginnen.")
 # HTTPS host allowlist for browser push subscription endpoints (SSRF guard).
 # The same list feeds CSP ``connect-src`` (no scheme-wide ``https:``).
 # Entries match an exact host; entries starting with "." match that suffix

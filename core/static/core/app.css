@@ -2223,3 +2223,23 @@ dialog::backdrop { background: var(--scrim); }
   .coffee-section .balance-row > div, .balance-row.coffee-pots > div { min-width: 0; flex: 1 1 calc(50% - .5rem); }
   .coffee-section .balance-row strong { font-size: 1.3rem; }
 }
+.year-switch {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  margin: 0 0 .75rem;
+}
+.year-switch h2, .year-switch h3 { margin: 0; text-align: center; font-size: 1.15rem; }
+.coffee-month.is-future, .coffee-month.is-none { opacity: .55; }
+.coffee-book th.is-current, .coffee-book td.is-current { background: var(--primary-container); }
+.coffee-book tfoot th, .coffee-book tfoot td { font-weight: 700; border-top: 2px solid var(--line-strong); }
+.coffee-book th[scope="row"] small { display: block; color: var(--muted); font-weight: 400; }
+.coffee-badge.is-future { min-width: 1.5rem; }
+.setup-steps li > span { display: block; color: var(--muted); }
+.setup-steps li.is-done > strong { color: var(--success); }
+.setup-steps .form-card { margin-top: .6rem; }
+.coffee-book { font-size: .92rem; }
+.coffee-book th, .coffee-book td { padding: .45rem .3rem; }
+.coffee-book .coffee-badge { min-width: 2.4rem; padding: .2rem .35rem; }
+.coffee-book .coffee-waive summary { font-size: .78rem; }

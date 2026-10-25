@@ -125,6 +125,22 @@ Erinnerungen gehen nur an die betroffene Person, über den Posteingang und Push.
 - **Befreiung** (Urlaub, Elternzeit, Krankheit): Der Kassenwart gleicht genau einen Monat aus, mit Begründung.
 - **Erinnerung:** Ab dem eingestellten Tag (Standard: der 10.) erinnert Wachwerk einmal pro Monat an einen offenen Beitrag. Das übernimmt der `notify-worker`, höchstens alle 15 Minuten. Er bucht dabei auch neue Monate.
 
+### Jahresübersicht
+
+- **Mappe des Kassenwarts:** Sie zeigt ein Jahr mit Januar bis Dezember, umschaltbar auf frühere Jahre.
+  - Pro Person und Monat: ✓ bezahlt, offen, befreit oder – (kein Beitrag).
+  - Dazu „im Jahr bezahlt“ und der Stand heute.
+  - Die Fußzeile zeigt je Monat „bezahlt/berechnet“.
+  - Ausgeschiedene Teilnehmende bleiben in den Jahren sichtbar, in denen sie gezahlt haben.
+- **Eigene Ansicht:** Jede Person sieht ihre eigenen zwölf Monate je Jahr.
+
+### Signal
+
+Optional erinnert Wachwerk auch per Signal (Einrichtung: `docs/SIGNAL.md`):
+
+- **Wachengruppe:** monatlich ohne Namen („5 von 12 haben schon bezahlt“), optional das Kassensturz-Ergebnis.
+- **Persönlich:** nur an Personen, die ihre Nummer selbst bestätigt haben, mit dem offenen Betrag.
+
 ### Selbst abhaken
 
 „Ich habe bezahlt“ funktioniert wie das Kreuz in der Mappe:

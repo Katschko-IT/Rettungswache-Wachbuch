@@ -91,6 +91,10 @@ class Station(models.Model):
             "bewusst außerhalb der App."
         ),
     )
+    signal_group_id = models.CharField(
+        max_length=200, blank=True, default="", verbose_name="Signal-Gruppe für Benachrichtigungen",
+        help_text="Interne Gruppen-ID (group.…) aus signal-cli; Auswahl unter Einstellungen → Signal.",
+    )
     paypal_me_url = models.URLField(blank=True, default="", verbose_name="PayPal.me-Link")
     wero_link = models.URLField(blank=True, default="", verbose_name="Wero-Link")
     iban = models.CharField(max_length=34, blank=True, default="", verbose_name="IBAN")

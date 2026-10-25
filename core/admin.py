@@ -287,3 +287,14 @@ class DisinfectantMasterAdmin(admin.ModelAdmin):
     list_display = ("name", "station", "default_exposure_minutes", "is_vah_listed")
     list_filter = ("station", "is_vah_listed")
     search_fields = ("name", "manufacturer")
+
+
+from .notification_models import SignalOutbox  # noqa: E402
+
+
+@admin.register(SignalOutbox)
+class SignalOutboxAdmin(ReadOnlyAdmin):
+    """Signal-Postausgang: gescheiterte Nachrichten mit Fehlertext (docs/SIGNAL.md)."""
+
+    list_display = ("created_at", "station", "attempts", "sent_at", "last_error")
+    list_filter = ("sent_at",)

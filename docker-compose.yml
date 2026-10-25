@@ -6,6 +6,7 @@
 # Entwickler bauen lokal:
 #   docker compose -f docker-compose.yml -f compose.build.yml up -d --build
 # Optionaler TLS-Proxy (Caddy): Profil "https" (COMPOSE_PROFILES=https).
+# Optionaler Signal-Versand: Profil "signal" (docs/SIGNAL.md).
 
 name: rettungswache-wachbuch
 
@@ -198,6 +199,9 @@ services:
       LOCAL_TLS_CERT_SHA256: ${LOCAL_TLS_CERT_SHA256:-}
       TERMINAL_WIFI_SSID: ${TERMINAL_WIFI_SSID:-}
       TERMINAL_WIFI_PASSWORD: ${TERMINAL_WIFI_PASSWORD:-}
+      # Signal (Profil "signal"): Kopplung und Gruppenwahl in der Weboberfläche.
+      SIGNAL_API_URL: ${SIGNAL_API_URL:-}
+      SIGNAL_NUMBER: ${SIGNAL_NUMBER:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -214,6 +218,7 @@ services:
     networks:
       - app-db
       - web-ingress
+      - signal-api
     tmpfs:
       - /tmp
     read_only: true
@@ -289,6 +294,9 @@ services:
       WEB_PUSH_ENABLED: ${WEB_PUSH_ENABLED:-false}
       PUSH_RELAY_URL: ${PUSH_RELAY_URL:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SIGNAL_API_URL: ${SIGNAL_API_URL:-}
+      SIGNAL_NUMBER: ${SIGNAL_NUMBER:-}
+      SITE_URL: ${SITE_URL:-}
     depends_on:
       web:
         condition: service_healthy
@@ -296,6 +304,7 @@ services:
     # weder db noch redis ("failed to resolve host 'db'").
     networks:
       - app-db
+      - signal-api
     tmpfs:
       - /tmp
     read_only: true
@@ -443,6 +452,36 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # Optionaler Signal-Versand (docs/SIGNAL.md): COMPOSE_PROFILES=signal und in
+  # .env SIGNAL_API_URL=http://signal:8080 sowie SIGNAL_NUMBER=+49… setzen.
+  # Läuft als verknüpftes Gerät eines Signal-Kontos der Wache; die REST-API hat
+  # keine eigene Anmeldung und ist deshalb nur im internen Netz signal-api
+  # erreichbar (kein Port nach außen).
+  signal:
+    profiles: ["signal"]
+    image: bbernhard/signal-cli-rest-api:0.101@sha256:2cf09d66a86fdd210e42ee91662216364acc27da1163a8c44167a77ea3a6559a
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      MODE: native
+    volumes:
+      # Schlüssel des verknüpften Geräts; mit .env sichern.
+      - signal-data:/home/.local/share/signal-cli
+    networks:
+      - signal-api
+      - egress
+    # s6-overlay im Image wechselt per setuid auf einen eigenen Benutzer; mit
+    # no-new-privileges startet es nicht. Mehr Rechte als diese braucht es nicht
+    # (geprüft mit 0.101).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
   # Optionaler TLS-Proxy: COMPOSE_PROFILES=https (install.sh --mode lan|domain).
   # LAN: CADDY_TLS=internal (eigene CA); Domain: CADDY_TLS=<E-Mail> für
   # Let's Encrypt. Konfiguration: deploy/caddy/Caddyfile.
@@ -489,6 +528,9 @@ networks:
   web-ingress:
   # Outbound HTTPS for the feed worker allowlist.
   egress:
+  # Signal-REST-API (Profil "signal"): nur web und notify-worker erreichen sie.
+  signal-api:
+    internal: true
 
 volumes:
   postgres-data:
@@ -499,3 +541,4 @@ volumes:
   # TLS-Proxy (Profil https)
   caddy-data:
   caddy-config:
+  signal-data:

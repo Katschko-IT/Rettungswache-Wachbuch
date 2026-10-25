@@ -18,11 +18,11 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from django.urls import reverse
-from django.conf import settings
 from django.utils import formats, timezone, translation
 from django.utils.translation import gettext as _
 
@@ -33,6 +33,7 @@ PAID = "paid"
 OPEN = "open"
 WAIVED = "waived"
 NOT_CHARGED = "none"
+FUTURE = "future"
 
 
 def month_start(day: dt.date) -> dt.date:
@@ -214,6 +215,39 @@ def station_statuses(station) -> dict:
     return {member_id: _status_from_rows(rows) for member_id, rows in grouped.items()}
 
 
+def year_months(year: int) -> list:
+    """Januar bis Dezember eines Jahres (jeweils der Monatserste)."""
+    return [dt.date(year, month, 1) for month in range(1, 13)]
+
+
+def year_cells(status: "MemberStatus", year: int, current: dt.date) -> list:
+    cells = []
+    for month in year_months(year):
+        if month > current:
+            cells.append(MonthStatus(month, FUTURE))
+        else:
+            cells.append(status.months.get(month) or MonthStatus(month, NOT_CHARGED))
+    return cells
+
+
+def chosen_year(raw, current: dt.date, first_year: int | None) -> int:
+    """Jahr aus ``?jahr=``; begrenzt auf das erste Beitragsjahr bis zum laufenden Jahr."""
+    first = min(first_year or current.year, current.year)
+    try:
+        year = int(raw)
+    except (TypeError, ValueError):
+        return current.year
+    return min(max(year, first), current.year)
+
+
+def first_fee_year(station, user=None) -> int | None:
+    entries = CoffeeEntry.objects.filter(station=station, kind=CoffeeEntry.Kind.FEE)
+    if user is not None:
+        entries = entries.filter(member=user)
+    first = entries.order_by("period").values_list("period", flat=True).first()
+    return first.year if first else None
+
+
 def month_summary(station, month: dt.date) -> dict:
     """Wie viele Teilnehmende den Monat bezahlt haben – ohne Namen, für alle sichtbar."""
     statuses = station_statuses(station)
@@ -324,6 +358,8 @@ def _remind_open_fees(now=None) -> int:
         if today.day < fund.reminder_day:
             continue
         key = f"coffee:{today:%Y-%m}"
+        if fund.signal_group_reminder:
+            created += int(_remind_group(fund, today))
         active = set(Membership.objects.filter(station=station, is_active=True).values_list("user_id", flat=True))
         statuses = station_statuses(station)
         for participant in CoffeeParticipant.objects.filter(station=station).select_related("user"):
@@ -352,12 +388,40 @@ def _remind_open_fees(now=None) -> int:
     return created
 
 
+def _remind_group(fund, today: dt.date) -> bool:
+    """Anonyme Monatserinnerung in die Signal-Gruppe der Wache (höchstens einmal im Monat)."""
+    from .signal_messenger import enqueue_for_group, message_text
+
+    station = fund.station
+    month = month_start(today)
+    summary = month_summary(station, month)
+    text = _("☕ Kaffeekasse: Der Beitrag für %(month)s (%(fee)s) ist fällig. Bar in die Kasse oder per Überweisung, danach in Wachwerk abhaken.") % {
+        "month": formats.date_format(month, "F"), "fee": euro(fund.monthly_fee_cents),
+    }
+    if summary["total"]:
+        text += " " + _("%(paid)s von %(total)s haben schon bezahlt.") % summary
+    return enqueue_for_group(station, message_text(text, url=reverse("coffee")),
+                             dedupe_key=f"coffee-group:{station.pk}:{month:%Y-%m}")
+
+
+def announce_count(movement) -> bool:
+    """Kassensturz-Ergebnis ohne Namen in die Signal-Gruppe, wenn eingeschaltet."""
+    from .signal_messenger import enqueue_for_group, signal_enabled
+
+    fund = fund_for(movement.station)
+    if not (signal_enabled() and fund.pk and fund.signal_group_counts):
+        return False
+    with translation.override(settings.LANGUAGE_CODE):
+        if movement.amount_cents:
+            text = _("☕ Kaffeekasse: Kassensturz am %(date)s – Differenz %(diff)s.") % {
+                "date": formats.date_format(timezone.localtime(movement.created_at), "d.m.Y"),
+                "diff": euro(movement.amount_cents)}
+        else:
+            text = _("☕ Kaffeekasse: Kassensturz am %(date)s – die Kasse stimmt.") % {
+                "date": formats.date_format(timezone.localtime(movement.created_at), "d.m.Y")}
+    return enqueue_for_group(movement.station, text, dedupe_key=f"coffee-count:{movement.pk}")
+
+
 def former_members_with_balance(station, statuses: dict) -> list:
     active = set(Membership.objects.filter(station=station, is_active=True).values_list("user_id", flat=True))
     return [member_id for member_id, status in statuses.items() if member_id not in active and status.balance_cents]
-
-
-def participants_query(station):
-    return CoffeeParticipant.objects.filter(station=station).filter(
-        Q(until__isnull=True) | Q(until__gte=month_start(station_today(station)))
-    )

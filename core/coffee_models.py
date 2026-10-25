@@ -33,6 +33,14 @@ class CoffeeFund(models.Model):
         _("Kontoinhaber für Überweisungen"), max_length=70, blank=True, default="",
         help_text=_("Name für den Überweisungs-QR (GiroCode). Am besten ein eigenes Konto der Kasse."),
     )
+    signal_group_reminder = models.BooleanField(
+        _("Monatliche Erinnerung in die Signal-Gruppe"), default=False,
+        help_text=_("Ohne Namen: „Der Beitrag für November ist fällig – 5 von 12 haben schon bezahlt.“"),
+    )
+    signal_group_counts = models.BooleanField(
+        _("Kassensturz-Ergebnis in die Signal-Gruppe"), default=False,
+        help_text=_("Datum und ob die Kasse stimmte – ohne Namen."),
+    )
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
 

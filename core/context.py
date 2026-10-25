@@ -2,6 +2,7 @@ from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 
 from .access import CONTENT_ROLES, get_membership
+from .signal_messenger import signal_enabled
 from .models import HandoverEntry
 
 
@@ -93,6 +94,7 @@ def application_metadata(request):
         "demo_accounts": demo_accounts_for_display() if demo else [],
         "public_data_protection_officers": public_dpo_contacts,
         "site_profile": SimpleLazyObject(_current_site_profile),
+        "signal_enabled": signal_enabled(),
     }
 
 

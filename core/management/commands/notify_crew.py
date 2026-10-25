@@ -27,6 +27,7 @@ from django.utils import timezone
 
 from core.coffee import remind_open_fees
 from core.crew_notifications import notify_ready_vehicles
+from core.signal_messenger import deliver_outbox as deliver_signal
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,8 @@ class Command(BaseCommand):
                 if time.monotonic() >= coffee_due_at:
                     count += remind_open_fees()
                     coffee_due_at = time.monotonic() + 15 * 60
+                # Signal-Postausgang (nur wenn SIGNAL_API_URL gesetzt ist).
+                deliver_signal()
             except Exception as exc:
                 failures += 1
                 logger.exception(

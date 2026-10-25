@@ -207,12 +207,19 @@ class CoffeeFundForm(forms.ModelForm):
 
     class Meta:
         model = CoffeeFund
-        fields = ["reminder_day", "account_holder"]
+        fields = ["reminder_day", "account_holder", "signal_group_reminder", "signal_group_counts"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["monthly_fee_eur"].initial = Decimal(self.instance.monthly_fee_cents) / 100
-        self.order_fields(["monthly_fee_eur", "reminder_day", "account_holder"])
+        self.order_fields(["monthly_fee_eur", "reminder_day", "account_holder",
+                           "signal_group_reminder", "signal_group_counts"])
+        from .signal_messenger import signal_enabled
+
+        if not (signal_enabled() and self.instance.station.signal_group_id):
+            # Ohne verbundene Signal-Gruppe gibt es nichts zu senden.
+            del self.fields["signal_group_reminder"]
+            del self.fields["signal_group_counts"]
 
     def clean_reminder_day(self):
         value = self.cleaned_data["reminder_day"]

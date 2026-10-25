@@ -308,6 +308,7 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 | `POSTGRES_SHARED_BUFFERS` u. a. | `128MB` … | PostgreSQL-Speicher, siehe OPERATIONS.md |
 | `BACKUP_RETENTION_DAYS` | `7` | lokale Aufbewahrung der Dumps |
 | `BACKUP_OFFSITE_DIR` / `BACKUP_OFF_TARGET` | leer | Offsite-Kopie (Host-Ordner als `/offsite`) |
+| `SIGNAL_API_URL` / `SIGNAL_NUMBER` | leer | Signal-Benachrichtigungen (Profil `signal`, `docs/SIGNAL.md`) |
 | `MFA_REQUIRED` | `false` | Zweitfaktor erzwingen (alternativ im Assistenten bzw. unter Einstellungen → Impressum & Datenschutz) |
 | `FEED_ALLOWED_HOSTS` | leer | erlaubte HTTPS-Feedquellen |
 

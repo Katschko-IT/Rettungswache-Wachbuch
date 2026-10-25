@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Signal" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu den Einstellungen" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Einstellungen" %}</p>
+  <h1>{% translate "Signal" %}</h1>
+  <p class="lead">{% translate "Wachwerk verschickt Erinnerungen und Hinweise über ein Signal-Konto der Wache – in die Wachengruppe (ohne Namen) und an Personen, die ihre Nummer selbst bestätigt haben." %}</p>
+</header>
+<ol class="setup-steps narrow">
+  <li class="{% if enabled %}is-done{% endif %}">
+    <strong>{% translate "Signal-Dienst starten" %}</strong>
+    {% if enabled %}<span>✓ {% translate "eingerichtet" %}</span>{% else %}
+      <span>{% translate "Auf dem Server: in der Datei .env SIGNAL_NUMBER=+49… (Nummer des Wachen-Handys) eintragen und „docker compose --profile signal up -d“ ausführen. Anleitung: docs/SIGNAL.md." %}</span>
+    {% endif %}
+  </li>
+  <li class="{% if linked %}is-done{% endif %}">
+    <strong>{% translate "Mit dem Wachen-Handy koppeln" %}</strong>
+    {% if linked %}<span>✓ {% translate "gekoppelt" %}</span>{% elif enabled %}
+      <span>{% translate "Signal auf dem Wachen-Handy öffnen → Einstellungen → Verknüpfte Geräte → „+“ und diesen Code scannen. Danach die Seite neu laden." %}</span>
+      {% if link_qr %}<figure class="mfa-qr"><img src="{{ link_qr }}" width="240" height="240" alt="{% translate 'QR-Code zum Koppeln mit Signal' %}"></figure>
+      {% else %}<div class="alert" role="alert">{% translate "Der Signal-Dienst konnte keinen Kopplungscode erzeugen. Hat der Container Internetzugang? Details:" %} {{ link_error }}</div>{% endif %}
+    {% endif %}
+  </li>
+  <li class="{% if station.signal_group_id %}is-done{% endif %}">
+    <strong>{% translate "Wachengruppe wählen" %}</strong>
+    {% if linked %}
+      {% if error %}<div class="alert" role="alert">{{ error }}</div>{% endif %}
+      {% if groups %}
+        <form method="post" class="form-card">
+          {% csrf_token %}
+          <fieldset class="choice-tiles">
+            <legend>{% translate "Gruppe für Kaffeekasse und Hinweise" %}</legend>
+            {% for group in groups %}
+              <label class="choice-tile" for="group-{{ forloop.counter }}"><input type="radio" id="group-{{ forloop.counter }}" name="group_id" value="{{ group.id }}"{% if group.id == station.signal_group_id or not station.signal_group_id and group.id == suggested %} checked{% endif %}> {{ group.name }} <small>({{ group.members }})</small></label>
+            {% endfor %}
+            <label class="choice-tile" for="group-none"><input type="radio" id="group-none" name="group_id" value=""{% if not station.signal_group_id and not suggested %} checked{% endif %}> {% translate "Keine Gruppe" %}</label>
+          </fieldset>
+          <div class="form-actions">
+            <button class="button primary" type="submit" name="action" value="group">{% translate "Speichern" %}</button>
+            {% if station.signal_group_id %}<button class="button secondary" type="submit" name="action" value="test">{% translate "Testnachricht senden" %}</button>{% endif %}
+          </div>
+        </form>
+      {% else %}
+        <span>{% translate "Das gekoppelte Konto ist in keiner Gruppe. Das Wachen-Handy in die Wachengruppe aufnehmen und die Seite neu laden." %}</span>
+      {% endif %}
+    {% endif %}
+  </li>
+</ol>
+<section class="narrow">
+  <h2>{% translate "Was verschickt wird" %}</h2>
+  <ul>
+    <li>{% translate "Kaffeekasse in die Gruppe (einschaltbar unter Kaffeekasse → Einstellungen): monatliche Erinnerung und Kassensturz-Ergebnis – ohne Namen und ohne Beträge einzelner Personen." %}</li>
+    <li>{% blocktranslate with n=people %}Persönliche Benachrichtigungen an Personen, die ihre Nummer unter Konto → Signal selbst bestätigt haben (derzeit {{ n }}).{% endblocktranslate %}</li>
+  </ul>
+</section>
+{% endblock %}
