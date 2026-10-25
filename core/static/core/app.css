@@ -2109,3 +2109,11 @@ dialog::backdrop { background: var(--scrim); }
 .task-progress progress::-webkit-progress-bar { background: var(--surface-soft); }
 .task-progress progress::-webkit-progress-value { background: var(--success); border-radius: 999px; }
 .task-progress progress::-moz-progress-bar { background: var(--success); border-radius: 999px; }
+
+/* Zwei-Faktor-Einrichtung und Impressum */
+.mfa-steps { display: grid; gap: 1rem; padding-left: 1.4rem; }
+.mfa-qr { margin: .75rem 0; }
+.mfa-qr img { display: block; background: #fff; padding: .5rem; border-radius: var(--radius); border: 1px solid var(--line); }
+.mfa-key { display: inline-block; margin-top: .4rem; font-size: 1.05rem; letter-spacing: .06em; word-spacing: .3em; overflow-wrap: anywhere; }
+.legal-card h2 { margin: 1.25rem 0 .35rem; font-size: 1.05rem; }
+.legal-card h2:first-child { margin-top: 0; }

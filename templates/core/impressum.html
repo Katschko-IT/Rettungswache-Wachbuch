@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Impressum" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading narrow">
+  <h1>{% translate "Impressum" %}</h1>
+  {% if profile.is_configured %}<p class="lead">{% translate "Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)" %}</p>{% endif %}
+</header>
+<section class="content-flow narrow">
+  {% if profile.is_configured %}
+    <article class="card legal-card">
+      <h2>{% translate "Anbieter" %}</h2>
+      <p>
+        <strong>{{ profile.operator_name }}</strong>{% if profile.legal_form %}<br>{{ profile.legal_form }}{% endif %}
+        {% for line in profile.address_lines %}<br>{{ line }}{% endfor %}
+      </p>
+      {% if profile.represented_by %}<p><strong>{% translate "Vertreten durch" %}:</strong> {{ profile.represented_by }}</p>{% endif %}
+
+      <h2>{% translate "Kontakt" %}</h2>
+      <p>
+        {% if profile.email %}{% translate "E-Mail" %}: <a href="mailto:{{ profile.email }}">{{ profile.email }}</a>{% endif %}
+        {% if profile.phone %}<br>{% translate "Telefon" %}: <a href="tel:{{ profile.phone }}">{{ profile.phone }}</a>{% endif %}
+      </p>
+
+      {% if profile.register_entry %}
+        <h2>{% translate "Registereintrag" %}</h2>
+        <p>{{ profile.register_entry }}</p>
+      {% endif %}
+      {% if profile.vat_id %}
+        <h2>{% translate "Umsatzsteuer-Identifikationsnummer" %}</h2>
+        <p>{{ profile.vat_id }}</p>
+      {% endif %}
+      {% if profile.content_responsible %}
+        <h2>{% translate "Inhaltlich verantwortlich" %}</h2>
+        <p>{{ profile.content_responsible }}</p>
+      {% endif %}
+      {% if profile.impressum_extra %}<p>{{ profile.impressum_extra|linebreaksbr }}</p>{% endif %}
+    </article>
+    <p class="help-text">{% blocktranslate with name=app_name %}{{ name }} ist freie Software (AGPL-3.0). Für diese Installation und ihre Inhalte ist der oben genannte Anbieter verantwortlich.{% endblocktranslate %} <a href="{% url 'privacy' %}">{% translate "Datenschutzinformation" %}</a></p>
+  {% else %}
+    <div class="alert" role="status">
+      {% translate "Für diese Installation ist noch kein Impressum hinterlegt. Admins tragen die Angaben unter Einstellungen → Impressum & Datenschutz ein." %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

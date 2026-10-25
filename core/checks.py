@@ -33,7 +33,9 @@ def privacy_security_deployment_checks(app_configs, **kwargs):
                 "MFA_REQUIRED ist deaktiviert.",
                 hint=(
                     "Für produktive Administrator-/Beschäftigtenzugänge MFA_REQUIRED=true "
-                    "setzen und den Wiederherstellungsprozess dokumentieren."
+                    "setzen und den Wiederherstellungsprozess dokumentieren. Ist die Pflicht "
+                    "im Einrichtungsassistenten bzw. unter Einstellungen → Impressum & "
+                    "Datenschutz eingeschaltet, kann diese Warnung entfallen."
                 ),
                 id="wachbuch.W102",
             )

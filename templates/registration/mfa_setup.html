@@ -5,19 +5,40 @@
 <section class="access-panel">
   <p class="context-line">{% translate "Konto" %}</p>
   <h1>{% translate "Zwei-Faktor einrichten" %}</h1>
-  <p class="lead">{% translate "Scanne den Schlüssel in einer Authenticator-App (TOTP) und bestätige mit einem Code." %}</p>
-  <div class="mfa-secret">
-    <p><strong>{% translate "Manueller Schlüssel" %}</strong></p>
-    <code class="mfa-key">{{ secret }}</code>
-    <p class="hint">{% translate "otpauth-URI (für unterstützte Apps):" %}</p>
-    <code class="mfa-uri">{{ provisioning_uri }}</code>
-  </div>
+  {% if mfa_required %}<div class="alert" role="status">{% translate "Für diese Wache ist die Zwei-Faktor-Anmeldung verpflichtend. Bitte jetzt einmal einrichten." %}</div>{% endif %}
+  <p class="lead">{% translate "Bei jeder Anmeldung fragt Wachwerk zusätzlich nach einem sechsstelligen Code aus einer Authenticator-App auf deinem Handy." %}</p>
+
+  <ol class="mfa-steps">
+    <li>
+      <strong>{% translate "App installieren" %}</strong> –
+      {% translate "z. B. Google Authenticator, Microsoft Authenticator, Aegis (Android), 2FAS oder die Passwörter-App des iPhones. Alle kostenlos." %}
+    </li>
+    <li>
+      <strong>{% translate "QR-Code scannen" %}</strong> –
+      {% translate "In der App „Konto hinzufügen“ bzw. „+“ wählen und diesen Code scannen:" %}
+      <figure class="mfa-qr">
+        <img src="{{ qr_data_uri }}" width="240" height="240" alt="{% translate 'QR-Code für die Authenticator-App' %}">
+      </figure>
+      <details class="mfa-secret">
+        <summary>{% translate "Scannen geht nicht? Schlüssel von Hand eingeben" %}</summary>
+        <p>{% translate "In der App „Schlüssel eingeben“ wählen, als Kontoname Wachwerk und diesen Schlüssel eintragen (zeitbasiert):" %}</p>
+        <code class="mfa-key">{% for group in secret_groups %}{{ group }}{% if not forloop.last %} {% endif %}{% endfor %}</code>
+      </details>
+    </li>
+    <li>
+      <strong>{% translate "Code bestätigen" %}</strong> –
+      {% translate "Den sechsstelligen Code aus der App hier eingeben:" %}
+    </li>
+  </ol>
+
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}
     {{ form.as_p }}
-    <button class="button primary" type="submit">{% translate "TOTP aktivieren" %}</button>
+    <button class="button primary" type="submit">{% translate "Zwei-Faktor aktivieren" %}</button>
   </form>
+  <p class="help-text">{% translate "Handy verloren oder gewechselt? Ein Admin kann die Zwei-Faktor-Anmeldung im Team zurücksetzen; danach richtest du sie neu ein." %}</p>
+
   {% if webauthn_enabled %}
   <div class="passkey-login">
     <h2>{% translate "Passkey" %}</h2>

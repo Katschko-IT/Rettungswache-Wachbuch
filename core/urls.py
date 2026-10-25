@@ -166,6 +166,8 @@ urlpatterns = [
     path("team/einladungen/neu/", setup_views.team_invite_create, name="team_invite_create"),
     path("team/einladungen/<int:pk>/widerrufen/", setup_views.team_invite_revoke, name="team_invite_revoke"),
     path("team/<int:pk>/", views.membership_update, name="membership_update"),
+    path("team/<int:pk>/zwei-faktor-zuruecksetzen/", views.membership_mfa_reset, name="membership_mfa_reset"),
     path("einstellungen/", views.station_settings, name="station_settings"),
+    path("einstellungen/impressum/", views.legal_settings, name="legal_settings"),
     path("audit/", views.audit_log, name="audit_log"),
 ]

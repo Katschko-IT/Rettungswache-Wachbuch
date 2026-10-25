@@ -9,10 +9,17 @@
 </header>
 
 <div class="narrow">
+  {% if site_profile.is_configured %}
+  <aside class="alert" role="note">
+    <p><strong>{% translate "Verantwortlich für diese Installation" %}:</strong> {{ site_profile.operator_name }}{% for line in site_profile.address_lines %}, {{ line }}{% endfor %}.
+    {% translate "Stand der Angaben" %}: {{ site_profile.updated_at|date:"d.m.Y" }}.</p>
+  </aside>
+  {% else %}
   <aside class="privacy-blocker-warning" role="alert" aria-label="{% translate 'Veröffentlichungsblocker' %}">
     <p class="blocker-title"><strong>{% translate "Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe" %}</strong></p>
     <p>{% translate "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt" %} <strong>{% translate "keine" %}</strong> {% translate "rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden." %}</p>
   </aside>
+  {% endif %}
 
   <nav class="toc" aria-label="{% translate 'Inhaltsverzeichnis' %}">
     <h2 class="toc-title">{% translate "Inhaltsverzeichnis" %}</h2>
@@ -35,7 +42,18 @@
   <section id="verantwortung" class="privacy-section">
     <h2>{% translate "1. Verantwortung und Kontakt" %}</h2>
     <p>{% translate "Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachwerk-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen." %}</p>
+    {% if site_profile.is_configured %}
+      <h3>{% translate "Verantwortlicher" %}</h3>
+      <p>
+        <strong>{{ site_profile.operator_name }}</strong>{% if site_profile.represented_by %}, {% translate "vertreten durch" %} {{ site_profile.represented_by }}{% endif %}
+        {% for line in site_profile.address_lines %}<br>{{ line }}{% endfor %}
+        {% if site_profile.email %}<br>{% translate "E-Mail" %}: <a href="mailto:{{ site_profile.email }}">{{ site_profile.email }}</a>{% endif %}
+        {% if site_profile.phone %}<br>{% translate "Telefon" %}: {{ site_profile.phone }}{% endif %}
+      </p>
+      {% if site_profile.privacy_contact %}<p>{% translate "Fragen zum Datenschutz" %}: <a href="mailto:{{ site_profile.privacy_contact }}">{{ site_profile.privacy_contact }}</a></p>{% endif %}
+    {% else %}
     <p><strong>{% translate "Status für diese Demonstration:" %}</strong> {% translate "Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt." %}</p>
+    {% endif %}
     <p>{% translate "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung." %}</p>
 
     <h3>{% translate "Datenschutzbeauftragte / Datenschutzkontakte" %}</h3>
@@ -135,7 +153,12 @@
 
   <section id="hosting" class="privacy-section">
     <h2>{% translate "5. Hosting, Empfänger und Übermittlungen" %}</h2>
+    {% if site_profile.is_configured %}
+      <p><strong>{% translate "Serverstandort" %}:</strong> {{ site_profile.get_server_location_display }}.
+      {% if site_profile.hosting_provider %}{% blocktranslate with provider=site_profile.hosting_provider %}Der Server wird bei {{ provider }} als Auftragsverarbeiter (Art. 28 DSGVO) betrieben.{% endblocktranslate %}{% elif site_profile.server_location == "station" %}{% translate "Die Daten werden ausschließlich auf dem eigenen Server in der Wache gespeichert; ein externer Hosting-Dienstleister ist nicht beteiligt." %}{% endif %}</p>
+    {% else %}
     <p>{% translate "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen." %}</p>
+    {% endif %}
     <p>{% translate "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Atkinson Hyperlegible Next) und Stylesheets werden lokal vom selben Server ausgeliefert." %}</p>
   </section>
 
@@ -169,6 +192,7 @@
       <li>{% translate "Recht auf Widerspruch nach Art. 21 DSGVO bei Verarbeitung auf Grundlage von Art. 6 Abs. 1 Buchst. e oder f, unter den jeweiligen gesetzlichen Voraussetzungen." %}</li>
     </ul>
     <p>{% translate "Bei einwilligungsbasierter Verarbeitung besteht ein Widerrufsrecht für die Zukunft; dies unterstellt nicht, dass der Demobesuch eine Einwilligung erfordert. Es besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde nach Art. 77 DSGVO. Die konkrete Art.-13-/Art.-14-Information des Betreibers muss Kontaktweg, Rechtsgrundlagen, Empfänger, Fristen und die tatsächlich zuständige Aufsichtsbehörde benennen." %}</p>
+    {% if site_profile.supervisory_authority %}<p><strong>{% translate "Zuständige Aufsichtsbehörde" %}:</strong> {{ site_profile.supervisory_authority }}</p>{% endif %}
   </section>
 
   <section id="dienstbetrieb" class="privacy-section">

@@ -61,6 +61,7 @@ OPEN_MODE_PATHS = (
     "/abmelden/",
     "/offline/",
     "/datenschutz/",
+    "/impressum/",
     "/favicon.ico",
     "/manifest.webmanifest",
 )

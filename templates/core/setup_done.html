@@ -10,6 +10,16 @@
 
 <section class="content-flow narrow">
   <ol class="card setup-steps">
+    {% if summary.mfa_required %}
+      <li>
+        <strong>{% translate "Zwei-Faktor einrichten" %}</strong> –
+        {% translate "Nach der Anmeldung zeigt Wachwerk einen QR-Code. Mit einer Authenticator-App scannen (Google Authenticator, Microsoft Authenticator, Aegis, 2FAS oder die Passwörter-App des iPhones) und den sechsstelligen Code eingeben." %}
+      </li>
+    {% endif %}
+    <li>
+      <strong>{% translate "Impressum und Datenschutz prüfen" %}</strong> –
+      {% if summary.public_site %}{% translate "Die Angaben stehen jetzt öffentlich unter Impressum und Datenschutz. Unter Einstellungen → Impressum & Datenschutz ergänzen (z. B. Registereintrag) und vor dem Echtbetrieb rechtlich prüfen lassen." %}{% else %}{% translate "Die Angaben stehen unter Datenschutz und lassen sich unter Einstellungen → Impressum & Datenschutz ergänzen." %}{% endif %}
+    </li>
     <li>
       <strong>{% translate "Besatzung einladen" %}</strong> –
       {% translate "Team → Einladungen: Für jede Person einen Einladungslink oder QR-Code erzeugen. Jede Person legt dabei ihr eigenes Passwort fest; das passiert nur einmal." %}

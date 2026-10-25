@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 
 from .access import CONTENT_ROLES, get_membership
 from .models import HandoverEntry
@@ -91,4 +92,11 @@ def application_metadata(request):
         "demo_password": demo_password() if demo else "",
         "demo_accounts": demo_accounts_for_display() if demo else [],
         "public_data_protection_officers": public_dpo_contacts,
+        "site_profile": SimpleLazyObject(_current_site_profile),
     }
+
+
+def _current_site_profile():
+    from .site_profile import SiteProfile
+
+    return SiteProfile.current()

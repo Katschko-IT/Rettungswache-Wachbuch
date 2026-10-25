@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import BirthdayPreference, CalendarEvent, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
+from .site_profile import SiteProfile
 
 
 class DateTimeLocalInput(forms.DateTimeInput):
@@ -822,6 +823,58 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
     password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
     password2 = forms.CharField(label=_("Passwort wiederholen"), widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
 
+    # Betreiber und Impressum (§ 5 DDG). Leere Felder übernehmen die Angaben der Wache.
+    public_site = forms.BooleanField(
+        label=_("Wachwerk ist öffentlich im Internet erreichbar (eigene Domain)"),
+        required=False,
+        help_text=_("Dann zeigt Wachwerk ein Impressum; Anbieter, Anschrift und E-Mail sind Pflicht."),
+    )
+    operator_name = forms.CharField(
+        label=_("Anbieter (Träger, Verein oder Person)"), max_length=200, required=False,
+        help_text=_("Leer = Name der Wache."),
+    )
+    operator_represented_by = forms.CharField(
+        label=_("Vertreten durch"), max_length=200, required=False,
+        help_text=_("Bei Vereinen und Gesellschaften: Vorstand oder Geschäftsführung."),
+    )
+    operator_street = forms.CharField(
+        label=_("Anschrift des Anbieters: Straße und Hausnummer"), max_length=120, required=False,
+        help_text=_("Leer = Anschrift der Wache."),
+    )
+    operator_postal_code = forms.CharField(label=_("Postleitzahl des Anbieters"), max_length=10, required=False)
+    operator_city = forms.CharField(label=_("Ort des Anbieters"), max_length=80, required=False)
+    operator_email = forms.EmailField(
+        label=_("E-Mail des Anbieters"), required=False, help_text=_("Leer = E-Mail des Admin-Kontos."),
+    )
+    operator_phone = forms.CharField(label=_("Telefon des Anbieters (optional)"), max_length=60, required=False)
+
+    # Datenschutz-Information (Art. 13 DSGVO)
+    dpo_name = forms.CharField(
+        label=_("Datenschutzbeauftragte/r (falls bestellt)"), max_length=160, required=False,
+    )
+    dpo_email = forms.EmailField(label=_("E-Mail der/des Datenschutzbeauftragten"), required=False)
+    server_location = forms.ChoiceField(
+        label=_("Wo läuft der Server?"), choices=(), required=False,
+    )
+    hosting_provider = forms.CharField(
+        label=_("Hosting-Anbieter"), max_length=300, required=False,
+        help_text=_("Bei gemietetem Server: Name und Sitz, z. B. „Hetzner Online GmbH, Gunzenhausen“. "
+                    "Mit ihm ist ein Vertrag zur Auftragsverarbeitung nötig."),
+    )
+    supervisory_authority = forms.CharField(
+        label=_("Zuständige Datenschutz-Aufsichtsbehörde (optional)"), max_length=300, required=False,
+        help_text=_("Die Landesdatenschutzbehörde am Sitz des Anbieters."),
+    )
+
+    # Sicherheit
+    mfa_required = forms.BooleanField(
+        label=_("Zwei-Faktor-Anmeldung für alle Konten verpflichtend"),
+        required=False,
+        help_text=_("Empfohlen, sobald Wachwerk aus dem Internet erreichbar ist. Bei der nächsten Anmeldung "
+                    "richtet jede Person eine Authenticator-App ein (Google Authenticator, Microsoft "
+                    "Authenticator, Aegis, 2FAS oder die Passwörter-App des iPhones)."),
+    )
+
     def __init__(self, *args, preview_only: bool = False, **kwargs):
         # The optional weather check is submitted from the station section
         # before the master-admin block is filled in. In that partial POST the
@@ -832,6 +885,9 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
         if preview_only:
             for name in ("admin_username", "password1", "password2"):
                 self.fields[name].required = False
+        from .site_profile import SiteProfile
+
+        self.fields["server_location"].choices = SiteProfile.ServerLocation.choices
         from .terminal import terminal_enabled
 
         if terminal_enabled():
@@ -902,7 +958,37 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
                 self.add_error("password1", exc)
         if cleaned.get("postal_code") and not (cleaned["postal_code"].isdigit() and len(cleaned["postal_code"]) in (4, 5)):
             self.add_error("postal_code", _("Bitte eine vier- oder fünfstellige Postleitzahl angeben."))
+        self._clean_operator(cleaned)
         return cleaned
+
+    def _clean_operator(self, cleaned):
+        """Betreiberangaben vervollständigen; bei öffentlicher Erreichbarkeit Pflichtangaben prüfen."""
+        own_address = any(cleaned.get(key) for key in ("operator_street", "operator_postal_code", "operator_city"))
+        prefix = "operator_" if own_address else ""
+        cleaned["site_profile"] = {
+            "operator_name": (cleaned.get("operator_name") or cleaned.get("station_name") or "").strip(),
+            "represented_by": (cleaned.get("operator_represented_by") or "").strip(),
+            "street": (cleaned.get(f"{prefix}street") or "").strip(),
+            "postal_code": (cleaned.get(f"{prefix}postal_code") or "").strip(),
+            "city": (cleaned.get(f"{prefix}city") or "").strip(),
+            "email": (cleaned.get("operator_email") or cleaned.get("admin_email") or "").strip(),
+            "phone": (cleaned.get("operator_phone") or "").strip(),
+            "public_site": bool(cleaned.get("public_site")),
+            "hosting_provider": (cleaned.get("hosting_provider") or "").strip(),
+            "server_location": cleaned.get("server_location") or "station",
+            "supervisory_authority": (cleaned.get("supervisory_authority") or "").strip(),
+            "mfa_required": bool(cleaned.get("mfa_required")),
+        }
+        if bool(cleaned.get("dpo_name")) != bool(cleaned.get("dpo_email")):
+            missing = "dpo_email" if cleaned.get("dpo_name") else "dpo_name"
+            self.add_error(missing, _("Bitte Name und E-Mail der/des Datenschutzbeauftragten angeben."))
+        if cleaned.get("public_site"):
+            profile = cleaned["site_profile"]
+            if not profile["email"]:
+                self.add_error("operator_email", _("Für ein öffentliches Impressum ist eine E-Mail-Adresse Pflicht."))
+            if not (profile["street"] and profile["postal_code"] and profile["city"]):
+                field = "operator_street" if own_address else "street"
+                self.add_error(field, _("Für ein öffentliches Impressum ist eine vollständige Anschrift Pflicht."))
 
 
 class ActivationPasswordForm(forms.Form):
@@ -972,3 +1058,34 @@ class EmployeeInviteForm(forms.Form):
                 "Bitte zuerst widerrufen."
             )
         return username
+
+
+class SiteProfileForm(forms.ModelForm):
+    """Impressum, Datenschutz-Information und 2FA-Pflicht (Admins)."""
+
+    dpo_name = forms.CharField(label=_("Datenschutzbeauftragte/r"), max_length=160, required=False)
+    dpo_email = forms.EmailField(label=_("E-Mail der/des Datenschutzbeauftragten"), required=False)
+    dpo_phone = forms.CharField(label=_("Telefon der/des Datenschutzbeauftragten"), max_length=60, required=False)
+
+    class Meta:
+        model = SiteProfile
+        fields = [
+            "public_site", "operator_name", "legal_form", "represented_by", "street", "postal_code",
+            "city", "country", "email", "phone", "register_entry", "vat_id", "content_responsible",
+            "impressum_extra", "privacy_email", "server_location", "hosting_provider",
+            "supervisory_authority", "mfa_required",
+        ]
+        widgets = {"impressum_extra": forms.Textarea(attrs={"rows": 3})}
+
+    def clean(self):
+        cleaned = super().clean()
+        if bool(cleaned.get("dpo_name")) != bool(cleaned.get("dpo_email")):
+            missing = "dpo_email" if cleaned.get("dpo_name") else "dpo_name"
+            self.add_error(missing, _("Bitte Name und E-Mail der/des Datenschutzbeauftragten angeben."))
+        if cleaned.get("public_site"):
+            if not cleaned.get("email"):
+                self.add_error("email", _("Für ein öffentliches Impressum ist eine E-Mail-Adresse Pflicht."))
+            for field in ("street", "postal_code", "city"):
+                if not cleaned.get(field):
+                    self.add_error(field, _("Für ein öffentliches Impressum ist eine vollständige Anschrift Pflicht."))
+        return cleaned

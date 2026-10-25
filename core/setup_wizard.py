@@ -111,6 +111,25 @@ def verify_bootstrap_hash(bootstrap_hash: str) -> bool:
     return bool(bootstrap_hash) and secrets.compare_digest(bootstrap_hash, bootstrap_fingerprint(expected))
 
 
+def _save_operator_details(data: dict, station: Station, user: User) -> None:
+    """Impressum, Datenschutz-Information und 2FA-Pflicht aus dem Assistenten speichern."""
+    from .privacy_models import DataProtectionOfficer
+    from .site_profile import SiteProfile
+
+    profile = data.get("site_profile")
+    if not profile:
+        return
+    SiteProfile.objects.update_or_create(pk=1, defaults={**profile, "updated_by": user})
+    if data.get("dpo_name") and data.get("dpo_email"):
+        DataProtectionOfficer.objects.create(
+            station=station,
+            display_name=data["dpo_name"].strip(),
+            email=data["dpo_email"].strip(),
+            is_primary=True,
+            publish_in_privacy_notice=True,
+        )
+
+
 def _unclaimed_default_station():
     """Die automatisch angelegte Standardwache, solange sie die einzige und unbenutzt ist."""
     stations = list(Station.objects.select_for_update()[:2])
@@ -193,6 +212,7 @@ def complete_setup(*, data: dict, raw_token: str | None = None, bootstrap_hash: 
                 station=station,
                 role=Membership.Role.ADMIN,
             )
+            _save_operator_details(data, station, user)
             state = InstallationSetup.objects.get(pk=1)
             state.station = station
             state.completed_by = user

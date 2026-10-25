@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Impressum & Datenschutz" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'station_settings' %}">{% translate "Zurück zu Einstellungen" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Administration" %}</p>
+  <h1>{% translate "Impressum & Datenschutz" %}</h1>
+  <p class="lead">{% translate "Diese Angaben erscheinen öffentlich im Impressum und in der Datenschutzinformation. Vor dem Echtbetrieb rechtlich prüfen lassen." %}</p>
+</header>
+<form method="post" class="form-card narrow">
+  {% csrf_token %}
+  {% include "core/form_errors.html" %}
+  <section class="section-block">
+    <h2>{% translate "Impressum (Anbieter)" %}</h2>
+    {% include "core/_setup_field.html" with field=form.public_site %}
+    {% include "core/_setup_field.html" with field=form.operator_name %}
+    {% include "core/_setup_field.html" with field=form.legal_form %}
+    {% include "core/_setup_field.html" with field=form.represented_by %}
+    {% include "core/_setup_field.html" with field=form.street %}
+    {% include "core/_setup_field.html" with field=form.postal_code %}
+    {% include "core/_setup_field.html" with field=form.city %}
+    {% include "core/_setup_field.html" with field=form.country %}
+    {% include "core/_setup_field.html" with field=form.email %}
+    {% include "core/_setup_field.html" with field=form.phone %}
+    {% include "core/_setup_field.html" with field=form.register_entry %}
+    {% include "core/_setup_field.html" with field=form.vat_id %}
+    {% include "core/_setup_field.html" with field=form.content_responsible %}
+    {% include "core/_setup_field.html" with field=form.impressum_extra %}
+  </section>
+  <section class="section-block">
+    <h2>{% translate "Datenschutz" %}</h2>
+    {% include "core/_setup_field.html" with field=form.privacy_email %}
+    {% include "core/_setup_field.html" with field=form.dpo_name %}
+    {% include "core/_setup_field.html" with field=form.dpo_email %}
+    {% include "core/_setup_field.html" with field=form.dpo_phone %}
+    {% include "core/_setup_field.html" with field=form.server_location %}
+    {% include "core/_setup_field.html" with field=form.hosting_provider %}
+    {% include "core/_setup_field.html" with field=form.supervisory_authority %}
+  </section>
+  <section class="section-block">
+    <h2>{% translate "Sicherheit" %}</h2>
+    {% include "core/_setup_field.html" with field=form.mfa_required %}
+  </section>
+  <div class="form-actions">
+    <button class="button primary" type="submit">{% translate "Speichern" %}</button>
+    <a class="button secondary" href="{% url 'legal_notice' %}">{% translate "Impressum ansehen" %}</a>
+    <a class="button secondary" href="{% url 'privacy' %}">{% translate "Datenschutz ansehen" %}</a>
+  </div>
+</form>
+{% endblock %}
