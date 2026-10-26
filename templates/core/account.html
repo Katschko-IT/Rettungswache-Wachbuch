@@ -70,6 +70,7 @@
       <a href="{% url 'terminal_pair' %}"><strong>{% translate "Handy verbinden" %}</strong><span>{% translate "App per QR-Code ohne Passwort anmelden" %}</span></a>
     {% endif %}
     {% if membership and membership.role != 'auditor' and membership.station.chat_enabled %}<a href="{% url 'chat' %}"><strong>{% translate "Wachenchat" %}</strong><span>{% translate "Signal-Gruppe oder interner Chat" %}</span></a>{% endif %}
+    {% if signal_enabled and membership and membership.role != 'auditor' %}<a href="{% url 'signal_account' %}"><strong>{% translate "Signal-Benachrichtigungen" %}</strong><span>{% translate "Erinnerungen und Hinweise per Signal" %}</span></a>{% endif %}
     {% if web_push_enabled and membership %}<a href="{% url 'push_settings' %}"><strong>{% translate "Push-Benachrichtigungen" %}</strong><span>{% translate "Dringende Übergaben" %}</span></a>{% endif %}
     {% if membership and membership.role != 'auditor' and membership.station.birthdays_enabled %}<a href="{% url 'birthday_settings' %}"><strong>{% translate "Geburtstag" %}</strong><span>{% translate "Freiwillige Anzeige" %}</span></a>{% endif %}
   </nav>

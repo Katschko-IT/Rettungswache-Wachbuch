@@ -2,6 +2,56 @@
 
 ## Unveröffentlicht
 
+- **E-Mail-Erinnerung der Kaffeekasse mit Überweisungs-QR.**
+  - Neu: optionaler SMTP-Versand (`EMAIL_HOST` usw., Standard Port 587 mit
+    STARTTLS; leere Compose-Variablen schalten TLS nicht ab).
+  - Bei offenem Beitrag kommt einmal im Monat eine E-Mail mit Betrag,
+    offenen Monaten, IBAN, Verwendungszweck und eingebettetem GiroCode
+    (multipart/related, mit Banking-App geprüft lesbar).
+  - Jede Person kann die E-Mail selbst abbestellen.
+  - Der Kassenwart schickt sie aus der Mappe sofort (höchstens einmal am Tag
+    je Person); dazu eine Test-E-Mail an die eigene Adresse.
+  - Der `notify-worker` darf dafür ausgehend ins Netz (`egress`).
+- **Kaffeekasse: Jahresübersicht.** Die Mappe des Kassenwarts zeigt ein
+  ganzes Jahr (Januar bis Dezember, frühere Jahre umschaltbar):
+  - wer welchen Monat bezahlt hat, wer nicht und wer befreit ist;
+  - je Person „im Jahr bezahlt“ und der Stand heute;
+  - eine Fußzeile „bezahlt/berechnet“ je Monat.
+
+  Jede Person sieht ihre eigenen zwölf Monate je Jahr.
+- **Signal-Benachrichtigungen** (optional, `docs/SIGNAL.md`) über
+  `signal-cli-rest-api` als verknüpftes Gerät eines Signal-Kontos der Wache
+  (Compose-Profil `signal`, nur im internen Netz):
+  - **Einrichtung:** Admins koppeln per QR-Code und wählen die Wachengruppe.
+  - **Wachengruppe:** monatliche Kaffeekassen-Erinnerung und
+    Kassensturz-Ergebnis, jeweils ohne Namen.
+  - **Persönlich:** Jede Person kann ihre Nummer per Code bestätigen und
+    bekommt dann ihre Benachrichtigungen (Kaffeekasse, Fahrzeugfreigabe)
+    zusätzlich per Signal.
+  - **Versand:** über einen Postausgang im `notify-worker`, mit Wiederholung
+    bei Fehlern; gesendete Nachrichten werden nach 30 Tagen gelöscht.
+- **Kaffeekasse mit Monatsbeitrag** (Recherche und Konzept:
+  `docs/KAFFEEKASSE.md`): die digitale „Mappe“ für Wachen, die einen festen
+  Monatsbeitrag bar in die Dose zahlen.
+  - Teilnehmende mit Beginn-Monat; jeder Monat wird automatisch belastet
+    (Betrag festgeschrieben). Einzahlungen tilgen den ältesten offenen Monat
+    zuerst, der Rest ist Guthaben.
+  - **„Ich habe bezahlt“**: jede Person hakt selbst ab (bar, Überweisung,
+    PayPal, Wero) – wie das Kreuz in der Mappe.
+  - **Mappe** für den Kassenwart: Monatsübersicht aller Teilnehmenden, „bar
+    erhalten“ mit einem Tipp, Monat befreien (Urlaub, Elternzeit), CSV-Export.
+  - **Kasse für alle sichtbar**: Bestand von Dose und Konto, Einkäufe (darf
+    jedes Mitglied eintragen), Kassensturz mit Soll/Ist und optional zweiter
+    Person, Bargeld aufs Konto, Korrektur nur per Gegenbuchung.
+  - **Erinnerung** einmal im Monat bei offenem Beitrag (Posteingang/Push,
+    über den `notify-worker`), **GiroCode** zum Überweisen mit Betrag und
+    Verwendungszweck.
+  - **Einsicht nur für den Kassenwart**: Admins richten die Kasse ein, sehen
+    aber keine Einzelstände mehr (Datenschutz, § 87 BetrVG); Buchen und
+    Korrigieren ist dem Kassenwart vorbehalten (Web und API).
+  - `/api/v1/kaffeekasse/` liefert zusätzlich `monthly_fee_euros` und den
+    eigenen Stand (`own`).
+
 - **Impressum, Datenschutz und Zwei-Faktor im Einrichtungsassistenten**: Der
   Assistent fragt jetzt, ob Wachwerk öffentlich im Internet erreichbar ist
   (bei einer Domain vorausgewählt), und erfasst Anbieter, Vertretung,

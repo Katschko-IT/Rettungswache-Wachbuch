@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Die Kasse" %} | {% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee' %}">{% translate "Zurück zur Kaffeekasse" %}</a>
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">{% translate "Kaffeekasse" %}</p>
+    <h1>{% translate "Die Kasse" %}</h1>
+    <p class="lead">{% translate "Für alle sichtbar: Bestand, Einkäufe und Kassenstürze – ohne Angaben zu einzelnen Personen." %}</p>
+  </div>
+  <a class="button primary" href="{% url 'coffee_purchase' %}">{% translate "Einkauf eintragen" %}</a>
+</header>
+{% if is_cashier %}
+<nav class="coffee-tools" aria-label="{% translate 'Kasse verwalten' %}">
+  <a class="button secondary" href="{% url 'coffee_count' %}">{% translate "Kassensturz" %}</a>
+  <a class="button secondary" href="{% url 'coffee_movement' %}">{% translate "Kassenbewegung eintragen" %}</a>
+</nav>
+{% endif %}
+<div class="balance-row">
+  <div><span>{% translate "Bargeld in der Kasse (laut Buchungen)" %}</span><strong>{{ pots.cash_euros|floatformat:2 }} €</strong></div>
+  <div><span>{% translate "Auf dem Konto" %}</span><strong>{{ pots.bank_euros|floatformat:2 }} €</strong></div>
+</div>
+{% if last_count %}
+  <p class="coffee-count-note">
+    {% blocktranslate with date=last_count.created_at|date:"d.m.Y" %}Zuletzt gezählt am {{ date }}{% endblocktranslate %}{% if last_count.witness %} {% translate "(zu zweit)" %}{% endif %}:
+    {% if last_count.amount_cents %}{% blocktranslate with diff=last_count.amount_euros|floatformat:2 %}Differenz {{ diff }} €{% endblocktranslate %}{% else %}{% translate "Kasse stimmte." %}{% endif %}
+  </p>
+{% endif %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Kassenbewegungen, horizontal scrollbar auf kleinen Bildschirmen' %}">
+  <table class="responsive-table">
+    <caption>{% translate "Kassenbewegungen" %}</caption>
+    <thead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Art" %}</th><th scope="col">{% translate "Grund" %}</th><th scope="col">{% translate "Topf" %}</th><th scope="col">{% translate "Betrag" %}</th><th scope="col">{% translate "Erfasst von" %}</th>{% if is_cashier %}<th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th>{% endif %}</tr></thead>
+    <tbody>
+      {% for movement in page_obj %}
+        <tr>
+          <td data-label="{% translate 'Datum' %}"><time datetime="{{ movement.created_at|date:'c' }}">{{ movement.created_at|date:"d.m.Y H:i" }}</time></td>
+          <td data-label="{% translate 'Art' %}">{{ movement.get_kind_display }}</td>
+          <td data-label="{% translate 'Grund' %}">{{ movement.reason }}{% if movement.counted_cents is not None %}<small>{% translate "gezählt" %} {{ movement.counted_euros|floatformat:2 }} € · {% translate "Soll" %} {{ movement.expected_euros|floatformat:2 }} €{% if movement.witness %} · {% translate "mitgezählt" %}: {{ movement.witness.get_full_name|default:movement.witness.username }}{% endif %}</small>{% endif %}{% if movement.correction_of %}<small>{% translate "Gegenbuchung zu #" %}{{ movement.correction_of_id }}</small>{% endif %}</td>
+          <td data-label="{% translate 'Topf' %}">{{ movement.get_pot_display }}</td>
+          <td data-label="{% translate 'Betrag' %}" class="amount {% if movement.amount_cents < 0 %}negative{% endif %}">{{ movement.amount_euros|floatformat:2 }} €</td>
+          <td data-label="{% translate 'Erfasst von' %}">{{ movement.created_by.get_full_name|default:movement.created_by.username }}</td>
+          {% if is_cashier %}<td data-label="{% translate 'Aktion' %}">{% if movement.amount_cents and not movement.correction_of and not movement.corrections.exists %}<a class="text-action" href="{% url 'coffee_movement_correct' movement.pk %}">{% translate "Korrigieren" %}</a>{% endif %}</td>{% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">{% translate "Noch keine Kassenbewegungen." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/pagination.html" %}
+<p class="help-text">{% translate "Bareinzahlungen der Teilnehmenden zählen zum Bestand der Kasse, erscheinen hier aber ohne Namen nur in der Summe." %}</p>
+{% endblock %}

@@ -28,6 +28,8 @@ from .models import (
     StationTask,
     StationTaskCompletion,
 )
+from . import coffee
+from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
 from .demo_modules import reset_module_demo, seed_module_demo
 from .services import audit, handover_snapshot
 from .task_board import ensure_default_station_tasks
@@ -150,6 +152,11 @@ def reset_demo_data(station: Station):
             f"DELETE FROM core_coffeeentry WHERE station_id = %s AND (created_by_id IN ({placeholders}) OR member_id IN ({placeholders}))",
             [station.id, *user_ids, *user_ids],
         )
+        _raw_delete(
+            f"DELETE FROM core_coffeecashmovement WHERE station_id = %s AND (created_by_id IN ({placeholders}) OR witness_id IN ({placeholders}))",
+            [station.id, *user_ids, *user_ids],
+        )
+        CoffeeParticipant.objects.filter(station=station, user_id__in=user_ids).delete()
         _raw_delete(
             f"DELETE FROM core_chatmessage WHERE station_id = %s AND author_id IN ({placeholders})",
             [station.id, *user_ids],
@@ -294,19 +301,22 @@ def _seed_content(station: Station, users: dict[str, User]) -> int:
         created_by=admin,
     )
 
-    CoffeeEntry.objects.create(
-        station=station,
-        member=member,
-        amount_cents=1000,
-        reason=f"{DEMO_MARKER} Einzahlung Mara",
-        created_by=cashier,
-    )
-    CoffeeEntry.objects.create(
-        station=station,
-        member=lead,
-        amount_cents=-250,
-        reason=f"{DEMO_MARKER} Verbrauch Samira",
-        created_by=cashier,
+    # Kaffeekasse: 5 € im Monat, bar in die Kasse oder per Überweisung.
+    CoffeeFund.objects.update_or_create(station=station, defaults={"monthly_fee_cents": 500, "reminder_day": 10})
+    current = coffee.month_start(coffee.station_today(station))
+    for person in (member, lead, cashier, admin):
+        CoffeeParticipant.objects.get_or_create(
+            station=station, user=person, defaults={"since": coffee.add_months(current, -2)},
+        )
+    coffee.ensure_fees(station)
+    for person, cents, method in ((member, 1500, "cash"), (lead, 500, "transfer"), (cashier, 2000, "cash")):
+        CoffeeEntry.objects.create(
+            station=station, member=person, amount_cents=cents, reason=f"{DEMO_MARKER} Einzahlung",
+            kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=person,
+        )
+    CoffeeCashMovement.objects.create(
+        station=station, pot=CoffeeCashMovement.Pot.CASH, kind=CoffeeCashMovement.Kind.PURCHASE,
+        amount_cents=-1890, reason=f"{DEMO_MARKER} Kaffeebohnen 2 kg", created_by=cashier,
     )
 
     checklist = Checklist.objects.create(

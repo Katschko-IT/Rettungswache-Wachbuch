@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Signal-Benachrichtigungen" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'account_home' %}">{% translate "Zurück zum Konto" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Konto" %}</p>
+  <h1>{% translate "Signal-Benachrichtigungen" %}</h1>
+  <p class="lead">{% translate "Freiwillig: Hinterlege deine Handynummer, dann bekommst du deine Benachrichtigungen (z. B. offener Kaffeekassen-Beitrag, Fahrzeug kann freigegeben werden) zusätzlich per Signal – nur an dich, nie in eine Gruppe." %}</p>
+</header>
+<section class="form-card narrow">
+  {% if contact and contact.verified_at %}
+    <p><strong>{% translate "Aktiv" %}</strong> – {{ contact.number }}</p>
+    <form method="post" data-confirm="{% translate 'Signal-Benachrichtigungen abschalten und Nummer löschen?' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit" name="action" value="remove">{% translate "Abschalten und Nummer löschen" %}</button>
+    </form>
+  {% else %}
+    {% if contact %}
+      <form method="post">
+        {% csrf_token %}
+        <p>
+          <label for="signal-code">{% blocktranslate with number=contact.number %}Code aus der Signal-Nachricht an {{ number }}{% endblocktranslate %}</label>
+          <input id="signal-code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+        </p>
+        <div class="form-actions">
+          <button class="button primary" type="submit" name="action" value="confirm">{% translate "Bestätigen" %}</button>
+          <button class="button secondary" type="submit" name="action" value="remove" formnovalidate>{% translate "Abbrechen" %}</button>
+        </div>
+      </form>
+      <hr>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <p>
+        <label for="signal-number">{% translate "Deine Handynummer (mit Signal)" %}</label>
+        <input id="signal-number" name="number" type="tel" inputmode="tel" autocomplete="tel" placeholder="0171 2345678" required>
+        <span class="help-text">{% translate "Du bekommst einen sechsstelligen Code per Signal. Erst danach wird die Nummer genutzt." %}</span>
+      </p>
+      <button class="button primary" type="submit" name="action" value="number">{% translate "Code schicken" %}</button>
+    </form>
+  {% endif %}
+</section>
+<p class="help-text narrow">{% translate "Die Nummer sieht niemand im Team. Sie wird nur für deine eigenen Benachrichtigungen verwendet und beim Abschalten gelöscht. Nachrichten laufen Ende-zu-Ende-verschlüsselt über Signal." %}</p>
+{% endblock %}

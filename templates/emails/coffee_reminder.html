@@ -1,0 +1,31 @@
+{% load i18n %}<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>{% translate "Kaffeekasse" %}</title></head>
+<body>
+<p>{% blocktranslate with name=person %}Hallo {{ name }},{% endblocktranslate %}</p>
+{% if open_euros %}
+  <p>{% blocktranslate with amount=open_euros|floatformat:2 station=station.name %}in der Kaffeekasse der {{ station }} sind {{ amount }} € offen.{% endblocktranslate %}</p>
+  {% if open_months %}<p>{% translate "Offene Monate" %}: {{ open_months|join:", " }}</p>{% endif %}
+{% else %}
+  <p>{% blocktranslate with fee=fee_euros|floatformat:2 station=station.name %}hier die Zahlungsangaben der Kaffeekasse der {{ station }} (Monatsbeitrag {{ fee }} €).{% endblocktranslate %}</p>
+{% endif %}
+<p>{% translate "Bar: einfach in die Kasse legen und danach in Wachwerk unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}</p>
+{% if transfer %}
+  <h2>{% translate "Überweisung" %}</h2>
+  <p><img src="cid:girocode" width="200" height="200" alt="{% translate 'Überweisungs-QR-Code (GiroCode)' %}"><br>{% translate "Mit der Banking-App scannen" %}</p>
+  <table>
+    <tr><th align="left">{% translate "Empfänger" %}</th><td>{{ transfer.name }}</td></tr>
+    <tr><th align="left">{% translate "IBAN" %}</th><td>{{ transfer.iban }}</td></tr>
+    {% if transfer.bic %}<tr><th align="left">{% translate "BIC" %}</th><td>{{ transfer.bic }}</td></tr>{% endif %}
+    {% if transfer.amount_euros %}<tr><th align="left">{% translate "Betrag" %}</th><td>{{ transfer.amount_euros|floatformat:2 }} €</td></tr>{% endif %}
+    <tr><th align="left">{% translate "Verwendungszweck" %}</th><td>{{ transfer.text }}</td></tr>
+  </table>
+{% endif %}
+{% if paypal_url or wero_url %}
+  <p>{% if paypal_url %}<a href="{{ paypal_url }}">{% translate "PayPal.me öffnen" %}</a>{% endif %}{% if paypal_url and wero_url %} · {% endif %}{% if wero_url %}<a href="{{ wero_url }}">{% translate "Wero öffnen" %}</a>{% endif %}</p>
+{% endif %}
+{% if note %}<p>{{ note|linebreaksbr }}</p>{% endif %}
+{% if coffee_url %}<p><a href="{{ coffee_url }}">{% translate "Zur Kaffeekasse in Wachwerk" %}</a></p>{% endif %}
+<p><small>{% blocktranslate with app=app_name %}Diese Erinnerung kommt automatisch von {{ app }}. Abbestellen: Kaffeekasse → „E-Mail-Erinnerung abbestellen“.{% endblocktranslate %}</small></p>
+</body>
+</html>

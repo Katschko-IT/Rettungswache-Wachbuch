@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Alle Buchungen" %} | {% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee_book' %}">{% translate "Zurück zur Mappe" %}</a>
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">{% translate "Kaffeekasse · nur für den Kassenwart" %}</p>
+    <h1>{% translate "Alle Buchungen" %}</h1>
+    <p class="lead">{% translate "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert." %}</p>
+  </div>
+  <a class="button primary" href="{% url 'coffee_create' %}">{% translate "Buchung erfassen" %}</a>
+</header>
+<nav class="coffee-tools" aria-label="{% translate 'Filter' %}">
+  <a class="button secondary small" href="{% url 'coffee_ledger' %}"{% if not self_reported and not request.GET.person %} aria-current="page"{% endif %}>{% translate "Alle" %}</a>
+  <a class="button secondary small" href="{% url 'coffee_ledger' %}?selbst=1"{% if self_reported %} aria-current="page"{% endif %}>{% translate "Selbst eingetragene Zahlungen" %}</a>
+</nav>
+<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen' %}">
+  <table class="responsive-table">
+    <caption>{% translate "Kassenbuchungen" %}</caption>
+    <thead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Person" %}</th><th scope="col">{% translate "Grund" %}</th><th scope="col">{% translate "Betrag" %}</th><th scope="col">{% translate "Erfasst von" %}</th><th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th></tr></thead>
+    <tbody>
+      {% for entry in page_obj %}
+        <tr>
+          <td data-label="{% translate 'Datum' %}"><time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"d.m.Y H:i" }}</time></td>
+          <td data-label="{% translate 'Person' %}">{{ entry.member.get_full_name|default:entry.member.username }}</td>
+          <td data-label="{% translate 'Grund' %}">{{ entry.reason }}{% if entry.method %} <small>{{ entry.get_method_display }}</small>{% endif %}{% if entry.correction_of %}<small>{% translate "Gegenbuchung zu #" %}{{ entry.correction_of_id }}</small>{% endif %}</td>
+          <td data-label="{% translate 'Betrag' %}" class="amount {% if entry.amount_cents < 0 %}negative{% endif %}">{{ entry.amount_euros|floatformat:2 }} €</td>
+          <td data-label="{% translate 'Erfasst von' %}">{% if entry.created_by %}{% if entry.created_by_id == entry.member_id %}{% translate "selbst" %}{% else %}{{ entry.created_by.get_full_name|default:entry.created_by.username }}{% endif %}{% else %}{% translate "automatisch" %}{% endif %}</td>
+          <td data-label="{% translate 'Aktion' %}">{% if not entry.correction_of and not entry.corrections.exists %}<a class="text-action" href="{% url 'coffee_correct' entry.pk %}">{% translate "Korrigieren" %}</a>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">{% translate "Noch keine Buchungen." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/pagination.html" %}
+{% endblock %}

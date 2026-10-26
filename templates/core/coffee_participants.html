@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Teilnehmende" %} | {% translate "Kaffeekasse" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'coffee' %}">{% translate "Zurück zur Kaffeekasse" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Kaffeekasse" %}</p>
+  <h1>{% translate "Teilnehmende" %}</h1>
+  <p class="lead">{% blocktranslate with fee=fund.monthly_fee_euros|floatformat:2 %}Wer hier steht, zahlt den Monatsbeitrag von {{ fee }} €. Wer nicht mitmacht, wird einfach nicht eingetragen.{% endblocktranslate %}</p>
+</header>
+<form method="post" class="form-card narrow">
+  {% csrf_token %}
+  {% include "core/form_errors.html" %}
+  <input type="hidden" name="action" value="add">
+  {{ form.as_p }}
+  <div class="form-actions"><button class="button primary" type="submit">{% translate "Eintragen" %}</button></div>
+</form>
+<div class="table-wrap narrow" tabindex="0" role="region" aria-label="{% translate 'Teilnehmende' %}">
+  <table class="responsive-table">
+    <caption>{% translate "Teilnehmende" %}</caption>
+    <thead><tr><th scope="col">{% translate "Person" %}</th><th scope="col">{% translate "Beitrag" %}</th><th scope="col"><span class="visually-hidden">{% translate "Aktion" %}</span></th></tr></thead>
+    <tbody>
+      {% for participant in participants %}
+        <tr>
+          <td data-label="{% translate 'Person' %}">{{ participant.user.get_full_name|default:participant.user.username }}</td>
+          <td data-label="{% translate 'Beitrag' %}">{% blocktranslate with since=participant.since|date:"F Y" %}ab {{ since }}{% endblocktranslate %}{% if participant.until %} · {% blocktranslate with until=participant.until|date:"F Y" %}bis {{ until }}{% endblocktranslate %}{% endif %}</td>
+          <td data-label="{% translate 'Aktion' %}">
+            <form method="post"{% if not participant.until %} data-confirm="{% translate 'Ab nächstem Monat keinen Beitrag mehr berechnen?' %}"{% endif %}>
+              {% csrf_token %}
+              <input type="hidden" name="participant" value="{{ participant.pk }}">
+              {% if participant.until %}
+                <button class="button secondary small" type="submit" name="action" value="resume">{% translate "Wieder aufnehmen" %}</button>
+              {% else %}
+                <button class="button secondary small" type="submit" name="action" value="end">{% translate "Beenden" %}</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">{% translate "Noch niemand eingetragen." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="help-text narrow">{% translate "Urlaub, Elternzeit oder lange Krankheit: einzelne Monate in der Mappe befreien statt die Teilnahme zu beenden." %}</p>
+{% endblock %}

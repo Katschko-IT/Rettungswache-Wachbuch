@@ -160,6 +160,7 @@
     <p>{% translate "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen." %}</p>
     {% endif %}
     <p>{% translate "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Atkinson Hyperlegible Next) und Stylesheets werden lokal vom selben Server ausgeliefert." %}</p>
+    {% if signal_enabled %}<p>{% translate "Signal (optional): Diese Installation verschickt Benachrichtigungen über ein Signal-Konto der Wache. In die Wachengruppe gehen nur Hinweise ohne Namen; persönliche Nachrichten nur an Personen, die ihre Handynummer selbst hinterlegt und bestätigt haben. Die Übertragung ist Ende-zu-Ende-verschlüsselt; die Nummer wird beim Abschalten gelöscht, gesendete Nachrichten nach 30 Tagen." %}</p>{% endif %}
   </section>
 
   <section id="sicherheit" class="privacy-section">

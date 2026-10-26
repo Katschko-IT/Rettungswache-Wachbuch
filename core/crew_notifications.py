@@ -93,7 +93,11 @@ def _enqueue_channels(notification, payload):
                                    device=device, payload=payload))
     if rows:
         PushOutbox.objects.bulk_create(rows)
-    return len(rows)
+    # Signal nur für Personen, die ihre Nummer selbst bestätigt haben.
+    from .signal_messenger import enqueue_for_user, signal_enabled
+
+    signal_sent = signal_enabled() and enqueue_for_user(notification, payload)
+    return len(rows) + int(bool(signal_sent))
 
 
 def notify_vehicle_ready(vehicle, now=None) -> int:

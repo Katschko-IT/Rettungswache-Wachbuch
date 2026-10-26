@@ -90,7 +90,10 @@ Unterschreitungen des Mindestbestands und ungelesene Dienstanweisungen.
   (Geräte, Schlüssel, Pools) mit Ausgabe und Rückgabe
 - **Wachenkalender** mit Terminen, Feiertagen aller 16 Bundesländer und ICS-Abo
 - **Pinnwand, Neuigkeiten** mit Lesebestätigung, **Wachen-Wiki**
-- **Kaffeekasse** als fortlaufendes Ledger mit Korrekturbuchungen, Geburtstage
+- **Kaffeekasse** mit Monatsbeitrag: digitale „Mappe“ (bezahlt/offen/befreit),
+  selbst abhaken, Kassensturz, Einkäufe für alle sichtbar, Erinnerung und
+  GiroCode; Einzelstände nur für den Kassenwart ([Konzept](docs/KAFFEEKASSE.md)).
+  Dazu Geburtstage
 
 ### Fachmodule
 

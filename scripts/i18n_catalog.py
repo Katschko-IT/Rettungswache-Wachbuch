@@ -85,7 +85,8 @@ def iter_source_files():
                 continue
             if any(part in SKIP_PARTS for part in path.parts):
                 continue
-            if path.suffix not in {".py", ".html", ".js"}:
+            # .txt nur als Vorlage (z. B. Text-Teil von E-Mails), nicht Lizenzdateien.
+            if path.suffix not in {".py", ".html", ".js"} and not (path.suffix == ".txt" and directory == "templates"):
                 continue
             yield path
 
@@ -225,7 +226,7 @@ def collect():
         text = path.read_text(encoding="utf-8")
         if path.suffix == ".py":
             entries = extract_python(path, text)
-        elif path.suffix == ".html":
+        elif path.suffix in (".html", ".txt"):
             entries = extract_template(path, text)
         else:
             entries = extract_js(path, text)

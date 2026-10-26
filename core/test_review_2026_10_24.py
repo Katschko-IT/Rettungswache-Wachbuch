@@ -367,8 +367,15 @@ class ApiListContractTests(TestCase):
         self.assertEqual(results[0]["description"], "Treffpunkt Halle")
 
     def test_coffee_reports_scope(self):
-        self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.auth).json()["scope"], "station")
-        self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.member_auth).json()["scope"], "own")
+        # Einzelstände sieht nur der Kassenwart (docs/KAFFEEKASSE.md); Admins nur den eigenen Stand.
+        cashier = User.objects.create_user(username="kasse", password=PASSWORD)
+        Membership.objects.create(user=cashier, station=self.station, role=Membership.Role.CASHIER)
+        cashier_auth = _make_token(cashier, "wb_review_token_kkkkkkkkkkkkkkkkkk")
+        self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **cashier_auth).json()["scope"], "station")
+        self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.auth).json()["scope"], "own")
+        payload = self.client.get("/api/v1/kaffeekasse/", **self.member_auth).json()
+        self.assertEqual(payload["scope"], "own")
+        self.assertEqual(payload["own"], {"open_euros": 0.0, "credit_euros": 0.0, "months": []})
 
 
 class NoMembershipErrorCodeTests(TestCase):

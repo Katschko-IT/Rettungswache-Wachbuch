@@ -31,6 +31,11 @@ class NotifyCrewHeartbeatTests(SimpleTestCase):
             patcher = patch(f"{NOTIFY}.{target}")
             patcher.start()
             self.addCleanup(patcher.stop)
+        # Kaffeekasse-Erinnerungen laufen im selben Durchlauf; hier ohne Datenbank.
+        for target in ("remind_open_fees", "deliver_signal"):
+            patcher = patch(f"{NOTIFY}.{target}", return_value=0)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def test_success_writes_heartbeat(self):
         with patch(f"{NOTIFY}.notify_ready_vehicles", return_value=0):

@@ -683,7 +683,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .form-card p, .field { margin: 0 0 1.25rem; }
 .form-card label, .field label { display: block; margin-bottom: .35rem; font-weight: 700; }
-.form-card input:not([type="checkbox"]),
+.form-card input:not([type="checkbox"]):not([type="radio"]),
 .form-card select,
 .form-card textarea,
 .field input,
@@ -697,7 +697,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border: 2px solid var(--line);
   border-radius: .75rem;
 }
-.form-card input:not([type="checkbox"]):focus,
+.form-card input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-card select:focus,
 .form-card textarea:focus,
 .field input:focus,
@@ -2117,3 +2117,140 @@ dialog::backdrop { background: var(--scrim); }
 .mfa-key { display: inline-block; margin-top: .4rem; font-size: 1.05rem; letter-spacing: .06em; word-spacing: .3em; overflow-wrap: anywhere; }
 .legal-card h2 { margin: 1.25rem 0 .35rem; font-size: 1.05rem; }
 .legal-card h2:first-child { margin-top: 0; }
+
+/* Kaffeekasse: Monatsübersicht („Mappe“), Kasse, Bezahlen */
+.coffee-tools { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+.coffee-section { margin: 0 0 1.75rem; }
+.coffee-section > h2, .coffee-section .heading-with-action h2 { margin: 0 0 .6rem; font-size: 1.2rem; }
+.balance-row > div.is-open { border-color: var(--warning); background: var(--warning-soft); }
+.balance-row > div.is-open strong { color: var(--warning); }
+.balance-row > div.is-clear strong { color: var(--success); }
+.coffee-months {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: .5rem;
+}
+.coffee-month {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: .55rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.coffee-month-name { font-weight: 700; }
+.coffee-month-state { color: var(--muted); font-size: .88rem; }
+.coffee-month.is-paid { border-color: var(--success); background: var(--success-soft); }
+.coffee-month.is-paid .coffee-month-state { color: var(--success); font-weight: 700; }
+.coffee-month.is-open { border-color: var(--warning); background: var(--warning-soft); }
+.coffee-month.is-open .coffee-month-state { color: var(--warning); font-weight: 700; }
+.coffee-month.is-waived .coffee-month-state { color: var(--info); }
+.coffee-girocode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0 0;
+}
+.coffee-girocode img { background: #fff; padding: .4rem; border-radius: var(--radius); border: 1px solid var(--line); }
+.coffee-girocode figcaption { display: flex; flex-direction: column; gap: .2rem; overflow-wrap: anywhere; }
+.coffee-count-note { margin: 0 0 .75rem; color: var(--muted); }
+.coffee-movements { list-style: none; margin: 0 0 1rem; padding: 0; }
+.coffee-movements li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.coffee-movements li span { flex: 1; min-width: 10rem; }
+.amount.negative { color: var(--danger); }
+.choice-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: .6rem; margin: 0 0 1.25rem; border: 0; padding: 0; }
+.choice-tiles legend { font-weight: 700; margin-bottom: .5rem; padding: 0; }
+.choice-tile {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  min-height: var(--touch);
+  padding: .75rem .9rem;
+  border: 2px solid var(--line);
+  border-radius: .75rem;
+  background: var(--surface);
+  font-weight: 650;
+  cursor: pointer;
+}
+.choice-tile:has(input:checked) { border-color: var(--brand); background: var(--primary-container); }
+.choice-tile input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--brand); }
+.quick-amounts { display: flex; flex-wrap: wrap; gap: .5rem; margin: -.5rem 0 1.25rem; }
+.quick-amounts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  color: var(--text);
+  text-decoration: none;
+  padding: .4rem .9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+}
+.quick-amounts a[aria-current="true"] { border-color: var(--brand); background: var(--primary-container); }
+.coffee-book th, .coffee-book td { white-space: nowrap; }
+.coffee-book td.coffee-cell { text-align: center; }
+.coffee-cell .coffee-badge {
+  display: inline-block;
+  min-width: 4.5rem;
+  padding: .2rem .45rem;
+  border-radius: .5rem;
+  font-size: .85rem;
+  font-weight: 700;
+}
+.coffee-badge.is-paid { color: var(--success); background: var(--success-soft); }
+.coffee-badge.is-open { color: var(--warning); background: var(--warning-soft); }
+.coffee-badge.is-waived { color: var(--info); background: var(--info-soft); }
+.coffee-badge.is-none { color: var(--muted); }
+.coffee-row-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+.coffee-row-actions form { margin: 0; }
+.coffee-waive summary { cursor: pointer; color: var(--accent-dark); font-weight: 700; font-size: .85rem; }
+.coffee-waive form { display: flex; flex-direction: column; gap: .35rem; margin-top: .35rem; }
+.coffee-waive input { min-height: 2.5rem; padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: .5rem; }
+@media (max-width: 40rem) {
+  .coffee-section .balance-row > div, .balance-row.coffee-pots > div { min-width: 0; flex: 1 1 calc(50% - .5rem); }
+  .coffee-section .balance-row strong { font-size: 1.3rem; }
+}
+.year-switch {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  margin: 0 0 .75rem;
+}
+.year-switch h2, .year-switch h3 { margin: 0; text-align: center; font-size: 1.15rem; }
+.coffee-month.is-future, .coffee-month.is-none { opacity: .55; }
+.coffee-book th.is-current, .coffee-book td.is-current { background: var(--primary-container); }
+.coffee-book tfoot th, .coffee-book tfoot td { font-weight: 700; border-top: 2px solid var(--line-strong); }
+.coffee-book th[scope="row"] small { display: block; color: var(--muted); font-weight: 400; }
+.coffee-badge.is-future { min-width: 1.5rem; }
+.setup-steps li > span { display: block; color: var(--muted); }
+.setup-steps li.is-done > strong { color: var(--success); }
+.setup-steps .form-card { margin-top: .6rem; }
+.coffee-book { font-size: .92rem; }
+.coffee-book th, .coffee-book td { padding: .45rem .3rem; }
+.coffee-book .coffee-badge { min-width: 2.4rem; padding: .2rem .35rem; }
+.coffee-book .coffee-waive summary { font-size: .78rem; }
+.coffee-email-pref { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .75rem 0 0; color: var(--muted); }
+.coffee-row-mail { margin: 0 0 .3rem; }
+.coffee-mail-card { margin-top: 1rem; }
+button.text-action {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-dark);
+  text-decoration: underline;
+  cursor: pointer;
+}
