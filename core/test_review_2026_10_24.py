@@ -375,7 +375,7 @@ class ApiListContractTests(TestCase):
         self.assertEqual(self.client.get("/api/v1/kaffeekasse/", **self.auth).json()["scope"], "own")
         payload = self.client.get("/api/v1/kaffeekasse/", **self.member_auth).json()
         self.assertEqual(payload["scope"], "own")
-        self.assertEqual(payload["own"], {"open_euros": 0.0, "credit_euros": 0.0, "months": []})
+        self.assertEqual(payload["own"], {"participant": False, "open_euros": 0.0, "credit_euros": 0.0, "months": []})
 
 
 class NoMembershipErrorCodeTests(TestCase):

@@ -26,6 +26,7 @@ from ..rate_limit import consume
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Sum
+from django.utils.translation import gettext as _
 
 from ..access import CONTENT_ROLES, get_membership
 from ..errors import (
@@ -553,17 +554,35 @@ def handovers_list(request):
     qs = (
         HandoverEntry.objects.filter(station=request.membership.station)
         .exclude(status=HandoverEntry.Status.DONE)
-        .order_by("-updated_at")[:50]
+        .order_by("-updated_at", "-pk")
     )
-    results = [_handover_json(item) for item in qs]
+    limit = _bounded_int(request.GET.get("limit"), default=50, minimum=1, maximum=200)
+    offset = _bounded_int(request.GET.get("offset"), default=0, minimum=0, maximum=10**6)
+    total = qs.count()
+    results = [_handover_json(item) for item in qs[offset:offset + limit]]
     return JsonResponse({
         "ok": True,
         "api_version": API_VERSION,
-        "count": len(results),
+        "count": total,
         "results": results,
-        "next": None,
-        "previous": None,
+        "next": _page_path(request, offset + limit, limit) if offset + limit < total else None,
+        "previous": _page_path(request, max(0, offset - limit), limit) if offset > 0 else None,
     })
+
+
+def _bounded_int(raw, *, default, minimum, maximum):
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return min(max(value, minimum), maximum)
+
+
+def _page_path(request, offset, limit):
+    query = request.GET.copy()
+    query["offset"] = str(offset)
+    query["limit"] = str(limit)
+    return f"{request.path}?{query.urlencode()}"
 
 
 @csrf_exempt
@@ -835,20 +854,31 @@ def coffee_api(request):
     ]
     # scope sagt dem Client, ob der Saldo die Wache oder nur die eigenen Buchungen meint.
     scope = "station" if request.membership.role in CASHIER_ROLES else "own"
-    from .. import coffee as coffee_logic
-
-    fund = coffee_logic.fund_for(station)
-    coffee_logic.ensure_fees(station)
-    own = coffee_logic.member_status(station, request.user)
-    current = coffee_logic.month_start(coffee_logic.station_today(station))
     return JsonResponse({
         "ok": True,
         "balance_euros": total / 100,
         "scope": scope,
         "results": results,
-        # Monatsbeitrag: eigener Stand, unabhängig von scope.
+        **_coffee_own_payload(request, station),
+    })
+
+
+def _coffee_own_payload(request, station):
+    """Eigener Monatsstand und Zahlungswege – für jede Person, unabhängig von scope."""
+    from .. import coffee as coffee_logic
+    from ..coffee_models import CoffeeParticipant
+    from ..coffee_views import _payment_methods
+
+    fund = coffee_logic.fund_for(station)
+    coffee_logic.ensure_fees(station)
+    own = coffee_logic.member_status(station, request.user)
+    current = coffee_logic.month_start(coffee_logic.station_today(station))
+    participant = CoffeeParticipant.objects.filter(station=station, user=request.user).first()
+    suggested = own.open_cents or fund.monthly_fee_cents
+    return {
         "monthly_fee_euros": fund.monthly_fee_cents / 100,
         "own": {
+            "participant": participant is not None,
             "open_euros": own.open_cents / 100,
             "credit_euros": own.credit_cents / 100,
             "months": [
@@ -856,7 +886,57 @@ def coffee_api(request):
                 for m in own.recent(current, 12) if m.status != coffee_logic.NOT_CHARGED
             ],
         },
-    })
+        # Für „Ich habe bezahlt“ und die Überweisung in der App.
+        "payment": {
+            "methods": [str(method) for method in _payment_methods(station)],
+            "suggested_euros": suggested / 100,
+            "iban": coffee_logic.normalize_iban(station.iban) if station.iban else "",
+            "bic": station.bic,
+            "account_holder": (fund.account_holder or station.name) if station.iban else "",
+            "transfer_text": coffee_logic.transfer_text(station, request.user),
+            "paypal_me_url": station.paypal_me_url,
+            "wero_link": station.wero_link,
+            "note": station.payment_note,
+        },
+    }
+
+
+@csrf_exempt
+@require_POST
+@api_token_required
+def coffee_paid_api(request):
+    """„Ich habe bezahlt“ aus der App – wie das Kreuz in der Mappe (nur eigene Zahlung)."""
+    from ..coffee_views import _payment_methods
+    from ..forms import CoffeePaymentForm
+
+    station = request.membership.station
+    if not station.coffee_enabled:
+        return _json_error(request, "Modul ist nicht aktiviert.", status=404)
+    if not _scope_allowed(request.api_token, "write:coffee"):
+        return _json_error(request, "Scope write:coffee fehlt.", status=403)
+    if request.membership.role not in CONTENT_ROLES:
+        return _json_error(request, "Rolle hat keinen Zugriff auf die Kaffeekasse.", status=403)
+    body = _parse_json(request)
+    if body is None:
+        return _json_error(request, "JSON-Körper erwartet.")
+    form = CoffeePaymentForm(
+        {"method": body.get("method"), "amount_eur": body.get("amount_euros"), "note": body.get("note") or ""},
+        methods=_payment_methods(station),
+    )
+    if not form.is_valid():
+        return _json_error(request, "Zahlung ist ungültig.", status=422, fields=form.errors)
+    method = form.cleaned_data["method"]
+    note = form.cleaned_data["note"]
+    reason = _("Selbst eingetragen: %(method)s") % {"method": CoffeeEntry.Method(method).label}
+    if note:
+        reason = f"{reason} – {note}"
+    with transaction.atomic():
+        entry = CoffeeEntry.objects.create(
+            station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason[:200],
+            kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+        )
+        audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
+    return JsonResponse({"ok": True, "id": entry.pk, **_coffee_own_payload(request, station)}, status=201)
 
 
 @csrf_exempt

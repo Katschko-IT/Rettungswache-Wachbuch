@@ -84,6 +84,7 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_m
 | POST | `/api/v1/inventory/<item_id>/checkin/` | Zurückgeben |
 | GET/POST | `/api/v1/kalender/` | Termine (laufende und kommende, mit `description`) |
 | GET/POST | `/api/v1/kaffeekasse/` | Kasse; `scope` = `station` (nur Kassenwart, Wachensaldo) oder `own` (eigene Buchungen); `monthly_fee_euros` und `own` (offen, Guthaben, Monate) für jede Person; POST nur Kassenwart (optional `method` für Einzahlungen) |
+| POST | `/api/v1/kaffeekasse/bezahlt/` | „Ich habe bezahlt“: eigene Zahlung (`method` = `cash`/`transfer`/`paypal`/`wero`, `amount_euros`, optional `note`); Antwort enthält den neuen Stand (`own`, `payment`) |
 | GET | `/api/v1/checklisten/` | Checklisten + Fälligkeit |
 | POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |

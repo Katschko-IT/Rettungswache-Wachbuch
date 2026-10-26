@@ -34,6 +34,7 @@ urlpatterns = [
     path("uebergaben/<int:pk>/status/", views.handover_set_status, name="api_v1_uebergabe_status"),
     path("kalender/", views.calendar_api, name="api_v1_kalender"),
     path("kaffeekasse/", views.coffee_api, name="api_v1_kaffeekasse"),
+    path("kaffeekasse/bezahlt/", views.coffee_paid_api, name="api_v1_kaffeekasse_bezahlt"),
     path("checklisten/", wachalltag.checklists_api, name="api_v1_checklisten"),
     path("checklisten/<int:pk>/erledigt/", wachalltag.checklist_complete_api, name="api_v1_checkliste_erledigt"),
     path("checklisten/<int:pk>/abschluss/", wachalltag.checklist_complete_api, name="api_v1_checkliste_abschluss"),

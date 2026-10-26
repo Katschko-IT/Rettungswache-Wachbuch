@@ -309,6 +309,12 @@ paths:
       summary: Append coffee ledger entry (treasurer only; optional payment method)
       responses:
         "201": { description: Coffee entry created }
+  /kaffeekasse/bezahlt/:
+    post:
+      summary: Report own payment (any member; method cash/transfer/paypal/wero, amount_euros, note)
+      responses:
+        "201": { description: Payment recorded; returns own status and payment ways }
+        "422": { $ref: "#/components/responses/Error" }
   /checklisten/:
     get:
       summary: Active checklists including recurring schedule state
