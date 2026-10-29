@@ -27,7 +27,7 @@ Im Installationsordner (`/opt/wachbuch` bzw. `~/wachbuch`, siehe
 ./wachbuch logs web
 docker compose logs --since 30m web migrate notify-worker feed-worker backup
 ./wachbuch update
-docker compose exec -T web python manage.py apply_retention
+docker compose exec -T housekeeping python manage.py housekeeping
 curl -fsS http://127.0.0.1:8090/healthz/
 ```
 
@@ -35,8 +35,9 @@ Die Testsuite läuft nicht im Produktionscontainer (die App-Rolle darf keine
 Testdatenbank anlegen), sondern lokal bzw. in der CI.
 
 Healthchecks: `web` prüft `/healthz/` (mit `Host: localhost`, Loopback ist immer
-in `ALLOWED_HOSTS`), `notify-worker` das Alter seiner Heartbeat-Datei (< 180 s),
-`push-worker` seine Lebenszeichen-Datei. `notify-worker` beendet sich nach zehn
+in `ALLOWED_HOSTS`; geprüft werden Datenbank und Cache), `notify-worker`,
+`housekeeping` und `demo-cleaner` das Alter ihrer Heartbeat-Datei (< 180 s),
+`push-worker` das Alter seiner (< 300 s). `notify-worker` beendet sich nach zehn
 Fehlversuchen in Folge (`NOTIFY_MAX_FAILURES`) mit Fehlercode, damit Docker ihn neu
 startet und der Fehler in `wachbuch status` sichtbar wird.
 
@@ -175,8 +176,8 @@ docker compose exec -T web python manage.py cleanup_pushoutbox
 docker compose exec -T web python manage.py cleanup_pushoutbox --days 7 --dry-run
 ```
 
-`apply_retention` ruft `apply_pushoutbox_retention` ebenfalls auf, sodass der
-bestehende Retention-Cron-Pfad die Outbox mitraeumt.
+Der Compose-Dienst `housekeeping` räumt die Outbox stündlich mit auf
+(`python manage.py housekeeping`, siehe Abschnitt Aufbewahrung).
 
 ## Backup und Restore
 
@@ -189,8 +190,9 @@ Die Datenbank unterscheidet fünf Rollen mit klar getrennten Aufgaben:
   laufenden Betrieb von keinem dauerhaften Container benutzt.
 - `rwsth_app` (entspricht `APP_DB_USER`): Web- und Migrationscontainer. Volle
   CRUD-Rechte auf das Schema, aber kein `UPDATE`/`DELETE` auf den
-  append-only-Tabellen `core_coffeeentry`, `core_auditevent`,
-  `core_handoverrevision` und `core_checklistcompletion`.
+  append-only-Tabellen `core_coffeeentry`, `core_coffeecashmovement`,
+  `core_auditevent`, `core_handoverrevision`, `core_checklistcompletion` und
+  `core_stockmovement`.
 - `rwsth_feed` (entspricht `FEED_DB_USER`): ausschließlich `FeedSource`-
   Status- und `FeedItem`-CRUD.
 - `rwsth_push` (entspricht `PUSH_DB_USER`): `SELECT`/`UPDATE` auf der
@@ -319,8 +321,14 @@ wieder.
 - `RETENTION_AUDIT_DAYS` (Standard `0`): Audit-Purge bleibt absichtlich aus, bis
   organisatorische Fristen freigegeben sind. Nur mit Owner-Rechten und klarer
   Freigabe setzen.
-- Kommando: `docker compose exec -T web python manage.py apply_retention`
-  (z. B. täglich per Host-Cron).
+- Automatisch: Der Compose-Dienst `housekeeping` läuft in jeder Installation
+  und räumt stündlich mit den Rechten der App-Rolle auf: abgelaufene
+  Sitzungen, Anmeldeprotokolle (`LOGIN_LOG_RETENTION_DAYS`, Standard 30),
+  Fehlerereignisse, QR-Anmeldungen, Push-Outbox, Feed-Einträge, Rückmeldungen
+  und abgelaufene Zähler der Begrenzungen. Von Hand:
+  `docker compose exec -T housekeeping python manage.py housekeeping`.
+- Audit-Purge (`RETENTION_AUDIT_DAYS`) ist bewusst nicht dabei: Er braucht
+  Owner-Rechte und eine Freigabe, dann von Hand mit `apply_retention`.
 
 ## Datenbank-Passwortrotation
 
@@ -457,7 +465,7 @@ Die öffentliche Demo (`DEMO_SANDBOX=true`) nimmt nur feste Versionen ab
 
 | Modus | Was passiert |
 | --- | --- |
-| `sicherheit` | bleibt bei `WACHBUCH_VERSION`, lädt die wöchentlich neu gebauten Images (Debian-/Alpine-Sicherheitsupdates) |
+| `sicherheit` | bleibt bei `WACHBUCH_VERSION`, lädt die wöchentlich neu gebauten Images (Debian-/Alpine-Sicherheitsupdates). Neu gebaut werden nur die beiden neuesten Minor-Versionen; für Server im Internet deshalb `alle` |
 | `alle` | wie `sicherheit`, zusätzlich neue Versionen derselben Hauptversion (z. B. 0.25 → 0.26, nie 0 → 1) |
 
 Ablauf jedes Laufs (Protokoll: `logs/auto-update.log`):
@@ -510,8 +518,10 @@ und in `.env` `WACHBUCH_REGISTRY=registry.wache.lan:5000/katschko-it` setzen.
 7. Tests ausführen und den Stack mit `up -d --wait` starten.
 8. Healthcheck inkl. Versionsfeld, Anmeldung, Rollen, Tagesaufgaben und optionale
    Feeds prüfen.
-9. Tag `vX.Y.Z` pushen: `publish-image.yml` baut App-, Backup- und db-Image für
-   amd64/arm64 und taggt `X.Y.Z`, `X.Y` und `latest`.
+9. Tag `vX.Y.Z` pushen: `publish-image.yml` prüft Tag, `core/version.py` und
+   CHANGELOG, baut App-, Backup- und db-Image für amd64/arm64, taggt `X.Y.Z`,
+   `X.Y` und `latest` und legt erst danach das GitHub-Release an. Ablauf im
+   Einzelnen: [`RELEASE-0.26.0.md`](RELEASE-0.26.0.md).
 10. Service-Worker-Caches leeren bzw. einmal ab-/anmelden, falls Shell-Assets
     geändert wurden.
 

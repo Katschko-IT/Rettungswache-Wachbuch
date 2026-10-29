@@ -185,7 +185,7 @@ verschlüsselten Backups außer Haus und einem Betriebstest steht in
    ```bash
    curl -fsSLO https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh
    sudo sh install.sh --yes --name "Wachwerk Demo" --mode domain \
-     --domain demo.rwsth.de --email postmaster@rwsth.de --demo
+     --domain demo.rwsth.de --email postmaster@rwsth.de --demo --auto-update alle
    ```
    `--demo` setzt `DEMO_MODE=true`, `DEMO_SANDBOX=true`, das Profil `demo`
    (Aufräumdienst) und `MFA_REQUIRED=true`: Echte Konten brauchen einen

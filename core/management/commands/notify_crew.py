@@ -118,4 +118,9 @@ class Command(BaseCommand):
                     self.stdout.write(f"notify_crew: {count} Benachrichtigungen angelegt")
             if not options["watch"] or stop["flag"]:
                 return
-            time.sleep(interval)
+            # In Sekundenschritten warten, damit SIGTERM sofort beendet
+            # (sonst schickt docker compose stop nach 10 s SIGKILL).
+            for _ in range(interval):
+                if stop["flag"]:
+                    return
+                time.sleep(1)

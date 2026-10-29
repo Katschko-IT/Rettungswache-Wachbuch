@@ -143,6 +143,8 @@ def passkey_login_verify(request):
         user = verify_authentication(json.dumps(body["credential"]), challenge)
     except Exception:
         return JsonResponse({"ok": False, "error": "Passkey konnte nicht geprüft werden."}, status=400)
+    if not getattr(user, "is_active", False):
+        return JsonResponse({"ok": False, "error": "Passkey konnte nicht geprüft werden."}, status=400)
     request.session.pop("webauthn_login_challenge", None)
     request.session["auth_method"] = "passkey"
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")

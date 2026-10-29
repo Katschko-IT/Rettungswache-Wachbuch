@@ -68,6 +68,18 @@ class NotifyCrewHeartbeatTests(SimpleTestCase):
                 )
         self.assertTrue(self.heartbeat.exists())
 
+    def test_sigterm_ends_the_wait_within_a_second(self):
+        import signal as signal_module
+
+        with patch(f"{NOTIFY}.notify_ready_vehicles", return_value=0), \
+                patch(f"{NOTIFY}.signal.signal") as register, patch(f"{NOTIFY}.time.sleep") as sleep:
+            def stop_on_first_sleep(_seconds):
+                handlers = {call.args[0]: call.args[1] for call in register.call_args_list}
+                handlers[signal_module.SIGTERM](signal_module.SIGTERM, None)
+            sleep.side_effect = stop_on_first_sleep
+            call_command("notify_crew", watch=True, interval=30, stdout=io.StringIO())
+        self.assertEqual(sleep.call_count, 1)
+
 
 def compose_command():
     docker = shutil.which("docker")

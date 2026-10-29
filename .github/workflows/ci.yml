@@ -85,7 +85,7 @@ jobs:
             scripts/start-web.sh scripts/start-worker.sh scripts/start-push-worker.sh \
             scripts/migrate.sh scripts/restore-test.sh \
             deploy/hetzner/harden-host.sh deploy/hetzner/wachwerk-health.sh \
-            deploy/hetzner/offsite-storagebox.sh
+            deploy/hetzner/offsite-storagebox.sh deploy/hetzner/wachwerk-offsite-sync.sh
       - name: Validate Compose
         run: |
           cp .env.example .env

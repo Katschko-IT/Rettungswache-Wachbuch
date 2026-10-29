@@ -1,6 +1,103 @@
 # Changelog
 
-## Unveröffentlicht
+## 0.26.0 - 2026-10-29
+
+Öffentliche Demo mit eigener Demo-Wache je Besuch, Betrieb ohne Eingriff auf
+einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
+über 100 geprüften Funden. Ablauf des Releases: [docs/RELEASE-0.26.0.md](docs/RELEASE-0.26.0.md).
+
+- **Betrieb ohne Eingriff:**
+  - Neuer Dienst `housekeeping` in jedem Profil: löscht stündlich abgelaufene
+    Sitzungen, Anmeldeprotokolle (`LOGIN_LOG_RETENTION_DAYS`, Standard 30),
+    Fehlerereignisse, QR-Anmeldungen, alte Push-Nachrichten, Feed-Einträge und
+    Rückmeldungen nach ihren Fristen – ohne Cron auf dem Host. Append-only
+    Daten bleiben unberührt.
+  - `demo-cleaner` läuft als ein Prozess mit eigenem Healthcheck; vorher wurde
+    er nie „healthy“ und ließ Installation, Update und Auto-Update scheitern.
+  - `push-worker` meldet sich nur nach erfolgreichem Durchlauf gesund und
+    erholt sich nach einem Neustart der Datenbank; `notify-worker` beendet sich
+    bei SIGTERM sofort.
+  - `/healthz/` prüft auch den Cache (Redis) und antwortet bei Ausfall mit 503.
+  - Müllkalender-URLs werden automatisch abgerufen (feed-worker, alle 6
+    Stunden, neue URLs innerhalb von 15 Minuten).
+  - Caddy ist ohne `HTTPS_BIND_ADDRESS` auch über IPv6 erreichbar;
+    `FEEDBACK_PER_IP_HOUR` und `APP_NAME` wirken jetzt auch in Compose; kein
+    falsches „Control server error“ mehr beim Start von Gunicorn.
+- **Updates und Releases:**
+  - Rollback nach einem gescheiterten Update: Hat die neue Version schon
+    migriert, wird die Datenbank aus dem Backup vor dem Update zurückgesetzt;
+    alter Code läuft nie auf einem neueren Datenbankstand.
+  - `wachbuch update` ist atomar (Pull-/Build-Fehler ändern nichts, Fehlstart
+    führt zum Rollback, Rückfrage beim Wechsel auf eine ältere Version);
+    `wachbuch restore` ersetzt das Schema vollständig in einer Transaktion.
+  - Nach Updates werden ältere Images und alte Dumps unter `./backups`
+    entfernt; Caddy startet neu, wenn sich das Caddyfile geändert hat.
+  - `install.sh --demo` und `wachbuch update` verlangen in der öffentlichen
+    Demo Version 0.26.0 oder neuer; `--demo` setzt ein zufälliges
+    `DEMO_PASSWORD`. `install.sh` behält von Hand ergänzte Profile.
+  - Gemeinsame Demo-Konten einer früheren Vorführ-Demo werden in der
+    öffentlichen Demo gesperrt; `load_demo_data` verweigert `DEMO_SANDBOX=true`.
+  - Der Einrichtungscode muss nach der Ersteinrichtung nicht mehr von Hand
+    entfernt werden; der Assistent ist danach gesperrt.
+  - `publish-image.yml` prüft Tag, Version und CHANGELOG, scannt die Images
+    und legt das GitHub-Release erst nach allen Images an.
+  - Wöchentlicher Image-Neubau wieder grün (gosu im PostgreSQL-Image vom Scan
+    ausgenommen, im Backup-Image entfernt); neu gebaut werden die zwei
+    neuesten Minor-Versionen. Projektseite: Pages-Deployment wieder grün,
+    Seitentests laufen in der CI, Knopf „Live-Demo ausprobieren“.
+- **Eigener Server im Internet** ([docs/HETZNER.md](docs/HETZNER.md)):
+  - `deploy/hetzner/harden-host.sh`: Docker, SSH nur mit Schlüssel (erst wenn
+    Schlüssel und sudo nachweislich funktionieren), Firewall und fail2ban auf
+    dem echten SSH-Port, automatische Sicherheitsupdates auch für Docker.
+  - `wachwerk-health`: prüft alle Dienste, Zertifikat, Backups, Offsite-Kopie,
+    5xx-Fehler, das letzte automatische Update und die wöchentliche
+    Wiederherstellungsprobe; ohne Fehlalarme während Installation und
+    nächtlichem Update; startet „unhealthy“ Container neu (höchstens dreimal
+    je Stunde).
+  - `offsite-storagebox.sh`: GnuPG-verschlüsselte Backups auf eine Hetzner
+    Storage Box, ohne Löschabgleich, mit Alarm, wenn keine neue Kopie entsteht.
+  - Caddy: Zeitgrenzen gegen langsame Clients, Anfragen höchstens 20 MB, keine
+    Server-Kennung.
+- **Demo, die überzeugt:**
+  - Der Rundgang führt Schritt für Schritt (vorausgefülltes Formular,
+    automatischer Rollenwechsel, Fortschritt im Banner, Abschluss mit Blick ins
+    Audit-Log und Links zu Touch-Terminal, Wand-Display und IT-Seite).
+  - Musterdaten wie auf einer echten Rettungswache: RTW, NEF und KTW mit
+    Funkrufnamen, Medizinprodukte mit stimmigen Prüffristen, Lager mit Chargen
+    und Rückruf, Mängel, Neuigkeiten, Pinnwand, Wiki und Kaffeekasse mit
+    Verlauf; ohne „[Demo]“-Marker.
+  - Vorschau des Sperrbildschirms vom Touch-Terminal mit den Daten der eigenen
+    Demo-Wache, ohne Terminal und ohne Dienstkonto.
+  - Wachen-Display zeigt Fahrzeugstatus, Gerätefristen und Materialwarnungen;
+    Neuigkeiten erscheinen wieder im Laufband.
+  - Startseite der öffentlichen Demo mit „Demo starten – ohne Konto“ als
+    Haupteinstieg, Vertrauenszeichen und „Gerade aktiv: N Demo-Wachen“; neue
+    Seite „Für IT und Datenschutz“.
+  - Audit-Log in Klartext; Fehlerseiten verweisen auf die eigene Wache;
+    Auswahllisten mit echten Umlauten; Rollenbezeichnungen übersetzbar.
+  - Übergaben lassen sich im Browser quittieren; Rollenwechsel zum Auditor
+    öffnet das Audit-Log statt einer Fehlerseite; Formulare in anderen Tabs
+    bleiben nach dem Wechsel gültig; eigene Seite bei abgelaufenen Formularen.
+  - Banner auf dem Handy kompakt; gesperrte Aktionen werden nicht angeboten.
+  - Demo-Start deutlich schneller, abgelaufene Demos werden stapelweise
+    gelöscht; `DEMO_SANDBOX_PER_IP_HOUR` steht auf 30 (Gruppen hinter einem
+    Anschluss).
+  - Anonyme Demo-Kennzahlen je Tag (gestartet, Rundgang abgeschlossen,
+    Rückmeldungen) im Feedback-Posteingang und per `manage.py demo_stats`.
+- **Kern: schneller und robuster:**
+  - Übersicht, Lager, Nachbestellung, Orga, Neuigkeiten und Pinnwand mit fester
+    Zahl an Datenbankabfragen; Anhangslisten laden den Dateiinhalt nicht mehr
+    mit; Übersicht und Aufgaben sperren die Wache beim Aufruf nicht mehr.
+  - Kaffeekasse: „Ich habe bezahlt“ bucht bei Doppeltipp nur einmal (API:
+    `duplicate: true`); CSV-Export in Ortszeit; Ziffern wie „²“ führen nicht
+    mehr zu Fehler 500.
+  - Lager: Materialbuchungen auch gegen Löschen gesperrt; übernommene
+    Schlüssel, Geräte und Fahrzeuge lösen kein „Bestellen“ mehr aus.
+  - Rückmeldungen: Posteingang nur für den Betreiber der Installation.
+  - Passkey-Anmeldung weist gesperrte Konten ab.
+  - Tabellen auf dem Handy scrollen nicht mehr seitlich.
+  - Tests: Abfragezahl-Regressionen, append-only-Sperren aller Journaltabellen,
+    CSP-Prüfung über ganze Templates.
 
 - **Öffentlicher Betrieb abgesichert:**
   - Ein Demo-Besuch kann keine Konten der Installation mehr in seine

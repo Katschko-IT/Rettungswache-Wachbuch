@@ -12,7 +12,7 @@ DEFAULT_BASE_URL="https://raw.githubusercontent.com/${REPO_SLUG}"
 # mit DEMO_MODE gemeinsame Konten mit öffentlichem Passwort in der Wache an.
 MIN_DEMO_VERSION=0.26.0
 # Dienste, die in die Datenbank schreiben (für Restore und Rollback anhalten).
-APP_SERVICES="web feed-worker notify-worker push-worker demo-cleaner"
+APP_SERVICES="web feed-worker notify-worker push-worker housekeeping demo-cleaner"
 
 say() { printf '==> %s\n' "$*"; }
 warn() { printf 'Warnung: %s\n' "$*" >&2; }

@@ -272,7 +272,7 @@ class HealthCheckTests(SimpleTestCase):
         """Vertrag mit scripts/wachbuch: jede auto_log-Meldung richtig einordnen."""
         text = WACHBUCH.read_text(encoding="utf-8")
         messages = [re.sub(r"\$\{[^}]*\}|\$[A-Za-z_][A-Za-z0-9_]*", "0.26.0", m)
-                    for m in re.findall(r'auto_log "((?:[^"\\]|\\.)*)"', text)]
+                    for m in re.findall(r'(?:auto_log|note) "((?:[^"\\]|\\.)*)"', text)]
         healthy = ("Update erfolgreich", "Alles aktuell", "Übersprungen", "Neue Hauptversion")
         self.assertTrue(any(m.startswith("Update erfolgreich") for m in messages), messages)
         self.assertTrue(any(m.startswith("Alles aktuell") for m in messages), messages)

@@ -183,8 +183,8 @@ lokalen HTTP-Betrieb vorgesehen.
 Die Ersteinrichtung läuft **immer über den Assistenten** unter `/setup/`: Er fragt
 den Einrichtungscode (`SETUP_BOOTSTRAP_TOKEN`) ab und führt durch Wachenname,
 Anschrift, Zeitzone, erstes Admin-Konto, Rollen und Module; ohne Code existiert die
-Route nicht. Nach Abschluss den Code in `.env` leeren und neu starten
-(`wachbuch start`). Details: [`docs/PILOT-HTTPS-LOCAL.md`](docs/PILOT-HTTPS-LOCAL.md).
+Route nicht. Nach dem Abschluss ist der Assistent gesperrt (404), der Code also
+wertlos; leeren kann man ihn trotzdem. Details: [`docs/PILOT-HTTPS-LOCAL.md`](docs/PILOT-HTTPS-LOCAL.md).
 
 Weitere Teamkonten legt der **Master-Admin** unter `/team/anlegen/` an oder per
 Einladung; Freigaben bleiben stationsbezogen. Optional kann

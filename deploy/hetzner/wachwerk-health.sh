@@ -233,7 +233,7 @@ check_containers() {
         bad "Zustand der Container nicht lesbar (docker inspect)"
         return
     fi
-    services="db redis web feed-worker notify-worker push-worker backup"
+    services="db redis web feed-worker notify-worker push-worker housekeeping backup"
     if has_profile https; then services="$services caddy"; fi
     if has_profile demo || [ "$(env_get DEMO_SANDBOX)" = "true" ]; then services="$services demo-cleaner"; fi
     if has_profile signal; then services="$services signal"; fi

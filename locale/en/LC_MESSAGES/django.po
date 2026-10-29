@@ -313,7 +313,7 @@ msgstr "AGPL-3.0, complete source code"
 msgid "AMD GX-420GI, 4 Kerne; 2 RAM-Steckplätze bis 32 GB; M.2-SATA-SSD"
 msgstr "AMD GX-420GI, 4 cores; 2 RAM slots up to 32 GB; M.2 SATA SSD"
 
-#: core/account_views.py:354
+#: core/account_views.py:356
 msgid "API-Tokens brauchen einen aktiven Wachenzugang."
 msgstr "API tokens require active station access."
 
@@ -402,11 +402,11 @@ msgstr "Sign out"
 msgid "Abo-Link erzeugen"
 msgstr "Generate subscription link"
 
-#: core/account_views.py:336
+#: core/account_views.py:338
 msgid "Abo-Link wurde erzeugt."
 msgstr "Subscription link was generated."
 
-#: core/account_views.py:341
+#: core/account_views.py:343
 msgid "Abo-Link wurde widerrufen."
 msgstr "Subscription link was revoked."
 
@@ -976,11 +976,11 @@ msgstr "Sign in to the app by QR code without a password"
 msgid "App verbinden"
 msgstr "Connect app"
 
-#: core/account_views.py:376
+#: core/account_views.py:378
 msgid "App-Token erzeugt. Bitte jetzt kopieren – es wird nur einmal angezeigt."
 msgstr "App token generated. Please copy now – it will only be displayed once."
 
-#: core/account_views.py:387
+#: core/account_views.py:389
 msgid "App-Token wurde widerrufen."
 msgstr "App token was revoked."
 
@@ -3466,6 +3466,7 @@ msgid "Einrichtung abschließen"
 msgstr "Complete setup"
 
 #: core/forms.py:966
+#: templates/core/setup_done.html:43
 #: templates/core/setup_token.html:22
 msgid "Einrichtungscode"
 msgstr "Setup code"
@@ -3473,10 +3474,6 @@ msgstr "Setup code"
 #: templates/core/setup_token.html:17
 msgid "Einrichtungscode eingeben"
 msgstr "Enter setup code"
-
-#: templates/core/setup_done.html:43
-msgid "Einrichtungscode entfernen"
-msgstr "Remove the setup code"
 
 #: templates/core/fleet_dashboard.html:54
 msgid "Einsatzbereit (1 & 2)"
@@ -3963,6 +3960,10 @@ msgstr "Vehicles & hygiene"
 msgid "Fahrzeuge gesamt"
 msgstr "Total vehicles"
 
+#: templates/core/_demo_tour.html:40
+msgid "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle"
+msgstr "vehicles, device deadlines and supplies at a glance for the monitor in the vehicle hall"
+
 #: templates/core/setup_done.html:40
 msgid "Fahrzeuge, Medizingeräte, Aufgaben und Müllabfuhr-Termine anlegen; Module wie Müllkalender, Aufgaben und Wetter unter Einstellungen ein- oder ausschalten."
 msgstr "Add vehicles, medical devices, tasks and waste collection dates; switch modules such as waste calendar, tasks and weather on or off under Settings."
@@ -4319,6 +4320,7 @@ msgstr "For backups"
 msgid "Für Gütersloh ist kein gleichwertiger vollständiger Baustellenfeed verifiziert; die Anzeige beschränkt sich auf freigegebene Quellen."
 msgstr "For Gütersloh, no equivalent complete construction site feed has been verified; the display is limited to approved sources."
 
+#: templates/core/_demo_tour.html:41
 #: templates/core/it_privacy.html:3
 #: templates/core/it_privacy.html:9
 #: templates/core/landing.html:137
@@ -6735,7 +6737,7 @@ msgstr "Station minimum stock:"
 msgid "Mindestens"
 msgstr "Minimum"
 
-#: core/account_views.py:240
+#: core/account_views.py:242
 msgid "Mindestens ein zweiter Faktor muss erhalten bleiben."
 msgstr "At least one second factor must be retained."
 
@@ -7354,6 +7356,10 @@ msgstr "Not recommended:"
 msgid "Nicht gefunden."
 msgstr "Not found."
 
+#: templates/core/setup_done.html:44
+msgid "Nicht nötig: Der Assistent ist ab jetzt gesperrt. Wer mag, leert SETUP_BOOTSTRAP_TOKEN in der Datei .env."
+msgstr "Not needed: the wizard is now locked. If you like, clear SETUP_BOOTSTRAP_TOKEN in the .env file."
+
 #: templates/core/dashboard.html:8
 msgid "Nichts Dringendes offen"
 msgstr "Nothing urgent open"
@@ -7503,6 +7509,10 @@ msgstr "No private messages yet."
 #: templates/core/account.html:16
 msgid "Noch keiner Wache zugeordnet. Der Master-Admin muss den Zugang freigeben."
 msgstr "Not assigned to any station yet. The master admin must approve access."
+
+#: templates/core/_demo_tour.html:37
+msgid "Noch mehr entdecken:"
+msgstr "Discover more:"
 
 #: templates/core/feeds.html:9
 msgid "Noch nicht geladen"
@@ -7776,6 +7786,10 @@ msgstr "Official external sources"
 msgid "Offline"
 msgstr "Offline"
 
+#: templates/core/_demo_tour.html:42
+msgid "Offline ausprobieren: Flugmodus an und die Übersicht neu laden – zuletzt geöffnete Seiten bleiben lesbar. Auf der Wache läuft alles im eigenen Netz weiter, auch wenn das Internet ausfällt."
+msgstr "Try it offline: switch on flight mode and reload the overview – recently opened pages stay readable. At the station everything keeps running on the local network, even when the internet is down."
+
 #: core/templatetags/js_i18n.py:26
 msgid "Offline – angezeigte Daten können veraltet sein"
 msgstr "Offline – displayed data may be outdated"
@@ -7937,7 +7951,7 @@ msgstr "Verifying passkey …"
 msgid "Passkey wird registriert …"
 msgstr "Registering passkey …"
 
-#: core/account_views.py:243
+#: core/account_views.py:245
 msgid "Passkey wurde entfernt."
 msgstr "Passkey was removed."
 
@@ -8340,7 +8354,7 @@ msgstr "Push could not be deactivated."
 msgid "Push-Benachrichtigungen"
 msgstr "Push notifications"
 
-#: core/account_views.py:257
+#: core/account_views.py:259
 msgid "Push-Benachrichtigungen deaktiviert."
 msgstr "Push notifications disabled."
 
@@ -8741,10 +8755,6 @@ msgstr "Recalls, supplies expiring soon and items below minimum stock (warehouse
 #: templates/core/warehouse_recall.html:19
 msgid "Rückrufsperre aktivieren"
 msgstr "Activate recall lock"
-
-#: templates/core/setup_done.html:44
-msgid "SETUP_BOOTSTRAP_TOKEN in der Datei .env leeren. Der Assistent ist ab jetzt ohnehin gesperrt."
-msgstr "Clear SETUP_BOOTSTRAP_TOKEN in the .env file. The wizard is locked from now on anyway."
 
 #: templates/core/orga_dashboard.html:73
 msgid "SOP Ansicht"
@@ -9701,6 +9711,10 @@ msgstr "Touch terminal"
 msgid "Touch-Terminal (Vorschau)"
 msgstr "Touch terminal (preview)"
 
+#: templates/core/_demo_tour.html:39
+msgid "Touch-Terminal der Wache"
+msgstr "The station's touch terminal"
+
 #: templates/core/landing.html:78
 msgid "Touch-Terminal in der Fahrzeughalle"
 msgstr "Touch terminal in the vehicle bay"
@@ -10440,6 +10454,10 @@ msgstr "Wachwerk sends reminders and notices via a Signal account of the station
 #: core/signal_views.py:95
 msgid "Wachwerk: Testnachricht – die Signal-Benachrichtigungen funktionieren."
 msgstr "Wachwerk: test message – Signal notifications are working."
+
+#: templates/core/_demo_tour.html:40
+msgid "Wand-Display"
+msgstr "Wall display"
 
 #: templates/core/tasks_today.html:9
 msgid "Wandtafel digital: grün täglich, gelb Wochentag, blau zusätzlich. Farbe ist nur Hilfsmittel – Status steht immer ausgeschrieben."
@@ -11462,6 +11480,10 @@ msgstr "approx. 3–4 W, fanless"
 msgid "ca. 5–12 W (Baureihe)"
 msgstr "approx. 5–12 W (model range)"
 
+#: templates/core/_demo_tour.html:39
+msgid "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock"
+msgstr "the lock screen on the Raspberry Pi with clock, handovers and keypad"
+
 #: templates/core/terminal_home.html:33
 #: templates/core/terminal_menu.html:23
 msgid "dringend"
@@ -11697,6 +11719,10 @@ msgstr "from"
 #: core/module_overview.py:109
 msgid "von dir noch nicht quittiert"
 msgstr "not yet acknowledged by you"
+
+#: templates/core/_demo_tour.html:41
+msgid "was gespeichert wird, wo es liegt und wie es geschützt ist"
+msgstr "what is stored, where it lives and how it is protected"
 
 #: templates/core/install_guide.html:84
 #: templates/core/install_guide.html:85

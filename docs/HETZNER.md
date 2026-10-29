@@ -164,7 +164,7 @@ Ab jetzt als `michael`:
 ssh michael@<IPv4>
 curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh \
   | sudo sh -s -- --mode domain --domain demo.rwsth.de --email deine@adresse.de \
-       --name "Wachwerk Demo" --demo --auto-update sicherheit
+       --name "Wachwerk Demo" --demo --auto-update alle
 ```
 
 - `--mode domain` holt das Zertifikat von Let's Encrypt (DNS aus Schritt 2
@@ -173,9 +173,13 @@ curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/
   `DEMO_SANDBOX=true`, Profil `demo` (Aufräumdienst) und Pflicht zur
   Zwei-Faktor-Anmeldung für alle echten Konten. Ohne `--demo` entsteht eine
   normale Installation für eine Wache.
-- `--auto-update sicherheit` spielt nachts neu gebaute Images derselben
-  Version ein (mit Backup vorher und automatischer Rückkehr, falls der Start
-  scheitert).
+- `--auto-update alle` spielt nachts neu gebaute Images und neue Versionen
+  derselben Hauptversion ein (mit Backup vorher und automatischer Rückkehr,
+  falls der Start scheitert). Für einen Server im Internet ist das die
+  richtige Wahl: Mit `sicherheit` bliebe er auf seiner Version und bekäme
+  nach zwei neueren Versionen keine neu gebauten Images mehr.
+- `--demo` setzt Version 0.26.0 oder neuer voraus; ältere lehnt der
+  Installer ab.
 
 Am Ende stehen Adresse und **Einrichtungscode** auf dem Bildschirm.
 
@@ -188,11 +192,8 @@ Am Ende stehen Adresse und **Einrichtungscode** auf dem Bildschirm.
 3. **Impressum und Datenschutz** im Assistenten vollständig ausfüllen
    (Name, ladungsfähige Anschrift, E-Mail). Eine öffentlich erreichbare Seite
    braucht ein Impressum (§ 5 DDG).
-4. Einrichtungscode danach unbrauchbar machen:
-   ```bash
-   sudo sed -i 's/^SETUP_BOOTSTRAP_TOKEN=.*/SETUP_BOOTSTRAP_TOKEN=/' /opt/wachbuch/.env
-   sudo /opt/wachbuch/wachbuch start
-   ```
+4. Der Einrichtungscode ist danach von selbst wertlos: Nach dem Abschluss
+   antwortet `/setup/` nicht mehr (404).
 5. Abmelden, auf der Anmeldeseite **Demo / Demo** ausprobieren.
 
 ## 6. Backups außer Haus (Hetzner Storage Box)
@@ -264,8 +265,9 @@ Erst wenn diese Tabelle abgehakt ist, ist der Betrieb erprobt.
 | 16 | IPv6 | von einem Rechner mit IPv6: `curl -6 -sI https://demo.rwsth.de/healthz/` | `HTTP/2 200` (sonst AAAA-Eintrag entfernen, Schritt 2) |
 | 17 | Externe Prüfung | Server in der Hetzner Cloud Console ausschalten, 10 Minuten warten | E-Mail vom externen Dienst aus Schritt 0 **und** von healthchecks.io |
 
-> Test 13 nur zurück auf eine Version **ohne** neuere Datenbank-Migrationen.
-> Sonst Test 11 mit dem Backup von vor dem Update verwenden.
+> Test 13 nur zurück auf eine Version **ohne** neuere Datenbank-Migrationen
+> (`wachbuch update` fragt sonst nach); sonst Test 11 mit dem Backup von vor
+> dem Update verwenden. Eine Demo-Installation lehnt Versionen unter 0.26.0 ab.
 
 ## 8. Laufender Betrieb
 
