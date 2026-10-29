@@ -806,6 +806,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .payment-privacy { margin: .75rem 0 0; color: var(--muted); font-size: .82rem; }
 
 .table-wrap {
+  position: relative; /* hält .sr-only im Scrollbereich (siehe .table-responsive) */
   overflow-x: auto;
   background: var(--surface);
   border: 1px solid var(--line);

@@ -122,7 +122,11 @@ class MedicalItem(models.Model):
 
     @property
     def total_stock(self) -> int:
-        return sum(si.quantity for si in self.stock_items.filter(batch__is_recalled=False))
+        # Mit prefetch_related("stock_items__batch") ohne weitere Abfrage
+        # (Lagerübersicht, Nachbestellung); sonst eine Summen-Abfrage.
+        if "stock_items" in getattr(self, "_prefetched_objects_cache", {}):
+            return sum(si.quantity for si in self.stock_items.all() if not si.batch.is_recalled)
+        return self.stock_items.filter(batch__is_recalled=False).aggregate(total=models.Sum("quantity"))["total"] or 0
 
     @property
     def is_under_min_stock(self) -> bool:
@@ -304,3 +308,8 @@ class StockMovement(models.Model):
             raise ValidationError("Materialbuchungen sind revisionssicher und dürfen nicht verändert werden.")
         _require_same_station(self.item, self.station_id, "Buchungsjournal")
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Korrekturen laufen über neue Buchungen; die Datenbank sperrt UPDATE und
+        # DELETE zusätzlich (grant_database_access).
+        raise ValidationError("Materialbuchungen dürfen nicht gelöscht werden.")

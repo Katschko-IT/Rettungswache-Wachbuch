@@ -29,6 +29,11 @@ def acknowledgement_status(post):
     acknowledged = set(
         NewsAcknowledgement.objects.filter(post=post).values_list("user_id", flat=True)
     )
+    return status_from(audience, acknowledged)
+
+
+def status_from(audience: set, acknowledged: set) -> dict:
+    """Lesestand aus Leserschaft und Quittungen, ohne eigene Abfrage."""
     read = len(audience & acknowledged)
     total = len(audience)
     return {

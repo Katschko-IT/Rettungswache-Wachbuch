@@ -53,12 +53,35 @@ def month_label(month: dt.date) -> str:
     return formats.date_format(month, "F Y")
 
 
-def station_today(station) -> dt.date:
+# Ein zweites Absenden derselben „Ich habe bezahlt“-Meldung (Doppeltipp,
+# Wiederholung der App bei wackligem Netz) bucht nicht noch einmal.
+SELF_REPORT_REPEAT_WINDOW = dt.timedelta(seconds=60)
+
+
+def recent_self_report(station, user, *, amount_cents: int, method: str, reason: str) -> CoffeeEntry | None:
+    """Gleiche Selbstmeldung derselben Person aus der letzten Minute, sonst None.
+
+    Nur innerhalb von ``transaction.atomic()`` aufrufen: Die Sperre auf die
+    Mitgliedschaft lässt zwei gleichzeitige Absendungen nacheinander laufen,
+    so findet die zweite die Buchung der ersten.
+    """
+    list(Membership.objects.select_for_update().filter(station=station, user=user).values_list("pk", flat=True))
+    return CoffeeEntry.objects.filter(
+        station=station, member=user, created_by=user, kind=CoffeeEntry.Kind.PAYMENT,
+        amount_cents=amount_cents, method=method, reason=reason,
+        created_at__gte=timezone.now() - SELF_REPORT_REPEAT_WINDOW,
+    ).order_by("-created_at").first()
+
+
+def station_zone(station):
     try:
-        zone = ZoneInfo(station.timezone_name or "Europe/Berlin")
+        return ZoneInfo(station.timezone_name or "Europe/Berlin")
     except Exception:  # unbekannte Zeitzone: Serverzeit
-        zone = timezone.get_current_timezone()
-    return timezone.now().astimezone(zone).date()
+        return timezone.get_current_timezone()
+
+
+def station_today(station) -> dt.date:
+    return timezone.now().astimezone(station_zone(station)).date()
 
 
 def fund_for(station) -> CoffeeFund:

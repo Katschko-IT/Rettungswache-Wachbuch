@@ -235,7 +235,7 @@ def defect_detail(request, pk):
         {
             "item": item,
             "events": item.events.select_related("actor").all()[:100],
-            "attachments": item.attachments.select_related("uploaded_by").all(),
+            "attachments": item.attachments.select_related("uploaded_by").defer("data"),
             "statuses": Defect.Status.choices,
             "can_close": _is_adminish(request.membership),
         },

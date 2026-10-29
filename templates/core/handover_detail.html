@@ -29,7 +29,7 @@
     {% else %}
       <p class="empty-state">{% translate "Noch keine Anhänge." %}</p>
     {% endif %}
-    {% if handover.attachments.count < 8 %}
+    {% if attachments|length < max_attachments %}
     <form method="post" enctype="multipart/form-data" class="inline-form" action="{% url 'handover_detail' handover.pk %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="upload">

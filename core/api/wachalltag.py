@@ -543,7 +543,7 @@ def defect_detail(request, pk):
             }
             for event in item.events.select_related("actor").all()[:100]
         ]
-        data["attachments"] = [_attachment_json(a) for a in item.attachments.select_related("uploaded_by").all()]
+        data["attachments"] = [_attachment_json(a) for a in item.attachments.select_related("uploaded_by").defer("data")]
         return JsonResponse({"ok": True, **data})
 
     if (error := _scope(request, "write:handovers")) or (error := _content_role(request)):
@@ -842,7 +842,7 @@ def defect_attachments(request, pk):
     if request.method == "GET":
         if (error := _scope(request, "read:handovers")) or (error := _content_role(request)):
             return error
-        items = defect.attachments.select_related("uploaded_by").all()
+        items = defect.attachments.select_related("uploaded_by").defer("data")
         return JsonResponse({"ok": True, "results": [_attachment_json(item) for item in items]})
     if (error := _scope(request, "write:handovers")) or (error := _content_role(request)):
         return error

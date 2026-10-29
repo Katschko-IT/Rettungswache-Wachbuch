@@ -12,7 +12,7 @@ Django-Prozess. Sie wird **nicht** über die App ausgeliefert.
 - `slides.js` – Blättern, Fortschritt, Musik
 - `design/` – Kopien von `tokens.css`, `fonts.css`, `public.css`, Schrift und
   Aufnahmen aus `core/static/core/`. Nicht von Hand ändern, sondern
-  `python scripts/sync_design_assets.py` ausführen.
+  `python scripts/sync_design_assets.py` ausführen (`--check` prüft nur).
 
 Die Folien folgen der Design-Sprache „Wachbuch Klar 2“: echte Aufnahmen der
 Oberfläche (synthetische Daten der „Rettungswache Nord“) statt Stockfotos,
