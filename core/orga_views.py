@@ -31,7 +31,7 @@ def orga_dashboard(request):
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
-    sops_qs = SOPDocument.objects.filter(station=station).prefetch_related("revisions", "receipts")
+    sops_qs = SOPDocument.objects.filter(station=station)
 
     query = request.GET.get("q", "").strip()
     if query:
@@ -45,7 +45,7 @@ def orga_dashboard(request):
     if cat:
         sops_qs = sops_qs.filter(category=cat)
 
-    sops_list = list(sops_qs)
+    sops_list = SOPDocument.list_with_ack_state(sops_qs, user)
     filter_mode = request.GET.get("filter", "all").strip()
 
     # Berechne Quittierungsstatus

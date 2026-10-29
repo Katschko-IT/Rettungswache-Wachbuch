@@ -28,12 +28,20 @@ def _templates():
 
 class TemplateCspComplianceTests(SimpleTestCase):
     def _offenders(self, pattern):
+        # Ganze Datei statt Zeile für Zeile: Ein Tag kann über mehrere Zeilen
+        # laufen (<div class="x"\n     style="…">), [^>] erfasst auch Umbrüche.
         found = []
         for path in _templates():
-            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if pattern.search(line):
-                    found.append(f"{path.relative_to(TEMPLATE_ROOT)}:{number}")
+            text = path.read_text(encoding="utf-8")
+            for match in pattern.finditer(text):
+                number = text.count("\n", 0, match.start()) + 1
+                found.append(f"{path.relative_to(TEMPLATE_ROOT)}:{number}")
         return found
+
+    def test_scan_catches_attributes_on_a_later_line(self):
+        text = '<div class="x"\n     style="color: red">'
+        self.assertIsNotNone(STYLE_ATTRIBUTE.search(text))
+        self.assertIsNotNone(INLINE_HANDLER.search('<button type="button"\n  onclick="go()">'))
 
     def test_no_inline_event_handlers(self):
         self.assertEqual(self._offenders(INLINE_HANDLER), [])

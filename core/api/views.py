@@ -930,13 +930,24 @@ def coffee_paid_api(request):
     reason = _("Selbst eingetragen: %(method)s") % {"method": CoffeeEntry.Method(method).label}
     if note:
         reason = f"{reason} – {note}"
+    reason = reason[:200]
+    from ..coffee import recent_self_report
+
     with transaction.atomic():
-        entry = CoffeeEntry.objects.create(
-            station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason[:200],
-            kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+        # Wiederholt die App die Anfrage (wackliges Netz), gilt die erste Buchung.
+        entry = recent_self_report(
+            station, request.user, amount_cents=form.amount_cents(), method=method, reason=reason,
         )
-        audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
-    return JsonResponse({"ok": True, "id": entry.pk, **_coffee_own_payload(request, station)}, status=201)
+        duplicate = entry is not None
+        if not duplicate:
+            entry = CoffeeEntry.objects.create(
+                station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason,
+                kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+            )
+            audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
+    return JsonResponse(
+        {"ok": True, "id": entry.pk, "duplicate": duplicate, **_coffee_own_payload(request, station)}, status=201,
+    )
 
 
 @csrf_exempt

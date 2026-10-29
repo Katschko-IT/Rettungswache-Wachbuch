@@ -77,14 +77,31 @@ class SOPDocument(models.Model):
 
     @property
     def latest_revision(self) -> SOPRevision | None:
-        return self.revisions.order_by("-created_at").first()
+        # Listen laden die Revisionen vorab (list_with_ack_state); dann ohne Abfrage.
+        if "revisions" in getattr(self, "_prefetched_objects_cache", {}):
+            return max(self.revisions.all(), key=lambda rev: (rev.created_at, rev.pk), default=None)
+        return self.revisions.order_by("-created_at", "-pk").first()
 
     def user_has_acknowledged(self, user: User) -> bool:
         """Prüft, ob der Benutzer die aktuelle Revision quittiert hat."""
         latest = self.latest_revision
         if not latest:
             return True
+        # Vorab geladen sind nur die Quittungen genau eines Benutzers.
+        if getattr(self, "my_receipts_user_id", None) == user.pk:
+            return any(receipt.revision_id == latest.pk for receipt in self.my_receipts)
         return self.receipts.filter(user=user, revision=latest).exists()
+
+    @staticmethod
+    def list_with_ack_state(queryset, user: User) -> list[SOPDocument]:
+        """SOPs samt Revisionen und eigenen Quittungen: drei Abfragen statt drei je SOP."""
+        sops = list(queryset.prefetch_related(
+            "revisions",
+            models.Prefetch("receipts", queryset=SOPReceipt.objects.filter(user=user), to_attr="my_receipts"),
+        ))
+        for sop in sops:
+            sop.my_receipts_user_id = user.pk
+        return sops
 
 
 class SOPRevision(models.Model):

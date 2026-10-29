@@ -2737,7 +2737,7 @@ class DatabaseRoleLeastPrivilegeTests(TestCase):
             any(
                 statement
                 == "REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
-                "core_handoverrevision, core_checklistcompletion FROM rwsth_app"
+                "core_handoverrevision, core_checklistcompletion, core_stockmovement FROM rwsth_app"
                 for statement in executed
             ),
             executed,

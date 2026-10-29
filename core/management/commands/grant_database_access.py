@@ -39,7 +39,7 @@ class Command(BaseCommand):
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {app_role}",
             f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {app_role}",
             f"REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
-            f"core_handoverrevision, core_checklistcompletion FROM {app_role}",
+            f"core_handoverrevision, core_checklistcompletion, core_stockmovement FROM {app_role}",
             f"GRANT SELECT, UPDATE (last_success_at, last_error_at, last_error) ON core_feedsource TO {feed_role}",
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON core_feeditem TO {feed_role}",
             f"GRANT USAGE, SELECT ON SEQUENCE core_feeditem_id_seq TO {feed_role}",

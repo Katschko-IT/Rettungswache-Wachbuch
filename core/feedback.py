@@ -2,8 +2,11 @@
 
 Eingeschaltet mit ``FEEDBACK_ENABLED`` (in der öffentlichen Demo
 automatisch). Gespeichert wird nur, was jemand freiwillig einträgt – keine
-IP-Adresse. Gelesen wird im Posteingang unter Einstellungen von
-Master-Admins echter Wachen (nicht von Demo-Wachen). Nach
+IP-Adresse. Gelesen wird im Posteingang unter Einstellungen, und zwar nur vom
+Betreiber der Installation: Master-Admins der bei der Ersteinrichtung
+angelegten Wache (ersatzweise der Standardwache bzw. der einzigen echten
+Wache) sowie Superuser. Master-Admins weiterer Wachen und Demo-Wachen sehen
+den Posteingang nicht – Rückmeldungen gehören keiner Wache. Nach
 ``FEEDBACK_RETENTION_DAYS`` löscht ``apply_retention`` die Einträge.
 """
 from __future__ import annotations
@@ -20,6 +23,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_http_methods, require_POST
@@ -28,7 +32,7 @@ from . import demo_stats
 from .access import membership_required
 from .feedback_models import Feedback
 from .middleware import rate_limit_ip
-from .models import Membership
+from .models import InstallationSetup, Membership, Station
 from .services import audit
 
 
@@ -104,8 +108,35 @@ def feedback_page(request):
     return render(request, "core/feedback.html", {"form": form, "sent": request.GET.get("danke") == "1"})
 
 
-def _inbox_guard(request):
+def operator_station_id() -> int | None:
+    """Wache des Betreibers: aus der Ersteinrichtung, sonst Standard- oder einzige echte Wache."""
+    station_id = InstallationSetup.objects.filter(pk=1).values_list("station_id", flat=True).first()
+    if station_id:
+        return station_id
+    stations = Station.objects.filter(demo_sandbox__isnull=True)
+    station_id = stations.filter(slug=settings.DEFAULT_STATION_SLUG).values_list("pk", flat=True).first()
+    if station_id:
+        return station_id
+    only = list(stations.values_list("pk", flat=True)[:2])
+    return only[0] if len(only) == 1 else None
+
+
+def can_read_feedback(request) -> bool:
+    """Nur der Betreiber der Installation liest Rückmeldungen (siehe Moduldoku)."""
     if not feedback_enabled() or getattr(request, "demo_sandbox", None) is not None:
+        return False
+    if request.user.is_superuser:
+        return True
+    membership = getattr(request, "membership", None)
+    return bool(
+        membership is not None
+        and membership.role == Membership.Role.ADMIN
+        and membership.station_id == operator_station_id()
+    )
+
+
+def _inbox_guard(request):
+    if not can_read_feedback(request):
         raise Http404
 
 
@@ -141,7 +172,10 @@ def feedback_status(request, pk):
         feedback.status = status
         feedback.save(update_fields=["status"])
         audit(request.user, request.membership.station, "feedback.status", feedback, {"status": status})
-    return redirect(request.POST.get("next") or reverse("feedback_inbox"))
+    target = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(target, {request.get_host()}, require_https=request.is_secure()):
+        target = reverse("feedback_inbox")
+    return redirect(target)
 
 
 @membership_required({Membership.Role.ADMIN})

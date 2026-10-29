@@ -11,9 +11,13 @@ sonst mit `FEEDBACK_ENABLED=true`.
 - **Keine IP-Adresse** in der Datenbank. Gegen Missbrauch: unsichtbares
   Lockfeld für Spam-Programme und höchstens `FEEDBACK_PER_IP_HOUR` (5)
   Rückmeldungen je Anschluss und Stunde (gesalzener Hash im Cache).
-- **Lesen:** Einstellungen → Rückmeldungen (`/einstellungen/feedback/`), für
-  Master-Admins echter Wachen. Besucher der Demo-Wachen haben keinen Zugriff.
-  Einträge lassen sich als gelesen/erledigt markieren oder löschen (Audit).
+- **Lesen:** Einstellungen → Rückmeldungen (`/einstellungen/feedback/`), nur
+  für den Betreiber der Installation: Master-Admins der Wache aus der
+  Ersteinrichtung (ohne Ersteinrichtung: der Standardwache
+  `DEFAULT_STATION_SLUG` bzw. der einzigen echten Wache) und Superuser.
+  Master-Admins weiterer Wachen und Besucher der Demo-Wachen sehen weder den
+  Posteingang noch den Knopf. Einträge lassen sich als gelesen/erledigt
+  markieren oder löschen (Audit).
 - **Löschfrist:** `FEEDBACK_RETENTION_DAYS` (Standard 365, 0 = nie). Der
   Compose-Dienst `housekeeping` löscht ältere Einträge stündlich von selbst
   (von Hand: `python manage.py housekeeping`).

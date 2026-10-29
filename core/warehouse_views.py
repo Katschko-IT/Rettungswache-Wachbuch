@@ -47,18 +47,27 @@ def warehouse_dashboard(request):
             station=station, slug="rtw-01", name="RTW 01/83-01 Schrank", kind=StorageLocation.Kind.VEHICLE
         )
 
-    # Legacy InventoryItem nahtlos synchronisieren
+    # Legacy InventoryItem nahtlos synchronisieren: zwei Abfragen statt einer
+    # je Inventarstück. Schlüssel, Geräte und Fahrzeuge sind kein
+    # Verbrauchsmaterial; ohne Mindestbestand lösen sie kein „Bestellen“ aus.
     from .wachalltag_models import InventoryItem
-    for legacy in InventoryItem.objects.filter(station=station):
-        if not MedicalItem.objects.filter(station=station, slug=legacy.item_id).exists():
-            MedicalItem.objects.create(
-                station=station,
-                slug=legacy.item_id,
-                name=legacy.label,
-                category=MedicalItem.Category.AIRWAY if "atmung" in legacy.label.lower() else MedicalItem.Category.OTHER,
-            )
+    known = set(MedicalItem.objects.filter(station=station).values_list("slug", flat=True))
+    missing = [
+        MedicalItem(
+            station=station,
+            slug=item_id,
+            name=label,
+            category=MedicalItem.Category.AIRWAY if "atmung" in label.lower() else MedicalItem.Category.OTHER,
+            min_stock=0,
+            target_stock=0,
+        )
+        for item_id, label in InventoryItem.objects.filter(station=station).values_list("item_id", "label")
+        if item_id not in known
+    ]
+    if missing:
+        MedicalItem.objects.bulk_create(missing, ignore_conflicts=True)
 
-    items_qs = MedicalItem.objects.filter(station=station).prefetch_related("batches", "stock_items")
+    items_qs = MedicalItem.objects.filter(station=station).prefetch_related("batches", "stock_items__batch")
 
     query = request.GET.get("q", "").strip()
     if query:

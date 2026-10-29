@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import IntegrityError, connection, transaction
-from django.db.models import Case, IntegerField, Value, When
+from django.db.models import Case, IntegerField, Prefetch, Value, When
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -797,7 +797,9 @@ def handover_detail(request, pk):
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,
-        "attachments": handover.attachments.select_related("uploaded_by").all(),
+        # Ohne den Dateiinhalt: Die Liste zeigt nur Name und Größe.
+        "attachments": handover.attachments.select_related("uploaded_by").defer("data"),
+        "max_attachments": MAX_ATTACHMENTS_PER_HANDOVER,
         "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
     })
 
@@ -1406,7 +1408,12 @@ def station_settings(request):
         if imported is not None:
             messages.success(request, _("Müllkalender übernommen: %(count)s Termine.") % {"count": imported})
         return redirect("station_settings")
-    return render(request, "core/station_settings.html", {"form": form})
+    from .feedback import can_read_feedback
+
+    return render(request, "core/station_settings.html", {
+        "form": form,
+        "can_read_feedback": can_read_feedback(request),
+    })
 
 
 @membership_required({Membership.Role.AUDITOR, Membership.Role.ADMIN})
@@ -1543,6 +1550,7 @@ def pinboard(request):
     notes = (
         PinboardNote.objects.filter(station=station, is_archived=False)
         .select_related("author")
+        .prefetch_related(Prefetch("attachments", queryset=PinboardAttachment.objects.defer("data")))
         .order_by("-is_pinned", "-updated_at")
     )
     can_manage = request.membership.role in PINBOARD_MANAGE_ROLES

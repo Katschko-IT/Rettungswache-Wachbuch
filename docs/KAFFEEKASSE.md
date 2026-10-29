@@ -163,6 +163,7 @@ Optional erinnert Wachwerk auch per Signal (Einrichtung: `docs/SIGNAL.md`):
 
 - **Bar:** Die Einzahlung zählt sofort zum Soll-Bestand der Dose. Beim nächsten Kassensturz fällt auf, wenn Geld fehlt.
 - **Überweisung, PayPal oder Wero:** Der Kassenwart gleicht mit dem Kontoauszug ab. Dafür gibt es den Filter „Selbst eingetragene Zahlungen“.
+- **Doppelt abgeschickt:** Dieselbe Meldung (Betrag, Zahlungsweg, Notiz) derselben Person innerhalb von 60 Sekunden wird nicht noch einmal gebucht – etwa nach einem Doppeltipp oder wenn die App eine Anfrage wiederholt. Die Seite meldet dann „Diese Zahlung ist schon eingetragen.“, die API liefert die erste Buchung mit `duplicate: true`.
 
 ### Kasse und Konto
 
@@ -184,6 +185,6 @@ Ist eine IBAN hinterlegt, zeigt die Seite einen GiroCode:
 
 ## Grenzen und nächste Schritte
 
-- **App:** Die API liefert den eigenen Stand (`own`). „Ich habe bezahlt“ gibt es in der App noch nicht, nur im Browser.
+- **App:** Die API liefert den eigenen Stand (`own`); „Ich habe bezahlt“ meldet die App über `POST /api/v1/kaffeekasse/bezahlt/`.
 - **Löschfristen:** Sie legt der Betreiber im Löschkonzept fest. Buchungen ausgeschiedener Personen bleiben, bis der Stand ausgeglichen ist.
 - **Betriebsrat:** Gibt es einen, sollte er vor dem Start informiert werden. Eine kurze Vereinbarung mit Zweckbindung und Verwertungsverbot schafft Klarheit.
