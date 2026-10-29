@@ -106,7 +106,7 @@ def log_stamp(delta: timedelta = timedelta()) -> str:
 
 SERVICES = [
     ("db", "healthy"), ("redis", "healthy"), ("web", "healthy"), ("feed-worker", "healthy"),
-    ("notify-worker", "healthy"), ("push-worker", "healthy"), ("backup", "-"), ("caddy", "-"),
+    ("notify-worker", "healthy"), ("push-worker", "healthy"), ("housekeeping", "healthy"), ("backup", "-"), ("caddy", "-"),
     ("demo-cleaner", "-"),
 ]
 
