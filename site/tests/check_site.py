@@ -11,6 +11,10 @@ beschrieb den Zwischenstand, nicht das Produkt. An ihre Stelle treten prüfbare
 Aussagen zum Reifegrad („keine Produktionsfreigabe“, offene externe Abnahmen,
 nicht implementierter Client-Offlinebetrieb). Die Sicherheits- und Produktgrenzen
 bleiben vollständig prüfpflichtig.
+
+Ergänzung 2026-10-29: Erlaubt ist genau ein Knopf zur öffentlichen Live-Version
+(demo.rwsth.de) mit kurzem Hinweis im Kopfbereich; sonst bleibt Demo-Sprache
+verboten. Das Logo im Kopf zählt nicht als Screenshot.
 """
 
 import html.parser
@@ -28,6 +32,21 @@ SHOTS_DIR = SITE_DIR / "assets" / "design" / "screens"
 FONTS_DIR = SITE_DIR / "assets" / "design" / "fonts"
 EN_DIR = SITE_DIR / "en"
 EN_HTML = EN_DIR / "index.html"
+BRAND_LOGO_CLASS = "pub-brand-logo"
+# Einzige erlaubte Erwähnung der öffentlichen Demo: Knopf und Hinweis im Kopf.
+DEMO_URL = "https://demo.rwsth.de/"
+LIVE_CTA_RE = re.compile(r'<a class="pub-button primary pub-live" href="([^"]*)">.*?</a>', re.DOTALL)
+LIVE_NOTE_RE = re.compile(r'<p class="pub-live-note">.*?</p>', re.DOTALL)
+
+
+def screenshots(images):
+    """Alle <img> außer dem Logo im Kopf: die App-Aufnahmen."""
+    return [img for img in images if BRAND_LOGO_CLASS not in img.get("class", "").split()]
+
+
+def without_live_demo(content):
+    """Seiteninhalt ohne den erlaubten Demo-Knopf und -Hinweis."""
+    return LIVE_NOTE_RE.sub("", LIVE_CTA_RE.sub("", content))
 
 
 class HTMLStructureParser(html.parser.HTMLParser):
@@ -204,7 +223,10 @@ class TestSiteIntegrity(unittest.TestCase):
             )
 
         demo_pattern = re.compile(r"\b(demo|demo-modus|musterstadt|vorführung)\b", re.IGNORECASE)
-        for name, content in [("index.html", self.index_content), ("styles.css", self.styles_content)]:
+        for name, content in [
+            ("index.html", without_live_demo(self.index_content)),
+            ("styles.css", self.styles_content),
+        ]:
             match = demo_pattern.search(content)
             self.assertIsNone(
                 match,
@@ -286,7 +308,7 @@ class TestSiteIntegrity(unittest.TestCase):
         self.assertGreaterEqual(len(self.parser.images), 8, "Zu wenige <img>-Elemente in der Galerie")
         self.assertGreaterEqual(self.parser.figures, 9, "Galerie braucht <figure>-Elemente mit Captions")
 
-        for img in self.parser.images:
+        for img in screenshots(self.parser.images):
             self.assertTrue(img.get("src", "").startswith("assets/design/screens/"), f"Bild nicht lokal: {img}")
             self.assertTrue(img.get("alt", "").strip(), f"Alternativtext fehlt für {img.get('src')}")
             self.assertGreaterEqual(len(img.get("alt", "")), 40, f"Alternativtext zu knapp: {img.get('src')}")
@@ -296,6 +318,26 @@ class TestSiteIntegrity(unittest.TestCase):
 
         lower_html = self.index_content.lower()
         self.assertIn("synthetischen daten", lower_html, "Kennzeichnung der synthetischen Daten fehlt")
+
+    def test_brand_logo_is_local(self):
+        """Das Logo im Kopf liegt lokal unter assets/design/, mit Name und Maßen."""
+        logos = [img for img in self.parser.images if img not in screenshots(self.parser.images)]
+        self.assertEqual(len(logos), 1, "Genau ein Logo im Kopf erwartet")
+        logo = logos[0]
+        self.assertEqual(logo.get("src"), "assets/design/brand-wachwerk.png")
+        self.assertTrue((SITE_DIR / logo["src"]).is_file(), "Logo-Datei fehlt")
+        self.assertEqual(logo.get("alt"), "Wachwerk")
+        self.assertTrue(logo.get("width", "").isdigit() and logo.get("height", "").isdigit())
+
+    def test_live_demo_link(self):
+        """Genau ein deutlicher Knopf zur öffentlichen Demo, mit Zugangsdaten daneben."""
+        self.assertEqual(LIVE_CTA_RE.findall(self.index_content), [DEMO_URL])
+        hero = self.index_content.split('<section id="top"', 1)[1].split("</section>", 1)[0]
+        self.assertIn(DEMO_URL, hero, "Demo-Knopf gehört in den Kopfbereich")
+        notes = LIVE_NOTE_RE.findall(self.index_content)
+        self.assertEqual(len(notes), 1, "Hinweis zur Demo fehlt")
+        self.assertIn("<strong>Demo</strong> / <strong>Demo</strong>", notes[0])
+        self.assertIn("gelöscht", notes[0], "Hinweis, dass die Demo-Wache gelöscht wird, fehlt")
 
     def test_local_fonts_and_license(self):
         """Schriften müssen lokal eingebunden sein und eine Lizenz mitliefern."""
@@ -411,7 +453,7 @@ class TestEnglishSite(unittest.TestCase):
             self.assertTrue(src.startswith("../assets/"), f"EN-Ressource nutzt nicht ../assets: {src}")
             self.assertTrue((EN_DIR / src).resolve().is_file(), f"EN-Ressource fehlt: {src}")
 
-        for img in self.en.images:
+        for img in screenshots(self.en.images):
             self.assertTrue(img.get("src", "").startswith("../assets/design/screens/"), f"Bild nicht lokal: {img}")
             self.assertTrue(img.get("alt", "").strip(), f"Alternativtext fehlt für {img.get('src')}")
             self.assertGreaterEqual(len(img.get("alt", "")), 40, f"Alternativtext zu knapp: {img.get('src')}")
@@ -519,9 +561,13 @@ class TestEnglishSite(unittest.TestCase):
             )
 
         self.assertIsNone(
-            re.search(r"\b(todo|lorem|example\.com|demo)\b", lower),
+            re.search(r"\b(todo|lorem|example\.com|demo)\b", without_live_demo(self.en_content).lower()),
             "Platzhalter oder Demo-Jargon in der EN-Seite",
         )
+        self.assertEqual(LIVE_CTA_RE.findall(self.en_content), [DEMO_URL], "Demo-Knopf fehlt in der EN-Seite")
+        notes = LIVE_NOTE_RE.findall(self.en_content)
+        self.assertEqual(len(notes), 1, "Hinweis zur Demo fehlt in der EN-Seite")
+        self.assertIn("<strong>Demo</strong> / <strong>Demo</strong>", notes[0])
 
     def test_en_mirrors_de_structure(self):
         """EN-Seite muss dieselben Abschnitte, Sprungziele und Screenshots abbilden."""
