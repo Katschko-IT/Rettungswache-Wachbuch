@@ -1,0 +1,24 @@
+{% load i18n %}{% if stats %}
+<section class="demo-stats" aria-labelledby="demo-stats-title">
+  <h2 id="demo-stats-title">{% translate "Demo-Kennzahlen" %}</h2>
+  <p class="context-line">{% translate "Anonyme Tageszähler der öffentlichen Demo – ohne IP-Adresse, Konto oder Gerät." %}</p>
+  <dl class="demo-stats-grid">
+    <div><dt>{% translate "Gerade aktiv" %}</dt><dd>{{ stats.active }}</dd></div>
+    <div><dt>{% translate "Demos in 7 Tagen" %}</dt><dd>{{ stats.week.started }}</dd></div>
+    <div><dt>{% translate "Demos in 30 Tagen" %}</dt><dd>{{ stats.month.started }}</dd></div>
+    <div><dt>{% translate "Rundgang abgeschlossen" %}</dt><dd>{{ stats.month.tour_completed }}{% if stats.month.tour_share is not None %} <small>({{ stats.month.tour_share }} %)</small>{% endif %}</dd></div>
+    <div><dt>{% translate "Rückmeldungen" %}</dt><dd>{{ stats.month.feedback }}</dd></div>
+    {% if stats.rating %}<div><dt>{% translate "Bewertung im Schnitt" %}</dt><dd>{{ stats.rating.average|floatformat:1 }} <small>(n = {{ stats.rating.count }})</small></dd></div>{% endif %}
+  </dl>
+  <p class="context-line">{% translate "Rundgang, Rückmeldungen und Bewertung: letzte 30 Tage. Ein Rundgang zählt, sobald die Demo-Wache gelöscht ist, und gehört zum Tag ihres Starts." %}</p>
+  <details class="demo-stats-days">
+    <summary>{% translate "Letzte 14 Tage" %}</summary>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Demo-Kennzahlen je Tag' %}">
+      <table class="responsive-table">
+        <thead><tr><th scope="col">{% translate "Tag" %}</th><th scope="col">{% translate "Demos" %}</th><th scope="col">{% translate "Rundgang abgeschlossen" %}</th><th scope="col">{% translate "Rückmeldungen" %}</th></tr></thead>
+        <tbody>{% for row in stats.days %}<tr><td data-label="{% translate 'Tag' %}">{{ row.day|date:"D, d.m." }}</td><td data-label="{% translate 'Demos' %}">{{ row.started }}</td><td data-label="{% translate 'Rundgang abgeschlossen' %}">{{ row.tour_completed }}</td><td data-label="{% translate 'Rückmeldungen' %}">{{ row.feedback }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </details>
+</section>
+{% endif %}

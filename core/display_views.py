@@ -292,6 +292,27 @@ AVAILABLE_MODULES = [
         "desc": _("Offene Aufgaben mit Erledigungsquote und grafischem Fortschrittsbalken."),
     },
     {
+        "id": "fleet",
+        "name": _("Fahrzeugstatus"),
+        "icon": "🚑",
+        "default_pos": "middle_center",
+        "desc": _("Status je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."),
+    },
+    {
+        "id": "mpg_alerts",
+        "name": _("Gerätefristen"),
+        "icon": "🩺",
+        "default_pos": "middle_right",
+        "desc": _("Medizingeräte mit überfälliger oder bald fälliger STK/MTK und gesperrte Geräte (nur mit MPG-Modul)."),
+    },
+    {
+        "id": "warehouse_alerts",
+        "name": _("Materialwarnungen"),
+        "icon": "📦",
+        "default_pos": "middle_right",
+        "desc": _("Rückrufe, bald verfallendes Material und Artikel unter Mindestbestand (nur mit Lager-Modul)."),
+    },
+    {
         "id": "traffic",
         "name": _("Verkehrslage & Sperrungen"),
         "icon": "🚦",

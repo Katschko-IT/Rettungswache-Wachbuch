@@ -103,6 +103,10 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   E-Mail-Einladungen und das Freigeben bestehender Konten der Installation.
   E-Mail- und Signal-Versand sind in diesem Modus ganz abgeschaltet,
   öffentliche Registrierung ebenso.
+- Den **Sperrbildschirm des Touch-Terminals** zeigt die Demo trotzdem: als
+  Vorschau unter Mehr → „Touch-Terminal (Vorschau)“ (`/demo/sperrbildschirm/`)
+  mit den Daten der eigenen Demo-Wache – ohne Terminal-Registrierung, ohne
+  Dienstkonto „Wachenterminal“ und ohne Absenden des Wachen-Codes.
 - **Konten der Installation bleiben unberührt:** Gesperrt und gelöscht werden
   nur Konten, die in der Demo-Wache entstanden sind und nirgends sonst
   Mitglied sind – nie ältere Konten, nie Staff- oder Superuser-Konten.

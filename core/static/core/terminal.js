@@ -109,6 +109,10 @@
 
   function poll() {
     var url = root.getAttribute("data-data-url");
+    if (!url) {
+      // Vorschau aus der Demo: kein Terminal, also auch kein Datenabruf.
+      return;
+    }
     fetch(url, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
       .then(function (response) {
         if (!response.ok) {

@@ -60,8 +60,14 @@ Für unterschiedliche Zielgruppen:
 
 ## Bewusst nicht umgesetzt
 
-- **Besucherstatistik:** Keine Zählpixel und keine Analyse-Dienste. Wer wissen
-  möchte, wie viele Demos laufen: `DemoSandbox`-Einträge in der Datenbank
-  zählen.
+- **Besucherstatistik:** Keine Zählpixel und keine Analyse-Dienste. Stattdessen
+  zählt `core/demo_stats.py` je Tag nur drei Zahlen: gestartete Demos,
+  abgeschlossene Rundgänge (gezählt beim Löschen der Demo-Wache, für den
+  Starttag) und Rückmeldungen – ohne IP-Adresse, Konto, Token oder Bezug zu
+  einer Demo-Wache. Master-Admins echter Wachen sehen sie im
+  Feedback-Posteingang („Demo-Kennzahlen“, dazu „Gerade aktiv“ und die
+  Durchschnittsbewertung), auf dem Server zeigt sie
+  `python manage.py demo_stats --tage 30`. Die Startseite nennt laufende Demos
+  erst ab drei („Gerade aktiv: N Demo-Wachen“, 60 s zwischengespeichert).
 - **„Tab geschlossen“ erkennen:** Browser melden das nicht zuverlässig.
   Stattdessen enden Sitzungs-Cookie und Demo über Fristen.

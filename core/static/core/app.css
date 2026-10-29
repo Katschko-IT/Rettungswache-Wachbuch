@@ -2339,3 +2339,19 @@ button.text-action {
 .feedback-contact { margin: 0 0 .75rem; }
 .feedback-entry .form-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .feedback-entry .form-actions form { margin: 0; }
+
+/* Öffentliche Demo: „Demo starten“ statt „Anmelden“ im Kopf */
+.header-demo { display: flex; margin: 0; }
+
+/* Audit: lesbare Aktion, technischer Code klein darunter */
+.audit-table .audit-code { font-family: var(--mono); font-size: .78rem; }
+
+/* Demo-Kennzahlen im Feedback-Posteingang (core/demo_stats.py) */
+.demo-stats { margin: 0 0 1.5rem; padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.demo-stats h2 { margin: 0 0 .25rem; font-size: 1.15rem; }
+.demo-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .75rem; margin: 1rem 0; }
+.demo-stats-grid div { padding: .6rem .8rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-soft); }
+.demo-stats-grid dt { color: var(--muted); font-size: .88rem; }
+.demo-stats-grid dd { margin: .15rem 0 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.demo-stats-grid small { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.demo-stats-days summary { display: flex; align-items: center; min-height: var(--touch); font-weight: 600; cursor: pointer; }

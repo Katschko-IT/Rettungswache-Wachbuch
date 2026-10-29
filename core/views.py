@@ -393,9 +393,14 @@ def landing(request):
             return redirect("dashboard")
         return redirect("access")
     from .demo_sandbox import demo_notice
+    from .demo_stats import active_for_landing
     from .setup_wizard import setup_pending
 
-    return render(request, "core/landing.html", {"setup_pending": setup_pending(), "demo_notice": demo_notice(request)})
+    return render(request, "core/landing.html", {
+        "setup_pending": setup_pending(),
+        "demo_notice": demo_notice(request),
+        "demo_active": active_for_landing(),
+    })
 
 
 @require_GET
@@ -1339,8 +1344,12 @@ def station_settings(request):
 
 @membership_required({Membership.Role.AUDITOR, Membership.Role.ADMIN})
 def audit_log(request):
+    from .audit_labels import annotate
+
     events = AuditEvent.objects.filter(station=request.membership.station).select_related("actor")
-    return render(request, "core/audit_log.html", {"page_obj": page_for(request, events, 30)})
+    page = page_for(request, events, 30)
+    page.object_list = annotate(page.object_list)
+    return render(request, "core/audit_log.html", {"page_obj": page})
 
 
 @require_http_methods(["GET", "POST"])

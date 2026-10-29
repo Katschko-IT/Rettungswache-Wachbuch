@@ -60,7 +60,14 @@
         </div>
       {% else %}
         <div class="account">
-          <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+          {% if demo_mode and demo_sandbox_enabled %}
+            <form class="header-demo" method="post" action="{% url 'demo_login' %}">
+              {% csrf_token %}
+              <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
+            </form>
+          {% else %}
+            <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+          {% endif %}
         </div>
       {% endif %}
       </div>
@@ -146,6 +153,7 @@
       {% if not current_membership %}<a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>{% endif %}
       {% if feedback_enabled %}<a href="{% url 'feedback' %}"{% if request.resolver_match.url_name == 'feedback' %} aria-current="page"{% endif %}>{% translate "Feedback" %}</a>{% endif %}
       <a href="{% url 'install_guide' %}"{% if request.resolver_match.url_name == 'install_guide' %} aria-current="page"{% endif %}>{% translate "Selbst betreiben" %}</a>
+      {% if not current_membership %}<a href="{% url 'it_privacy' %}"{% if request.resolver_match.url_name == 'it_privacy' %} aria-current="page"{% endif %}>{% translate "IT & Datenschutz" %}</a>{% endif %}
       <a href="{% url 'legal_notice' %}"{% if request.resolver_match.url_name == 'legal_notice' %} aria-current="page"{% endif %}>{% translate "Impressum" %}</a>
       <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz & Cookies" %}</a>
       <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>

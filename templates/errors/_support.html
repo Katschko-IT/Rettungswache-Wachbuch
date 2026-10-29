@@ -1,0 +1,2 @@
+{% load i18n %}{# Hilfe-Hinweis der Fehlerseiten: Wachwerk wird selbst betrieben, Hilfe kommt von der eigenen Wache. #}
+<p class="error-support">{% if demo_sandbox_enabled and feedback_enabled %}{% translate "Etwas klappt in der Demo nicht? Melde es uns mit der Korrelations-ID." %}{% else %}{{ support_text }}{% endif %}{% if feedback_enabled %} <a href="{% url 'feedback' %}">{% translate "Fehler melden" %}</a>{% endif %}</p>

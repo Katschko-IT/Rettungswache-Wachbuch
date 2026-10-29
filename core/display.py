@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from .models import BirthdayPreference, CalendarEvent, HandoverEntry, WasteCollection
 from .task_board import day_board
@@ -29,6 +30,60 @@ def _local_today(station):
 def _day_bounds(day, tz):
     start = datetime.combine(day, datetime.min.time(), tzinfo=tz)
     return start, start + timedelta(days=1)
+
+
+def _warehouse_alerts(station, day, limit: int = 5) -> list[dict]:
+    """Material, um das sich die Schicht kümmern muss: Rückruf, Verfall, Mindestbestand.
+
+    Nur Artikelname und Ampel – keine Mengen je Lagerort, keine Chargennummern.
+    """
+    from django.db.models import F, Q, Sum
+    from django.db.models.functions import Coalesce
+
+    from .warehouse_models import ItemBatch, MedicalItem
+
+    soon = day + timedelta(days=30)
+    alerts = []
+    listed = set()
+    batches = (
+        ItemBatch.objects.filter(station=station, stock_items__quantity__gt=0)
+        .filter(
+            Q(is_recalled=True)
+            | Q(calculated_exp_date__lte=soon)
+            | Q(calculated_exp_date__isnull=True, manufacturer_exp_date__lte=soon)
+        )
+        .select_related("item")
+        .distinct()
+        .order_by("-is_recalled", "calculated_exp_date")[:limit]
+    )
+    for batch in batches:
+        if batch.item_id in listed:
+            continue
+        listed.add(batch.item_id)
+        urgency = batch.urgency
+        alerts.append({
+            "name": batch.item.name[:45],
+            "label": urgency["label"][:60],
+            "level": urgency["level"],
+            "color": urgency["color"],
+        })
+    low_stock = (
+        MedicalItem.objects.filter(station=station)
+        .exclude(pk__in=listed)
+        .annotate(stock=Coalesce(Sum("stock_items__quantity", filter=Q(stock_items__batch__is_recalled=False)), 0))
+        .filter(stock__lt=F("min_stock"))
+        .order_by("name")[: max(0, limit - len(alerts))]
+    )
+    for item in low_stock:
+        alerts.append({
+            "name": item.name[:45],
+            "label": _("Unter Mindestbestand (%(stock)s von %(minimum)s)") % {
+                "stock": item.stock, "minimum": item.min_stock,
+            },
+            "level": "low",
+            "color": "amber",
+        })
+    return alerts
 
 
 def display_payload(station) -> dict:
@@ -148,19 +203,16 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001
             pinboard = []
 
+    # Neuigkeiten haben keinen eigenen Modulschalter (Station.news_enabled gibt
+    # es nicht); die Abfrage darf deshalb nicht an einem solchen Feld hängen.
     news = []
-    if getattr(station, "news_enabled", False):
-        try:
-            from .models import NewsPost
+    try:
+        from .news import active_posts
 
-            for post in NewsPost.objects.filter(
-                station=station, archived_at__isnull=True
-            ).order_by("-created_at")[:4]:
-                news.append({
-                    "title": post.title[:80],
-                })
-        except Exception:  # noqa: BLE001
-            news = []
+        for post in active_posts(station).order_by("-created_at")[:4]:
+            news.append({"title": post.title[:80]})
+    except Exception:  # noqa: BLE001
+        news = []
 
     mpg_alerts = []
     if getattr(station, "mpg_enabled", False):
@@ -211,14 +263,7 @@ def display_payload(station) -> dict:
     warehouse_alerts = []
     if getattr(station, "warehouse_enabled", False):
         try:
-            from .warehouse_models import ItemBatch
-
-            for b in ItemBatch.objects.filter(item__station=station, is_recalled=True)[:3]:
-                warehouse_alerts.append({
-                    "item": b.item.name[:35],
-                    "batch": b.batch_number[:20],
-                    "reason": b.recall_reason[:40] or "Rückruf",
-                })
+            warehouse_alerts = _warehouse_alerts(station, day)
         except Exception:  # noqa: BLE001
             warehouse_alerts = []
 

@@ -87,12 +87,11 @@ Befunde dürfen keine UI-Umschreibung auslösen.
 
 ## 5. Restbefunde (bewusst offen)
 
-- **Textchoicen-Labels** in `core/wachalltag_models.py` und `core/models.py`
-  (`Geraet`, `Schluessel`, `Gebaeude`, `Eingeschraenkt`, `Rueckgabe`,
-  `Taeglich`, `Woechentlich`) bleiben ASCII. Sie sind sichtbar (Admin/API-Label),
-  ihre Änderung erfordert aber eine Metadatenmigration (`AlterField`). Das ist
-  bewusst der Admin-Etappe zugeordnet, damit dieser Korrekturlauf migrationsfrei
-  bleibt (`makemigrations --check`: keine Änderungen).
+- **Textchoicen-Labels** in `core/wachalltag_models.py` (`Gerät`, `Schlüssel`,
+  `Gebäude`, `Eingeschränkt`, `Außer Betrieb`, `Rückgabe`, `Täglich`,
+  `Wöchentlich`) tragen seit Migration `0064_wachalltag_umlaut_labels` echte
+  Umlaute. Die Migration ändert nur Metadaten (`sqlmigrate`: no-op), die
+  gespeicherten Werte bleiben gleich.
 - **Fachmodule, JavaScript-Texte, Admin-Oberfläche und Website (`site/`)** sind
   nicht Teil dieses Laufs; dort stehen weitere Umlaut- und Stilbefunde an.
 - **1.495 manuelle Prüffälle** wurden nicht einzeln handgeprüft. Die Zahl ist

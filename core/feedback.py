@@ -24,6 +24,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_http_methods, require_POST
 
+from . import demo_stats
 from .access import membership_required
 from .feedback_models import Feedback
 from .middleware import rate_limit_ip
@@ -98,6 +99,7 @@ def feedback_page(request):
             feedback = form.save(commit=False)
             feedback.from_demo = getattr(request, "demo_sandbox", None) is not None
             feedback.save()
+            demo_stats.record_feedback()
             return redirect(thanks_url)
     return render(request, "core/feedback.html", {"form": form, "sent": request.GET.get("danke") == "1"})
 

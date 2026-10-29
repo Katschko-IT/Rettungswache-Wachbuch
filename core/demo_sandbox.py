@@ -32,6 +32,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from . import demo_stats
 from .demo import DEMO_ACCOUNTS, _seed_content
 from .demo_models import DemoSandbox
 from .middleware import rate_limit_ip
@@ -228,6 +229,7 @@ def start_demo(request):
         messages.error(request, str(exc))
         return redirect("login")
     sandbox, users = create_sandbox()
+    demo_stats.record_start()
     _enter(request, sandbox, users["demo-admin"])
     return redirect("dashboard")
 
@@ -387,6 +389,7 @@ def purge_sandbox(sandbox: DemoSandbox) -> int:
     """
     station_ids = [sandbox.station_id]
     with transaction.atomic():
+        demo_stats.record_purge(sandbox)
         user_ids = sandbox_user_ids(station_ids)
         _delete_login_records(User.objects.filter(pk__in=user_ids).values_list("username", flat=True))
         rows = _referencing_rows(station_ids, user_ids)
