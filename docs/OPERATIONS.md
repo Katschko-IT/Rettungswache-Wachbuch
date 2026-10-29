@@ -228,8 +228,12 @@ Sofortiges Backup mit Kopie auf den Host (`./backups/` im Installationsordner):
 docker compose exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once
 ```
 
-Wiederherstellung (fragt nach, legt vorher ein Sicherheits-Backup an, spielt den
-Dump in einer Transaktion ein und setzt danach Migrationen und Rollenrechte neu):
+Wiederherstellung (fragt nach, legt vorher ein Sicherheits-Backup an, hält
+Anwendung und Worker an, ersetzt das Schema `public` in einer Transaktion
+vollständig durch den Dump und setzt danach Migrationen und Rollenrechte neu).
+Weil das ganze Schema ersetzt wird, klappt das auch mit einem Dump von vor
+einem Update, dessen Migrationen neue Tabellen angelegt haben (daran scheitert
+`pg_restore --clean`). Scheitert etwas, bleibt die Datenbank unverändert:
 
 ```bash
 ./wachbuch restore backups/rwsth-20261024T120517Z.dump
@@ -242,7 +246,9 @@ im `backup`-Container behalten werden. Jeder Durchlauf löscht Dateien
 (`rwsth-*.dump`, `rwsth-*.dump.gpg`), deren Modifikationszeit älter ist.
 Der Wert `0` deaktiviert das Löschen; der lokale Ring wächst dann
 unbegrenzt und muss von Hand gepflegt werden. Die Einstellung wirkt nur
-auf die lokalen Dumps im Container, nicht auf das Offsite-Ziel.
+auf die lokalen Dumps im Container, nicht auf das Offsite-Ziel. Die Kopien
+unter `./backups/` im Installationsordner dünnen `wachbuch update` und das
+Auto-Update nach jedem erfolgreichen Update nach demselben Wert aus (`0` = nie).
 
 ```bash
 # in .env
@@ -429,7 +435,16 @@ Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env
 `update` erstellt zuerst ein Backup (Abbruch, wenn es scheitert), lädt
 `compose.yml`, Caddyfile und `wachbuch` passend zur Version, setzt
 `WACHBUCH_VERSION`, zieht die Images und startet mit `up -d --wait` neu.
-Migrationen laufen dabei automatisch im Dienst `migrate`.
+Migrationen laufen dabei automatisch im Dienst `migrate`. Lassen sich die
+Images nicht laden, gehen Dateien und Version zurück und der laufende Stand
+bleibt; startet die neue Fassung nicht, folgt derselbe Rollback wie beim
+Auto-Update (Schritt 5 unten). Nach einem erfolgreichen Update entfernt
+`update` ältere Images des Wachbuchs (nur die mit dem Label
+`org.opencontainers.image.source` dieses Repositorys) und startet Caddy neu,
+wenn sich das Caddyfile geändert hat (Caddy liest es nur beim Start).
+
+Die öffentliche Demo (`DEMO_SANDBOX=true`) nimmt nur feste Versionen ab
+0.26.0 an; ältere Versionen kennen keine Demo-Wache je Besuch.
 
 ### Automatische Updates
 
@@ -454,8 +469,18 @@ Ablauf jedes Laufs (Protokoll: `logs/auto-update.log`):
 4. Sonst Backup (Abbruch ohne Änderung, wenn es scheitert), dann `up --wait`.
 5. Startet die neue Fassung nicht, werden Images, `compose.yml`, Caddyfile,
    `wachbuch` und `WACHBUCH_VERSION` zurückgesetzt und die vorherige Fassung
-   gestartet. Datenbank-Migrationen laufen in PostgreSQL transaktional; eine
-   gescheiterte Migration hinterlässt den alten Stand.
+   gestartet. Django schreibt jede Migration einzeln fest: Hat die neue
+   Version schon Migrationen eingespielt (Zahl der Zeilen in
+   `django_migrations` vor und nach dem Start), werden vorher Anwendung und
+   Worker angehalten und die Datenbank aus dem Backup von Schritt 4
+   zurückgesetzt – alter Code läuft nie auf einem neueren Datenbankstand.
+   Änderungen zwischen Backup und Rollback (nachts meist keine) gehen dabei
+   verloren. Gelingt das Zurücksetzen nicht, bleibt die neue Version
+   eingestellt und wird erneut gestartet; das Protokoll nennt die nächsten
+   Schritte.
+6. Nach Erfolg: Caddy neu starten, falls sich das Caddyfile geändert hat
+   (auch nach einem Update mit einer älteren CLI), ältere eigene Images und alte
+   Dumps unter `./backups/` entfernen.
 
 Zeitplan: als root mit systemd ein Timer `wachbuch-auto-update-<id>.timer`
 (`Persistent=true` holt verpasste Läufe nach), sonst ein crontab-Eintrag des
@@ -492,8 +517,11 @@ und in `.env` `WACHBUCH_REGISTRY=registry.wache.lan:5000/katschko-it` setzen.
 
 ### Rollback
 
-1. Vorherige Version wieder aktivieren: `./wachbuch update <alte Version>`; bei
-   inkompatibler Migration zusätzlich `./wachbuch restore <Backup vor dem Update>`.
+1. Vorherige Version wieder aktivieren: `./wachbuch update <alte Version>`
+   (fragt nach, weil die Datenbank die neueren Migrationen behält), danach
+   `./wachbuch restore <Backup vor dem Update>`. Diese Reihenfolge ist wichtig:
+   `restore` lässt danach `migrate` der gerade eingestellten Version laufen;
+   mit der neuen Version würden die Migrationen sofort wieder eingespielt.
 2. Bei scheiternder Migration nur dokumentierte Reverse-Migrationen oder
    Dump-Restore nutzen.
 3. Keine Tabellen manuell „reparieren“.

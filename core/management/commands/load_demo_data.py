@@ -23,6 +23,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if getattr(settings, "DEMO_SANDBOX", False):
+            raise CommandError(
+                "Öffentliche Demo (DEMO_SANDBOX=true): Musterdaten entstehen je Besuch in einer eigenen "
+                "Demo-Wache. load_demo_data würde gemeinsame Konten mit öffentlichem Passwort in der "
+                "Wache der Installation anlegen."
+            )
         if not demo_mode_enabled() and not options["force"]:
             raise CommandError(
                 "Demo-Modus ist aus. Setze DEMO_MODE=true oder nutze --force für lokale Tests."

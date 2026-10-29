@@ -106,6 +106,8 @@ docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt wachbuch-ca.c
 | `--source PFAD` / `--base-url URL` | andere Quelle für die Dateien (lokaler Checkout bzw. Spiegel) |
 | `--build` | Images lokal aus `--source` bauen |
 | `--project NAME` | eigener Compose-Projektname |
+| `--auto-update sicherheit\|alle\|aus` | nächtliche Updates (siehe OPERATIONS.md) |
+| `--demo` | öffentliche Demo (docs/DEMO.md); braucht Version 0.26.0 oder neuer, ohne ermittelbare Version bricht der Installer ab |
 | `--no-start` | nur Dateien und `.env` anlegen |
 | `-y`, `--yes` | ohne Rückfragen |
 
@@ -119,7 +121,10 @@ Der **Setup-Assistent ist der einzige reguläre Weg** zum ersten Konto:
 1. `https://<Adresse>/setup/` öffnen (der Installer zeigt die Adresse).
 2. Einrichtungscode eingeben (`wachbuch setup-code` zeigt ihn erneut).
 3. Wache, Anschrift, Zeitzone, erstes Admin-Konto, Rollen und Module festlegen.
-4. Danach `SETUP_BOOTSTRAP_TOKEN=` in `.env` leeren und `wachbuch start`.
+
+Mit dem Abschluss ist der Assistent gesperrt (`/setup/` antwortet mit 404), auch
+wenn `SETUP_BOOTSTRAP_TOKEN` in `.env` stehen bleibt; der Code muss nicht von
+Hand entfernt werden. Er wirkt erst wieder bei einer leeren Datenbank.
 
 Weitere Konten legt der Master-Admin unter `/team/anlegen/` oder per Einladung an.
 
@@ -139,7 +144,7 @@ docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 | `wachbuch logs [dienst]` | Logs, z. B. `web`, `notify-worker`, `backup`, `caddy` |
 | `wachbuch backup` | sofortiger Dump, Kopie nach `./backups/` |
 | `wachbuch restore DATEI` | Wiederherstellung mit Rückfrage; vorher Sicherheits-Backup, Einspielen in einer Transaktion, danach Migrationen und Rechte |
-| `wachbuch update [X.Y.Z]` | Backup, neue `compose.yml`/Caddyfile/`wachbuch`, `pull`, `up --wait` |
+| `wachbuch update [X.Y.Z]` | Backup, neue `compose.yml`/Caddyfile/`wachbuch`, `pull`, `up --wait`; startet die neue Fassung nicht, Rollback wie beim Auto-Update |
 | `wachbuch auto-update an [sicherheit\|alle] [--zeit HH:MM]` / `aus` / `status` | nächtliche Updates mit Backup und Rollback (siehe OPERATIONS.md) |
 | `wachbuch setup-code` | Einrichtungscode anzeigen |
 | `wachbuch stop` / `start` | anhalten / starten |
