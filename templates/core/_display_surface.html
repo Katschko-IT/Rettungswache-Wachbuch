@@ -41,6 +41,12 @@
       <div data-display-tasks-urgent class="display-tasks-urgent" hidden></div>
     </div>
     {% endif %}
+    {% if display_station.fleet_enabled %}
+    <div data-module-container="fleet" hidden>
+      <h2 class="display-heading" data-module-heading="fleet">{% translate "Fahrzeuge" %}</h2>
+      <ul class="display-fleet" data-display-fleet data-fuel-label="{% translate 'Kraftstoff' %}" data-locked-label="{% translate 'Desinfektion bis' %}" data-release-label="{% translate 'Freigabe durch die Besatzung offen' %}"></ul>
+    </div>
+    {% endif %}
   </section>
 
   {# Region Middle-Right #}
@@ -57,6 +63,18 @@
     <div data-module-container="birthdays">
       <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
     </div>
+    {% if display_station.mpg_enabled %}
+    <div data-module-container="mpg_alerts" hidden>
+      <h2 class="display-heading" data-module-heading="mpg_alerts">{% translate "Gerätefristen" %}</h2>
+      <ul class="display-alerts" data-display-mpg></ul>
+    </div>
+    {% endif %}
+    {% if display_station.warehouse_enabled %}
+    <div data-module-container="warehouse_alerts" hidden>
+      <h2 class="display-heading" data-module-heading="warehouse_alerts">{% translate "Material" %}</h2>
+      <ul class="display-alerts" data-display-warehouse></ul>
+    </div>
+    {% endif %}
   </section>
 
   {# Region Traffic Strip (optional) #}

@@ -60,9 +60,9 @@ class Defect(models.Model):
         VEHICLE = "vehicle", "Fahrzeug"
         MATERIAL = "material", "Material"
         SAFETY = "safety", "Sicherheit"
-        FACILITY = "facility", "Gebaeude"
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
+        FACILITY = "facility", "Gebäude"
+        KEY = "key", "Schlüssel"
+        DEVICE = "device", "Gerät"
         TASK = "task", "Aufgabe"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="defects")
@@ -154,13 +154,13 @@ class DefectEvent(models.Model):
 class StationAsset(models.Model):
     class Kind(models.TextChoices):
         VEHICLE = "vehicle", "Fahrzeug"
-        DEVICE = "device", "Geraet"
-        KEY = "key", "Schluessel"
+        DEVICE = "device", "Gerät"
+        KEY = "key", "Schlüssel"
 
     class Status(models.TextChoices):
         READY = "ready", "Einsatzklar"
-        LIMITED = "limited", "Eingeschraenkt"
-        OOB = "oob", "Ausser Betrieb"
+        LIMITED = "limited", "Eingeschränkt"
+        OOB = "oob", "Außer Betrieb"
         WORKSHOP = "workshop", "Werkstatt"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="station_assets")
@@ -245,8 +245,8 @@ class HandoverAck(models.Model):
 
 class InventoryItem(models.Model):
     class Kind(models.TextChoices):
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
+        KEY = "key", "Schlüssel"
+        DEVICE = "device", "Gerät"
         VEHICLE = "vehicle", "Fahrzeug"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="inventory_items")
@@ -292,7 +292,7 @@ class InventoryItem(models.Model):
 class InventoryEvent(models.Model):
     class Action(models.TextChoices):
         CHECKOUT = "checkout", "Ausgabe"
-        CHECKIN = "checkin", "Rueckgabe"
+        CHECKIN = "checkin", "Rückgabe"
 
     item = models.ForeignKey(InventoryItem, on_delete=models.PROTECT, related_name="events")
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="inventory_events")
@@ -323,8 +323,8 @@ class InventoryEvent(models.Model):
 
 class ChecklistSchedule(models.Model):
     class Interval(models.TextChoices):
-        DAILY = "daily", "Taeglich"
-        WEEKLY = "weekly", "Woechentlich"
+        DAILY = "daily", "Täglich"
+        WEEKLY = "weekly", "Wöchentlich"
         MONTHLY = "monthly", "Monatlich"
 
     checklist = models.OneToOneField(Checklist, on_delete=models.PROTECT, related_name="schedule")

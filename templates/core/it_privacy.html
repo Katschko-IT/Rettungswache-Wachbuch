@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{% translate "Für IT und Datenschutz" %} – {{ app_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/public.css' %}">{% endblock %}
+{% block body_class %}is-landing pub{% endblock %}
+{% block content %}
+<section class="pub-hero install-hero" aria-labelledby="it-title">
+  <div class="pub-wrap">
+    <p class="pub-kicker">{% translate "Für IT und Datenschutz" %}</p>
+    <h1 id="it-title">{% translate "Wachwerk auf einer Seite: Aufbau, Daten, Schutz." %}</h1>
+    <p class="pub-lead">{% blocktranslate %}{{ app_name }} läuft auf einem Server, den eure Wache selbst betreibt. Diese Seite fasst zusammen, was IT-Verantwortliche und Datenschutzbeauftragte vor einer Freigabe wissen wollen. Sie ist keine Rechtsberatung.{% endblocktranslate %}</p>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="it-architecture">
+  <div class="pub-wrap split it-split">
+    <div>
+      <h2 id="it-architecture">{% translate "Aufbau" %}</h2>
+      <p class="pub-muted">{% translate "Alle Teile laufen als Docker-Container auf einem Rechner: einem Mini-PC oder Raspberry Pi in der Wache oder einem Server bei euch. Es gibt keine Cloud dahinter, keinen Anbieter-Zugang und kein Nach-Hause-Telefonieren." %}</p>
+      <ul class="check-list">
+        <li>{% translate "Caddy liefert HTTPS mit eigenem Zertifikat; Datenbank und Zwischenspeicher haben keinen Port nach außen." %}</li>
+        <li>{% translate "Alle Skripte und Schriften kommen vom eigenen Server, ohne CDN; eine strenge Content-Security-Policy verbietet Inline-Skripte." %}</li>
+        <li>{% translate "Externe Dienste wie Wetter, Verkehrslage, Müllkalender, Signal oder Push sind aus, bis die Wache sie einschaltet." %}</li>
+      </ul>
+    </div>
+    <figure class="it-diagram">
+      <svg viewBox="0 0 360 488" role="img" aria-labelledby="it-diagram-title" xmlns="http://www.w3.org/2000/svg">
+        <title id="it-diagram-title">{% translate "Aufbau: Browser, App, Terminal und Monitor sprechen über HTTPS mit einem Server; darauf laufen Caddy, Wachwerk, PostgreSQL und Redis. Externe Dienste sind optional." %}</title>
+        <rect class="box" x="20" y="10" width="320" height="56" rx="10"/>
+        <text x="180" y="34" text-anchor="middle">{% translate "Browser · App · Terminal · Monitor" %}</text>
+        <text class="label-dim" x="180" y="54" text-anchor="middle">{% translate "persönliche Konten, Terminal mit Wachen-Code" %}</text>
+        <line class="wire" x1="180" y1="66" x2="180" y2="104"/>
+        <rect class="zone" x="10" y="86" width="340" height="320" rx="14"/>
+        <rect class="box" x="40" y="104" width="280" height="48" rx="10"/>
+        <text x="180" y="124" text-anchor="middle">Caddy</text>
+        <text class="label-dim" x="180" y="143" text-anchor="middle">{% translate "HTTPS und Zertifikat" %}</text>
+        <line class="wire" x1="180" y1="152" x2="180" y2="178"/>
+        <rect class="box box-server" x="40" y="178" width="280" height="56" rx="10"/>
+        <text x="180" y="201" text-anchor="middle">{{ app_name }} (Django)</text>
+        <text class="label-dim" x="180" y="222" text-anchor="middle">{% translate "Rollen je Wache, Audit-Log" %}</text>
+        <line class="wire" x1="130" y1="234" x2="106" y2="260"/>
+        <line class="wire" x1="230" y1="234" x2="254" y2="260"/>
+        <rect class="box" x="40" y="260" width="132" height="56" rx="10"/>
+        <text x="106" y="283" text-anchor="middle">PostgreSQL</text>
+        <text class="label-dim" x="106" y="303" text-anchor="middle">{% translate "Daten" %}</text>
+        <rect class="box" x="188" y="260" width="132" height="56" rx="10"/>
+        <text x="254" y="283" text-anchor="middle">Redis</text>
+        <text class="label-dim" x="254" y="303" text-anchor="middle">{% translate "Zwischenspeicher" %}</text>
+        <rect class="box" x="40" y="328" width="280" height="34" rx="10"/>
+        <text class="label-dim" x="180" y="350" text-anchor="middle">{% translate "Backup – auf Wunsch mit GPG verschlüsselt" %}</text>
+        <text class="label-zone" x="180" y="390" text-anchor="middle">{% translate "Ein Server – in der Wache oder bei euch" %}</text>
+        <line class="wire wire-optional" x1="180" y1="406" x2="180" y2="428"/>
+        <rect class="box zone" x="20" y="428" width="320" height="50" rx="10"/>
+        <text x="180" y="448" text-anchor="middle">{% translate "Optional, nur wenn eingeschaltet" %}</text>
+        <text class="label-dim" x="180" y="468" text-anchor="middle">{% translate "Wetter, Verkehr, Müllkalender, Signal, Push" %}</text>
+      </svg>
+      <figcaption>{% translate "Gestrichelt: der Server der Wache und Dienste, die nur auf Wunsch angefragt werden." %}</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="it-data">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="it-data">{% translate "Welche Daten gespeichert werden – und welche nicht" %}</h2>
+    </div>
+    <div class="split it-split">
+      <div>
+        <h3>{% translate "Gespeichert" %}</h3>
+        <ul class="check-list">
+          <li>{% translate "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild." %}</li>
+          <li>{% translate "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor." %}</li>
+          <li>{% translate "Fachmodule: Fahrzeuge, Medizingeräte mit Prüffristen, Material mit Beständen und Verfall." %}</li>
+          <li>{% translate "Kaffeekasse: Beiträge und Zahlungen der Teilnehmenden." %}</li>
+          <li>{% translate "Audit-Log: wer wann was geändert hat – mit Feldnamen und Statuswerten, ohne Freitexte." %}</li>
+          <li>{% translate "Freiwillig und widerrufbar: Geburtstag (Tag und Monat), Signal-Nummer." %}</li>
+        </ul>
+      </div>
+      <div>
+        <h3>{% translate "Bewusst nicht" %}</h3>
+        <ul class="open-list">
+          <li>{% translate "Keine Patienten-, Einsatz-, Alarmierungs- oder Diagnosedaten – das Übergabeformular weist ausdrücklich darauf hin." %}</li>
+          <li>{% translate "Keine Dienstpläne und keine Leistungs- oder Lesestatistiken über Personen." %}</li>
+          <li>{% translate "Keine Analyse-Dienste, keine Werbe-Cookies, keine Telemetrie – nur technisch notwendige Cookies." %}</li>
+          <li>{% translate "Keine beliebigen Datei-Uploads: Anhänge nur in erlaubten Formaten und Größen; Fotos zu Mängeln werden ohne Metadaten (z. B. GPS) neu gespeichert." %}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="it-protection">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="it-protection">{% translate "Schutz und Zugriff" %}</h2>
+    </div>
+    <table class="facts">
+      <tbody>
+        <tr><th scope="row">{% translate "Anmeldung" %}</th><td>{% translate "Persönliche Konten statt Sammel-Login. Passwörter mit Argon2id, Zwei-Faktor-Anmeldung (TOTP) und Passkeys; Anmeldeversuche werden gedrosselt." %}</td></tr>
+        <tr><th scope="row">{% translate "Rollen" %}</th><td>{% translate "Master-Admin, Schichtleitung, Kassenwart, Mitglied und Auditor – jeweils pro Wache. Jede Abfrage ist an die eigene Wache gebunden; Auditoren sehen keine Freitexte." %}</td></tr>
+        <tr><th scope="row">{% translate "Verschlüsselung" %}</th><td>{% translate "Transport per HTTPS. Zwei-Faktor-Geheimnisse liegen mit AES-256-GCM verschlüsselt in der Datenbank. Chat, Privatnachrichten und Post werden im Browser Ende-zu-Ende verschlüsselt (AES-256-GCM, ECDH P-256): Datenbank und Backups enthalten nur Chiffretext. Der ausgelieferte Webclient und der Server bleiben dabei Teil des Vertrauensmodells." %}</td></tr>
+        <tr><th scope="row">{% translate "Nachvollziehbarkeit" %}</th><td>{% translate "Audit-Log, Kaffeekasse, Checklisten-Abschlüsse und Übergabe-Versionen sind nur anfügbar: Korrekturen entstehen als neue Einträge, nichts wird still überschrieben." %}</td></tr>
+        <tr><th scope="row">{% translate "Touch-Terminal" %}</th><td>{% translate "Das gemeinsame Terminal öffnet mit dem Wachen-Code nur den Alltagsmodus – keine Medizingeräte, keine Fahrzeugübernahme, keine Verwaltung. Es funktioniert nur an registrierten Geräten." %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="it-operation">
+  <div class="pub-wrap split it-split">
+    <div>
+      <h2 id="it-operation">{% translate "Betrieb, Löschung und Verträge" %}</h2>
+      <ul class="check-list">
+        <li>{% translate "Ihr betreibt Wachwerk selbst: Es gibt keinen Anbieter, der eure Daten sieht, und keinen Vertrag mit uns. Nutzt ihr einen Hoster oder ein Rechenzentrum, schließt ihr mit diesem einen Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO)." %}</li>
+        <li>{% translate "Beim Ausscheiden wird das Konto gesperrt; freiwillige Angaben lassen sich jederzeit zurücknehmen. Aufbewahrungsfristen für Audit, externe Meldungen und Rückmeldungen sind einstellbar." %}</li>
+        <li>{% translate "Der Quellcode steht unter der AGPL-3.0 – jede Wache kann ihn prüfen lassen." %}</li>
+      </ul>
+    </div>
+    <div>
+      <h2>{% translate "Ohne Internet" %}</h2>
+      <ul class="check-list">
+        <li>{% translate "Steht der Server in der Wache, laufen Anmeldung, Zwei-Faktor-Anmeldung und der Wachalltag im WLAN der Wache weiter, auch wenn die Leitung nach draußen ausfällt." %}</li>
+        <li>{% translate "Am Handy bleiben zuletzt geöffnete Seiten ohne Netz lesbar. Neue Einträge brauchen eine Verbindung zum Server – eine Warteschlange für Offline-Eingaben gibt es nicht." %}</li>
+        <li>{% translate "Optionale Dienste wie Wetter oder Signal pausieren, solange das Internet fehlt." %}</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="it-docs">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="it-docs">{% translate "Vorlagen und Unterlagen" %}</h2>
+      <p class="pub-muted">{% translate "Zum Anpassen an eure Wache – sie ersetzen keine Prüfung durch eure Datenschutzbeauftragten." %}</p>
+    </div>
+    <ul class="it-docs">
+      <li><a href="{{ source_url }}/blob/main/docs/VVT-TEMPLATE.md" rel="noopener noreferrer">{% translate "Verzeichnis der Verarbeitungstätigkeiten" %}<span>{% translate "Vorlage nach Art. 30 DSGVO" %}</span></a></li>
+      <li><a href="{{ source_url }}/blob/main/docs/DSGVO-TOM.md" rel="noopener noreferrer">{% translate "Technische und organisatorische Maßnahmen" %}<span>{% translate "TOM nach Art. 32 DSGVO" %}</span></a></li>
+      <li><a href="{{ source_url }}/blob/main/docs/LOESCHKONZEPT.md" rel="noopener noreferrer">{% translate "Lösch- und Aufbewahrungskonzept" %}<span>{% translate "Vorlage mit Datenklassen" %}</span></a></li>
+      <li><a href="{{ source_url }}/blob/main/docs/DSFA-VORPRUEFUNG.md" rel="noopener noreferrer">{% translate "Vorprüfung Datenschutz-Folgenabschätzung" %}<span>{% translate "Schwellenwertprüfung nach Art. 35 DSGVO" %}</span></a></li>
+      <li><a href="{{ source_url }}/blob/main/docs/DATENSCHUTZ-INFORMATION-ART13.md" rel="noopener noreferrer">{% translate "Datenschutzinformation für das Team" %}<span>{% translate "Vorlage nach Art. 13 DSGVO" %}</span></a></li>
+      <li><a href="{{ source_url }}/blob/main/docs/SECURITY-PRIVACY.md" rel="noopener noreferrer">{% translate "Sicherheit und Datenschutz" %}<span>{% translate "Invarianten und technische Grundlage" %}</span></a></li>
+    </ul>
+    <div class="pub-actions">
+      <a class="pub-button primary" href="{% url 'install_guide' %}">{% translate "Schritt-für-Schritt-Anleitung" %}</a>
+      <a class="pub-button" href="{% url 'privacy' %}">{% translate "Datenschutz & Cookies dieser Installation" %}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

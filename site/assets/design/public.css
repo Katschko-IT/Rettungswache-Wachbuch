@@ -337,3 +337,63 @@
 .hardware-table { min-width: 36rem; }
 .hardware-table th, .hardware-table td { padding-right: 1rem; }
 .hardware-table thead th { color: var(--muted); font-size: .9rem; font-weight: 600; }
+
+/* Startseite: Live-Zahl der Demo, Vertrauenszeichen, Stärken mit Sperrbildschirm */
+.pub-hero-note { margin: 1rem 0 0; max-width: 34rem; color: var(--muted); font-size: .97rem; line-height: 1.5; }
+.pub-live { display: inline-block; color: var(--text); white-space: nowrap; }
+.pub-live::before {
+  content: "";
+  display: inline-block;
+  width: .55rem;
+  height: .55rem;
+  margin-right: .4rem;
+  border-radius: 50%;
+  background: var(--success);
+  vertical-align: .05em;
+}
+.trust-badges { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.trust-badges li {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: .9rem;
+  font-weight: 600;
+}
+.trust-badges .icon { width: 1rem; height: 1rem; color: var(--success); }
+.pub-hero-link { margin: 1rem 0 0; font-weight: 600; }
+.highlight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+.highlight-shot figcaption { padding: .75rem 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.highlight-list li:first-child { padding-top: 0; }
+.highlight-list strong { display: flex; align-items: center; gap: .5rem; }
+.highlight-list .icon { color: var(--brand); }
+@media (max-width: 60rem) {
+  .highlight-grid { grid-template-columns: 1fr; }
+}
+
+/* Seite „Für IT und Datenschutz“ */
+.it-split { align-items: start; }
+.it-diagram { width: 100%; max-width: 26rem; justify-self: center; margin: 0; padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.it-diagram svg { display: block; width: 100%; height: auto; }
+.it-diagram figcaption { margin-top: .75rem; color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.it-diagram .box { fill: var(--surface-soft); stroke: var(--line-strong, var(--line)); stroke-width: 1.5; }
+.it-diagram .box-server { fill: var(--accent-soft); stroke: var(--brand); }
+.it-diagram .zone { fill: none; stroke: var(--brand); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.it-diagram .wire { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.it-diagram .wire-optional { stroke-dasharray: 4 4; }
+.it-diagram text { fill: var(--text); font-family: inherit; font-size: 15px; }
+.it-diagram .label-dim { fill: var(--muted); font-size: 13px; }
+.it-diagram .label-zone { fill: var(--brand); font-size: 13px; font-weight: 700; }
+.it-section + .it-section { margin-top: clamp(2rem, 5vw, 3rem); }
+.it-docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .75rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.it-docs a { display: block; height: 100%; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); font-weight: 600; text-decoration: none; }
+.it-docs a:hover { border-color: var(--brand); }
+.it-docs span { display: block; margin-top: .2rem; color: var(--muted); font-size: .9rem; font-weight: 400; }

@@ -27,3 +27,25 @@ class DemoSandbox(models.Model):
 
     def __str__(self):
         return f"Demo {self.token}"
+
+
+class DemoDailyStat(models.Model):
+    """Anonyme Tageszähler der öffentlichen Demo (core/demo_stats.py).
+
+    Bewusst nur Zahlen je Tag: keine IP-Adresse, kein Konto, kein Token und
+    keine Verknüpfung zu einer Demo-Wache. Bleibt erhalten, wenn die Demo-
+    Wachen gelöscht werden.
+    """
+
+    day = models.DateField(unique=True)
+    started = models.PositiveIntegerField(default=0)
+    tour_completed = models.PositiveIntegerField(default=0)
+    feedback = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-day"]
+        verbose_name = "Demo-Tageszahl"
+        verbose_name_plural = "Demo-Tageszahlen"
+
+    def __str__(self):
+        return f"Demo-Zahlen {self.day:%d.%m.%Y}"

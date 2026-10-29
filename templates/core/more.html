@@ -107,6 +107,20 @@
         </a>
       {% endif %}
 
+      {# Touch-Terminal: Vorschau des Sperrbildschirms, nur in der öffentlichen Demo #}
+      {% if demo_banner %}
+        <a class="more-card-item" data-filter-item data-more="terminal_preview" data-order="15" href="{% url 'demo_lock_screen' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon">{% include "core/_icon.html" with name="lock" %}</span>
+            <span class="more-card-tag">{% translate "Demo" %}</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Touch-Terminal (Vorschau)" %}</strong>
+            <span class="more-card-desc">{% translate "Sperrbildschirm mit Foto des Tages, Fahrzeugstatus und rundem Ziffernblock – wie am Touch-Terminal in der Fahrzeughalle." %}</span>
+          </div>
+        </a>
+      {% endif %}
+
     </div>
   </section>
 

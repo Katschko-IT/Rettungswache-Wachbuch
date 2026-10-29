@@ -52,8 +52,22 @@
   letter-spacing: 0.02em;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
   cursor: pointer;
   animation: terminal-breathe 3.2s ease-in-out infinite;
+}
+
+/* Der Sperrbildschirm lädt app.css nicht: Ohne eigene Regel wäre das
+   Schloss-Symbol 300 × 150 px groß und schwarz gefüllt. */
+.terminal-unlock-hint .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 @keyframes terminal-breathe {
@@ -179,6 +193,81 @@
   margin: 0;
   color: var(--lock-error);
   font-size: 1rem;
+}
+
+/* ---- Vorschau aus der Demo (kein Terminal, kein Absenden) ---- */
+
+.terminal-preview-note {
+  position: fixed;
+  z-index: 10;
+  top: 1.25rem;
+  right: 1.25rem;
+  max-width: min(22rem, calc(100vw - 2.5rem));
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--lock-glass-line);
+  border-radius: 1rem;
+  background: var(--lock-glass-strong);
+  color: var(--lock-ink);
+  font-size: 0.92rem;
+  line-height: 1.4;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  cursor: default;
+}
+
+.terminal-preview-note p {
+  margin: 0 0 0.5rem;
+}
+
+.terminal-preview-note a {
+  color: var(--lock-ink);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.terminal-preview-note a:focus-visible {
+  outline: 3px solid var(--lock-focus);
+  outline-offset: 3px;
+}
+
+.terminal-unlock-note {
+  max-width: 20rem;
+  margin: 0;
+  color: var(--lock-ink-dim);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Die Vorschau wird auch am Handy geöffnet: dort darf die Seite scrollen. */
+.lock-body.is-preview {
+  overflow-y: auto;
+}
+
+@media (max-width: 40rem) {
+  /* Am Handy nur eine schmale Zeile oben, damit Uhr und Karten frei bleiben. */
+  .is-preview .lock-layout {
+    padding-top: 4.5rem;
+  }
+
+  .terminal-preview-note {
+    top: 0.6rem;
+    right: 0.6rem;
+    left: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    max-width: none;
+    padding: 0.55rem 0.9rem;
+  }
+
+  .terminal-preview-note p {
+    margin: 0;
+  }
+
+  .terminal-preview-text {
+    display: none;
+  }
 }
 
 .terminal-keypad {

@@ -499,3 +499,56 @@ body.is-display-open {
   flex-direction: column;
   gap: clamp(0.8rem, 1.4vw, 1.4rem);
 }
+
+/* Fahrzeuge, Gerätefristen und Material: Name groß, Zustand darunter,
+   Farbe nur als Randstreifen (Status bzw. Ampel). */
+.display-fleet,
+.display-alerts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 0.8vw, 0.75rem);
+}
+
+.display-vehicle,
+.display-alert {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.35rem 0 0.35rem 0.8rem;
+  border-left: 4px solid var(--display-line);
+}
+
+.display-vehicle-name,
+.display-alert-name {
+  font-size: clamp(1.05rem, 1.6vw, 1.7rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.display-vehicle-status,
+.display-alert-label {
+  font-size: clamp(0.9rem, 1.25vw, 1.25rem);
+}
+
+.display-vehicle-meta {
+  color: var(--display-dim);
+  font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+}
+
+.display-vehicle-meta:empty { display: none; }
+
+.display-status-1,
+.display-status-2 { border-left-color: #3fbf73; }
+.display-status-3,
+.display-status-4 { border-left-color: #f0a030; }
+.display-status-disinfection { border-left-color: #a487e0; }
+.display-status-6,
+.display-status-workshop { border-left-color: #8d99a6; }
+
+.display-level-overdue,
+.display-level-recalled { border-left-color: var(--display-warn); }
+.display-level-critical,
+.display-level-low { border-left-color: #f0a030; }
+.display-level-warning { border-left-color: #e8d36a; }

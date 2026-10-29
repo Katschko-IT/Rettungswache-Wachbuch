@@ -385,7 +385,7 @@
       }
     }
     body.addEventListener("click", function (event) {
-      if (panel.hidden && !event.target.closest("[data-unlock-panel], .terminal-app-qr")) {
+      if (panel.hidden && !event.target.closest("[data-unlock-panel], .terminal-app-qr, .terminal-preview-note")) {
         open();
       }
     });

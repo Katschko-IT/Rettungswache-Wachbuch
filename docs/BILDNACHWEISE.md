@@ -45,6 +45,10 @@ Auf dem Sperrbildschirm steht der Nachweis des jeweils gezeigten Bildes.
 | `bg-35.jpg` | [Solingen Feuer- und Rettungswache I (2).jpg](https://commons.wikimedia.org/wiki/File:Solingen_Feuer-_und_Rettungswache_I_(2).jpg) | Reise Reise | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 | `bg-36.jpg` | [Cottbus, Rettungswache am Universitätsklinikum (Welzower Straße 25).jpg](https://commons.wikimedia.org/wiki/File:Cottbus,_Rettungswache_am_Universit%C3%A4tsklinikum_(Welzower_Stra%C3%9Fe_25).jpg) | Trio3D | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 
+Die Aufnahme `core/static/core/screens/lockscreen-tablet.webp` (Startseite) zeigt
+den Sperrbildschirm mit `bg-04.jpg` (Alf van Beem, CC0) und Demodaten; der
+Bildnachweis steht unten links im Bild.
+
 ## App-Icon
 
 Das kursive „W“ im App-Icon (`core/static/core/icons/`, `site/assets/favicon.svg`,
