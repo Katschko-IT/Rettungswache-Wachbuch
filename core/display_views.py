@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import hashlib
+import itertools
+import os
 import secrets
+import threading
+import time
 from functools import wraps
 
 from django.contrib import messages
@@ -15,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
-from .access import get_membership, membership_required
+from .access import CONTENT_ROLES, get_membership, membership_required
 from .models import Membership
 from .display import display_payload
 from .display_models import DEFAULT_DISPLAY_CONFIG, DisplayToken
@@ -27,6 +31,8 @@ MAX_FAILURES_PER_MINUTE = 10
 # EventSource verbindet sich selbst neu und Zugang wird dabei neu geprüft.
 STREAM_MAX_SECONDS = 300
 STREAM_RETRY_MS = 5000
+# Ein Gerät bzw. Konto hält höchstens so viele Streams je Prozess offen.
+STREAM_MAX_PER_VIEWER = 1
 
 
 def _harden(response: HttpResponse) -> HttpResponse:
@@ -42,9 +48,14 @@ def _hash(raw: str) -> str:
 
 
 def _station_and_token_for_request(request):
-    """Station und optionaler DisplayToken über Sitzung oder Display-Cookie, sonst (None, None)."""
+    """Station und optionaler DisplayToken über Sitzung oder Display-Cookie, sonst (None, None).
+
+    Über die Sitzung nur für Rollen mit fachlichen Inhalten: Die Anzeige zeigt
+    Titel aus Pinnwand, Neuigkeiten, Terminen und Aufgaben, und Auditoren
+    erhalten keine fachlichen Freitexte. Ein Display-Cookie gilt weiterhin.
+    """
     membership = get_membership(request.user) if request.user.is_authenticated else None
-    if membership is not None:
+    if membership is not None and membership.role in CONTENT_ROLES:
         return membership.station, None
     raw = request.COOKIES.get(COOKIE_NAME, "")
     if not raw:
@@ -53,12 +64,6 @@ def _station_and_token_for_request(request):
     if token is None or not token.is_active:
         return None, None
     return token.station, token
-
-
-def _station_for_request(request):
-    """Station über Sitzung oder Display-Cookie, sonst None."""
-    station, _ = _station_and_token_for_request(request)
-    return station
 
 
 def _rate_limited(ip: str) -> bool:
@@ -108,7 +113,7 @@ def display_start(request, token: str):
 @require_GET
 @never_cache
 def display_home(request):
-    station = _station_for_request(request)
+    station, token_record = _station_and_token_for_request(request)
     if station is None:
         return _harden(
             HttpResponse(
@@ -118,7 +123,13 @@ def display_home(request):
             )
         )
     return _harden(
-        render(request, "core/display.html", {"display_station": station})
+        render(request, "core/display.html", {
+            "display_station": station,
+            # Über die Sitzung geöffnet (Handy, PC, Vorschau): Rückweg anbieten.
+            "display_via_session": token_record is None,
+            # Demo-Besuch: nur Abfragen, kein Livestream (siehe display_stream).
+            "display_poll_only": _is_demo_visit(request),
+        })
     )
 
 
@@ -154,17 +165,92 @@ def notify_station_display(station_id: int):
         pass
 
 
+def _is_demo_visit(request) -> bool:
+    return getattr(request, "demo_sandbox", None) is not None
+
+
+# Ein offener Stream belegt einen Worker-Thread für bis zu STREAM_MAX_SECONDS.
+# Höchstens die Hälfte der Threads eines Prozesses darf das, damit Seiten und
+# /healthz/ immer antworten. Wer keinen Platz bekommt, erhält 204: EventSource
+# verbindet sich dann nicht neu und display.js fragt /display/data/ ab.
+_stream_lock = threading.Lock()
+_stream_ids = itertools.count(1)
+_open_streams: dict[int, tuple[str, float]] = {}
+
+
+def _stream_limit_per_process() -> int:
+    from django.conf import settings
+
+    configured = getattr(settings, "DISPLAY_STREAM_MAX_PER_PROCESS", None)
+    if configured:
+        return max(1, int(configured))
+    try:
+        threads = int(os.environ.get("GUNICORN_THREADS", "4"))
+    except ValueError:
+        threads = 4
+    return max(1, threads // 2)
+
+
+def _acquire_stream_slot(viewer: str) -> int | None:
+    now = time.monotonic()
+    with _stream_lock:
+        # Ein nie geschlossener Stream (Absturz) gibt seinen Platz spätestens
+        # nach der Höchstlaufzeit wieder frei.
+        for slot, (_viewer, started) in list(_open_streams.items()):
+            if now - started > STREAM_MAX_SECONDS + 60:
+                del _open_streams[slot]
+        if len(_open_streams) >= _stream_limit_per_process():
+            return None
+        if sum(1 for owner, _started in _open_streams.values() if owner == viewer) >= STREAM_MAX_PER_VIEWER:
+            return None
+        slot = next(_stream_ids)
+        _open_streams[slot] = (viewer, now)
+        return slot
+
+
+def _release_stream_slot(slot: int) -> None:
+    with _stream_lock:
+        _open_streams.pop(slot, None)
+
+
+class _SlotStream:
+    """Gibt den Stream-Platz frei, sobald der Server die Antwort schließt
+    (Ende, Abbruch durch den Client oder Widerruf)."""
+
+    def __init__(self, iterator, slot: int):
+        self._iterator = iterator
+        self._slot = slot
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return next(self._iterator)
+
+    def close(self):
+        try:
+            self._iterator.close()
+        finally:
+            _release_stream_slot(self._slot)
+
+
 @require_GET
 @never_cache
 def display_stream(request):
     """Server-Sent Events (SSE) Live-Stream für Wandmonitore (< 100ms Latenz)."""
     import json
-    import time
     from django.conf import settings
 
     station, token_record = _station_and_token_for_request(request)
     if station is None:
         return _harden(HttpResponse("kein Zugang", status=403, content_type="text/plain"))
+    if _is_demo_visit(request):
+        # Öffentliche Demo: Ein anonymer Besuch darf keine Worker-Threads binden.
+        return _harden(HttpResponse(status=204))
+    viewer = f"token:{token_record.pk}" if token_record is not None else f"user:{request.user.pk}"
+    slot = _acquire_stream_slot(viewer)
+    if slot is None:
+        return _harden(HttpResponse(status=204))
 
     def stream_generator():
         payload = display_payload(station)
@@ -230,7 +316,7 @@ def display_stream(request):
                     yield f"event: update\ndata: {json.dumps(payload)}\n\n"
                 last_poll = now
 
-    response = StreamingHttpResponse(stream_generator(), content_type="text/event-stream")
+    response = StreamingHttpResponse(_SlotStream(stream_generator(), slot), content_type="text/event-stream")
     response["Cache-Control"] = "no-cache, no-transform"
     response["X-Accel-Buffering"] = "no"
     return response
@@ -241,7 +327,11 @@ def _stream_still_authorized(request, station, token_record) -> bool:
         fresh = DisplayToken.objects.filter(pk=token_record.pk).first()
         return fresh is not None and fresh.is_active and fresh.station_id == station.id
     membership = get_membership(request.user) if request.user.is_authenticated else None
-    return membership is not None and membership.station_id == station.id
+    return (
+        membership is not None
+        and membership.role in CONTENT_ROLES
+        and membership.station_id == station.id
+    )
 
 
 def _app_version() -> str:

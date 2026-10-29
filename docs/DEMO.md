@@ -121,6 +121,10 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   Impressum und Datenschutz der Installation, öffentliche Display-Links,
   Wachenterminal-Registrierung und Handy-Kopplung, App-Zugänge (API-Tokens),
   E-Mail-Einladungen und das Freigeben bestehender Konten der Installation.
+  Auch in der Demo angelegte Teammitglieder erhalten kein App-Token: Token-,
+  Kopplungs- und API-Anfragen von Konten einer Demo-Wache enden mit 403.
+  Das Wand-Display fragt in der Demo nur jede Minute ab und öffnet keinen
+  Livestream, der einen Server-Thread belegen würde.
   E-Mail- und Signal-Versand sind in diesem Modus ganz abgeschaltet,
   öffentliche Registrierung ebenso.
 - Den **Sperrbildschirm des Touch-Terminals** zeigt die Demo trotzdem: als

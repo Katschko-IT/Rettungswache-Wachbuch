@@ -238,6 +238,20 @@ def resolve_api_token(raw_token: str):
     return token
 
 
+DEMO_NO_APP_ACCESS = "In der Demo gibt es keine App-Zugänge."
+
+
+def _is_demo_account(user) -> bool:
+    """Konto einer Demo-Wache der öffentlichen Demo.
+
+    App-Tokens überdauern die Sitzung, und Token-Anfragen laufen an der
+    Demo-Middleware vorbei (Änderungs-/Upload-Grenzen, gesperrte Bereiche).
+    """
+    from ..demo_sandbox import sandbox_enabled, sandbox_for_user
+
+    return sandbox_enabled() and sandbox_for_user(user) is not None
+
+
 def api_token_required(view):
     @wraps(view)
     def wrapped(request, *args, **kwargs):
@@ -250,6 +264,8 @@ def api_token_required(view):
         membership = get_membership(token.user)
         if membership is None:
             return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
+        if _is_demo_account(token.user):
+            return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
         # „Zuletzt genutzt“ minutengenau: Ein Schreibzugriff pro Lese-Anfrage
         # erzeugt bei vielen Handys einer Wache nur Sperren ohne Mehrwert.
         now = timezone.now()
@@ -331,6 +347,8 @@ def pairing_exchange(request):
     if membership is None:
         return _json_error(request, "Kopplungscode ist ungültig oder abgelaufen.", status=401)
     user = membership.user
+    if _is_demo_account(user):
+        return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
     from ..mfa import mfa_required, user_has_confirmed_mfa
 
     if mfa_required() and not user_has_confirmed_mfa(user):
@@ -399,6 +417,9 @@ def obtain_token(request):
     membership = get_membership(user)
     if membership is None:
         return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
+    if _is_demo_account(user):
+        # Z. B. ein in der Demo angelegtes Teammitglied mit Passwort.
+        return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
     from ..mfa import mfa_required, user_has_confirmed_mfa
 
     if user_has_confirmed_mfa(user):

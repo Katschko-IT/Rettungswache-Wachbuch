@@ -593,26 +593,37 @@
   function initStandalone() {
     var prompt = document.querySelector("[data-display-prompt]");
     var button = document.querySelector("[data-display-fullscreen]");
+    var element = document.documentElement;
+
+    /* Die Leiste (Rückweg-Link, Vollbild-Knopf) verschwindet nur im Vollbild.
+     * Ohne Vollbild-Funktion (z. B. iPhone) bleibt der Rückweg sichtbar. */
+    function syncPrompt() {
+      if (!prompt) {
+        return;
+      }
+      var anyVisible = Array.prototype.some.call(prompt.children, function (child) {
+        return !child.hidden;
+      });
+      prompt.hidden = Boolean(document.fullscreenElement) || !anyVisible;
+    }
+
     if (button) {
+      if (!element.requestFullscreen) {
+        button.hidden = true;
+      }
       button.addEventListener("click", function () {
-        var element = document.documentElement;
-        if (element.requestFullscreen) {
-          element.requestFullscreen({ navigationUI: "hide" }).catch(function () {});
-        }
         requestWakeLock();
-        if (prompt) {
-          prompt.hidden = true;
+        if (!element.requestFullscreen) {
+          return;
         }
+        element.requestFullscreen({ navigationUI: "hide" }).catch(function () {
+          button.hidden = true;
+          syncPrompt();
+        });
       });
     }
-    if (prompt) {
-      prompt.hidden = Boolean(document.fullscreenElement);
-    }
-    document.addEventListener("fullscreenchange", function () {
-      if (prompt) {
-        prompt.hidden = Boolean(document.fullscreenElement);
-      }
-    });
+    syncPrompt();
+    document.addEventListener("fullscreenchange", syncPrompt);
   }
 
   function init() {
