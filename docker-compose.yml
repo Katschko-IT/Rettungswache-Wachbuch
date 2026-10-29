@@ -612,6 +612,10 @@ services:
       - FOWNER
       - SETGID
       - SETUID
+    # Ausdrücklich, weil deploy/hetzner/harden-host.sh no-new-privileges als
+    # Docker-Standard setzt (daemon.json); sonst startet signal dort nicht.
+    security_opt:
+      - no-new-privileges:false
 
   # Optionaler TLS-Proxy: COMPOSE_PROFILES=https (install.sh --mode lan|domain).
   # LAN: CADDY_TLS=internal (eigene CA); Domain: CADDY_TLS=<E-Mail> für

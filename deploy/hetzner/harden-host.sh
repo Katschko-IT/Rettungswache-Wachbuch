@@ -7,21 +7,162 @@
 #
 # Was das Skript tut:
 #   - Docker Engine + Compose v2 aus dem offiziellen Docker-Repository
-#   - Admin-Benutzer mit sudo und SSH-Schlüssel (von root übernommen)
-#   - SSH: nur Schlüssel, kein root-Login, nur dieser Benutzer
-#   - Firewall (ufw): nur SSH (gedrosselt), HTTP und HTTPS
+#   - Admin-Benutzer mit sudo und SSH-Schlüssel (vom aufrufenden Benutzer
+#     bzw. von root übernommen)
+#   - SSH: nur Schlüssel, kein root-Login, nur dieser Benutzer – erst nachdem
+#     Schlüssel und sudo für ihn nachweislich funktionieren
+#   - Firewall (ufw): nur SSH (gedrosselt, Port aus sshd), HTTP und HTTPS
 #   - fail2ban für SSH
-#   - automatische Sicherheitsupdates mit Neustart um 04:30
+#   - automatische Sicherheitsupdates (auch Docker) mit Neustart um 04:30
 #   - Docker: live-restore, Log-Rotation, no-new-privileges
 #   - Swap auf kleinen Servern, Zeitzone Europe/Berlin, Journal-Grenze
 #   - Überwachung alle 5 Minuten (wachwerk-health), optional mit
 #     Ping an healthchecks.io o. ä., das bei Ausfall eine E-Mail schickt
+#   - wöchentliche Wiederherstellungsprobe des neuesten Backups
 set -eu
 
 say() { printf '\n==> %s\n' "$*"; }
 info() { printf '    %s\n' "$*"; }
 warn() { printf 'Warnung: %s\n' "$*" >&2; }
 die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
+
+# --- Hilfsfunktionen (einzeln geprüft in core/test_hetzner_scripts.py) ---------
+
+# 0, wenn das Konto ein Passwort hat (sudo fragt danach).
+password_set() {
+    passwd -S "$1" 2>/dev/null | awk '{ exit ($2 == "P") ? 0 : 1 }'
+}
+
+# 0, wenn ein Terminal für Rückfragen da ist. [ -r /dev/tty ] allein reicht
+# nicht: ohne steuerndes Terminal (cloud-init, ssh host 'befehl') ist die Datei
+# lesbar, lässt sich aber nicht öffnen.
+tty_usable() {
+    [ -r /dev/tty ] && (: </dev/tty) 2>/dev/null
+}
+
+# 0, wenn der Benutzer sudo wirklich nutzen kann: das Recht ist da und er hat
+# entweder ein Passwort oder NOPASSWD.
+sudo_ready() {
+    listing=$(LC_ALL=C sudo -l -U "$1" 2>/dev/null) || return 1
+    case "$listing" in *"may run the following commands"*) ;; *) return 1 ;; esac
+    case "$listing" in *NOPASSWD*) return 0 ;; esac
+    password_set "$1"
+}
+
+# Datei mit den SSH-Schlüsseln für den Admin ($1): die des Benutzers, der das
+# Skript per sudo startet (Cloud-Images mit Standardbenutzer wie "debian"),
+# sonst die von root (Hetzner).
+admin_key_source() {
+    if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != root ] && [ "$SUDO_USER" != "$1" ]; then
+        sudo_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+        if [ -n "$sudo_home" ] && [ -s "$sudo_home/.ssh/authorized_keys" ]; then
+            printf '%s\n' "$sudo_home/.ssh/authorized_keys"
+            return 0
+        fi
+    fi
+    printf '%s\n' /root/.ssh/authorized_keys
+}
+
+# 0, wenn mindestens ein Schlüssel ohne erzwungenen Befehl drinsteht. Viele
+# Cloud-Images sperren root per command="echo 'Please login as ...';exit 142".
+has_login_key() {
+    grep -Ev '^[[:space:]]*(#|$)' "$1" 2>/dev/null | grep -qv 'command='
+}
+
+# Ports, auf denen sshd lauscht, dazu der Port der laufenden Sitzung.
+ssh_ports() {
+    ports=$(sshd -T 2>/dev/null | awk '$1 == "port" { print $2 }')
+    [ -z "${SSH_CONNECTION:-}" ] || ports="$ports ${SSH_CONNECTION##* }"
+    # shellcheck disable=SC2086 # ein Port je Wort
+    ports=$(printf '%s\n' $ports | grep -E '^[0-9]+$' | sort -un | tr '\n' ' ')
+    ports=${ports% }
+    printf '%s\n' "${ports:-22}"
+}
+
+# Überwachung als systemd-Units in Ordner $1. Modus 0644 auch bei strenger
+# umask, sonst meldet systemd bei jedem daemon-reload "world-inaccessible".
+write_units() {
+    cat >"$1/wachwerk-health.service" <<'EOF'
+[Unit]
+Description=Wachwerk: Erreichbarkeit, Zertifikat, Container, Backup und Platz prüfen
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/wachwerk/health.env
+ExecStart=/usr/local/bin/wachwerk-health
+# Ein hängender Aufruf darf die Überwachung nicht dauerhaft anhalten.
+TimeoutStartSec=5min
+EOF
+    cat >"$1/wachwerk-health.timer" <<'EOF'
+[Unit]
+Description=Wachwerk-Überwachung alle 5 Minuten
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target
+EOF
+    cat >"$1/wachwerk-restore-test.service" <<'EOF'
+[Unit]
+Description=Wachwerk: Wiederherstellungsprobe mit dem neuesten Backup
+After=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/wachwerk/health.env
+ExecStart=/usr/local/bin/wachwerk-health --restore-test
+TimeoutStartSec=45min
+Nice=10
+EOF
+    cat >"$1/wachwerk-restore-test.timer" <<'EOF'
+[Unit]
+Description=Wachwerk-Wiederherstellungsprobe sonntags
+
+[Timer]
+OnCalendar=Sun *-*-* 05:10:00
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+    chmod 0644 "$1/wachwerk-health.service" "$1/wachwerk-health.timer" \
+        "$1/wachwerk-restore-test.service" "$1/wachwerk-restore-test.timer"
+}
+
+# Einstellungen der Überwachung nach $1 (nur root: enthält die Ping-Adresse).
+write_health_env() {
+    (
+        umask 077
+        {
+            echo "# Wachwerk-Überwachung (wachwerk-health)"
+            echo "WACHWERK_DIR=$WACHWERK_DIR"
+            echo "PING_URL=$PING_URL"
+            echo "# Optional: andere Adresse prüfen, Grenzen anpassen"
+            echo "#HEALTH_URL=https://demo.example.org/healthz/"
+            echo "#CERT_MIN_DAYS=14"
+            echo "#DISK_MAX_PERCENT=85"
+            echo "#BACKUP_MAX_AGE_HOURS=30"
+            echo "#ERRORS_MAX_15MIN=5"
+            echo "# Meldung erst, wenn ein Fehler so viele Läufe (je 5 Minuten) in Folge besteht"
+            echo "#FAILS_BEFORE_ALERT=2"
+            echo "# Unhealthy-Container nicht selbst neu starten"
+            echo "#AUTO_RESTART=false"
+        } >"$1"
+    )
+    chmod 0600 "$1"
+}
+
+# Nur die Funktionen laden (Tests): WACHWERK_HARDEN_LIB=1 . harden-host.sh
+if [ "${WACHWERK_HARDEN_LIB:-}" = 1 ]; then
+    # shellcheck disable=SC2317 # exit nur, falls nicht per "." geladen
+    return 0 2>/dev/null || exit 0
+fi
 
 usage() {
     cat <<'EOF'
@@ -81,15 +222,20 @@ CODENAME="${VERSION_CODENAME:-}"
 [ -n "$CODENAME" ] || die "VERSION_CODENAME fehlt in /etc/os-release."
 
 export DEBIAN_FRONTEND=noninteractive
-apt_install() { apt-get install -y -q --no-install-recommends "$@" >/dev/null; }
+# Geänderte Konfigurationsdateien behalten: sonst fragt dpkg unsichtbar nach
+# (Ausgabe geht nach /dev/null) und das Skript scheint zu hängen.
+apt_get() {
+    apt-get -y -q -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold "$@" >/dev/null
+}
+apt_install() { apt_get install --no-install-recommends "$@"; }
 
 # --- 1. Pakete ---------------------------------------------------------------
 say "Systempakete aktualisieren"
 apt-get update -q >/dev/null
-apt-get upgrade -y -q >/dev/null
-apt_install ca-certificates curl gnupg ufw fail2ban python3-systemd \
+apt_get upgrade
+apt_install ca-certificates curl gnupg sudo ufw fail2ban python3-systemd \
     unattended-upgrades apt-listchanges rsync openssh-client openssl
-info "ufw, fail2ban, unattended-upgrades, rsync installiert"
+info "sudo, ufw, fail2ban, unattended-upgrades, rsync installiert"
 
 if [ "$INSTALL_DOCKER" -eq 1 ]; then
     if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
@@ -143,33 +289,48 @@ fi
 USER_HOME=$(getent passwd "$ADMIN_USER" | cut -d: -f6)
 install -d -m 0700 -o "$ADMIN_USER" -g "$ADMIN_USER" "$USER_HOME/.ssh"
 KEYS="$USER_HOME/.ssh/authorized_keys"
-if [ ! -s "$KEYS" ] && [ -s /root/.ssh/authorized_keys ]; then
-    install -m 0600 -o "$ADMIN_USER" -g "$ADMIN_USER" /root/.ssh/authorized_keys "$KEYS"
-    info "SSH-Schlüssel von root übernommen"
+if [ ! -s "$KEYS" ]; then
+    KEY_SOURCE=$(admin_key_source "$ADMIN_USER")
+    if [ -s "$KEY_SOURCE" ]; then
+        install -m 0600 -o "$ADMIN_USER" -g "$ADMIN_USER" "$KEY_SOURCE" "$KEYS"
+        if ! has_login_key "$KEYS"; then
+            rm -f "$KEYS"
+            die "$KEY_SOURCE enthält nur Schlüssel mit erzwungenem Befehl (command=…, z. B. 'Please login as the user …'). Damit käme $ADMIN_USER nicht an eine Shell. Eigenen öffentlichen Schlüssel ohne Optionen in $KEYS eintragen und erneut starten."
+        fi
+        info "SSH-Schlüssel aus $KEY_SOURCE übernommen"
+    fi
 fi
 [ -s "$KEYS" ] || die "$KEYS ist leer. Ohne SSH-Schlüssel würde die SSH-Härtung dich aussperren. Schlüssel eintragen und erneut starten."
+has_login_key "$KEYS" || die "$KEYS enthält nur Schlüssel mit erzwungenem Befehl (command=…). Eigenen Schlüssel ohne Optionen eintragen und erneut starten."
 chown "$ADMIN_USER:$ADMIN_USER" "$KEYS"
 chmod 0600 "$KEYS"
 
 # sudo braucht ein Passwort; ohne Passwort (Cloud-Standard) hilft NOPASSWD,
-# solange SSH nur mit Schlüssel geht.
-if passwd -S "$ADMIN_USER" 2>/dev/null | awk '{ exit ($2 == "P") ? 0 : 1 }'; then
+# solange SSH nur mit Schlüssel geht. Auch ein vertipptes oder unmögliches
+# passwd (kein Terminal) endet so, nie ohne sudo.
+if password_set "$ADMIN_USER"; then
     info "Passwort für sudo ist gesetzt"
-elif [ "$ASSUME_YES" -eq 0 ] && [ -r /dev/tty ]; then
+elif [ "$ASSUME_YES" -eq 0 ] && tty_usable; then
     info "Passwort für sudo festlegen:"
-    passwd "$ADMIN_USER" </dev/tty || warn "Passwort nicht gesetzt; später: passwd $ADMIN_USER"
-else
-    printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$ADMIN_USER" >"/etc/sudoers.d/90-wachwerk-$ADMIN_USER"
-    chmod 0440 "/etc/sudoers.d/90-wachwerk-$ADMIN_USER"
-    visudo -cq || { rm -f "/etc/sudoers.d/90-wachwerk-$ADMIN_USER"; die "sudoers-Datei ungültig."; }
-    warn "sudo ohne Passwort für $ADMIN_USER (kein Passwort gesetzt). Später: passwd $ADMIN_USER und /etc/sudoers.d/90-wachwerk-$ADMIN_USER löschen."
+    passwd "$ADMIN_USER" </dev/tty || warn "Passwort nicht gesetzt."
 fi
+SUDOERS_FILE="/etc/sudoers.d/90-wachwerk-$ADMIN_USER"
+if ! password_set "$ADMIN_USER"; then
+    printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$ADMIN_USER" >"$SUDOERS_FILE"
+    chmod 0440 "$SUDOERS_FILE"
+    visudo -cq || { rm -f "$SUDOERS_FILE"; die "sudoers-Datei ungültig."; }
+    warn "sudo ohne Passwort für $ADMIN_USER (kein Passwort gesetzt). Später: passwd $ADMIN_USER und $SUDOERS_FILE löschen."
+fi
+sudo_ready "$ADMIN_USER" \
+    || die "sudo funktioniert für $ADMIN_USER nicht (sudo -l -U $ADMIN_USER). SSH bleibt unverändert, damit du dich nicht aussperrst."
 
 # --- 4. SSH ----------------------------------------------------------------------
 say "SSH: nur Schlüssel, kein root"
 install -d -m 0755 /etc/ssh/sshd_config.d
 grep -Eq '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config.d/' /etc/ssh/sshd_config \
     || die "/etc/ssh/sshd_config bindet sshd_config.d nicht ein; bitte von Hand härten."
+# MaxAuthTries 5: ein ssh-agent mit mehreren Schlüsseln probiert sie der Reihe
+# nach; bei 3 scheitert der richtige vierte, und fail2ban sperrt dich.
 cat >/etc/ssh/sshd_config.d/10-wachwerk.conf <<EOF
 # Wachwerk (deploy/hetzner/harden-host.sh)
 PermitRootLogin no
@@ -177,7 +338,7 @@ PasswordAuthentication no
 KbdInteractiveAuthentication no
 PubkeyAuthentication yes
 AuthenticationMethods publickey
-MaxAuthTries 3
+MaxAuthTries 5
 LoginGraceTime 30
 X11Forwarding no
 AllowAgentForwarding no
@@ -190,23 +351,33 @@ fi
 # Ubuntu 24.04 startet sshd per Socket; neue Verbindungen lesen die Datei dann ohnehin neu.
 systemctl try-reload-or-restart ssh.service 2>/dev/null \
     || systemctl try-reload-or-restart sshd.service 2>/dev/null || true
+effective=$(sshd -T 2>/dev/null || true)
+for setting in "permitrootlogin no" "passwordauthentication no"; do
+    case "$effective" in
+        *"$setting"*) ;;
+        *) warn "'$setting' wirkt nicht – ein früherer Eintrag in /etc/ssh/sshd_config hat Vorrang." ;;
+    esac
+done
 info "Anmeldung ab jetzt nur noch: ssh $ADMIN_USER@<server>"
 
 # --- 5. Firewall -----------------------------------------------------------------
 say "Firewall (ufw)"
+SSH_PORTS=$(ssh_ports)
 ufw --force default deny incoming >/dev/null
 ufw --force default allow outgoing >/dev/null
-ufw limit 22/tcp comment 'SSH (gedrosselt)' >/dev/null
+for port in $SSH_PORTS; do
+    ufw limit "$port/tcp" comment 'SSH (gedrosselt)' >/dev/null
+done
 ufw allow 80/tcp comment 'HTTP -> HTTPS, Lets Encrypt' >/dev/null
 ufw allow 443/tcp comment 'HTTPS Wachwerk' >/dev/null
 ufw --force enable >/dev/null
-info "offen: 22 (gedrosselt), 80, 443"
+info "offen: SSH $SSH_PORTS (gedrosselt), 80, 443"
 info "Docker umgeht ufw für veröffentlichte Ports. Wachwerk veröffentlicht nur"
 info "Caddy (80/443); web lauscht auf 127.0.0.1. Zusätzlich die Hetzner-Firewall nutzen."
 
 # --- 6. fail2ban -----------------------------------------------------------------
 say "fail2ban für SSH"
-cat >/etc/fail2ban/jail.d/wachwerk.local <<'EOF'
+cat >/etc/fail2ban/jail.d/wachwerk.local <<EOF
 [DEFAULT]
 bantime = 1h
 findtime = 10m
@@ -216,6 +387,7 @@ banaction = ufw
 [sshd]
 enabled = true
 backend = systemd
+port = $(printf '%s' "$SSH_PORTS" | tr ' ' ',')
 EOF
 systemctl enable --now fail2ban >/dev/null 2>&1
 systemctl restart fail2ban
@@ -228,10 +400,11 @@ APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
 EOF
+# Das Docker-Repository hat kein "Codename"-Feld (nur Suite), deshalb archive=.
 cat >/etc/apt/apt.conf.d/52wachwerk-unattended <<EOF
 // Wachwerk (deploy/hetzner/harden-host.sh)
 Unattended-Upgrade::Origins-Pattern {
-        "origin=Docker,codename=$CODENAME";
+        "origin=Docker,archive=$CODENAME";
 };
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "$AUTO_REBOOT";
@@ -294,54 +467,26 @@ else
     chmod 0755 /usr/local/bin/wachwerk-health
 fi
 if [ ! -f /etc/wachwerk/health.env ] || [ -n "$PING_URL" ]; then
-    umask 077
-    {
-        echo "# Wachwerk-Überwachung (wachwerk-health)"
-        echo "WACHWERK_DIR=$WACHWERK_DIR"
-        echo "PING_URL=$PING_URL"
-        echo "# Optional: andere Adresse prüfen, Grenzen anpassen"
-        echo "#HEALTH_URL=https://demo.example.org/healthz/"
-        echo "#CERT_MIN_DAYS=14"
-        echo "#DISK_MAX_PERCENT=85"
-        echo "#BACKUP_MAX_AGE_HOURS=30"
-    } >/etc/wachwerk/health.env
+    write_health_env /etc/wachwerk/health.env
 fi
-cat >/etc/systemd/system/wachwerk-health.service <<'EOF'
-[Unit]
-Description=Wachwerk: Erreichbarkeit, Zertifikat, Container, Backup und Platz prüfen
-After=network-online.target docker.service
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-EnvironmentFile=-/etc/wachwerk/health.env
-ExecStart=/usr/local/bin/wachwerk-health
-EOF
-cat >/etc/systemd/system/wachwerk-health.timer <<'EOF'
-[Unit]
-Description=Wachwerk-Überwachung alle 5 Minuten
-
-[Timer]
-OnBootSec=3min
-OnUnitActiveSec=5min
-RandomizedDelaySec=30
-
-[Install]
-WantedBy=timers.target
-EOF
+write_units /etc/systemd/system
 systemctl daemon-reload
+# Bis Wachwerk installiert ist, prüft und meldet wachwerk-health nichts.
 systemctl enable --now wachwerk-health.timer >/dev/null 2>&1
+systemctl enable --now wachwerk-restore-test.timer >/dev/null 2>&1
 if [ -n "$PING_URL" ]; then
     info "Ping an $PING_URL (bei Fehlern $PING_URL/fail)"
 else
     info "ohne Ping: Ergebnisse nur im Journal (journalctl -u wachwerk-health)"
 fi
+info "Wiederherstellungsprobe sonntags um 05:10 (journalctl -u wachwerk-restore-test)"
 
 cat <<EOF
 
 Fertig. Nächste Schritte (docs/HETZNER.md):
   1. In einem ZWEITEN Terminal prüfen:  ssh $ADMIN_USER@<server>
-     Erst wenn das klappt, diese Sitzung schließen.
+     und dort:  sudo -v
+     Erst wenn beides klappt, diese Sitzung schließen.
   2. Wachwerk installieren (Schritt 4 der Anleitung).
   3. Status:  sudo wachwerk-health --verbose
 EOF
