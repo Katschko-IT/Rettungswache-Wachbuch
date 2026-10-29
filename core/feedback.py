@@ -26,6 +26,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from .access import membership_required
 from .feedback_models import Feedback
+from .middleware import rate_limit_ip
 from .models import Membership
 from .services import audit
 
@@ -70,7 +71,7 @@ class FeedbackForm(forms.ModelForm):
 
 
 def _within_rate_limit(request) -> bool:
-    raw = f"{settings.RATELIMIT_KEY_SALT}:feedback:{getattr(request, 'client_ip', '') or 'unknown'}"
+    raw = f"{settings.RATELIMIT_KEY_SALT}:feedback:{rate_limit_ip(request)}"
     key = "feedback:" + hashlib.sha256(raw.encode()).hexdigest()[:32]
     cache.add(key, 0, timeout=3600)
     try:

@@ -24,15 +24,18 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import DatabaseError, connection, models, transaction
+from django.db.models.functions import Length
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .demo import DEMO_ACCOUNTS, _seed_content
 from .demo_models import DemoSandbox
-from .models import Membership, Station
+from .middleware import rate_limit_ip
+from .models import Membership, Station, UserProfile
 from .task_board import ensure_default_station_tasks
 
 logger = logging.getLogger(__name__)
@@ -52,7 +55,18 @@ BLOCKED_URL_NAMES = frozenset({
     "feedback_inbox",
     "feedback_status",
     "feedback_delete",
+    # Würde Konten außerhalb der Demo-Wache hereinholen oder verändern.
+    "team_create",
+    "membership_mfa_reset",
+    # App-Zugänge überdauern die Sitzung und umgehen die Grenzen unten.
+    "api_tokens_manage",
+    "mobile_setup_qr",
+    "terminal_pair",
+    "terminal_pair_qr",
 })
+
+# Abmelden und Rollenwechsel bleiben auch nach dem Änderungslimit möglich.
+WRITE_EXEMPT_URL_NAMES = frozenset({"logout", "demo_switch_role"})
 
 
 class DemoUnavailable(Exception):
@@ -116,9 +130,21 @@ def sandbox_username(sandbox: DemoSandbox, role_key: str) -> str:
 
 
 def sandbox_user_ids(station_ids) -> list[int]:
-    """Konten, die ausschließlich zu Demo-Wachen gehören."""
+    """Konten, die in einer Demo-Wache entstanden sind und nur dort Mitglied sind.
+
+    Ältere Konten bleiben unangetastet, auch wenn sie in eine Demo-Wache
+    geraten sind; ebenso Staff- und Superuser-Konten. Nur so kann ein Besuch
+    nie ein Konto der Installation sperren oder löschen.
+    """
     station_ids = list(station_ids)
-    candidates = set(Membership.objects.filter(station_id__in=station_ids).values_list("user_id", flat=True))
+    candidates = set(
+        Membership.objects.filter(
+            station_id__in=station_ids,
+            user__date_joined__gte=models.F("station__demo_sandbox__created_at"),
+            user__is_staff=False,
+            user__is_superuser=False,
+        ).values_list("user_id", flat=True)
+    )
     elsewhere = set(
         Membership.objects.filter(user_id__in=candidates).exclude(station_id__in=station_ids)
         .values_list("user_id", flat=True)
@@ -127,7 +153,7 @@ def sandbox_user_ids(station_ids) -> list[int]:
 
 
 def _client_key(request) -> str:
-    raw = f"{settings.RATELIMIT_KEY_SALT}:{getattr(request, 'client_ip', '') or 'unknown'}"
+    raw = f"{settings.RATELIMIT_KEY_SALT}:{rate_limit_ip(request)}"
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
@@ -294,6 +320,65 @@ def _delete_files(model, pks) -> None:
                 transaction.on_commit(lambda f=stored: f.storage.delete(f.name))
 
 
+def _delete_login_records(usernames) -> None:
+    """Anmeldeprotokolle (django-axes, mit IP-Adresse) der Demo-Konten löschen."""
+    usernames = list(usernames)
+    if not usernames:
+        return
+    for model_name in ("AccessAttempt", "AccessLog", "AccessFailureLog"):
+        try:
+            model = apps.get_model("axes", model_name)
+        except LookupError:
+            continue
+        model._base_manager.filter(username__in=usernames).delete()
+
+
+def sandbox_upload_bytes(sandbox: DemoSandbox) -> int:
+    """Belegter Speicher für Anhänge und Profilbilder einer Demo-Wache."""
+    total = 0
+    for model in apps.get_models():
+        fields = {field.name: field for field in model._meta.concrete_fields}
+        if "station" in fields and "size" in fields and isinstance(fields.get("data"), models.BinaryField):
+            total += model._base_manager.filter(station_id=sandbox.station_id).aggregate(
+                total=models.Sum("size"))["total"] or 0
+    total += UserProfile.objects.filter(
+        user__station_memberships__station_id=sandbox.station_id, avatar__isnull=False,
+    ).aggregate(total=models.Sum(Length("avatar")))["total"] or 0
+    return total
+
+
+def write_refusal(request, sandbox: DemoSandbox) -> str | None:
+    """Grund, warum diese Änderung in der Demo abgelehnt wird – sonst None.
+
+    Ein Besuch darf höchstens DEMO_SANDBOX_MAX_WRITES Änderungen schicken und
+    höchstens DEMO_SANDBOX_MAX_UPLOAD_MB an Dateien ablegen. Das reicht für
+    jeden Rundgang, hält aber Skripte davon ab, die Datenbank zu füllen.
+    """
+    budget = settings.DEMO_SANDBOX_MAX_WRITES
+    if budget > 0:
+        key = f"demo-sandbox-writes:{sandbox.token}"
+        timeout = int((max_lifetime() + timedelta(minutes=10)).total_seconds())
+        cache.add(key, 0, timeout=timeout)
+        try:
+            count = cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, timeout=timeout)
+            count = 1
+        if count > budget:
+            return _("Diese Demo hat ihr Limit an Änderungen erreicht. Melde dich ab und starte einfach eine neue Demo.")
+    if request.META.get("CONTENT_TYPE", "").startswith("multipart/form-data"):
+        try:
+            incoming = int(request.META.get("CONTENT_LENGTH") or 0)
+        except ValueError:
+            incoming = 0
+        limit = settings.DEMO_SANDBOX_MAX_UPLOAD_MB * 1024 * 1024
+        if sandbox_upload_bytes(sandbox) + incoming > limit:
+            return _("Der Speicher dieser Demo ist voll (höchstens %(mb)s MB Dateien). Starte eine neue Demo, um weitere Dateien hochzuladen.") % {
+                "mb": settings.DEMO_SANDBOX_MAX_UPLOAD_MB,
+            }
+    return None
+
+
 def purge_sandbox(sandbox: DemoSandbox) -> int:
     """Demo-Wache mit allen Konten und Einträgen löschen. Gibt die Zeilenzahl zurück.
 
@@ -302,7 +387,9 @@ def purge_sandbox(sandbox: DemoSandbox) -> int:
     """
     station_ids = [sandbox.station_id]
     with transaction.atomic():
-        rows = _referencing_rows(station_ids, sandbox_user_ids(station_ids))
+        user_ids = sandbox_user_ids(station_ids)
+        _delete_login_records(User.objects.filter(pk__in=user_ids).values_list("username", flat=True))
+        rows = _referencing_rows(station_ids, user_ids)
         total = 0
         for model, pks in rows.items():
             _delete_files(model, pks)
@@ -362,9 +449,21 @@ class DemoSandboxMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         match = getattr(request, "resolver_match", None)
-        if request.demo_sandbox is not None and match and match.url_name in BLOCKED_URL_NAMES:
+        sandbox = request.demo_sandbox
+        if sandbox is None:
+            return None
+        name = match.url_name if match else None
+        if name in BLOCKED_URL_NAMES:
             messages.info(request, _("Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."))
             return redirect("dashboard")
+        if request.method == "POST" and name not in WRITE_EXEMPT_URL_NAMES:
+            refusal = write_refusal(request, sandbox)
+            if refusal:
+                messages.error(request, refusal)
+                back = request.META.get("HTTP_REFERER", "")
+                if back and url_has_allowed_host_and_scheme(back, {request.get_host()}, require_https=request.is_secure()):
+                    return redirect(back)
+                return redirect("dashboard")
         return None
 
 

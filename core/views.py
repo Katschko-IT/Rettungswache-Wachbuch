@@ -1038,7 +1038,9 @@ def team(request):
     station = request.membership.station
     members = Membership.objects.filter(station=station).select_related("user")
     pending_registrations = pending_registrations_for_station(station)
-    pending_count = users_awaiting_station_access(station).count()
+    # Eine Demo-Wache sieht keine Konten der Installation (auch nicht deren Anzahl).
+    in_demo = getattr(request, "demo_sandbox", None) is not None
+    pending_count = 0 if in_demo else users_awaiting_station_access(station).count()
     return render(request, "core/team.html", {
         "page_obj": page_for(request, members, 25),
         "pending_count": pending_count,

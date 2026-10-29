@@ -43,6 +43,7 @@ from ..errors import (
     json_error,
     log_exception,
 )
+from ..middleware import rate_limit_ip
 from ..forms import CalendarEventForm, CoffeeEntryForm, HandoverForm, HandoverStatusForm, PinboardNoteForm
 from ..models import (
     ApiToken,
@@ -94,7 +95,7 @@ def api_rate_limit(bucket: str, get_key: callable = None):
             elif getattr(request, "user", None) is not None and request.user.is_authenticated:
                 raw_key = f"user:{request.user.pk}"
             else:
-                raw_key = getattr(request, "client_ip", None) or "unknown"
+                raw_key = rate_limit_ip(request)
 
             if not consume(bucket, raw_key, limit=limit, window_seconds=window_seconds):
                 response = _json_error(
@@ -203,8 +204,7 @@ def _token_rate_limit_key(request):
         body = _parse_json(request)
         if isinstance(body, dict):
             username = str(body.get("username") or "").strip()
-    client_ip = getattr(request, "client_ip", None) or "unknown"
-    return f"{client_ip}|{username}"
+    return f"{rate_limit_ip(request)}|{username}"
 
 
 def _extract_bearer_token(request):

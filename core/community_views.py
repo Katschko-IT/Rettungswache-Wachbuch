@@ -18,6 +18,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from .access import CONTENT_ROLES, get_membership, membership_required, station_module_required
 from .avatars import initials_for
 from .forms import AvatarForm, ChatMessageForm, ProfileForm, RegistrationForm
+from .middleware import rate_limit_ip
 from .models import ChatMessage, Membership, RegistrationRequest, UserProfile
 from .rate_limit import consume as rate_limit_consume
 from .services import audit, revoke_api_tokens_for_user
@@ -28,7 +29,7 @@ def registration_enabled():
 
 
 def _client_ip(request):
-    return getattr(request, "client_ip", "") or "unknown"
+    return rate_limit_ip(request)
 
 
 def _registration_rate_limited(request):

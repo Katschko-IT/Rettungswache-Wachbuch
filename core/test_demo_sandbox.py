@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.management import call_command
 from django.db import connection
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -247,3 +247,170 @@ class DemoSandboxMfaTests(TestCase):
         self.client.force_login(user)
         self.assertRedirects(self.client.get(reverse("dashboard")), reverse("mfa_setup"),
                              fetch_redirect_response=False)
+
+
+@override_settings(**SANDBOX_ON)
+class DemoSandboxBoundaryTests(TestCase):
+    """Ein Demo-Besuch erreicht keine Konten der Installation und füllt die Datenbank nicht."""
+
+    def setUp(self):
+        cache.clear()
+
+    def _start(self, client=None, **extra):
+        client = client or self.client
+        response = client.post(reverse("login"), DEMO, **extra)
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+        user = User.objects.get(pk=client.session["_auth_user_id"])
+        return user, Membership.objects.get(user=user).station
+
+    def test_accounts_without_membership_stay_out_of_reach(self):
+        from core.models import TotpDevice
+
+        root = User.objects.create_superuser("root", "root@example.org", "ein-langes-Passwort-42")
+        TotpDevice.objects.create(user=root, secret="JBSWY3DPEHPK3PXP", is_confirmed=True)
+        former = User.objects.create_user("ehemalig", password="ein-langes-Passwort-42", first_name="Erika")
+        _, station = self._start()
+
+        self.assertRedirects(self.client.get(reverse("team_create")), reverse("dashboard"))
+        self.client.post(reverse("team_create"), {"user": root.pk, "role": Membership.Role.ADMIN})
+        self.assertFalse(Membership.objects.filter(user=root).exists())
+        self.assertNotContains(self.client.get(reverse("team")), "Erika")
+
+        # Selbst wenn ein altes Konto in die Demo-Wache geriete: Ende der Demo
+        # sperrt oder löscht es nicht.
+        Membership.objects.create(user=former, station=station, role=Membership.Role.MEMBER)
+        self.client.post(reverse("logout"))
+        self.assertFalse(Station.objects.filter(pk=station.pk).exists())
+        former.refresh_from_db()
+        self.assertTrue(former.is_active)
+        self.assertTrue(User.objects.filter(pk=root.pk, is_active=True).exists())
+        self.assertTrue(TotpDevice.objects.filter(user=root).exists())
+
+    def test_member_created_in_the_demo_is_deleted_with_it(self):
+        self._start()
+        response = self.client.post(reverse("team_user_create"), {
+            "username": "neu-im-team", "first_name": "Neu", "password1": "ein-langes-Passwort-42",
+            "password2": "ein-langes-Passwort-42", "role": Membership.Role.MEMBER,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.filter(username="neu-im-team").exists())
+        self.client.post(reverse("logout"))
+        self.assertFalse(User.objects.filter(username="neu-im-team").exists())
+
+    def test_login_records_with_ip_addresses_are_deleted(self):
+        from axes.models import AccessLog
+
+        user, _ = self._start()
+        self.assertTrue(AccessLog.objects.filter(username=user.username).exists())
+        self.client.post(reverse("logout"))
+        self.assertFalse(AccessLog.objects.filter(username__startswith="demo-").exists())
+
+    def test_app_access_cannot_be_created_in_the_demo(self):
+        from core.models import ApiToken
+
+        self._start()
+        self.client.post(reverse("api_tokens_manage"), {"action": "create", "label": "x"})
+        self.assertEqual(ApiToken.objects.count(), 0)
+        self.assertRedirects(self.client.get(reverse("mobile_setup_qr")), reverse("dashboard"))
+
+    @override_settings(DEMO_SANDBOX_MAX_WRITES=2)
+    def test_write_budget_per_visit(self):
+        _, station = self._start()
+        for title in ("eins", "zwei", "drei"):
+            self.client.post(reverse("handover_create"), {
+                "category": "station", "title": title, "details": "x", "priority": "normal",
+            }, HTTP_REFERER="http://testserver/uebergaben/")
+        page = self.client.get(reverse("handover_list"))
+        self.assertContains(page, "Limit an Änderungen")
+        self.assertFalse(HandoverEntry.objects.filter(station=station, title="drei").exists())
+        # Abmelden geht immer.
+        self.client.post(reverse("logout"))
+        self.assertFalse(Station.objects.filter(pk=station.pk).exists())
+
+    def _png(self):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (8, 8), "red").save(buffer, format="PNG")
+        return SimpleUploadedFile("a.png", buffer.getvalue(), content_type="image/png")
+
+    def _handover_with_file(self, title):
+        return self.client.post(reverse("handover_create"), {
+            "category": "station", "title": title, "details": "x", "priority": "normal",
+            "attachments": self._png(),
+        })
+
+    def test_upload_within_quota_works(self):
+        _, station = self._start()
+        self._handover_with_file("Mit Datei")
+        self.assertTrue(HandoverEntry.objects.filter(station=station, title="Mit Datei").exists())
+
+    @override_settings(DEMO_SANDBOX_MAX_UPLOAD_MB=0)
+    def test_upload_quota_per_visit(self):
+        _, station = self._start()
+        self._handover_with_file("Mit Datei")
+        self.assertFalse(HandoverEntry.objects.filter(station=station, title="Mit Datei").exists())
+
+    @override_settings(TRUSTED_PROXY=True, DEMO_SANDBOX_PER_IP_HOUR=2)
+    def test_ipv6_starts_are_counted_per_64_network(self):
+        for suffix in ("1", "2", "3"):
+            self.client_class().post(reverse("login"), DEMO, HTTP_X_FORWARDED_FOR=f"2001:db8:1:2::{suffix}")
+        self.assertEqual(DemoSandbox.objects.count(), 2)
+        self.client_class().post(reverse("login"), DEMO, HTTP_X_FORWARDED_FOR="2001:db8:1:3::1")
+        self.assertEqual(DemoSandbox.objects.count(), 3)
+
+
+class AdminLoginTests(TestCase):
+    """Der Django-Admin nutzt die normale Anmeldung mit zweitem Faktor."""
+
+    def test_admin_login_page_redirects_to_app_login(self):
+        response = self.client.get("/django-admin/login/")
+        self.assertRedirects(response, f"{reverse('login')}?next=/django-admin/", fetch_redirect_response=False)
+
+    def test_password_alone_does_not_open_the_admin(self):
+        from core.models import TotpDevice
+
+        root = User.objects.create_superuser("root", "root@example.org", "ein-langes-Passwort-42")
+        TotpDevice.objects.create(user=root, secret="JBSWY3DPEHPK3PXP", is_confirmed=True)
+        self.client.post("/django-admin/login/", {"username": "root", "password": "ein-langes-Passwort-42"})
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertNotEqual(self.client.get("/django-admin/auth/user/").status_code, 200)
+
+    def test_logged_in_staff_reaches_the_admin(self):
+        root = User.objects.create_superuser("root", "root@example.org", "ein-langes-Passwort-42")
+        self.client.force_login(root)
+        self.assertEqual(self.client.get("/django-admin/").status_code, 200)
+        self.assertRedirects(self.client.get("/django-admin/login/"), "/django-admin/")
+
+    def test_logged_in_non_staff_gets_forbidden_not_a_loop(self):
+        user = User.objects.create_user("mitglied", password="ein-langes-Passwort-42")
+        self.client.force_login(user)
+        response = self.client.get("/django-admin/", follow=True)
+        self.assertEqual(response.status_code, 403)
+
+
+class DemoSettingsTests(SimpleTestCase):
+    """MFA_REQUIRED bleibt in der öffentlichen Demo für echte Konten erhalten."""
+
+    def _setting(self, name, **env):
+        import os
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        environment = {**os.environ, "DJANGO_SETTINGS_MODULE": "config.settings", **env}
+        result = subprocess.run(
+            [sys.executable, "-c", f"from django.conf import settings; print(settings.{name})"],
+            capture_output=True, text=True, env=environment, check=True,
+            cwd=Path(__file__).resolve().parents[1],
+        )
+        return result.stdout.strip()
+
+    def test_public_demo_keeps_mfa_required(self):
+        self.assertEqual(self._setting("MFA_REQUIRED", DEMO_MODE="true", DEMO_SANDBOX="true", MFA_REQUIRED="true"), "True")
+
+    def test_shared_demo_switches_mfa_off(self):
+        self.assertEqual(self._setting("MFA_REQUIRED", DEMO_MODE="true", DEMO_SANDBOX="false", MFA_REQUIRED="true"), "False")

@@ -66,7 +66,9 @@ Keine Patienten-, Alarm- oder Dienstplandaten.
 
 - Standard ist `DEMO_MODE=false`
 - Passwörter sind öffentlich dokumentiert – nur Loopback/Test
-- Bei `DEMO_MODE` wird `MFA_REQUIRED` automatisch abgeschaltet
+- Beim gemeinsamen Demo-Modus wird `MFA_REQUIRED` automatisch abgeschaltet.
+  In der öffentlichen Demo (`DEMO_SANDBOX=true`) bleibt es wirksam: echte
+  Konten brauchen den zweiten Faktor, Demo-Besuche nicht.
 
 ## Öffentliche Demo im Internet (z. B. `demo.rwsth.de`)
 
@@ -97,13 +99,23 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   diese Fristen.
 - Gesperrt sind Bereiche, die über die eigene Demo-Wache hinaus wirken:
   Impressum und Datenschutz der Installation, öffentliche Display-Links,
-  Wachenterminal-Registrierung und E-Mail-Einladungen. E-Mail- und
-  Signal-Versand sind in diesem Modus ganz abgeschaltet, öffentliche
-  Registrierung ebenso.
-- Schutz vor Missbrauch: höchstens `DEMO_SANDBOX_MAX_ACTIVE` (Standard 100)
-  laufende Demos und `DEMO_SANDBOX_PER_IP_HOUR` (Standard 10) neue Demos je
-  Anschluss und Stunde. Gezählt wird mit einem gesalzenen Hash der IP im
-  Cache, nicht mit der IP selbst.
+  Wachenterminal-Registrierung und Handy-Kopplung, App-Zugänge (API-Tokens),
+  E-Mail-Einladungen und das Freigeben bestehender Konten der Installation.
+  E-Mail- und Signal-Versand sind in diesem Modus ganz abgeschaltet,
+  öffentliche Registrierung ebenso.
+- **Konten der Installation bleiben unberührt:** Gesperrt und gelöscht werden
+  nur Konten, die in der Demo-Wache entstanden sind und nirgends sonst
+  Mitglied sind – nie ältere Konten, nie Staff- oder Superuser-Konten.
+  Anmeldeprotokolle der Demo-Konten (mit IP-Adresse) werden mitgelöscht.
+- Schutz vor Missbrauch:
+  - höchstens `DEMO_SANDBOX_MAX_ACTIVE` (Standard 100) laufende Demos,
+  - `DEMO_SANDBOX_PER_IP_HOUR` (Standard 10) neue Demos je Anschluss und
+    Stunde (IPv6 je /64-Netz),
+  - je Demo höchstens `DEMO_SANDBOX_MAX_WRITES` (Standard 400) Änderungen und
+    `DEMO_SANDBOX_MAX_UPLOAD_MB` (Standard 25) MB an Dateien.
+
+  Gezählt wird mit einem gesalzenen Hash der IP im Cache, nicht mit der IP
+  selbst.
 
 ### Wer löscht?
 

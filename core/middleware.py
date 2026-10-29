@@ -7,6 +7,7 @@ nicht geloggt.
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import re
 
@@ -152,6 +153,25 @@ def client_ip_from_request(request):
     return ip
 
 
+def rate_limit_ip(request) -> str:
+    """Client-Adresse als Schlüssel für Begrenzungen.
+
+    IPv6-Anschlüsse bekommen meist ein ganzes /64-Netz; einzeln gezählt hätte
+    jeder Anschluss praktisch unbegrenzt viele Versuche. Deshalb zählt bei IPv6
+    das /64-Netz, bei IPv4 die Adresse.
+    """
+    ip = getattr(request, "client_ip", None) or client_ip_from_request(request)
+    try:
+        address = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip or "unknown"
+    if address.version == 6:
+        if address.ipv4_mapped:
+            return str(address.ipv4_mapped)
+        return str(ipaddress.ip_network(f"{address}/64", strict=False))
+    return str(address)
+
+
 def axes_client_ip(request, *args, **kwargs):
     """Callable für ``AXES_CLIENT_IP_CALLABLE`` mit derselben Proxy-Logik."""
     return client_ip_from_request(request)
@@ -223,6 +243,7 @@ class MfaEnforcementMiddleware:
 __all__ = [
     "client_ip_from_request",
     "axes_client_ip",
+    "rate_limit_ip",
     "MfaEnforcementMiddleware",
     "SecurityHeadersMiddleware",
     "CorrelationIdMiddleware",

@@ -2,6 +2,24 @@
 
 ## Unveröffentlicht
 
+- **Öffentlicher Betrieb abgesichert:**
+  - Ein Demo-Besuch kann keine Konten der Installation mehr in seine
+    Demo-Wache holen. Bisher ließen sich Konten ohne Mitgliedschaft (z. B. ein
+    Notfall-Superuser) zuordnen, ihr zweiter Faktor zurücksetzen und beim
+    Abmelden löschen. Gesperrt und gelöscht werden nur noch Konten, die in der
+    Demo entstanden sind, nie Staff- oder Superuser-Konten.
+  - In der Demo gesperrt: Freigeben bestehender Konten,
+    Zwei-Faktor-Zurücksetzen, App-Zugänge und Handy-Kopplung.
+  - Je Demo höchstens 400 Änderungen und 25 MB Dateien
+    (`DEMO_SANDBOX_MAX_WRITES`, `DEMO_SANDBOX_MAX_UPLOAD_MB`).
+  - Begrenzungen zählen IPv6-Anschlüsse je /64-Netz (Demo-Start, Feedback,
+    Registrierung, Einrichtung, API).
+  - Anmeldeprotokolle (django-axes) der Demo-Konten werden mit der Demo gelöscht.
+  - Der Django-Admin (`/django-admin/`) meldet nur noch über die normale
+    Anmeldung mit zweitem Faktor an; seine eigene Anmeldeseite umging TOTP.
+  - `MFA_REQUIRED` bleibt in der öffentlichen Demo wirksam (bisher schaltete
+    `DEMO_MODE` es immer ab); Demo-Besuche sind ausgenommen.
+
 - **Öffentliche Demo mit eigener Demo-Wache je Besuch** (`DEMO_SANDBOX=true`,
   [docs/DEMO.md](docs/DEMO.md)).
   - Anmeldung mit „Demo“ / „Demo“ (Felder vorausgefüllt) oder „Demo starten“
