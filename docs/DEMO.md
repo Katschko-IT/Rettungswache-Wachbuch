@@ -126,29 +126,31 @@ Hetzner-Cloud-Instanz mit Ubuntu 24.04 und 2 GB RAM. Die Domain bleibt beim
 bisherigen Anbieter; nur eine Subdomain zeigt auf den neuen Server. So bleiben
 bestehende Webseite und E-Mail-Postfächer der Domain unverändert.
 
+Die vollständige Anleitung mit Härtung des Servers, Überwachung,
+verschlüsselten Backups außer Haus und einem Betriebstest steht in
+[HETZNER.md](HETZNER.md). In Kurzform:
+
 1. **Server anlegen** und die öffentliche IPv4- (und IPv6-)Adresse notieren.
    Welche Hardware reicht: [HARDWARE.md](HARDWARE.md).
 2. **DNS:** Beim Domain-Anbieter für `demo` einen A-Eintrag (und AAAA-Eintrag)
    auf diese Adresse anlegen. Prüfen: `dig +short demo.rwsth.de`.
-3. **Installieren** (auf dem Server):
+3. **Server härten:** `deploy/hetzner/harden-host.sh` (SSH nur mit Schlüssel,
+   Firewall, fail2ban, automatische Updates, Überwachung).
+4. **Installieren** mit eingeschalteter Demo (auf dem Server):
    ```bash
    curl -fsSLO https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh
    sudo sh install.sh --yes --name "Wachwerk Demo" --mode domain \
-     --domain demo.rwsth.de --email postmaster@rwsth.de
+     --domain demo.rwsth.de --email postmaster@rwsth.de --demo
    ```
-4. **Demo einschalten** in `/opt/wachbuch/.env`:
-   ```bash
-   DEMO_MODE=true
-   DEMO_SANDBOX=true
-   COMPOSE_PROFILES=https,demo
-   ```
-   Danach `sudo /opt/wachbuch/wachbuch start`.
+   `--demo` setzt `DEMO_MODE=true`, `DEMO_SANDBOX=true`, das Profil `demo`
+   (Aufräumdienst) und `MFA_REQUIRED=true`: Echte Konten brauchen einen
+   zweiten Faktor, Demo-Besuche nicht.
 5. **Einrichtungsassistent** unter `https://demo.rwsth.de/setup/` mit dem
    Einrichtungscode durchlaufen. Das Admin-Konto dort ist **dein eigenes**
-   Betreiberkonto (nicht „Demo“). Im Schritt Impressum „Öffentlich im
-   Internet erreichbar“ ankreuzen und die Anbieterangaben vollständig
-   eintragen – eine öffentliche Seite braucht ein Impressum (§ 5 DDG) und eine
-   Datenschutz-Information.
+   Betreiberkonto (nicht „Demo“), mit zweitem Faktor. Im Schritt Impressum
+   „Öffentlich im Internet erreichbar“ ankreuzen und die Anbieterangaben
+   vollständig eintragen – eine öffentliche Seite braucht ein Impressum
+   (§ 5 DDG) und eine Datenschutz-Information.
 6. Ausprobieren: Startseite → „Demo starten“, oder Anmelden mit Demo / Demo.
 
 Auf der Hauptdomain kann ein Link oder eine Weiterleitung auf

@@ -84,7 +84,9 @@ jobs:
           shellcheck --version
           shellcheck install.sh scripts/wachbuch scripts/backup-loop.sh scripts/init-db.sh \
             scripts/start-web.sh scripts/start-worker.sh scripts/start-push-worker.sh \
-            scripts/migrate.sh scripts/restore-test.sh
+            scripts/migrate.sh scripts/restore-test.sh \
+            deploy/hetzner/harden-host.sh deploy/hetzner/wachwerk-health.sh \
+            deploy/hetzner/offsite-storagebox.sh
       - name: Validate Compose
         run: |
           cp .env.example .env

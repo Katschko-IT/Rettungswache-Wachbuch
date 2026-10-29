@@ -45,13 +45,17 @@ Aufruf: sh install.sh [Optionen]
                       gebaute Images), alle (auch neue Versionen derselben
                       Hauptversion) oder aus; ohne Angabe wird gefragt
                       (Standard und bei --yes: sicherheit)
+  --demo              öffentliche Demo (docs/DEMO.md): eigene Demo-Wache je
+                      Besuch, Aufräumdienst und Zwei-Faktor-Pflicht für
+                      echte Konten; sinnvoll mit --mode domain
   --no-start          nur Dateien und .env anlegen, nichts starten
   -y, --yes           keine Rückfragen, Standardwerte verwenden
   -h, --help          diese Hilfe
 
 Alle Optionen gehen auch als Umgebungsvariablen: WACHBUCH_DIR, WACHBUCH_NAME,
 WACHBUCH_MODE, WACHBUCH_DOMAIN, WACHBUCH_EMAIL, WACHBUCH_PORT,
-WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL, WACHBUCH_AUTO_UPDATE.
+WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL, WACHBUCH_AUTO_UPDATE,
+WACHBUCH_DEMO (true).
 EOF
 }
 
@@ -72,6 +76,8 @@ BUILD=0
 ASSUME_YES=0
 NO_START=0
 OPT_AUTO="${WACHBUCH_AUTO_UPDATE:-}"
+DEMO=0
+[ "${WACHBUCH_DEMO:-}" != "true" ] || DEMO=1
 
 need_value() {
     if [ $# -lt 2 ] || [ -z "$2" ]; then
@@ -95,6 +101,7 @@ while [ $# -gt 0 ]; do
         --project) need_value "$@"; PROJECT="$2"; shift ;;
         --build) BUILD=1 ;;
         --auto-update) need_value "$@"; OPT_AUTO="$2"; shift ;;
+        --demo) DEMO=1 ;;
         --no-start) NO_START=1 ;;
         -y|--yes) ASSUME_YES=1 ;;
         -h|--help) usage; exit 0 ;;
@@ -596,6 +603,24 @@ put WEBAUTHN_RP_ID "$D_RP_ID"
 put WEBAUTHN_ORIGIN "$D_RP_ORIGIN"
 put COMPOSE_PROFILES "$D_PROFILES"
 put CADDY_TLS "$D_TLS"
+
+# Öffentliche Demo: Schalter und Pflicht zum zweiten Faktor (Demo-Konten sind
+# davon ausgenommen). Das Profil "demo" startet den Aufräumdienst und bleibt
+# auch erhalten, wenn eine spätere Installation die Profile neu setzt.
+if [ "$DEMO" -eq 1 ]; then
+    [ "$MODE" = "domain" ] || warn "--demo ist für eine öffentliche Domain gedacht (--mode domain)."
+    env_set DEMO_MODE true
+    env_set DEMO_SANDBOX true
+    env_set MFA_REQUIRED true
+fi
+if [ "$(env_get DEMO_SANDBOX)" = "true" ]; then
+    profiles=$(env_get COMPOSE_PROFILES)
+    case ",$profiles," in
+        *,demo,*) ;;
+        *) env_set COMPOSE_PROFILES "${profiles:+$profiles,}demo" ;;
+    esac
+    info "Öffentliche Demo an (DEMO_SANDBOX=true, Profil demo)"
+fi
 chmod 600 "$ENV_FILE"
 info "Schlüssel gesetzt, Rechte 600"
 

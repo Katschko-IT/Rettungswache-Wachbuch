@@ -437,3 +437,72 @@ class AutoUpdateCliTests(SimpleTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(self.compose_calls("pull"))
         self.assertIn("läuft bereits", self.log())
+
+
+class InstallDemoOptionTests(SimpleTestCase):
+    """install.sh --demo schreibt die Schalter der öffentlichen Demo in .env."""
+
+    FAKE_DOCKER = """#!/bin/sh
+case "$*" in
+    *Architecture*) echo x86_64 ;;
+    *MemTotal*) echo 4294967296 ;;
+    "compose version --short") echo 2.29.0 ;;
+    *Server.Version*) echo 27.0.0 ;;
+esac
+exit 0
+"""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        docker = self.bin / "docker"
+        docker.write_text(self.FAKE_DOCKER, encoding="utf-8")
+        docker.chmod(0o755)
+        self.dir = self.tmp / "wachwerk"
+
+    def install(self, *args):
+        environment = {
+            "PATH": f"{self.bin}{os.pathsep}{os.environ.get('PATH', os.defpath)}",
+            "HOME": str(self.tmp),
+        }
+        return subprocess.run(
+            ["sh", str(ROOT / "install.sh"), "--yes", "--no-start", "--source", str(ROOT),
+             "--dir", str(self.dir), "--name", "Demo", *args],
+            capture_output=True, text=True, env=environment, timeout=60, check=False,
+        )
+
+    def env(self):
+        values = {}
+        for line in (self.dir / ".env").read_text(encoding="utf-8").splitlines():
+            if "=" in line and not line.startswith("#"):
+                key, value = line.split("=", 1)
+                values[key] = value
+        return values
+
+    def test_demo_sets_sandbox_profile_and_mfa(self):
+        result = self.install("--mode", "domain", "--domain", "demo.example.org",
+                              "--email", "ops@example.org", "--demo")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        env = self.env()
+        self.assertEqual(env["DEMO_MODE"], "true")
+        self.assertEqual(env["DEMO_SANDBOX"], "true")
+        self.assertEqual(env["MFA_REQUIRED"], "true")
+        self.assertEqual(env["COMPOSE_PROFILES"], "https,demo")
+        self.assertEqual(env["TRUSTED_PROXY"], "true")
+        self.assertEqual(env["ALLOWED_HOSTS"], "demo.example.org,localhost,127.0.0.1")
+
+    def test_rerun_with_new_mode_keeps_demo_profile(self):
+        self.install("--mode", "domain", "--domain", "demo.example.org", "--email", "ops@example.org", "--demo")
+        result = self.install("--mode", "domain", "--domain", "neu.example.org", "--email", "ops@example.org")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.env()["COMPOSE_PROFILES"], "https,demo")
+
+    def test_without_demo_no_sandbox(self):
+        result = self.install("--mode", "domain", "--domain", "wache.example.org", "--email", "ops@example.org")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        env = self.env()
+        self.assertEqual(env["DEMO_MODE"], "false")
+        self.assertNotIn("DEMO_SANDBOX", env)
+        self.assertEqual(env["COMPOSE_PROFILES"], "https")

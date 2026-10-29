@@ -226,3 +226,24 @@ class DemoSandboxOffTests(TestCase):
     def test_shared_demo_mode_is_unchanged(self):
         response = self.client.get(reverse("login"))
         self.assertNotContains(response, 'value="Demo"')
+
+
+@override_settings(DEMO_MODE=True, DEMO_SANDBOX=True, MFA_REQUIRED=True)
+class DemoSandboxMfaTests(TestCase):
+    """Öffentliche Instanz: 2FA-Pflicht für echte Konten, nicht für Demo-Besuche."""
+
+    def setUp(self):
+        cache.clear()
+
+    def test_demo_visit_is_not_forced_into_mfa_setup(self):
+        response = self.client.post(reverse("login"), DEMO)
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("dashboard")).status_code, 200)
+
+    def test_real_account_without_second_factor_must_set_it_up(self):
+        station = Station.get_default()
+        user = User.objects.create_user("betreiber", password="ein-langes-Passwort-42")
+        Membership.objects.create(user=user, station=station, role=Membership.Role.ADMIN)
+        self.client.force_login(user)
+        self.assertRedirects(self.client.get(reverse("dashboard")), reverse("mfa_setup"),
+                             fetch_redirect_response=False)

@@ -18,10 +18,26 @@
 	# Die interne CA nicht in den (read-only) Container-Truststore eintragen;
 	# Geräte importieren /data/caddy/pki/authorities/local/root.crt selbst.
 	skip_install_trust
+	servers {
+		# Langsame Clients (Slowloris) nicht ewig offen halten.
+		timeouts {
+			read_header 10s
+			read_body 2m
+			idle 2m
+		}
+		# Compose veröffentlicht nur TCP 443; ohne HTTP/3 wirbt Caddy nicht
+		# mit einem UDP-Port, der von außen nicht erreichbar ist.
+		protocols h1 h2
+	}
 }
 
 {$WACHBUCH_HOSTNAME} {
 	tls {$CADDY_TLS}
 	encode zstd gzip
+	# Größer als jede erlaubte Anfrage (Anhänge max. 5 MiB, Formulare 10 MiB).
+	request_body {
+		max_size 20MB
+	}
+	header -Server
 	reverse_proxy web:8000
 }

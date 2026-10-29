@@ -1,0 +1,259 @@
+# Wachwerk sicher im Internet: Betrieb auf einem Hetzner-Server
+
+Diese Anleitung bringt Wachwerk auf einen eigenen Cloud-Server, z. B. als
+öffentliche Demo unter `demo.rwsth.de`. Sie gilt genauso für jede andere
+Domain und jeden anderen Anbieter mit Debian oder Ubuntu.
+
+Was am Ende steht:
+
+- Wachwerk unter `https://<deine-domain>` mit Let's-Encrypt-Zertifikat
+- Server gehärtet: nur SSH-Schlüssel, Firewall, fail2ban, automatische
+  Sicherheitsupdates
+- Überwachung alle 5 Minuten mit E-Mail bei Ausfall
+- tägliches Backup, verschlüsselt auf einer Storage Box außer Haus
+- ein geübter Ablauf für Update, Rückkehr zur alten Version und
+  Wiederherstellung
+
+Zeitbedarf: etwa eine Stunde. Kosten: rund 4–6 € im Monat für den Server,
+etwa 3–4 € für die Storage Box.
+
+> **Grundregel für eine öffentliche Instanz:** Keine echten Daten von
+> Kolleginnen, Kollegen, Patientinnen oder Patienten. Die Demo arbeitet mit
+> Musterdaten, die beim Abmelden gelöscht werden (docs/DEMO.md).
+
+---
+
+## 0. Vorbereitung auf deinem Rechner
+
+1. **SSH-Schlüssel** (falls noch keiner da ist):
+   ```bash
+   ssh-keygen -t ed25519 -C "dein-name@laptop"
+   cat ~/.ssh/id_ed25519.pub    # diesen Text bei Hetzner hinterlegen
+   ```
+2. **Überwachung:** kostenloses Konto bei [healthchecks.io](https://healthchecks.io)
+   (Betreiber in der EU) anlegen, einen Check „Wachwerk“ mit
+   *Period 5 minutes* und *Grace 10 minutes* erstellen und die Ping-Adresse
+   kopieren (`https://hc-ping.com/…`). Bleibt der Ping aus oder meldet der
+   Server einen Fehler, kommt eine E-Mail.
+3. **Backup-Schlüssel** (für Schritt 6), einmalig auf deinem Rechner:
+   ```bash
+   gpg --quick-generate-key "Wachwerk Backup <deine@adresse.de>" rsa4096 encr never
+   gpg --armor --export "Wachwerk Backup" > wachwerk-backup.asc
+   ```
+   Auf den Server kommt nur `wachwerk-backup.asc` (öffentlich). Den privaten
+   Schlüssel sicherst du zusätzlich offline
+   (`gpg --armor --export-secret-keys "Wachwerk Backup" > privat.asc`, z. B. auf
+   einen USB-Stick im Schrank). Ohne ihn lassen sich die Backups nicht öffnen.
+
+## 1. Server anlegen (Hetzner Cloud Console)
+
+| Einstellung | Wert |
+| --- | --- |
+| Standort | Nürnberg oder Falkenstein (Deutschland) |
+| Image | Debian 12 oder Ubuntu 24.04 |
+| Typ | 2 vCPU, 4 GB RAM, 40 GB Platte – z. B. CX22 (Intel/AMD) oder CAX11 (ARM, Images gibt es für beide) |
+| Netzwerk | öffentliche IPv4 und IPv6 |
+| SSH-Schlüssel | deinen öffentlichen Schlüssel aus Schritt 0 |
+| Backups | optional (Hetzner-Snapshots, +20 %); ersetzt nicht Schritt 6 |
+
+**Firewall** (Cloud Console > Firewalls, dem Server zuweisen). Sie wirkt vor
+dem Server und schützt auch dann, wenn auf dem Server etwas falsch
+eingestellt ist:
+
+| Richtung | Protokoll | Port | Quelle |
+| --- | --- | --- | --- |
+| eingehend | TCP | 22 | am besten nur deine IP-Adresse, sonst „Any“ |
+| eingehend | TCP | 80 | Any IPv4, Any IPv6 |
+| eingehend | TCP | 443 | Any IPv4, Any IPv6 |
+| eingehend | ICMP | – | Any (für `ping`) |
+
+Ausgehend bleibt alles offen (Updates, Let's Encrypt, Storage Box).
+
+**Auftragsverarbeitung:** Sobald personenbezogene Daten auf dem Server liegen
+(Konten, Feedback mit Name oder E-Mail), brauchst du mit Hetzner einen
+Vertrag zur Auftragsverarbeitung (AVV). Hetzner bietet ihn im Kundenkonto
+(accounts.hetzner.com) zum Abschluss online an.
+
+## 2. DNS-Eintrag (konsoleH bei Hetzner)
+
+In konsoleH die Domain `rwsth.de` öffnen > *DNS-Verwaltung*:
+
+| Name | Typ | Wert |
+| --- | --- | --- |
+| `demo` | A | IPv4 des Servers |
+| `demo` | AAAA | IPv6 des Servers (Adresse mit `::1` am Ende) |
+
+Prüfen (nach ein paar Minuten): `dig +short demo.rwsth.de` zeigt die IPv4.
+
+## 3. Server härten
+
+Als root anmelden und das Härtungsskript ausführen:
+
+```bash
+ssh root@<IPv4>
+apt-get update && apt-get install -y git
+git clone --depth 1 https://github.com/Katschko-IT/Rettungswache-Wachbuch.git /root/wachwerk-src
+sh /root/wachwerk-src/deploy/hetzner/harden-host.sh --user michael \
+   --ping-url https://hc-ping.com/<deine-uuid>
+```
+
+Das Skript (`deploy/hetzner/harden-host.sh`, wiederholbar):
+
+- installiert Docker und Compose aus dem offiziellen Docker-Repository,
+- legt den Benutzer `michael` mit sudo an und übernimmt den SSH-Schlüssel,
+- stellt SSH auf „nur Schlüssel, kein root, nur dieser Benutzer“ um,
+- schaltet die Firewall `ufw` ein (22 gedrosselt, 80, 443) und fail2ban für SSH,
+- spielt Sicherheitsupdates täglich ein (bei Bedarf Neustart um 04:30),
+- setzt Docker auf `live-restore`, Log-Rotation und `no-new-privileges`,
+- legt auf Servern mit weniger als 4 GB RAM 2 GB Swap an,
+- richtet die Überwachung `wachwerk-health` ein (alle 5 Minuten).
+
+**Wichtig:** Bevor du die root-Sitzung schließt, in einem **zweiten**
+Terminal `ssh michael@<IPv4>` testen. Klappt das nicht, in der ersten
+Sitzung `rm /etc/ssh/sshd_config.d/10-wachwerk.conf && systemctl reload ssh`.
+Im Notfall hilft die Konsole in der Hetzner Cloud Console (Server > Konsole).
+
+## 4. Wachwerk installieren
+
+Ab jetzt als `michael`:
+
+```bash
+ssh michael@<IPv4>
+curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh \
+  | sudo sh -s -- --mode domain --domain demo.rwsth.de --email deine@adresse.de \
+       --name "Wachwerk Demo" --demo --auto-update sicherheit
+```
+
+- `--mode domain` holt das Zertifikat von Let's Encrypt (DNS aus Schritt 2
+  muss stimmen, Ports 80/443 offen sein).
+- `--demo` schaltet die öffentliche Demo ein: `DEMO_MODE=true`,
+  `DEMO_SANDBOX=true`, Profil `demo` (Aufräumdienst) und Pflicht zur
+  Zwei-Faktor-Anmeldung für alle echten Konten. Ohne `--demo` entsteht eine
+  normale Installation für eine Wache.
+- `--auto-update sicherheit` spielt nachts neu gebaute Images derselben
+  Version ein (mit Backup vorher und automatischer Rückkehr, falls der Start
+  scheitert).
+
+Am Ende stehen Adresse und **Einrichtungscode** auf dem Bildschirm.
+
+## 5. Ersteinrichtung
+
+1. `https://demo.rwsth.de/setup/` öffnen, den Einrichtungscode eingeben.
+2. **Dein eigenes Betreiber-Konto** anlegen: langes Passwort
+   (Passwort-Manager) und direkt danach den zweiten Faktor (App oder Passkey).
+   Auf einer öffentlichen Instanz ist er Pflicht.
+3. **Impressum und Datenschutz** im Assistenten vollständig ausfüllen
+   (Name, ladungsfähige Anschrift, E-Mail). Eine öffentlich erreichbare Seite
+   braucht ein Impressum (§ 5 DDG).
+4. Einrichtungscode danach unbrauchbar machen:
+   ```bash
+   sudo sed -i 's/^SETUP_BOOTSTRAP_TOKEN=.*/SETUP_BOOTSTRAP_TOKEN=/' /opt/wachbuch/.env
+   sudo /opt/wachbuch/wachbuch start
+   ```
+5. Abmelden, auf der Anmeldeseite **Demo / Demo** ausprobieren.
+
+## 6. Backups außer Haus (Hetzner Storage Box)
+
+1. In der Hetzner Console eine **Storage Box** (kleinste Größe reicht)
+   bestellen, Standort Deutschland. Unter *Einstellungen* „SSH-Support“ und
+   „Externe Erreichbarkeit“ einschalten, Passwort setzen.
+2. Öffentlichen Backup-Schlüssel auf den Server kopieren:
+   ```bash
+   scp wachwerk-backup.asc michael@<IPv4>:
+   ```
+3. Auf dem Server:
+   ```bash
+   sudo sh /root/wachwerk-src/deploy/hetzner/offsite-storagebox.sh \
+      --storagebox u123456 --gpg-key ~/wachwerk-backup.asc
+   ```
+   Das Skript fragt einmal nach dem Storage-Box-Passwort, hinterlegt danach
+   einen eigenen SSH-Schlüssel und legt sofort das erste verschlüsselte
+   Backup an.
+
+Danach gilt:
+
+- Der Backup-Dienst legt täglich einen Dump an (7 Tage auf dem Server).
+- Jeder Dump wird mit deinem öffentlichen Schlüssel verschlüsselt und
+  stündlich auf die Storage Box kopiert (30 Tage).
+- Auf der Storage Box liegt nichts im Klartext. Der private Schlüssel ist
+  nur bei dir.
+
+## 7. Betriebstest: einmal alles durchspielen
+
+Erst wenn diese Tabelle abgehakt ist, ist der Betrieb erprobt.
+
+| # | Test | So geht's | Erwartet |
+| --- | --- | --- | --- |
+| 1 | Zustand | `sudo wachwerk-health --verbose` | alle Zeilen `OK` |
+| 2 | Alarm | `sudo wachwerk-health --test` | E-Mail von healthchecks.io in wenigen Minuten |
+| 3 | Ausfall | `sudo /opt/wachbuch/wachbuch stop`, 15 Minuten warten, dann `… start` | E-Mail „down“, danach „up“ |
+| 4 | Offene Ports | von deinem Rechner: `nmap -Pn demo.rwsth.de` | nur 22, 80, 443 |
+| 5 | TLS | [SSL Labs](https://www.ssllabs.com/ssltest/) mit `demo.rwsth.de` | Note A oder A+ |
+| 6 | Sicherheits-Header | `curl -sI https://demo.rwsth.de/` oder [securityheaders.com](https://securityheaders.com) | `Strict-Transport-Security`, `Content-Security-Policy`, `X-Frame-Options: DENY`, kein `Server`-Header |
+| 7 | SSH-Sperre | fünfmal mit falschem Benutzer anmelden, dann `sudo fail2ban-client status sshd` | deine IP steht unter „Banned“ (`sudo fail2ban-client unban <IP>`) |
+| 8 | Demo | Demo/Demo anmelden, etwas anlegen, abmelden | Startseite meldet „Demo beendet“, `wachbuch logs demo-cleaner` zeigt die Löschung |
+| 9 | Backup | `sudo /opt/wachbuch/wachbuch backup` | neue Datei, verschlüsselte Kopie in `/var/lib/wachwerk-offsite` |
+| 10 | Wiederherstellungsprobe | `cd /opt/wachbuch && sudo docker compose run --rm restore-test` | Dump in Testdatenbank eingespielt, Tabellen geprüft, Testdatenbank entfernt |
+| 11 | Wiederherstellen aus der Storage Box | Datei mit `sftp -P 23 u123456@u123456.your-storagebox.de` holen, **auf deinem Rechner** `gpg --output rwsth.dump --decrypt <datei>.gpg`, auf den Server kopieren, `sudo /opt/wachbuch/wachbuch restore ~/rwsth.dump` | Stand des Backups ist wieder da (vorher wird automatisch ein Sicherheits-Backup erstellt) |
+| 12 | Update | `sudo /opt/wachbuch/wachbuch update` | Backup, neue Version, alle Dienste gesund |
+| 13 | Zurück zur alten Version | `sudo /opt/wachbuch/wachbuch update <alte-version>` | alte Version läuft wieder |
+| 14 | Neustart | `sudo reboot`, 3 Minuten warten | Seite erreichbar, Test 1 grün |
+| 15 | Automatische Updates | `sudo /opt/wachbuch/wachbuch auto-update status` | Zeitplan aktiv, letzter Lauf ohne Fehler |
+
+> Test 13 nur zurück auf eine Version **ohne** neuere Datenbank-Migrationen.
+> Sonst Test 11 mit dem Backup von vor dem Update verwenden.
+
+## 8. Laufender Betrieb
+
+| Wann | Was |
+| --- | --- |
+| automatisch, 5 Minuten | `wachwerk-health` prüft Erreichbarkeit, Zertifikat, Container, Backup, Offsite-Kopie und Plattenplatz |
+| automatisch, täglich | Sicherheitsupdates des Systems und der Wachwerk-Images, Backup |
+| monatlich | Test 10 (Wiederherstellungsprobe), kurzer Blick in `wachbuch status` |
+| vierteljährlich | Test 11 (Wiederherstellen aus der Storage Box) |
+| bei neuer Version | `wachbuch update`, CHANGELOG lesen |
+
+Nützliche Befehle:
+
+```bash
+sudo /opt/wachbuch/wachbuch status          # Dienste und Version
+sudo /opt/wachbuch/wachbuch logs web        # Protokoll der Anwendung
+sudo journalctl -u wachwerk-health -n 50    # letzte Prüfungen
+sudo journalctl -u wachwerk-offsite -n 20   # letzte Offsite-Kopien
+sudo fail2ban-client status sshd            # gesperrte Adressen
+sudo ufw status verbose                     # Firewall
+```
+
+## 9. Was die Software für den Internetbetrieb mitbringt
+
+- **Verschlüsselung:** HTTPS mit HSTS (ein Jahr), Cookies nur über HTTPS
+  (`Secure`, `HttpOnly`, `SameSite=Lax`).
+- **Strenge Browser-Regeln:** Content-Security-Policy ohne `unsafe-inline`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`, `nosniff`.
+- **Anmeldung:**
+  - Sperre nach Fehlversuchen (django-axes), Begrenzungen je Anschluss und
+    Person.
+  - Zwei-Faktor-Anmeldung und Passkeys; mit `--demo` Pflicht für alle echten
+    Konten.
+- **Getrennte Netze:** Datenbank und Redis liegen in internen
+  Docker-Netzen ohne Internet. Nach außen offen ist nur Caddy (80/443); die
+  Anwendung selbst lauscht nur auf `127.0.0.1`.
+- **Container:** schreibgeschützte Dateisysteme, keine Linux-Capabilities,
+  `no-new-privileges`. Datenbankrollen mit minimalen Rechten (die Anwendung
+  darf Protokolle nicht löschen).
+- **Proxy (Caddy):**
+  - verwirft gefälschte `X-Forwarded-*`-Header,
+  - begrenzt Anfragen auf 20 MB,
+  - schließt langsame Verbindungen (Schutz vor Slowloris),
+  - zeigt keine Server-Kennung.
+- **Demo:**
+  - Jeder Besuch hat eine eigene Wache, die beim Abmelden, nach 30 Minuten
+    Leerlauf oder spätestens nach 2 Stunden gelöscht wird.
+  - Begrenzt auf 100 gleichzeitige Demos und 10 neue je Anschluss und Stunde.
+  - Kein E-Mail- und Signal-Versand, keine Einladungen, keine
+    Geräte-Kopplung.
+- **Prüfungen:** Sicherheitstests als CI-Pflicht, wöchentlich neu gebaute
+  Images mit Sicherheitsscan (Trivy).
+
+Was die Software **nicht** ersetzt: einen externen Sicherheitstest vor dem
+Echtbetrieb mit echten Daten (docs/ASVS-L2.md, docs/GO-LIVE-CHECKLIST.md).

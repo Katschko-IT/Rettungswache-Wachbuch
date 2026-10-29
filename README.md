@@ -74,6 +74,10 @@ zusätzlich neue Versionen derselben Hauptversion.
 Alle Optionen, manuelle Installation und Reverse-Proxy-Varianten:
 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
+Eigener Server im Internet (z. B. Hetzner Cloud) mit Härtung, Überwachung,
+verschlüsselten Backups außer Haus und Betriebstest:
+[`docs/HETZNER.md`](docs/HETZNER.md).
+
 ## Funktionen
 
 Jede Wache schaltet nur die Module ein, die sie nutzt. Die **Übersicht** zeigt

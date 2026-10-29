@@ -213,6 +213,10 @@ class MfaEnforcementMiddleware:
 
         if is_service_user(user):
             return False
+        # Konten einer Demo-Wache (DemoSandboxMiddleware) haben kein Passwort
+        # und verschwinden mit dem Besuch; die Pflicht gilt den echten Konten.
+        if getattr(request, "demo_sandbox", None) is not None:
+            return False
         return not user_has_confirmed_mfa(user)
 
 
