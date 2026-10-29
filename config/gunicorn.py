@@ -62,6 +62,11 @@ bind = os.getenv("GUNICORN_BIND", "0.0.0.0:8000")
 # Backlog of unaccepted connections
 backlog = int(os.getenv("GUNICORN_BACKLOG", 2048))
 
+# Gunicorn >= 25.1 opens a control socket under $HOME/.gunicorn. The web
+# container has a read-only root file system, so every start and every worker
+# recycle logged "[ERROR] Control server error". Wachwerk does not use gunicornc.
+control_socket_disable = True
+
 # Security Settings
 # ------------------
 # Chroot to this directory (optional, for security)

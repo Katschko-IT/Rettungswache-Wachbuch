@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date, timedelta
 from urllib.parse import quote, urlencode
 
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import IntegrityError, connection, transaction
@@ -106,12 +108,41 @@ from .task_board import (
     week_board,
 )
 
+logger = logging.getLogger(__name__)
 
-def healthz(request: HttpRequest) -> JsonResponse:
+
+def _health_database() -> None:
     with connection.cursor() as cursor:
         cursor.execute("SELECT 1")
         cursor.fetchone()
-    return JsonResponse({"status": "ok", "version": settings.APP_VERSION})
+
+
+def _health_cache() -> None:
+    # Mit Redis hängen Sitzungen, Rate-Limits und der Demo-Start am Cache; ohne
+    # Redis ist er prozesslokal und die Prüfung gelingt immer.
+    cache.set("healthz", "ok", timeout=30)
+    if cache.get("healthz") != "ok":
+        raise RuntimeError("Cache liefert den geschriebenen Wert nicht zurück")
+
+
+def healthz(request: HttpRequest) -> JsonResponse:
+    """Lebenszeichen für Docker, Caddy und wachwerk-health: Datenbank und Cache."""
+    checks = {}
+    for name, check in (("database", _health_database), ("cache", _health_cache)):
+        try:
+            check()
+            checks[name] = "ok"
+        except Exception as exc:
+            logger.warning("healthz: %s nicht erreichbar (%s)", name, type(exc).__name__)
+            checks[name] = "error"
+    healthy = all(value == "ok" for value in checks.values())
+    if not healthy:
+        # Der Healthcheck fragt alle 15 Sekunden: kein Fehlerereignis je Abfrage.
+        request._error_event_recorded = True
+    return JsonResponse(
+        {"status": "ok" if healthy else "error", "version": settings.APP_VERSION, "checks": checks},
+        status=200 if healthy else 503,
+    )
 
 
 def _render_error(request: HttpRequest, *, status: int, code: str, template_name: str) -> HttpResponse:

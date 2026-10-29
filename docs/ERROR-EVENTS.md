@@ -68,6 +68,9 @@ python manage.py purge_error_events --days 14
 ```
 
 Der Befehl löscht ausschließlich bereinigte Ereignisse anhand von `occurred_at`.
+In Compose erledigt das der Dienst `housekeeping` stündlich von selbst
+(`core/management/commands/housekeeping.py`); ein Cron auf dem Host ist nicht
+nötig.
 Inhalts- und Löschrichtlinien für Fachdaten bleiben Betreiberentscheidung.
 
 ## Tests

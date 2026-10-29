@@ -124,8 +124,12 @@ PostgreSQL nicht löschen (`grant_database_access`). Deshalb gibt es den Dienst
 **`demo-cleaner`** (Compose-Profil `demo`). Er läuft mit den Rechten des
 Datenbank-Eigentümers und löscht jede Minute beendete und abgelaufene
 Demo-Wachen samt Konten und aller Einträge, die auf sie verweisen. Andere
-Wachen bleiben unberührt. Von Hand: `python manage.py purge_demo_sandboxes`
-(`--all` löscht auch laufende Demos).
+Wachen bleiben unberührt. Er läuft als ein Prozess
+(`purge_demo_sandboxes --watch`); sein Healthcheck prüft das Lebenszeichen,
+das er nach jedem gelungenen Durchlauf schreibt. Von Hand:
+`python manage.py purge_demo_sandboxes` (`--all` löscht auch laufende Demos).
+Abgelaufene Sitzungen verlassener Demos löscht der Dienst `housekeeping`
+(stündlich, in jedem Profil).
 
 Ohne `demo-cleaner` sind beendete Demos zwar sofort unbrauchbar (Konten
 gesperrt), die Daten bleiben aber liegen.

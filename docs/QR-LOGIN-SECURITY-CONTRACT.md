@@ -168,7 +168,8 @@ Audit-Aktionen: `qr_login.created`, `qr_login.approved`, `qr_login.denied`,
 **kein** Secret, Code, Session-Key oder vollständiger Origin mit Pfad.
 
 Management-Command `qr_login_cleanup`: löscht terminale Einträge älter 24 h und
-`QrTotpUse` älter 24 h; dry-run-fähig, keine Cron-Anlage in G2.
+`QrTotpUse` älter 24 h; dry-run-fähig. Automatisch stündlich im Compose-Dienst
+`housekeeping` (gleiche Abfrage, `expired_rows`).
 
 ## 9. UI (positiv nutzbar, nicht nur API)
 
