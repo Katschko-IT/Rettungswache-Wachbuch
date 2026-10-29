@@ -51,7 +51,7 @@ while [ $# -gt 0 ]; do
 done
 
 [ "$(id -u)" -eq 0 ] || die "Bitte als root ausführen (sudo sh offsite-storagebox.sh ...)."
-[ -n "$BOX" ] && [ -n "$GPG_KEY" ] || { usage >&2; die "--storagebox und --gpg-key sind nötig."; }
+if [ -z "$BOX" ] || [ -z "$GPG_KEY" ]; then usage >&2; die "--storagebox und --gpg-key sind nötig."; fi
 [ -f "$GPG_KEY" ] || die "$GPG_KEY nicht gefunden."
 [ -f "$WACHWERK_DIR/.env" ] || die "$WACHWERK_DIR/.env fehlt – zuerst Wachwerk installieren."
 case "$KEEP_DAYS" in ''|*[!0-9]*) die "--keep-days muss eine Zahl sein." ;; esac

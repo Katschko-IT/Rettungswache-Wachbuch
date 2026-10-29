@@ -550,7 +550,7 @@ quiet() { if [ -n "$UPDATE_LOG" ]; then "$@" >>"$UPDATE_LOG" 2>&1; else "$@"; fi
 
 missing_own_images() {  # eigene Images (Tag statt Digest) ohne lokale ID
     printf '%s\n' "$1" | while read -r image id; do
-        [ -n "$image" ] && [ -z "$id" ] || continue
+        if [ -z "$image" ] || [ -n "$id" ]; then continue; fi
         case "$image" in *@*) continue ;; esac
         printf '%s\n' "$image"
     done
