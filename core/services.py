@@ -209,7 +209,14 @@ def apply_retention(now=None):
         "feed_items": apply_feed_retention(now=now),
         "audit_events": apply_audit_retention(now=now),
         "push_outbox": apply_pushoutbox_retention(now=now),
+        "feedback": _feedback_retention(now),
     }
+
+
+def _feedback_retention(now):
+    from .feedback import apply_feedback_retention
+
+    return apply_feedback_retention(now=now)
 
 
 def apply_pushoutbox_retention(now=None, days=None):

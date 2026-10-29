@@ -586,6 +586,14 @@ class QrLogoutView(LogoutView):
     """Logout-View that revokes open approved QR requests before destroying session."""
 
     def dispatch(self, request, *args, **kwargs):
+        from .demo_sandbox import end_sandbox, landing_after_demo
+
+        sandbox = getattr(request, "demo_sandbox", None)
         if request.user.is_authenticated:
             revoke_open_requests_for_user(request.user)
-        return super().dispatch(request, *args, **kwargs)
+        response = super().dispatch(request, *args, **kwargs)
+        if sandbox is not None and request.method == "POST":
+            # Abmelden beendet die Demo: Demo-Wache und alle Eingaben werden gelöscht.
+            end_sandbox(sandbox)
+            return redirect(landing_after_demo("ende"))
+        return response

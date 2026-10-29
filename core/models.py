@@ -145,9 +145,10 @@ class Station(models.Model):
 
     @classmethod
     def get_default(cls):
-        station = cls.objects.filter(slug=settings.DEFAULT_STATION_SLUG).first()
-        if station is None and cls.objects.count() == 1:
-            station = cls.objects.first()
+        stations = cls.objects.filter(demo_sandbox__isnull=True)
+        station = stations.filter(slug=settings.DEFAULT_STATION_SLUG).first()
+        if station is None and stations.count() == 1:
+            station = stations.first()
         if station is None:
             station = cls.objects.create(
                 slug=settings.DEFAULT_STATION_SLUG,
@@ -1692,3 +1693,5 @@ from .site_profile import SiteProfile  # noqa: E402,F401
 
 # Kaffeekasse: Monatsbeitrag, Teilnehmende und Kassenbewegungen
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant  # noqa: E402,F401
+from .demo_models import DemoSandbox  # noqa: E402,F401
+from .feedback_models import Feedback  # noqa: E402,F401

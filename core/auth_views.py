@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect
 
+from core.demo_sandbox import DEMO_CREDENTIAL, is_demo_credentials, sandbox_enabled, start_demo
 from core.i18n import apply_login_language
 from core.mfa import mfa_enabled, mfa_required, user_has_confirmed_mfa
 from core.qr_login import is_qr_login_enabled
@@ -13,6 +14,20 @@ class PasswordLoginView(LoginView):
 
     template_name = "registration/login.html"
     redirect_authenticated_user = True
+
+    def post(self, request, *args, **kwargs):
+        # Öffentliche Demo: „Demo“ / „Demo“ legt eine eigene Demo-Wache an.
+        if is_demo_credentials(request.POST.get("username"), request.POST.get("password")):
+            return start_demo(request)
+        return super().post(request, *args, **kwargs)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if sandbox_enabled() and not form.is_bound:
+            form.fields["username"].initial = DEMO_CREDENTIAL.capitalize()
+            form.fields["password"].initial = DEMO_CREDENTIAL.capitalize()
+            form.fields["password"].widget.render_value = True
+        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -8,6 +8,12 @@
   {% if setup_pending %}
     <div class="alert" role="status">{% translate "Diese Wache ist noch nicht eingerichtet." %} <a href="{% url 'setup_wizard' %}">{% translate "Ersteinrichtung starten" %}</a></div>
   {% endif %}
+  {% if demo_sandbox_enabled %}
+  <div class="alert demo-login-hint" role="note">
+    <strong>{% translate "Demo ausprobieren" %}</strong>
+    <p>{% translate "Benutzername Demo, Passwort Demo – die Felder sind schon ausgefüllt. Du bekommst eine eigene Demo-Wache mit Musterdaten; beim Abmelden wird alles wieder gelöscht." %}</p>
+  </div>
+  {% endif %}
   <form method="post" class="form-card">
     {% csrf_token %}
     {% include "core/form_errors.html" %}

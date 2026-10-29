@@ -113,6 +113,24 @@
     </nav>
   {% endif %}
 
+  {% if demo_banner %}
+    <aside class="demo-bar" aria-label="{% translate 'Demo' %}">
+      <div class="demo-bar-inner">
+        <p class="demo-bar-text"><strong>{% translate "Demo" %}</strong> – {% blocktranslate with time=demo_banner.ends_at|time:"H:i" minutes=demo_banner.idle_minutes %}Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach {{ minutes }} Minuten ohne Aktivität oder spätestens um {{ time }} Uhr wird alles gelöscht.{% endblocktranslate %}</p>
+        <form class="demo-bar-role" method="post" action="{% url 'demo_switch_role' %}">
+          {% csrf_token %}
+          <label for="demo-role">{% translate "Rolle ansehen als" %}</label>
+          <select id="demo-role" name="role">
+            {% for key, label in demo_banner.roles %}<option value="{{ key }}"{% if key == demo_banner.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="button secondary">{% translate "Wechseln" %}</button>
+        </form>
+        {% if demo_tour and request.resolver_match.url_name != 'dashboard' %}
+          <a class="demo-bar-tour" href="{% url 'dashboard' %}">{% blocktranslate with done=demo_tour.done total=demo_tour.total %}Rundgang: {{ done }} von {{ total }}{% endblocktranslate %}</a>
+        {% endif %}
+      </div>
+    </aside>
+  {% endif %}
   <main id="inhalt" class="page-shell">
     {% if messages %}
       <div class="messages" aria-live="polite">
@@ -126,6 +144,8 @@
     <div class="footer-links">
       <a href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
       {% if not current_membership %}<a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>{% endif %}
+      {% if feedback_enabled %}<a href="{% url 'feedback' %}"{% if request.resolver_match.url_name == 'feedback' %} aria-current="page"{% endif %}>{% translate "Feedback" %}</a>{% endif %}
+      <a href="{% url 'install_guide' %}"{% if request.resolver_match.url_name == 'install_guide' %} aria-current="page"{% endif %}>{% translate "Selbst betreiben" %}</a>
       <a href="{% url 'legal_notice' %}"{% if request.resolver_match.url_name == 'legal_notice' %} aria-current="page"{% endif %}>{% translate "Impressum" %}</a>
       <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz & Cookies" %}</a>
       <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>

@@ -12,6 +12,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 f"Retention: {result['feed_items']} Feed-Eintraege, "
                 f"{result['audit_events']} Audit-Ereignisse, "
-                f"{result['push_outbox']} Push-Outbox-Eintraege entfernt."
+                f"{result['push_outbox']} Push-Outbox-Eintraege, "
+                f"{result['feedback']} Rueckmeldungen entfernt."
             )
         )

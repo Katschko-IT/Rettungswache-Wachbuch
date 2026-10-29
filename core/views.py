@@ -316,6 +316,10 @@ def demo_login(request):
 
     if not demo_mode_enabled():
         raise Http404
+    from .demo_sandbox import sandbox_enabled, start_demo
+
+    if sandbox_enabled():
+        return start_demo(request)
     user = User.objects.filter(username="demo-admin", is_active=True).first()
     if user is None:
         raise Http404
@@ -388,9 +392,16 @@ def landing(request):
                 return redirect("audit_log")
             return redirect("dashboard")
         return redirect("access")
+    from .demo_sandbox import demo_notice
     from .setup_wizard import setup_pending
 
-    return render(request, "core/landing.html", {"setup_pending": setup_pending()})
+    return render(request, "core/landing.html", {"setup_pending": setup_pending(), "demo_notice": demo_notice(request)})
+
+
+@require_GET
+def install_guide(request):
+    """Öffentliche, leicht verständliche Installationsanleitung."""
+    return render(request, "core/install_guide.html")
 
 
 @require_GET

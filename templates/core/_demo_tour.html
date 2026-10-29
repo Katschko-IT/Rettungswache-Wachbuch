@@ -1,0 +1,29 @@
+{% load i18n %}
+<section class="demo-tour" aria-labelledby="demo-tour-title">
+  <details{% if not demo_tour.complete %} open{% endif %}>
+    <summary>
+      <span id="demo-tour-title" class="demo-tour-title">{% translate "Demo-Rundgang: Dein erster Schichtwechsel" %}</span>
+      <span class="demo-tour-count">{% blocktranslate with done=demo_tour.done total=demo_tour.total %}{{ done }} von {{ total }} erledigt{% endblocktranslate %}</span>
+    </summary>
+    <progress class="demo-tour-progress" max="{{ demo_tour.total }}" value="{{ demo_tour.done }}">{{ demo_tour.done }}/{{ demo_tour.total }}</progress>
+    <ol class="demo-tour-steps">
+      {% for step in demo_tour.steps %}
+      <li class="demo-tour-step{% if step.done %} is-done{% endif %}{% if step == demo_tour.next %} is-next{% endif %}">
+        <span class="demo-tour-mark" aria-hidden="true">{% if step.done %}✓{% else %}{{ forloop.counter }}{% endif %}</span>
+        <div class="demo-tour-copy">
+          <strong>{{ step.title }}</strong>{% if step.done %} <span class="visually-hidden">{% translate "erledigt" %}</span>{% endif %}
+          <p>{{ step.text }}</p>
+        </div>
+        {% if not step.done %}<a class="button {% if step == demo_tour.next %}primary{% else %}secondary{% endif %}" href="{{ step.url }}">{% translate "Los" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% if demo_tour.complete %}
+    <div class="demo-tour-finish">
+      <p><strong>{% translate "Geschafft!" %}</strong> {% translate "So läuft ein Schichtwechsel mit Wachwerk. Möchtest du es auf deiner Wache einsetzen?" %}</p>
+      <a class="button primary" href="{% url 'install_guide' %}">{% translate "Wachwerk selbst betreiben" %}</a>
+      {% if feedback_enabled %}<a class="button secondary" href="{% url 'feedback' %}">{% translate "Feedback geben" %}</a>{% endif %}
+    </div>
+    {% endif %}
+  </details>
+</section>

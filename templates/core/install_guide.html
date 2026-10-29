@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% translate "Selbst betreiben" %} | {{ app_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/public.css' %}">{% endblock %}
+{% block body_class %}is-landing pub{% endblock %}
+{% block content %}
+<section class="pub-section install-hero" aria-labelledby="install-title">
+  <div class="pub-wrap">
+    <p class="pub-kicker">{% translate "Anleitung" %}</p>
+    <h1 id="install-title">{% translate "Wachwerk auf deiner Wache betreiben" %}</h1>
+    <p class="pub-lead">{% translate "Die Installation selbst dauert etwa fünf Minuten. Mit Einrichtung, Team-Einladung und Backup-Stick solltest du eine Stunde einplanen. Du brauchst kein Informatikstudium – aber du solltest einen Befehl in ein Terminal kopieren können." %}</p>
+    <div class="pub-actions">
+      <a class="pub-button primary" href="#weg">{% translate "Los geht’s" %}</a>
+      {% if demo_mode %}<a class="pub-button" href="{% url 'login' %}">{% translate "Erst die Demo ausprobieren" %}</a>{% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" id="weg" aria-labelledby="install-paths">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-paths">{% translate "1. Welcher Weg passt zu euch?" %}</h2>
+      <p class="pub-muted">{% translate "Alle drei Wege nutzen dieselbe Software und denselben Installer. Ihr könnt später wechseln – ein Backup lässt sich überall wiederherstellen." %}</p>
+    </div>
+    <div class="feature-groups">
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="home" %}{% translate "In der Wache (Insellösung)" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wachen, deren Daten das Haus nicht verlassen sollen – auch ohne Internet." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Raspberry Pi oder ein gebrauchter Thin Client (siehe „Welcher Rechner?“), SSD, Touch-Monitor." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Eigenes WLAN der Wache, Touch-Terminal in der Halle, Handys im WLAN." %}</span></li>
+        </ul>
+      </div>
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="link" %}{% translate "Kleiner Server im Internet" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer auch von unterwegs zugreifen möchte, etwa die Wachleitung." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Gemieteter Cloud-Server mit 2 GB RAM in einem deutschen Rechenzentrum und eine eigene (Sub-)Domain." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Über https mit einem kostenlosen Let’s-Encrypt-Zertifikat." %}</span></li>
+        </ul>
+      </div>
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="display" %}{% translate "Erst mal testen" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer Wachwerk in Ruhe auf dem eigenen Rechner ansehen möchte." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Ein Linux-Rechner oder Mac mit Docker." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Nur auf diesem Rechner unter http://localhost:8090." %}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" id="hardware" aria-labelledby="install-needs">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-needs">{% translate "2. Welcher Rechner?" %}</h2>
+      <p class="pub-muted">{% translate "Es muss kein Raspberry Pi sein. Jeder sparsame 64-Bit-Rechner, der rund um die Uhr laufen darf, eignet sich – gebrauchte Thin Clients und Mini-PCs aus Büros sind oft die günstigste und robusteste Wahl." %}</p>
+    </div>
+    <div class="table-scroll">
+    <table class="facts hardware-table">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">{% translate "Mindestens" %}</th><th scope="col">{% translate "Empfohlen" %}</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">{% translate "Prozessor" %}</th><td>{% translate "64 Bit (x86-64 oder ARM64), 2 Kerne" %}</td><td>{% translate "4 Kerne, z. B. Intel Celeron J4105 oder besser" %}</td></tr>
+        <tr><th scope="row">{% translate "Arbeitsspeicher" %}</th><td>{% translate "2 GB (1 GB nur zum Ausprobieren)" %}</td><td>{% translate "4 bis 8 GB" %}</td></tr>
+        <tr><th scope="row">{% translate "Speicher" %}</th><td>{% translate "32 GB SSD" %}</td><td>{% translate "120 bis 256 GB SSD (SATA oder NVMe) – keine SD-Karte, kein reiner eMMC-Speicher" %}</td></tr>
+        <tr><th scope="row">{% translate "Netzwerk" %}</th><td>{% translate "LAN-Anschluss" %}</td><td>{% translate "Gigabit-LAN; für das Wachen-WLAN ein eigener Access Point" %}</td></tr>
+        <tr><th scope="row">{% translate "Strom" %}</th><td>–</td><td>{% translate "unter 15 Watt im Leerlauf, am besten lüfterlos" %}</td></tr>
+        <tr><th scope="row">{% translate "Sonstiges" %}</th><td>{% translate "Docker mit Compose v2 (ab 2.20)" %}</td><td>{% translate "Uhr mit Pufferbatterie (bei PCs eingebaut, beim Pi als Modul), „Nach Stromausfall einschalten“ im BIOS, kleine USV" %}</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3 class="install-subhead">{% translate "Beispiele" %}</h3>
+    <div class="table-scroll">
+    <table class="facts hardware-table">
+      <thead>
+        <tr><th scope="col">{% translate "Gerät" %}</th><th scope="col">{% translate "Prozessor / Speicher" %}</th><th scope="col">{% translate "Strom im Leerlauf (Richtwert)" %}</th><th scope="col">{% translate "Passt für" %}</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">{% translate "Raspberry Pi 5 (4 oder 8 GB), neu" %}</th><td>{% translate "ARM, 4 Kerne; SSD über M.2-Aufsatz oder USB 3" %}</td><td>{% translate "wenige Watt" %}</td><td>{% translate "Insellösung mit Komplett-Skript für WLAN und Touch-Terminal" %}</td></tr>
+        <tr><th scope="row">{% translate "Raspberry Pi 4 (4 GB), neu oder gebraucht" %}</th><td>{% translate "ARM, 4 Kerne; SSD über USB 3, aktiver Kühler" %}</td><td>{% translate "wenige Watt" %}</td><td>{% translate "wie Pi 5, etwas langsamer" %}</td></tr>
+        <tr><th scope="row">{% translate "Fujitsu Futro S740, gebraucht (Thin Client)" %}</th><td>{% translate "Celeron J4105, 4 Kerne; 1 RAM-Steckplatz (8 GB laut Datenblatt); M.2-SATA-SSD" %}</td><td>{% translate "ca. 3–4 W, lüfterlos" %}</td><td>{% translate "sparsamer Wachen-Server" %}</td></tr>
+        <tr><th scope="row">{% translate "Dell Wyse 5070, gebraucht (Thin Client)" %}</th><td>{% translate "Celeron J4105 oder Pentium J5005; bis 8 GB; M.2-SATA-SSD" %}</td><td>{% translate "niedrig, lüfterlos" %}</td><td>{% translate "sparsamer Wachen-Server" %}</td></tr>
+        <tr><th scope="row">{% translate "HP t630, gebraucht (Thin Client)" %}</th><td>{% translate "AMD GX-420GI, 4 Kerne; 2 RAM-Steckplätze bis 32 GB; M.2-SATA-SSD" %}</td><td>{% translate "ca. 5–12 W (Baureihe)" %}</td><td>{% translate "mehr Reserve beim Arbeitsspeicher" %}</td></tr>
+        <tr><th scope="row">{% translate "Lenovo ThinkCentre M720q / M920q Tiny, gebraucht (Mini-PC)" %}</th><td>{% translate "Core i3/i5 der 8./9. Generation; bis 32 GB; NVMe- und SATA-SSD" %}</td><td>{% translate "ca. 11–27 W je nach Prozessor" %}</td><td>{% translate "viel Reserve, auch für mehrere Wachen" %}</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="pub-muted"><strong>{% translate "Nicht empfohlen:" %}</strong> {% translate "Geräte mit fest verlötetem Arbeitsspeicher unter 2 GB oder nur 8–16 GB eMMC-Speicher (z. B. Dell Wyse 3040), 32-Bit-Geräte und alles, was nur von einer SD-Karte läuft." %}</p>
+
+    <h3 class="install-subhead">{% translate "Tipps für gebrauchte Thin Clients und Mini-PCs" %}</h3>
+    <ul class="check-list">
+      <li>{% translate "Gebraucht kosten sie oft nur einen zweistelligen Euro-Betrag – die Angebote schwanken stark, Preise vergleichen lohnt sich." %}</li>
+      <li>{% translate "Sie kommen häufig mit sehr kleinem Flash-Speicher (8–32 GB) und 4 GB RAM. Eine M.2-SSD (SATA oder NVMe – je nach Gerät) und gegebenenfalls einen RAM-Riegel einplanen." %}</li>
+      <li>{% translate "Vor dem Kauf prüfen: 64 Bit, welcher M.2-Typ und welche Länge passt, wie viele RAM-Steckplätze, Netzteil dabei." %}</li>
+      <li>{% translate "Im BIOS „Nach Stromausfall einschalten“ (AC Power Recovery) aktivieren, damit der Server nach einem Stromausfall von selbst wieder startet." %}</li>
+      <li>{% translate "Als Betriebssystem Debian oder Ubuntu Server (LTS, 64 Bit) installieren, danach Docker." %}</li>
+      <li>{% translate "Das Komplett-Skript für eigenes WLAN und Touch-Terminal gibt es bisher nur für den Raspberry Pi. Auf anderen Rechnern mit dem Installer im Modus „lan“ installieren, das WLAN über einen eigenen Access Point bereitstellen und für das Touch-Terminal in der Datei .env „TERMINAL_ENABLED=true“ setzen und am Touch-Monitor die Terminal-Seite im Browser-Vollbild öffnen." %}</li>
+    </ul>
+
+    <h3 class="install-subhead">{% translate "Außerdem" %}</h3>
+    <table class="facts">
+      <tbody>
+        <tr><th scope="row">{% translate "Für den Internet-Weg" %}</th><td>{% translate "Eine Domain, bei der du einen DNS-Eintrag anlegen kannst, z. B. wache.example.org" %}</td></tr>
+        <tr><th scope="row">{% translate "Für Backups" %}</th><td>{% translate "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird" %}</td></tr>
+        <tr><th scope="row">{% translate "Für das Touch-Terminal" %}</th><td>{% translate "Einen Monitor mit HDMI oder DisplayPort und USB-Touch, 15 bis 22 Zoll" %}</td></tr>
+        <tr><th scope="row">{% translate "Kosten" %}</th><td>{% translate "Keine Lizenzkosten. Nur Hardware bzw. die Miete für einen kleinen Server – aktuelle Preise beim Händler oder Anbieter prüfen." %}</td></tr>
+      </tbody>
+    </table>
+    <p class="pub-muted">{% translate "Ausführlich mit Quellen:" %} <a href="{{ source_url }}/blob/main/docs/HARDWARE.md" rel="noopener noreferrer">docs/HARDWARE.md</a></p>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-steps">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-steps">{% translate "3. In fünf Schritten startklar" %}</h2>
+    </div>
+    <ol class="steps">
+      <li><div>
+        <h3>{% translate "Rechner vorbereiten" %}</h3>
+        <p>{% translate "Docker installieren (Anleitung auf docs.docker.com). Für den Internet-Weg vorher beim Domain-Anbieter einen A-Eintrag auf die IP-Adresse des Servers anlegen, z. B. wache.example.org." %}</p>
+        <p>{% translate "Für den Raspberry Pi in der Wache gibt es ein eigenes Skript, das zusätzlich WLAN, Zertifikat und Touch-Terminal einrichtet – siehe „Raspberry Pi“ weiter unten." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Installer starten" %}</h3>
+        <p>{% translate "Im Terminal des Rechners eingeben. Wer das Skript vorher lesen möchte, lädt es zuerst herunter:" %}</p>
+        <pre class="code-block"><code>curl -fsSLO https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh
+less install.sh
+sudo sh install.sh</code></pre>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Fragen des Installers beantworten" %}</h3>
+        <p>{% translate "Name der Wache und Betriebsart: „local“ (nur dieser Rechner), „lan“ (im Netz der Wache) oder „domain“ (im Internet mit eigener Domain). Der Installer prüft alles, erzeugt sämtliche Schlüssel und zeigt am Ende die Adresse und den Einrichtungscode." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Wache einrichten" %}</h3>
+        <p>{% translate "Die angezeigte Adresse im Browser öffnen, den Einrichtungscode eingeben und dem Assistenten folgen: Name und Anschrift, eigenes Admin-Konto, Impressum und Datenschutz, Zwei-Faktor-Anmeldung, Module." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Team einladen und absichern" %}</h3>
+        <p>{% translate "Kolleginnen und Kollegen per Einladungslink oder QR-Code einladen. Die Datei .env im Installationsordner auf den USB-Stick kopieren und sicher verwahren – ohne sie sind Datenbank und Backups nicht mehr lesbar. Dann automatische Updates einschalten:" %}</p>
+        <pre class="code-block"><code>sudo /opt/wachbuch/wachbuch auto-update an</code></pre>
+      </div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-pi">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-pi">{% translate "Raspberry Pi in der Wache" %}</h2>
+      <p class="pub-muted">{% translate "Raspberry Pi OS (64 Bit, mit Desktop) auf die SSD schreiben, den Pi einmal per Kabel ans Internet hängen und dann:" %}</p>
+    </div>
+    <pre class="code-block"><code>git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
+cd Rettungswache-Wachbuch
+sudo WLAN_SSID="Wachwerk RW1" deploy/pi/setup-pi.sh
+sudo reboot</code></pre>
+    <p class="pub-muted">{% translate "Nach dem Neustart öffnet der Touch-Bildschirm direkt die Ersteinrichtung. Das Skript spannt ein eigenes WLAN auf, erzeugt ein Zertifikat und zeigt den Einrichtungscode an. Ausführlich mit Abhak-Liste:" %} <a href="{{ source_url }}/blob/main/docs/PI-WACHENTERMINAL.md" rel="noopener noreferrer">docs/PI-WACHENTERMINAL.md</a></p>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-daily">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-daily">{% translate "Im Alltag" %}</h2>
+      <p class="pub-muted">{% translate "Alle Befehle laufen im Installationsordner, unter Linux /opt/wachbuch:" %}</p>
+    </div>
+    <table class="facts">
+      <tbody>
+        <tr><th scope="row"><code>wachbuch status</code></th><td>{% translate "Läuft alles?" %}</td></tr>
+        <tr><th scope="row"><code>wachbuch update</code></th><td>{% translate "Neue Version holen – vorher wird automatisch gesichert." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch backup</code></th><td>{% translate "Sofort ein Backup anlegen." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch restore DATEI</code></th><td>{% translate "Ein Backup wiederherstellen (mit Rückfrage)." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch setup-code</code></th><td>{% translate "Den Einrichtungscode noch einmal anzeigen." %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-faq">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-faq">{% translate "Wenn etwas hakt" %}</h2>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>{% translate "Der Browser warnt vor dem Zertifikat (Betriebsart „lan“)." %}</summary>
+        <p>{% translate "Im Wachen-Netz stellt Wachwerk ein eigenes Zertifikat aus. Das Stammzertifikat einmal auf jedem Gerät als vertrauenswürdig installieren. Der Installer zeigt den Befehl, mit dem du die Datei wachbuch-ca.crt erhältst." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Ich habe den Einrichtungscode nicht mehr." %}</summary>
+        <p>{% translate "Im Installationsordner „wachbuch setup-code“ ausführen. Nach abgeschlossener Einrichtung gibt es keinen Code mehr – dann ist das auch richtig so." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Der Installer meldet einen belegten Port." %}</summary>
+        <p>{% translate "Ein anderes Programm nutzt den Port bereits, oft ein Webserver. Entweder das Programm beenden oder den Installer mit einem anderen Port starten, z. B. „sudo sh install.sh --port 8091“." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Let’s Encrypt stellt kein Zertifikat aus." %}</summary>
+        <p>{% translate "Meist zeigt der DNS-Eintrag noch nicht auf den Server oder die Ports 80 und 443 sind in der Firewall geschlossen. DNS-Änderungen brauchen manchmal einige Minuten." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Was passiert, wenn der Rechner kaputtgeht?" %}</summary>
+        <p>{% translate "Wachwerk auf neuer Hardware installieren, die gesicherte .env zurückkopieren und das letzte Backup wiederherstellen. Darum gehören .env und Backups auf einen Stick außerhalb des Rechners." %}</p>
+      </details>
+    </div>
+    <p class="pub-muted">{% translate "Weitere Fragen oder ein Fehler? Ausführliche Anleitung:" %} <a href="{{ source_url }}/blob/main/docs/DEPLOYMENT.md" rel="noopener noreferrer">docs/DEPLOYMENT.md</a> · <a href="{{ source_url }}/issues" rel="noopener noreferrer">{% translate "Frage oder Fehler melden" %}</a></p>
+  </div>
+</section>
+{% endblock %}

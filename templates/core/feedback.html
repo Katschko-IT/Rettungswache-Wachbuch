@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% translate "Feedback" %} | {{ app_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/public.css' %}">{% endblock %}
+{% block body_class %}is-landing pub{% endblock %}
+{% block content %}
+<section class="pub-section install-hero" aria-labelledby="feedback-title">
+  <div class="pub-wrap feedback-wrap">
+    <p class="pub-kicker">{% translate "Feedback" %}</p>
+    <h1 id="feedback-title">{% translate "Was wünschst du dir von Wachwerk?" %}</h1>
+    {% if sent %}
+      <p class="message success" role="status">{% translate "Danke! Deine Rückmeldung ist angekommen." %}</p>
+      <p class="pub-actions">
+        <a class="pub-button" href="{% url 'feedback' %}">{% translate "Noch etwas mitteilen" %}</a>
+        <a class="pub-button" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
+      </p>
+    {% else %}
+      <p class="pub-lead">{% translate "Wünsche, Anregungen, Lob oder ein Fehler – jede Rückmeldung hilft, Wachwerk für den Wachalltag besser zu machen. Name und E-Mail sind freiwillig." %}</p>
+      <form method="post" class="form-card feedback-form" novalidate>
+        {% csrf_token %}
+        {% include "core/form_errors.html" %}
+        <fieldset class="choice-tiles">
+          <legend>{{ form.kind.label }}</legend>
+          {% for radio in form.kind %}<label class="choice-tile" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+          {% for error in form.kind.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </fieldset>
+        <p>
+          <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+          {{ form.message }}
+          <span class="help-text">{{ form.message.help_text }}</span>
+          {% for error in form.message.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </p>
+        <p>
+          <label for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+          {{ form.role }}
+        </p>
+        <fieldset class="choice-tiles">
+          <legend>{{ form.rating.label }}</legend>
+          {% for radio in form.rating %}<label class="choice-tile" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        </fieldset>
+        <p>
+          <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+          {{ form.name }}
+          <span class="help-text">{{ form.name.help_text }}</span>
+        </p>
+        <p>
+          <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+          <span class="help-text">{{ form.email.help_text }}</span>
+          {% for error in form.email.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </p>
+        <div class="hp-field" aria-hidden="true">
+          <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+          {{ form.website }}
+        </div>
+        <p class="consent">
+          <label>{{ form.consent }} {{ form.consent.label }}</label>
+          {% for error in form.consent.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </p>
+        <p class="help-text">{% blocktranslate with days=feedback_retention_days %}Gespeichert werden nur deine Eingaben, keine IP-Adresse. Die Rückmeldung wird nach spätestens {{ days }} Tagen gelöscht.{% endblocktranslate %} <a href="{% url 'privacy' %}#feedback">{% translate "Datenschutz" %}</a></p>
+        <button type="submit" class="button primary">{% translate "Absenden" %}</button>
+      </form>
+      <p class="pub-muted">{% translate "Lieber öffentlich diskutieren?" %} <a href="{{ source_url }}/issues" rel="noopener noreferrer">{% translate "Wunsch oder Fehler auf GitHub melden" %}</a></p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
