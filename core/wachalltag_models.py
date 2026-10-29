@@ -129,6 +129,18 @@ class DefectEvent(models.Model):
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["station", "-created_at"], name="defect_event_station_idx")]
 
+    @staticmethod
+    def _status_label(value):
+        return Defect.Status(value).label if value in Defect.Status.values else value
+
+    @property
+    def from_status_label(self):
+        return self._status_label(self.from_status)
+
+    @property
+    def to_status_label(self):
+        return self._status_label(self.to_status)
+
     def save(self, *args, **kwargs):
         if self.pk:
             raise ValidationError("Mangel-Ereignisse dürfen nicht verändert werden.")

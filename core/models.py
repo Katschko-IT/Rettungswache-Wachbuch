@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy
 
 
 class Station(models.Model):
@@ -159,11 +160,11 @@ class Station(models.Model):
 
 class Membership(models.Model):
     class Role(models.TextChoices):
-        MEMBER = "member", "Mitglied"
-        SHIFT_LEAD = "shift_lead", "Schichtleitung"
-        CASHIER = "cashier", "Kassenwart"
-        ADMIN = "admin", "Master-Admin"
-        AUDITOR = "auditor", "Auditor"
+        MEMBER = "member", gettext_lazy("Mitglied")
+        SHIFT_LEAD = "shift_lead", gettext_lazy("Schichtleitung")
+        CASHIER = "cashier", gettext_lazy("Kassenwart")
+        ADMIN = "admin", gettext_lazy("Master-Admin")
+        AUDITOR = "auditor", gettext_lazy("Auditor")
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="station_memberships")
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="memberships")

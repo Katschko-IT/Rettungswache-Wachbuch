@@ -22,6 +22,13 @@
         {% translate "Signal-Gruppe öffnen" %}
       </a>
     </p>
+    {% elif demo_banner %}
+    <p class="notice">{% translate "In einer echten Wache steht hier der QR-Code zur Signal-Gruppe. Auf Wunsch schickt Wachwerk kurze Hinweise in die Gruppe – ohne Namen, zum Beispiel:" %}</p>
+    {% now "F" as month %}
+    <div class="signal-preview" role="group" aria-label="{% translate 'Beispielnachrichten' %}">
+      <p class="signal-bubble">{% blocktranslate %}☕ Kaffeekasse: Der Beitrag für {{ month }} ist fällig – 5 von 8 haben schon bezahlt.{% endblocktranslate %}</p>
+      <p class="signal-bubble">{% translate "☕ Kassensturz zu zweit erledigt: Die Kasse stimmt." %}</p>
+    </div>
     {% else %}
     <p class="notice">
       {% translate "Für diese Wache ist noch keine Signal-Gruppe hinterlegt. Der Admin trägt den Einladungslink in den Einstellungen ein." %}

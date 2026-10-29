@@ -8,7 +8,10 @@ from .models import HandoverEntry
 
 def current_membership(request):
     user = getattr(request, "user", None)
-    membership = get_membership(user) if user and getattr(user, "is_authenticated", False) else None
+    # membership_required hat die Mitgliedschaft schon geladen.
+    membership = getattr(request, "membership", None) or (
+        get_membership(user) if user and getattr(user, "is_authenticated", False) else None
+    )
     nav_urgent_count = 0
     if membership and membership.role in CONTENT_ROLES:
         nav_urgent_count = (

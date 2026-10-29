@@ -339,7 +339,8 @@
         </div>
       </a>
 
-      {# App-Tokens / API #}
+      {# App-Tokens / API – in der Demo gesperrt (überdauern die Sitzung) #}
+      {% if not demo_banner %}
       <a class="more-card-item" data-filter-item data-more="tokens" data-order="{{ more_order.tokens|default:41 }}" href="{% url 'api_tokens_manage' %}">
         <div class="more-card-top">
           <span class="more-card-icon">{% include "core/_icon.html" with name="link" %}</span>
@@ -349,6 +350,7 @@
           <span class="more-card-desc">{% translate "Persönliche Zugangs-Tokens für die quelloffene Wachbuch-App (iOS/Android)." %}</span>
         </div>
       </a>
+      {% endif %}
 
       {# Display-Tokens (Admin) #}
       {% if current_membership.role == 'admin' %}

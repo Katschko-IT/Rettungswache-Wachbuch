@@ -55,10 +55,25 @@ Ein gelbes Banner „Demo-Modus“ ist überall sichtbar.
 
 ## Was wird angelegt?
 
-- Module (Kalender, Aufgaben, Kasse, Chat, Feiertage, Checklisten)
-- Offene / laufende / erledigte **Übergaben** (Marker `[Demo]`)
-- Termine, Kaffeekassen-Buchungen, Checklisten, Chat-Nachrichten (Klartext)
-- Ein erledigter Tagesaufgaben-Eintrag
+- Module (Kalender, Aufgaben, Kasse, Feiertage, Checklisten, Pinnwand,
+  Medizinprodukte, Fuhrpark, Lager, Organisation)
+- Offene / laufende / erledigte **Übergaben** aus den letzten Schichten, mit
+  Lesebestätigungen
+- Termine tagsüber an Werktagen (relativ zum Besuch), Geburtstag in Kürze
+- Kaffeekasse mit drei Monaten Verlauf: Beiträge, Einzahlungen, Einkäufe und
+  Kassensturz
+- Neuigkeiten mit Lesebestätigung, Pinnwand-Aushänge, Wiki-Artikel, Mängel
+  mit Frist und Verlauf
+- Fuhrpark (RTW, NEF, KTW) mit laufender Desinfektion, Medizinprodukte mit
+  stimmigen STK/MTK/DGUV-Nachweisen, Lager mit Chargen und einem Rückruf,
+  Schlüssel und Poolgeräte
+- Erledigte Tagesaufgaben und Checklisten von heute
+
+In der geteilten Demo trägt jeder Titel den Marker `[Demo]`, damit
+`load_demo_data --reset` die Zeilen findet. Die Demo-Wache je Besuch kommt
+ohne Marker aus, weil sie als Ganzes gelöscht wird; dort arbeiten zusätzlich
+vier Kolleginnen und Kollegen ohne Zugang mit (Team, Lesebestätigungen,
+Kaffeekasse).
 
 Keine Patienten-, Alarm- oder Dienstplandaten.
 
@@ -82,14 +97,19 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   Master-Admin. Andere Besucher sehen davon nichts.
 - Auf der Übersicht führt ein **Rundgang „Dein erster Schichtwechsel“** durch
   sechs kurze Aufgaben und hakt sie automatisch ab (Konzept und Recherche:
-  [DEMO-KONZEPT.md](DEMO-KONZEPT.md)). Danach und nach dem Abmelden geht es
-  zur leicht verständlichen Anleitung **„Selbst betreiben“** (`/selbst-betreiben/`).
+  [DEMO-KONZEPT.md](DEMO-KONZEPT.md)). Jeder Schritt führt direkt an die
+  richtige Stelle – das Übergabeformular ist vorausgefüllt, für das Quittieren
+  wechselt der Rundgang selbst in die Rolle „Mitglied“. Nach jedem Schritt
+  bestätigt eine Meldung den Fortschritt, das Banner nennt auf jeder Seite den
+  nächsten Schritt. Am Ende geht es zur leicht verständlichen Anleitung
+  **„Selbst betreiben“** (`/selbst-betreiben/`) oder als Auditor ins Audit-Log.
 - Die **Feedback-Seite** (`/feedback/`, [FEEDBACK.md](FEEDBACK.md)) ist in
   der öffentlichen Demo eingeschaltet; Rückmeldungen liest der Betreiber unter
   Einstellungen → Rückmeldungen.
 - Ein Banner zeigt, wann die Demo endet, und wechselt die Rolle
   (Master-Admin, Schichtleitung, Kassenwart, Mitglied, Auditor) innerhalb
-  derselben Demo-Wache.
+  derselben Demo-Wache. Auditoren landen dabei im Audit-Log. Formulare in
+  anderen offenen Tabs bleiben nach einem Rollenwechsel gültig.
 - **Abmelden beendet die Demo:** Die Demo-Konten werden sofort gesperrt, die
   Demo-Wache mit allen Eingaben wird gelöscht. Die Startseite bestätigt das.
 - **Browser geschlossen?** Das Sitzungs-Cookie endet mit dem Browser. Die
@@ -109,8 +129,13 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   Anmeldeprotokolle der Demo-Konten (mit IP-Adresse) werden mitgelöscht.
 - Schutz vor Missbrauch:
   - höchstens `DEMO_SANDBOX_MAX_ACTIVE` (Standard 100) laufende Demos,
-  - `DEMO_SANDBOX_PER_IP_HOUR` (Standard 10) neue Demos je Anschluss und
-    Stunde (IPv6 je /64-Netz),
+  - `DEMO_SANDBOX_PER_IP_HOUR` (Standard 30) neue Demos je Anschluss und
+    Stunde (IPv6 je /64-Netz). Eine Wache, ein Kreisverband oder ein
+    Schulungsraum geht oft über eine einzige Adresse ins Netz; 30 reicht für
+    eine Gruppe, die die Demo gemeinsam ausprobiert. Für Vorträge oder
+    Messen vor großem Publikum höher setzen (z. B. 60). Wer schon in einer
+    laufenden Demo ist, verbraucht beim erneuten Start nichts, und wer die
+    Grenze erreicht, wird zur Vorführung ohne Anmeldung geleitet,
   - je Demo höchstens `DEMO_SANDBOX_MAX_WRITES` (Standard 400) Änderungen und
     `DEMO_SANDBOX_MAX_UPLOAD_MB` (Standard 25) MB an Dateien.
 

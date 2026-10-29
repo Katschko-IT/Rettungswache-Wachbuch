@@ -15,6 +15,25 @@
   <section class="section-block prose"><h2>{% translate "Information" %}</h2><p>{{ handover.details|linebreaksbr }}</p></section>
   {% if can_change_status %}<form method="post" action="{% url 'handover_status' handover.pk %}" class="section-block inline-form">{% csrf_token %}<div class="field"><label for="{{ status_form.status.id_for_label }}">{% translate "Status" %}</label>{{ status_form.status }}</div><button class="button primary" type="submit">{% translate "Status aktualisieren" %}</button></form>{% endif %}
   <dl class="summary-list"><div><dt>{% translate "Erstellt von" %}</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div><div><dt>{% translate "Erstellt" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div><div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div></dl>
+  <section class="section-block handover-acks" aria-labelledby="handover-acks-title">
+    <h2 id="handover-acks-title">{% translate "Gelesen" %}</h2>
+    {% if acks %}
+      <ul class="ack-list">
+        {% for ack in acks %}<li><strong>{{ ack.user.first_name|default:ack.user.username }}</strong> <time datetime="{{ ack.created_at|date:'c' }}">{{ ack.created_at|date:"d.m.Y H:i" }}</time></li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">{% translate "Noch niemand hat diese Übergabe als gelesen quittiert." %}</p>
+    {% endif %}
+    {% if can_ack %}
+      <form method="post" action="{% url 'handover_detail' handover.pk %}" class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="acknowledge">
+        <button class="button primary" type="submit">{% translate "Gelesen – quittieren" %}</button>
+      </form>
+    {% elif has_acked %}
+      <p class="helptext">{% translate "Du hast diese Übergabe bereits quittiert." %}</p>
+    {% endif %}
+  </section>
   <section class="section-block">
     <h2>{% translate "Anhänge" %}</h2>
     {% if attachments %}

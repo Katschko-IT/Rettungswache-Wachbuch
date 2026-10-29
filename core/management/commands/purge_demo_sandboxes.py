@@ -6,8 +6,7 @@ im Dienst ``demo-cleaner`` (Profil ``demo``), siehe docs/DEMO.md.
 """
 from django.core.management.base import BaseCommand
 
-from core.demo_models import DemoSandbox
-from core.demo_sandbox import purge_expired, purge_sandbox
+from core.demo_sandbox import purge_all, purge_expired
 
 
 class Command(BaseCommand):
@@ -17,12 +16,6 @@ class Command(BaseCommand):
         parser.add_argument("--all", action="store_true", help="Alle Demo-Wachen löschen, auch laufende.")
 
     def handle(self, *args, **options):
-        if options["all"]:
-            sandboxes = list(DemoSandbox.objects.all())
-            for sandbox in sandboxes:
-                purge_sandbox(sandbox)
-            purged = len(sandboxes)
-        else:
-            purged = purge_expired()
+        purged = purge_all() if options["all"] else purge_expired()
         if (purged and options["verbosity"] >= 1) or options["verbosity"] > 1:
             self.stdout.write(f"{purged} Demo-Wache(n) gelöscht.")
