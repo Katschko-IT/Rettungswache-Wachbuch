@@ -323,3 +323,17 @@
   /* Lange Befehle umbrechen statt seitlich scrollen; kopiert wird trotzdem eine Zeile. */
   .install-hero ~ .pub-section .code-block code { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
+
+/* Feedback-Seite */
+.feedback-wrap { max-width: 46rem; }
+.feedback-form { margin: 1.5rem 0; }
+.hp-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.consent label { display: flex; gap: .6rem; align-items: flex-start; font-weight: 400; }
+.consent input { margin-top: .25rem; min-width: 1.25rem; min-height: 1.25rem; }
+
+/* Anleitung: Hardware-Tabellen */
+.pub-section .install-subhead { margin: 2.5rem 0 1rem; font-size: 1.2rem; }
+.table-scroll { overflow-x: auto; }
+.hardware-table { min-width: 36rem; }
+.hardware-table th, .hardware-table td { padding-right: 1rem; }
+.hardware-table thead th { color: var(--muted); font-size: .9rem; font-weight: 600; }

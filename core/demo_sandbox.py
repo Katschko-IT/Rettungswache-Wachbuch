@@ -49,6 +49,9 @@ BLOCKED_URL_NAMES = frozenset({
     "display_token_create",
     "terminal_admin",
     "team_invite_create",
+    "feedback_inbox",
+    "feedback_status",
+    "feedback_delete",
 })
 
 

@@ -82,6 +82,9 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   sechs kurze Aufgaben und hakt sie automatisch ab (Konzept und Recherche:
   [DEMO-KONZEPT.md](DEMO-KONZEPT.md)). Danach und nach dem Abmelden geht es
   zur leicht verständlichen Anleitung **„Selbst betreiben“** (`/selbst-betreiben/`).
+- Die **Feedback-Seite** (`/feedback/`, [FEEDBACK.md](FEEDBACK.md)) ist in
+  der öffentlichen Demo eingeschaltet; Rückmeldungen liest der Betreiber unter
+  Einstellungen → Rückmeldungen.
 - Ein Banner zeigt, wann die Demo endet, und wechselt die Rolle
   (Master-Admin, Schichtleitung, Kassenwart, Mitglied, Auditor) innerhalb
   derselben Demo-Wache.
@@ -124,6 +127,7 @@ bisherigen Anbieter; nur eine Subdomain zeigt auf den neuen Server. So bleiben
 bestehende Webseite und E-Mail-Postfächer der Domain unverändert.
 
 1. **Server anlegen** und die öffentliche IPv4- (und IPv6-)Adresse notieren.
+   Welche Hardware reicht: [HARDWARE.md](HARDWARE.md).
 2. **DNS:** Beim Domain-Anbieter für `demo` einen A-Eintrag (und AAAA-Eintrag)
    auf diese Adresse anlegen. Prüfen: `dig +short demo.rwsth.de`.
 3. **Installieren** (auf dem Server):

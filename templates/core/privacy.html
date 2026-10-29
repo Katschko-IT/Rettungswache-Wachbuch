@@ -89,6 +89,9 @@
     </ul>
     <p><strong>{% translate "Zweck:" %}</strong> {% translate "Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz)." %}</p>
     <p>{% translate "Verbindliche Fristen für die Aufbewahrung und Rotation dieser Server-Logs müssen durch den Betreiber im Löschkonzept festgelegt werden. Standard-Logfristen werden nicht erfunden." %}</p>
+    {% if feedback_enabled %}
+    <p id="feedback"><strong>{% translate "Feedback-Formular:" %}</strong> {% blocktranslate with days=feedback_retention_days %}Was du im Feedback-Formular einträgst (Art der Rückmeldung, Nachricht, freiwillig Rolle, Bewertung, Name und E-Mail), wird mit dem Zeitpunkt gespeichert, damit der Betreiber die Rückmeldung lesen und auf Wunsch antworten kann (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Die IP-Adresse wird dabei nicht gespeichert; zum Schutz vor Missbrauch zählt der Server Absendungen je Anschluss nur kurzzeitig als gesalzenen Prüfwert im Zwischenspeicher. Die Einträge werden nach Bearbeitung, spätestens nach {{ days }} Tagen gelöscht. Die Einwilligung kannst du jederzeit beim Betreiber widerrufen.{% endblocktranslate %}</p>
+    {% endif %}
   </section>
 
   <section id="demokonten" class="privacy-section">
@@ -99,7 +102,11 @@
     <p>{% translate "Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden." %}</p>
     {% endif %}
     <p><strong>{% translate "Wichtiger Hinweis:" %}</strong> {% translate "Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten." %}</p>
+    {% if demo_sandbox_enabled %}
+    <p>{% blocktranslate with idle=demo_idle_minutes max=demo_max_minutes %}Wer sich mit „Demo“ / „Demo“ anmeldet, bekommt eine eigene Demo-Wache mit fiktiven Musterdaten. Andere Besucher sehen sie nicht. Beim Abmelden, nach {{ idle }} Minuten ohne Aktivität oder spätestens nach {{ max }} Minuten werden die Demo-Wache, ihre Demo-Konten und alle Eingaben gelöscht. Für die Anmeldung wird nur ein technisch notwendiges Sitzungs-Cookie gesetzt, das mit dem Schließen des Browsers endet.{% endblocktranslate %}</p>
+    {% else %}
     <p>{% translate "Bereitgestellte Demokonten sind gemeinsame synthetische Testzugänge und stellen keine persönlichen dienstlichen Nutzerkonten dar. Eingaben in einer gemeinsamen Sandbox können für andere Tester sichtbar sein. Sollten versehentlich schutzwürdige Daten eingegeben worden sein, ist unverzüglich der Testbetrieb zu kontaktieren, damit die betroffenen Datensätze kontrolliert beseitigt werden können." %}</p>
+    {% endif %}
   </section>
 
   <section id="cookies" class="privacy-section">

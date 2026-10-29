@@ -1694,3 +1694,4 @@ from .site_profile import SiteProfile  # noqa: E402,F401
 # Kaffeekasse: Monatsbeitrag, Teilnehmende und Kassenbewegungen
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant  # noqa: E402,F401
 from .demo_models import DemoSandbox  # noqa: E402,F401
+from .feedback_models import Feedback  # noqa: E402,F401

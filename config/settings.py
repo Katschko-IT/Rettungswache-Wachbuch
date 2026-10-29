@@ -327,6 +327,11 @@ DEMO_SANDBOX_IDLE_MINUTES = int(os.getenv("DEMO_SANDBOX_IDLE_MINUTES", "30") or 
 DEMO_SANDBOX_MAX_MINUTES = int(os.getenv("DEMO_SANDBOX_MAX_MINUTES", "120") or "120")
 DEMO_SANDBOX_MAX_ACTIVE = int(os.getenv("DEMO_SANDBOX_MAX_ACTIVE", "100") or "100")
 DEMO_SANDBOX_PER_IP_HOUR = int(os.getenv("DEMO_SANDBOX_PER_IP_HOUR", "10") or "10")
+# Öffentliche Feedback-Seite (docs/FEEDBACK.md); in der öffentlichen Demo an.
+# Leer (wie Compose ungesetzte Variablen weitergibt) = Standard, nicht „aus“.
+FEEDBACK_ENABLED = env_bool("FEEDBACK_ENABLED") if os.getenv("FEEDBACK_ENABLED", "").strip() else DEMO_SANDBOX
+FEEDBACK_RETENTION_DAYS = int(os.getenv("FEEDBACK_RETENTION_DAYS", "365") or "0")
+FEEDBACK_PER_IP_HOUR = int(os.getenv("FEEDBACK_PER_IP_HOUR", "5") or "5")
 SETUP_BOOTSTRAP_TOKEN = os.getenv("SETUP_BOOTSTRAP_TOKEN", "").strip()
 # Optional canonical origin (e.g. https://wachbuch.example). When set, activation
 # links and QR codes use it instead of the request Host. Empty keeps the request

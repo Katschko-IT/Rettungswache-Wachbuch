@@ -2327,3 +2327,15 @@ button.text-action {
   .demo-tour-step { grid-template-columns: 2rem minmax(0, 1fr); }
   .demo-tour-step .button { grid-column: 2; justify-self: start; }
 }
+
+/* Posteingang für Rückmeldungen */
+.feedback-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .75rem; }
+.feedback-entry { padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.feedback-entry.status-new { border-left: 4px solid var(--accent); }
+.feedback-entry.status-done { opacity: .75; }
+.feedback-meta { margin: 0 0 .5rem; color: var(--muted); }
+.feedback-meta strong { color: var(--text); }
+.feedback-message { margin: 0 0 .75rem; white-space: normal; overflow-wrap: anywhere; }
+.feedback-contact { margin: 0 0 .75rem; }
+.feedback-entry .form-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.feedback-entry .form-actions form { margin: 0; }

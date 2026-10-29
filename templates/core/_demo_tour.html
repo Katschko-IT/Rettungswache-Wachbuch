@@ -22,6 +22,7 @@
     <div class="demo-tour-finish">
       <p><strong>{% translate "Geschafft!" %}</strong> {% translate "So läuft ein Schichtwechsel mit Wachwerk. Möchtest du es auf deiner Wache einsetzen?" %}</p>
       <a class="button primary" href="{% url 'install_guide' %}">{% translate "Wachwerk selbst betreiben" %}</a>
+      {% if feedback_enabled %}<a class="button secondary" href="{% url 'feedback' %}">{% translate "Feedback geben" %}</a>{% endif %}
     </div>
     {% endif %}
   </details>
