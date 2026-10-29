@@ -7,13 +7,15 @@
 #   1. Der Backup-Dienst verschlüsselt jeden Tages-Dump mit dem ÖFFENTLICHEN
 #      GnuPG-Schlüssel und legt ihn in /var/lib/wachwerk-offsite ab.
 #   2. Ein Timer kopiert den Ordner stündlich per rsync/SSH (Port 23) auf die
-#      Storage Box. Dort liegen nur verschlüsselte Dateien.
+#      Storage Box (wachwerk-offsite-sync.sh). Dort liegen nur verschlüsselte
+#      Dateien; gelöscht wird dort nur nach Alter, nie per Abgleich.
 #   3. Der private Schlüssel bleibt bei dir (nie auf dem Server). Ohne ihn kann
 #      niemand die Backups lesen – auch Hetzner nicht.
 set -eu
 
 say() { printf '\n==> %s\n' "$*"; }
 info() { printf '    %s\n' "$*"; }
+warn() { printf 'Warnung: %s\n' "$*" >&2; }
 die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
 
 usage() {
@@ -73,6 +75,16 @@ FPR=$(gpg --batch --show-keys --with-colons "$GPG_KEY" 2>/dev/null | awk -F: '/^
 install -d -m 0755 /etc/wachwerk/backup-gpg
 install -m 0644 "$GPG_KEY" /etc/wachwerk/backup-gpg/backup.asc
 info "Fingerprint $FPR"
+# Kündigt der Schlüssel AEAD an (so erzeugt GnuPG ab 2.3 neue Schlüssel),
+# schreibt der Backup-Dienst OCB-Pakete, die GnuPG 2.2 (Debian 12) nicht lesen
+# kann. Abschalten lässt sich das nur am Schlüssel (docs/HETZNER.md, Abschnitt 0).
+if gpg --batch --list-packets "$GPG_KEY" 2>/dev/null \
+    | grep -Eq '\(features: [0-9A-Fa-f][2367ABEFabef]'; then
+    warn "Der Schlüssel kündigt AEAD an. Die Backups lassen sich dann nur mit GnuPG 2.3"
+    warn "oder neuer entschlüsseln, nicht mit Debian 12. Abhilfe auf DEINEM Rechner:"
+    warn "  gpg --edit-key \"Wachwerk Backup\" \"setpref AES256 AES192 AES SHA512 SHA384 SHA256 ZLIB BZIP2 ZIP Uncompressed\" save"
+    warn "neu exportieren und dieses Skript erneut starten (docs/HETZNER.md, Abschnitt 0)."
+fi
 
 # --- 2. Ordner und .env -----------------------------------------------------------
 say "Offsite-Ordner und .env"
@@ -112,29 +124,28 @@ info "Anmeldung mit Schlüssel funktioniert"
 
 # --- 4. Sync-Dienst ------------------------------------------------------------------
 say "Stündliche Kopie auf die Storage Box"
-umask 077
-cat >/etc/wachwerk/offsite.env <<EOF
+# umask nur für die Einstellungsdatei; Units mit 0600 bemängelt systemd.
+(
+    umask 077
+    cat >/etc/wachwerk/offsite.env <<EOF
 # Wachwerk-Offsite (offsite-storagebox.sh)
 OFFSITE_DIR=$OFFSITE
 OFFSITE_KEEP_DAYS=$KEEP_DAYS
+# Mindestens so viele Kopien bleiben auf der Storage Box, egal wie alt
+OFFSITE_KEEP_MIN=7
 OFFSITE_TARGET=$BOX_USER@$BOX_HOST:$REMOTE_DIR/
 OFFSITE_SSH_KEY=$KEY
 EOF
-cat >/usr/local/bin/wachwerk-offsite-sync <<'EOF'
-#!/bin/sh
-# Kopiert die verschlüsselten Backups auf die Storage Box (offsite-storagebox.sh).
-set -eu
-. /etc/wachwerk/offsite.env
-find "$OFFSITE_DIR" -maxdepth 1 -type f -name 'rwsth-*.dump.gpg' -mtime +"$OFFSITE_KEEP_DAYS" -delete
-# Nur verschlüsselte Dateien verlassen den Server.
-rsync -a --delete --include='rwsth-*.dump.gpg' --exclude='*' \
-    -e "ssh -p 23 -i $OFFSITE_SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o BatchMode=yes" \
-    "$OFFSITE_DIR/" "$OFFSITE_TARGET"
-install -d -m 0700 /var/lib/wachwerk
-touch /var/lib/wachwerk/offsite-sync.ok
-echo "Offsite-Kopie abgeschlossen: $(find "$OFFSITE_DIR" -maxdepth 1 -name 'rwsth-*.dump.gpg' | wc -l) Dateien"
-EOF
-chmod 0755 /usr/local/bin/wachwerk-offsite-sync
+)
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+if [ -f "$script_dir/wachwerk-offsite-sync.sh" ]; then
+    install -m 0755 "$script_dir/wachwerk-offsite-sync.sh" /usr/local/bin/wachwerk-offsite-sync
+else
+    # Einzeln heruntergeladen: Kopierskript aus demselben Stand holen.
+    curl -fsSL "${WACHWERK_BASE_URL:-https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main}/deploy/hetzner/wachwerk-offsite-sync.sh" \
+        -o /usr/local/bin/wachwerk-offsite-sync || die "wachwerk-offsite-sync.sh konnte nicht geladen werden."
+    chmod 0755 /usr/local/bin/wachwerk-offsite-sync
+fi
 cat >/etc/systemd/system/wachwerk-offsite.service <<'EOF'
 [Unit]
 Description=Wachwerk: verschlüsselte Backups auf die Storage Box kopieren
@@ -144,6 +155,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/wachwerk-offsite-sync
+TimeoutStartSec=2h
 EOF
 cat >/etc/systemd/system/wachwerk-offsite.timer <<'EOF'
 [Unit]
@@ -157,8 +169,8 @@ RandomizedDelaySec=5min
 [Install]
 WantedBy=timers.target
 EOF
+chmod 0644 /etc/systemd/system/wachwerk-offsite.service /etc/systemd/system/wachwerk-offsite.timer
 systemctl daemon-reload
-systemctl enable --now wachwerk-offsite.timer >/dev/null 2>&1
 
 # --- 5. Erster Durchlauf -------------------------------------------------------------
 say "Backup-Dienst neu starten und erstes verschlüsseltes Backup anlegen"
@@ -167,12 +179,17 @@ say "Backup-Dienst neu starten und erstes verschlüsseltes Backup anlegen"
 ls "$OFFSITE"/rwsth-*.dump.gpg >/dev/null 2>&1 \
     || die "Keine verschlüsselte Datei in $OFFSITE (wachbuch logs backup)."
 /usr/local/bin/wachwerk-offsite-sync
+# Timer erst nach dem ersten gelungenen Lauf einschalten (ein frisch
+# eingeschalteter Timer löst sofort aus, OnBootSec liegt in der Vergangenheit).
+systemctl enable --now wachwerk-offsite.timer >/dev/null 2>&1
 
 cat <<EOF
 
 Fertig. Verschlüsselte Backups landen stündlich auf $BOX_USER@$BOX_HOST:$REMOTE_DIR/
   Status:        systemctl list-timers wachwerk-offsite.timer
   Protokoll:     journalctl -u wachwerk-offsite
+  Wichtig:       in der Hetzner Console automatische Snapshots der Storage Box
+                 einschalten – die kann vom Server aus niemand löschen.
   Wiederherstellen (docs/HETZNER.md, Abschnitt Backup-Probe):
     1. Datei holen:  sftp -P 23 $BOX_USER@$BOX_HOST
     2. Auf DEINEM Rechner entschlüsseln:  gpg --output rwsth.dump --decrypt rwsth-....dump.gpg
