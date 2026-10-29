@@ -256,6 +256,14 @@ class AutoUpdateCliTests(SimpleTestCase):
             encoding="utf-8",
         )
         crontab.chmod(0o755)
+        # Healthcheck von `wachbuch status` beantworten, alles andere (file://) echt.
+        curl = self.bin / "curl"
+        curl.write_text(
+            '#!/bin/sh\ncase "$*" in *127.0.0.1:18090/healthz/*) echo \'{"status": "ok"}\'; exit 0 ;; esac\n'
+            f'exec {shutil.which("curl")} "$@"\n',
+            encoding="utf-8",
+        )
+        curl.chmod(0o755)
         self.state_file = self.tmp / "docker.json"
         self.write_env(WACHBUCH_VERSION="0.25.0")
         self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.25.0", self.OLD))
@@ -309,13 +317,18 @@ class AutoUpdateCliTests(SimpleTestCase):
             "FAKE_DOCKER_STATE": str(self.state_file),
             "FAKE_CRONTAB": str(self.tmp / "crontab.txt"),
         }
+        # Eigene Sitzung ohne Terminal: Rückfragen können nicht hängen bleiben.
         return subprocess.run(
             ["sh", str(self.dir / "wachbuch"), *args],
             cwd=self.dir, env=environment, capture_output=True, text=True, timeout=60,
+            stdin=subprocess.DEVNULL, start_new_session=True, check=False,
         )
 
     def compose_calls(self, command):
         return [c for c in self.calls() if c[:2] == ["compose", command]]
+
+    def resets(self):
+        return [c for c in self.compose_calls("run") if any("pg_restore" in arg for arg in c)]
 
     def log(self):
         path = self.dir / "logs" / "auto-update.log"
@@ -328,7 +341,7 @@ class AutoUpdateCliTests(SimpleTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(self.compose_calls("pull"))
         self.assertFalse(self.compose_calls("up"))
-        self.assertFalse(self.compose_calls("exec"))
+        self.assertFalse([c for c in self.compose_calls("exec") if "once" in c], "kein Backup")
         self.assertIn("aktuell", self.log())
 
     def test_refreshed_images_are_backed_up_and_started(self):
@@ -391,6 +404,199 @@ class AutoUpdateCliTests(SimpleTestCase):
         self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
         self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
         self.assertIn("Rollback", self.log())
+        self.assertEqual(self.resets(), [], "ohne neue Migrationen kein Zurücksetzen der Datenbank")
+
+    # --- Rollback nach eingespielten Migrationen --------------------------------
+    def failing_version_update(self, **state):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="alle")
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW),
+                       fail_up_ids=[self.NEW["app"]], migrations=88,
+                       up_migrations={self.NEW["app"]: 94}, **state)
+
+    def test_rollback_after_migrations_restores_pre_update_dump(self):
+        # migrate der neuen Version ist durch, web startet nicht: Ohne
+        # Zurücksetzen liefe 0.25.0 auf dem Schema von 0.26.0.
+        self.failing_version_update()
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.state()["migrations"], 88)
+        self.assertEqual(len(self.resets()), 1)
+        calls = self.calls()
+
+        def positions(match):
+            return [index for index, call in enumerate(calls) if match(call)]
+
+        ups = positions(lambda c: c[:2] == ["compose", "up"])
+        stops = positions(lambda c: c[:2] == ["compose", "stop"] and "web" in c and "migrate" in c)
+        reset = positions(lambda c: c[:2] == ["compose", "run"] and any("pg_restore" in a for a in c))
+        self.assertEqual(len(ups), 2)
+        self.assertTrue(stops, "Anwendung und migrate vor dem Zurücksetzen anhalten")
+        self.assertLess(ups[0], stops[0])
+        self.assertLess(stops[0], reset[0])
+        self.assertLess(reset[0], ups[1], "erst Datenbank, dann alte Fassung")
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        log = self.log()
+        self.assertIn("zurückgesetzt", log)
+        self.assertIn("Rollback erfolgreich", log)
+
+    def test_failed_reset_keeps_new_version_instead_of_old_code(self):
+        self.failing_version_update(reset_fails=True)
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.state()["migrations"], 94)
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# 0.26.0\n")
+        log = self.log()
+        self.assertIn("FEHLER", log)
+        self.assertNotIn("Rollback erfolgreich", log)
+        # Vorherige Images bleiben für einen Rollback von Hand erhalten.
+        self.assertTrue(any(name.endswith("-wb-rollback") for name in self.state()["images"]))
+
+    def test_unreadable_migration_state_aborts_version_update(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="alle")
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW),
+                       migrations="")
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.compose_calls("up"))
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+
+    def test_missing_current_images_block_unprotected_update(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit")
+        self.set_state(images={}, remote=self.images("0.25.0", self.NEW))
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.compose_calls("pull"))
+        self.assertIn("fehlen lokal", self.log())
+
+    # --- Aufräumen und Caddy ------------------------------------------------------
+    def test_version_update_prunes_old_images_and_old_host_dumps(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="alle")
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW))
+        backups = self.dir / "backups"
+        backups.mkdir()
+        old_dump, note = backups / "rwsth-20260901T000000Z.dump", backups / "notiz.txt"
+        for path in (old_dump, note):
+            path.write_text("x", encoding="utf-8")
+            os.utime(path, (1, 1))
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.state()["images"], self.images("0.26.0", self.NEW), "0.25.0-Images entfernt")
+        prune = [c for c in self.calls() if c[:2] == ["image", "prune"]]
+        self.assertTrue(any("-af" in c and any("org.opencontainers.image.source=" in a for a in c) for c in prune))
+        self.assertFalse(old_dump.exists())
+        self.assertTrue((backups / "rwsth-test.dump").exists(), "frisches Backup bleibt")
+        self.assertTrue(note.exists(), "fremde Dateien bleiben")
+
+    def test_retention_zero_keeps_host_dumps(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit", BACKUP_RETENTION_DAYS="0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.25.0", self.NEW))
+        (self.dir / "backups").mkdir()
+        old_dump = self.dir / "backups" / "rwsth-20260901T000000Z.dump"
+        old_dump.write_text("x", encoding="utf-8")
+        os.utime(old_dump, (1, 1))
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(old_dump.exists())
+
+    def caddy_recreates(self):
+        return [c for c in self.compose_calls("up") if c[-1] == "caddy" and "--force-recreate" in c]
+
+    def test_changed_caddyfile_recreates_caddy(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="alle")
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW),
+                       caddy_config="# alt\n")
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(len(self.caddy_recreates()), 1)
+        self.assertEqual(self.state()["caddy_config"], "# 0.26.0\n")
+
+    def test_stale_caddy_is_recreated_even_without_new_images(self):
+        # Update mit einer älteren CLI: Datei neu, Caddy läuft noch mit der alten.
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.25.0", self.OLD),
+                       caddy_config="# noch aelter\n")
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.caddy_recreates()), 1)
+        self.assertIn("aktuell", self.log())
+
+    def test_unchanged_caddyfile_leaves_caddy_alone(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.25.0", self.NEW))
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.caddy_recreates(), [])
+
+    # --- wachbuch update (von Hand) --------------------------------------------
+    def test_manual_update_with_failed_pull_changes_nothing(self):
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW),
+                       pull_fails=True)
+        result = self.run_cli("-y", "update", "0.26.0")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("nicht ladbar", result.stderr)
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        self.assertEqual((self.dir / "deploy" / "caddy" / "Caddyfile").read_text(encoding="utf-8"), "# alt\n")
+        self.assertFalse(self.compose_calls("up"))
+        self.assertFalse(list(self.dir.rglob("*.download.*")))
+
+    def test_manual_update_with_failed_start_rolls_back(self):
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW),
+                       fail_up_ids=[self.NEW["app"]], migrations=88, up_migrations={self.NEW["app"]: 94})
+        result = self.run_cli("-y", "update", "0.26.0")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        self.assertEqual(self.state()["migrations"], 88)
+        self.assertEqual(len(self.compose_calls("up")), 2)
+        self.assertIn("Rollback erfolgreich", result.stdout)
+
+    def test_manual_update_success_cleans_up(self):
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW))
+        result = self.run_cli("-y", "update", "0.26.0")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+        self.assertEqual(self.state()["images"], self.images("0.26.0", self.NEW))
+        self.assertFalse((self.dir / "logs" / "rollback").exists())
+
+    def test_downgrade_needs_confirmation(self):
+        self.write_env(WACHBUCH_VERSION="0.26.0")
+        self.publish_release("0.25.0")
+        self.set_state(images=self.images("0.26.0", self.NEW), remote=self.images("0.25.0", self.OLD))
+        result = self.run_cli("update", "0.25.0")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.compose_calls("pull"))
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+
+    def test_public_demo_refuses_versions_without_sandbox(self):
+        self.write_env(WACHBUCH_VERSION="0.26.0", DEMO_MODE="true", DEMO_SANDBOX="true")
+        self.set_state(images=self.images("0.26.0", self.NEW), remote=self.images("0.26.0", self.NEW))
+        for version in ("0.25.0", "latest"):
+            with self.subTest(version=version):
+                result = self.run_cli("-y", "update", version)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("0.26.0", result.stderr)
+        self.assertFalse(self.compose_calls("pull"))
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+
+    def test_setup_code_hidden_after_setup(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", SETUP_BOOTSTRAP_TOKEN="ABCD-EFGH")
+        self.assertIn("ABCD-EFGH", self.run_cli("setup-code").stdout)
+        self.set_state(images=self.images("0.25.0", self.OLD), setup_completed=True)
+        result = self.run_cli("setup-code")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("ABCD-EFGH", result.stdout)
+        self.assertIn("abgeschlossen", result.stdout)
 
     def test_development_install_is_not_auto_updated(self):
         self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit",
@@ -481,9 +687,10 @@ exit 0
                 values[key] = value
         return values
 
+    DEMO = ("--mode", "domain", "--domain", "demo.example.org", "--email", "ops@example.org", "--demo")
+
     def test_demo_sets_sandbox_profile_and_mfa(self):
-        result = self.install("--mode", "domain", "--domain", "demo.example.org",
-                              "--email", "ops@example.org", "--demo")
+        result = self.install(*self.DEMO, "--version", "0.26.0")
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         env = self.env()
         self.assertEqual(env["DEMO_MODE"], "true")
@@ -492,12 +699,49 @@ exit 0
         self.assertEqual(env["COMPOSE_PROFILES"], "https,demo")
         self.assertEqual(env["TRUSTED_PROXY"], "true")
         self.assertEqual(env["ALLOWED_HOSTS"], "demo.example.org,localhost,127.0.0.1")
+        # Nie das veröffentlichte Standardpasswort der gemeinsamen Demo-Konten.
+        self.assertRegex(env["DEMO_PASSWORD"], r"^[0-9a-f]{64}$")
 
     def test_rerun_with_new_mode_keeps_demo_profile(self):
-        self.install("--mode", "domain", "--domain", "demo.example.org", "--email", "ops@example.org", "--demo")
+        self.install(*self.DEMO, "--version", "0.26.0")
         result = self.install("--mode", "domain", "--domain", "neu.example.org", "--email", "ops@example.org")
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         self.assertEqual(self.env()["COMPOSE_PROFILES"], "https,demo")
+
+    def test_demo_refuses_releases_without_sandbox(self):
+        # 0.25.0 legt mit DEMO_MODE gemeinsame Konten mit öffentlichem Passwort an;
+        # "latest" (z. B. nach gescheiterter GitHub-Abfrage) ist das letzte Release.
+        for args in (("--version", "0.25.0"), ("--version", "v0.9.9"), ()):
+            with self.subTest(args=args):
+                result = self.install(*self.DEMO, *args)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn("0.26.0", result.stderr)
+                self.assertFalse((self.dir / ".env").exists())
+
+    def test_rerun_on_demo_install_refuses_old_version(self):
+        self.install(*self.DEMO, "--version", "0.26.0")
+        result = self.install("--version", "0.25.0")
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(self.env()["WACHBUCH_VERSION"], "0.26.0")
+
+    def test_demo_with_local_build_needs_no_version(self):
+        result = self.install(*self.DEMO, "--build")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.env()["DEMO_SANDBOX"], "true")
+
+    def test_rerun_with_new_address_keeps_extra_profiles(self):
+        self.install("--mode", "domain", "--domain", "a.example.org", "--email", "ops@example.org")
+        env_file = self.dir / ".env"
+        env_file.write_text(env_file.read_text(encoding="utf-8").replace(
+            "COMPOSE_PROFILES=https\n", "COMPOSE_PROFILES=https,signal\n"), encoding="utf-8")
+        self.assertEqual(self.env()["COMPOSE_PROFILES"], "https,signal")
+        result = self.install("--mode", "domain", "--domain", "b.example.org", "--email", "ops@example.org")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(self.env()["COMPOSE_PROFILES"], "https,signal")
+        self.install("--mode", "local")
+        self.assertEqual(self.env()["COMPOSE_PROFILES"], "signal")
+        self.install("--mode", "domain", "--domain", "b.example.org", "--email", "ops@example.org")
+        self.assertEqual(self.env()["COMPOSE_PROFILES"], "https,signal")
 
     def test_without_demo_no_sandbox(self):
         result = self.install("--mode", "domain", "--domain", "wache.example.org", "--email", "ops@example.org")
@@ -506,3 +750,87 @@ exit 0
         self.assertEqual(env["DEMO_MODE"], "false")
         self.assertNotIn("DEMO_SANDBOX", env)
         self.assertEqual(env["COMPOSE_PROFILES"], "https")
+
+
+class MigrateScriptDemoTests(SimpleTestCase):
+    """scripts/migrate.sh: öffentliche Demo sperrt gemeinsame Demo-Konten statt sie anzulegen."""
+
+    def run_migrate(self, **env):
+        with tempfile.TemporaryDirectory() as tmp:
+            python = Path(tmp) / "python"
+            python.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >>"$CALLS"\n', encoding="utf-8")
+            python.chmod(0o755)
+            calls = Path(tmp) / "calls"
+            environment = {"PATH": f"{tmp}{os.pathsep}{os.environ.get('PATH', os.defpath)}",
+                           "CALLS": str(calls), **env}
+            result = subprocess.run(["sh", str(ROOT / "scripts" / "migrate.sh")], env=environment,
+                                    capture_output=True, text=True, timeout=30, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return calls.read_text(encoding="utf-8").splitlines()
+
+    def test_sandbox_disables_shared_accounts(self):
+        calls = self.run_migrate(DEMO_MODE="true", DEMO_SANDBOX="true")
+        self.assertIn("manage.py disable_shared_demo_accounts", calls)
+        self.assertNotIn("manage.py load_demo_data", calls)
+
+    def test_local_demo_loads_sample_data(self):
+        calls = self.run_migrate(DEMO_MODE="true")
+        self.assertIn("manage.py load_demo_data", calls)
+        self.assertNotIn("manage.py disable_shared_demo_accounts", calls)
+
+    def test_production_runs_neither(self):
+        calls = self.run_migrate(DEMO_MODE="false", DEMO_SANDBOX="false")
+        self.assertEqual(calls[0], "manage.py migrate --noinput")
+        self.assertFalse([c for c in calls if "demo" in c])
+
+
+class DisableSharedDemoAccountsTests(TestCase):
+    """Konten einer früheren gemeinsamen Demo dürfen sich in der öffentlichen Demo nicht anmelden."""
+
+    PASSWORD = "Demo-Passwort-12345"
+
+    def setUp(self):
+        from core.models import Membership, Station, User
+
+        station = Station.get_default()
+        self.legacy = User.objects.create_user("demo-admin", password=self.PASSWORD)
+        Membership.objects.create(user=self.legacy, station=station, role=Membership.Role.ADMIN, is_active=True)
+        self.sandbox_user = User.objects.create_user("demo-a1b2c3d4-admin", password=self.PASSWORD)
+        self.operator = User.objects.create_user("betreiber", password=self.PASSWORD)
+
+    def login(self, username):
+        self.client.post("/anmelden/", {"username": username, "password": self.PASSWORD})
+        logged_in = "_auth_user_id" in self.client.session
+        self.client.logout()
+        return logged_in
+
+    def test_shared_accounts_are_locked_and_others_untouched(self):
+        self.assertTrue(self.login("demo-admin"))
+        with self.settings(DEMO_MODE=True, DEMO_SANDBOX=True):
+            call_command("disable_shared_demo_accounts", stdout=io.StringIO())
+            self.assertFalse(self.login("demo-admin"))
+        self.legacy.refresh_from_db()
+        self.assertFalse(self.legacy.is_active)
+        self.assertFalse(self.legacy.has_usable_password())
+        self.assertTrue(self.legacy.station_memberships.exists(), "Daten bleiben")
+        for user in (self.sandbox_user, self.operator):
+            user.refresh_from_db()
+            self.assertTrue(user.is_active)
+            self.assertTrue(user.check_password(self.PASSWORD))
+        out = io.StringIO()
+        call_command("disable_shared_demo_accounts", stdout=out)
+        self.assertEqual(out.getvalue(), "", "zweiter Lauf ändert nichts")
+
+    def test_open_session_of_shared_account_ends(self):
+        self.client.force_login(self.legacy)
+        call_command("disable_shared_demo_accounts", stdout=io.StringIO())
+        response = self.client.get("/einstellungen/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/anmelden/", response["Location"])
+
+    def test_load_demo_data_refuses_in_public_demo(self):
+        from core.models import User
+
+        with self.settings(DEMO_MODE=True, DEMO_SANDBOX=True), self.assertRaises(CommandError):
+            call_command("load_demo_data", stdout=io.StringIO())
+        self.assertFalse(User.objects.filter(username="demo-schicht").exists())

@@ -8,6 +8,13 @@ Zustand liegt in $FAKE_DOCKER_STATE (JSON):
                                            dieser IDs in Benutzung ist
   running         {Image-Name: Image-ID}  womit die Container gerade laufen
                                            (Standard: wie images; `up` setzt es)
+  migrations      Zahl                    Zeilen in django_migrations
+  up_migrations   {Image-ID: Zahl}        `compose up` mit diesem App-Image
+                                           migriert vorher auf diese Zahl
+  reset_fails     bool                    Zurücksetzen aus dem Dump scheitert
+  caddy_config    Text                    Caddyfile, das der laufende Caddy
+                                           sieht (Standard: die Datei im Ordner)
+  setup_completed bool                    Ersteinrichtung abgeschlossen
 Jeder Aufruf wird als JSON-Zeile in $FAKE_DOCKER_STATE.calls protokolliert.
 """
 import json
@@ -16,6 +23,7 @@ import re
 import sys
 
 STATE = os.environ["FAKE_DOCKER_STATE"]
+CADDYFILE = os.path.join("deploy", "caddy", "Caddyfile")
 
 
 def load():
@@ -47,6 +55,14 @@ def env_value(key):
     return value
 
 
+def host_caddyfile():
+    try:
+        with open(CADDYFILE, encoding="utf-8") as handle:
+            return handle.read()
+    except OSError:
+        return ""
+
+
 def main(argv):
     with open(STATE + ".calls", "a", encoding="utf-8") as log:
         log.write(json.dumps(argv) + "\n")
@@ -71,16 +87,45 @@ def main(argv):
                     state["images"][name] = state["remote"][name]
             save(state)
             return 0
+        if command == "up" and args[-1] == "caddy":
+            state["caddy_config"] = host_caddyfile()
+            save(state)
+            return 1 if state.get("caddy_fails") else 0
         if command == "up":
+            app = state["images"].get(compose_images(version)[0])
+            if app in state.get("up_migrations", {}):
+                # migrate läuft vor web: Migrationen bleiben, auch wenn der Start scheitert.
+                state["migrations"] = state["up_migrations"][app]
+                save(state)
             used = {state["images"].get(name) for name in compose_images(version)}
             if used & set(state.get("fail_up_ids", [])):
                 return 1
             state["running"] = {name: state["images"].get(name) for name in compose_images(version)}
             save(state)
             return 0
+        if command == "run" and "restore-test" in args:
+            if any("django_migrations" in arg for arg in args):
+                print(state.get("migrations", 0))
+                return 0
+            if any("pg_restore" in arg for arg in args):
+                if state.get("reset_fails"):
+                    return 1
+                state["migrations"] = state.get("dump_migrations", state.get("migrations", 0))
+                state["resets"] = state.get("resets", 0) + 1
+                save(state)
+                return 0
+            return 0
         if command == "exec" and "once" in args:
+            state["dump_migrations"] = state.get("migrations", 0)
+            save(state)
             print("Dump erstellt")
             print("BACKUP_FILE=/backups/rwsth-test.dump")
+            return 0
+        if command == "exec" and "caddy" in args:
+            print(state.get("caddy_config", host_caddyfile()), end="")
+            return 0
+        if command == "exec" and any("setup_completed" in arg for arg in args):
+            print("ja" if state.get("setup_completed") else "nein")
             return 0
         if command == "cp":
             target = args[-1]
@@ -123,6 +168,12 @@ def main(argv):
         save(state)
         return 0
     if argv[:2] == ["image", "prune"]:
+        if "-a" in argv[2:] or "-af" in argv[2:]:
+            # Wie `prune -a`: eigene Images ohne laufenden Container entfernen.
+            in_use = set(state.get("running", state["images"]).values())
+            state["images"] = {name: image_id for name, image_id in state["images"].items()
+                               if image_id in in_use}
+            save(state)
         return 0
     return 0
 
