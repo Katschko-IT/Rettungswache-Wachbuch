@@ -5,7 +5,14 @@ name: Publish container image
 #   ghcr.io/katschko-it/rettungswache-wachbuch          (App)
 #   ghcr.io/katschko-it/rettungswache-wachbuch-backup   (pg_dump/Restore)
 #   ghcr.io/katschko-it/rettungswache-wachbuch-db       (PostgreSQL mit Init)
-# Tags bei vX.Y.Z: X.Y.Z, X.Y und latest (latest nicht für Vorabversionen).
+# Tags bei vX.Y.Z: X.Y.Z, X.Y und latest (latest nicht für Vorabversionen und
+# nicht für Nachträge zu einer älteren Version, z. B. 0.25.1 nach 0.26.0).
+#
+# Erst wenn alle Images veröffentlicht sind, legt der Job „release“ das
+# GitHub-Release mit dem CHANGELOG-Abschnitt an. install.sh, `wachbuch update`
+# und `auto-update alle` folgen releases/latest und finden so nie eine
+# Version ohne Images. Deshalb nur den Tag pushen (docs/RELEASE-0.26.0.md),
+# kein `gh release create` und kein Release-Knopf vorher.
 
 on:
   push:
@@ -26,13 +33,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Vor dem Bauen: Tag passt zu core/version.py, CHANGELOG hat den Abschnitt,
+  # und ob diese Version die neueste ist (Image-Tag „latest“, Release „Latest“).
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      latest: ${{ steps.check.outputs.latest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          if [ "$GITHUB_EVENT_NAME" != push ]; then
+            echo "latest=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 .github/scripts/release.py check-tag "$GITHUB_REF_NAME"
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" >"$RUNNER_TEMP/releases.json"
+          latest=$(python3 .github/scripts/release.py is-newest "$GITHUB_REF_NAME" "$RUNNER_TEMP/releases.json")
+          echo "latest=$latest" >>"$GITHUB_OUTPUT"
+          echo "$GITHUB_REF_NAME wird neueste Version: $latest"
+
   verify:
     uses: ./.github/workflows/ci.yml
     permissions:
       contents: read
 
   publish:
-    needs: verify
+    needs: [prepare, verify]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -41,12 +73,20 @@ jobs:
           - image: ghcr.io/katschko-it/rettungswache-wachbuch
             dockerfile: Dockerfile
             target: runtime
+            # Stufe mit apt-get upgrade: nie aus dem Cache, damit jedes
+            # Release die aktuellen Sicherheitsupdates der Basis enthält.
+            fresh-stage: runtime
+          # gosu im offiziellen postgres-Image: siehe refresh-images.yml.
           - image: ghcr.io/katschko-it/rettungswache-wachbuch-backup
             dockerfile: Dockerfile.backup
             target: backup
+            fresh-stage: pgbase
+            trivy-skip-files: usr/local/bin/gosu
           - image: ghcr.io/katschko-it/rettungswache-wachbuch-db
             dockerfile: Dockerfile.backup
             target: db
+            fresh-stage: pgbase
+            trivy-skip-files: usr/local/bin/gosu
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Emulation für das arm64-Image (Raspberry Pi) auf dem amd64-Runner.
@@ -66,8 +106,32 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.event_name == 'push' && !contains(github.ref_name, '-') }}
+            type=raw,value=latest,enable=${{ needs.prepare.outputs.latest == 'true' }}
             type=raw,value=${{ inputs.channel }},enable=${{ github.event_name == 'workflow_dispatch' }}
+      # Dieselbe Sperre wie beim wöchentlichen Neubau: erst amd64 lokal bauen
+      # und prüfen, dann für beide Architekturen veröffentlichen.
+      - name: Build for security gate (amd64)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          platforms: linux/amd64
+          pull: true
+          load: true
+          no-cache-filters: ${{ matrix.fresh-stage }}
+          build-args: |
+            APP_VERSION=${{ steps.meta.outputs.version }}
+          tags: publish-check:${{ matrix.target }}
+          cache-from: type=gha,scope=${{ matrix.target }}
+      - name: Security gate (Trivy, HIGH/CRITICAL with fix)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: publish-check:${{ matrix.target }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-files: ${{ matrix.trivy-skip-files }}
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
@@ -75,6 +139,8 @@ jobs:
           target: ${{ matrix.target }}
           push: true
           platforms: linux/amd64,linux/arm64
+          pull: true
+          no-cache-filters: ${{ matrix.fresh-stage }}
           # Label-Version aus dem Git-Tag (metadata-action), nicht fest im Dockerfile.
           build-args: |
             APP_VERSION=${{ steps.meta.outputs.version }}
@@ -82,3 +148,32 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+
+  # Erst nach allen Images: GitHub-Release mit dem CHANGELOG-Abschnitt.
+  release:
+    needs: [prepare, publish]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          LATEST: ${{ needs.prepare.outputs.latest }}
+        run: |
+          set -eu
+          tag="$GITHUB_REF_NAME"
+          version="${tag#v}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag existiert bereits."
+            exit 0
+          fi
+          python3 .github/scripts/release.py notes "$version" >"$RUNNER_TEMP/notes.md"
+          case "$tag" in
+            *-*) flag=--prerelease ;;
+            *) flag="--latest=$LATEST" ;;
+          esac
+          gh release create "$tag" --verify-tag --title "Wachwerk $version" \
+            --notes-file "$RUNNER_TEMP/notes.md" "$flag"

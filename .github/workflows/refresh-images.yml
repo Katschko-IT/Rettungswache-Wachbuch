@@ -1,9 +1,12 @@
 name: Refresh release images
 
-# Baut das aktuelle Release jede Woche ohne Cache neu. So kommen
-# Sicherheitsupdates der Basis (Debian per apt-get upgrade, Alpine per
-# apk upgrade) bei den Wachen an, ohne dass es eine neue Version braucht:
-# `wachbuch auto-update` im Modus „sicherheit“ holt genau diese Images.
+# Baut die veröffentlichten Versionen jede Woche ohne Cache neu: den neuesten
+# Patch der zwei neuesten Minor-Versionen (REFRESH_MINOR_VERSIONS, z. B.
+# 0.26.1 und 0.25.3). So kommen Sicherheitsupdates der Basis (Debian per
+# apt-get upgrade, Alpine per apk upgrade) bei den Wachen an, ohne dass es
+# eine neue Version braucht: `wachbuch auto-update` im Modus „sicherheit“
+# holt genau diese Images – auch noch, wenn schon die nächste Minor-Version
+# erschienen ist. Ältere Versionen erhalten keine Neubauten mehr.
 #
 # Veröffentlicht wird nur, was Sicherheitsscan und Starttest besteht. Sonst
 # bleiben die bisherigen Images stehen und es entsteht ein Issue.
@@ -20,28 +23,34 @@ concurrency:
   group: refresh-images
   cancel-in-progress: false
 
+env:
+  REFRESH_MINOR_VERSIONS: 2
+
 jobs:
   resolve:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.release.outputs.tag }}
+      releases: ${{ steps.release.outputs.releases }}
+      tags: ${{ steps.release.outputs.tags }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag=$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)
-          case "$tag" in
-            v[0-9]*.[0-9]*.[0-9]*)
-              echo "tag=$tag" >>"$GITHUB_OUTPUT"
-              echo "Neubau von $tag"
-              ;;
-            *) echo "Kein veröffentlichtes Release – nichts zu tun." ;;
-          esac
+          set -eu
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" >"$RUNNER_TEMP/releases.json"
+          releases=$(python3 .github/scripts/release.py refresh-targets \
+            "$RUNNER_TEMP/releases.json" "$REFRESH_MINOR_VERSIONS")
+          tags=$(printf '%s' "$releases" | jq -r 'map(.tag) | join(", ")')
+          echo "releases=$releases" >>"$GITHUB_OUTPUT"
+          echo "tags=$tags" >>"$GITHUB_OUTPUT"
+          echo "Neubau von: ${tags:-nichts (kein veröffentlichtes Release)}"
 
   refresh:
+    name: ${{ matrix.release.tag }} ${{ matrix.target }}
     needs: resolve
-    if: needs.resolve.outputs.tag != ''
+    if: needs.resolve.outputs.releases != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,20 +58,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        release: ${{ fromJSON(needs.resolve.outputs.releases) }}
+        target: [runtime, backup, db]
         include:
-          - image: ghcr.io/katschko-it/rettungswache-wachbuch
+          - target: runtime
+            image: ghcr.io/katschko-it/rettungswache-wachbuch
             dockerfile: Dockerfile
-            target: runtime
-          - image: ghcr.io/katschko-it/rettungswache-wachbuch-backup
+          # gosu (Go 1.24.6) aus dem offiziellen postgres:17-alpine meldet
+          # Trivy mit Go-stdlib-CVEs (crypto/tls, net/http, x509, net/url …).
+          # gosu ruft im docker-entrypoint.sh nur setgroups/setuid/exec auf;
+          # diese Pakete erreicht es nie. Upstream baut gosu dafür bewusst
+          # nicht neu (github.com/tianon/gosu/blob/master/SECURITY.md), ein
+          # neuerer Digest hilft also nicht. Das Backup-Image enthält gosu ab
+          # 0.26.0 nicht mehr; der Ausschluss bleibt für ältere Versionen.
+          - target: backup
+            image: ghcr.io/katschko-it/rettungswache-wachbuch-backup
             dockerfile: Dockerfile.backup
-            target: backup
-          - image: ghcr.io/katschko-it/rettungswache-wachbuch-db
+            trivy-skip-files: usr/local/bin/gosu
+          - target: db
+            image: ghcr.io/katschko-it/rettungswache-wachbuch-db
             dockerfile: Dockerfile.backup
-            target: db
+            trivy-skip-files: usr/local/bin/gosu
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.resolve.outputs.tag }}
+          ref: ${{ matrix.release.tag }}
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
         with:
           platforms: arm64
@@ -76,10 +96,11 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ matrix.image }}
+          # „latest“ nur für die neueste Version, nie für die Vorgängerin.
           tags: |
-            type=semver,pattern={{version}},value=${{ needs.resolve.outputs.tag }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.resolve.outputs.tag }}
-            type=raw,value=latest
+            type=semver,pattern={{version}},value=${{ matrix.release.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ matrix.release.tag }}
+            type=raw,value=latest,enable=${{ matrix.release.latest }}
 
       # 1. Ohne Cache für amd64 bauen und lokal laden: Scan und Starttest.
       - name: Build for checks (amd64, no cache)
@@ -102,6 +123,7 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: '1'
+          skip-files: ${{ matrix.trivy-skip-files }}
       - name: Smoke test
         run: |
           set -eu
@@ -163,10 +185,10 @@ jobs:
     steps:
       - env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.resolve.outputs.tag }}
+          TAGS: ${{ needs.resolve.outputs.tags }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="Wöchentlicher Image-Neubau fehlgeschlagen (${TAG:-ohne Release})"
+          title="Wöchentlicher Image-Neubau fehlgeschlagen (${TAGS:-ohne Release})"
           if gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" \
               --json number --jq 'length' | grep -q '^0$'; then
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body \
