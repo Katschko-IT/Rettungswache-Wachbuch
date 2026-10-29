@@ -33,7 +33,7 @@
   <div class="item-list">
     {% for attachment in attachments %}
       <a class="list-row" href="{% url 'defect_attachment_web' attachment.pk %}" target="_blank" rel="noopener">
-        <span class="row-content"><strong>{{ attachment.filename }}</strong><small>{{ attachment.content_type }} · {{ attachment.size|filesizeformat }} · {{ attachment.uploaded_by.username }}</small></span>
+        <span class="row-content"><strong>{{ attachment.filename }}</strong><small>{{ attachment.content_type }} · {{ attachment.size|filesizeformat }} · {{ attachment.uploaded_by.first_name|default:attachment.uploaded_by.username }}</small></span>
         <time datetime="{{ attachment.created_at|date:'c' }}">{{ attachment.created_at|date:"d.m.Y H:i" }}</time>
       </a>
     {% empty %}<p class="empty-state">{% translate "Noch keine Anhänge." %}</p>{% endfor %}
@@ -49,7 +49,7 @@
   <h2>{% translate "Verlauf" %}</h2>
   <div class="item-list">
     {% for event in events %}
-      <div class="list-row"><span class="row-content"><strong>{{ event.get_kind_display }}</strong><small>{% if event.from_status or event.to_status %}{{ event.from_status|default:"—" }} → {{ event.to_status|default:"—" }} · {% endif %}{{ event.actor.username }}</small></span><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i" }}</time></div>
+      <div class="list-row"><span class="row-content"><strong>{{ event.get_kind_display }}</strong><small>{% if event.from_status %}{{ event.from_status_label }} → {{ event.to_status_label|default:"—" }} · {% elif event.to_status %}{{ event.to_status_label }} · {% endif %}{{ event.actor.first_name|default:event.actor.username }}</small></span><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i" }}</time></div>
     {% empty %}<p class="empty-state">{% translate "Noch keine Historie." %}</p>{% endfor %}
   </div>
 </section>

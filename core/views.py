@@ -77,7 +77,7 @@ from .api.wachalltag import (
     attachment_is_valid,
 )
 from .attachments import read_uploads
-from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
+from .wachalltag_models import ChecklistSchedule, Defect, HandoverAck, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
 from .mfa import (
     confirm_device,
@@ -90,6 +90,7 @@ from .mfa import (
     verify_totp,
 )
 from .services import (
+    acknowledge_handover,
     archive_pinboard_note,
     audit,
     change_handover_status,
@@ -177,6 +178,25 @@ def permission_denied(request, exception=None):
         code=ERROR_CODE_FORBIDDEN,
         template_name="errors/403.html",
     )
+
+
+def csrf_failure(request, reason=""):
+    """Abgelaufenes Formular (CSRF): eigene Seite statt Djangos Rohtext."""
+    if is_api_request(request):
+        return json_error(request, ERROR_CODE_FORBIDDEN, status=403)
+    back = request.META.get("HTTP_REFERER", "")
+    if not url_has_allowed_host_and_scheme(back, {request.get_host()}, require_https=request.is_secure()):
+        back = reverse("landing")
+    correlation_id = correlation_id_for_request(request)
+    response = render(request, "errors/403_csrf.html", {
+        "status_code": 403,
+        "error_code": ERROR_CODE_FORBIDDEN,
+        "correlation_id": correlation_id,
+        "error_label": _("Seite veraltet"),
+        "back_url": back,
+    }, status=403)
+    response[RESPONSE_CORRELATION_HEADER] = correlation_id
+    return response
 
 
 def page_not_found(request, exception=None):
@@ -686,7 +706,9 @@ def handover_list(request):
 @membership_required(CONTENT_ROLES)
 @require_http_methods(["GET", "POST"])
 def handover_create(request):
-    form = HandoverForm(request.POST or None)
+    from .demo_sandbox import tour_form_initial
+
+    form = HandoverForm(request.POST or None, initial=tour_form_initial(request))
     if request.method == "POST" and form.is_valid():
         uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
         if upload_error:
@@ -716,6 +738,16 @@ def handover_detail(request, pk):
         pk=pk,
         station=request.membership.station,
     )
+    from .terminal import is_service_user
+
+    # Lesebestätigungen sind persönlich: nicht für das Wachenterminal (AGENTS.md §4).
+    can_ack = not is_service_user(request.user)
+    if request.method == "POST" and request.POST.get("action") == "acknowledge":
+        if not can_ack:
+            raise PermissionDenied
+        _ack, created = acknowledge_handover(handover, request.user)
+        messages.success(request, _("Als gelesen quittiert.") if created else _("Bereits quittiert."))
+        return redirect("handover_detail", pk=pk)
     if request.method == "POST" and request.POST.get("action") == "upload":
         upload = request.FILES.get("attachment")
         if upload is None:
@@ -751,8 +783,12 @@ def handover_detail(request, pk):
         Membership.Role.SHIFT_LEAD,
         Membership.Role.ADMIN,
     }
+    acks = list(HandoverAck.objects.filter(handover=handover).select_related("user"))
     return render(request, "core/handover_detail.html", {
         "handover": handover,
+        "acks": acks,
+        "has_acked": any(ack.user_id == request.user.pk for ack in acks),
+        "can_ack": can_ack and all(ack.user_id != request.user.pk for ack in acks),
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,

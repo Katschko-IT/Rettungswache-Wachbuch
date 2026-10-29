@@ -160,33 +160,44 @@ class DemoTourTests(TestCase):
         self.assertNotContains(page, "Geschafft!")
         other = self.client.get(reverse("handover_list"))
         self.assertNotContains(other, "Dein erster Schichtwechsel")
-        self.assertContains(other, "Rundgang: 1 von 6")
+        self.assertContains(other, "Rundgang 1/6")
+        # Das Banner führt direkt zum nächsten Schritt, vorausgefüllt.
+        self.assertContains(other, f'{reverse("handover_create")}?vorlage=sauerstoff')
 
     def test_seeded_sample_data_does_not_count(self):
         # Musterdaten enthalten Übergaben und Einzahlungen – trotzdem nur 1 von 6.
         self.assertTrue(HandoverEntry.objects.filter(station=self.station).exists())
         self.assertContains(self.client.get(reverse("dashboard")), "1 von 6 erledigt")
 
-    def test_all_steps_done_shows_installation_call_to_action(self):
-        from core.mpg_models import DeviceRoutineCheck, MedicalDevice
-        from core.wachalltag_models import Defect, HandoverAck
-
-        handover = HandoverEntry.objects.create(
-            station=self.station, category="material", priority="urgent",
-            title="Sauerstoff RTW 2 fast leer", details="Flasche 2", author=self.user,
-        )
-        HandoverAck.objects.create(station=self.station, handover=handover, user=self.user)
-        device = MedicalDevice.objects.filter(station=self.station).first()
-        DeviceRoutineCheck.objects.create(station=self.station, device=device, performed_by=self.user)
-        Defect.objects.create(station=self.station, title="Trage quietscht", created_by=self.user)
-        CoffeeEntry.objects.create(
-            station=self.station, member=self.user, amount_cents=500, reason="Oktober",
-            kind=CoffeeEntry.Kind.PAYMENT, method="cash", created_by=self.user,
-        )
+    def test_all_steps_can_be_done_in_the_browser(self):
+        """Jeder Schritt hat einen Knopf in der Weboberfläche – auch das Quittieren."""
+        form = self.client.get(f'{reverse("handover_create")}?vorlage=sauerstoff')
+        self.assertContains(form, "Sauerstoff RTW 83-2 fast leer")
+        response = self.client.post(reverse("handover_create"), {
+            "category": "material", "priority": "urgent", "title": "Sauerstoff RTW 83-2 fast leer",
+            "details": "Flasche 2",
+        })
+        handover = HandoverEntry.objects.get(station=self.station, title="Sauerstoff RTW 83-2 fast leer")
+        detail_url = reverse("handover_detail", args=[handover.pk])
+        self.assertRedirects(response, detail_url, fetch_redirect_response=False)
+        page = self.client.get(detail_url)
+        self.assertContains(page, "Schritt 2 von 6 geschafft")
+        # Schritt 3 wechselt die Rolle selbst und landet bei der neuen Übergabe.
+        self.assertContains(page, f'<input type="hidden" name="next" value="{detail_url}">')
+        switched = self.client.post(reverse("demo_switch_role"), {"role": "mitglied", "next": detail_url})
+        self.assertRedirects(switched, detail_url, fetch_redirect_response=False)
+        self.assertContains(self.client.get(detail_url), "Gelesen – quittieren")
+        self.client.post(detail_url, {"action": "acknowledge"})
+        self.client.post(reverse("mpg_routine_check", args=["demo-defi-rtw1"]), {"quick_pass": "1"})
+        self.client.post(reverse("defect_create_web"), {
+            "title": "Trage quietscht", "priority": "normal", "category": "vehicle",
+        })
+        self.client.post(reverse("coffee_pay"), {"amount_eur": "5.00", "method": "cash"})
         page = self.client.get(reverse("dashboard"))
         self.assertContains(page, "6 von 6 erledigt")
         self.assertContains(page, "Geschafft!")
         self.assertContains(page, reverse("install_guide"))
+        self.assertContains(page, '<input type="hidden" name="role" value="audit">')
 
     def test_logout_notice_offers_installation_and_new_demo(self):
         response = self.client.post(reverse("logout"))
@@ -414,3 +425,292 @@ class DemoSettingsTests(SimpleTestCase):
 
     def test_shared_demo_switches_mfa_off(self):
         self.assertEqual(self._setting("MFA_REQUIRED", DEMO_MODE="true", DEMO_SANDBOX="false", MFA_REQUIRED="true"), "False")
+
+
+    def test_per_ip_default_fits_a_group_behind_one_router(self):
+        self.assertEqual(self._setting("DEMO_SANDBOX_PER_IP_HOUR", DEMO_SANDBOX_PER_IP_HOUR=""), "30")
+
+
+@override_settings(**SANDBOX_ON)
+class DemoRoleAndTourTests(TestCase):
+    """Rollenwechsel, Rundgang und Banner führen ohne Sackgasse durch die Demo."""
+
+    def setUp(self):
+        cache.clear()
+        self.client.post(reverse("login"), DEMO)
+        self.station = Membership.objects.get(user_id=self.client.session["_auth_user_id"]).station
+
+    def test_auditor_lands_on_the_audit_log(self):
+        response = self.client.post(reverse("demo_switch_role"), {"role": "audit"})
+        self.assertRedirects(response, reverse("audit_log"))
+        page = self.client.get(reverse("audit_log"))
+        self.assertNotContains(page, "demo-bar-progress")
+        self.assertContains(page, "Zurück zum Rundgang")
+        # Gesperrte Bereiche führen den Auditor nicht auf die Übersicht (403).
+        blocked = self.client.get(reverse("legal_settings"))
+        self.assertRedirects(blocked, reverse("audit_log"), fetch_redirect_response=False)
+        back = self.client.post(reverse("demo_switch_role"), {"role": "admin", "next": "/uebersicht/#demo-tour"})
+        self.assertEqual(back["Location"], "/uebersicht/#demo-tour")
+
+    def test_role_switch_ignores_foreign_next_targets(self):
+        response = self.client.post(reverse("demo_switch_role"), {"role": "mitglied", "next": "https://example.org/"})
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+        response = self.client.post(reverse("demo_switch_role"), {"role": "admin", "next": reverse("legal_settings")})
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+
+    def test_role_switch_keeps_forms_in_other_tabs_valid(self):
+        from django.test import Client
+
+        client = Client(enforce_csrf_checks=True)
+        token = str(client.get(reverse("login")).context["csrf_token"])
+        client.post(reverse("login"), {**DEMO, "csrfmiddlewaretoken": token})
+        old_tab = str(client.get(reverse("dashboard")).context["csrf_token"])
+        other_tab = str(client.get(reverse("handover_list")).context["csrf_token"])
+        switched = client.post(reverse("demo_switch_role"), {"role": "mitglied", "csrfmiddlewaretoken": other_tab})
+        self.assertEqual(switched.status_code, 302)
+        # Abmelden aus dem älteren Tab funktioniert weiter.
+        response = client.post(reverse("logout"), {"csrfmiddlewaretoken": old_tab})
+        self.assertRedirects(response, reverse("landing") + "?demo=ende", fetch_redirect_response=False)
+
+    def test_stale_form_gets_a_page_with_a_way_back(self):
+        from django.test import Client
+
+        client = Client(enforce_csrf_checks=True)
+        response = client.post(reverse("logout"), {"csrfmiddlewaretoken": "x" * 64},
+                               HTTP_REFERER="http://testserver/uebergaben/")
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Diese Seite war veraltet", status_code=403)
+        self.assertContains(response, 'href="http://testserver/uebergaben/"', status_code=403)
+        self.assertNotContains(response, "CSRF", status_code=403)
+
+    def test_progress_is_cached_and_refreshed_after_a_change(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        self.client.get(reverse("more"))
+        with CaptureQueriesContext(connection) as ctx:
+            page = self.client.get(reverse("more"))
+        tour_tables = ("core_handoverack", "core_deviceroutinecheck", "core_defect\"")
+        self.assertFalse([q for q in ctx.captured_queries if any(t in q["sql"] for t in tour_tables)])
+        self.assertContains(page, "Rundgang 1/6")
+        self.client.post(reverse("handover_create"), {
+            "category": "station", "priority": "normal", "title": "Neu", "details": "x",
+        })
+        self.assertContains(self.client.get(reverse("more")), "Rundgang 2/6")
+
+    def test_banner_is_compact_on_phones_and_points_into_the_tour(self):
+        page = self.client.get(reverse("dashboard"))
+        self.assertContains(page, 'class="demo-bar-short"')
+        self.assertContains(page, 'id="demo-tour"')
+        self.assertContains(page, 'href="#demo-tour"')
+        self.assertContains(page, "Mitglied (Mara)")
+
+    def test_role_labels_are_translatable(self):
+        from django.utils.functional import Promise
+
+        self.assertIsInstance(Membership.Role.MEMBER.label, Promise)
+
+    def test_restarting_inside_a_running_demo_reuses_it(self):
+        response = self.client.post(reverse("demo_login"))
+        self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertEqual(DemoSandbox.objects.count(), 1)
+
+    def test_slide_deck_does_not_hide_the_demo_banner(self):
+        from pathlib import Path
+
+        page = self.client.get(reverse("vorfuehrung"))
+        self.assertContains(page, '<aside class="demo-bar"')
+        self.assertContains(page, 'class="demo-deck-bar"')
+        css = (Path(__file__).resolve().parent / "static" / "core" / "demo.css").read_text()
+        self.assertNotRegex(css, r"\.demo-bar\b")
+
+
+@override_settings(**SANDBOX_ON)
+class DemoBlockedActionsTests(TestCase):
+    """In der Demo gesperrte Aktionen erscheinen gar nicht erst als Knopf."""
+
+    def setUp(self):
+        cache.clear()
+        self.client.post(reverse("login"), DEMO)
+
+    def test_blocked_controls_are_hidden(self):
+        for name, blocked in (
+            ("display_tokens", "display_token_create"),
+            ("station_settings", "legal_settings"),
+            ("team_invites", "team_invite_create"),
+            ("team", "team_create"),
+            ("account_home", "api_tokens_manage"),
+            ("more", "api_tokens_manage"),
+        ):
+            page = self.client.get(reverse(name))
+            self.assertEqual(page.status_code, 200, name)
+            self.assertNotContains(page, f'"{reverse(blocked)}"', msg_prefix=name)
+        self.assertContains(self.client.get(reverse("display_tokens")), reverse("display_home"))
+
+    def test_blocked_area_returns_to_the_previous_page(self):
+        response = self.client.get(reverse("display_token_create"), HTTP_REFERER="http://testserver/einstellungen/display/")
+        self.assertRedirects(response, reverse("display_tokens"), fetch_redirect_response=False)
+
+
+@override_settings(**SANDBOX_ON)
+class DemoSampleDataTests(TestCase):
+    """Musterdaten wie auf einer echten Rettungswache – ohne Testmarker."""
+
+    def setUp(self):
+        cache.clear()
+        from core.demo_sandbox import create_sandbox
+
+        self.sandbox, self.users = create_sandbox()
+        self.station = self.sandbox.station
+
+    def test_no_test_markers_in_a_sandbox(self):
+        from django.apps import apps
+
+        for model in apps.get_app_config("core").get_models():
+            fields = {field.name for field in model._meta.concrete_fields}
+            if "station" not in fields:
+                continue
+            for name in ("title", "name", "reason", "label", "batch_number", "serial_number", "model_type"):
+                if name in fields:
+                    values = model.objects.filter(station=self.station).values_list(name, flat=True)
+                    for value in values:
+                        self.assertNotIn("[Demo]", value, f"{model.__name__}.{name}")
+                        self.assertNotIn("DEMO", value, f"{model.__name__}.{name}")
+                        self.assertNotIn("(Demo)", value, f"{model.__name__}.{name}")
+
+    def test_times_are_spread_and_appointments_are_in_the_daytime(self):
+        from core.models import CalendarEvent
+
+        created = set(HandoverEntry.objects.filter(station=self.station).values_list("created_at", flat=True))
+        self.assertGreaterEqual(len(created), 6)
+        self.assertTrue(all(value <= timezone.now() for value in created))
+        for event in CalendarEvent.objects.filter(station=self.station):
+            start = timezone.localtime(event.starts_at)
+            self.assertTrue(6 <= start.hour <= 20, f"{event.title} {start}")
+            self.assertLess(start.weekday() if "Briefing" not in event.title else 0, 5, event.title)
+
+    def test_device_records_match_their_deadlines(self):
+        from core.demo_modules import _months_before
+        from core.mpg_models import MaintenanceLog, MedicalDevice
+
+        for device in MedicalDevice.objects.filter(station=self.station, is_anlage_1=True):
+            stk = MaintenanceLog.objects.get(device=device, kind=MaintenanceLog.Kind.STK)
+            self.assertEqual(stk.performed_at, _months_before(device.next_stk_date, device.stk_interval_months))
+            self.assertIsNotNone(device.last_routine_check)
+
+    def test_member_has_the_current_month_open_for_the_tour(self):
+        from core import coffee
+
+        member = self.users["demo-mitglied"]
+        status = coffee.member_status(self.station, member)
+        self.assertEqual(status.open_cents, 500)
+        self.assertEqual(coffee.member_status(self.station, self.users["demo-kasse"]).open_cents, 0)
+
+    def test_modules_are_filled_and_chat_stays_empty(self):
+        from core.models import ChatMessage, NewsPost, PinboardNote, WikiArticle
+        from core.fleet_models import Vehicle
+        from core.wachalltag_models import Defect, InventoryItem, StationAsset
+        from core.warehouse_models import StockMovement
+
+        for model, minimum in ((NewsPost, 2), (PinboardNote, 2), (WikiArticle, 1), (StationAsset, 5),
+                               (InventoryItem, 2), (StockMovement, 5), (Defect, 2), (Vehicle, 5)):
+            self.assertGreaterEqual(model.objects.filter(station=self.station).count(), minimum, model.__name__)
+        types = set(Vehicle.objects.filter(station=self.station).values_list("vehicle_type", flat=True))
+        self.assertEqual(types, {"rtw", "nef", "ktw"})
+        self.assertFalse(ChatMessage.objects.filter(station=self.station).exists())
+
+    def test_creation_stays_cheap(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        from core.demo_sandbox import create_sandbox
+
+        with CaptureQueriesContext(connection) as ctx:
+            create_sandbox()
+        self.assertLess(len(ctx.captured_queries), 300)
+
+    def test_defect_history_is_readable(self):
+        from core.wachalltag_models import Defect
+
+        client = self.client
+        client.force_login(self.users["demo-admin"])
+        defect = Defect.objects.filter(station=self.station, status="in_progress").first()
+        page = client.get(reverse("defect_detail_web", args=[defect.pk]))
+        self.assertContains(page, "Offen → In Bearbeitung")
+        self.assertNotContains(page, "in_progress ·")
+        self.assertNotContains(page, f"demo-{self.sandbox.token}-")
+
+
+@override_settings(**SANDBOX_ON)
+class DemoPurgeBatchTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_expired_demos_are_purged_together_and_one_failure_does_not_block_the_rest(self):
+        from unittest import mock
+
+        from django.db import DatabaseError
+
+        from core import demo_sandbox
+
+        stations = [demo_sandbox.create_sandbox()[0].station_id for _ in range(3)]
+        DemoSandbox.objects.update(ended_at=timezone.now())
+        real = demo_sandbox.purge_stations
+        calls = []
+
+        def flaky(ids):
+            calls.append(list(ids))
+            if stations[1] in ids:
+                raise DatabaseError("simuliert")
+            return real(ids)
+
+        with mock.patch.object(demo_sandbox, "purge_stations", side_effect=flaky):
+            purged = demo_sandbox.purge_expired()
+        self.assertEqual(purged, 2)
+        self.assertEqual(calls[0], stations)  # erst alle in einem Durchlauf
+        self.assertEqual(list(Station.objects.filter(pk__in=stations).values_list("pk", flat=True)), [stations[1]])
+        connection.check_constraints()
+
+
+class HandoverAcknowledgementTests(TestCase):
+    """Übergaben lassen sich im Browser quittieren – nicht vom Wachenterminal."""
+
+    def setUp(self):
+        self.station = Station.objects.create(name="Wache Ack", slug="wache-ack")
+        self.author = User.objects.create_user("autorin", password="x" * 16, first_name="Ada")
+        self.reader = User.objects.create_user("leser", password="x" * 16, first_name="Lea")
+        Membership.objects.create(user=self.author, station=self.station, role=Membership.Role.SHIFT_LEAD)
+        Membership.objects.create(user=self.reader, station=self.station, role=Membership.Role.MEMBER)
+        self.handover = HandoverEntry.objects.create(
+            station=self.station, category="material", title="Sauerstoff", details="x", author=self.author,
+        )
+        self.url = reverse("handover_detail", args=[self.handover.pk])
+
+    def test_acknowledging_twice_keeps_one_receipt_and_one_audit_entry(self):
+        from core.wachalltag_models import HandoverAck
+
+        self.client.force_login(self.reader)
+        self.assertContains(self.client.get(self.url), "Gelesen – quittieren")
+        self.client.post(self.url, {"action": "acknowledge"})
+        self.client.post(self.url, {"action": "acknowledge"})
+        self.assertEqual(HandoverAck.objects.filter(handover=self.handover, user=self.reader).count(), 1)
+        self.assertEqual(AuditEvent.objects.filter(action="handover.acknowledged").count(), 1)
+        page = self.client.get(self.url)
+        self.assertContains(page, "Lea")
+        self.assertContains(page, "bereits quittiert")
+        self.assertNotContains(page, "Gelesen – quittieren")
+
+    def test_terminal_service_account_cannot_acknowledge(self):
+        from django.core.exceptions import PermissionDenied
+        from django.test import RequestFactory
+
+        from core.terminal import set_station_code
+        from core.views import handover_detail
+        from core.wachalltag_models import HandoverAck
+
+        service = set_station_code(self.station, "4827", set_by=self.author).service_user
+        request = RequestFactory().post(self.url, {"action": "acknowledge"})
+        request.user = service
+        with self.assertRaises(PermissionDenied):
+            handover_detail(request, pk=self.handover.pk)
+        self.assertFalse(HandoverAck.objects.filter(user=service).exists())

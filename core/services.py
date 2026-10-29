@@ -147,6 +147,17 @@ def update_handover_content(handover, cleaned_data, membership):
 
 
 @transaction.atomic
+def acknowledge_handover(handover, user):
+    """Übergabe als gelesen quittieren (Web und App). Gibt (Quittung, neu?) zurück."""
+    from .wachalltag_models import HandoverAck
+
+    ack, created = HandoverAck.objects.get_or_create(station=handover.station, handover=handover, user=user)
+    if created:
+        audit(user, handover.station, "handover.acknowledged", handover, {"handover": handover.pk})
+    return ack, created
+
+
+@transaction.atomic
 def clear_birthday_on_exit(user, station, actor):
     """Withdraw birthday visibility and clear day/month when membership ends."""
     preferences = list(

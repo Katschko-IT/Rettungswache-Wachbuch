@@ -43,7 +43,7 @@ body.demo-deck-active .site-footer { display: none; }
   padding: clamp(2rem, 5vw, 4rem) 0;
   border-bottom: 1px solid var(--line);
 }
-.demo-bar { display: none; }
+.demo-deck-bar { display: none; }
 
 /* —— Mit JavaScript: Bühne + Leiste —— */
 .demo-deck.is-js {
@@ -158,7 +158,7 @@ body.demo-deck-active .site-footer { display: none; }
 .demo-legal a { color: inherit; }
 
 /* —— Steuerleiste —— */
-.demo-deck.is-js .demo-bar {
+.demo-deck.is-js .demo-deck-bar {
   position: relative;
   flex: none;
   display: grid;
@@ -169,8 +169,8 @@ body.demo-deck-active .site-footer { display: none; }
   background: var(--surface);
   border-top: 1px solid var(--line);
 }
-.demo-bar > [data-demo-prev] { justify-self: start; }
-.demo-bar-end { justify-self: end; display: flex; gap: .5rem; }
+.demo-deck-bar > [data-demo-prev] { justify-self: start; }
+.demo-deck-bar-end { justify-self: end; display: flex; gap: .5rem; }
 .demo-music[aria-pressed="true"] { color: var(--on-primary); background: var(--text); border-color: var(--text); }
 
 .demo-progress {
@@ -250,11 +250,11 @@ body.demo-deck-active .site-footer { display: none; }
   .demo-facts .facts th { width: 28%; padding-right: 1rem; }
   .demo-facts .note { margin-top: 1rem; padding: .75rem 1rem; font-size: .95rem; }
   .demo-legal { margin-top: .6rem; }
-  .demo-bar .pub-button { padding-inline: .8rem; }
-  .demo-bar { gap: .5rem; }
+  .demo-deck-bar .pub-button { padding-inline: .8rem; }
+  .demo-deck-bar { gap: .5rem; }
 }
 
 @media (prefers-contrast: more) {
-  .demo-deck.is-js .demo-bar { border-top: 2px solid var(--text); }
+  .demo-deck.is-js .demo-deck-bar { border-top: 2px solid var(--text); }
   .demo-progress-fill { background: var(--text); }
 }

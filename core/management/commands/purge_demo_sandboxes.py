@@ -10,8 +10,7 @@ import os
 
 from django.core.management.base import BaseCommand, CommandError
 
-from core.demo_models import DemoSandbox
-from core.demo_sandbox import purge_expired, purge_sandbox
+from core.demo_sandbox import purge_all, purge_expired
 from core.management.commands._watch import run_watch_loop
 
 
@@ -41,13 +40,7 @@ class Command(BaseCommand):
                 max_failures=options["max_failures"],
             )
             return
-        if options["all"]:
-            sandboxes = list(DemoSandbox.objects.all())
-            for sandbox in sandboxes:
-                purge_sandbox(sandbox)
-            purged = len(sandboxes)
-        else:
-            purged = purge_expired()
+        purged = purge_all() if options["all"] else purge_expired()
         self.report(purged, options)
 
     def report(self, purged, options):

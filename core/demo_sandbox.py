@@ -15,7 +15,7 @@ import hashlib
 import logging
 import secrets
 from datetime import timedelta
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from django.apps import apps
 from django.conf import settings
@@ -24,15 +24,16 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import DatabaseError, connection, models, transaction
+from django.db.models import Exists, OuterRef
 from django.db.models.functions import Length
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from .demo import DEMO_ACCOUNTS, _seed_content
+from .demo import DEMO_ACCOUNTS, DEMO_COLLEAGUES, _seed_content
 from .demo_models import DemoSandbox
 from .middleware import rate_limit_ip
 from .models import Membership, Station, UserProfile
@@ -41,6 +42,9 @@ from .task_board import ensure_default_station_tasks
 logger = logging.getLogger(__name__)
 
 SESSION_KEY = "demo_sandbox_id"
+# Fortschritt des Rundgangs; wird nach jeder Änderung (POST) neu bestimmt.
+TOUR_SESSION_KEY = "demo_tour"
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
 DEMO_CREDENTIAL = "demo"
 STATION_NAME = "Demo-Wache Musterstadt"
 # Rollen in der Reihenfolge, in der sie im Demo-Banner stehen.
@@ -168,7 +172,10 @@ def _check_limits(request) -> None:
         cache.set(key, 1, timeout=3600)
         count = 1
     if count > settings.DEMO_SANDBOX_PER_IP_HOUR:
-        raise DemoUnavailable(_("Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. Bitte später erneut versuchen."))
+        raise DemoUnavailable(_(
+            "Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. "
+            "In spätestens einer Stunde geht es wieder – bis dahin zeigt die Vorführung alle Funktionen ohne Anmeldung."
+        ))
 
 
 @transaction.atomic
@@ -191,24 +198,65 @@ def create_sandbox() -> tuple[DemoSandbox, dict[str, User]]:
     )
     sandbox = DemoSandbox.objects.create(station=station, token=token)
     ensure_default_station_tasks(station)
-    users = {}
-    for account in DEMO_ACCOUNTS:
-        role_key = account["username"].split("-", 1)[1]
+    # Ein Konto je Rolle plus ein paar Kolleginnen und Kollegen ohne Zugang,
+    # damit Team, Lesebestätigungen und Kaffeekasse nach einer echten Wache
+    # aussehen. Kein Passwort: erreichbar nur über den Demo-Einstieg.
+    accounts = [(account["username"].split("-", 1)[1], account) for account in DEMO_ACCOUNTS]
+    accounts += [(colleague["key"], colleague) for colleague in DEMO_COLLEAGUES]
+    new_users = []
+    for key, account in accounts:
         user = User(
-            username=sandbox_username(sandbox, role_key),
+            username=sandbox_username(sandbox, key),
             first_name=account["first_name"],
             last_name=account["last_name"],
             is_active=True,
         )
-        # Kein Passwort: Die Konten sind nur über den Demo-Einstieg erreichbar.
         user.set_unusable_password()
-        user.save()
-        Membership.objects.create(user=user, station=station, role=account["role"], is_active=True)
-        users[account["username"]] = user
-    _seed_content(station, users)
+        new_users.append(user)
+    created = User.objects.bulk_create(new_users)
+    if any(user.pk is None for user in created):  # Datenbank ohne RETURNING
+        created = list(User.objects.filter(username__in=[user.username for user in new_users]))
+    by_name = {user.username: user for user in created}
+    users = {}
+    memberships = []
+    for key, account in accounts:
+        user = by_name[sandbox_username(sandbox, key)]
+        memberships.append(Membership(
+            user=user, station=station, role=account.get("role", Membership.Role.MEMBER), is_active=True,
+        ))
+        users[account.get("username") or f"demo-{key}"] = user
+    Membership.objects.bulk_create(memberships)
+    _seed_content(station, users, marker="", fresh=True)
     sandbox.ready_at = timezone.now()
     sandbox.save(update_fields=["ready_at"])
     return sandbox, users
+
+
+def current_role_key(request, sandbox: DemoSandbox) -> str:
+    """Rolle des Demo-Kontos, mit dem der Besuch gerade angemeldet ist."""
+    prefix = f"demo-{sandbox.token}-"
+    username = getattr(request.user, "username", "")
+    return username[len(prefix):] if username.startswith(prefix) else ""
+
+
+def home_for_role(role_key: str) -> str:
+    """Startseite der Rolle: Auditoren haben keine Übersicht, nur das Audit-Log."""
+    return "audit_log" if role_key == "audit" else "dashboard"
+
+
+def _local_url(request, url: str) -> str | None:
+    """Nur Pfade dieser Installation als Rücksprungziel zulassen."""
+    if not url or not url_has_allowed_host_and_scheme(url, {request.get_host()}, require_https=request.is_secure()):
+        return None
+    parts = urlsplit(url)
+    if not parts.path.startswith("/"):
+        return None
+    try:
+        if resolve(parts.path).url_name in BLOCKED_URL_NAMES:
+            return None
+    except Resolver404:
+        return None
+    return parts.path + (f"?{parts.query}" if parts.query else "") + (f"#{parts.fragment}" if parts.fragment else "")
 
 
 def _enter(request, sandbox: DemoSandbox, user: User):
@@ -222,6 +270,11 @@ def _enter(request, sandbox: DemoSandbox, user: User):
 
 def start_demo(request):
     """Demo-Wache anlegen, als Master-Admin anmelden und zur Übersicht leiten."""
+    current = getattr(request, "demo_sandbox", None)
+    if current is not None:
+        # Schon in einer Demo: dort weitermachen statt eine zweite anzulegen
+        # (zählt auch nicht gegen die Grenze je Anschluss).
+        return redirect(home_for_role(current_role_key(request, current)))
     try:
         _check_limits(request)
     except DemoUnavailable as exc:
@@ -232,13 +285,20 @@ def start_demo(request):
     return redirect("dashboard")
 
 
-def switch_role(request, sandbox: DemoSandbox, role_key: str):
+def switch_role(request, sandbox: DemoSandbox, role_key: str, next_url: str = ""):
     if role_key not in ROLE_KEYS:
-        return redirect("dashboard")
+        return redirect(home_for_role(current_role_key(request, sandbox)))
     user = User.objects.filter(username=sandbox_username(sandbox, role_key), is_active=True).first()
-    if user is not None:
-        _enter(request, sandbox, user)
-    return redirect("dashboard")
+    if user is None:
+        return redirect(home_for_role(current_role_key(request, sandbox)))
+    # Gleicher Besuch, gleiche Demo-Wache: Das CSRF-Geheimnis bleibt, damit
+    # Formulare in anderen offenen Tabs (Abmelden, Rollenwechsel) gültig bleiben.
+    csrf_secret = request.META.get("CSRF_COOKIE")
+    _enter(request, sandbox, user)
+    if csrf_secret:
+        request.META["CSRF_COOKIE"] = csrf_secret
+    target = _local_url(request, next_url) if role_key != "audit" else None
+    return redirect(target or home_for_role(role_key))
 
 
 def sandbox_for_user(user) -> DemoSandbox | None:
@@ -379,13 +439,16 @@ def write_refusal(request, sandbox: DemoSandbox) -> str | None:
     return None
 
 
-def purge_sandbox(sandbox: DemoSandbox) -> int:
-    """Demo-Wache mit allen Konten und Einträgen löschen. Gibt die Zeilenzahl zurück.
+def purge_stations(station_ids) -> int:
+    """Demo-Wachen mit allen Konten und Einträgen löschen. Gibt die Zeilenzahl zurück.
 
     Löscht bewusst auch append-only Zeilen (Kaffeekasse, Audit) – aber nur die
-    der Demo-Wache und nur, wenn der Datenbank-Benutzer das darf.
+    der Demo-Wachen und nur, wenn der Datenbank-Benutzer das darf. Mehrere
+    Wachen auf einmal teilen sich einen Durchlauf durch die Fremdschlüssel.
     """
-    station_ids = [sandbox.station_id]
+    station_ids = list(station_ids)
+    if not station_ids:
+        return 0
     with transaction.atomic():
         user_ids = sandbox_user_ids(station_ids)
         _delete_login_records(User.objects.filter(pk__in=user_ids).values_list("username", flat=True))
@@ -399,12 +462,45 @@ def purge_sandbox(sandbox: DemoSandbox) -> int:
     return total
 
 
-def purge_expired() -> int:
+def purge_sandbox(sandbox: DemoSandbox) -> int:
+    return purge_stations([sandbox.station_id])
+
+
+# Wachen je Transaktion: begrenzt Sperrdauer und Größe eines Durchlaufs.
+PURGE_BATCH = 25
+
+
+def purge_station_batches(station_ids) -> int:
+    """Wachen stapelweise löschen; ein fehlerhafter Stapel hält die übrigen nicht auf.
+
+    Scheitert ein Stapel, wird er Wache für Wache wiederholt, damit nur die
+    betroffene Demo-Wache liegen bleibt (und im Log steht).
+    """
+    station_ids = list(station_ids)
     purged = 0
-    for sandbox in list(expired_sandboxes().select_related("station")):
-        purge_sandbox(sandbox)
-        purged += 1
+    for start in range(0, len(station_ids), PURGE_BATCH):
+        chunk = station_ids[start:start + PURGE_BATCH]
+        try:
+            purge_stations(chunk)
+            purged += len(chunk)
+            continue
+        except DatabaseError:
+            logger.warning("Demo-Purge im Stapel fehlgeschlagen, einzeln wiederholen: %s", chunk)
+        for station_id in chunk:
+            try:
+                purge_stations([station_id])
+                purged += 1
+            except DatabaseError:
+                logger.exception("Demo-Wache %s konnte nicht gelöscht werden.", station_id)
     return purged
+
+
+def purge_expired() -> int:
+    return purge_station_batches(expired_sandboxes().order_by("pk").values_list("station_id", flat=True))
+
+
+def purge_all() -> int:
+    return purge_station_batches(DemoSandbox.objects.order_by("pk").values_list("station_id", flat=True))
 
 
 def landing_after_demo(reason: str = "ende") -> str:
@@ -420,6 +516,7 @@ class DemoSandboxMiddleware:
 
     def __call__(self, request):
         request.demo_sandbox = None
+        before = None
         if sandbox_enabled() and request.user.is_authenticated:
             sandbox = self._sandbox(request)
             if sandbox is not None:
@@ -431,20 +528,29 @@ class DemoSandboxMiddleware:
                 if sandbox.last_seen_at < now - timedelta(seconds=60):
                     DemoSandbox.objects.filter(pk=sandbox.pk).update(last_seen_at=now)
                 request.demo_sandbox = sandbox
-        return self.get_response(request)
+                if request.method not in SAFE_METHODS:
+                    # Nur eine Änderung kann den Rundgang voranbringen.
+                    before = tour_state(request, sandbox)
+                    request.session.pop(TOUR_SESSION_KEY, None)
+        response = self.get_response(request)
+        if before is not None and request.user.is_authenticated and 300 <= response.status_code < 400:
+            _celebrate_progress(request, request.demo_sandbox, before)
+        return response
 
     @staticmethod
     def _sandbox(request):
         sandbox_id = request.session.get(SESSION_KEY)
+        if sandbox_id is False:
+            # Für diese Sitzung schon geprüft: kein Demo-Konto.
+            return None
         if sandbox_id is not None:
-            sandbox = DemoSandbox.objects.filter(pk=sandbox_id).first()
-            if sandbox is not None and Membership.objects.filter(
-                station_id=sandbox.station_id, user_id=request.user.pk
-            ).exists():
+            sandbox = DemoSandbox.objects.filter(
+                pk=sandbox_id, station__memberships__user_id=request.user.pk,
+            ).first()
+            if sandbox is not None:
                 return sandbox
         sandbox = sandbox_for_user(request.user)
-        if sandbox is not None:
-            request.session[SESSION_KEY] = sandbox.pk
+        request.session[SESSION_KEY] = sandbox.pk if sandbox is not None else False
         return sandbox
 
     def process_view(self, request, view_func, view_args, view_kwargs):
@@ -455,19 +561,29 @@ class DemoSandboxMiddleware:
         name = match.url_name if match else None
         if name in BLOCKED_URL_NAMES:
             messages.info(request, _("Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."))
-            return redirect("dashboard")
+            return self._back(request, sandbox)
         if request.method == "POST" and name not in WRITE_EXEMPT_URL_NAMES:
             refusal = write_refusal(request, sandbox)
             if refusal:
                 messages.error(request, refusal)
-                back = request.META.get("HTTP_REFERER", "")
-                if back and url_has_allowed_host_and_scheme(back, {request.get_host()}, require_https=request.is_secure()):
-                    return redirect(back)
-                return redirect("dashboard")
+                return self._back(request, sandbox)
         return None
 
+    @staticmethod
+    def _back(request, sandbox):
+        """Zurück zur vorigen Seite der Installation, sonst zur Startseite der Rolle."""
+        back = _local_url(request, request.META.get("HTTP_REFERER", ""))
+        if back:
+            return redirect(back)
+        return redirect(home_for_role(current_role_key(request, sandbox)))
 
-ROLE_LABELS = {account["username"].split("-", 1)[1]: account["label"] for account in DEMO_ACCOUNTS}
+
+def _role_label(role) -> str:
+    return Membership.Role(role).label
+
+
+# Rollen im Banner, mit Vornamen: „Mitglied (Mara)“ – der Rundgang spricht von Mara.
+ROLE_ACCOUNTS = {account["username"].split("-", 1)[1]: account for account in DEMO_ACCOUNTS}
 
 
 def demo_banner(request) -> dict | None:
@@ -475,13 +591,13 @@ def demo_banner(request) -> dict | None:
     sandbox = getattr(request, "demo_sandbox", None)
     if sandbox is None:
         return None
-    prefix = f"demo-{sandbox.token}-"
-    username = getattr(request.user, "username", "")
     return {
         "ends_at": timezone.localtime(ends_at(sandbox)),
         "idle_minutes": settings.DEMO_SANDBOX_IDLE_MINUTES,
-        "role": username[len(prefix):] if username.startswith(prefix) else "",
-        "roles": [(key, ROLE_LABELS[key]) for key in ROLE_KEYS],
+        "role": current_role_key(request, sandbox),
+        "roles": [
+            (key, _role_label(ROLE_ACCOUNTS[key]["role"]), ROLE_ACCOUNTS[key]["first_name"]) for key in ROLE_KEYS
+        ],
     }
 
 
@@ -490,7 +606,7 @@ def switch_role_view(request):
     sandbox = getattr(request, "demo_sandbox", None)
     if sandbox is None:
         return redirect("landing")
-    return switch_role(request, sandbox, request.POST.get("role", ""))
+    return switch_role(request, sandbox, request.POST.get("role", ""), request.POST.get("next", ""))
 
 
 def demo_notice(request) -> str:
@@ -505,6 +621,138 @@ def demo_notice(request) -> str:
     return ""
 
 
+# --- Rundgang „Dein erster Schichtwechsel“ ------------------------------------
+
+TOUR_FLAGS = ("handover", "ack", "device", "defect", "coffee")
+# Gerät, an dem Schritt 4 die Funktionskontrolle zeigt (core/demo_modules.py).
+TOUR_DEVICE_SLUG = "demo-defi-rtw1"
+
+
+def _tour_flags(sandbox: DemoSandbox) -> dict:
+    """Welche Schritte erledigt sind – eine Abfrage für alle fünf."""
+    from .mpg_models import DeviceRoutineCheck
+    from .models import CoffeeEntry, HandoverEntry
+    from .wachalltag_models import Defect, HandoverAck
+
+    since = sandbox.ready_at
+    station = OuterRef("pk")
+    row = Station.objects.filter(pk=sandbox.station_id).annotate(
+        handover=Exists(HandoverEntry.objects.filter(station=station, created_at__gt=since)),
+        ack=Exists(HandoverAck.objects.filter(station=station, created_at__gt=since)),
+        device=Exists(DeviceRoutineCheck.objects.filter(station=station, checked_at__gt=since)),
+        defect=Exists(Defect.objects.filter(station=station, created_at__gt=since)),
+        coffee=Exists(CoffeeEntry.objects.filter(
+            station=station, kind=CoffeeEntry.Kind.PAYMENT, created_at__gt=since,
+        )),
+    ).values(*TOUR_FLAGS).first() or {}
+    return {key: bool(row.get(key)) for key in TOUR_FLAGS}
+
+
+def _ack_target(sandbox: DemoSandbox) -> str:
+    """Übergabe für Schritt 3: die eigene aus Schritt 2, sonst die dringendste."""
+    from .models import HandoverEntry
+
+    handovers = HandoverEntry.objects.filter(station_id=sandbox.station_id).exclude(
+        status=HandoverEntry.Status.DONE,
+    )
+    target = (
+        handovers.filter(created_at__gt=sandbox.ready_at).order_by("-created_at").first()
+        or handovers.filter(priority=HandoverEntry.Priority.URGENT).order_by("-created_at").first()
+        or handovers.order_by("-created_at").first()
+    )
+    return reverse("handover_detail", args=[target.pk]) if target else reverse("handover_list")
+
+
+def tour_state(request, sandbox: DemoSandbox, *, refresh: bool = False) -> dict:
+    """Fortschritt aus der Sitzung; neu bestimmt nach jeder Änderung.
+
+    Fortschritt entsteht nur durch eigene Änderungen (POST) des Besuchs; die
+    Middleware verwirft den gespeicherten Stand dann. Normale Seitenaufrufe
+    kosten so keine zusätzliche Abfrage.
+    """
+    state = None if refresh else request.session.get(TOUR_SESSION_KEY)
+    if not isinstance(state, dict) or set(state.get("flags", {})) != set(TOUR_FLAGS):
+        flags = _tour_flags(sandbox)
+        state = {"flags": flags, "ack_url": "" if flags["ack"] else _ack_target(sandbox)}
+        request.session[TOUR_SESSION_KEY] = state
+    return state
+
+
+def build_tour(request, sandbox: DemoSandbox, state: dict) -> dict:
+    flags = state["flags"]
+    role = current_role_key(request, sandbox)
+    steps = [
+        {
+            "key": "overview",
+            "title": _("Übersicht lesen"),
+            "short": _("Übersicht lesen"),
+            "text": _("Oben steht, was die Schicht wissen muss: dringende Übergaben, fällige Fristen, knappes Material."),
+            "url": reverse("dashboard"),
+            "done": True,
+        },
+        {
+            "key": "handover",
+            "title": _("Übergabe für die nächste Schicht anlegen"),
+            "short": _("Übergabe anlegen"),
+            "text": _("Das Formular ist schon ausgefüllt: „Sauerstoff RTW 83-2 fast leer“, Dringlichkeit „Dringend“. Einfach speichern."),
+            "url": f"{reverse('handover_create')}?vorlage=sauerstoff",
+            "done": flags["handover"],
+        },
+        {
+            "key": "ack",
+            "title": _("Als Kollegin quittieren"),
+            "short": _("Als Kollegin quittieren"),
+            "text": _("Als Mara (Mitglied) die Übergabe öffnen und „Gelesen – quittieren“ antippen. Den Rollenwechsel erledigt der Rundgang."),
+            "url": state.get("ack_url") or reverse("handover_list"),
+            "role": "mitglied",
+            "done": flags["ack"],
+        },
+        {
+            "key": "device",
+            "title": _("Medizingerät prüfen"),
+            "short": _("Gerät prüfen"),
+            "text": _("Beim Defibrillator von RTW 83-1 die Funktionskontrolle bestätigen – so entsteht nebenbei der Nachweis für die nächste Prüfung."),
+            "url": reverse("mpg_device_detail", args=[TOUR_DEVICE_SLUG]),
+            "done": flags["device"],
+        },
+        {
+            "key": "defect",
+            "title": _("Mangel melden"),
+            "short": _("Mangel melden"),
+            "text": _("Etwas ist kaputt? Mangel mit Frist und verantwortlicher Person anlegen."),
+            "url": reverse("defect_create_web"),
+            "done": flags["defect"],
+        },
+        {
+            "key": "coffee",
+            "title": _("Kaffeekasse bezahlen"),
+            "short": _("Kaffeekasse bezahlen"),
+            "text": _("„Ich habe bezahlt“ antippen – der offene Monat ist sofort abgehakt, ganz ohne Zettel."),
+            "url": reverse("coffee_pay"),
+            "done": flags["coffee"],
+        },
+    ]
+    here = request.get_full_path()
+    for number, step in enumerate(steps, start=1):
+        step["number"] = number
+        # Schon am Ziel des Schritts: Das Banner verweist nicht auf sich selbst.
+        step["here"] = step["url"] == here
+        wanted = step.get("role") or ("admin" if role == "audit" else "")
+        # Schritt braucht eine andere Rolle: Der Knopf wechselt sie gleich mit.
+        step["switch_role"] = wanted if wanted and wanted != role else ""
+        step["role_label"] = _role_label(ROLE_ACCOUNTS[wanted]["role"]) if step["switch_role"] else ""
+    done = sum(1 for step in steps if step["done"])
+    next_step = next((step for step in steps if not step["done"]), None)
+    return {
+        "steps": steps,
+        "done": done,
+        "total": len(steps),
+        "complete": next_step is None,
+        "next": next_step,
+        "role": role,
+    }
+
+
 def demo_tour(request) -> dict | None:
     """Demo-Rundgang „Dein erster Schichtwechsel“: sechs kurze Aufgaben.
 
@@ -516,57 +764,42 @@ def demo_tour(request) -> dict | None:
     sandbox = getattr(request, "demo_sandbox", None)
     if sandbox is None:
         return None
-    from .mpg_models import DeviceRoutineCheck
-    from .models import CoffeeEntry, HandoverEntry
-    from .wachalltag_models import Defect, HandoverAck
+    return build_tour(request, sandbox, tour_state(request, sandbox))
 
-    station_id, since = sandbox.station_id, sandbox.ready_at
-    steps = [
-        {
-            "key": "overview",
-            "title": _("Übersicht lesen"),
-            "text": _("Oben steht, was die Schicht wissen muss: dringende Übergaben, fällige Fristen, knappes Material."),
-            "url": reverse("dashboard"),
-            "done": True,
-        },
-        {
-            "key": "handover",
-            "title": _("Übergabe für die nächste Schicht anlegen"),
-            "text": _("Zum Beispiel „Sauerstoff RTW 2 fast leer“, Dringlichkeit „Dringend“."),
-            "url": reverse("handover_create"),
-            "done": HandoverEntry.objects.filter(station_id=station_id, created_at__gt=since).exists(),
-        },
-        {
-            "key": "ack",
-            "title": _("Als Kollegin quittieren"),
-            "text": _("Oben im Banner zur Rolle „Mitglied“ wechseln und eine Übergabe als gelesen bestätigen."),
-            "url": reverse("handover_list"),
-            "done": HandoverAck.objects.filter(station_id=station_id, created_at__gt=since).exists(),
-        },
-        {
-            "key": "device",
-            "title": _("Medizingerät prüfen"),
-            "text": _("Ein Gerät öffnen und die Funktionskontrolle eintragen – so entsteht nebenbei der Nachweis für die nächste Prüfung."),
-            "url": reverse("mpg_dashboard"),
-            "done": DeviceRoutineCheck.objects.filter(station_id=station_id, checked_at__gt=since).exists(),
-        },
-        {
-            "key": "defect",
-            "title": _("Mangel melden"),
-            "text": _("Etwas ist kaputt? Mangel mit Frist und verantwortlicher Person anlegen."),
-            "url": reverse("defect_create_web"),
-            "done": Defect.objects.filter(station_id=station_id, created_at__gt=since).exists(),
-        },
-        {
-            "key": "coffee",
-            "title": _("Kaffeekasse bezahlen"),
-            "text": _("„Ich habe bezahlt“ antippen – der Monat ist sofort abgehakt, ganz ohne Zettel."),
-            "url": reverse("coffee"),
-            "done": CoffeeEntry.objects.filter(
-                station_id=station_id, kind=CoffeeEntry.Kind.PAYMENT, created_at__gt=since,
-            ).exists(),
-        },
-    ]
-    done = sum(1 for step in steps if step["done"])
-    next_step = next((step for step in steps if not step["done"]), None)
-    return {"steps": steps, "done": done, "total": len(steps), "complete": next_step is None, "next": next_step}
+
+def _celebrate_progress(request, sandbox: DemoSandbox, before: dict) -> None:
+    """Nach einer Änderung: geschafften Schritt bestätigen und den nächsten nennen."""
+    if sandbox is None:
+        return
+    state = tour_state(request, sandbox, refresh=True)
+    newly = [key for key in TOUR_FLAGS if state["flags"][key] and not before.get("flags", {}).get(key)]
+    if not newly:
+        return
+    tour = build_tour(request, sandbox, state)
+    if tour["complete"]:
+        messages.success(request, _(
+            "Rundgang geschafft – alle %(total)s Schritte erledigt! Auf der Übersicht siehst du, was dabei entstanden ist."
+        ) % {"total": tour["total"]})
+        return
+    finished = next(step for step in tour["steps"] if step["key"] == newly[-1])
+    messages.success(request, _(
+        "Rundgang: Schritt %(number)s von %(total)s geschafft. Als Nächstes: %(next)s – oben im Banner geht es weiter."
+    ) % {"number": finished["number"], "total": tour["total"], "next": tour["next"]["title"]})
+
+
+TOUR_HANDOVER_TEMPLATES = {
+    "sauerstoff": lambda: {
+        "category": "material",
+        "priority": "urgent",
+        "title": _("Sauerstoff RTW 83-2 fast leer"),
+        "details": _("Reserveflasche im RTW 83-2 unter 50 bar. Bitte vor Schichtbeginn tauschen – volle Flaschen stehen im Zentrallager."),
+    },
+}
+
+
+def tour_form_initial(request) -> dict:
+    """Vorbelegung für das Übergabeformular aus dem Rundgang (nur in der Demo)."""
+    if getattr(request, "demo_sandbox", None) is None:
+        return {}
+    template = TOUR_HANDOVER_TEMPLATES.get(request.GET.get("vorlage", ""))
+    return template() if template else {}
