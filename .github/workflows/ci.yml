@@ -45,12 +45,11 @@ jobs:
         run: ruff check config core --select E4,E7,E9 --output-format=concise
       - name: Check JavaScript syntax
         run: |
-          node --check core/static/core/app.js
-          node --check core/static/core/json_data.js
-          node --check core/static/core/ui.js
-          node --check core/static/core/display.js
-          node --check core/static/core/terminal.js
-          node --check core/static/core/osk.js
+          # Alle App-Skripte, auch neue; den gerenderten Service Worker prüft
+          # core/test_housekeeping.py.
+          for script in core/static/core/*.js; do
+            node --check "$script"
+          done
       - name: Check i18n catalogs and checked-in .mo files
         run: python scripts/i18n_catalog.py check
       - name: Test fail-closed Dependabot gate offline on every PR
@@ -91,7 +90,19 @@ jobs:
         run: |
           cp .env.example .env
           docker compose -f docker-compose.yml config --quiet
-          COMPOSE_PROFILES=https,ops docker compose -f docker-compose.yml -f compose.build.yml config --quiet
+          COMPOSE_PROFILES=https,ops,demo,signal docker compose -f docker-compose.yml -f compose.build.yml config --quiet
+      - name: Validate Caddyfile with the pinned Caddy image
+        run: |
+          # Ein Fehler im Caddyfile legte sonst nach dem nächsten Update jede
+          # Installation mit TLS-Proxy lahm (Caddy startet nicht).
+          caddy_image=$(COMPOSE_PROFILES=https docker compose -f docker-compose.yml config --images | grep '^caddy:')
+          for host in wache.example.test 192.168.1.20; do
+            for tls in internal ops@example.test; do
+              docker run --rm -e WACHBUCH_HOSTNAME="$host" -e CADDY_TLS="$tls" \
+                -v "$PWD/deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+                "$caddy_image" caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+            done
+          done
       - name: Build all images (app, backup, db)
         run: docker compose -f docker-compose.yml -f compose.build.yml build
       - name: Reject runtime data in image
@@ -109,23 +120,28 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: true
-      - name: Start the complete stack (all services)
+      - name: Start the complete stack (all services, public-demo profile)
         run: |
-          export COMPOSE_FILE=docker-compose.yml:compose.build.yml
+          export COMPOSE_FILE=docker-compose.yml:compose.build.yml COMPOSE_PROFILES=demo
           # ALLOWED_HOSTS ohne Loopback: der Healthcheck muss trotzdem gelingen.
-          HTTP_PORT=18091 ALLOWED_HOSTS=wache.example.test \
+          # Wie demo.rwsth.de: mit demo-cleaner und Demo-Wache je Besuch.
+          HTTP_PORT=18091 ALLOWED_HOSTS=wache.example.test DEMO_MODE=true DEMO_SANDBOX=true \
             docker compose up --detach --wait --wait-timeout 300
       - name: Verify health, workers and database restrictions
         run: |
-          export COMPOSE_FILE=docker-compose.yml:compose.build.yml
+          export COMPOSE_FILE=docker-compose.yml:compose.build.yml COMPOSE_PROFILES=demo
           curl --fail --silent --show-error http://127.0.0.1:18091/healthz/
           health() { docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$(docker compose ps -q "$1")"; }
-          for service in web db redis notify-worker push-worker; do
+          for service in web db redis feed-worker notify-worker push-worker housekeeping demo-cleaner; do
             test "$(health "$service")" = "healthy" || { echo "$service: $(health "$service")"; exit 1; }
           done
-          for service in feed-worker backup; do
-            test "$(docker inspect -f '{{.State.Status}}' "$(docker compose ps -q "$service")")" = "running"
-          done
+          test "$(docker inspect -f '{{.State.Status}}' "$(docker compose ps -q backup)")" = "running"
+          # Aufräumen und Demo-Löschung gegen das echte PostgreSQL mit den
+          # Rollen aus grant_database_access (Exit-Code statt Log-Suche).
+          docker compose exec -T housekeeping python manage.py housekeeping
+          docker compose exec -T demo-cleaner python manage.py purge_demo_sandboxes --verbosity 2
+          # Müllkalender im feed-worker: core_station nur spaltenweise lesbar.
+          docker compose exec -T feed-worker python manage.py sync_waste_calendar
           # notify-worker must really talk to the database (K1).
           docker compose logs notify-worker | grep -q "Datenbank erreichbar"
           # The db image ships config/postgresql.conf; assert the EXACT
@@ -139,6 +155,9 @@ jobs:
           test "$(q 'SHOW max_connections')" = "50"
           test "$(q 'SHOW statement_timeout')" = "1min"
           test "$(q "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'DELETE')")" = "f"
+          test "$(q "SELECT has_column_privilege('rwsth_feed', 'core_station', 'waste_calendar_url', 'SELECT')")" = "t"
+          test "$(q "SELECT has_column_privilege('rwsth_feed', 'core_station', 'iban', 'SELECT')")" = "f"
           test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'SELECT')")" = "t"
           test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'INSERT')")" = "f"
           test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'UPDATE')")" = "f"
@@ -148,10 +167,10 @@ jobs:
           docker compose run --rm restore-test
       - name: Show logs after failure
         if: failure()
-        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml docker compose logs --no-color
+        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml COMPOSE_PROFILES=demo docker compose logs --no-color
       - name: Remove stack
         if: always()
-        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml docker compose --profile ops down --volumes --remove-orphans
+        run: COMPOSE_FILE=docker-compose.yml:compose.build.yml docker compose --profile ops --profile demo down --volumes --remove-orphans
       - name: Installer end-to-end (local build, two runs)
         run: |
           target="$RUNNER_TEMP/wachbuch"

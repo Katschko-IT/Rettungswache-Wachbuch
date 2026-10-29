@@ -14,8 +14,9 @@ sonst mit `FEEDBACK_ENABLED=true`.
 - **Lesen:** Einstellungen → Rückmeldungen (`/einstellungen/feedback/`), für
   Master-Admins echter Wachen. Besucher der Demo-Wachen haben keinen Zugriff.
   Einträge lassen sich als gelesen/erledigt markieren oder löschen (Audit).
-- **Löschfrist:** `FEEDBACK_RETENTION_DAYS` (Standard 365, 0 = nie) über
-  `python manage.py apply_retention`.
+- **Löschfrist:** `FEEDBACK_RETENTION_DAYS` (Standard 365, 0 = nie). Der
+  Compose-Dienst `housekeeping` löscht ältere Einträge stündlich von selbst
+  (von Hand: `python manage.py housekeeping`).
 - Die Rückmeldungen gehören bewusst zu keiner Wache: Die Seite ist
   öffentlich, Empfänger ist der Betreiber der Installation (wie Impressum und
   Datenschutz-Angaben).

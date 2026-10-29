@@ -10,6 +10,21 @@ from django.utils import timezone
 
 from core.models import QrLoginRequest, QrTotpUse
 
+TERMINAL_STATES = (
+    QrLoginRequest.State.DENIED,
+    QrLoginRequest.State.EXPIRED,
+    QrLoginRequest.State.REVOKED,
+    QrLoginRequest.State.CONSUMED,
+)
+
+
+def expired_rows(cutoff):
+    """QR-Anfragen und TOTP-Schritte, die vor ``cutoff`` endeten (auch für ``housekeeping``)."""
+    requests = QrLoginRequest.objects.filter(
+        Q(state__in=TERMINAL_STATES, created_at__lt=cutoff) | Q(expires_at__lt=cutoff)
+    )
+    return requests, QrTotpUse.objects.filter(created_at__lt=cutoff)
+
 
 class Command(BaseCommand):
     help = "Löscht terminale QR-Login-Anfragen und verbrauchte TOTP-Schritte älter als 24 Stunden."
@@ -32,18 +47,7 @@ class Command(BaseCommand):
         dry_run = bool(options["dry_run"])
         cutoff = timezone.now() - timedelta(hours=hours)
 
-        terminal_states = [
-            QrLoginRequest.State.DENIED,
-            QrLoginRequest.State.EXPIRED,
-            QrLoginRequest.State.REVOKED,
-            QrLoginRequest.State.CONSUMED,
-        ]
-
-        req_qs = QrLoginRequest.objects.filter(
-            Q(state__in=terminal_states, created_at__lt=cutoff)
-            | Q(expires_at__lt=cutoff)
-        )
-        totp_qs = QrTotpUse.objects.filter(created_at__lt=cutoff)
+        req_qs, totp_qs = expired_rows(cutoff)
 
         req_count = req_qs.count()
         totp_count = totp_qs.count()

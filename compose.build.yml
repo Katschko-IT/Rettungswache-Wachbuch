@@ -35,6 +35,8 @@ services:
   feed-worker: *app-build
   notify-worker: *app-build
   push-worker: *app-build
+  housekeeping: *app-build
+  demo-cleaner: *app-build
 
   backup-init: *backup-build
   backup: *backup-build

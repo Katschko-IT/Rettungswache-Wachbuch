@@ -21,14 +21,16 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import signal
 import time
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import connection, transaction
+from django.db import close_old_connections, connection, transaction
 from django.utils import timezone
 
+from core.management.commands.notify_crew import write_heartbeat
 from core.models import PushOutbox, PushSubscription
 from core.services import audit
 
@@ -285,6 +287,11 @@ class Command(BaseCommand):
             "--once", action="store_true",
             help="Nur einen Durchlauf ausfuehren und dann beenden.",
         )
+        parser.add_argument(
+            "--heartbeat-file",
+            default=os.getenv("PUSH_HEARTBEAT_FILE", ""),
+            help="Datei, die nach jedem erfolgreichen Durchlauf aktualisiert wird (Healthcheck).",
+        )
 
     def handle(self, *args, **options):
         interval = max(int(options["interval"]), 1)
@@ -300,13 +307,25 @@ class Command(BaseCommand):
         signal.signal(signal.SIGINT, _handle_signal)
         signal.signal(signal.SIGTERM, _handle_signal)
 
+        heartbeat_file = options["heartbeat_file"]
         while True:
+            # Nach einem Neustart der Datenbank die tote Verbindung verwerfen,
+            # sonst scheitert jeder weitere Durchlauf.
+            close_old_connections()
             try:
                 count = process_once(batch_size=batch_size)
+                # Lebenszeichen nur nach Erfolg: Ein Worker, der die Datenbank
+                # nicht erreicht, wird "unhealthy" statt still weiterzulaufen.
+                if heartbeat_file:
+                    write_heartbeat(heartbeat_file)
                 if count:
                     self.stdout.write(f"push_worker: {count} Eintraege verarbeitet")
-            except Exception as exc:  # pragma: no cover - loop guard
+            except Exception as exc:
                 logger.exception("push_worker Loop-Fehler: %s", exc)
             if once or stop["flag"]:
                 return
-            time.sleep(interval)
+            # In Sekundenschritten warten, damit SIGTERM sofort wirkt.
+            for _second in range(interval):
+                if stop["flag"]:
+                    return
+                time.sleep(1)
