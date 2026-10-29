@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% translate "Selbst betreiben" %} | {{ app_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/public.css' %}">{% endblock %}
+{% block body_class %}is-landing pub{% endblock %}
+{% block content %}
+<section class="pub-section install-hero" aria-labelledby="install-title">
+  <div class="pub-wrap">
+    <p class="pub-kicker">{% translate "Anleitung" %}</p>
+    <h1 id="install-title">{% translate "Wachwerk auf deiner Wache betreiben" %}</h1>
+    <p class="pub-lead">{% translate "Die Installation selbst dauert etwa fünf Minuten. Mit Einrichtung, Team-Einladung und Backup-Stick solltest du eine Stunde einplanen. Du brauchst kein Informatikstudium – aber du solltest einen Befehl in ein Terminal kopieren können." %}</p>
+    <div class="pub-actions">
+      <a class="pub-button primary" href="#weg">{% translate "Los geht’s" %}</a>
+      {% if demo_mode %}<a class="pub-button" href="{% url 'login' %}">{% translate "Erst die Demo ausprobieren" %}</a>{% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" id="weg" aria-labelledby="install-paths">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-paths">{% translate "1. Welcher Weg passt zu euch?" %}</h2>
+      <p class="pub-muted">{% translate "Alle drei Wege nutzen dieselbe Software und denselben Installer. Ihr könnt später wechseln – ein Backup lässt sich überall wiederherstellen." %}</p>
+    </div>
+    <div class="feature-groups">
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="home" %}{% translate "In der Wache (Insellösung)" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wachen, deren Daten das Haus nicht verlassen sollen – auch ohne Internet." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Raspberry Pi 4 oder 5 mit 4 GB, SSD statt SD-Karte, Touch-Monitor, Echtzeituhr-Modul." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Eigenes WLAN der Wache, Touch-Terminal in der Halle, Handys im WLAN." %}</span></li>
+        </ul>
+      </div>
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="link" %}{% translate "Kleiner Server im Internet" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer auch von unterwegs zugreifen möchte, etwa die Wachleitung." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Gemieteter Cloud-Server mit 2 GB RAM in einem deutschen Rechenzentrum und eine eigene (Sub-)Domain." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Über https mit einem kostenlosen Let’s-Encrypt-Zertifikat." %}</span></li>
+        </ul>
+      </div>
+      <div class="feature-group">
+        <h3>{% include "core/_icon.html" with name="display" %}{% translate "Erst mal testen" %}</h3>
+        <ul class="feature-list">
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer Wachwerk in Ruhe auf dem eigenen Rechner ansehen möchte." %}</span></li>
+          <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Ein Linux-Rechner oder Mac mit Docker." %}</span></li>
+          <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Nur auf diesem Rechner unter http://localhost:8090." %}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-needs">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-needs">{% translate "2. Das brauchst du" %}</h2>
+    </div>
+    <table class="facts">
+      <tbody>
+        <tr><th scope="row">{% translate "Rechner" %}</th><td>{% translate "64 Bit (amd64 oder arm64), mindestens 1 GB, besser 2 GB Arbeitsspeicher, Linux oder macOS" %}</td></tr>
+        <tr><th scope="row">{% translate "Software" %}</th><td>{% translate "Docker mit Compose v2 (ab Version 2.20). Auf dem Raspberry Pi installiert das Pi-Skript Docker selbst." %}</td></tr>
+        <tr><th scope="row">{% translate "Für den Internet-Weg" %}</th><td>{% translate "Eine Domain, bei der du einen DNS-Eintrag anlegen kannst, z. B. wache.example.org" %}</td></tr>
+        <tr><th scope="row">{% translate "Für Backups" %}</th><td>{% translate "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird" %}</td></tr>
+        <tr><th scope="row">{% translate "Kosten" %}</th><td>{% translate "Keine Lizenzkosten. Nur Hardware bzw. die Miete für einen kleinen Server – aktuelle Preise beim Händler oder Anbieter prüfen." %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-steps">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-steps">{% translate "3. In fünf Schritten startklar" %}</h2>
+    </div>
+    <ol class="steps">
+      <li><div>
+        <h3>{% translate "Rechner vorbereiten" %}</h3>
+        <p>{% translate "Docker installieren (Anleitung auf docs.docker.com). Für den Internet-Weg vorher beim Domain-Anbieter einen A-Eintrag auf die IP-Adresse des Servers anlegen, z. B. wache.example.org." %}</p>
+        <p>{% translate "Für den Raspberry Pi in der Wache gibt es ein eigenes Skript, das zusätzlich WLAN, Zertifikat und Touch-Terminal einrichtet – siehe „Raspberry Pi“ weiter unten." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Installer starten" %}</h3>
+        <p>{% translate "Im Terminal des Rechners eingeben. Wer das Skript vorher lesen möchte, lädt es zuerst herunter:" %}</p>
+        <pre class="code-block"><code>curl -fsSLO https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh
+less install.sh
+sudo sh install.sh</code></pre>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Fragen des Installers beantworten" %}</h3>
+        <p>{% translate "Name der Wache und Betriebsart: „local“ (nur dieser Rechner), „lan“ (im Netz der Wache) oder „domain“ (im Internet mit eigener Domain). Der Installer prüft alles, erzeugt sämtliche Schlüssel und zeigt am Ende die Adresse und den Einrichtungscode." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Wache einrichten" %}</h3>
+        <p>{% translate "Die angezeigte Adresse im Browser öffnen, den Einrichtungscode eingeben und dem Assistenten folgen: Name und Anschrift, eigenes Admin-Konto, Impressum und Datenschutz, Zwei-Faktor-Anmeldung, Module." %}</p>
+      </div></li>
+      <li><div>
+        <h3>{% translate "Team einladen und absichern" %}</h3>
+        <p>{% translate "Kolleginnen und Kollegen per Einladungslink oder QR-Code einladen. Die Datei .env im Installationsordner auf den USB-Stick kopieren und sicher verwahren – ohne sie sind Datenbank und Backups nicht mehr lesbar. Dann automatische Updates einschalten:" %}</p>
+        <pre class="code-block"><code>sudo /opt/wachbuch/wachbuch auto-update an</code></pre>
+      </div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-pi">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-pi">{% translate "Raspberry Pi in der Wache" %}</h2>
+      <p class="pub-muted">{% translate "Raspberry Pi OS (64 Bit, mit Desktop) auf die SSD schreiben, den Pi einmal per Kabel ans Internet hängen und dann:" %}</p>
+    </div>
+    <pre class="code-block"><code>git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
+cd Rettungswache-Wachbuch
+sudo WLAN_SSID="Wachwerk RW1" deploy/pi/setup-pi.sh
+sudo reboot</code></pre>
+    <p class="pub-muted">{% translate "Nach dem Neustart öffnet der Touch-Bildschirm direkt die Ersteinrichtung. Das Skript spannt ein eigenes WLAN auf, erzeugt ein Zertifikat und zeigt den Einrichtungscode an. Ausführlich mit Abhak-Liste:" %} <a href="{{ source_url }}/blob/main/docs/PI-WACHENTERMINAL.md" rel="noopener noreferrer">docs/PI-WACHENTERMINAL.md</a></p>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-daily">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-daily">{% translate "Im Alltag" %}</h2>
+      <p class="pub-muted">{% translate "Alle Befehle laufen im Installationsordner, unter Linux /opt/wachbuch:" %}</p>
+    </div>
+    <table class="facts">
+      <tbody>
+        <tr><th scope="row"><code>wachbuch status</code></th><td>{% translate "Läuft alles?" %}</td></tr>
+        <tr><th scope="row"><code>wachbuch update</code></th><td>{% translate "Neue Version holen – vorher wird automatisch gesichert." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch backup</code></th><td>{% translate "Sofort ein Backup anlegen." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch restore DATEI</code></th><td>{% translate "Ein Backup wiederherstellen (mit Rückfrage)." %}</td></tr>
+        <tr><th scope="row"><code>wachbuch setup-code</code></th><td>{% translate "Den Einrichtungscode noch einmal anzeigen." %}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="pub-section" aria-labelledby="install-faq">
+  <div class="pub-wrap">
+    <div class="pub-section-head">
+      <h2 id="install-faq">{% translate "Wenn etwas hakt" %}</h2>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>{% translate "Der Browser warnt vor dem Zertifikat (Betriebsart „lan“)." %}</summary>
+        <p>{% translate "Im Wachen-Netz stellt Wachwerk ein eigenes Zertifikat aus. Das Stammzertifikat einmal auf jedem Gerät als vertrauenswürdig installieren. Der Installer zeigt den Befehl, mit dem du die Datei wachbuch-ca.crt erhältst." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Ich habe den Einrichtungscode nicht mehr." %}</summary>
+        <p>{% translate "Im Installationsordner „wachbuch setup-code“ ausführen. Nach abgeschlossener Einrichtung gibt es keinen Code mehr – dann ist das auch richtig so." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Der Installer meldet einen belegten Port." %}</summary>
+        <p>{% translate "Ein anderes Programm nutzt den Port bereits, oft ein Webserver. Entweder das Programm beenden oder den Installer mit einem anderen Port starten, z. B. „sudo sh install.sh --port 8091“." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Let’s Encrypt stellt kein Zertifikat aus." %}</summary>
+        <p>{% translate "Meist zeigt der DNS-Eintrag noch nicht auf den Server oder die Ports 80 und 443 sind in der Firewall geschlossen. DNS-Änderungen brauchen manchmal einige Minuten." %}</p>
+      </details>
+      <details>
+        <summary>{% translate "Was passiert, wenn der Rechner kaputtgeht?" %}</summary>
+        <p>{% translate "Wachwerk auf neuer Hardware installieren, die gesicherte .env zurückkopieren und das letzte Backup wiederherstellen. Darum gehören .env und Backups auf einen Stick außerhalb des Rechners." %}</p>
+      </details>
+    </div>
+    <p class="pub-muted">{% translate "Weitere Fragen oder ein Fehler? Ausführliche Anleitung:" %} <a href="{{ source_url }}/blob/main/docs/DEPLOYMENT.md" rel="noopener noreferrer">docs/DEPLOYMENT.md</a> · <a href="{{ source_url }}/issues" rel="noopener noreferrer">{% translate "Frage oder Fehler melden" %}</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -144,6 +144,77 @@ class DemoSandboxTests(TestCase):
         self.assertEqual(DemoSandbox.objects.count(), 1)
 
 
+@override_settings(**SANDBOX_ON)
+class DemoTourTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.client.post(reverse("login"), DEMO)
+        self.user = User.objects.get(pk=self.client.session["_auth_user_id"])
+        self.station = Membership.objects.get(user=self.user).station
+
+    def test_tour_starts_with_overview_done_and_points_to_next_step(self):
+        page = self.client.get(reverse("dashboard"))
+        self.assertContains(page, "Dein erster Schichtwechsel")
+        self.assertContains(page, "1 von 6 erledigt")
+        self.assertContains(page, reverse("handover_create"))
+        self.assertNotContains(page, "Geschafft!")
+        other = self.client.get(reverse("handover_list"))
+        self.assertNotContains(other, "Dein erster Schichtwechsel")
+        self.assertContains(other, "Rundgang: 1 von 6")
+
+    def test_seeded_sample_data_does_not_count(self):
+        # Musterdaten enthalten Übergaben und Einzahlungen – trotzdem nur 1 von 6.
+        self.assertTrue(HandoverEntry.objects.filter(station=self.station).exists())
+        self.assertContains(self.client.get(reverse("dashboard")), "1 von 6 erledigt")
+
+    def test_all_steps_done_shows_installation_call_to_action(self):
+        from core.mpg_models import DeviceRoutineCheck, MedicalDevice
+        from core.wachalltag_models import Defect, HandoverAck
+
+        handover = HandoverEntry.objects.create(
+            station=self.station, category="material", priority="urgent",
+            title="Sauerstoff RTW 2 fast leer", details="Flasche 2", author=self.user,
+        )
+        HandoverAck.objects.create(station=self.station, handover=handover, user=self.user)
+        device = MedicalDevice.objects.filter(station=self.station).first()
+        DeviceRoutineCheck.objects.create(station=self.station, device=device, performed_by=self.user)
+        Defect.objects.create(station=self.station, title="Trage quietscht", created_by=self.user)
+        CoffeeEntry.objects.create(
+            station=self.station, member=self.user, amount_cents=500, reason="Oktober",
+            kind=CoffeeEntry.Kind.PAYMENT, method="cash", created_by=self.user,
+        )
+        page = self.client.get(reverse("dashboard"))
+        self.assertContains(page, "6 von 6 erledigt")
+        self.assertContains(page, "Geschafft!")
+        self.assertContains(page, reverse("install_guide"))
+
+    def test_logout_notice_offers_installation_and_new_demo(self):
+        response = self.client.post(reverse("logout"))
+        landing = self.client.get(response["Location"])
+        self.assertContains(landing, reverse("install_guide"))
+        self.assertContains(landing, "Neue Demo starten")
+
+
+class InstallGuideTests(TestCase):
+    def test_public_install_guide(self):
+        page = self.client.get(reverse("install_guide"))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "install.sh")
+        self.assertContains(page, "In der Wache (Insellösung)")
+        self.assertContains(page, "wachbuch setup-code")
+        landing = self.client.get(reverse("landing"))
+        self.assertContains(landing, reverse("install_guide"))
+
+    def test_no_tour_for_regular_users(self):
+        station = Station.objects.create(name="Echte Wache", slug="echt")
+        user = User.objects.create_user("echt", password="x" * 16)
+        Membership.objects.create(user=user, station=station, role=Membership.Role.ADMIN)
+        self.client.force_login(user)
+        page = self.client.get(reverse("dashboard"))
+        self.assertNotContains(page, "Dein erster Schichtwechsel")
+        self.assertNotContains(page, "demo-bar")
+
+
 class DemoSandboxOffTests(TestCase):
     def test_demo_credentials_are_a_normal_failed_login_without_sandbox(self):
         response = self.client.post(reverse("login"), DEMO)

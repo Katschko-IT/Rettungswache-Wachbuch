@@ -399,6 +399,12 @@ def landing(request):
 
 
 @require_GET
+def install_guide(request):
+    """Öffentliche, leicht verständliche Installationsanleitung."""
+    return render(request, "core/install_guide.html")
+
+
+@require_GET
 def vorfuehrung(request):
     """Öffentliche Vorführung ohne Fachdaten; bleibt auch nach Login erreichbar."""
     return render(request, "core/vorfuehrung.html")

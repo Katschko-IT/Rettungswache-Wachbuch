@@ -17,6 +17,9 @@ class DemoSandbox(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     last_seen_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True, blank=True)
+    # Ende der Musterdaten: Was danach entsteht, hat der Besuch selbst getan
+    # (Grundlage für den Demo-Rundgang).
+    ready_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = "Demo-Wache"

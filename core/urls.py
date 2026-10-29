@@ -28,6 +28,7 @@ from . import (
 urlpatterns = [
     path("", views.landing, name="landing"),
     path("vorfuehrung/", views.vorfuehrung, name="vorfuehrung"),
+    path("selbst-betreiben/", views.install_guide, name="install_guide"),
     path("demo-einstieg/", views.demo_login, name="demo_login"),
     path("demo/rolle/", demo_sandbox.switch_role_view, name="demo_switch_role"),
     path("zugang/", views.access, name="access"),

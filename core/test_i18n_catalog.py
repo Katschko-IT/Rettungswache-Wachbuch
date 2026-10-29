@@ -215,6 +215,9 @@ class RepositoryCatalogTests(SimpleTestCase):
             # Produkt-, Plattform- und Eigennamen
             "Wiki": "etablierter Fachbegriff, im Englischen identisch",
             "Filter": "im Englischen identisch",
+            "Demo": "im Englischen identisch",
+            "Hardware": "im Englischen identisch",
+            "Software": "im Englischen identisch",
             "Signal": "Produktname (Messenger)",
             "PayPal": "Produktname",
             "Wero": "Produktname",

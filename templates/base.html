@@ -125,6 +125,9 @@
           </select>
           <button type="submit" class="button secondary">{% translate "Wechseln" %}</button>
         </form>
+        {% if demo_tour and request.resolver_match.url_name != 'dashboard' %}
+          <a class="demo-bar-tour" href="{% url 'dashboard' %}">{% blocktranslate with done=demo_tour.done total=demo_tour.total %}Rundgang: {{ done }} von {{ total }}{% endblocktranslate %}</a>
+        {% endif %}
       </div>
     </aside>
   {% endif %}
@@ -141,6 +144,7 @@
     <div class="footer-links">
       <a href="{{ source_url }}" rel="noopener noreferrer">{% translate "Quellcode (AGPL-3.0)" %}</a>
       {% if not current_membership %}<a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>{% endif %}
+      <a href="{% url 'install_guide' %}"{% if request.resolver_match.url_name == 'install_guide' %} aria-current="page"{% endif %}>{% translate "Selbst betreiben" %}</a>
       <a href="{% url 'legal_notice' %}"{% if request.resolver_match.url_name == 'legal_notice' %} aria-current="page"{% endif %}>{% translate "Impressum" %}</a>
       <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz & Cookies" %}</a>
       <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>

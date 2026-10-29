@@ -51,6 +51,9 @@
   {% for item in calm_items %}<a href="{{ item.href }}">{{ item.title }}{% if item.value %} ({{ item.value }} {{ item.subtitle }}){% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</span></p>
 {% endif %}
 
+{# Öffentliche Demo: Rundgang nach dem wichtigsten Blick auf die Übersicht #}
+{% if demo_tour %}{% include "core/_demo_tour.html" %}{% endif %}
+
 <div class="overview-layout">
   <section class="section-block" aria-labelledby="active-handovers">
     <div class="section-heading">

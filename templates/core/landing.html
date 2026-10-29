@@ -6,7 +6,10 @@
 {% block body_class %}is-landing pub{% endblock %}
 {% block content %}
 {% if demo_notice %}
-<div class="pub-wrap"><p class="message success" role="status">{{ demo_notice }}</p></div>
+<div class="pub-wrap demo-notice">
+  <p class="message success" role="status">{{ demo_notice }}</p>
+  <p class="pub-actions"><a class="pub-button primary" href="{% url 'install_guide' %}">{% translate "Wachwerk selbst betreiben" %}</a><a class="pub-button" href="{% url 'login' %}">{% translate "Neue Demo starten" %}</a></p>
+</div>
 {% endif %}
 <section class="pub-hero" aria-labelledby="landing-title">
   <div class="pub-wrap pub-hero-grid">
@@ -94,6 +97,9 @@
       <li><div><h3>{% translate "Wache einrichten" %}</h3><p>{% translate "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto." %}</p></div></li>
       <li><div><h3>{% translate "Team einladen" %}</h3><p>{% translate "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei." %}</p></div></li>
     </ol>
+    <div class="pub-actions">
+      <a class="pub-button primary" href="{% url 'install_guide' %}">{% translate "Schritt-für-Schritt-Anleitung" %}</a>
+    </div>
   </div>
 </section>
 

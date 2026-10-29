@@ -15,6 +15,13 @@
     keine Registrierung. Begrenzung neuer Demos je Anschluss und insgesamt.
   - Demo-Wachen werden nie zur Standard-Wache und erscheinen nicht in der
     öffentlichen Datenschutz-Information.
+  - Rundgang „Dein erster Schichtwechsel“ mit sechs Aufgaben, die sich
+    automatisch abhaken; danach Verweis auf die Anleitung
+    ([docs/DEMO-KONZEPT.md](docs/DEMO-KONZEPT.md) mit Recherche).
+- **Anleitung „Selbst betreiben“** (`/selbst-betreiben/`, Link im Fußbereich
+  und auf der Startseite): drei Wege (Raspberry Pi in der Wache, Server im
+  Internet, Testen am eigenen Rechner), Voraussetzungen, fünf Schritte,
+  Raspberry-Pi-Befehle, Alltagsbefehle und „Wenn etwas hakt“.
 
 - **E-Mail-Erinnerung der Kaffeekasse mit Überweisungs-QR.**
   - Neu: optionaler SMTP-Versand (`EMAIL_HOST` usw., Standard Port 587 mit

@@ -177,6 +177,8 @@ def create_sandbox() -> tuple[DemoSandbox, dict[str, User]]:
         Membership.objects.create(user=user, station=station, role=account["role"], is_active=True)
         users[account["username"]] = user
     _seed_content(station, users)
+    sandbox.ready_at = timezone.now()
+    sandbox.save(update_fields=["ready_at"])
     return sandbox, users
 
 
@@ -399,3 +401,70 @@ def demo_notice(request) -> str:
     if reason == "abgelaufen":
         return _("Deine Demo ist abgelaufen und wurde gelöscht. Mit „Demo“ / „Demo“ startest du eine neue.")
     return ""
+
+
+def demo_tour(request) -> dict | None:
+    """Demo-Rundgang „Dein erster Schichtwechsel“: sechs kurze Aufgaben.
+
+    Ein Schritt gilt als erledigt, sobald in der Demo-Wache nach dem Anlegen
+    der Musterdaten (``ready_at``) der passende Eintrag entstanden ist. Der
+    erste Schritt ist bewusst schon erledigt – der Blick auf die Übersicht
+    passiert beim Einstieg.
+    """
+    sandbox = getattr(request, "demo_sandbox", None)
+    if sandbox is None:
+        return None
+    from .mpg_models import DeviceRoutineCheck
+    from .models import CoffeeEntry, HandoverEntry
+    from .wachalltag_models import Defect, HandoverAck
+
+    station_id, since = sandbox.station_id, sandbox.ready_at
+    steps = [
+        {
+            "key": "overview",
+            "title": _("Übersicht lesen"),
+            "text": _("Oben steht, was die Schicht wissen muss: dringende Übergaben, fällige Fristen, knappes Material."),
+            "url": reverse("dashboard"),
+            "done": True,
+        },
+        {
+            "key": "handover",
+            "title": _("Übergabe für die nächste Schicht anlegen"),
+            "text": _("Zum Beispiel „Sauerstoff RTW 2 fast leer“, Dringlichkeit „Dringend“."),
+            "url": reverse("handover_create"),
+            "done": HandoverEntry.objects.filter(station_id=station_id, created_at__gt=since).exists(),
+        },
+        {
+            "key": "ack",
+            "title": _("Als Kollegin quittieren"),
+            "text": _("Oben im Banner zur Rolle „Mitglied“ wechseln und eine Übergabe als gelesen bestätigen."),
+            "url": reverse("handover_list"),
+            "done": HandoverAck.objects.filter(station_id=station_id, created_at__gt=since).exists(),
+        },
+        {
+            "key": "device",
+            "title": _("Medizingerät prüfen"),
+            "text": _("Ein Gerät öffnen und die Funktionskontrolle eintragen – so entsteht nebenbei der Nachweis für die nächste Prüfung."),
+            "url": reverse("mpg_dashboard"),
+            "done": DeviceRoutineCheck.objects.filter(station_id=station_id, checked_at__gt=since).exists(),
+        },
+        {
+            "key": "defect",
+            "title": _("Mangel melden"),
+            "text": _("Etwas ist kaputt? Mangel mit Frist und verantwortlicher Person anlegen."),
+            "url": reverse("defect_create_web"),
+            "done": Defect.objects.filter(station_id=station_id, created_at__gt=since).exists(),
+        },
+        {
+            "key": "coffee",
+            "title": _("Kaffeekasse bezahlen"),
+            "text": _("„Ich habe bezahlt“ antippen – der Monat ist sofort abgehakt, ganz ohne Zettel."),
+            "url": reverse("coffee"),
+            "done": CoffeeEntry.objects.filter(
+                station_id=station_id, kind=CoffeeEntry.Kind.PAYMENT, created_at__gt=since,
+            ).exists(),
+        },
+    ]
+    done = sum(1 for step in steps if step["done"])
+    next_step = next((step for step in steps if not step["done"]), None)
+    return {"steps": steps, "done": done, "total": len(steps), "complete": next_step is None, "next": next_step}

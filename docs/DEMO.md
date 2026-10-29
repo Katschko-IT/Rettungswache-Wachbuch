@@ -78,6 +78,10 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   eingetragen. Wer sich so anmeldet (oder auf der Startseite „Demo starten“
   klickt), bekommt eine **eigene, neue Wache** mit Musterdaten und ist dort
   Master-Admin. Andere Besucher sehen davon nichts.
+- Auf der Übersicht führt ein **Rundgang „Dein erster Schichtwechsel“** durch
+  sechs kurze Aufgaben und hakt sie automatisch ab (Konzept und Recherche:
+  [DEMO-KONZEPT.md](DEMO-KONZEPT.md)). Danach und nach dem Abmelden geht es
+  zur leicht verständlichen Anleitung **„Selbst betreiben“** (`/selbst-betreiben/`).
 - Ein Banner zeigt, wann die Demo endet, und wechselt die Rolle
   (Master-Admin, Schichtleitung, Kassenwart, Mitglied, Auditor) innerhalb
   derselben Demo-Wache.

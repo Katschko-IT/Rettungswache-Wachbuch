@@ -307,3 +307,19 @@
 @media print {
   .pub-header::before, .boundary::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+
+/* Anleitung „Selbst betreiben“ */
+.install-hero h1 { margin: .25rem 0 .75rem; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; }
+.install-hero .pub-lead { max-width: 46rem; }
+.steps .code-block { margin-top: .75rem; }
+.faq-list { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+.faq-list details { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.faq-list summary { padding: .9rem 1.1rem; font-weight: 600; cursor: pointer; min-height: var(--touch); }
+.faq-list details p { margin: 0; padding: 0 1.1rem 1rem; color: var(--muted); }
+.facts code { font-family: var(--mono); font-size: .92rem; }
+.demo-notice { padding-top: 1.25rem; }
+.demo-notice .pub-actions { margin: .75rem 0 0; }
+@media (max-width: 40rem) {
+  /* Lange Befehle umbrechen statt seitlich scrollen; kopiert wird trotzdem eine Zeile. */
+  .install-hero ~ .pub-section .code-block code { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
