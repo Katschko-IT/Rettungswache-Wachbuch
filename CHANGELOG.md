@@ -6,6 +6,24 @@
 einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
 über 100 geprüften Funden. Ablauf des Releases: [docs/RELEASE-0.26.0.md](docs/RELEASE-0.26.0.md).
 
+**Upgrade-Hinweise:**
+
+- `sudo /opt/wachbuch/wachbuch update` (oder nachts mit `auto-update an alle`)
+  macht vorher ein Backup, lädt Dateien und Images und startet neu.
+- Migrationen `0058` bis `0065`: Der Code von 0.25.0 läuft mit dem neuen
+  Schema nicht. Scheitert der Start, setzt `wachbuch` die Datenbank selbst auf
+  das Backup von vor dem Update zurück; von Hand geht es zurück mit
+  `wachbuch update 0.25.0` und danach `wachbuch restore <Backup>`.
+- Neue Compose-Dienste: `housekeeping` (immer) und `demo-cleaner` (Profil
+  `demo`). Neue Variablen u. a. `LOGIN_LOG_RETENTION_DAYS`,
+  `DEMO_SANDBOX_MAX_WRITES`, `DEMO_SANDBOX_MAX_UPLOAD_MB`; alle haben
+  Standardwerte.
+- Die öffentliche Demo (`install.sh --demo`, `DEMO_SANDBOX=true`) braucht
+  0.26.0 oder neuer.
+- Server nach [docs/HETZNER.md](docs/HETZNER.md): `harden-host.sh` und
+  `offsite-storagebox.sh` einmal erneut ausführen, damit Überwachung und
+  Offsite-Kopie den neuen Stand bekommen.
+
 - **Betrieb ohne Eingriff:**
   - Neuer Dienst `housekeeping` in jedem Profil: löscht stündlich abgelaufene
     Sitzungen, Anmeldeprotokolle (`LOGIN_LOG_RETENTION_DAYS`, Standard 30),
