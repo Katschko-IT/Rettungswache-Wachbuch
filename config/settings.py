@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "core.middleware.ClientIPMiddleware",
     "axes.middleware.AxesMiddleware",
     "core.terminal.TerminalMiddleware",
+    "core.demo_sandbox.DemoSandboxMiddleware",
     "core.middleware.MfaEnforcementMiddleware",
     # Muss nach der Korrelations-ID-Middleware stehen, damit die ID bereits
     # am Request haengt, wenn ein 5xx-Ereignis erfasst wird.
@@ -318,12 +319,23 @@ DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "Demo-Passwort-12345").strip() or "De
 if DEMO_MODE:
     # Presentations should not require MFA setup on every demo account.
     MFA_REQUIRED = False
+# Öffentliche Demo (docs/DEMO.md): Jeder Besuch mit „Demo“/„Demo“ bekommt
+# eine eigene Demo-Wache mit Musterdaten. Abmelden beendet sie; nach
+# Leerlauf oder Höchstdauer räumt ``purge_demo_sandboxes`` sie ab.
+DEMO_SANDBOX = DEMO_MODE and env_bool("DEMO_SANDBOX", default=False)
+DEMO_SANDBOX_IDLE_MINUTES = int(os.getenv("DEMO_SANDBOX_IDLE_MINUTES", "30") or "30")
+DEMO_SANDBOX_MAX_MINUTES = int(os.getenv("DEMO_SANDBOX_MAX_MINUTES", "120") or "120")
+DEMO_SANDBOX_MAX_ACTIVE = int(os.getenv("DEMO_SANDBOX_MAX_ACTIVE", "100") or "100")
+DEMO_SANDBOX_PER_IP_HOUR = int(os.getenv("DEMO_SANDBOX_PER_IP_HOUR", "10") or "10")
 SETUP_BOOTSTRAP_TOKEN = os.getenv("SETUP_BOOTSTRAP_TOKEN", "").strip()
 # Optional canonical origin (e.g. https://wachbuch.example). When set, activation
 # links and QR codes use it instead of the request Host. Empty keeps the request
 # origin; ALLOWED_HOSTS validation is never weakened by this setting.
 SITE_URL = os.getenv("SITE_URL", "").strip().rstrip("/")
 REGISTRATION_ENABLED = env_bool("REGISTRATION_ENABLED", default=False)
+if DEMO_SANDBOX:
+    # Eine öffentliche Demo nimmt keine echten Konten an.
+    REGISTRATION_ENABLED = False
 REGISTRATION_RATE_LIMIT = int(os.getenv("REGISTRATION_RATE_LIMIT", "5") or "5")
 TRUSTED_PROXY = env_bool("TRUSTED_PROXY", default=False)
 RATELIMIT_KEY_SALT = os.getenv("RATELIMIT_KEY_SALT", "wachbuch")
@@ -375,7 +387,8 @@ EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL") if os.getenv("EMAIL_USE_SSL", "").stri
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS") if os.getenv("EMAIL_USE_TLS", "").strip() else not EMAIL_USE_SSL
 EMAIL_TIMEOUT = 20
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "").strip() or EMAIL_HOST_USER or "wachwerk@localhost"
-if not EMAIL_HOST:
+if not EMAIL_HOST or DEMO_SANDBOX:
+    # Öffentliche Demo: Besucher dürfen über Wachwerk keine E-Mails auslösen.
     EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 if EMAIL_USE_SSL and EMAIL_USE_TLS:
     raise ImproperlyConfigured("EMAIL_USE_SSL und EMAIL_USE_TLS schließen sich aus.")
@@ -383,6 +396,8 @@ if EMAIL_USE_SSL and EMAIL_USE_TLS:
 # Container im internen Netz (docs/SIGNAL.md). Leer = Signal aus.
 SIGNAL_API_URL = os.getenv("SIGNAL_API_URL", "").strip().rstrip("/")
 SIGNAL_NUMBER = os.getenv("SIGNAL_NUMBER", "").strip()
+if DEMO_SANDBOX:
+    SIGNAL_API_URL = ""
 if SIGNAL_API_URL and not SIGNAL_API_URL.startswith(("http://", "https://")):
     raise ImproperlyConfigured("SIGNAL_API_URL muss mit http:// oder https:// beginnen.")
 # HTTPS host allowlist for browser push subscription endpoints (SSRF guard).

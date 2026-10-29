@@ -67,3 +67,81 @@ Keine Patienten-, Alarm- oder Dienstplandaten.
 - Standard ist `DEMO_MODE=false`
 - Passwörter sind öffentlich dokumentiert – nur Loopback/Test
 - Bei `DEMO_MODE` wird `MFA_REQUIRED` automatisch abgeschaltet
+
+## Öffentliche Demo im Internet (z. B. `demo.rwsth.de`)
+
+Für eine Demo, die jeder im Internet ausprobieren kann, taugt der gemeinsame
+Demo-Modus oben nicht: Alle Besucher würden dieselben Daten sehen und ändern.
+Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
+
+- Auf der Anmeldeseite sind Benutzername **Demo** und Passwort **Demo** schon
+  eingetragen. Wer sich so anmeldet (oder auf der Startseite „Demo starten“
+  klickt), bekommt eine **eigene, neue Wache** mit Musterdaten und ist dort
+  Master-Admin. Andere Besucher sehen davon nichts.
+- Ein Banner zeigt, wann die Demo endet, und wechselt die Rolle
+  (Master-Admin, Schichtleitung, Kassenwart, Mitglied, Auditor) innerhalb
+  derselben Demo-Wache.
+- **Abmelden beendet die Demo:** Die Demo-Konten werden sofort gesperrt, die
+  Demo-Wache mit allen Eingaben wird gelöscht. Die Startseite bestätigt das.
+- **Browser geschlossen?** Das Sitzungs-Cookie endet mit dem Browser. Die
+  Demo-Wache wird nach `DEMO_SANDBOX_IDLE_MINUTES` (Standard 30) ohne
+  Aktivität gelöscht, spätestens nach `DEMO_SANDBOX_MAX_MINUTES` (Standard 120).
+  Ein zuverlässiges Signal „Tab geschlossen“ gibt es im Browser nicht; deshalb
+  diese Fristen.
+- Gesperrt sind Bereiche, die über die eigene Demo-Wache hinaus wirken:
+  Impressum und Datenschutz der Installation, öffentliche Display-Links,
+  Wachenterminal-Registrierung und E-Mail-Einladungen. E-Mail- und
+  Signal-Versand sind in diesem Modus ganz abgeschaltet, öffentliche
+  Registrierung ebenso.
+- Schutz vor Missbrauch: höchstens `DEMO_SANDBOX_MAX_ACTIVE` (Standard 100)
+  laufende Demos und `DEMO_SANDBOX_PER_IP_HOUR` (Standard 10) neue Demos je
+  Anschluss und Stunde. Gezählt wird mit einem gesalzenen Hash der IP im
+  Cache, nicht mit der IP selbst.
+
+### Wer löscht?
+
+Kassen- und Audit-Einträge sind append-only: Der Web-Prozess darf sie in
+PostgreSQL nicht löschen (`grant_database_access`). Deshalb gibt es den Dienst
+**`demo-cleaner`** (Compose-Profil `demo`). Er läuft mit den Rechten des
+Datenbank-Eigentümers und löscht jede Minute beendete und abgelaufene
+Demo-Wachen samt Konten und aller Einträge, die auf sie verweisen. Andere
+Wachen bleiben unberührt. Von Hand: `python manage.py purge_demo_sandboxes`
+(`--all` löscht auch laufende Demos).
+
+Ohne `demo-cleaner` sind beendete Demos zwar sofort unbrauchbar (Konten
+gesperrt), die Daten bleiben aber liegen.
+
+### Einrichten auf einem eigenen Server mit Subdomain
+
+Ein Webhosting-Paket (z. B. Hetzner konsoleH) kann keine Docker-Container
+ausführen. Wachwerk braucht einen kleinen eigenen Server, etwa eine
+Hetzner-Cloud-Instanz mit Ubuntu 24.04 und 2 GB RAM. Die Domain bleibt beim
+bisherigen Anbieter; nur eine Subdomain zeigt auf den neuen Server. So bleiben
+bestehende Webseite und E-Mail-Postfächer der Domain unverändert.
+
+1. **Server anlegen** und die öffentliche IPv4- (und IPv6-)Adresse notieren.
+2. **DNS:** Beim Domain-Anbieter für `demo` einen A-Eintrag (und AAAA-Eintrag)
+   auf diese Adresse anlegen. Prüfen: `dig +short demo.rwsth.de`.
+3. **Installieren** (auf dem Server):
+   ```bash
+   curl -fsSLO https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh
+   sudo sh install.sh --yes --name "Wachwerk Demo" --mode domain \
+     --domain demo.rwsth.de --email postmaster@rwsth.de
+   ```
+4. **Demo einschalten** in `/opt/wachbuch/.env`:
+   ```bash
+   DEMO_MODE=true
+   DEMO_SANDBOX=true
+   COMPOSE_PROFILES=https,demo
+   ```
+   Danach `sudo /opt/wachbuch/wachbuch start`.
+5. **Einrichtungsassistent** unter `https://demo.rwsth.de/setup/` mit dem
+   Einrichtungscode durchlaufen. Das Admin-Konto dort ist **dein eigenes**
+   Betreiberkonto (nicht „Demo“). Im Schritt Impressum „Öffentlich im
+   Internet erreichbar“ ankreuzen und die Anbieterangaben vollständig
+   eintragen – eine öffentliche Seite braucht ein Impressum (§ 5 DDG) und eine
+   Datenschutz-Information.
+6. Ausprobieren: Startseite → „Demo starten“, oder Anmelden mit Demo / Demo.
+
+Auf der Hauptdomain kann ein Link oder eine Weiterleitung auf
+`https://demo.rwsth.de` gesetzt werden.

@@ -2,6 +2,20 @@
 
 ## Unveröffentlicht
 
+- **Öffentliche Demo mit eigener Demo-Wache je Besuch** (`DEMO_SANDBOX=true`,
+  [docs/DEMO.md](docs/DEMO.md)).
+  - Anmeldung mit „Demo“ / „Demo“ (Felder vorausgefüllt) oder „Demo starten“
+    legt eine neue Wache mit Musterdaten an; andere Besucher sehen sie nicht.
+  - Banner mit Ablaufzeit und Rollenwechsel innerhalb derselben Demo.
+  - Abmelden beendet die Demo sofort; Leerlauf (30 min) und Höchstdauer
+    (120 min) ebenso. Der neue Dienst `demo-cleaner` (Profil `demo`) löscht
+    Demo-Wachen mit allen Konten und Einträgen, auch append-only.
+  - Gesperrt in der Demo: Impressum der Installation, Display-Links,
+    Terminal-Registrierung, E-Mail-Einladungen; kein E-Mail-/Signal-Versand,
+    keine Registrierung. Begrenzung neuer Demos je Anschluss und insgesamt.
+  - Demo-Wachen werden nie zur Standard-Wache und erscheinen nicht in der
+    öffentlichen Datenschutz-Information.
+
 - **E-Mail-Erinnerung der Kaffeekasse mit Überweisungs-QR.**
   - Neu: optionaler SMTP-Versand (`EMAIL_HOST` usw., Standard Port 587 mit
     STARTTLS; leere Compose-Variablen schalten TLS nicht ab).

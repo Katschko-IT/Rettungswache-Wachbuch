@@ -116,6 +116,7 @@ services:
       DEFAULT_STATION_NAME: ${DEFAULT_STATION_NAME:-Rettungswache}
       DEFAULT_STATION_SLUG: ${DEFAULT_STATION_SLUG:-rettungswache}
       DEMO_MODE: ${DEMO_MODE:-false}
+      DEMO_SANDBOX: ${DEMO_SANDBOX:-false}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo-Passwort-12345}
       MFA_ENABLED: ${MFA_ENABLED:-true}
       MFA_REQUIRED: ${MFA_REQUIRED:-false}
@@ -171,6 +172,12 @@ services:
       MFA_REQUIRED: ${MFA_REQUIRED:-false}
       DEMO_MODE: ${DEMO_MODE:-false}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo-Passwort-12345}
+      # Öffentliche Demo mit eigener Demo-Wache je Besuch (docs/DEMO.md)
+      DEMO_SANDBOX: ${DEMO_SANDBOX:-false}
+      DEMO_SANDBOX_IDLE_MINUTES: ${DEMO_SANDBOX_IDLE_MINUTES:-30}
+      DEMO_SANDBOX_MAX_MINUTES: ${DEMO_SANDBOX_MAX_MINUTES:-120}
+      DEMO_SANDBOX_MAX_ACTIVE: ${DEMO_SANDBOX_MAX_ACTIVE:-100}
+      DEMO_SANDBOX_PER_IP_HOUR: ${DEMO_SANDBOX_PER_IP_HOUR:-10}
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       REGISTRATION_RATE_LIMIT: ${REGISTRATION_RATE_LIMIT:-5}
       WEBAUTHN_ENABLED: ${WEBAUTHN_ENABLED:-true}
@@ -312,6 +319,9 @@ services:
       EMAIL_USE_TLS: ${EMAIL_USE_TLS:-}
       EMAIL_USE_SSL: ${EMAIL_USE_SSL:-}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-}
+      # Öffentliche Demo: dann verschickt der Dienst weder E-Mails noch Signal.
+      DEMO_MODE: ${DEMO_MODE:-false}
+      DEMO_SANDBOX: ${DEMO_SANDBOX:-false}
     depends_on:
       web:
         condition: service_healthy
@@ -464,6 +474,42 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  # Öffentliche Demo (docs/DEMO.md): löscht beendete und abgelaufene
+  # Demo-Wachen. Läuft mit den Rechten des Datenbank-Eigentümers, weil auch
+  # append-only Zeilen der Demo-Wachen gelöscht werden. COMPOSE_PROFILES=demo.
+  demo-cleaner:
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    profiles: ["demo"]
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["sh", "-c", "while true; do python manage.py purge_demo_sandboxes; sleep 60; done"]
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      CRYPTO_MASTER_KEY: ${CRYPTO_MASTER_KEY:-}
+      DJANGO_DEBUG: "false"
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      ALLOWED_HOSTS: localhost
+      DEMO_MODE: ${DEMO_MODE:-false}
+      DEMO_SANDBOX: ${DEMO_SANDBOX:-false}
+      DEMO_SANDBOX_IDLE_MINUTES: ${DEMO_SANDBOX_IDLE_MINUTES:-30}
+      DEMO_SANDBOX_MAX_MINUTES: ${DEMO_SANDBOX_MAX_MINUTES:-120}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - app-db
+    tmpfs:
+      - /tmp
+    read_only: true
     cap_drop:
       - ALL
     security_opt:

@@ -1,0 +1,401 @@
+"""Öffentliche Demo: eine eigene Demo-Wache je Besuch (docs/DEMO.md).
+
+Wer sich mit „Demo“ / „Demo“ anmeldet, bekommt eine neue Wache mit
+Musterdaten und fünf Demo-Konten (eines je Rolle). Andere Besucher sehen
+davon nichts, weil jede fachliche Abfrage an die Wache gebunden ist.
+
+Abmelden beendet die Demo sofort: Die Konten werden gesperrt und – soweit die
+Datenbankrechte des Web-Prozesses das erlauben – gleich gelöscht. Sonst und
+nach Leerlauf oder Höchstdauer löscht ``purge_demo_sandboxes`` (mit den
+Rechten des Datenbank-Eigentümers) alles, was zu der Wache gehört.
+"""
+from __future__ import annotations
+
+import hashlib
+import logging
+import secrets
+from datetime import timedelta
+from urllib.parse import urlencode
+
+from django.apps import apps
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.db import DatabaseError, connection, models, transaction
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
+
+from .demo import DEMO_ACCOUNTS, _seed_content
+from .demo_models import DemoSandbox
+from .models import Membership, Station
+from .task_board import ensure_default_station_tasks
+
+logger = logging.getLogger(__name__)
+
+SESSION_KEY = "demo_sandbox_id"
+DEMO_CREDENTIAL = "demo"
+STATION_NAME = "Demo-Wache Musterstadt"
+# Rollen in der Reihenfolge, in der sie im Demo-Banner stehen.
+ROLE_KEYS = tuple(account["username"].split("-", 1)[1] for account in DEMO_ACCOUNTS)
+# Bereiche, die über die eigene Demo-Wache hinaus wirken (Impressum der ganzen
+# Installation, öffentliche Links, Geräte, E-Mail-Einladungen).
+BLOCKED_URL_NAMES = frozenset({
+    "legal_settings",
+    "display_token_create",
+    "terminal_admin",
+    "team_invite_create",
+})
+
+
+class DemoUnavailable(Exception):
+    """Gerade kann keine neue Demo starten (zu viele aktiv oder zu viele Versuche)."""
+
+
+def sandbox_enabled() -> bool:
+    return bool(getattr(settings, "DEMO_SANDBOX", False))
+
+
+def is_demo_credentials(username, password) -> bool:
+    return (
+        sandbox_enabled()
+        and (username or "").strip().lower() == DEMO_CREDENTIAL
+        and (password or "").strip().lower() == DEMO_CREDENTIAL
+    )
+
+
+def idle_limit() -> timedelta:
+    return timedelta(minutes=max(1, settings.DEMO_SANDBOX_IDLE_MINUTES))
+
+
+def max_lifetime() -> timedelta:
+    return timedelta(minutes=max(1, settings.DEMO_SANDBOX_MAX_MINUTES))
+
+
+def ends_at(sandbox: DemoSandbox):
+    """Spätester Zeitpunkt, zu dem die Demo endet."""
+    return sandbox.created_at + max_lifetime()
+
+
+def is_expired(sandbox: DemoSandbox, now=None) -> bool:
+    now = now or timezone.now()
+    return (
+        sandbox.ended_at is not None
+        or sandbox.last_seen_at < now - idle_limit()
+        or sandbox.created_at < now - max_lifetime()
+    )
+
+
+def active_sandboxes():
+    now = timezone.now()
+    return DemoSandbox.objects.filter(
+        ended_at__isnull=True,
+        last_seen_at__gte=now - idle_limit(),
+        created_at__gte=now - max_lifetime(),
+    )
+
+
+def expired_sandboxes():
+    now = timezone.now()
+    return DemoSandbox.objects.filter(
+        models.Q(ended_at__isnull=False)
+        | models.Q(last_seen_at__lt=now - idle_limit())
+        | models.Q(created_at__lt=now - max_lifetime())
+    )
+
+
+def sandbox_username(sandbox: DemoSandbox, role_key: str) -> str:
+    return f"demo-{sandbox.token}-{role_key}"
+
+
+def sandbox_user_ids(station_ids) -> list[int]:
+    """Konten, die ausschließlich zu Demo-Wachen gehören."""
+    station_ids = list(station_ids)
+    candidates = set(Membership.objects.filter(station_id__in=station_ids).values_list("user_id", flat=True))
+    elsewhere = set(
+        Membership.objects.filter(user_id__in=candidates).exclude(station_id__in=station_ids)
+        .values_list("user_id", flat=True)
+    )
+    return sorted(candidates - elsewhere)
+
+
+def _client_key(request) -> str:
+    raw = f"{settings.RATELIMIT_KEY_SALT}:{getattr(request, 'client_ip', '') or 'unknown'}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
+def _check_limits(request) -> None:
+    if active_sandboxes().count() >= settings.DEMO_SANDBOX_MAX_ACTIVE:
+        raise DemoUnavailable(_("Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuchen."))
+    key = f"demo-sandbox:{_client_key(request)}"
+    cache.add(key, 0, timeout=3600)
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=3600)
+        count = 1
+    if count > settings.DEMO_SANDBOX_PER_IP_HOUR:
+        raise DemoUnavailable(_("Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. Bitte später erneut versuchen."))
+
+
+@transaction.atomic
+def create_sandbox() -> tuple[DemoSandbox, dict[str, User]]:
+    """Neue Demo-Wache mit Musterdaten und einem Konto je Rolle anlegen."""
+    token = secrets.token_hex(4)
+    while DemoSandbox.objects.filter(token=token).exists():
+        token = secrets.token_hex(4)
+    station = Station.objects.create(
+        name=STATION_NAME,
+        slug=f"demo-{token}",
+        calendar_enabled=True,
+        birthdays_enabled=True,
+        coffee_enabled=True,
+        tasks_enabled=True,
+        chat_enabled=True,
+        holidays_enabled=True,
+        checklists_enabled=True,
+        is_active=True,
+    )
+    sandbox = DemoSandbox.objects.create(station=station, token=token)
+    ensure_default_station_tasks(station)
+    users = {}
+    for account in DEMO_ACCOUNTS:
+        role_key = account["username"].split("-", 1)[1]
+        user = User(
+            username=sandbox_username(sandbox, role_key),
+            first_name=account["first_name"],
+            last_name=account["last_name"],
+            is_active=True,
+        )
+        # Kein Passwort: Die Konten sind nur über den Demo-Einstieg erreichbar.
+        user.set_unusable_password()
+        user.save()
+        Membership.objects.create(user=user, station=station, role=account["role"], is_active=True)
+        users[account["username"]] = user
+    _seed_content(station, users)
+    return sandbox, users
+
+
+def _enter(request, sandbox: DemoSandbox, user: User):
+    user.backend = "django.contrib.auth.backends.ModelBackend"
+    login(request, user)
+    request.session[SESSION_KEY] = sandbox.pk
+    # Sitzungs-Cookie endet mit dem Browser; die Demo selbst endet spätestens
+    # nach Leerlauf oder Höchstdauer.
+    request.session.set_expiry(0)
+
+
+def start_demo(request):
+    """Demo-Wache anlegen, als Master-Admin anmelden und zur Übersicht leiten."""
+    try:
+        _check_limits(request)
+    except DemoUnavailable as exc:
+        messages.error(request, str(exc))
+        return redirect("login")
+    sandbox, users = create_sandbox()
+    _enter(request, sandbox, users["demo-admin"])
+    return redirect("dashboard")
+
+
+def switch_role(request, sandbox: DemoSandbox, role_key: str):
+    if role_key not in ROLE_KEYS:
+        return redirect("dashboard")
+    user = User.objects.filter(username=sandbox_username(sandbox, role_key), is_active=True).first()
+    if user is not None:
+        _enter(request, sandbox, user)
+    return redirect("dashboard")
+
+
+def sandbox_for_user(user) -> DemoSandbox | None:
+    if not getattr(user, "is_authenticated", False):
+        return None
+    return DemoSandbox.objects.filter(station__memberships__user_id=user.pk).first()
+
+
+def end_sandbox(sandbox: DemoSandbox) -> None:
+    """Demo beenden: Konten sofort sperren, dann möglichst gleich löschen."""
+    now = timezone.now()
+    DemoSandbox.objects.filter(pk=sandbox.pk, ended_at__isnull=True).update(ended_at=now)
+    User.objects.filter(pk__in=sandbox_user_ids([sandbox.station_id])).update(is_active=False)
+    if not can_purge_here():
+        return
+    try:
+        purge_sandbox(sandbox)
+    except DatabaseError:
+        # Der Web-Prozess darf append-only Tabellen nicht löschen (Postgres-
+        # Rechte). Dann räumt purge_demo_sandboxes in Kürze auf.
+        logger.info("Demo %s beendet; Löschung folgt durch purge_demo_sandboxes.", sandbox.token)
+
+
+def _reverse_index() -> dict:
+    """Ziel-Modell → Liste (Modell, Fremdschlüssel), die darauf zeigen."""
+    index: dict = {}
+    for model in apps.get_models(include_auto_created=True):
+        for field in model._meta.concrete_fields:
+            if field.many_to_one or field.one_to_one:
+                index.setdefault(field.related_model, []).append((model, field))
+    return index
+
+
+def _referencing_rows(station_ids, user_ids) -> dict:
+    """Alle Zeilen, die direkt oder über andere Zeilen auf die Demo zeigen."""
+    index = _reverse_index()
+    collected: dict = {Station: set(station_ids), User: set(user_ids)}
+    frontier = {model: set(pks) for model, pks in collected.items() if pks}
+    while frontier:
+        next_frontier: dict = {}
+        for target, target_pks in frontier.items():
+            for model, field in index.get(target, ()):
+                if field.target_field.primary_key:
+                    values = list(target_pks)
+                else:
+                    values = list(target._base_manager.filter(pk__in=list(target_pks))
+                                  .values_list(field.target_field.attname, flat=True))
+                found = set()
+                for start in range(0, len(values), 500):
+                    found |= set(
+                        model._base_manager.filter(**{f"{field.attname}__in": values[start:start + 500]})
+                        .values_list("pk", flat=True)
+                    )
+                new = found - collected.setdefault(model, set())
+                if new:
+                    collected[model] |= new
+                    next_frontier.setdefault(model, set()).update(new)
+        frontier = next_frontier
+    return {model: pks for model, pks in collected.items() if pks}
+
+
+def can_purge_here() -> bool:
+    """Darf der aktuelle Datenbank-Benutzer auch append-only Tabellen löschen?"""
+    if connection.vendor != "postgresql":
+        return True
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT has_table_privilege(current_user, 'core_auditevent', 'DELETE')")
+        return bool(cursor.fetchone()[0])
+
+
+def _delete_files(model, pks) -> None:
+    file_fields = [f for f in model._meta.concrete_fields if isinstance(f, models.FileField)]
+    if not file_fields:
+        return
+    for row in model._base_manager.filter(pk__in=list(pks)).only(*[f.attname for f in file_fields]):
+        for field in file_fields:
+            stored = getattr(row, field.attname)
+            if stored:
+                transaction.on_commit(lambda f=stored: f.storage.delete(f.name))
+
+
+def purge_sandbox(sandbox: DemoSandbox) -> int:
+    """Demo-Wache mit allen Konten und Einträgen löschen. Gibt die Zeilenzahl zurück.
+
+    Löscht bewusst auch append-only Zeilen (Kaffeekasse, Audit) – aber nur die
+    der Demo-Wache und nur, wenn der Datenbank-Benutzer das darf.
+    """
+    station_ids = [sandbox.station_id]
+    with transaction.atomic():
+        rows = _referencing_rows(station_ids, sandbox_user_ids(station_ids))
+        total = 0
+        for model, pks in rows.items():
+            _delete_files(model, pks)
+            pk_list = list(pks)
+            for start in range(0, len(pk_list), 500):
+                total += model._base_manager.filter(pk__in=pk_list[start:start + 500])._raw_delete(connection.alias)
+    return total
+
+
+def purge_expired() -> int:
+    purged = 0
+    for sandbox in list(expired_sandboxes().select_related("station")):
+        purge_sandbox(sandbox)
+        purged += 1
+    return purged
+
+
+def landing_after_demo(reason: str = "ende") -> str:
+    return f"{reverse('landing')}?{urlencode({'demo': reason})}"
+
+
+class DemoSandboxMiddleware:
+    """Hängt die Demo-Wache an den Request, beendet abgelaufene Demos und
+    sperrt Bereiche, die über die eigene Demo-Wache hinaus wirken."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.demo_sandbox = None
+        if sandbox_enabled() and request.user.is_authenticated:
+            sandbox = self._sandbox(request)
+            if sandbox is not None:
+                now = timezone.now()
+                if is_expired(sandbox, now):
+                    end_sandbox(sandbox)
+                    logout(request)
+                    return redirect(landing_after_demo("abgelaufen"))
+                if sandbox.last_seen_at < now - timedelta(seconds=60):
+                    DemoSandbox.objects.filter(pk=sandbox.pk).update(last_seen_at=now)
+                request.demo_sandbox = sandbox
+        return self.get_response(request)
+
+    @staticmethod
+    def _sandbox(request):
+        sandbox_id = request.session.get(SESSION_KEY)
+        if sandbox_id is not None:
+            sandbox = DemoSandbox.objects.filter(pk=sandbox_id).first()
+            if sandbox is not None and Membership.objects.filter(
+                station_id=sandbox.station_id, user_id=request.user.pk
+            ).exists():
+                return sandbox
+        sandbox = sandbox_for_user(request.user)
+        if sandbox is not None:
+            request.session[SESSION_KEY] = sandbox.pk
+        return sandbox
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        match = getattr(request, "resolver_match", None)
+        if request.demo_sandbox is not None and match and match.url_name in BLOCKED_URL_NAMES:
+            messages.info(request, _("Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."))
+            return redirect("dashboard")
+        return None
+
+
+ROLE_LABELS = {account["username"].split("-", 1)[1]: account["label"] for account in DEMO_ACCOUNTS}
+
+
+def demo_banner(request) -> dict | None:
+    """Angaben für das Demo-Banner: Ende der Demo und Rollenwechsel."""
+    sandbox = getattr(request, "demo_sandbox", None)
+    if sandbox is None:
+        return None
+    prefix = f"demo-{sandbox.token}-"
+    username = getattr(request.user, "username", "")
+    return {
+        "ends_at": timezone.localtime(ends_at(sandbox)),
+        "idle_minutes": settings.DEMO_SANDBOX_IDLE_MINUTES,
+        "role": username[len(prefix):] if username.startswith(prefix) else "",
+        "roles": [(key, ROLE_LABELS[key]) for key in ROLE_KEYS],
+    }
+
+
+@require_POST
+def switch_role_view(request):
+    sandbox = getattr(request, "demo_sandbox", None)
+    if sandbox is None:
+        return redirect("landing")
+    return switch_role(request, sandbox, request.POST.get("role", ""))
+
+
+def demo_notice(request) -> str:
+    """Hinweis auf der Startseite nach dem Ende einer Demo."""
+    if not sandbox_enabled():
+        return ""
+    reason = request.GET.get("demo", "")
+    if reason == "ende":
+        return _("Deine Demo ist beendet. Alle Eingaben und die Demo-Wache wurden gelöscht.")
+    if reason == "abgelaufen":
+        return _("Deine Demo ist abgelaufen und wurde gelöscht. Mit „Demo“ / „Demo“ startest du eine neue.")
+    return ""

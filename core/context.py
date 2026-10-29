@@ -67,6 +67,7 @@ def _more_tab_is_active(request, nav_keys):
 def application_metadata(request):
     from .community_views import registration_enabled
     from .demo import demo_accounts_for_display, demo_mode_enabled, demo_password
+    from .demo_sandbox import demo_banner, sandbox_enabled
     from .privacy_models import DataProtectionOfficer
     from .push import web_push_enabled
     from .webauthn_auth import webauthn_enabled
@@ -77,6 +78,7 @@ def application_metadata(request):
             is_active=True,
             publish_in_privacy_notice=True,
             station__is_active=True,
+            station__demo_sandbox__isnull=True,
         )
         .select_related("station")
         .order_by("station__name", "-is_primary", "display_name")
@@ -91,7 +93,9 @@ def application_metadata(request):
         "registration_enabled": registration_enabled(),
         "demo_mode": demo,
         "demo_password": demo_password() if demo else "",
-        "demo_accounts": demo_accounts_for_display() if demo else [],
+        "demo_accounts": demo_accounts_for_display() if demo and not sandbox_enabled() else [],
+        "demo_sandbox_enabled": sandbox_enabled(),
+        "demo_banner": demo_banner(request),
         "public_data_protection_officers": public_dpo_contacts,
         "site_profile": SimpleLazyObject(_current_site_profile),
         "signal_enabled": signal_enabled(),

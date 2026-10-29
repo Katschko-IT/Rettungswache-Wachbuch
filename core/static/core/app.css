@@ -2254,3 +2254,25 @@ button.text-action {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Öffentliche Demo: Banner mit Ablaufzeit und Rollenwechsel (docs/DEMO.md) */
+.demo-bar {
+  background: var(--warning-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning-accent) 55%, transparent);
+  color: var(--text);
+}
+.demo-bar-inner {
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: .6rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+}
+.demo-bar-text { margin: 0; flex: 1 1 22rem; }
+.demo-bar-role { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0; }
+.demo-bar-role label { font-weight: 600; }
+.demo-bar-role select { min-height: var(--touch); }
+.demo-login-hint { margin-bottom: 1rem; }
+.demo-login-hint p { margin: .25rem 0 0; }

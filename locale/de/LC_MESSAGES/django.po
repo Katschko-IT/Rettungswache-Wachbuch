@@ -284,7 +284,7 @@ msgstr "Ab diesem Tag des Monats erinnert Wachwerk an einen offenen Beitrag. 0 =
 msgid "Ab nächstem Monat keinen Beitrag mehr berechnen?"
 msgstr "Ab nächstem Monat keinen Beitrag mehr berechnen?"
 
-#: templates/base.html:143
+#: templates/base.html:158
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
@@ -541,8 +541,8 @@ msgstr "Alle Buchungen"
 msgid "Alle Dienstanweisungen"
 msgstr "Alle Dienstanweisungen"
 
-#: core/views.py:429
-#: core/views.py:437
+#: core/views.py:434
+#: core/views.py:442
 msgid "Alle Dienstübergaben"
 msgstr "Alle Dienstübergaben"
 
@@ -572,7 +572,7 @@ msgstr "Alle Kategorien"
 msgid "Alle Module und Einstellungen dieser Wache. Häufig genutzte Bereiche lassen sich in die Leiste holen."
 msgstr "Alle Module und Einstellungen dieser Wache. Häufig genutzte Bereiche lassen sich in die Leiste holen."
 
-#: templates/core/landing.html:68
+#: templates/core/landing.html:71
 msgid "Alle Skripte und Schriften lokal, keine externen CDNs"
 msgstr "Alle Skripte und Schriften lokal, keine externen CDNs"
 
@@ -592,8 +592,8 @@ msgstr "Alle nicht angehakten Bereiche erscheinen unter „Mehr“ – in dersel
 msgid "Alle zweiten Faktoren deaktivieren"
 msgstr "Alle zweiten Faktoren deaktivieren"
 
-#: core/views.py:421
-#: core/views.py:445
+#: core/views.py:426
+#: core/views.py:450
 msgid "Alle Übergaben"
 msgstr "Alle Übergaben"
 
@@ -613,7 +613,7 @@ msgstr "Alles geprüft, in Ordnung"
 msgid "Alles wird nur auf diesem Server gespeichert. Die Einrichtung lässt sich genau einmal abschließen; alles Weitere stellst du danach in der Verwaltung ein."
 msgstr "Alles wird nur auf diesem Server gespeichert. Die Einrichtung lässt sich genau einmal abschließen; alles Weitere stellst du danach in der Verwaltung ein."
 
-#: templates/core/landing.html:42
+#: templates/core/landing.html:45
 msgid "Alles, was eine Schicht braucht"
 msgstr "Alles, was eine Schicht braucht"
 
@@ -718,7 +718,7 @@ msgid "Anhang hinzufügen"
 msgstr "Anhang hinzufügen"
 
 #: core/news_views.py:89
-#: core/views.py:706
+#: core/views.py:711
 msgid "Anhang wurde hinzugefügt."
 msgstr "Anhang wurde hinzugefügt."
 
@@ -754,15 +754,19 @@ msgstr "Anlegen und freigeben"
 #: core/test_i18n_phase1.py:73
 #: core/test_i18n_phase1.py:74
 #: templates/base.html:63
-#: templates/core/landing.html:16
+#: templates/core/landing.html:19
 #: templates/core/privacy.html:219
 #: templates/core/vorfuehrung.html:134
 #: templates/errors/403.html:11
 #: templates/registration/login.html:3
 #: templates/registration/login.html:7
-#: templates/registration/login.html:16
+#: templates/registration/login.html:22
 msgid "Anmelden"
 msgstr "Anmelden"
+
+#: templates/core/landing.html:106
+msgid "Anmelden mit Benutzername Demo und Passwort Demo – oder einfach auf „Demo starten“ klicken. Du bekommst eine eigene Demo-Wache mit Musterdaten, die niemand sonst sieht."
+msgstr "Anmelden mit Benutzername Demo und Passwort Demo – oder einfach auf „Demo starten“ klicken. Du bekommst eine eigene Demo-Wache mit Musterdaten, die niemand sonst sieht."
 
 #: templates/registration/mfa_verify.html:7
 #: templates/registration/qr_confirm.html:4
@@ -982,19 +986,19 @@ msgstr "Aufbau-Hersteller"
 msgid "Aufgabe anlegen"
 msgstr "Aufgabe anlegen"
 
-#: core/views.py:902
+#: core/views.py:907
 msgid "Aufgabe wurde als erledigt markiert."
 msgstr "Aufgabe wurde als erledigt markiert."
 
-#: core/views.py:936
+#: core/views.py:941
 msgid "Aufgabe wurde angelegt."
 msgstr "Aufgabe wurde angelegt."
 
-#: core/views.py:958
+#: core/views.py:963
 msgid "Aufgabe wurde gespeichert."
 msgstr "Aufgabe wurde gespeichert."
 
-#: core/views.py:904
+#: core/views.py:909
 msgid "Aufgabe wurde wieder geöffnet."
 msgstr "Aufgabe wurde wieder geöffnet."
 
@@ -1037,15 +1041,15 @@ msgstr "Ausgegeben"
 msgid "Aushang anlegen"
 msgstr "Aushang anlegen"
 
-#: core/views.py:1517
+#: core/views.py:1522
 msgid "Aushang wurde aktualisiert."
 msgstr "Aushang wurde aktualisiert."
 
-#: core/views.py:1493
+#: core/views.py:1498
 msgid "Aushang wurde angelegt."
 msgstr "Aushang wurde angelegt."
 
-#: core/views.py:1542
+#: core/views.py:1547
 msgid "Aushang wurde archiviert."
 msgstr "Aushang wurde archiviert."
 
@@ -1057,7 +1061,7 @@ msgstr "Aushänge"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 
-#: core/views.py:499
+#: core/views.py:504
 msgid "Ausstattung"
 msgstr "Ausstattung"
 
@@ -1269,6 +1273,10 @@ msgstr "Bei „aufs Konto eingezahlt“ immer die Kasse."
 msgid "Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches."
 msgstr "Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches."
 
+#: templates/core/landing.html:109
+msgid "Beim Abmelden wird deine Demo-Wache mit allen Eingaben gelöscht – ebenso nach längerer Pause."
+msgstr "Beim Abmelden wird deine Demo-Wache mit allen Eingaben gelöscht – ebenso nach längerer Pause."
+
 #: templates/core/birthday_settings.html:7
 msgid "Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt."
 msgstr "Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt."
@@ -1340,6 +1348,10 @@ msgstr "Benutzername"
 #: core/forms.py:684
 msgid "Benutzername (z. B. E-Mail)"
 msgstr "Benutzername (z. B. E-Mail)"
+
+#: templates/registration/login.html:14
+msgid "Benutzername Demo, Passwort Demo – die Felder sind schon ausgefüllt. Du bekommst eine eigene Demo-Wache mit Musterdaten; beim Abmelden wird alles wieder gelöscht."
+msgstr "Benutzername Demo, Passwort Demo – die Felder sind schon ausgefüllt. Du bekommst eine eigene Demo-Wache mit Musterdaten; beim Abmelden wird alles wieder gelöscht."
 
 #: core/forms.py:1002
 msgid "Benutzername für die Anmeldung"
@@ -1413,7 +1425,7 @@ msgstr "Bestandssteuerung & Mindestmengen"
 msgid "Bestandsverzeichnis (CSV)"
 msgstr "Bestandsverzeichnis (CSV)"
 
-#: templates/core/landing.html:59
+#: templates/core/landing.html:62
 msgid "Bestandsverzeichnis, STK-/MTK-Fristen, Funktionskontrollen und Einweisungsnachweise."
 msgstr "Bestandsverzeichnis, STK-/MTK-Fristen, Funktionskontrollen und Einweisungsnachweise."
 
@@ -1566,7 +1578,7 @@ msgstr "Bilder oder PDFs, maximal 5 MB je Datei."
 msgid "Bildschirm-Zone"
 msgstr "Bildschirm-Zone"
 
-#: templates/base.html:155
+#: templates/base.html:170
 msgid "Bildschirmtastatur"
 msgstr "Bildschirmtastatur"
 
@@ -1620,7 +1632,7 @@ msgid "Bitte ein Bild wählen oder Entfernen markieren."
 msgstr "Bitte ein Bild wählen oder Entfernen markieren."
 
 #: core/news_views.py:69
-#: core/views.py:680
+#: core/views.py:685
 msgid "Bitte eine Datei auswählen."
 msgstr "Bitte eine Datei auswählen."
 
@@ -1664,6 +1676,10 @@ msgstr "Bitte einen aussagekräftigen Wachennamen angeben."
 #: templates/core/privacy.html:101
 msgid "Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten."
 msgstr "Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten."
+
+#: templates/core/landing.html:110
+msgid "Bitte keine echten Namen oder Daten eingeben."
+msgstr "Bitte keine echten Namen oder Daten eingeben."
 
 #: templates/core/activate_account.html:17
 msgid "Bitte wende dich an den Master-Admin deiner Wache, um einen neuen Link zu erhalten."
@@ -1711,7 +1727,7 @@ msgstr "Breitengrad der Wache"
 msgid "Browser als Web-App, quelloffene Apps für iOS und Android"
 msgstr "Browser als Web-App, quelloffene Apps für iOS und Android"
 
-#: templates/base.html:159
+#: templates/base.html:174
 msgid "Buchstaben"
 msgstr "Buchstaben"
 
@@ -1780,7 +1796,7 @@ msgstr "Chargen & Lager"
 msgid "Chargen nach FEFO-Priorität (First Expired, First Out)"
 msgstr "Chargen nach FEFO-Priorität (First Expired, First Out)"
 
-#: templates/core/landing.html:60
+#: templates/core/landing.html:63
 msgid "Chargen und Verfall nach FEFO, Mindestbestände und ein fertiger Bestellvorschlag."
 msgstr "Chargen und Verfall nach FEFO, Mindestbestände und ein fertiger Bestellvorschlag."
 
@@ -1814,17 +1830,17 @@ msgstr "Chat-Schlüssel einrichten"
 msgid "Check"
 msgstr "Check"
 
-#: core/views.py:510
+#: core/views.py:515
 msgid "Checkliste"
 msgstr "Checkliste"
 
-#: core/views.py:1005
+#: core/views.py:1010
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checkliste wurde als erledigt vermerkt."
 
 #: core/navigation.py:31
 #: core/navigation.py:58
-#: core/views.py:510
+#: core/views.py:515
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
@@ -1861,11 +1877,11 @@ msgstr "Code schicken"
 msgid "Code speichern"
 msgstr "Code speichern"
 
-#: core/views.py:1369
+#: core/views.py:1374
 msgid "Code ungültig oder abgelaufen."
 msgstr "Code ungültig oder abgelaufen."
 
-#: core/views.py:1399
+#: core/views.py:1404
 msgid "Code ungültig. Bitte erneut scannen und prüfen."
 msgstr "Code ungültig. Bitte erneut scannen und prüfen."
 
@@ -1927,7 +1943,7 @@ msgstr "Darstellung"
 msgid "Darstellung & Leiste"
 msgstr "Darstellung & Leiste"
 
-#: core/views.py:1233
+#: core/views.py:1238
 msgid "Darstellung gespeichert."
 msgstr "Darstellung gespeichert."
 
@@ -1963,7 +1979,7 @@ msgstr "Das Wachbuch ist nur für Wachenorganisation, Material, Fahrzeuge und of
 msgid "Das Wachbuch organisiert den Betrieb einer Wache, nicht den Einsatz. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach."
 msgstr "Das Wachbuch organisiert den Betrieb einer Wache, nicht den Einsatz. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach."
 
-#: templates/core/landing.html:79
+#: templates/core/landing.html:82
 msgid "Das Wachbuch organisiert den Wachalltag. Patienten-, Einsatz-, Alarmierungs- und Dienstplandaten gehören bewusst nicht hinein. Das hält den Datenschutz überschaubar und die Bedienung einfach."
 msgstr "Das Wachbuch organisiert den Wachalltag. Patienten-, Einsatz-, Alarmierungs- und Dienstplandaten gehören bewusst nicht hinein. Das hält den Datenschutz überschaubar und die Bedienung einfach."
 
@@ -1980,12 +1996,12 @@ msgid "Das gekoppelte Konto ist in keiner Gruppe. Das Wachen-Handy in die Wachen
 msgstr "Das gekoppelte Konto ist in keiner Gruppe. Das Wachen-Handy in die Wachengruppe aufnehmen und die Seite neu laden."
 
 #: core/news_views.py:73
-#: core/views.py:684
+#: core/views.py:689
 msgid "Datei darf maximal 5 MiB groß sein."
 msgstr "Datei darf maximal 5 MiB groß sein."
 
 #: core/news_views.py:77
-#: core/views.py:690
+#: core/views.py:695
 msgid "Datei ist kein gültiges Bild und kein lesbares PDF."
 msgstr "Datei ist kein gültiges Bild und kein lesbares PDF."
 
@@ -2007,7 +2023,7 @@ msgstr "Datenbank"
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
-#: templates/base.html:130
+#: templates/base.html:145
 #: templates/core/vorfuehrung.html:150
 msgid "Datenschutz & Cookies"
 msgstr "Datenschutz & Cookies"
@@ -2024,7 +2040,7 @@ msgstr "Datenschutz und Cookies"
 msgid "Datenschutz, Cookies und Informationssicherheit"
 msgstr "Datenschutz, Cookies und Informationssicherheit"
 
-#: templates/registration/login.html:18
+#: templates/registration/login.html:24
 msgid "Datenschutz- und Cookie-Informationen"
 msgstr "Datenschutz- und Cookie-Informationen"
 
@@ -2103,6 +2119,14 @@ msgstr "Dein persönliches Konto mit allen Rechten. Die Besatzung bekommt späte
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Deine Anwender-Einweisung (§ 11)"
 
+#: core/demo_sandbox.py:400
+msgid "Deine Demo ist abgelaufen und wurde gelöscht. Mit „Demo“ / „Demo“ startest du eine neue."
+msgstr "Deine Demo ist abgelaufen und wurde gelöscht. Mit „Demo“ / „Demo“ startest du eine neue."
+
+#: core/demo_sandbox.py:398
+msgid "Deine Demo ist beendet. Alle Eingaben und die Demo-Wache wurden gelöscht."
+msgstr "Deine Demo ist beendet. Alle Eingaben und die Demo-Wache wurden gelöscht."
+
 #: templates/core/signal_account.html:36
 msgid "Deine Handynummer (mit Signal)"
 msgstr "Deine Handynummer (mit Signal)"
@@ -2111,20 +2135,31 @@ msgstr "Deine Handynummer (mit Signal)"
 msgid "Deine Signal-Nummer wurde gelöscht."
 msgstr "Deine Signal-Nummer wurde gelöscht."
 
-#: templates/core/landing.html:20
+#: templates/base.html:119
+msgid "Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach %(minutes)s Minuten ohne Aktivität oder spätestens um %(time)s Uhr wird alles gelöscht."
+msgstr "Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach %(minutes)s Minuten ohne Aktivität oder spätestens um %(time)s Uhr wird alles gelöscht."
+
+#: templates/base.html:117
+#: templates/base.html:119
+msgid "Demo"
+msgstr "Demo"
+
+#: templates/core/landing.html:23
+#: templates/registration/login.html:13
 msgid "Demo ausprobieren"
 msgstr "Demo ausprobieren"
 
-#: templates/core/landing.html:105
+#: templates/core/landing.html:114
+#: templates/core/landing.html:120
 #: templates/core/vorfuehrung.html:131
 msgid "Demo starten"
 msgstr "Demo starten"
 
-#: templates/core/landing.html:100
+#: templates/core/landing.html:103
 msgid "Demo-Modus"
 msgstr "Demo-Modus"
 
-#: templates/core/landing.html:101
+#: templates/core/landing.html:104
 msgid "Demo-Zugang"
 msgstr "Demo-Zugang"
 
@@ -2180,7 +2215,7 @@ msgstr "Der Code wird nur jetzt angezeigt. Persönlich an die Besatzung weiterge
 msgid "Der E-Mail-Versand ist auf diesem Server nicht eingerichtet. Dafür in der Datei .env EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD und DEFAULT_FROM_EMAIL setzen (docs/DEPLOYMENT.md)."
 msgstr "Der E-Mail-Versand ist auf diesem Server nicht eingerichtet. Dafür in der Datei .env EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD und DEFAULT_FROM_EMAIL setzen (docs/DEPLOYMENT.md)."
 
-#: templates/core/landing.html:91
+#: templates/core/landing.html:94
 msgid "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto."
 msgstr "Der Einrichtungsassistent führt durch Name, Module und das erste Admin-Konto."
 
@@ -2273,7 +2308,7 @@ msgstr "Der private Schlüssel wird mit deiner Passphrase umschlossen gespeicher
 msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Es gibt keine zentrale Betreiberinstanz; die Daten bleiben auf dem eigenen Server."
 msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Es gibt keine zentrale Betreiberinstanz; die Daten bleiben auf dem eigenen Server."
 
-#: templates/core/landing.html:121
+#: templates/core/landing.html:137
 msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
 msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
 
@@ -2471,11 +2506,11 @@ msgstr "Dienstanweisungen aktiv"
 msgid "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache."
 msgstr "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache."
 
-#: templates/core/landing.html:50
+#: templates/core/landing.html:53
 msgid "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender."
 msgstr "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender."
 
-#: core/views.py:439
+#: core/views.py:444
 msgid "Dienststellen-Aufgaben"
 msgstr "Dienststellen-Aufgaben"
 
@@ -2487,7 +2522,7 @@ msgstr "Diese Angaben erscheinen in der Datenschutzinformation (Art. 13 DSGVO). 
 msgid "Diese Angaben erscheinen öffentlich im Impressum und in der Datenschutzinformation. Vor dem Echtbetrieb rechtlich prüfen lassen."
 msgstr "Diese Angaben erscheinen öffentlich im Impressum und in der Datenschutzinformation. Vor dem Echtbetrieb rechtlich prüfen lassen."
 
-#: core/views.py:893
+#: core/views.py:898
 msgid "Diese Aufgabe gilt nicht für den gewählten Tag."
 msgstr "Diese Aufgabe gilt nicht für den gewählten Tag."
 
@@ -2522,7 +2557,7 @@ msgstr "Diese Gruppe kennt das verbundene Signal-Konto nicht."
 msgid "Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium."
 msgstr "Diese Instanz ist im Demo-Modus konfiguriert. Für die Vorführung dürfen ausschließlich synthetische Wachen, Personen und Vorgänge verwendet werden. Der Demo-Schalter allein garantiert keinen fiktiven Datenbestand; die Datenprüfung ist ein gesondertes Freigabekriterium."
 
-#: templates/core/landing.html:102
+#: templates/core/landing.html:117
 msgid "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin."
 msgstr "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin."
 
@@ -2554,7 +2589,7 @@ msgstr "Diese Woche"
 msgid "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert."
 msgstr "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert."
 
-#: templates/core/landing.html:33
+#: templates/core/landing.html:36
 #: templates/core/vorfuehrung.html:29
 msgid "Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus."
 msgstr "Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus."
@@ -2589,6 +2624,10 @@ msgstr "Dieser Benutzername ist bereits vergeben."
 #: core/forms.py:1099
 msgid "Dieser Benutzername ist reserviert."
 msgstr "Dieser Benutzername ist reserviert."
+
+#: core/demo_sandbox.py:361
+msgid "Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."
+msgstr "Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."
 
 #: templates/core/terminal_admin.html:100
 msgid "Dieser Browser ist bereits das Terminal „%(label)s“."
@@ -2691,12 +2730,12 @@ msgstr "Dringend (Sofort außer Betrieb)"
 msgid "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)"
 msgstr "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)"
 
-#: core/views.py:537
+#: core/views.py:542
 msgid "Dringende Übergabe"
 msgstr "Dringende Übergabe"
 
 #: core/display_views.py:317
-#: core/views.py:537
+#: core/views.py:542
 #: templates/core/account.html:74
 msgid "Dringende Übergaben"
 msgstr "Dringende Übergaben"
@@ -2951,7 +2990,7 @@ msgstr "Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizi
 msgid "Einsatzklar"
 msgstr "Einsatzklar"
 
-#: core/views.py:430
+#: core/views.py:435
 msgid "Einsatzmittel"
 msgstr "Einsatzmittel"
 
@@ -2973,7 +3012,7 @@ msgstr "Einstellungen"
 msgid "Einstellungen der Kaffeekasse gespeichert."
 msgstr "Einstellungen der Kaffeekasse gespeichert."
 
-#: core/views.py:1320
+#: core/views.py:1325
 msgid "Einstellungen wurden gespeichert."
 msgstr "Einstellungen wurden gespeichert."
 
@@ -3086,7 +3125,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Entschlüsseln fehlgeschlagen."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:144
+#: templates/base.html:159
 msgid "Entsperren"
 msgstr "Entsperren"
 
@@ -3157,7 +3196,7 @@ msgid "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und
 msgstr "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und Standard-Barcodes (EAN/GTIN)."
 
 #: core/news_views.py:71
-#: core/views.py:682
+#: core/views.py:687
 msgid "Erlaubt sind JPEG, PNG, WebP und PDF."
 msgstr "Erlaubt sind JPEG, PNG, WebP und PDF."
 
@@ -3185,7 +3224,7 @@ msgstr "Erneutes Setzen kann die Frist verlängern."
 msgid "Erreichbarkeit"
 msgstr "Erreichbarkeit"
 
-#: templates/core/landing.html:15
+#: templates/core/landing.html:18
 #: templates/registration/login.html:9
 msgid "Ersteinrichtung starten"
 msgstr "Ersteinrichtung starten"
@@ -3292,7 +3331,7 @@ msgstr "Externer Datenschutzkontakt"
 msgid "FEFO-Bestand (CSV)"
 msgstr "FEFO-Bestand (CSV)"
 
-#: templates/core/landing.html:55
+#: templates/core/landing.html:58
 #: templates/core/more.html:34
 msgid "Fachmodule"
 msgstr "Fachmodule"
@@ -3347,7 +3386,7 @@ msgstr "Fahrzeuge"
 msgid "Fahrzeuge & Geräte"
 msgstr "Fahrzeuge & Geräte"
 
-#: templates/core/landing.html:58
+#: templates/core/landing.html:61
 msgid "Fahrzeuge & Hygiene"
 msgstr "Fahrzeuge & Hygiene"
 
@@ -3359,8 +3398,8 @@ msgstr "Fahrzeuge gesamt"
 msgid "Fahrzeuge, Medizingeräte, Aufgaben und Müllabfuhr-Termine anlegen; Module wie Müllkalender, Aufgaben und Wetter unter Einstellungen ein- oder ausschalten."
 msgstr "Fahrzeuge, Medizingeräte, Aufgaben und Müllabfuhr-Termine anlegen; Module wie Müllkalender, Aufgaben und Wetter unter Einstellungen ein- oder ausschalten."
 
-#: core/views.py:422
-#: core/views.py:438
+#: core/views.py:427
+#: core/views.py:443
 msgid "Fahrzeuge/Geräte"
 msgstr "Fahrzeuge/Geräte"
 
@@ -3384,7 +3423,7 @@ msgstr "Fahrzeugstatus, Übernahme zu Schichtbeginn, Desinfektion und Prüffrist
 msgid "Fahrzeugtyp"
 msgstr "Fahrzeugtyp"
 
-#: templates/core/landing.html:58
+#: templates/core/landing.html:61
 msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
 msgstr "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
 
@@ -3437,7 +3476,7 @@ msgid "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolg
 msgstr "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
 
 #: core/forms.py:954
-#: core/views.py:427
+#: core/views.py:432
 msgid "Feuerwehr"
 msgstr "Feuerwehr"
 
@@ -3621,7 +3660,7 @@ msgstr "Für <strong>%(name)s</strong> in der Wache <strong>%(station)s</strong>
 msgid "Für Gütersloh ist kein gleichwertiger vollständiger Baustellenfeed verifiziert; die Anzeige beschränkt sich auf freigegebene Quellen."
 msgstr "Für Gütersloh ist kein gleichwertiger vollständiger Baustellenfeed verifiziert; die Anzeige beschränkt sich auf freigegebene Quellen."
 
-#: templates/core/landing.html:11
+#: templates/core/landing.html:14
 msgid "Für Rettungswache, Feuerwehr und Behörden"
 msgstr "Für Rettungswache, Feuerwehr und Behörden"
 
@@ -3642,7 +3681,7 @@ msgstr "Für deinen Benutzer sind aktuell keine Geräteeinweisungen eingetragen.
 msgid "Für den Touch-Bildschirm auf der Wache. Auf einem Laptop oder Handy nicht ankreuzen."
 msgstr "Für den Touch-Bildschirm auf der Wache. Auf einem Laptop oder Handy nicht ankreuzen."
 
-#: core/views.py:428
+#: core/views.py:433
 msgid "Für den nächsten Dienst"
 msgstr "Für den nächsten Dienst"
 
@@ -3650,7 +3689,7 @@ msgstr "Für den nächsten Dienst"
 msgid "Für dich"
 msgstr "Für dich"
 
-#: templates/registration/login.html:18
+#: templates/registration/login.html:24
 msgid "Für die Anmeldung werden ausschließlich technisch notwendige Sicherheitscookies verwendet."
 msgstr "Für die Anmeldung werden ausschließlich technisch notwendige Sicherheitscookies verwendet."
 
@@ -3658,7 +3697,7 @@ msgstr "Für die Anmeldung werden ausschließlich technisch notwendige Sicherhei
 msgid "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen."
 msgstr "Für die Vorführung ist Hosting bei Hetzner vorgesehen, aber hier noch nicht als tatsächliche Bereitstellung bestätigt. Konkreter Dienst, Vertragspartei, Serverstandort, Administrationszugriffe und gegebenenfalls erforderliche Auftragsverarbeitung nach Art. 28 DSGVO müssen vor Veröffentlichung festgestellt und dokumentiert werden. Ein deutscher Serverstandort wird nicht ohne Beleg behauptet. Weitere Empfänger sowie mögliche Drittlandübermittlungen sind in die Bestandsaufnahme einzubeziehen."
 
-#: templates/core/landing.html:78
+#: templates/core/landing.html:81
 msgid "Für die Wache – nicht für den Einsatz"
 msgstr "Für die Wache – nicht für den Einsatz"
 
@@ -3666,15 +3705,15 @@ msgstr "Für die Wache – nicht für den Einsatz"
 msgid "Für die Wettervorhersage wird mindestens ein Ort oder eine Anschrift benötigt."
 msgstr "Für die Wettervorhersage wird mindestens ein Ort oder eine Anschrift benötigt."
 
-#: core/views.py:436
+#: core/views.py:441
 msgid "Für die nächste Dienstübergabe"
 msgstr "Für die nächste Dienstübergabe"
 
-#: core/views.py:420
+#: core/views.py:425
 msgid "Für die nächste Schicht"
 msgstr "Für die nächste Schicht"
 
-#: core/views.py:444
+#: core/views.py:449
 msgid "Für die nächste Übergabe"
 msgstr "Für die nächste Übergabe"
 
@@ -3758,7 +3797,7 @@ msgstr "Geburtstag einstellen"
 msgid "Geburtstage"
 msgstr "Geburtstage"
 
-#: core/views.py:813
+#: core/views.py:818
 msgid "Geburtstagseinstellung wurde gespeichert."
 msgstr "Geburtstagseinstellung wurde gespeichert."
 
@@ -3819,6 +3858,10 @@ msgstr "Genaue Beschreibung"
 msgid "Geprüft – Status 1 setzen"
 msgstr "Geprüft – Status 1 setzen"
 
+#: core/demo_sandbox.py:133
+msgid "Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuchen."
+msgstr "Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuchen."
+
 #: templates/core/push_settings.html:6
 msgid "Gerät"
 msgstr "Gerät"
@@ -3858,7 +3901,7 @@ msgstr "Geräte im Filter"
 msgid "Geräte-QR-Code scannen"
 msgstr "Geräte-QR-Code scannen"
 
-#: core/views.py:446
+#: core/views.py:451
 msgid "Geräte/Fahrzeuge"
 msgstr "Geräte/Fahrzeuge"
 
@@ -3947,7 +3990,7 @@ msgstr "Gezähltes Bargeld in EUR"
 msgid "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 msgstr "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 
-#: templates/base.html:138
+#: templates/base.html:153
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 
@@ -4167,7 +4210,7 @@ msgid "Heutige Termine"
 msgstr "Heutige Termine"
 
 #: core/navigation.py:35
-#: templates/base.html:131
+#: templates/base.html:146
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -4322,6 +4365,10 @@ msgstr "Ihre bisherigen Eingaben im Formular bleiben erhalten."
 msgid "Ihre letzte Anmeldung liegt länger zurück. Bitte bestätigen Sie mit Ihrem zweiten Faktor:"
 msgstr "Ihre letzte Anmeldung liegt länger zurück. Bitte bestätigen Sie mit Ihrem zweiten Faktor:"
 
+#: templates/core/landing.html:108
+msgid "Im Demo-Banner wechselst du die Rolle: Master-Admin, Schichtleitung, Kassenwart, Mitglied oder Auditor."
+msgstr "Im Demo-Banner wechselst du die Rolle: Master-Admin, Schichtleitung, Kassenwart, Mitglied oder Auditor."
+
 #: templates/core/coffee_book.html:92
 msgid "Im Jahr %(y)s zahlt niemand einen Monatsbeitrag."
 msgstr "Im Jahr %(y)s zahlt niemand einen Monatsbeitrag."
@@ -4330,7 +4377,7 @@ msgstr "Im Jahr %(y)s zahlt niemand einen Monatsbeitrag."
 msgid "Im Voraus bezahlt bis einschließlich"
 msgstr "Im Voraus bezahlt bis einschließlich"
 
-#: templates/base.html:129
+#: templates/base.html:144
 #: templates/core/impressum.html:3
 #: templates/core/impressum.html:6
 msgid "Impressum"
@@ -4355,7 +4402,7 @@ msgstr "Impressum ansehen"
 msgid "Impressum und Datenschutz prüfen"
 msgstr "Impressum und Datenschutz prüfen"
 
-#: core/views.py:1271
+#: core/views.py:1276
 msgid "Impressum und Datenschutzangaben gespeichert."
 msgstr "Impressum und Datenschutzangaben gespeichert."
 
@@ -4429,7 +4476,7 @@ msgstr "In der HTML-Ansicht dieser E-Mail steckt ein QR-Code (GiroCode) für die
 msgid "In dieser Ansicht gibt es keine Übergaben."
 msgstr "In dieser Ansicht gibt es keine Übergaben."
 
-#: templates/core/landing.html:87
+#: templates/core/landing.html:90
 msgid "In drei Schritten startklar"
 msgstr "In drei Schritten startklar"
 
@@ -4491,7 +4538,7 @@ msgstr "Ins Wachbuch übergeben"
 msgid "Installation"
 msgstr "Installation"
 
-#: templates/core/landing.html:66
+#: templates/core/landing.html:69
 msgid "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android über die versionierte API."
 msgstr "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android über die versionierte API."
 
@@ -4519,8 +4566,8 @@ msgstr "Interne Post · E2EE"
 msgid "Intervall"
 msgstr "Intervall"
 
-#: core/views.py:508
-#: core/views.py:508
+#: core/views.py:513
+#: core/views.py:513
 msgid "Inventar"
 msgstr "Inventar"
 
@@ -4572,7 +4619,7 @@ msgstr "Jede Person aktiviert ihr Konto per Einmal-Link oder QR-Code."
 msgid "Jede Person richtet bei der nächsten Anmeldung eine Authenticator-App ein (z. B. Google Authenticator, Microsoft Authenticator, Aegis, 2FAS)."
 msgstr "Jede Person richtet bei der nächsten Anmeldung eine Authenticator-App ein (z. B. Google Authenticator, Microsoft Authenticator, Aegis, 2FAS)."
 
-#: templates/core/landing.html:43
+#: templates/core/landing.html:46
 msgid "Jede Wache schaltet nur die Module ein, die sie wirklich nutzt. Die Oberfläche bleibt dadurch übersichtlich."
 msgstr "Jede Wache schaltet nur die Module ein, die sie wirklich nutzt. Die Oberfläche bleibt dadurch übersichtlich."
 
@@ -4895,7 +4942,7 @@ msgstr "Keine Gruppe"
 msgid "Keine Kamera oder kein Zugriff auf den QR-Code? Geben Sie den 10-stelligen Code ein, der auf dem wartenden Bildschirm unter dem QR-Code angezeigt wird."
 msgstr "Keine Kamera oder kein Zugriff auf den QR-Code? Geben Sie den 10-stelligen Code ein, der auf dem wartenden Bildschirm unter dem QR-Code angezeigt wird."
 
-#: templates/registration/login.html:33
+#: templates/registration/login.html:39
 msgid "Keine Kamera? Manuellen Code eingeben"
 msgstr "Keine Kamera? Manuellen Code eingeben"
 
@@ -5238,7 +5285,7 @@ msgstr "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)"
 
 #: core/navigation.py:23
 #: core/navigation.py:46
-#: templates/core/landing.html:60
+#: templates/core/landing.html:63
 #: templates/core/more.html:62
 #: templates/core/warehouse_dashboard.html:3
 #: templates/core/warehouse_dashboard.html:9
@@ -5295,7 +5342,7 @@ msgstr "Leer = E-Mail des Anbieters."
 msgid "Leer = Name der Wache."
 msgstr "Leer = Name der Wache."
 
-#: templates/base.html:159
+#: templates/base.html:174
 msgid "Leertaste"
 msgstr "Leertaste"
 
@@ -5383,7 +5430,7 @@ msgstr "Loslösen"
 msgid "Längengrad der Wache"
 msgstr "Längengrad der Wache"
 
-#: templates/base.html:157
+#: templates/base.html:172
 #: templates/core/orga_dashboard.html:160
 msgid "Löschen"
 msgstr "Löschen"
@@ -5396,7 +5443,7 @@ msgstr "MFA"
 msgid "MFA einrichten"
 msgstr "MFA einrichten"
 
-#: core/views.py:1436
+#: core/views.py:1441
 msgid "MFA ist für diese Installation vorgeschrieben."
 msgstr "MFA ist für diese Installation vorgeschrieben."
 
@@ -5431,7 +5478,7 @@ msgstr "MTK-Intervall (Monate):"
 msgid "Mail nicht entschlüsselbar."
 msgstr "Mail nicht entschlüsselbar."
 
-#: core/views.py:502
+#: core/views.py:507
 #: templates/core/defect_detail.html:7
 msgid "Mangel"
 msgstr "Mangel"
@@ -5531,7 +5578,7 @@ msgid "Medizingerät"
 msgstr "Medizingerät"
 
 #: core/module_overview.py:68
-#: templates/core/landing.html:59
+#: templates/core/landing.html:62
 msgid "Medizingeräte"
 msgstr "Medizingeräte"
 
@@ -5563,7 +5610,7 @@ msgstr "Medizintechnik & Werkstatt"
 msgid "Mehr"
 msgstr "Mehr"
 
-#: core/views.py:686
+#: core/views.py:691
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "Mehr Anhänge sind nicht möglich."
 
@@ -5668,7 +5715,7 @@ msgstr "Mir zuordnen"
 msgid "Mit Passkey bestätigen"
 msgstr "Mit Passkey bestätigen"
 
-#: templates/registration/login.html:32
+#: templates/registration/login.html:38
 #: templates/registration/qr_wait.html:11
 msgid "Mit QR-Code anmelden"
 msgstr "Mit QR-Code anmelden"
@@ -5690,7 +5737,7 @@ msgstr "Mit der Banking-App scannen"
 msgid "Mit der Signal-App scannen – oder den Button öffnen."
 msgstr "Mit der Signal-App scannen – oder den Button öffnen."
 
-#: templates/core/landing.html:90
+#: templates/core/landing.html:93
 msgid "Mit einem Befehl per Docker auf einem eigenen Server, einem Mini-PC oder einem Raspberry Pi in der Wache."
 msgstr "Mit einem Befehl per Docker auf einem eigenen Server, einem Mini-PC oder einem Raspberry Pi in der Wache."
 
@@ -5732,7 +5779,7 @@ msgstr "Mitgezählt von (optional)"
 msgid "Mitglied bearbeiten"
 msgstr "Mitglied bearbeiten"
 
-#: core/views.py:1186
+#: core/views.py:1191
 msgid "Mitgliedschaft wurde aktualisiert."
 msgstr "Mitgliedschaft wurde aktualisiert."
 
@@ -5873,20 +5920,20 @@ msgstr "Monatsbeiträge aller Teilnehmenden im Jahr %(y)s"
 msgid "Musik"
 msgstr "Musik"
 
-#: templates/core/landing.html:100
+#: templates/core/landing.html:103
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Musterdaten zum Testen – nicht für den Echtbetrieb."
 
 #: core/navigation.py:20
 #: core/navigation.py:50
-#: core/views.py:502
+#: core/views.py:507
 #: templates/core/defect_detail.html:3
 #: templates/core/defects.html:3
 #: templates/core/defects.html:9
 msgid "Mängel"
 msgstr "Mängel"
 
-#: templates/core/landing.html:57
+#: templates/core/landing.html:60
 msgid "Mängel & Ausstattung"
 msgstr "Mängel & Ausstattung"
 
@@ -5898,7 +5945,7 @@ msgstr "Mängel & Werkstatt"
 msgid "Mängel filtern"
 msgstr "Mängel filtern"
 
-#: templates/core/landing.html:57
+#: templates/core/landing.html:60
 msgid "Mängel mit Frist, Foto und Verantwortlichen; Status von Geräten, Schlüsseln und Poolmaterial."
 msgstr "Mängel mit Frist, Foto und Verantwortlichen; Status von Geräten, Schlüsseln und Poolmaterial."
 
@@ -5929,7 +5976,7 @@ msgstr "Müllabfuhr (externe ICS-Quelle)"
 msgid "Müllkalender ist nicht eingerichtet (Einstellungen → Module)."
 msgstr "Müllkalender ist nicht eingerichtet (Einstellungen → Module)."
 
-#: core/views.py:1322
+#: core/views.py:1327
 msgid "Müllkalender übernommen: %(count)s Termine."
 msgstr "Müllkalender übernommen: %(count)s Termine."
 
@@ -6012,7 +6059,7 @@ msgstr "Nachts dunkle Flächen und gedämpfte Signale, damit der Bildschirm nich
 msgid "Nachts mit Backup vorher; startet die neue Fassung nicht, läuft wieder die vorherige."
 msgstr "Nachts mit Backup vorher; startet die neue Fassung nicht, läuft wieder die vorherige."
 
-#: templates/core/landing.html:68
+#: templates/core/landing.html:71
 msgid "Nachvollziehbar"
 msgstr "Nachvollziehbar"
 
@@ -6020,7 +6067,7 @@ msgstr "Nachvollziehbar"
 msgid "Nachvollziehbare Protokollierung der Änderungen für Prüfer und QM."
 msgstr "Nachvollziehbare Protokollierung der Änderungen für Prüfer und QM."
 
-#: templates/core/landing.html:68
+#: templates/core/landing.html:71
 msgid "Nachvollziehbares Audit-Log für Prüfer und QM"
 msgstr "Nachvollziehbares Audit-Log für Prüfer und QM"
 
@@ -6160,7 +6207,7 @@ msgstr "Neues Gerät anlegen"
 msgid "Neues Konto"
 msgstr "Neues Konto"
 
-#: templates/registration/login.html:20
+#: templates/registration/login.html:26
 msgid "Neues Konto registrieren"
 msgstr "Neues Konto registrieren"
 
@@ -6508,7 +6555,7 @@ msgstr "Objekt"
 msgid "Oder Fahrzeug-Slug / Kennzeichen eingeben..."
 msgstr "Oder Fahrzeug-Slug / Kennzeichen eingeben..."
 
-#: templates/registration/login.html:24
+#: templates/registration/login.html:30
 msgid "Oder mit Passkey"
 msgstr "Oder mit Passkey"
 
@@ -6520,7 +6567,7 @@ msgstr "Oder mit Passkey bestätigen"
 msgid "Oder mit Passkey:"
 msgstr "Oder mit Passkey:"
 
-#: templates/registration/login.html:31
+#: templates/registration/login.html:37
 msgid "Oder mit Smartphone"
 msgstr "Oder mit Smartphone"
 
@@ -6624,7 +6671,7 @@ msgstr "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterd
 msgid "Optional"
 msgstr "Optional"
 
-#: templates/core/landing.html:67
+#: templates/core/landing.html:70
 msgid "Optional Zwei-Faktor-Anmeldung und Passkeys"
 msgstr "Optional Zwei-Faktor-Anmeldung und Passkeys"
 
@@ -6652,15 +6699,15 @@ msgstr "Organisation & Desk"
 msgid "Organisation & Dienstanweisungen"
 msgstr "Organisation & Dienstanweisungen"
 
-#: templates/core/landing.html:50
+#: templates/core/landing.html:53
 msgid "Organisation & Wissen"
 msgstr "Organisation & Wissen"
 
-#: core/views.py:447
+#: core/views.py:452
 msgid "Organisationsaufgaben"
 msgstr "Organisationsaufgaben"
 
-#: core/views.py:443
+#: core/views.py:448
 msgid "Organisationseinheit"
 msgstr "Organisationseinheit"
 
@@ -6728,7 +6775,7 @@ msgstr "Passkey hinzufügen"
 msgid "Passkey verifiziert ✓"
 msgstr "Passkey verifiziert ✓"
 
-#: templates/registration/login.html:25
+#: templates/registration/login.html:31
 #: templates/registration/mfa_verify.html:20
 msgid "Passkey verwenden"
 msgstr "Passkey verwenden"
@@ -6789,7 +6836,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys sind hier nicht verfügbar."
 
-#: templates/base.html:139
+#: templates/base.html:154
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -6872,7 +6919,7 @@ msgstr "Person"
 msgid "Personen ohne Monatsbeitrag oder ausgeschiedene Mitglieder mit offenem Betrag oder Guthaben. Vor dem Austritt bitte ausgleichen (auszahlen oder einziehen)."
 msgstr "Personen ohne Monatsbeitrag oder ausgeschiedene Mitglieder mit offenem Betrag oder Guthaben. Vor dem Austritt bitte ausgleichen (auszahlen oder einziehen)."
 
-#: templates/core/landing.html:92
+#: templates/core/landing.html:95
 msgid "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei."
 msgstr "Persönliche Aktivierungslinks oder QR-Codes; die Wachleitung gibt den Zugang frei."
 
@@ -6884,11 +6931,11 @@ msgstr "Persönliche Aktivierungslinks und QR-Codes für neue Kolleginnen und Ko
 msgid "Persönliche Benachrichtigungen an Personen, die ihre Nummer unter Konto → Signal selbst bestätigt haben (derzeit %(n)s)."
 msgstr "Persönliche Benachrichtigungen an Personen, die ihre Nummer unter Konto → Signal selbst bestätigt haben (derzeit %(n)s)."
 
-#: templates/core/landing.html:67
+#: templates/core/landing.html:70
 msgid "Persönliche Konten"
 msgstr "Persönliche Konten"
 
-#: templates/core/landing.html:67
+#: templates/core/landing.html:70
 msgid "Persönliche Konten statt Sammel-Login, mit Rollen je Wache"
 msgstr "Persönliche Konten statt Sammel-Login, mit Rollen je Wache"
 
@@ -6929,7 +6976,7 @@ msgid "Pinnwand"
 msgstr "Pinnwand"
 
 #: core/forms.py:955
-#: core/views.py:435
+#: core/views.py:440
 msgid "Polizei"
 msgstr "Polizei"
 
@@ -7207,12 +7254,12 @@ msgstr "QR-Sticker"
 msgid "QR-Sticker drucken"
 msgstr "QR-Sticker drucken"
 
-#: templates/base.html:127
+#: templates/base.html:142
 #: templates/core/vorfuehrung.html:136
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Quellcode (AGPL-3.0)"
 
-#: templates/core/landing.html:124
+#: templates/core/landing.html:140
 msgid "Quellcode auf GitHub"
 msgstr "Quellcode auf GitHub"
 
@@ -7232,7 +7279,7 @@ msgstr "Quellen und Aktualität"
 msgid "Quelloffen"
 msgstr "Quelloffen"
 
-#: templates/core/landing.html:120
+#: templates/core/landing.html:136
 msgid "Quelloffen und nachprüfbar"
 msgstr "Quelloffen und nachprüfbar"
 
@@ -7327,7 +7374,7 @@ msgstr "Rechtsgrundlagenprüfungen für alle Module (insbesondere nach anwendbar
 msgid "Registereintrag"
 msgstr "Registereintrag"
 
-#: templates/core/landing.html:25
+#: templates/core/landing.html:28
 #: templates/registration/register.html:3
 #: templates/registration/register.html:7
 msgid "Registrieren"
@@ -7346,7 +7393,7 @@ msgid "Restzeit"
 msgstr "Restzeit"
 
 #: core/forms.py:953
-#: core/views.py:419
+#: core/views.py:424
 msgid "Rettungsdienst"
 msgstr "Rettungsdienst"
 
@@ -7409,6 +7456,10 @@ msgstr "Risikoklasse gem. EU-MDR:"
 msgid "Rolle"
 msgstr "Rolle"
 
+#: templates/base.html:122
+msgid "Rolle ansehen als"
+msgstr "Rolle ansehen als"
+
 #: core/diagnostics_models.py:77
 msgid "Routenname muss dem Muster ^[A-Za-z0-9_.:-]{1,120}$ entsprechen."
 msgstr "Routenname muss dem Muster ^[A-Za-z0-9_.:-]{1,120}$ entsprechen."
@@ -7468,7 +7519,7 @@ msgstr "Schema:"
 msgid "Schichtübergabe"
 msgstr "Schichtübergabe"
 
-#: templates/core/landing.html:49
+#: templates/core/landing.html:52
 msgid "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
 msgstr "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
 
@@ -7494,7 +7545,7 @@ msgstr "Schlüssel & Pools"
 msgid "Schlüssel einrichten"
 msgstr "Schlüssel einrichten"
 
-#: templates/base.html:137
+#: templates/base.html:152
 msgid "Schlüssel entsperren"
 msgstr "Schlüssel entsperren"
 
@@ -7590,7 +7641,7 @@ msgstr "Selbst eingetragen: %(method)s"
 msgid "Selbst eingetragene Zahlungen"
 msgstr "Selbst eingetragene Zahlungen"
 
-#: templates/core/landing.html:90
+#: templates/core/landing.html:93
 msgid "Selbst hosten"
 msgstr "Selbst hosten"
 
@@ -7910,7 +7961,7 @@ msgstr "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Ei
 msgid "Status für diese Demonstration:"
 msgstr "Status für diese Demonstration:"
 
-#: core/views.py:746
+#: core/views.py:751
 msgid "Status konnte nicht aktualisiert werden."
 msgstr "Status konnte nicht aktualisiert werden."
 
@@ -7922,7 +7973,7 @@ msgstr "Status setzen"
 msgid "Status von Geräten, Schlüsseln und Poolmaterial; Ausgabe und Rückgabe."
 msgstr "Status von Geräten, Schlüsseln und Poolmaterial; Ausgabe und Rückgabe."
 
-#: core/views.py:744
+#: core/views.py:749
 msgid "Status wurde aktualisiert."
 msgstr "Status wurde aktualisiert."
 
@@ -8047,11 +8098,11 @@ msgstr "Taktischer Status"
 msgid "Tank (%)"
 msgstr "Tank (%)"
 
-#: templates/base.html:156
+#: templates/base.html:171
 msgid "Tastatur ausblenden"
 msgstr "Tastatur ausblenden"
 
-#: templates/base.html:156
+#: templates/base.html:171
 msgid "Tastatur einblenden"
 msgstr "Tastatur einblenden"
 
@@ -8068,7 +8119,7 @@ msgstr "Team & Rollen"
 msgid "Team &amp; Rollen"
 msgstr "Team &amp; Rollen"
 
-#: templates/core/landing.html:92
+#: templates/core/landing.html:95
 #: templates/core/vorfuehrung.html:115
 msgid "Team einladen"
 msgstr "Team einladen"
@@ -8140,7 +8191,7 @@ msgstr "Telefonbucheinträge"
 msgid "Termin anlegen"
 msgstr "Termin anlegen"
 
-#: core/views.py:785
+#: core/views.py:790
 msgid "Termin wurde angelegt."
 msgstr "Termin wurde angelegt."
 
@@ -8317,7 +8368,7 @@ msgstr "Umsatzsteuer-ID"
 msgid "Umsatzsteuer-Identifikationsnummer"
 msgstr "Umsatzsteuer-Identifikationsnummer"
 
-#: templates/base.html:158
+#: templates/base.html:173
 msgid "Umschalttaste"
 msgstr "Umschalttaste"
 
@@ -8455,7 +8506,7 @@ msgstr "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
 msgid "Verschlüsselung"
 msgstr "Verschlüsselung"
 
-#: templates/base.html:132
+#: templates/base.html:147
 #: templates/core/handover_detail.html:44
 #: templates/core/privacy.html:215
 #: templates/core/system_status.html:12
@@ -8526,7 +8577,7 @@ msgstr "Vollbild starten"
 msgid "Vollbild-Monitor für die Fahrzeughalle: Fahrzeugstatus, Wetter, Hinweise und Fristen."
 msgstr "Vollbild-Monitor für die Fahrzeughalle: Fahrzeugstatus, Wetter, Hinweise und Fristen."
 
-#: templates/core/landing.html:51
+#: templates/core/landing.html:54
 msgid "Vollbildanzeige für Monitor oder Fernseher: Termine, Fristen, Wetter und dringende Hinweise."
 msgstr "Vollbildanzeige für Monitor oder Fernseher: Termine, Fristen, Wetter und dringende Hinweise."
 
@@ -8552,6 +8603,10 @@ msgstr "Von"
 msgid "Von Lagerort:"
 msgstr "Von Lagerort:"
 
+#: core/demo_sandbox.py:142
+msgid "Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. Bitte später erneut versuchen."
+msgstr "Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. Bitte später erneut versuchen."
+
 #: templates/core/orga_dashboard.html:76
 msgid "Von mir quittiert"
 msgstr "Von mir quittiert"
@@ -8560,13 +8615,13 @@ msgstr "Von mir quittiert"
 msgid "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 msgstr "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 
-#: templates/base.html:128
+#: templates/base.html:143
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
 msgstr "Vorführung"
 
-#: templates/core/landing.html:23
-#: templates/core/landing.html:125
+#: templates/core/landing.html:26
+#: templates/core/landing.html:141
 msgid "Vorführung ansehen"
 msgstr "Vorführung ansehen"
 
@@ -8626,13 +8681,13 @@ msgstr "WLAN verbinden"
 #: templates/core/checklists.html:7
 #: templates/core/defect_form.html:7
 #: templates/core/defects.html:8
-#: templates/core/landing.html:47
+#: templates/core/landing.html:50
 #: templates/core/more.html:118
 #: templates/core/wachalltag_reports.html:7
 msgid "Wachalltag"
 msgstr "Wachalltag"
 
-#: core/views.py:423
+#: core/views.py:428
 msgid "Wachaufgaben"
 msgstr "Wachaufgaben"
 
@@ -8656,7 +8711,7 @@ msgstr "Wachbuch-App öffnen und „QR-Code scannen“ wählen."
 msgid "Wachbuch-Vorführung"
 msgstr "Wachbuch-Vorführung"
 
-#: core/views.py:431
+#: core/views.py:436
 msgid "Wachdienst-Aufgaben"
 msgstr "Wachdienst-Aufgaben"
 
@@ -8678,7 +8733,7 @@ msgstr "Wache %(station)s ist eingerichtet"
 msgid "Wache ausstatten"
 msgstr "Wache ausstatten"
 
-#: templates/core/landing.html:91
+#: templates/core/landing.html:94
 #: templates/core/setup_token.html:7
 #: templates/core/vorfuehrung.html:114
 msgid "Wache einrichten"
@@ -8711,7 +8766,7 @@ msgstr "Wachen-Code eingeben"
 #: templates/core/display.html:10
 #: templates/core/display_tokens.html:3
 #: templates/core/display_tokens.html:9
-#: templates/core/landing.html:51
+#: templates/core/landing.html:54
 #: templates/core/more.html:104
 msgid "Wachen-Display"
 msgstr "Wachen-Display"
@@ -8861,7 +8916,7 @@ msgstr "Warum dürfen hier keine Einsatzdaten stehen?"
 msgid "Was bewusst nicht hineingehört"
 msgstr "Was bewusst nicht hineingehört"
 
-#: templates/core/landing.html:12
+#: templates/core/landing.html:15
 #: templates/core/vorfuehrung.html:24
 msgid "Was die Schicht wissen muss. Auf einen Blick."
 msgstr "Was die Schicht wissen muss. Auf einen Blick."
@@ -8886,11 +8941,15 @@ msgstr "Was wurde behoben?"
 msgid "Was wurde gekauft?"
 msgstr "Was wurde gekauft?"
 
-#: templates/core/landing.html:66
+#: templates/core/landing.html:69
 msgid "Web und Apps"
 msgstr "Web und Apps"
 
-#: templates/base.html:157
+#: templates/base.html:126
+msgid "Wechseln"
+msgstr "Wechseln"
+
+#: templates/base.html:172
 #: templates/core/diagnostics_events.html:55
 #: templates/core/pagination.html:6
 #: templates/core/setup_token.html:27
@@ -8911,7 +8970,7 @@ msgstr "Weitere Angaben im Impressum"
 msgid "Weitere Konten mit Stand"
 msgstr "Weitere Konten mit Stand"
 
-#: templates/core/landing.html:107
+#: templates/core/landing.html:122
 msgid "Weitere Rollen zum Ausprobieren:"
 msgstr "Weitere Rollen zum Ausprobieren:"
 
@@ -9212,7 +9271,7 @@ msgstr "Zeitzone"
 msgid "Zielkonto"
 msgstr "Zielkonto"
 
-#: templates/base.html:158
+#: templates/base.html:173
 msgid "Ziffern und Sonderzeichen"
 msgstr "Ziffern und Sonderzeichen"
 
@@ -9236,7 +9295,7 @@ msgstr "Zu viele Anfragen."
 msgid "Zu viele Codes angefordert. Bitte in einer Stunde erneut versuchen."
 msgstr "Zu viele Codes angefordert. Bitte in einer Stunde erneut versuchen."
 
-#: core/views.py:1367
+#: core/views.py:1372
 msgid "Zu viele Fehlversuche. Bitte erneut anmelden."
 msgstr "Zu viele Fehlversuche. Bitte erneut anmelden."
 
@@ -9268,7 +9327,7 @@ msgstr "Zugang freigeben"
 msgid "Zugang für die Wachbuch-App (iOS/Android)"
 msgstr "Zugang für die Wachbuch-App (iOS/Android)"
 
-#: templates/core/landing.html:64
+#: templates/core/landing.html:67
 msgid "Zugang und Betrieb"
 msgstr "Zugang und Betrieb"
 
@@ -9613,7 +9672,7 @@ msgstr "Zwei-Faktor-Anmeldung für alle Konten verpflichtend"
 msgid "Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden."
 msgstr "Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden."
 
-#: core/views.py:1207
+#: core/views.py:1212
 msgid "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 msgstr "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 
@@ -9621,11 +9680,11 @@ msgstr "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 msgid "Zwei-Faktor-Authentifizierung"
 msgstr "Zwei-Faktor-Authentifizierung"
 
-#: core/views.py:1397
+#: core/views.py:1402
 msgid "Zwei-Faktor-Authentifizierung ist aktiv."
 msgstr "Zwei-Faktor-Authentifizierung ist aktiv."
 
-#: core/views.py:1441
+#: core/views.py:1446
 msgid "Zwei-Faktor-Authentifizierung wurde deaktiviert."
 msgstr "Zwei-Faktor-Authentifizierung wurde deaktiviert."
 
@@ -9669,7 +9728,7 @@ msgstr "alle einsatzbereit"
 msgid "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 msgstr "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 
-#: core/views.py:508
+#: core/views.py:513
 msgid "ausgegeben"
 msgstr "ausgegeben"
 
@@ -9748,11 +9807,11 @@ msgstr "erledigt"
 msgid "erreichbar"
 msgstr "erreichbar"
 
-#: core/views.py:510
+#: core/views.py:515
 msgid "fällig oder überfällig"
 msgstr "fällig oder überfällig"
 
-#: core/views.py:538
+#: core/views.py:543
 msgid "für die nächste Schicht"
 msgstr "für die nächste Schicht"
 
@@ -9826,7 +9885,7 @@ msgstr "nach Fehlversuchen gesperrt bis"
 msgid "nein"
 msgstr "nein"
 
-#: core/views.py:506
+#: core/views.py:511
 msgid "nicht bereit"
 msgstr "nicht bereit"
 
@@ -9859,7 +9918,7 @@ msgstr "nur jetzt"
 msgid "nächste Fälligkeit"
 msgstr "nächste Fälligkeit"
 
-#: core/views.py:502
+#: core/views.py:507
 #: templates/core/_display_surface.html:36
 #: templates/core/coffee_book.html:47
 #: templates/core/tasks_today.html:12
@@ -10069,11 +10128,11 @@ msgstr "Übergabe korrigieren"
 msgid "Übergabe schreiben"
 msgstr "Übergabe schreiben"
 
-#: core/views.py:664
+#: core/views.py:669
 msgid "Übergabe wurde angelegt."
 msgstr "Übergabe wurde angelegt."
 
-#: core/views.py:729
+#: core/views.py:734
 msgid "Übergabe wurde korrigiert (neue Revision)."
 msgstr "Übergabe wurde korrigiert (neue Revision)."
 
@@ -10094,7 +10153,7 @@ msgstr "Übergabeliste"
 msgid "Übergaben"
 msgstr "Übergaben"
 
-#: templates/core/landing.html:49
+#: templates/core/landing.html:52
 msgid "Übergaben & Aufgaben"
 msgstr "Übergaben & Aufgaben"
 
@@ -10110,7 +10169,7 @@ msgstr "Übergaben statt Zettel und Zuruf."
 msgid "Übergaben von mir quittiert"
 msgstr "Übergaben von mir quittiert"
 
-#: templates/core/landing.html:13
+#: templates/core/landing.html:16
 msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 msgstr "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 
@@ -10136,7 +10195,7 @@ msgstr "Übersicht der dokumentierten Anwender- und Multiplikatoreneinweisungen 
 msgid "Übersicht einer Wache am Desktop: fünf Punkte brauchen Aufmerksamkeit, darunter eine dringende Übergabe und fällige Fahrzeugfristen."
 msgstr "Übersicht einer Wache am Desktop: fünf Punkte brauchen Aufmerksamkeit, darunter eine dringende Übergabe und fällige Fahrzeugfristen."
 
-#: templates/core/landing.html:30
+#: templates/core/landing.html:33
 msgid "Übersicht einer Wache: oben steht, wie viele Punkte Aufmerksamkeit brauchen, darunter dringende Übergaben, fällige Fristen und offene Dienstanweisungen."
 msgstr "Übersicht einer Wache: oben steht, wie viele Punkte Aufmerksamkeit brauchen, darunter dringende Übergaben, fällige Fristen und offene Dienstanweisungen."
 

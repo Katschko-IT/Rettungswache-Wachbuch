@@ -5,6 +5,9 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'core/public.css' %}">{% endblock %}
 {% block body_class %}is-landing pub{% endblock %}
 {% block content %}
+{% if demo_notice %}
+<div class="pub-wrap"><p class="message success" role="status">{{ demo_notice }}</p></div>
+{% endif %}
 <section class="pub-hero" aria-labelledby="landing-title">
   <div class="pub-wrap pub-hero-grid">
     <div>
@@ -99,6 +102,18 @@
   <div class="pub-wrap">
     <p class="pub-kicker">{% translate "Demo-Modus" %} &middot; {% translate "Musterdaten zum Testen – nicht für den Echtbetrieb." %}</p>
     <h2 id="landing-demo">{% translate "Demo-Zugang" %}</h2>
+    {% if demo_sandbox_enabled %}
+    <p class="pub-muted">{% translate "Anmelden mit Benutzername Demo und Passwort Demo – oder einfach auf „Demo starten“ klicken. Du bekommst eine eigene Demo-Wache mit Musterdaten, die niemand sonst sieht." %}</p>
+    <ul class="check-list">
+      <li>{% translate "Im Demo-Banner wechselst du die Rolle: Master-Admin, Schichtleitung, Kassenwart, Mitglied oder Auditor." %}</li>
+      <li>{% translate "Beim Abmelden wird deine Demo-Wache mit allen Eingaben gelöscht – ebenso nach längerer Pause." %}</li>
+      <li>{% translate "Bitte keine echten Namen oder Daten eingeben." %}</li>
+    </ul>
+    <form method="post" action="{% url 'demo_login' %}">
+      {% csrf_token %}
+      <button type="submit" class="pub-button primary">{% translate "Demo starten" %}</button>
+    </form>
+    {% else %}
     <p class="pub-muted">{% translate "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt – du bist direkt als Demo-Admin drin." %}</p>
     <form method="post" action="{% url 'demo_login' %}">
       {% csrf_token %}
@@ -110,6 +125,7 @@
       <li><strong>{{ account.username }}</strong> – {{ account.label }}</li>
       {% endfor %}
     </ul>
+    {% endif %}
   </div>
 </section>
 {% endif %}

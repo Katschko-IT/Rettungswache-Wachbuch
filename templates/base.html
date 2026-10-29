@@ -113,6 +113,21 @@
     </nav>
   {% endif %}
 
+  {% if demo_banner %}
+    <aside class="demo-bar" aria-label="{% translate 'Demo' %}">
+      <div class="demo-bar-inner">
+        <p class="demo-bar-text"><strong>{% translate "Demo" %}</strong> – {% blocktranslate with time=demo_banner.ends_at|time:"H:i" minutes=demo_banner.idle_minutes %}Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach {{ minutes }} Minuten ohne Aktivität oder spätestens um {{ time }} Uhr wird alles gelöscht.{% endblocktranslate %}</p>
+        <form class="demo-bar-role" method="post" action="{% url 'demo_switch_role' %}">
+          {% csrf_token %}
+          <label for="demo-role">{% translate "Rolle ansehen als" %}</label>
+          <select id="demo-role" name="role">
+            {% for key, label in demo_banner.roles %}<option value="{{ key }}"{% if key == demo_banner.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="button secondary">{% translate "Wechseln" %}</button>
+        </form>
+      </div>
+    </aside>
+  {% endif %}
   <main id="inhalt" class="page-shell">
     {% if messages %}
       <div class="messages" aria-live="polite">
