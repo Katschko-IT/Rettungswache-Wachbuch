@@ -452,7 +452,8 @@ def purge_stations(station_ids) -> int:
     if not station_ids:
         return 0
     with transaction.atomic():
-        demo_stats.record_purge(sandbox)
+        for sandbox in DemoSandbox.objects.filter(station_id__in=station_ids):
+            demo_stats.record_purge(sandbox)
         user_ids = sandbox_user_ids(station_ids)
         _delete_login_records(User.objects.filter(pk__in=user_ids).values_list("username", flat=True))
         rows = _referencing_rows(station_ids, user_ids)

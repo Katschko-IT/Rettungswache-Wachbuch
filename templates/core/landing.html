@@ -40,7 +40,7 @@
         {% if registration_enabled %}<a class="pub-button" href="{% url 'register' %}">{% translate "Registrieren" %}</a>{% endif %}
       </div>
       {% if demo_mode and demo_sandbox_enabled %}
-        <p class="pub-hero-note">{% translate "In einer Sekunde startklar: eine eigene Demo-Wache mit Musterdaten, die niemand sonst sieht. Beim Abmelden wird alles gelöscht." %}{% if demo_active %} <strong class="pub-live">{% blocktranslate count count=demo_active %}Gerade aktiv: {{ count }} Demo-Wache{% plural %}Gerade aktiv: {{ count }} Demo-Wachen{% endblocktranslate %}</strong>{% endif %}</p>
+        <p class="pub-hero-note">{% translate "In einer Sekunde startklar: eine eigene Demo-Wache mit Musterdaten, die niemand sonst sieht. Beim Abmelden wird alles gelöscht." %}{% if demo_active %} <strong class="pub-live">{% blocktranslate with count=demo_active %}Gerade aktiv: {{ count }} Demo-Wachen{% endblocktranslate %}</strong>{% endif %}</p>
       {% endif %}
       <ul class="trust-badges" aria-label="{% translate 'Auf einen Blick' %}">
         <li>{% include "core/_icon.html" with name="check" %}{% translate "Open Source (AGPL-3.0)" %}</li>
