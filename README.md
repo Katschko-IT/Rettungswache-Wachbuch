@@ -244,6 +244,7 @@ keinen externen Font- oder Telemetrie-Aufruf.
 | --- | --- |
 | WAN-Ausfall, LAN und Server erreichbar | Kernbetrieb funktioniert; durch Tests mit blockierten externen Socket-, DNS- und URL-Aufrufen belegt |
 | Handy ohne Netz oder Server aus | **nicht umgesetzt**: keine Client-Datenbank, keine Outbox, keine Offline-Anmeldung; die PWA zeigt eine Offline-Seite |
+| Server aus (Pilot) | Papier-Rückfallebene: vorab gedruckte Formulare, Fristenliste und Telefonbuch unter `/papier/`; danach nur den aktuellen Stand erfassen, die Blätter bleiben als Nachweis bei der Wachleitung |
 
 Der Entwurf in [`docs/CLIENT-OFFLINE-CONTRACT.md`](docs/CLIENT-OFFLINE-CONTRACT.md)
 ist **keine Funktion** und enthält offene Fachentscheidungen. Aussagen über einen

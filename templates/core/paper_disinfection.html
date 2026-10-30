@@ -1,0 +1,34 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper %}
+{% translate "Desinfektion" as sheet_title %}
+{% for vehicle in vehicles %}
+<section class="paper-sheet">
+  {% include "core/_paper_head.html" with sheet_subtitle=vehicle.call_sign|add:" · "|add:vehicle.license_plate %}
+  <p><strong>{% translate "Mittel der Wache:" %}</strong>
+    {% for agent in disinfectants %}{% blocktranslate with name=agent.name minutes=agent.default_exposure_minutes %}{{ name }} ({{ minutes }} Min){% endblocktranslate %}{% if not forloop.last %}; {% endif %}{% empty %}{% translate "noch keine Mittel hinterlegt" %}{% endfor %}
+  </p>
+  <div class="paper-scroll">
+  <table class="paper-table paper-rows">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Datum" %}</th>
+        <th scope="col">{% translate "Beginn (Uhrzeit)" %}</th>
+        <th scope="col">{% translate "Desinfektionsmittel" %}</th>
+        <th scope="col">{% translate "Einwirkzeit (Min)" %}</th>
+        <th scope="col">{% translate "Frei ab (Uhrzeit)" %}</th>
+        <th scope="col">{% translate "Durchgeführt (Kürzel)" %}</th>
+        <th scope="col">{% translate "Freigegeben (Uhrzeit, Kürzel)" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}<tr class="paper-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="paper-hint">{% translate "Fahrzeug erst freigeben, wenn der Hygieneplan es erlaubt. Nur Datum, Zeiten, Mittel und Kürzel eintragen." %} {% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</p>
+</section>
+{% empty %}
+<p>{% translate "Es sind noch keine Fahrzeuge angelegt." %}</p>
+{% endfor %}
+{% endblock %}

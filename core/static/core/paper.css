@@ -1,0 +1,81 @@
+/* Papier-Rückfallebene: Druckansichten (A4 hochkant, Browserdruck).
+   Nur auf den Seiten unter /papier/ geladen (templates/core/paper_base.html).
+   Am Bildschirm ein weißes Blatt, auch im Nachtdienst; im Druck nur die
+   Blätter, ohne Kopf, Leiste und Fuß der App. Farben nur über Tokens,
+   ohne important-Regeln (DESIGN-SYSTEM.md). */
+
+@page { size: A4 portrait; margin: 12mm 12mm 14mm; }
+
+.paper-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0 0 var(--space-4); }
+.paper-toolbar h1 { flex: 1 1 100%; margin: 0; }
+.paper-toolbar .paper-tip { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: .9rem; }
+.paper-doc { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+
+.paper-sheet {
+  width: 100%;
+  min-width: 0;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 10mm;
+  color: var(--paper-ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 10.5pt;
+  line-height: 1.35;
+}
+.paper-sheet h2, .paper-sheet h3 { margin: 0; color: inherit; }
+.paper-sheet h3 { margin: 5mm 0 2mm; font-size: 11.5pt; }
+.paper-sheet p { margin: 0 0 2mm; }
+.paper-sheet small { display: block; color: inherit; font-size: 8.5pt; }
+
+.paper-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; margin: 0 0 4mm; padding: 0 0 3mm; border-bottom: 2px solid currentColor; }
+.paper-head h2 { font-size: 15pt; line-height: 1.2; }
+.paper-station { font-weight: 700; }
+.paper-subtitle { margin: 1mm 0 0; font-size: 11.5pt; font-weight: 700; }
+.paper-meta { margin: 0; text-align: right; white-space: nowrap; font-size: 9pt; }
+
+.paper-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(45mm, 1fr)); gap: 3mm 6mm; margin: 0 0 4mm; }
+.paper-field { display: flex; align-items: flex-end; gap: 2mm; min-height: 8mm; }
+.paper-line { flex: 1; min-height: 7mm; border-bottom: 1px solid currentColor; }
+.paper-lines .paper-line { display: block; margin: 0 0 1mm; }
+
+/* position: relative hält .visually-hidden in den Spaltenköpfen im Scrollbereich. */
+.paper-scroll { position: relative; overflow-x: auto; }
+.paper-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+.paper-table caption { padding: 0 0 1.5mm; text-align: left; font-weight: 700; }
+.paper-table th, .paper-table td { padding: 1.2mm 1.6mm; border: 1px solid currentColor; color: inherit; background: transparent; text-align: left; vertical-align: middle; }
+.paper-table thead th { font-weight: 700; vertical-align: bottom; }
+.paper-table .paper-num { width: 8mm; text-align: center; }
+.paper-rows td { height: 10mm; }
+.paper-box { display: inline-block; width: 3.6mm; height: 3.6mm; margin: 0 .8mm 0 0; border: 1px solid currentColor; vertical-align: -.5mm; }
+.paper-choice { display: inline-block; margin: 0 2mm 0 0; white-space: nowrap; }
+.paper-legend { margin: 0 0 3mm; padding: 0; list-style: none; font-size: 9pt; }
+.paper-hint { margin: 3mm 0 0; font-size: 9pt; }
+.paper-hint-top { margin: 0 0 2mm; }
+.paper-locked { font-weight: 700; }
+.paper-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: 6mm; }
+.paper-steps { margin: 0 0 4mm; padding-left: 6mm; }
+.paper-steps li { margin: 0 0 2mm; }
+
+/* Schmale Bildschirme: Blatt ohne Rand, Tabellen scrollen in .paper-scroll. */
+@media (max-width: 40rem) {
+  .paper-sheet { padding: var(--space-3); }
+  .paper-head { flex-wrap: wrap; }
+  .paper-meta { text-align: left; }
+}
+
+@media print {
+  body.paper-view { padding: 0; color: var(--paper-ink); background: var(--paper); }
+  /* Nur der Inhalt: Kopf, Leiste, Banner, Fuß und Dialoge der App fallen weg. */
+  body.paper-view > :not(#inhalt) { display: none; }
+  body.paper-view .page-shell { width: auto; min-height: 0; margin: 0; padding: 0; }
+  .paper-view .paper-screen-only, .paper-view .messages { display: none; }
+  .paper-doc { display: block; }
+  .paper-sheet { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; break-after: page; }
+  .paper-sheet:last-child { break-after: auto; }
+  .paper-scroll { overflow: visible; }
+  .paper-table thead { display: table-header-group; }
+  .paper-table tr, .paper-head, .paper-sign { break-inside: avoid; }
+  .paper-sheet a { color: inherit; text-decoration: none; }
+}

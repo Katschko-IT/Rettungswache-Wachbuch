@@ -33,6 +33,12 @@ Dieses Dokument ist keine Rechtsberatung.
   der Zeit des Felds „Transportgrund“). Sie braucht Eigentümerrechte, schreibt
   je Wache einen Audit-Eintrag mit Zahl, Person und Zeit; Backups behalten den
   alten Stand bis zu ihrem Ablauf (docs/OPERATIONS.md).
+- Druckansichten der Papier-Rückfallebene (`/papier/`): Leere Formulare und
+  Fristenliste enthalten nur Konfiguration und Fristen, keine Namen, keine
+  früheren Ergebnisse und weder Art noch Stufe einer Desinfektion. Das
+  Telefonbuch enthält die Kontakte wie in der App, also auch Ansprechpersonen
+  und Rufnummern. Kein Zugang für Auditoren und nicht am Wachenterminal;
+  Ausdrucke bleiben intern im Ordner der Wache.
 
 ## Nachweise
 

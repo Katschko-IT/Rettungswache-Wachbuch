@@ -1,0 +1,47 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper %}
+{% translate "Funktionskontrolle Medizingeräte" as sheet_title %}
+{% for group in groups %}
+<section class="paper-sheet">
+  {% blocktranslate with location=group.location asvar sheet_subtitle %}Standort: {{ location }}{% endblocktranslate %}
+  {% include "core/_paper_head.html" %}
+  <div class="paper-fields">
+    <div class="paper-field">{% translate "Datum" %}<span class="paper-line"></span></div>
+    <div class="paper-field">{% translate "Uhrzeit" %}<span class="paper-line"></span></div>
+  </div>
+  <p class="paper-hint paper-hint-top"><strong>{% translate "Nur prüfen und verwenden, wer in das Gerät eingewiesen ist." %}</strong></p>
+  <ol class="paper-legend">
+    {% for label in checkpoints %}<li>{{ forloop.counter }} = {{ label }}</li>{% endfor %}
+  </ol>
+  <div class="paper-scroll">
+  <table class="paper-table paper-rows">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Gerät" %}</th>
+        {% for label in checkpoints %}<th scope="col"><span aria-hidden="true">{{ forloop.counter }}</span><span class="visually-hidden">{{ label }}</span></th>{% endfor %}
+        <th scope="col">{% translate "Bemerkung" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for device in group.devices %}
+        <tr class="paper-row">
+          <td>{{ device.name }}{% if device.inventory_number or device.serial_number %}<small>{{ device.inventory_number|default:device.serial_number }}</small>{% endif %}{% if device.current_status in locked_statuses %}<small>{% blocktranslate with status=device.get_current_status_display %}Beim Ausdruck: {{ status }}{% endblocktranslate %}</small>{% endif %}</td>
+          {% if device.current_status in locked_statuses %}
+            <td colspan="{{ checkpoint_count }}" class="paper-locked">{% translate "Gesperrt – erst nach Freigabe verwenden." %}</td>
+          {% else %}
+            {% for label in checkpoints %}<td>{% include "core/_paper_choice.html" %}</td>{% endfor %}
+          {% endif %}
+          <td></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="paper-hint">{% translate "Bei „Nein“ das Gerät nicht verwenden, kennzeichnen und die Schichtleitung informieren." %} {% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</p>
+  {% include "core/_paper_sign.html" %}
+</section>
+{% empty %}
+<p>{% translate "Es sind noch keine Medizingeräte angelegt." %}</p>
+{% endfor %}
+{% endblock %}

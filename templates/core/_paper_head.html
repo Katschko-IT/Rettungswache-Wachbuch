@@ -1,0 +1,9 @@
+{% load i18n %}
+<header class="paper-head">
+  <div>
+    <p class="paper-station">{{ current_membership.station.name }}</p>
+    <h2>{{ sheet_title }}</h2>
+    {% if sheet_subtitle %}<p class="paper-subtitle">{{ sheet_subtitle }}</p>{% endif %}
+  </div>
+  <p class="paper-meta">{% blocktranslate with when=generated_at|date:"d.m.Y H:i" %}Stand: {{ when }} Uhr{% endblocktranslate %}</p>
+</header>

@@ -1,0 +1,44 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper %}
+{% translate "Fahrzeugübernahme" as sheet_title %}
+{% for vehicle in vehicles %}
+<section class="paper-sheet">
+  {% include "core/_paper_head.html" with sheet_subtitle=vehicle.call_sign|add:" · "|add:vehicle.license_plate %}
+  <ol class="paper-legend">
+    {% for label in checkpoints %}<li>{{ forloop.counter }} = {{ label }}</li>{% endfor %}
+  </ol>
+  <p class="paper-hint">{% blocktranslate %}Kraftstoff und AdBlue: {{ fill_levels }}{% endblocktranslate %}</p>
+  <div class="paper-scroll">
+  <table class="paper-table paper-rows">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Datum" %}</th>
+        <th scope="col">{% translate "Uhrzeit" %}</th>
+        <th scope="col">{% translate "km-Stand" %}</th>
+        <th scope="col">{% translate "O₂ Druck (bar)" %}</th>
+        <th scope="col">{% translate "Kraftstoff" %}</th>
+        <th scope="col">{% translate "AdBlue" %}</th>
+        {% for label in checkpoints %}<th scope="col"><span aria-hidden="true">{{ forloop.counter }}</span><span class="visually-hidden">{{ label }}</span></th>{% endfor %}
+        <th scope="col">{% translate "Kürzel" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr class="paper-row">
+          <td></td><td></td><td></td><td></td><td></td><td></td>
+          {% for label in checkpoints %}<td>{% include "core/_paper_choice.html" %}</td>{% endfor %}
+          <td></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <h3>{% translate "Bemerkung (keine Patienten- oder Einsatzangaben)" %}</h3>
+  <div class="paper-lines"><span class="paper-line"></span><span class="paper-line"></span><span class="paper-line"></span></div>
+  <p class="paper-hint">{% translate "Bei „Nein“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft." %}</p>
+</section>
+{% empty %}
+<p>{% translate "Es sind noch keine Fahrzeuge angelegt." %}</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper_intro %}
+<p class="lead">{% translate "Fällt das Wachbuch aus, arbeitet die Wache mit Papier weiter. Drucke die leeren Formulare und das Telefonbuch vor dem Start aus, die Fristenliste jede Woche neu. Die Formulare zeigen den Stand beim Ausdruck: Kommen Fahrzeuge, Geräte oder Checklisten dazu, bitte neu drucken." %}</p>
+<section class="form-card paper-links">
+  <h2>{% translate "Leere Formulare" %}</h2>
+  <ul>
+    {% if current_membership.station.fleet_enabled %}
+      <li><a href="{% url 'paper_vehicle_handover' %}">{% include "core/_icon.html" with name="fleet" %}{% translate "Fahrzeugübernahme" %}</a> · {% blocktranslate %}Fahrzeuge: {{ vehicle_count }}{% endblocktranslate %}</li>
+      <li><a href="{% url 'paper_disinfection' %}">{% include "core/_icon.html" with name="drop" %}{% translate "Desinfektion" %}</a></li>
+    {% endif %}
+    {% if current_membership.station.mpg_enabled %}
+      <li><a href="{% url 'paper_device_checks' %}">{% include "core/_icon.html" with name="mpg" %}{% translate "Funktionskontrolle Medizingeräte" %}</a> · {% blocktranslate %}Geräte: {{ device_count }}{% endblocktranslate %}</li>
+    {% endif %}
+    {% if current_membership.station.checklists_enabled %}
+      <li><a href="{% url 'paper_checklists' %}">{% include "core/_icon.html" with name="checklists" %}{% translate "Checklisten" %}</a> · {% blocktranslate %}Checklisten: {{ checklist_count }}{% endblocktranslate %}</li>
+    {% endif %}
+  </ul>
+  <h2>{% translate "Listen" %}</h2>
+  <ul>
+    {% if has_deadline_sources %}<li><a href="{% url 'paper_deadlines' %}">{% include "core/_icon.html" with name="clock" %}{% translate "Fristen der Woche" %}</a></li>{% endif %}
+    {% if current_membership.station.orga_enabled %}<li><a href="{% url 'paper_phonebook' %}">{% include "core/_icon.html" with name="phonebook" %}{% translate "Telefonbuch" %}</a></li>{% endif %}
+  </ul>
+</section>
+<p>{% translate "Ausdrucke sind intern und bleiben im Ordner der Wache. Beim Neudruck die alten Blätter vernichten." %}</p>
+<p>{% translate "Unten steht das Deckblatt für den Ordner. „Drucken“ druckt nur das Deckblatt." %}</p>
+{% endblock %}
+{% block paper %}
+<section class="paper-sheet">
+  {% translate "So arbeitet ihr ohne Wachbuch" as sheet_title %}
+  {% include "core/_paper_head.html" %}
+  <ol class="paper-steps">
+    <li>{% translate "Schichtleitung informieren." %}</li>
+    <li>{% translate "Fahrzeugübernahme, Desinfektion, Funktionskontrolle und Checklisten auf den Formularen in diesem Ordner eintragen." %}</li>
+    <li>{% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</li>
+    <li>{% translate "Bei „Nein“ oder „nicht in Ordnung“ die Schichtleitung informieren. Ein Gerät, das die Funktionskontrolle nicht besteht, nicht verwenden." %}</li>
+    <li>{% translate "Läuft das Wachbuch wieder: nur den aktuellen Stand erfassen (je Fahrzeug eine neue Fahrzeugübernahme, offene Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und bleiben bei der Wachleitung, bis Nachträge mit Ereigniszeit möglich sind." %}</li>
+  </ol>
+  <div class="paper-fields">
+    <div class="paper-field">{% translate "Ansprechperson Technik" %}<span class="paper-line"></span></div>
+    <div class="paper-field">{% translate "Telefon" %}<span class="paper-line"></span></div>
+  </div>
+</section>
+{% endblock %}

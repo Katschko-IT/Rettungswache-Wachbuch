@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="paper-scroll">
+<table class="paper-table">
+  <caption>{{ caption }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">{% translate "Fällig am" %}</th>
+      <th scope="col">{% translate "Bereich" %}</th>
+      <th scope="col">{% translate "Prüfung oder Frist" %}</th>
+      <th scope="col">{% translate "Betrifft" %}</th>
+      <th scope="col">{% translate "Erledigt am, Kürzel" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ row.due|date:"D d.m.Y" }}</td>
+        <td>{{ row.area }}</td>
+        <td>{{ row.what }}</td>
+        <td>{{ row.subject }}{% if row.detail %}<small>{{ row.detail }}</small>{% endif %}</td>
+        <td></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

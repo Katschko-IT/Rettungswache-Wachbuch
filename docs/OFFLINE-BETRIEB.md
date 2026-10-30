@@ -110,6 +110,71 @@ im Browser, TLS-Zertifikatsverteilung oder ein reales Gerät im Flugmodus.
 5. Wetter ist ein optionaler externer Dienst; seine Verfügbarkeit ist keine
    Betriebsvoraussetzung.
 
+## 7. Papier-Rückfallebene
+
+Fällt der Wachenserver aus, arbeitet die Wache mit vorab gedruckten Blättern
+weiter (Roadmap 0.27, Baustein 8). Die Druckansichten liegen unter `/papier/`;
+Einstieg über Einstellungen → „Papier-Rückfall“ (Master-Admin) oder über die
+Hilfe (alle Rollen außer Auditor).
+
+| Ansicht | Pfad | Inhalt |
+| --- | --- | --- |
+| Deckblatt | `/papier/` | fünf Schritte für den Ausfall, leere Zeilen für Ansprechperson Technik und Telefon |
+| Fristen der Woche | `/papier/fristen/` | HU, SP, UVV und Tragentisch der aktiven Fahrzeuge; STK (Anlage 1), MTK (Anlage 2) und DGUV V3 der Medizingeräte; Überprüfung aktiver Dienstanweisungen; Verfall von Chargen mit Bestand (ohne Rückruf); auch schon Überfälliges |
+| Telefonbuch | `/papier/telefonbuch/` | Notfall-Schnellwahl, Kontakte nach Kategorie, leere Zeilen für Nachträge von Hand |
+| Checklisten | `/papier/checklisten/` | ein Blatt je aktiver Checkliste |
+| Fahrzeugübernahme | `/papier/fahrzeuguebernahme/` | ein Blatt je aktivem Fahrzeug, 12 Zeilen, Prüfpunkte wie im Formular |
+| Desinfektion | `/papier/desinfektion/` | ein Blatt je aktivem Fahrzeug, 14 Zeilen, Mittel der Wache mit Einwirkzeit |
+| Funktionskontrolle | `/papier/funktionskontrolle/` | ein Blatt je Gerätestandort, Prüfpunkte wie im Formular; gesperrte Geräte ohne Ankreuzfelder |
+
+- **Wer druckt:** alle Rollen mit fachlichem Zugriff (Mitglied, Schichtleitung,
+  Kassenwart, Master-Admin), jeweils nur für die eigene Wache. Auditoren
+  erhalten 403. Das Wachenterminal erreicht die Ansichten nicht: `/papier/`
+  liegt außerhalb des Terminal-Modus, und jede Ansicht weist das Dienstkonto
+  zusätzlich ab. Ansichten abgeschalteter Module fehlen (404).
+- **Wann:** vor dem Pilotstart Deckblatt, Formulare und Telefonbuch; die
+  Fristenliste jede Woche neu, am besten montags; nach Änderungen an
+  Fahrzeugen, Geräten, Mitteln, Checklisten oder Kontakten erneut. Jedes Blatt
+  zeigt „Stand: Datum Uhrzeit“. Die Fristenliste gilt nur für die Woche, die sie
+  zeigt; wählbar sind die aktuelle und kommende Wochen, denn eine vergangene
+  Woche lässt sich nach erledigten Prüfungen nicht mehr rekonstruieren.
+- **Wo:** ein Ordner an der Wache; zusätzlich je Fahrzeug ein Blatt
+  Fahrzeugübernahme und ein Blatt Desinfektion im Fahrzeug.
+- **Drucken:** Browserdruck (`@media print`), keine PDF-Bibliothek. Im
+  Druckdialog A4 hochkant wählen und Kopf- und Fußzeilen des Browsers
+  ausschalten. Geprüft in Chromium, dem Kiosk-Browser des Pi; andere Browser
+  können Ränder anders setzen.
+- **Inhalt:**
+  - Leere Formulare und Fristenliste enthalten nur Konfiguration und Fristen:
+    keine Namen, keine früheren Ergebnisse, keine Freitexte aus Nachweisen.
+  - Das Telefonbuch enthält die Kontakte so, wie sie in der App stehen, also
+    auch Ansprechpersonen und Rufnummern, zum Beispiel der Wachleitung.
+  - Das Desinfektionsblatt nennt weder Art noch Stufe der Desinfektion und
+    keine Erreger. Es liegt offen im Fahrzeug und folgt deshalb der engsten
+    Sichtbarkeit (Entscheidung D2).
+  - Keine Patienten- oder Einsatzangaben auf den Blättern.
+  - Ausdrucke sind intern: Sie bleiben im Ordner der Wache. Beim Neudruck
+    werden die alten Blätter vernichtet.
+- **Nach dem Ausfall:** Version 0.27 übernimmt nichts von Papier ins System.
+  Die heutigen Formulare stempeln die Zeit der Eingabe: Eine nachträglich
+  erfasste Desinfektion würde das Fahrzeug ab jetzt sperren, eine
+  Fahrzeugübernahme mit älterem km-Stand wird abgelehnt, Funktionskontrollen
+  und Checklisten bekämen die falsche Zeit. Deshalb wird nach dem Ausfall nur
+  der aktuelle Stand erfasst (je Fahrzeug eine neue Fahrzeugübernahme, offene
+  Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und
+  bleiben als Original bei der Wachleitung. Nachträge mit Ereigniszeit und
+  Eingabezeit sind für 0.28 geplant.
+- **Offen:** Aufbewahrung und Vernichtung der ausgefüllten Blätter
+  (handschriftliche Kürzel und Zeiten sind personenbezogene Daten) regelt das
+  Löschkonzept (Datenschutzunterlagen 0.27, Entscheidung von Betreiber und
+  Datenschutzbeauftragten). Bis dahin bleiben die Originale bei der
+  Wachleitung.
+- Kategorien des Telefonbuchs, der Rhythmus einer Checkliste und der
+  Gerätestatus kommen aus Auswahlwerten ohne Übersetzung; sie erscheinen auch
+  in der englischen Oberfläche deutsch (siehe `docs/UX-PLAN.md`, B4).
+- Einmal geöffnete Seiten können im Seitencache des Service Workers mit ihrem
+  alten Stand liegen. Verlässlich ist nur der vorab gedruckte Ausdruck.
+
 ## Raspberry Pi mit eigenem WLAN
 
 Einrichtung eines Pi als Wachen-Server mit eigenem WLAN, lokalem Zertifikat und

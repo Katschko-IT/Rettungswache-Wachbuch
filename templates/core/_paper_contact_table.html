@@ -1,0 +1,24 @@
+{% load i18n %}
+<div class="paper-scroll">
+<table class="paper-table">
+  <caption>{{ caption }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">{% translate "Name oder Einrichtung" %}</th>
+      <th scope="col">{% translate "Rufnummer" %}</th>
+      <th scope="col">{% translate "Direktwahl" %}</th>
+      <th scope="col">{% translate "Zuständigkeit, Erreichbarkeit" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for contact in contacts %}
+      <tr>
+        <td>{{ contact.name }}{% if contact.contact_person %}<small>{{ contact.contact_person }}</small>{% endif %}</td>
+        <td>{{ contact.phone_primary }}</td>
+        <td>{{ contact.phone_secondary }}</td>
+        <td>{{ contact.notes }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

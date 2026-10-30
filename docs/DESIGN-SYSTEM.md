@@ -231,6 +231,24 @@ info, in Arbeit = warning, wartend = neutral, erledigt = success. Für
 Zustände ohne Modellstatus gibt es die Töne `.status-label.danger`,
 `.warning`, `.info`, `.success`.
 
+## Druckansichten (`paper.css`)
+
+Die Papier-Rückfallebene (`/papier/`) druckt mit dem Browser, ohne
+PDF-Bibliothek (Roadmap, Grundsatz 7):
+
+- `core/static/core/paper.css` wird nur auf den Seiten unter `/papier/`
+  geladen (`templates/core/paper_base.html`, Körperklasse `paper-view`).
+- Klassen: `.paper-sheet` (ein A4-Blatt), `.paper-head`, `.paper-table`,
+  `.paper-rows` (Zeilen zum Ausfüllen), `.paper-box` (Ankreuzfeld als
+  CSS-Kästchen, `aria-hidden`), `.paper-screen-only` (nur am Bildschirm).
+- `@media print` blendet alles außer `main#inhalt` aus
+  (`body.paper-view > :not(#inhalt)`), ohne `!important`.
+- Das Blatt bleibt hell, auch im Nachtdienst (`--paper`/`--paper-ink`).
+- A4 hochkant, ein Blatt je Objekt (`break-after: page`), Tabellenköpfe
+  wiederholen sich auf Folgeseiten. Keine Seitenzahlen in Randfeldern.
+- Nummerierte Spaltenköpfe tragen die volle Beschriftung als
+  `.visually-hidden`.
+
 ## Installierbare App (PWA)
 
 Die Webapp bleibt serverseitig gerendert und kann als Standalone-App auf Handy

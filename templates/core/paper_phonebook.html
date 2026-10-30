@@ -1,0 +1,25 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper %}
+<section class="paper-sheet">
+  {% translate "Telefonbuch" as sheet_title %}
+  {% include "core/_paper_head.html" %}
+  {% if not book.count %}
+    <p>{% translate "Es sind noch keine Kontakte eingetragen. Kontakte pflegt die Wache unter Organisation." %}</p>
+  {% endif %}
+  {% if book.speed_dial %}
+    {% translate "Notfall-Schnellwahl" as caption %}
+    {% include "core/_paper_contact_table.html" with contacts=book.speed_dial %}
+  {% endif %}
+  {% for group in book.groups %}
+    {% include "core/_paper_contact_table.html" with caption=group.label contacts=group.contacts %}
+  {% endfor %}
+  <div class="paper-scroll">
+  <table class="paper-table paper-rows">
+    <caption>{% translate "Nachträge von Hand" %}</caption>
+    <thead><tr><th scope="col">{% translate "Name oder Einrichtung" %}</th><th scope="col">{% translate "Rufnummer" %}</th><th scope="col">{% translate "Hinweis zum Kontakt" %}</th></tr></thead>
+    <tbody>{% for row in blank_rows %}<tr class="paper-row"><td></td><td></td><td></td></tr>{% endfor %}</tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

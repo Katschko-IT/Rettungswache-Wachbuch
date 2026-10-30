@@ -1,0 +1,28 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper_tools %}
+{% if is_current_week %}
+  <a class="button secondary" href="?woche={{ next_week_param }}">{% translate "Nächste Woche" %}</a>
+{% else %}
+  <a class="button secondary" href="?woche={{ current_week_param }}">{% translate "Diese Woche" %}</a>
+{% endif %}
+{% endblock %}
+{% block paper %}
+<section class="paper-sheet">
+  {% translate "Fristen der Woche" as sheet_title %}
+  {% blocktranslate with week=week_number start=week_start|date:"d.m." end=week_end|date:"d.m.Y" asvar sheet_subtitle %}KW {{ week }} · {{ start }} bis {{ end }}{% endblocktranslate %}
+  {% include "core/_paper_head.html" %}
+  {% if not earlier and not this_week %}
+    <p>{% translate "Für diese Woche sind keine Fristen eingetragen." %}</p>
+  {% endif %}
+  {% if earlier %}
+    {% translate "Schon vor dieser Woche fällig" as caption %}
+    {% include "core/_paper_deadline_table.html" with rows=earlier %}
+  {% endif %}
+  {% if this_week %}
+    {% translate "In dieser Woche fällig" as caption %}
+    {% include "core/_paper_deadline_table.html" with rows=this_week %}
+  {% endif %}
+  <p class="paper-hint">{% translate "Erledigte Prüfungen im Wachbuch eintragen. Erst dann verschiebt sich die nächste Frist." %}</p>
+</section>
+{% endblock %}

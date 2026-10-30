@@ -46,6 +46,7 @@ urlpatterns = [
     path("hilfe/", help_views.help_index, name="help_index"),
     path("hilfe/<slug:slug>/", help_views.help_article, name="help_article"),
     path("wiki/", include("core.wiki_urls")),
+    path("papier/", include("core.paper_urls")),
     path("system/", help_views.system_status, name="system_status"),
     path("system/fehler/", diagnostics_views.error_events, name="error_events"),
     path(
