@@ -13,7 +13,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
         |                        |                    |                |
         v                        v                    v                v
  🚑 FUHRPARK & HYGIENE     📦 LAGER & APOTHEKE     🩺 MPG & GERÄTE   🏢 ORGANISATION
-  - BOS-Status 1–6          - FEFO-Verfallsdatum    - MPBetreibV      - SOP-Lenkung
+  - Verfügbarkeit           - FEFO-Verfallsdatum    - MPBetreibV      - SOP-Lenkung
   - O2 / Tank / AdBlue      - Kühlkette (2–8 °C)    - STK/MTK Frist   - SHA-256 Hash
   - VAH-Desinfektion        - Mindestbestand-Task   - QR-Ingest       - Lesequittung
   - Auto-Sperrtimer         - 1-Scan Aufrüstung     - Einweisung      - Notruf-Kurzwahl
@@ -32,13 +32,13 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 ## 2. Die fünf Fachmodule im Detail
 
 ### 🚑 Fuhrpark & Hygiene (`/fuhrpark/`)
-- **Taktischer BOS-Status**: Status 1 (Frei Wache), 2 (Frei Funk), 3 (Anfahrt), 4 (Einsatzort), 5 (Sprechwunsch), 6 (Außer Dienst), sowie Spezialstatus `DISINFECTION` und `WORKSHOP`.
+- **Fahrzeugstatus (nur Verfügbarkeit)**: Einsatzbereit, Außer Dienst / nicht einsatzklar und Werkstatt; „Desinfektion (gesperrt)“ setzt nur das Desinfektionsprotokoll. Einsatzphasen (frühere FMS-Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1); Altwerte wurden per Migration auf „Einsatzbereit“ gesetzt. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Art der Desinfektion steht ausschließlich im Protokoll.
 - **Fahrzeug-Telemetrie**:
   - `fuel_level_percent`: Kraftstoffstand in Prozent (Warnung < 50%, Kritisch < 30%).
   - `adblue_level_percent`: AdBlue-Füllstand in Prozent (Warnung < 25%).
   - `o2_pressure_bar`: Flaschendruck in bar (Norm: 200 bar Bezugsskala; Warnung < 100 bar, Kritisch < 50 bar).
   - `current_mileage`: Kilometerstand in km.
-- **Express-Schichtübernahme (3 Min.)**: Schnelle Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand.
+- **Express-Schichtübernahme (3 Min.)**: Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand – ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder Nein beantwortet, der km-Stand startet leer („zuletzt … km“, nicht darunter), Kraftstoff und AdBlue werden per Schnellwahl gewählt. Ein „Nein“ führt nach dem Speichern zur vorausgefüllten Mangelmeldung.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
   - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.

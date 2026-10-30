@@ -74,16 +74,17 @@
     </div>
   </fieldset>
 
-  {# Taktischer Status & Füllstände #}
+  {# Fahrzeugstatus (nur Verfügbarkeit) & Füllstände #}
   <fieldset class="form-section">
-    <legend>{% translate "BOS-Status & Füllstände" %}</legend>
+    <legend>{% translate "Status & Füllstände" %}</legend>
 
     <div class="field-row">
       <div class="field">
         <label for="{{ form.tactical_status.id_for_label }}">
-          {% translate "Taktischer Status" %}:
+          {% translate "Fahrzeugstatus" %}:
         </label>
         {{ form.tactical_status }}
+        {% if form.tactical_status.errors %}<div class="form-error">{{ form.tactical_status.errors }}</div>{% endif %}
       </div>
       <div class="field">
         <label for="{{ form.status_note.id_for_label }}">

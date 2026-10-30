@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy as _
 
 from .models import Station
 
@@ -34,13 +35,27 @@ class Vehicle(models.Model):
         OTHER = "other", "Sonstiges Fahrzeug"
 
     class TacticalStatus(models.TextChoices):
-        STATUS_1 = "1", "Status 1: Einsatzbereit auf Wache"
-        STATUS_2 = "2", "Status 2: Einsatzbereit auf Funk"
-        STATUS_3 = "3", "Status 3: Einsatz übernommen / Anfahrt"
-        STATUS_4 = "4", "Status 4: Am Einsatzort eingetroffen"
-        STATUS_6 = "6", "Status 6: Außer Dienst / Nicht einsatzklar"
-        DISINFECTION = "disinfection", "Desinfektion (Gesperrt)"
-        WORKSHOP = "workshop", "Werkstatt / Reparatur"
+        """Verfügbarkeit des Fahrzeugs – bewusst ohne Einsatzphasen.
+
+        Gespeichert bleiben die bisherigen Werte („1“, „6“ …). Einsatzphasen
+        (früher 2/3/4) gehören nicht ins Wachbuch (AGENTS.md § 1): Sie sind nur
+        noch als Altwerte lesbar, werden nie angeboten und per Migration auf
+        „Einsatzbereit“ gesetzt.
+        """
+
+        STATUS_1 = "1", _("Einsatzbereit")
+        LEGACY_2 = "2", _("Einsatzbereit (alter Status)")
+        LEGACY_3 = "3", _("Einsatzbereit (alter Status)")
+        LEGACY_4 = "4", _("Einsatzbereit (alter Status)")
+        STATUS_6 = "6", _("Außer Dienst / nicht einsatzklar")
+        DISINFECTION = "disinfection", _("Desinfektion (gesperrt)")
+        WORKSHOP = "workshop", _("Werkstatt")
+
+    # Von Hand wählbar. „Desinfektion“ setzt nur das Desinfektionsprotokoll.
+    SELECTABLE_STATUSES = (TacticalStatus.STATUS_1, TacticalStatus.STATUS_6, TacticalStatus.WORKSHOP)
+    LEGACY_STATUSES = (TacticalStatus.LEGACY_2, TacticalStatus.LEGACY_3, TacticalStatus.LEGACY_4)
+    # Altwerte zählen wie „Einsatzbereit“ (so setzt sie auch die Migration).
+    READY_STATUSES = (TacticalStatus.STATUS_1, *LEGACY_STATUSES)
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="vehicles")
     slug = models.SlugField(max_length=64, help_text="Slug für QR-Code-URL z. B. rtw-01-83-01")
@@ -94,6 +109,16 @@ class Vehicle(models.Model):
 
     def __str__(self) -> str:
         return f"{self.call_sign} ({self.license_plate})"
+
+    @property
+    def status_short(self) -> str:
+        """Kurzform für Sperrbildschirm und Chips (ohne Statusnummern)."""
+        short = {
+            self.TacticalStatus.STATUS_6: _("Außer Dienst"),
+            self.TacticalStatus.DISINFECTION: _("Desinfektion"),
+            self.TacticalStatus.WORKSHOP: _("Werkstatt"),
+        }
+        return str(short.get(self.tactical_status, _("Einsatzbereit")))
 
     @property
     def is_disinfection_locked(self) -> bool:
@@ -176,6 +201,11 @@ class Vehicle(models.Model):
         }
 
 
+def neutral_disinfection_note(lock_until) -> str:
+    """Statusbemerkung während der Einwirkzeit, ohne Art oder Erreger."""
+    return gettext("Desinfektion bis %(time)s Uhr") % {"time": timezone.localtime(lock_until).strftime("%H:%M")}
+
+
 class DisinfectantMaster(models.Model):
     """VAH- / RKI-gelistetes Desinfektionsmittel."""
 
@@ -214,7 +244,15 @@ class DisinfectionProtocol(models.Model):
     started_at = models.DateTimeField(default=timezone.now, verbose_name="Beginn Desinfektion")
     exposure_minutes = models.PositiveSmallIntegerField(default=15, verbose_name="Einwirkzeit (Minuten)")
     lock_timer_applied = models.BooleanField(default=True, verbose_name="Einwirkzeit-Sperre angewendet")
-    notes = models.CharField(max_length=255, blank=True, default="", verbose_name="Bemerkungen / Transportgrund")
+    notes = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name=_("Bemerkung (keine Patienten- oder Einsatzangaben)"),
+        help_text=_(
+            "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
+        ),
+    )
 
     class Meta:
         ordering = ["-started_at"]
@@ -232,7 +270,9 @@ class DisinfectionProtocol(models.Model):
             lock_until = self.started_at + timedelta(minutes=self.exposure_minutes)
             self.vehicle.disinfection_locked_until = lock_until
             self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-            self.vehicle.status_note = f"Desinfektion läuft ({self.get_kind_display()}): Gesperrt bis {timezone.localtime(lock_until).strftime('%H:%M')} Uhr"
+            # Neutral: Die Art der Desinfektion (Erreger) steht nur im Protokoll,
+            # nie im Fahrzeugstatus, auf Display, Sperrbildschirm oder in der App.
+            self.vehicle.status_note = neutral_disinfection_note(lock_until)
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
 
 
@@ -254,11 +294,33 @@ class VehicleHandover(models.Model):
     vehicle_clean = models.BooleanField(default=True, verbose_name="Patientenraum & Fahrerkabine sauber")
     notes = models.CharField(max_length=255, blank=True, default="", verbose_name="Feststellungen / Bemerkung")
 
+    # Ja/Nein-Prüfpunkte der Übernahme (Formular: Pflichtangabe ohne Vorauswahl).
+    CHECKPOINTS = {
+        "btm_seal_intact": _("BTM-Plombe unversehrt & geprüft"),
+        "medical_devices_checked": _("Selbsttests der Medizingeräte in Ordnung"),
+        "vehicle_clean": _("Patientenraum & Fahrerkabine einsatzklar/sauber"),
+    }
+    # Vorschlag für den Mangel, wenn ein Prüfpunkt mit „Nein“ beantwortet wurde.
+    CHECKPOINT_DEFECTS = {
+        "btm_seal_intact": _("BTM-Plombe nicht unversehrt"),
+        "medical_devices_checked": _("Selbsttest eines Medizingeräts nicht in Ordnung"),
+        "vehicle_clean": _("Patientenraum oder Fahrerkabine nicht einsatzklar"),
+    }
+
     class Meta:
         ordering = ["-performed_at"]
         indexes = [
             models.Index(fields=["station", "-performed_at"], name="handover_station_time_idx"),
         ]
+
+    @property
+    def failed_checkpoints(self) -> list[str]:
+        """Prüfpunkte, die bei der Übernahme mit „Nein“ beantwortet wurden."""
+        return [name for name in self.CHECKPOINTS if getattr(self, name) is False]
+
+    @property
+    def failed_checkpoint_labels(self) -> list[str]:
+        return [str(self.CHECKPOINTS[name]) for name in self.failed_checkpoints]
 
     def save(self, *args, **kwargs):
         _require_same_station(self.vehicle, self.station_id, "Schichtübernahme (Fahrzeug)")
