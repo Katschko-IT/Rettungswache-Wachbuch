@@ -452,9 +452,11 @@ class ComposeHealthcheckContractTests(SimpleTestCase):
             with self.subTest(service=name):
                 self.assertFalse(service["image"].startswith("ghcr.io/"), "zöge sonst das Release-Image")
 
-    def test_caddy_listens_on_ipv4_and_ipv6_unless_bound(self):
+    def test_caddy_publishes_ipv4_only_unless_bound(self):
+        # Ohne host_ip auch [::]: docker-proxy reichte IPv6-Besucher von der
+        # Gateway-Adresse des IPv4-Netzes web-ingress weiter (eine Adresse für alle).
         ports = self.render()["caddy"]["ports"]
-        self.assertEqual([port.get("host_ip") for port in ports], [None, None])
+        self.assertEqual([port.get("host_ip") for port in ports], ["0.0.0.0", "0.0.0.0"])
         bound = self.render(HTTPS_BIND_ADDRESS="127.0.0.1")["caddy"]["ports"]
         self.assertEqual([port.get("host_ip") for port in bound], ["127.0.0.1", "127.0.0.1"])
 

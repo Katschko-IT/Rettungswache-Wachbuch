@@ -12,9 +12,19 @@ Zustand liegt in $FAKE_DOCKER_STATE (JSON):
   up_migrations   {Image-ID: Zahl}        `compose up` mit diesem App-Image
                                            migriert vorher auf diese Zahl
   reset_fails     bool                    Zurücksetzen aus dem Dump scheitert
+  volume          {Name: {migrations, age_days}}  Dumps im Backup-Volume; ein
+                                           Backup legt rwsth-test.dump, dann
+                                           rwsth-test-2.dump … an und dünnt wie
+                                           backup-loop.sh nach Alter aus
+                                           (-e BACKUP_RETENTION_DAYS=0: nie)
+  cp_fails        bool                    `compose cp` aus dem Volume scheitert
+  build_fails     bool                    `compose build` scheitert
   caddy_config    Text                    Caddyfile, das der laufende Caddy
                                            sieht (Standard: die Datei im Ordner)
   setup_completed bool                    Ersteinrichtung abgeschlossen
+Ein Dump enthält "PGDMP migrations=<Zahl>"; das Zurücksetzen übernimmt die
+Zahl aus genau der eingespielten Datei (stdin oder /backups/NAME) und
+scheitert an allem anderen. Das zuletzt eingespielte steht unter "restored".
 Jeder Aufruf wird als JSON-Zeile in $FAKE_DOCKER_STATE.calls protokolliert.
 """
 import json
@@ -63,6 +73,49 @@ def host_caddyfile():
         return ""
 
 
+def dump_content(entry):
+    return f"PGDMP migrations={entry['migrations']}\n"
+
+
+def create_dump(state, args):
+    """Wie `rwsth-backup-loop once`: Dump anlegen, dann alte Dumps löschen."""
+    volume = state.setdefault("volume", {})
+    count = state.get("backups", 0) + 1
+    state["backups"] = count
+    name = "rwsth-test.dump" if count == 1 else f"rwsth-test-{count}.dump"
+    volume[name] = {"migrations": state.get("migrations", 0), "age_days": 0}
+    retention = env_value("BACKUP_RETENTION_DAYS") or "7"
+    for index, arg in enumerate(args[:-1]):
+        if arg == "-e" and args[index + 1].startswith("BACKUP_RETENTION_DAYS="):
+            retention = args[index + 1].split("=", 1)[1]
+    if int(retention) > 0:
+        for old in [n for n, entry in volume.items() if entry.get("age_days", 0) > int(retention)]:
+            del volume[old]
+    save(state)
+    print("Dump erstellt")
+    print(f"BACKUP_FILE=/backups/{name}")
+    return 0
+
+
+def reset(state, args):
+    """RESET_DB_SH: Dump aus dem Volume (/backups/NAME) oder von stdin."""
+    source = args[-1]
+    if source.startswith("/backups/"):
+        entry = state.get("volume", {}).get(source.rsplit("/", 1)[1])
+        content = dump_content(entry) if entry else None
+    else:
+        content = sys.stdin.read()
+    match = re.match(r"PGDMP migrations=(\d+)\n", content or "")
+    if state.get("reset_fails") or not match:
+        print(f"pg_restore: error: could not read input file {source}", file=sys.stderr)
+        return 1
+    state["migrations"] = int(match.group(1))
+    state["restored"] = content
+    state["resets"] = state.get("resets", 0) + 1
+    save(state)
+    return 0
+
+
 def main(argv):
     with open(STATE + ".calls", "a", encoding="utf-8") as log:
         log.write(json.dumps(argv) + "\n")
@@ -103,24 +156,19 @@ def main(argv):
             state["running"] = {name: state["images"].get(name) for name in compose_images(version)}
             save(state)
             return 0
+        if command == "build":
+            return 1 if state.get("build_fails") else 0
         if command == "run" and "restore-test" in args:
             if any("django_migrations" in arg for arg in args):
                 print(state.get("migrations", 0))
                 return 0
             if any("pg_restore" in arg for arg in args):
-                if state.get("reset_fails"):
-                    return 1
-                state["migrations"] = state.get("dump_migrations", state.get("migrations", 0))
-                state["resets"] = state.get("resets", 0) + 1
-                save(state)
-                return 0
+                return reset(state, args)
+            if "test" in args and args[-1].startswith("/backups/"):
+                return 0 if args[-1].rsplit("/", 1)[1] in state.get("volume", {}) else 1
             return 0
-        if command == "exec" and "once" in args:
-            state["dump_migrations"] = state.get("migrations", 0)
-            save(state)
-            print("Dump erstellt")
-            print("BACKUP_FILE=/backups/rwsth-test.dump")
-            return 0
+        if command in ("exec", "run") and "once" in args:
+            return create_dump(state, args)
         if command == "exec" and "caddy" in args:
             print(state.get("caddy_config", host_caddyfile()), end="")
             return 0
@@ -128,9 +176,16 @@ def main(argv):
             print("ja" if state.get("setup_completed") else "nein")
             return 0
         if command == "cp":
+            name = args[-2].rsplit("/", 1)[1]
+            entry = state.get("volume", {}).get(name)
+            if state.get("cp_fails") or entry is None:
+                print(f"Error response from daemon: Could not find the file {args[-2]}", file=sys.stderr)
+                return 1
             target = args[-1]
-            os.makedirs(target, exist_ok=True)
-            open(os.path.join(target, "rwsth-test.dump"), "w").close()
+            if os.path.isdir(target):
+                target = os.path.join(target, name)
+            with open(target, "w", encoding="utf-8") as handle:
+                handle.write(dump_content(entry))
             return 0
         return 0
     if argv[:1] == ["inspect"] and argv[-1].startswith("container:"):

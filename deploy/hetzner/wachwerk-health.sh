@@ -233,7 +233,12 @@ check_containers() {
         bad "Zustand der Container nicht lesbar (docker inspect)"
         return
     fi
-    services="db redis web feed-worker notify-worker push-worker housekeeping backup"
+    services="db redis web feed-worker notify-worker push-worker backup"
+    # housekeeping gibt es erst ab 0.26.0; diese Prüfung kommt aus main, die
+    # Installation kann älter sein (compose.yml ist die installierte Fassung).
+    if grep -q '^  housekeeping:' "$WACHWERK_DIR/compose.yml" 2>/dev/null; then
+        services="$services housekeeping"
+    fi
     if has_profile https; then services="$services caddy"; fi
     if has_profile demo || [ "$(env_get DEMO_SANDBOX)" = "true" ]; then services="$services demo-cleaner"; fi
     if has_profile signal; then services="$services signal"; fi
