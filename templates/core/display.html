@@ -13,11 +13,14 @@
   <link rel="stylesheet" href="{% static 'core/modules.css' %}">
 </head>
 <body class="display-body">
-  <div class="display-surface" data-display-root data-display-overlay="false" data-data-url="{% url 'display_data' %}">
+  <div class="display-surface" data-display-root data-display-overlay="false" data-data-url="{% url 'display_data' %}"{% if display_poll_only %} data-stream-url="none"{% endif %}>
     {% include "core/_display_surface.html" %}
   </div>
 
   <div class="display-fullscreen-prompt" data-display-prompt hidden>
+    {% if display_via_session %}
+    <a class="display-exit-link" href="{% url 'dashboard' %}">{% translate "Zurück zur Übersicht" %}</a>
+    {% endif %}
     <button type="button" class="display-fullscreen-button" data-display-fullscreen>
       {% translate "Vollbild starten" %}
     </button>

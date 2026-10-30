@@ -281,6 +281,9 @@ server {
 Sicherheitsheader (CSP, HSTS, `X-Frame-Options` usw.) setzt die Anwendung selbst;
 der Proxy soll sie nicht doppelt oder abweichend setzen. Das Live-Display
 (`/display/stream/`) sendet `X-Accel-Buffering: no`, nginx puffert es deshalb nicht.
+Jeder offene Stream belegt einen Gunicorn-Thread. Je Prozess bedient die
+Anwendung deshalb höchstens halb so viele Streams wie `GUNICORN_THREADS` und je
+Display-Link bzw. Konto einen; weitere Anzeigen fragen jede Minute ab.
 TLS-Vorgaben: [CRYPTO-BSI.md](CRYPTO-BSI.md).
 
 In `.env` passend:

@@ -5,12 +5,16 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+from core import display_views
 from core.display_views import notify_station_display
 from core.models import Membership, Station
 
 
 class DisplayStreamTests(TestCase):
     def setUp(self):
+        # Offene Streams zählen je Prozess (display_views._open_streams).
+        display_views._open_streams.clear()
+        self.addCleanup(display_views._open_streams.clear)
         self.station = Station.objects.create(
             name="Rettungswache Test Stream",
             slug="rw-test-stream",
