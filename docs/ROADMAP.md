@@ -157,9 +157,11 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 
 ## Offene Entscheidungen
 
+Ebenfalls am 30.10.2026 entschieden: Bis zum Funktionsmodell (0.28) sehen die Art bzw. Stufe einer Desinfektion nur die durchführende Person sowie Schichtleitung und Admin; alle anderen sehen „Desinfektion“ mit Datum und Mittel. 0.27 kommt in einzelnen PRs je Paket, die bei grüner CI gemergt werden; Version 0.27.0 und CHANGELOG folgen am Ende. Die App 1.1 läuft parallel.
+
 | # | Frage | Bis wann |
 |---|---|---|
-| 1 | Ausnahme von append-only für die Bereinigung der Altdaten (Umfang, Protokoll, Backups) | 0.27 |
+| 1 | Ausnahme von append-only für die Bereinigung der Altdaten (Umfang, Protokoll, Backups) | **Entschieden 30.10.2026:** einmalige Bereinigung per Befehl mit Trockenlauf – alte Fahrzeugstatus 2/3/4 in Audit-Einträgen neutralisieren, IP/Browser aus alten Lesebestätigungen entfernen, ein Bereinigungsprotokoll im Audit-Log; Backups behalten den alten Stand bis zu ihrem Ablauf |
 | 2 | Pilot-Umfang: E2EE-Chat an oder aus; später weiterführen oder auf Signal setzen (R-001, R-020) | 0.27 (Pilot), 0.29 (dauerhaft) |
 | 3 | Freigaberegeln der Desinfektion als Standard für bestehende Installationen (Hygiene) | 0.27 |
 | 4 | Aufbewahrungsfristen je Datenart | 0.27 verbindlich für den Pilot, 1.0 endgültig |
