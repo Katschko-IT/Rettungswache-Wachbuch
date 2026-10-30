@@ -72,7 +72,8 @@ class ModuleDashboardTests(TestCase):
         response = self.client.get("/lager/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Lager & Material")
-        self.assertContains(response, "Notfallkoffer Atmung")
+        # Pool-Geräte aus „Geräte & Fahrzeuge“ sind kein Lagermaterial.
+        self.assertNotContains(response, "Notfallkoffer Atmung")
 
     def test_fleet_dashboard_renders(self):
         self.client.force_login(self.member)

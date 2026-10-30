@@ -220,16 +220,13 @@ class WarehouseStockTests(TestCase):
         empty = MedicalItem.objects.create(station=self.station, slug="leer", name="Leer")
         self.assertEqual((plain.total_stock, prefetched.total_stock, empty.total_stock), (6, 6, 0))
 
-    def test_synced_inventory_items_never_trigger_reorder(self):
+    def test_inventory_items_never_trigger_reorder(self):
+        # Das Lager spiegelt Inventarstücke nicht mehr (siehe core.test_review_final_core).
         InventoryItem.objects.create(station=self.station, item_id="rtw-schluessel", label="Fahrzeugschlüssel RTW 1",
                                      kind=InventoryItem.Kind.KEY)
-        self.assertContains(self.client.get(reverse("warehouse_dashboard")), "Fahrzeugschlüssel RTW 1")
-        synced = MedicalItem.objects.get(station=self.station, slug="rtw-schluessel")
-        self.assertFalse(synced.is_under_min_stock)
+        self.assertNotContains(self.client.get(reverse("warehouse_dashboard")), "Fahrzeugschlüssel RTW 1")
+        self.assertFalse(MedicalItem.objects.filter(station=self.station, slug="rtw-schluessel").exists())
         self.assertEqual(self.client.get(reverse("warehouse_reorder_proposal")).context["proposals"], [])
-        # Zweiter Aufruf legt nichts doppelt an.
-        self.client.get(reverse("warehouse_dashboard"))
-        self.assertEqual(MedicalItem.objects.filter(station=self.station, slug="rtw-schluessel").count(), 1)
 
 
 class SopAcknowledgementTests(TestCase):

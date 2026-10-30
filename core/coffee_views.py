@@ -439,7 +439,10 @@ def coffee_correct(request, pk):
     if request.method == "POST" and form.is_valid():
         try:
             with transaction.atomic():
-                original = get_object_or_404(base_qs.select_for_update())
+                # Kein select_for_update: Das Kassenbuch ist append-only, die
+                # App-Datenbankrolle hat dort kein UPDATE-Recht, und PostgreSQL
+                # verlangt es für FOR UPDATE. Eine zweite Gegenbuchung verhindert
+                # die Constraint unique_coffee_correction (Fehlerzweig unten).
                 if original.corrections.exists():
                     messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
                     return redirect("coffee")

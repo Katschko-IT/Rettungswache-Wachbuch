@@ -316,7 +316,12 @@ def assets_inventory(request):
         elif action in {"checkout", "checkin"}:
             item_id = request.POST.get("item_id") or ""
             with transaction.atomic():
-                inv = get_object_or_404(InventoryItem.objects.select_for_update().select_related("holder"), station=station, item_id=item_id)
+                # of=("self",): holder ist nullable (LEFT OUTER JOIN); PostgreSQL
+                # verweigert FOR UPDATE auf der nullbaren Seite (wie in der API).
+                inv = get_object_or_404(
+                    InventoryItem.objects.select_for_update(of=("self",)).select_related("holder"),
+                    station=station, item_id=item_id,
+                )
                 if action == "checkout":
                     if inv.holder_id and inv.holder_id != request.user.id:
                         messages.error(request, f"Bereits ausgegeben an {inv.holder.username}.")
