@@ -12,6 +12,8 @@ from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.core.signals import request_finished
+from django.db import close_old_connections
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -21,6 +23,21 @@ from core.models import ApiToken, Membership, PinboardNote, Station
 
 DEMO = {"username": "Demo", "password": "Demo"}
 SANDBOX_ON = dict(DEMO_MODE=True, DEMO_SANDBOX=True, MFA_REQUIRED=False)
+
+
+def close_stream(response):
+    """Stream schließen wie der Test-Client selbst (ohne close_old_connections).
+
+    ``response.close()`` sendet ``request_finished``; dort hängt
+    ``close_old_connections`` und schlösse mitten in der Testtransaktion die
+    echte PostgreSQL-Verbindung. SQLite ignoriert ``close()`` auf der
+    In-Memory-Testdatenbank, deshalb fiel das nur gegen PostgreSQL auf.
+    """
+    request_finished.disconnect(close_old_connections)
+    try:
+        response.close()
+    finally:
+        request_finished.connect(close_old_connections)
 
 
 class StreamSlotMixin:
@@ -34,7 +51,7 @@ class StreamSlotMixin:
 
     def stream(self, client=None):
         response = (client or self.client).get(reverse("display_stream"))
-        self.addCleanup(response.close)
+        self.addCleanup(close_stream, response)
         return response
 
 
@@ -99,8 +116,14 @@ class DisplayStreamCapTests(StreamSlotMixin, TestCase):
         self.assertTrue(first.streaming)
         for _ in range(5):
             self.assertEqual(self.stream().status_code, 204)
-        first.close()
+        close_stream(first)
         self.assertEqual(self.stream().status_code, 200)
+
+    def test_closed_stream_keeps_the_database_usable(self):
+        # Gegen PostgreSQL schloss ein bloßes response.close() die
+        # Testverbindung („the connection is closed“).
+        close_stream(self.stream())
+        self.assertTrue(Station.objects.filter(pk=self.station.pk).exists())
 
     @override_settings(DISPLAY_STREAM_MAX_PER_PROCESS=2)
     def test_streams_never_take_more_than_the_process_share(self):

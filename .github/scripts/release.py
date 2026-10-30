@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hilfen für publish-image.yml und refresh-images.yml (nur Standardbibliothek).
+"""Hilfen für publish-image.yml, refresh-images.yml und ci.yml (nur Standardbibliothek).
 
 RELEASES ist die Antwort von ``gh api repos/OWNER/REPO/releases?per_page=100``
 als Datei (Liste mit tag_name, draft, prerelease).
@@ -18,6 +18,12 @@ als Datei (Liste mit tag_name, draft, prerelease).
       keinen Abschnitt „## X.Y.Z - Datum“ dafür hat.
   release.py notes VERSION
       Gibt den CHANGELOG-Abschnitt dieser Version aus (Release-Text).
+  release.py previous-release TAGS
+      Neuestes endgültiges Tag vX.Y.Z aus der Datei TAGS (ein Git-Tag je
+      Zeile, aus „git tag --merged HEAD --no-contains HEAD“): Ausgangspunkt
+      der Update-Probe im CI-Job django-postgres. Es zählt das Git-Tag, nicht
+      das GitHub-Release; auch ein Tag, dessen Veröffentlichung scheiterte,
+      ist Ausgangspunkt. Ohne Treffer Exit-Code 1.
 """
 
 import json
@@ -65,6 +71,19 @@ def is_newest(tag, releases):
     if not parsed or parsed[3]:
         return False
     return all(parsed[:3] >= version for version, _ in published_versions(releases))
+
+
+def previous_release(tags):
+    """Neuestes endgültiges Tag (numerisch: v0.25.10 > v0.25.3) oder None.
+
+    Vorabversionen und fremde Tags zählen nicht.
+    """
+    found = []
+    for tag in (line.strip() for line in tags):
+        parsed = parse_tag(tag)
+        if parsed and not parsed[3]:
+            found.append((parsed[:3], tag))
+    return max(found)[1] if found else None
 
 
 def changelog_section(version, changelog):
@@ -124,6 +143,13 @@ def main(argv):
             print(f"::error::CHANGELOG.md hat keinen Abschnitt '## {args[0]} - Datum'", file=sys.stderr)
             return 1
         print(notes)
+    elif command == "previous-release" and len(args) == 1:
+        with open(args[0], encoding="utf-8") as handle:
+            tag = previous_release(handle.read().splitlines())
+        if not tag:
+            print("::error::Kein früheres Release-Tag gefunden (fetch-depth: 0?)", file=sys.stderr)
+            return 1
+        print(tag)
     else:
         print(__doc__, file=sys.stderr)
         return 2

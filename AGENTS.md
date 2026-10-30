@@ -84,6 +84,45 @@ docker compose config --quiet
 docker build --tag rettungswache-wachbuch:test .
 ```
 
+Gegen PostgreSQL (Pflicht für jede Migration). Die CI prüft das im Job
+`django-postgres` mit Version und Konfiguration des db-Images und einer
+Update-Probe vom letzten Release mit Musterdaten:
+
+```bash
+docker run --rm -d --name wachwerk-pg -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=rwsth_owner -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=rwsth \
+  -v "$PWD/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro" \
+  "$(sed -n 's/^FROM \(postgres:[^ ]*\) AS pgbase$/\1/p' Dockerfile.backup)" \
+  postgres -c config_file=/etc/postgresql/postgresql.conf
+DJANGO_SECRET_KEY=test-only DATABASE_URL=postgres://rwsth_owner:dev@127.0.0.1:5432/rwsth \
+  python manage.py test --settings=config.test_settings
+```
+
+Ohne Docker (z. B. in einer Agenten-Sandbox): ein vorhandenes PostgreSQL ab
+Version 16 und ein Konto mit dem Recht `CREATEDB`, mit denselben Grenzen wie
+`config/postgresql.conf`:
+
+```bash
+DJANGO_SECRET_KEY=test-only DATABASE_URL=postgres://BENUTZER@127.0.0.1:5432/rwsth \
+PGOPTIONS='-c statement_timeout=60s -c lock_timeout=30s -c idle_in_transaction_session_timeout=10s -c timezone=Europe/Berlin' \
+  python manage.py test --settings=config.test_settings
+```
+
+Regeln, damit beide Datenbanken grün bleiben:
+
+- Datenmigrationen in Abschnitten schreiben: keine Abfrage über 60 s, keine
+  Pause über 10 s in einer offenen Transaktion. Die CI hat nur Musterdaten und
+  findet deshalb nur grobe Fehler; Datenmigrationen und Importe zusätzlich mit
+  einer realistischen Datenmenge prüfen.
+- `RunSQL` und andere datenbankabhängige Zweige brauchen einen Weg für
+  PostgreSQL und einen für SQLite.
+- In einem `TestCase` nie `response.close()` direkt aufrufen: Gegen PostgreSQL
+  schließt das die Testverbindung. Streams so schließen wie `close_stream` in
+  `core/test_display_security.py`.
+- In ein `GenericIPAddressField` (PostgreSQL: `inet`) nur eine gültige Adresse
+  oder `None` schreiben, nie einen Platzhalter wie „unknown“.
+- Mergen erst, wenn `django-postgres` grün ist, einschließlich der Update-Probe.
+
 Für Frontend-Änderungen zusätzlich:
 
 ```bash

@@ -524,7 +524,8 @@ und in `.env` `WACHBUCH_REGISTRY=registry.wache.lan:5000/katschko-it` setzen.
 4. Abhängigkeiten und Image-Digests kontrolliert aktualisieren.
 5. Lokal bauen: `docker compose -f docker-compose.yml -f compose.build.yml build --no-cache`.
 6. Images auf HIGH/CRITICAL-Schwachstellen scannen.
-7. Tests ausführen und den Stack mit `up -d --wait` starten.
+7. Tests ausführen (CI: SQLite und PostgreSQL inkl. Update-Probe vom letzten
+   Release) und den Stack mit `up -d --wait` starten.
 8. Healthcheck inkl. Versionsfeld, Anmeldung, Rollen, Tagesaufgaben und optionale
    Feeds prüfen.
 9. Tag `vX.Y.Z` pushen: `publish-image.yml` prüft Tag, `core/version.py` und

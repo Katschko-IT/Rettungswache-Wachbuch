@@ -219,6 +219,11 @@ pip install --require-hashes -r requirements.lock -r requirements-ci.lock
 DJANGO_SECRET_KEY=ci-only-secret python manage.py test --settings=config.test_settings
 ```
 
+Die CI führt dieselbe Suite zusätzlich gegen PostgreSQL in der Version des
+db-Images aus (Job `django-postgres`, mit Update-Probe vom letzten Release).
+Das Rezept für einen lokalen Lauf gegen PostgreSQL steht in
+[`AGENTS.md`](AGENTS.md) § 6.
+
 ## Anmeldung per QR-Code
 
 Der Browser zeigt unter `/anmelden/qr/` eine kurzlebige Anfrage. Ein bereits

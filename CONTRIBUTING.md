@@ -16,6 +16,25 @@ docker compose run --rm --no-deps \
   web python manage.py test --settings=config.test_settings
 ```
 
+Bei Migrationen zusätzlich gegen PostgreSQL in der Version des db-Images
+(lokale Python-Umgebung; Variante ohne Docker und Regeln in
+[`AGENTS.md`](AGENTS.md) § 6):
+
+```bash
+docker run --rm -d --name wachwerk-pg -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=rwsth_owner -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=rwsth \
+  -v "$PWD/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro" \
+  "$(sed -n 's/^FROM \(postgres:[^ ]*\) AS pgbase$/\1/p' Dockerfile.backup)" \
+  postgres -c config_file=/etc/postgresql/postgresql.conf
+DJANGO_SECRET_KEY=test-only DATABASE_URL=postgres://rwsth_owner:dev@127.0.0.1:5432/rwsth \
+  python manage.py test --settings=config.test_settings
+```
+
+Die CI führt die Tests mit SQLite und mit PostgreSQL aus, PostgreSQL in Version
+und Konfiguration des db-Images. Dazu kommen die Migration von null mit den
+echten Datenbankrollen (Job `docker`) und ein Update vom letzten Release mit
+Musterdaten (Job `django-postgres`).
+
 ### Mobile-Client (AGPL)
 
 ```bash
