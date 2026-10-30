@@ -31,6 +31,7 @@ betriebliche Freigabe.
 - [ ] AI-Act-Prüfung dokumentiert (Produkt ohne KI-System / kein Scoring)
 - [ ] Auskunft, Berichtigung, Löschung und Incident-Meldung sind geregelt
 - [ ] Audit-Zweck und Auswertungsverbot sind dokumentiert
+- [ ] Altdaten-Bereinigung ausgeführt (`cleanup_legacy_data --apply`); Audit-Eintrag „Altdaten einmalig bereinigt“ je Wache vorhanden
 
 ## Produktion
 

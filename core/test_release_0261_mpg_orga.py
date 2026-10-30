@@ -289,6 +289,8 @@ class SOPReceiptDataMinimisationTests(TestCase):
         self.assertIn("altbestand", html)
 
     def test_legacy_rows_stay_untouched(self):
+        # Der normale Betrieb ändert Altbestände nie; leeren darf sie nur der
+        # einmalige Befehl cleanup_legacy_data (core.test_release_027_legacy_cleanup).
         self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]))
         self.client.get(reverse("sop_export_audit", args=[self.sop.slug]))
         self.legacy.refresh_from_db()

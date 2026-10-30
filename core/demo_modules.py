@@ -14,7 +14,8 @@ from datetime import date, timedelta
 from django.utils import timezone
 
 from .device_status import DEVICE_TO_ASSET
-from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from .disinfection_plan import ensure_default_levels
+from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
 from .orga_models import SOPDocument, SOPReceipt, SOPRevision, StationContact
 from .wachalltag_models import AssetEvent, Defect, InventoryEvent, InventoryItem, StationAsset
@@ -23,12 +24,13 @@ from .warehouse_models import ItemBatch, MedicalItem, StockItem, StockMovement, 
 PREFIX = "demo-"
 CONTACT_MARKER = "[Demo]"
 
-# Fahrzeugstatus → Status in „Geräte & Fahrzeuge“.
+# Fahrzeugzustand → Status in „Geräte & Fahrzeuge“.
 VEHICLE_TO_ASSET = {
-    Vehicle.TacticalStatus.STATUS_1: StationAsset.Status.READY,
+    Vehicle.TacticalStatus.READY: StationAsset.Status.READY,
+    Vehicle.TacticalStatus.LIMITED: StationAsset.Status.LIMITED,
     Vehicle.TacticalStatus.DISINFECTION: StationAsset.Status.LIMITED,
     Vehicle.TacticalStatus.WORKSHOP: StationAsset.Status.WORKSHOP,
-    Vehicle.TacticalStatus.STATUS_6: StationAsset.Status.OOB,
+    Vehicle.TacticalStatus.OUT_OF_SERVICE: StationAsset.Status.OOB,
 }
 
 
@@ -50,7 +52,13 @@ def reset_module_demo(station) -> None:
         vehicle.disinfections.all().delete()
         vehicle.handovers.all().delete()
     vehicles.delete()
-    DisinfectantMaster.objects.filter(station=station, name__startswith=CONTACT_MARKER).delete()
+    # Stufen bleiben (sie gehören zum Plan der Wache); sie lösen sich nur vom
+    # Demo-Mittel, damit es gelöscht werden kann (PROTECT).
+    demo_agents = DisinfectantMaster.objects.filter(station=station, name__startswith=CONTACT_MARKER)
+    DisinfectionLevel.objects.filter(station=station, disinfectant__in=demo_agents).update(
+        disinfectant=None, rule_confirmed_at=None, rule_confirmed_by=None,
+    )
+    demo_agents.delete()
 
     devices = MedicalDevice.objects.filter(station=station, slug__startswith=PREFIX)
     # Prüfungen und Funktionskontrollen sind append-only (REVOKE für die
@@ -203,16 +211,17 @@ def seed_module_demo(station, users: dict, *, marker: str = CONTACT_MARKER, fres
         station=station, name=label("Flächendesinfektion Wischtücher"), default_exposure_minutes=15,
     )
     vehicles_spec = [
-        ("demo-rtw-831", "RTW 1/83-1", "MU-RD 831", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_1, "",
+        ("demo-rtw-831", "RTW 1/83-1", "MU-RD 831", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.READY, "",
          84213, 22, 64, 190, 140, 25, 2021),
-        ("demo-rtw-832", "RTW 1/83-2", "MU-RD 832", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_1, "",
+        ("demo-rtw-832", "RTW 1/83-2", "MU-RD 832", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.READY, "",
          132904, 81, 70, 200, 260, 120, 2019),
-        ("demo-rtw-833", "RTW 1/83-3", "MU-RD 833", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_6,
+        ("demo-rtw-833", "RTW 1/83-3", "MU-RD 833", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.OUT_OF_SERVICE,
          "Blaulicht hinten links ohne Funktion – Werkstatttermin steht im Kalender", 201480, 64, 55, 180, 75, 60, 2016),
-        ("demo-nef-821", "NEF 1/82-1", "MU-RD 821", Vehicle.VehicleType.NEF, Vehicle.TacticalStatus.STATUS_1, "",
+        ("demo-nef-821", "NEF 1/82-1", "MU-RD 821", Vehicle.VehicleType.NEF, Vehicle.TacticalStatus.READY, "",
          61022, 70, 80, 200, 9, 150, 2022),
-        ("demo-ktw-851", "KTW 1/85-1", "MU-RD 851", Vehicle.VehicleType.KTW, Vehicle.TacticalStatus.STATUS_1, "",
-         158430, 55, 48, 200, 190, 45, 2018),
+        # Fahrbereit mit Einschränkung; der Grund steht als Mangel im Mängelboard.
+        ("demo-ktw-851", "KTW 1/85-1", "MU-RD 851", Vehicle.VehicleType.KTW, Vehicle.TacticalStatus.LIMITED,
+         "Tragestuhl: Gurt ausgefranst, Ersatz ist bestellt", 158430, 55, 48, 200, 190, 45, 2018),
     ]
     vehicles = [
         Vehicle(
@@ -235,10 +244,18 @@ def seed_module_demo(station, users: dict, *, marker: str = CONTACT_MARKER, fres
             fuel_percent=vehicle.fuel_level_percent, adblue_percent=vehicle.adblue_level_percent,
             o2_pressure_bar=vehicle.o2_pressure_bar, notes="Übernahme ohne Befund",
         ), shift_start + timedelta(minutes=10))
+    # Stufen des Desinfektionsplans: vorhandene bleiben, sonst die Standardstufen.
+    # Stufen ohne Mittel (nach einem Zurücksetzen) erhalten das Demo-Mittel.
+    ensure_default_levels(station)
+    DisinfectionLevel.objects.filter(station=station, disinfectant__isnull=True).update(
+        disinfectant=disinfectant, exposure_minutes=disinfectant.default_exposure_minutes,
+    )
+    routine = DisinfectionLevel.objects.filter(station=station, is_active=True).order_by("pk").first()
     # RTW 83-2 kommt gerade aus der Wischdesinfektion: Die Einwirkzeit läuft noch.
+    # Stufe und Bemerkung sehen nur Jonas, Schichtleitung und Admin.
     DisinfectionProtocol.objects.create(
-        station=station, vehicle=vehicles[1], performed_by=jonas, disinfectant=disinfectant,
-        started_at=now - timedelta(minutes=3), exposure_minutes=15, notes="Routinedesinfektion Patientenraum",
+        station=station, vehicle=vehicles[1], performed_by=jonas, disinfectant=disinfectant, level=routine,
+        started_at=now - timedelta(minutes=3), exposure_minutes=15, notes="Patientenraum und Trage gewischt",
     )
     vehicles[1].tactical_status = Vehicle.TacticalStatus.DISINFECTION
 

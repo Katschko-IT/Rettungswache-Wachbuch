@@ -7,7 +7,7 @@
   <div>
     <p class="context-line">{{ current_membership.station.name }} &middot; {% translate "Fuhrpark" %}</p>
     <h1>{% translate "Fuhrpark & Fahrzeuge" %}</h1>
-    <p class="lead">{% translate "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV." %}</p>
+    <p class="lead">{% translate "Zustand aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV." %}</p>
   </div>
   <div class="page-actions-bar">
     {% if can_manage %}
@@ -33,9 +33,13 @@
     <span class="kpi-value">{{ kpis.ready }}</span>
     <span class="kpi-label">{% translate "Einsatzbereit" %}</span>
   </div>
+  <div class="kpi-card{% if kpis.limited %} border-warning{% endif %}">
+    <span class="kpi-value">{{ kpis.limited }}</span>
+    <span class="kpi-label">{% translate "Eingeschränkt" %}</span>
+  </div>
   <div class="kpi-card{% if kpis.disinfection %} border-warning{% endif %}">
     <span class="kpi-value">{{ kpis.disinfection }}</span>
-    <span class="kpi-label">{% translate "Desinfektion (Gesperrt)" %}</span>
+    <span class="kpi-label">{% translate "Desinfektion" %}</span>
   </div>
   <div class="kpi-card{% if kpis.workshop %} border-danger{% endif %}">
     <span class="kpi-value">{{ kpis.workshop }}</span>
@@ -55,6 +59,7 @@
 <nav class="filter-tabs fleet-filter" aria-label="{% translate 'Fuhrpark Ansicht' %}">
   <a href="?filter=all{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Fahrzeuge" %} <span class="count">({{ vehicles|length }})</span></a>
   <a href="?filter=ready{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ready' %}aria-current="page"{% endif %}><span class="dot dot-success" aria-hidden="true"></span>{% translate "Einsatzbereit" %} <span class="count">({{ kpis.ready }})</span></a>
+  <a href="?filter=limited{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'limited' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Eingeschränkt" %} <span class="count">({{ kpis.limited }})</span></a>
   <a href="?filter=disinfection{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'disinfection' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "In Desinfektion" %} <span class="count">({{ kpis.disinfection }})</span></a>
   <a href="?filter=workshop{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'workshop' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Werkstatt / Ausfall" %} <span class="count">({{ kpis.workshop }})</span></a>
   <a href="?filter=urgent_inspections{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent_inspections' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Fristen fällig" %} <span class="count">({{ kpis.urgent_inspections }})</span></a>
@@ -108,19 +113,21 @@
           </div>
           <small>{{ vehicle.chassis_manufacturer }} &middot; {{ vehicle.body_manufacturer }} &middot; {{ vehicle.current_mileage|default:0 }} km</small>
           <div class="cluster">
-            {# Nur Verfügbarkeit; keine Statusnummern oder Einsatzphasen #}
+            {# Fahrzeugzustand; keine Statusnummern, Einsatzphasen oder Desinfektionsstufen #}
             {% if vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
               <span class="status-label warning">{% translate "Desinfektion (gesperrt)" %}</span>
+            {% elif vehicle.tactical_status == 'limited' %}
+              <span class="status-label warning">{{ vehicle.get_tactical_status_display }}</span>
             {% elif vehicle.tactical_status == 'workshop' %}
               <span class="status-label danger">{{ vehicle.get_tactical_status_display }}</span>
-            {% elif vehicle.tactical_status == '6' %}
+            {% elif vehicle.tactical_status == 'out_of_service' %}
               <span class="status-label">{{ vehicle.get_tactical_status_display }}</span>
             {% else %}
               <span class="status-label status-done">{% translate "Einsatzbereit" %}</span>
             {% endif %}
           </div>
           {% if vehicle.is_disinfection_locked %}
-            <small class="text-warning">{% include "core/_icon.html" with name="clock" %} Einwirkzeit läuft bis {{ vehicle.disinfection_locked_until|date:"H:i" }} Uhr</small>
+            <small class="text-warning">{% include "core/_icon.html" with name="clock" %} {% blocktranslate with time=vehicle.disinfection_locked_until|date:"H:i" %}Einwirkzeit läuft bis {{ time }} Uhr{% endblocktranslate %}</small>
           {% endif %}
         </div>
 
@@ -196,8 +203,7 @@
         <tr>
           <th>{% translate "Datum / Uhrzeit" %}</th>
           <th>{% translate "Fahrzeug" %}</th>
-          <th>{% translate "Mittel" %}</th>
-          <th class="num">{% translate "Einwirkzeit" %}</th>
+          <th>{% translate "Desinfektionsmittel" %}</th>
           <th>{% translate "Desinfektor / Personal" %}</th>
         </tr>
       </thead>
@@ -205,10 +211,9 @@
         {% for proto in recent_disinfections %}
           <tr>
             <td class="nowrap">{{ proto.started_at|date:"d.m.Y H:i" }} Uhr</td>
-            {# Die Art (Erreger) steht nur im Protokoll am Fahrzeug, nicht in der Übersicht. #}
+            {# Stufe und Einwirkzeit stehen nur im Protokoll am Fahrzeug – und nur für die durchführende Person, Schichtleitung und Admin. #}
             <td><a href="{% url 'fleet_vehicle_detail' proto.vehicle.slug %}#fleet-disinfection-history"><strong>{{ proto.vehicle.call_sign }}</strong></a>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}</td>
             <td>{{ proto.disinfectant.name }}</td>
-            <td class="num nowrap">{{ proto.exposure_minutes }} Min.</td>
             <td>{{ proto.performed_by.get_full_name|default:proto.performed_by.username }}</td>
           </tr>
         {% endfor %}

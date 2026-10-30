@@ -544,6 +544,10 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
         (jonas, 20, lead, "vehicle", "urgent", "open", 1, "Trage RTW 83-2: Verriegelung hakt",
          "RTW 1/83-2 (MU-RD 832)",
          "Fahrgestell rastet erst beim zweiten Versuch ein. Bis zur Reparatur vor jeder Fahrt prüfen."),
+        # Grund für „Eingeschränkt“ beim KTW 85-1 (Fuhrpark).
+        (lea, 30, lead, "vehicle", "important", "open", 7, "KTW 85-1: Gurt am Tragestuhl ausgefranst",
+         "KTW 1/85-1 (MU-RD 851)",
+         "Tragestuhl ist nutzbar. Ersatzgurt ist bestellt; bis dahin den Gurt vor jeder Fahrt prüfen."),
         (lea, 9, admin, "facility", "important", "in_progress", 6, "Rolltor Fahrzeughalle 2 schließt schwer",
          "Fahrzeughalle 2", "Haustechnik kommt in dieser Woche. Bis dahin Tor von Hand nachführen."),
         (tim, 96, admin, "facility", "normal", "done", None, "Seifenspender Umkleide defekt",

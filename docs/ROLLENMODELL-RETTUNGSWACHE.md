@@ -102,6 +102,9 @@ Jede Funktion bekommt im Wachbuch:
   STK/MTK fällig → Gerätebeauftragte.
 - **Rechte** passend zur Funktion: z. B. Gerätefreigabe durch Medizinprodukte-Beauftragte,
   Desinfektionsmittel pflegen durch Hygiene; Sicherheitsbeauftragte nur lesend.
+  Übergang bis 0.28: Für „Hygiene“ stehen Schichtleitung und Admin. Sie sehen (neben der
+  durchführenden Person) Stufe, Einwirkzeit und Bemerkung einer Desinfektion; alle anderen
+  sehen „Desinfektion“ mit Datum, Mittel und Person.
 - **„Meine Zuständigkeiten“** auf der Übersicht und Aufgaben, die einer Funktion statt
   einer Person zugewiesen werden (bleiben bei Personalwechsel bestehen).
 

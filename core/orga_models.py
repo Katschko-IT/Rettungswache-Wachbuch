@@ -170,10 +170,11 @@ class SOPReceipt(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="sop_receipts")
     acknowledged_at = models.DateTimeField(default=timezone.now, verbose_name="Quittiert am")
     # Seit 0.26.1 werden IP-Adresse und Browser nicht mehr erfasst (leer/None).
-    # Die Felder bleiben nur für Altbestände und werden weder angezeigt noch
-    # exportiert. Die einmalige Bereinigung der Altbestände (0.27) leert sie per
-    # QuerySet.update; deshalb hat SOPReceipt noch keinen Zeilenschutz in
-    # save()/delete() und kein REVOKE (Folgeschritt nach der Bereinigung).
+    # Altbestände leert der einmalige Befehl ``cleanup_legacy_data`` (0.27) per
+    # QuerySet.update; die Felder werden weder angezeigt noch exportiert.
+    # Deshalb hat SOPReceipt noch keinen Zeilenschutz in save()/delete() und
+    # kein REVOKE (Folgeschritt nach der Bereinigung). Die Spalten entfallen
+    # später, wenn alle Installationen bereinigt sind.
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-Adresse")
     user_agent = models.CharField(max_length=255, blank=True, default="", verbose_name="Browser / Gerät")
 

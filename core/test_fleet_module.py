@@ -4,7 +4,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from core.fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from core.disinfection_plan import ensure_default_levels
+from core.fleet_models import DisinfectantMaster, DisinfectionLevel, Vehicle, VehicleHandover
 from core.models import Membership, Station
 from core.wachalltag_models import Defect, StationAsset
 
@@ -37,7 +38,7 @@ class FleetModuleTests(TestCase):
             call_sign="Rotkreuz 01/83-01",
             license_plate="M-RD 8301",
             vehicle_type=Vehicle.VehicleType.RTW,
-            tactical_status=Vehicle.TacticalStatus.STATUS_1,
+            tactical_status=Vehicle.TacticalStatus.READY,
             current_mileage=45000,
             fuel_level_percent=90,
             adblue_level_percent=85,
@@ -55,6 +56,8 @@ class FleetModuleTests(TestCase):
             default_exposure_minutes=15,
             is_vah_listed=True,
         )
+        ensure_default_levels(self.station)
+        self.level = DisinfectionLevel.objects.filter(station=self.station).first()
 
     def test_dashboard_renders_and_syncs_legacy_asset(self):
         StationAsset.objects.create(
@@ -73,7 +76,7 @@ class FleetModuleTests(TestCase):
         # Verify auto-sync created the Vehicle
         legacy_vehicle = Vehicle.objects.filter(station=self.station, slug="ktw-legacy-01").first()
         self.assertIsNotNone(legacy_vehicle)
-        self.assertEqual(legacy_vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        self.assertEqual(legacy_vehicle.tactical_status, Vehicle.TacticalStatus.READY)
 
     def test_dashboard_urgency_traffic_light(self):
         # vehicle has HU in 20 days -> critical
@@ -91,7 +94,7 @@ class FleetModuleTests(TestCase):
                 "vehicle_type": Vehicle.VehicleType.NEF,
                 "chassis_manufacturer": "Audi A6 Avant",
                 "body_manufacturer": "Ambulanz Mobile",
-                "tactical_status": Vehicle.TacticalStatus.STATUS_1,
+                "tactical_status": Vehicle.TacticalStatus.READY,
                 "current_mileage": 12500,
                 "fuel_level_percent": 100,
                 "adblue_level_percent": 100,
@@ -110,11 +113,11 @@ class FleetModuleTests(TestCase):
     def test_vehicle_status_change(self):
         resp = self.client.post(
             reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
-            {"status": Vehicle.TacticalStatus.STATUS_6},
+            {"status": Vehicle.TacticalStatus.OUT_OF_SERVICE},
         )
         self.assertEqual(resp.status_code, 302)
         self.vehicle.refresh_from_db()
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_6)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.OUT_OF_SERVICE)
 
     def test_disinfection_protocol_and_lock_timer_enforcement(self):
         # 1. Post disinfection protocol
@@ -122,7 +125,7 @@ class FleetModuleTests(TestCase):
             reverse("fleet_vehicle_disinfection_create", args=[self.vehicle.slug]),
             {
                 "disinfectant": self.disinfectant.id,
-                "kind": DisinfectionProtocol.Kind.ROUTINE,
+                "level": self.level.pk,
                 "exposure_minutes": 15,
                 "lock_timer_applied": True,
                 "notes": "Nach Verlegungsinfektionsfahrt",
@@ -140,10 +143,10 @@ class FleetModuleTests(TestCase):
         self.assertTrue(self.vehicle.is_disinfection_locked)
         self.assertGreater(self.vehicle.disinfection_remaining_seconds, 0)
 
-        # 2. Try to set status back to Status 1 while locked -> MUST BE REJECTED!
+        # 2. Try to set the vehicle back to ready while locked -> MUST BE REJECTED!
         reject_resp = self.client.post(
             reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
-            {"status": Vehicle.TacticalStatus.STATUS_1},
+            {"status": Vehicle.TacticalStatus.READY},
             follow=True,
         )
         self.vehicle.refresh_from_db()
@@ -151,7 +154,7 @@ class FleetModuleTests(TestCase):
         self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
         self.assertContains(reject_resp, "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion.")
 
-        # 3. Setting to WORKSHOP or STATUS_6 is permitted even during disinfection
+        # 3. Setting to WORKSHOP or OUT_OF_SERVICE is permitted even during disinfection
         allow_resp = self.client.post(
             reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
             {"status": Vehicle.TacticalStatus.WORKSHOP},
@@ -246,11 +249,11 @@ class FleetModuleTests(TestCase):
         self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
         self.vehicle.save()
         resp = self.client.post(
-            reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "1"},
+            reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "ready"},
         )
         self.assertEqual(resp.status_code, 302)
         self.vehicle.refresh_from_db()
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.READY)
         event = AuditEvent.objects.get(action="fleet.status_changed")
         self.assertEqual(event.actor, self.user)
         self.assertEqual(event.metadata["from"], "disinfection")

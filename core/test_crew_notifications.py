@@ -97,7 +97,7 @@ class CrewNotificationTests(TestCase):
         notify_ready_vehicles()
         Membership.objects.filter(user=self.crew).update(role=Membership.Role.SHIFT_LEAD)
         self.client.force_login(self.crew)
-        self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "1"})
+        self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "ready"})
         self.assertFalse(UserNotification.objects.filter(read_at__isnull=True).exists())
 
     def test_dashboard_shows_personal_notification(self):
