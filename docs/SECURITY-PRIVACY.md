@@ -17,6 +17,22 @@ Dieses Dokument ist keine Rechtsberatung.
   unter `/datenschutz/`.
 - Produkt ohne eingebettetes KI-System; kein Social Scoring über Auditdaten.
 
+## Nachweise
+
+- Verzeichnis aller Nachweis-Tabellen in `core/evidence.py`; jeder ihrer
+  Fremdschlüssel ist `PROTECT`, nie `CASCADE` oder `SET_NULL`. Ein Negativtest
+  löscht jedes Objekt, auf das ein Nachweis zeigt (`core/test_evidence_protection.py`).
+- Fahrzeuge und Medizingeräte werden außer Betrieb genommen, Dienstanweisungen
+  außer Kraft gesetzt – mit Audit-Eintrag, ohne Freitext. Danach nehmen sie
+  keine neuen Nachweise an. Desinfektionsmittel werden im Django-Admin aus dem
+  Gebrauch genommen (Admin-Protokoll) und nicht mehr angeboten.
+- Prüfungen, Funktionskontrollen und Versionen von Dienstanweisungen sind
+  append-only; für Prüfungen und Funktionskontrollen entzieht die Datenbank der
+  App-Rolle zusätzlich `UPDATE` und `DELETE`.
+- Folge für Löschanfragen: Ein Konto mit Nachweisen wird deaktiviert, nicht
+  gelöscht; die Pseudonymisierung ausgeschiedener Personen regelt das
+  Löschkonzept.
+
 ## Vor einem betrieblichen Pilotbetrieb klären
 
 - verantwortliche Stelle und anwendbares Recht: DSG NRW/LPVG,

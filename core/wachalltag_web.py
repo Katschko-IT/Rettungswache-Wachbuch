@@ -25,7 +25,7 @@ from .api.wachalltag import (
     defect_attachment_limit_error,
 )
 from .attachments import read_uploads
-from .device_status import IN_SERVICE, asset_release_blockers
+from .device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
@@ -285,6 +285,11 @@ def assets_inventory(request):
             elif blockers:
                 numbers = ", ".join(f"#{item.pk}" for item in blockers)
                 messages.error(request, f"Gerät bleibt gesperrt: offene Mängel {numbers}.")
+            elif status != StationAsset.Status.OOB and asset_locked_by_device(asset):
+                messages.error(request, _(
+                    "Das Gerät ist im Medizinproduktebuch gesperrt oder außer Betrieb genommen. "
+                    "Freigeben kann die Schichtleitung es nur dort, mit einer Funktionskontrolle."
+                ))
             else:
                 previous = asset.status
                 asset.status = status

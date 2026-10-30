@@ -53,14 +53,21 @@ class MedicalDeviceForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         self.station = station
         super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.current_status == MedicalDevice.Status.DECOMMISSIONED:
+            # Außer Betrieb genommen: zurück nur über „Wieder in Betrieb nehmen“.
+            del self.fields["current_status"]
+            return
+        field = self.fields["current_status"]
+        # „Außer Betrieb genommen“ gibt es nur über die eigene Aktion auf der
+        # Geräteseite (mit Datum und Audit), nie über dieses Formular.
+        field.choices = [choice for choice in field.choices if choice[0] != MedicalDevice.Status.DECOMMISSIONED]
         if self.instance.pk and self.instance.current_status == MedicalDevice.Status.OOB:
             # Gesperrte Geräte werden nur über „Gerät freigeben“ wieder einsatzklar.
-            field = self.fields["current_status"]
-            field.choices = [
-                choice for choice in field.choices
-                if choice[0] in {MedicalDevice.Status.OOB, MedicalDevice.Status.DECOMMISSIONED}
-            ]
-            field.help_text = "Gesperrt. Freigabe über „Gerät freigeben“ auf der Geräteseite."
+            field.choices = [choice for choice in field.choices if choice[0] == MedicalDevice.Status.OOB]
+            field.help_text = _(
+                "Gesperrt. Freigabe über „Gerät freigeben“; dauerhaft außer Betrieb nehmen über "
+                "„Außer Betrieb nehmen“ auf der Geräteseite."
+            )
 
     def clean(self):
         cleaned_data = super().clean()

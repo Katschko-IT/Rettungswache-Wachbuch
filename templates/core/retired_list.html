@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{{ back_url }}">{% include "core/_icon.html" with name="back" %}{{ back_label }}</a>
+</nav>
+
+<header class="page-heading">
+  <div>
+    <p class="context-line">{{ current_membership.station.name }}</p>
+    <h1>{{ title }}</h1>
+    <p class="lead">{{ lead }}</p>
+  </div>
+</header>
+
+<section class="section-block">
+  <div class="item-list">
+    {% for row in rows %}
+      <div class="list-row">
+        <span class="row-content">
+          <strong><a href="{{ row.url }}">{{ row.name }}</a></strong>
+          <small>
+            {{ row.sub }}
+            {% if row.since %}{% if row.sub %} &middot; {% endif %}{% blocktranslate with date=row.since|date:"d.m.Y" %}seit {{ date }}{% endblocktranslate %}{% endif %}
+          </small>
+        </span>
+        <span class="badge">{% translate "Außer Betrieb genommen" %}</span>
+      </div>
+    {% empty %}
+      <p class="empty-state">{{ empty }}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

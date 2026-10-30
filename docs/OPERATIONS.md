@@ -191,8 +191,10 @@ Die Datenbank unterscheidet fünf Rollen mit klar getrennten Aufgaben:
 - `rwsth_app` (entspricht `APP_DB_USER`): Web- und Migrationscontainer. Volle
   CRUD-Rechte auf das Schema, aber kein `UPDATE`/`DELETE` auf den
   append-only-Tabellen `core_coffeeentry`, `core_coffeecashmovement`,
-  `core_auditevent`, `core_handoverrevision`, `core_checklistcompletion` und
-  `core_stockmovement`.
+  `core_auditevent`, `core_handoverrevision`, `core_checklistcompletion`,
+  `core_stockmovement`, `core_maintenancelog` (STK/MTK/DGUV-Prüfungen) und
+  `core_deviceroutinecheck` (Funktionskontrollen). Die App ändert diese Zeilen
+  nie und sperrt sie nie mit `FOR UPDATE`.
 - `rwsth_feed` (entspricht `FEED_DB_USER`): ausschließlich `FeedSource`-
   Status- und `FeedItem`-CRUD.
 - `rwsth_push` (entspricht `PUSH_DB_USER`): `SELECT`/`UPDATE` auf der
@@ -203,6 +205,30 @@ Die Datenbank unterscheidet fünf Rollen mit klar getrennten Aufgaben:
   `pg_read_all_data`. Wird vom dauerhaften `backup`-Container für
   `pg_dump` benutzt. Kann weder `INSERT`, `UPDATE` noch `DELETE` auf
   Fach-Tabellen ausführen.
+
+### Nachweise löschen (seit 0.27)
+
+Nachweise hängen per `PROTECT` an ihren Objekten (`core/evidence.py`). Ein
+Fahrzeug, Medizingerät, Desinfektionsmittel, eine Dienstanweisung oder ein
+Benutzerkonto mit Übernahmen, Prüfungen, Kontrollen, Einweisungen, Protokollen
+oder Quittierungen lässt sich nicht löschen – auch nicht im Django-Admin
+(Django zeigt dann die geschützten Einträge; für Desinfektionsmittel bietet der
+Admin gar kein Löschen an). Stattdessen:
+
+- Fahrzeug und Medizingerät: „Außer Betrieb nehmen“ auf der Detailseite
+  (Schichtleitung oder Admin); zurück über „Wieder in Betrieb nehmen“. Ein
+  Fahrzeug steht danach auf „Außer Dienst“, ein Gerät bleibt gesperrt bis zur
+  Freigabe mit Funktionskontrolle. Listen unter `/fuhrpark/ausser-betrieb/` und
+  `/mpg/ausser-betrieb/`.
+- Desinfektionsmittel: im Admin „In Gebrauch“ abwählen (mindestens ein Mittel
+  der Wache bleibt in Gebrauch).
+- Dienstanweisung: Status „Außer Kraft“; neue Quittierungen gibt es dann nicht.
+- Benutzerkonto: Mitgliedschaft beenden bzw. Konto deaktivieren.
+
+Löschen von Nachweisen bleibt nur mit den Rechten des Datenbank-Eigentümers
+möglich: Demo-Bereinigung (`purge_demo_sandboxes`, `load_demo_data --reset` im
+Dienst `migrate`) und künftige Aufbewahrungsfristen. Kinder zuerst löschen
+(z. B. Quittierungen vor Versionen, Ereignisse vor Mängeln).
 
 ### Tagesbackup
 

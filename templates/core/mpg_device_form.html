@@ -109,12 +109,20 @@
         <small class="helptext">{% translate "z. B. RTW 01/83-01, NEF oder Med-Lager" %}</small>
         {{ form.location.errors }}
       </div>
+      {% if "current_status" in form.fields %}
       <div class="field">
         <label for="{{ form.current_status.id_for_label }}">{% translate "Aktueller Status:" %}</label>
         {{ form.current_status }}
         {% if form.current_status.help_text %}<small class="helptext">{{ form.current_status.help_text }}</small>{% endif %}
         {{ form.current_status.errors }}
       </div>
+      {% else %}
+      <div class="field">
+        <span class="field-label">{% translate "Aktueller Status:" %}</span>
+        <p>{% translate "Außer Betrieb genommen" %}</p>
+        <small class="helptext">{% translate "Zurück in den Betrieb nur über „Wieder in Betrieb nehmen“ auf der Geräteseite." %}</small>
+      </div>
+      {% endif %}
     </div>
 
     <div class="field">

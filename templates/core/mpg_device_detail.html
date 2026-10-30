@@ -33,8 +33,34 @@
     <a class="button secondary" href="#qr-card">
       {% include "core/_icon.html" with name="qr" %}{% translate "QR-Code" %}
     </a>
+    {% if can_retire and not is_retired %}
+      <form class="inline" method="post" action="{% url 'mpg_device_retire' device.slug %}" data-confirm="{% translate 'Gerät dauerhaft außer Betrieb nehmen? Es verschwindet aus Übersicht, Gerätepass und Display. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten.' %}">
+        {% csrf_token %}
+        <button type="submit" class="button ghost">{% translate "Außer Betrieb nehmen" %}</button>
+      </form>
+    {% endif %}
   </div>
 </header>
+
+{# Außer Betrieb genommen: keine neuen Einträge, die Nachweise bleiben sichtbar #}
+{% if is_retired %}
+<div class="alert" role="status">
+  <strong>
+    {% if device.decommissioned_at %}
+      {% blocktranslate with date=device.decommissioned_at|date:"d.m.Y" %}Außer Betrieb genommen am {{ date }}.{% endblocktranslate %}
+    {% else %}
+      {% translate "Außer Betrieb genommen." %}
+    {% endif %}
+  </strong>
+  <p class="m-0">{% translate "Das Gerät nimmt keine neuen Kontrollen, Prüfungen, Einweisungen oder Mängel an. Die Nachweise unten bleiben erhalten." %}</p>
+  {% if can_retire %}
+    <form class="inline" method="post" action="{% url 'mpg_device_reactivate' device.slug %}" data-confirm="{% translate 'Gerät wieder in Betrieb nehmen? Es bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt.' %}">
+      {% csrf_token %}
+      <button type="submit" class="button secondary">{% translate "Wieder in Betrieb nehmen" %}</button>
+    </form>
+  {% endif %}
+</div>
+{% endif %}
 
 {# Zustand auf einen Blick: Betriebsstatus, Prüffrist, eigene Einweisung #}
 {% with urg=device.urgency %}
@@ -51,6 +77,8 @@
         <span class="status-label warning">{% translate "In Wartung / STK" %}</span>
       {% elif device.current_status == 'oob' %}
         <span class="status-label danger">{% translate "Außer Betrieb (Gesperrt)" %}</span>
+      {% elif device.current_status == 'decommissioned' %}
+        <span class="status-label neutral">{% translate "Außer Betrieb genommen" %}</span>
       {% endif %}
     </div>
     {% if device.status_note %}
@@ -108,6 +136,7 @@
 {% endwith %}
 
 {# Aktionen: eine Hauptaktion (Schnellkontrolle), Rest sekundär #}
+{% if not is_retired %}
 <div class="action-bar">
   {# Schnellkontrolle nur für einsatzklare Geräte; sonst gehört der Befund in die Detailkontrolle. #}
   {% if device.current_status == 'ready' %}
@@ -149,6 +178,7 @@
     </a>
   {% endif %}
 </div>
+{% endif %}
 
 <div class="grid-2">
 
@@ -192,7 +222,7 @@
           </span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Prüfprotokolle." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="maint-modal">{% translate "Prüfung eintragen" %}</button>{% endif %}</p>
+        <p class="empty-state">{% translate "Noch keine Prüfprotokolle." %}{% if can_manage and not is_retired %} <button type="button" class="button ghost small" data-modal-open="maint-modal">{% translate "Prüfung eintragen" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
@@ -220,7 +250,7 @@
           </span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Funktionskontrollen." %} <button type="button" class="button ghost small" data-modal-open="check-modal">{% translate "Kontrolle erfassen" %}</button></p>
+        <p class="empty-state">{% translate "Noch keine Funktionskontrollen." %}{% if not is_retired %} <button type="button" class="button ghost small" data-modal-open="check-modal">{% translate "Kontrolle erfassen" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
@@ -237,7 +267,7 @@
           </span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Einweisungen für dieses Gerät." %}{% if can_manage %} <button type="button" class="button ghost small" data-modal-open="training-modal">{% translate "Einweisung dokumentieren" %}</button>{% endif %}</p>
+        <p class="empty-state">{% translate "Noch keine Einweisungen für dieses Gerät." %}{% if can_manage and not is_retired %} <button type="button" class="button ghost small" data-modal-open="training-modal">{% translate "Einweisung dokumentieren" %}</button>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
@@ -262,7 +292,8 @@
   </div>
 </section>
 
-{# Dialoge #}
+{# Dialoge (nicht für außer Betrieb genommene Geräte) #}
+{% if not is_retired %}
 
 <div id="check-modal" class="wb-modal" hidden role="dialog" aria-modal="true" aria-labelledby="check-modal-title">
   <div class="modal-panel">
@@ -463,4 +494,5 @@
 </div>
 {% endif %}
 
+{% endif %}
 {% endblock %}

@@ -28,8 +28,9 @@ Oder manuell:
 
 ```bash
 docker compose exec web python manage.py load_demo_data
-# Neu befüllen löscht auch append-only Musterzeilen (Kasse, Audit, Lager):
-# dafür die Rechte des Datenbank-Eigentümers (Dienst migrate) nutzen.
+# Neu befüllen löscht auch append-only Musterzeilen (Kasse, Audit, Lager,
+# MPG-Prüfungen und Funktionskontrollen): dafür die Rechte des
+# Datenbank-Eigentümers (Dienst migrate) nutzen.
 docker compose run --rm migrate python manage.py load_demo_data --reset
 ```
 

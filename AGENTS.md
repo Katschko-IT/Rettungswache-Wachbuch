@@ -45,6 +45,13 @@ Status in der Remediation-Roadmap:
 - Auditoren erhalten keine fachlichen Freitexte.
 - Audit, Kaffeekasse, Checklisten-Abschlüsse und Übergaberevisionen bleiben
   append-only; Korrekturen erfolgen durch neue Datensätze.
+- Nachweis-Tabellen (Verzeichnis `core/evidence.py`) hängen nur per `PROTECT`
+  an ihren Objekten; nie `CASCADE` oder `SET_NULL`. Objekte mit Nachweisen
+  werden außer Betrieb genommen, aus dem Gebrauch genommen oder außer Kraft
+  gesetzt, nicht gelöscht. MPG-Nachweise (Prüfungen, Funktionskontrollen) und
+  Versionen von Dienstanweisungen sind append-only; Korrekturen sind neue
+  Datensätze. Jedes neue Modell mit nachweisähnlichem Namen wird dort
+  eingeordnet (`core/test_evidence_protection.py`).
 - Keine allgemeinen Datei-Uploads; Avatare bleiben typ- und groessenbegrenzt.
 - Externe Feedziele bleiben HTTPS-Allowlist, Port 443, ohne Redirects/private IPs.
 - CSP bleibt ohne `unsafe-inline` und ohne `unsafe-eval`.

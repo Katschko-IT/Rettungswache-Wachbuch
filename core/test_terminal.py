@@ -144,6 +144,27 @@ class TerminalOpenModeTests(TerminalTestCase):
             response = self.client.get(path)
             self.assertRedirects(response, reverse("terminal_menu"), fetch_redirect_response=False, msg_prefix=path)
 
+    def test_decommissioning_is_blocked_on_terminal(self):
+        """NEGATIV: Außer Betrieb nehmen gehört nicht an den gemeinsamen Bildschirm."""
+        from core.fleet_models import Vehicle
+        from core.mpg_models import MedicalDevice
+
+        Station.objects.filter(pk=self.station.pk).update(mpg_enabled=True, fleet_enabled=True)
+        device = MedicalDevice.objects.create(station=self.station, slug="defi-t", name="Defi")
+        vehicle = Vehicle.objects.create(station=self.station, slug="rtw-t", call_sign="RTW T", license_plate="T-1")
+        for name, slug in (("mpg_device_retire", device.slug), ("mpg_device_reactivate", device.slug),
+                           ("fleet_vehicle_retire", vehicle.slug), ("fleet_vehicle_reactivate", vehicle.slug)):
+            response = self.client.post(reverse(name, args=[slug]))
+            self.assertRedirects(response, reverse("terminal_menu"), fetch_redirect_response=False, msg_prefix=name)
+        for name in ("mpg_retired_list", "fleet_retired_list"):
+            response = self.client.get(reverse(name))
+            self.assertRedirects(response, reverse("terminal_menu"), fetch_redirect_response=False, msg_prefix=name)
+        device.refresh_from_db()
+        vehicle.refresh_from_db()
+        self.assertEqual(device.current_status, MedicalDevice.Status.READY)
+        self.assertTrue(vehicle.is_active)
+        self.assertFalse(AuditEvent.objects.filter(action__in=["mpg.device_retired", "fleet.vehicle_retired"]).exists())
+
     def test_everyday_pages_are_allowed(self):
         for name in ("handover_list", "handover_create", "calendar", "tasks_today", "tasks_week"):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)

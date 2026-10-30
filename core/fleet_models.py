@@ -222,6 +222,16 @@ class DisinfectantMaster(models.Model):
     spectrum = models.CharField(max_length=120, default="Bakterizid, Levurozid, begrenzt viruzid", verbose_name="Wirkspektrum")
     default_exposure_minutes = models.PositiveSmallIntegerField(default=15, verbose_name="Standard-Einwirkzeit (Minuten)")
     is_vah_listed = models.BooleanField(default=True, verbose_name="VAH-gelistet")
+    # Nicht löschen, sondern aus dem Gebrauch nehmen: Protokolle verweisen per
+    # PROTECT auf das Mittel (core/evidence.py).
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("In Gebrauch"),
+        help_text=_(
+            "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. "
+            "Bestehende Nachweise bleiben erhalten."
+        ),
+    )
 
     class Meta:
         ordering = ["name"]
@@ -244,7 +254,7 @@ class DisinfectionProtocol(models.Model):
         BASE_MONTHLY = "base", "Monatliche Grunddesinfektion & Aufbereitung"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="disinfection_protocols")
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="disinfections")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="disinfections")
     performed_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="disinfections")
     disinfectant = models.ForeignKey(DisinfectantMaster, on_delete=models.PROTECT, related_name="protocols")
     kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.ROUTINE)
@@ -287,7 +297,7 @@ class VehicleHandover(models.Model):
     """Revisionssicheres Schichtübernahmeprotokoll (3-Minuten Express-Check)."""
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="vehicle_handovers")
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="handovers")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="handovers")
     crew_member = models.ForeignKey(User, on_delete=models.PROTECT, related_name="vehicle_handovers")
     performed_at = models.DateTimeField(auto_now_add=True)
 

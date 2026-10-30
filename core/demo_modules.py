@@ -17,7 +17,7 @@ from .device_status import DEVICE_TO_ASSET
 from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
 from .orga_models import SOPDocument, SOPReceipt, SOPRevision, StationContact
-from .wachalltag_models import AssetEvent, InventoryEvent, InventoryItem, StationAsset
+from .wachalltag_models import AssetEvent, Defect, InventoryEvent, InventoryItem, StationAsset
 from .warehouse_models import ItemBatch, MedicalItem, StockItem, StockMovement, StorageLocation
 
 PREFIX = "demo-"
@@ -53,10 +53,16 @@ def reset_module_demo(station) -> None:
     DisinfectantMaster.objects.filter(station=station, name__startswith=CONTACT_MARKER).delete()
 
     devices = MedicalDevice.objects.filter(station=station, slug__startswith=PREFIX)
+    # Prüfungen und Funktionskontrollen sind append-only (REVOKE für die
+    # App-Rolle): Gelöscht wird nur in dieser Schleife über vorhandene
+    # Demo-Geräte, beim ersten Laden also nichts.
     for device in devices:
         device.routine_checks.all().delete()
         device.trainings.all().delete()
         device.maintenance_logs.all().delete()
+    # Mängel schützen ihr Gerät (PROTECT). Mängel der Demo-Konten entfernt
+    # reset_demo_data vorher; übrige Mängel bleiben, nur ohne Demo-Gerät.
+    Defect.objects.filter(medical_device__in=devices).update(medical_device=None)
     devices.delete()
 
     AssetEvent.objects.filter(station=station, asset__asset_id__startswith=PREFIX).delete()

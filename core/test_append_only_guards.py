@@ -2,9 +2,10 @@
 
 AGENTS.md §4 verlangt append-only für Audit, Kaffeekasse, Checklisten-Abschlüsse
 und Übergaberevisionen; dieselbe Regel gilt für Ereignis-, Anhangs- und
-Buchungstabellen. Jeder Fall prüft die konkrete Meldung, damit ein anderer
-Fehler (etwa ProtectedError durch einen Fremdschlüssel) den fehlenden Schutz
-nicht verdeckt. Die Datenbank-Sperre (REVOKE UPDATE, DELETE) prüft
+Buchungstabellen sowie für die MPG-Nachweise (Prüfungen, Funktionskontrollen)
+und die Versionen von Dienstanweisungen. Jeder Fall prüft die konkrete Meldung,
+damit ein anderer Fehler (etwa ProtectedError durch einen Fremdschlüssel) den
+fehlenden Schutz nicht verdeckt. Die Datenbank-Sperre (REVOKE UPDATE, DELETE) prüft
 ``core.tests`` beim Befehl ``grant_database_access``.
 """
 from __future__ import annotations
@@ -33,6 +34,8 @@ from core.models import (
     PinboardNote,
     Station,
 )
+from core.mpg_models import DeviceRoutineCheck, MaintenanceLog, MedicalDevice
+from core.orga_models import SOPDocument, SOPRevision
 from core.wachalltag_models import (
     AssetEvent,
     Defect,
@@ -80,6 +83,10 @@ class AppendOnlyGuardTests(TestCase):
             manufacturer_exp_date=timezone.localdate() + timedelta(days=365),
         )
         cls.location = StorageLocation.objects.create(station=cls.station, slug="lager", name="Lager")
+        cls.device = MedicalDevice.objects.create(station=cls.station, slug="defi-journal", name="Defi")
+        cls.sop = SOPDocument.objects.create(
+            station=cls.station, slug="da-journal", doc_number="DA-01", title="Dienstanweisung", created_by=cls.user,
+        )
 
     def _attachment(self, model, **parent):
         return model.objects.create(
@@ -136,6 +143,18 @@ class AppendOnlyGuardTests(TestCase):
                 quantity=5, kind=StockMovement.Kind.INBOUND, actor=self.user),
              "note", "Materialbuchungen sind revisionssicher und " + changed,
              "Materialbuchungen " + deleted),
+            ("MaintenanceLog", lambda: MaintenanceLog.objects.create(
+                device=self.device, station=self.station, kind=MaintenanceLog.Kind.STK, performed_by="Service",
+                passed=True, created_by=self.user),
+             "findings", "Prüf- und Wartungseinträge " + changed, "Prüf- und Wartungseinträge " + deleted),
+            ("DeviceRoutineCheck", lambda: DeviceRoutineCheck.objects.create(
+                station=self.station, device=self.device, performed_by=self.user),
+             "notes", "Funktionskontrollen " + changed, "Funktionskontrollen " + deleted),
+            ("SOPRevision", lambda: SOPRevision.objects.create(
+                sop=self.sop, version_label=f"9.{SOPRevision.objects.count()}", content_markdown="Text",
+                approved_by=self.user),
+             "change_summary", "Versionen von Dienstanweisungen " + changed,
+             "Versionen von Dienstanweisungen " + deleted),
         ]
 
     def test_rows_cannot_be_changed_or_deleted(self):
@@ -170,3 +189,4 @@ class AppendOnlyGuardTests(TestCase):
         covered = {case[0] for case in self.cases()}
         self.assertEqual(guarded - covered, set())
         self.assertIn("StockMovement", guarded)
+        self.assertLessEqual({"MaintenanceLog", "DeviceRoutineCheck", "SOPRevision"}, guarded)

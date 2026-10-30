@@ -93,7 +93,8 @@ class DisinfectionProtocolForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         super().__init__(*args, **kwargs)
         if station:
-            choices = DisinfectantMaster.objects.filter(station=station).order_by("name")
+            # Nur Mittel in Gebrauch; alte Protokolle behalten ihr Mittel (PROTECT).
+            choices = DisinfectantMaster.objects.filter(station=station, is_active=True).order_by("name")
             self.fields["disinfectant"].queryset = choices
             # Gibt es nur ein Mittel, ist es vorausgewählt (ein Tipp weniger).
             if not self.is_bound and choices.count() == 1:

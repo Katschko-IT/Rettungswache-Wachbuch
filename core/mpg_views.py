@@ -17,6 +17,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
+from .evidence import RETIRE_ROLES, device_must_be_in_service, is_device_retired
 from .models import Membership, Station
 from .mpg_forms import (
     DeviceRoutineCheckForm,
@@ -252,6 +253,7 @@ def mpg_device_detail(request, slug: str):
 
     device_qr_url = request.build_absolute_uri(reverse("mpg_device_qr", args=[device.slug]))
     blocking_defects = release_blockers(device) if device.current_status == MedicalDevice.Status.OOB else []
+    is_retired = is_device_retired(device)
 
     return render(
         request,
@@ -264,6 +266,8 @@ def mpg_device_detail(request, slug: str):
             "trainings": trainings,
             "is_user_trained": is_user_trained,
             "can_manage": can_manage,
+            "can_retire": request.membership.role in RETIRE_ROLES,
+            "is_retired": is_retired,
             "maint_form": maint_form,
             "check_form": check_form,
             "training_form": training_form,
@@ -276,6 +280,7 @@ def mpg_device_detail(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("mpg_enabled")
 @require_POST
+@device_must_be_in_service
 def mpg_routine_check(request, slug: str):
     """Funktionskontrolle erfassen.
 
@@ -344,6 +349,7 @@ def mpg_routine_check(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("mpg_enabled")
 @require_POST
+@device_must_be_in_service
 def mpg_device_release(request, slug: str):
     """Gesperrtes Gerät nach Abschluss aller Mängel wieder freigeben."""
     station = request.membership.station
@@ -386,6 +392,7 @@ def mpg_device_release(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("mpg_enabled")
 @require_POST
+@device_must_be_in_service
 def mpg_maintenance_create(request, slug: str):
     """STK, MTK oder DGUV V3 Prüfung dokumentieren."""
     station = request.membership.station
@@ -414,6 +421,7 @@ def mpg_maintenance_create(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("mpg_enabled")
 @require_POST
+@device_must_be_in_service
 def mpg_training_create(request, slug: str):
     """Geräteeinweisung (§ 11 MPBetreibV) für Einzelpersonen oder Gruppen speichern."""
     station = request.membership.station
@@ -474,6 +482,7 @@ def mpg_training_create(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("mpg_enabled")
 @require_POST
+@device_must_be_in_service
 def mpg_device_defect(request, slug: str):
     """Sofort-Eskalation: Mangel an Gerät melden und Einsatzstatus sperren."""
     station = request.membership.station
@@ -548,8 +557,12 @@ def mpg_geraetepass(request):
             "items": trained_devices,
         })
 
-    # Persönlicher Gerätepass des eingeloggten Benutzers
-    my_trainings = [t for t in all_trainings if t.trainee_id == request.user.id]
+    # Persönlicher Gerätepass des eingeloggten Benutzers (ohne außer Betrieb
+    # genommene Geräte; deren Einweisungen bleiben auf der Geräteseite sichtbar).
+    my_trainings = [
+        t for t in all_trainings
+        if t.trainee_id == request.user.id and not is_device_retired(t.device)
+    ]
 
     return render(
         request,
@@ -614,6 +627,7 @@ def mpg_export_bestandsverzeichnis(request):
         "Nächste MTK",
         "Nächste DGUV V3",
         "Letzte Funktionskontrolle",
+        "Außerbetriebnahme",
     ])
 
     for d in devices:
@@ -636,6 +650,8 @@ def mpg_export_bestandsverzeichnis(request):
             d.next_mtk_date.isoformat() if d.next_mtk_date else "",
             d.next_dguv_date.isoformat() if d.next_dguv_date else "",
             timezone.localtime(d.last_routine_check).strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
+            # Altbestände ohne Datum: leer, Status zeigt „Außer Betrieb genommen“.
+            d.decommissioned_at.isoformat() if d.decommissioned_at else "",
         ])
 
     return response

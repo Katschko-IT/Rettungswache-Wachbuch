@@ -55,6 +55,7 @@
           {% translate "Status" %}:
         </label>
         {{ form.status }}
+        {% if form.status.help_text %}<small class="helptext" id="{{ form.status.auto_id }}_helptext">{{ form.status.help_text }}</small>{% endif %}
       </div>
     </div>
 

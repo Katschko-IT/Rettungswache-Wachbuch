@@ -27,7 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from core.access import CONTENT_ROLES
-from core.device_status import IN_SERVICE, asset_release_blockers
+from core.device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
 from core.models import Checklist, HandoverEntry, Membership
 from core.services import acknowledge_handover, audit
 from core.wachalltag_models import (
@@ -691,6 +691,11 @@ def asset_status(request, asset_id):
         if status in IN_SERVICE and (blockers := asset_release_blockers(item)):
             numbers = ", ".join(f"#{defect.pk}" for defect in blockers)
             return base._json_error(request, f"Geraet bleibt gesperrt: offene Maengel {numbers}.", status=409)
+        if status != StationAsset.Status.OOB and asset_locked_by_device(item):
+            return base._json_error(
+                request, "Geraet ist im Medizinproduktebuch gesperrt. Freigabe nur dort mit Funktionskontrolle.",
+                status=409,
+            )
         previous = item.status
         item.status = status
         item.note = note

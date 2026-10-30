@@ -107,7 +107,7 @@ class SOPDocument(models.Model):
 class SOPRevision(models.Model):
     """Revisionssichere Version einer SOP mit SHA-256 Prüfsumme."""
 
-    sop = models.ForeignKey(SOPDocument, on_delete=models.CASCADE, related_name="revisions")
+    sop = models.ForeignKey(SOPDocument, on_delete=models.PROTECT, related_name="revisions")
     version_label = models.CharField(max_length=20, default="1.0", verbose_name="Versionsnummer")
     content_markdown = models.TextField(verbose_name="Volltext / Anweisungsinhalt")
     content_hash = models.CharField(
@@ -142,6 +142,10 @@ class SOPRevision(models.Model):
         return f"{self.sop.doc_number} v{self.version_label} ({timezone.localtime(self.created_at).strftime('%d.%m.%Y')})"
 
     def save(self, *args, **kwargs):
+        # Eine freigegebene Version bleibt unverändert; Änderungen ergeben eine
+        # neue Version (AGENTS.md § 4).
+        if self.pk:
+            raise ValidationError("Versionen von Dienstanweisungen dürfen nicht verändert werden.")
         # SHA-256 Hash berechnen falls noch nicht vorhanden
         if not self.content_hash:
             raw = (self.content_markdown or "").strip().encode("utf-8")
@@ -153,18 +157,23 @@ class SOPRevision(models.Model):
             self.sop.current_version = self.version_label
             self.sop.save(update_fields=["current_version", "updated_at"])
 
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Versionen von Dienstanweisungen dürfen nicht gelöscht werden.")
+
 
 class SOPReceipt(models.Model):
     """Revisionssicherer Nachweis über die Kenntnisnahme einer Dienstanweisung (Append-Only)."""
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="sop_receipts")
-    sop = models.ForeignKey(SOPDocument, on_delete=models.CASCADE, related_name="receipts")
-    revision = models.ForeignKey(SOPRevision, on_delete=models.CASCADE, related_name="receipts")
+    sop = models.ForeignKey(SOPDocument, on_delete=models.PROTECT, related_name="receipts")
+    revision = models.ForeignKey(SOPRevision, on_delete=models.PROTECT, related_name="receipts")
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="sop_receipts")
     acknowledged_at = models.DateTimeField(default=timezone.now, verbose_name="Quittiert am")
     # Seit 0.26.1 werden IP-Adresse und Browser nicht mehr erfasst (leer/None).
-    # Die Felder bleiben nur für unveränderte Altbestände (append-only) und
-    # werden weder angezeigt noch exportiert. Über die Bereinigung entscheidet 0.27.
+    # Die Felder bleiben nur für Altbestände und werden weder angezeigt noch
+    # exportiert. Die einmalige Bereinigung der Altbestände (0.27) leert sie per
+    # QuerySet.update; deshalb hat SOPReceipt noch keinen Zeilenschutz in
+    # save()/delete() und kein REVOKE (Folgeschritt nach der Bereinigung).
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-Adresse")
     user_agent = models.CharField(max_length=255, blank=True, default="", verbose_name="Browser / Gerät")
 
