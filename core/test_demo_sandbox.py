@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from io import StringIO
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -103,7 +104,8 @@ class DemoSandboxTests(TestCase):
 
     def test_installation_wide_settings_are_blocked(self):
         self._start()
-        for name in ("legal_settings", "display_token_create", "team_invite_create", "terminal_admin"):
+        for name in ("legal_settings", "display_token_create", "team_invite_create", "terminal_admin",
+                     "calendar_feed_manage"):
             response = self.client.get(reverse(name))
             self.assertRedirects(response, reverse("dashboard"), fetch_redirect_response=False, msg_prefix=name)
 
@@ -714,3 +716,329 @@ class HandoverAcknowledgementTests(TestCase):
         with self.assertRaises(PermissionDenied):
             handover_detail(request, pk=self.handover.pk)
         self.assertFalse(HandoverAck.objects.filter(user=service).exists())
+
+
+def complete_tour(test, client):
+    """Alle Schritte des Rundgangs wie im Browser erledigen (Schritt 3 als Mara)."""
+    from core.wachalltag_models import Defect
+
+    client.post(reverse("handover_create"), {
+        "category": "material", "priority": "urgent", "title": "Sauerstoff RTW 83-2 fast leer", "details": "x",
+    })
+    user = User.objects.get(pk=client.session["_auth_user_id"])
+    station = Membership.objects.get(user=user).station
+    handover = HandoverEntry.objects.get(station=station, title="Sauerstoff RTW 83-2 fast leer")
+    detail_url = reverse("handover_detail", args=[handover.pk])
+    client.post(reverse("demo_switch_role"), {"role": "mitglied", "next": detail_url})
+    client.post(detail_url, {"action": "acknowledge"})
+    client.post(reverse("mpg_routine_check", args=["demo-defi-rtw1"]), {"quick_pass": "1"})
+    form = client.get(f'{reverse("defect_create_web")}?vorlage=kamera')
+    test.assertContains(form, "Rückfahrkamera RTW 83-1 zeigt kein Bild")
+    client.post(f'{reverse("defect_create_web")}?vorlage=kamera', {
+        "title": "Rückfahrkamera RTW 83-1 zeigt kein Bild", "priority": "important", "category": "vehicle",
+        "due_at": form.context["initial"]["due_at"], "owner_self": "1",
+    })
+    test.assertTrue(Defect.objects.filter(station=station, due_at__isnull=False,
+                                          title="Rückfahrkamera RTW 83-1 zeigt kein Bild").exists())
+    return client.post(reverse("coffee_pay"), {"amount_eur": "5.00", "method": "cash"}), station
+
+
+@override_settings(**SANDBOX_ON)
+class DemoReviewFixTests(TestCase):
+    """Befunde aus dem Demo-Review (Paket F3): Grenzen, Rundgang, Rollen, Musterdaten."""
+
+    def setUp(self):
+        cache.clear()
+        self.client.post(reverse("login"), DEMO)
+        self.user = User.objects.get(pk=self.client.session["_auth_user_id"])
+        self.station = Membership.objects.get(user=self.user).station
+        self.sandbox = DemoSandbox.objects.get(station=self.station)
+
+    # --- Upload-Budget -----------------------------------------------------
+
+    @override_settings(DEMO_SANDBOX_MAX_UPLOAD_MB=0)
+    def test_upload_quota_applies_to_every_spelling_of_multipart(self):
+        from django.test.client import BOUNDARY, encode_multipart
+
+        for index, content_type in enumerate(("multipart/Form-Data", "MULTIPART/FORM-DATA", "multipart/mixed")):
+            title = f"Datei {index}"
+            body = encode_multipart(BOUNDARY, {
+                "category": "station", "title": title, "details": "x", "priority": "normal",
+                "attachments": DemoSandboxBoundaryTests._png(self),
+            })
+            self.client.generic("POST", reverse("handover_create"), body,
+                                content_type=f"{content_type}; boundary={BOUNDARY}")
+            self.assertFalse(HandoverEntry.objects.filter(station=self.station, title=title).exists(), content_type)
+
+    # --- Öffentliche Kalender-Links -------------------------------------------
+
+    def test_public_calendar_links_cannot_be_created_or_served(self):
+        from core.models import CalendarFeedToken
+
+        self.client.post(reverse("calendar_feed_manage"), {"action": "create", "label": "x"})
+        self.assertFalse(CalendarFeedToken.objects.filter(station=self.station).exists())
+        # Auch ein auf anderem Weg entstandener Link liefert nichts aus.
+        CalendarFeedToken.objects.create(station=self.station, token="t" * 40, created_by=self.user)
+        response = self.client_class().get(reverse("calendar_feed_token_ics", args=["t" * 40]))
+        self.assertEqual(response.status_code, 404)
+
+    # --- Rundgang: Quittieren als Kollegin ---------------------------------
+
+    def test_author_cannot_acknowledge_own_handover(self):
+        from core.demo_sandbox import _tour_flags
+        from core.wachalltag_models import HandoverAck
+
+        self.client.post(reverse("handover_create"), {
+            "category": "material", "priority": "urgent", "title": "Eigene", "details": "x",
+        })
+        handover = HandoverEntry.objects.get(station=self.station, title="Eigene")
+        url = reverse("handover_detail", args=[handover.pk])
+        page = self.client.get(url)
+        self.assertNotContains(page, 'value="acknowledge"')
+        self.assertContains(page, "Deine eigene Übergabe quittieren die Kolleginnen und Kollegen.")
+        response = self.client.post(url, {"action": "acknowledge"})
+        self.assertRedirects(response, url, fetch_redirect_response=False)
+        self.assertFalse(HandoverAck.objects.filter(handover=handover).exists())
+        self.assertContains(self.client.get(reverse("dashboard")), "2 von 6 erledigt")
+        # Eine Selbstquittung auf anderem Weg (App) zählt für den Rundgang nicht.
+        HandoverAck.objects.create(station=self.station, handover=handover, user=self.user)
+        self.assertFalse(_tour_flags(self.sandbox)["ack"])
+        self.client.post(reverse("demo_switch_role"), {"role": "mitglied", "next": url})
+        self.assertContains(self.client.get(url), 'value="acknowledge"')
+        self.client.post(url, {"action": "acknowledge"})
+        self.assertTrue(_tour_flags(self.sandbox)["ack"])
+        self.assertContains(self.client.get(reverse("dashboard")), "3 von 6 erledigt")
+
+    # --- Rundgang: Schritt 5 und Abschluss ---------------------------------
+
+    def test_defect_step_comes_prefilled_with_due_date_and_owner(self):
+        from datetime import datetime, time
+
+        tour_page = self.client.get(reverse("dashboard"))
+        self.assertContains(tour_page, f'{reverse("defect_create_web")}?vorlage=kamera')
+        form = self.client.get(f'{reverse("defect_create_web")}?vorlage=kamera')
+        tomorrow_noon = datetime.combine(timezone.localdate() + timedelta(days=1), time(12)).strftime("%Y-%m-%dT%H:%M")
+        self.assertContains(form, 'value="Rückfahrkamera RTW 83-1 zeigt kein Bild"')
+        self.assertContains(form, f'name="due_at" type="datetime-local" value="{tomorrow_noon}"')
+        self.assertContains(form, '<option value="important" selected>')
+        self.assertContains(form, '<option value="vehicle" selected>')
+        self.assertContains(form, 'name="owner_self" value="1" checked')
+        # Ohne Vorlage bleibt das Formular leer.
+        self.assertNotContains(self.client.get(reverse("defect_create_web")), "Rückfahrkamera")
+
+    def test_finished_tour_is_counted_when_the_demo_ends(self):
+        from core.demo_models import DemoDailyStat
+
+        complete_tour(self, self.client)
+        self.assertContains(self.client.get(reverse("dashboard")), "6 von 6 erledigt")
+        with self.assertNoLogs("core.demo_stats", "WARNING"):
+            self.client.post(reverse("logout"))
+        self.assertFalse(DemoSandbox.objects.exists())
+        self.assertEqual(DemoDailyStat.objects.get().tour_completed, 1)
+
+    def test_finished_tour_counts_when_the_cleaner_purges_it(self):
+        from core.demo_models import DemoDailyStat
+
+        complete_tour(self, self.client)
+        DemoSandbox.objects.update(last_seen_at=timezone.now() - timedelta(hours=3))
+        call_command("purge_demo_sandboxes", verbosity=0)
+        self.assertFalse(DemoSandbox.objects.exists())
+        self.assertEqual(DemoDailyStat.objects.get().tour_completed, 1)
+
+    def test_after_the_tour_the_visitor_is_offered_the_admin_role_back(self):
+        complete_tour(self, self.client)
+        page = self.client.get(reverse("dashboard"))
+        self.assertContains(page, "Geschafft!")
+        self.assertContains(page, "Du bist gerade Mara (Mitglied).")
+        self.assertContains(page, "Als Master-Admin weiter: Team, Einstellungen, Display")
+        back = self.client.post(reverse("demo_switch_role"), {"role": "admin", "next": reverse("more")})
+        self.assertRedirects(back, reverse("more"), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("team")).status_code, 200)
+        # Als Master-Admin entfällt der Knopf.
+        self.assertNotContains(self.client.get(reverse("dashboard")), "Als Master-Admin weiter")
+
+    # --- Rollenwechsel bleibt auf der Seite ----------------------------------
+
+    def test_role_switch_stays_on_the_page_when_the_role_may_see_it(self):
+        page = self.client.get(reverse("coffee"))
+        self.assertContains(page, f'<input type="hidden" name="next" value="{reverse("coffee")}">')
+        response = self.client.post(reverse("demo_switch_role"), {"role": "kasse", "next": reverse("coffee")})
+        self.assertRedirects(response, reverse("coffee"), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("coffee")).status_code, 200)
+
+    def test_role_switch_falls_back_to_the_start_page_instead_of_a_403(self):
+        self.assertEqual(self.client.get(reverse("team")).status_code, 200)
+        response = self.client.post(reverse("demo_switch_role"), {"role": "mitglied", "next": reverse("team")})
+        self.assertRedirects(response, reverse("team"), fetch_redirect_response=False)
+        landed = self.client.get(reverse("team"))
+        self.assertRedirects(landed, reverse("dashboard"), fetch_redirect_response=False)
+        self.assertContains(self.client.get(reverse("dashboard")), "Diese Seite gibt es für die Rolle „Mitglied“ nicht")
+        # Nur direkt nach dem Wechsel: ein späterer Aufruf zeigt die normale Fehlerseite.
+        self.assertEqual(self.client.get(reverse("team")).status_code, 403)
+
+    # --- Musterdaten ---------------------------------------------------------
+
+    def test_team_page_shows_no_technical_usernames(self):
+        page = self.client.get(reverse("team"))
+        self.assertContains(page, "Jonas")
+        self.assertNotContains(page, f"demo-{self.sandbox.token}-")
+
+    def test_fleet_defects_name_their_vehicle_without_a_stray_separator(self):
+        from core.wachalltag_models import Defect
+
+        seeded = Defect.objects.get(station=self.station, title="Trage RTW 83-2: Verriegelung hakt")
+        self.assertEqual(seeded.asset_ref, "RTW 1/83-2 (MU-RD 832)")
+        Defect.objects.create(station=self.station, title="Ohne Bezug", category="vehicle", created_by=self.user)
+        for name in ("fleet_dashboard", "mpg_dashboard"):
+            page = self.client.get(reverse(name)).content.decode()
+            self.assertNotRegex(page, r"<small>\s*&middot;", name)
+        self.assertContains(self.client.get(reverse("fleet_dashboard")), "RTW 1/83-2 (MU-RD 832) &middot;")
+
+    def test_display_hides_the_weather_tile_when_weather_is_off(self):
+        self.assertFalse(self.station.weather_enabled)
+        self.assertNotContains(self.client.get(reverse("display_home")), "data-display-weather")
+        Station.objects.filter(pk=self.station.pk).update(weather_enabled=True)
+        self.assertContains(self.client.get(reverse("display_home")), "data-display-weather")
+
+    def test_audit_log_of_a_demo_has_readable_labels(self):
+        from core.audit_labels import ACTION_LABELS, FIELD_LABELS, OBJECT_LABELS
+
+        complete_tour(self, self.client)
+        events = AuditEvent.objects.filter(station=self.station)
+        self.assertGreaterEqual(events.count(), 8)
+        for event in events:
+            self.assertIn(event.action, ACTION_LABELS, event.action)
+            self.assertIn(event.object_type, OBJECT_LABELS, f"{event.action} {event.object_type}")
+        seeded = events.get(action="demo.seeded")
+        self.assertEqual([name for name in seeded.metadata["fields"] if name not in FIELD_LABELS], [])
+        self.client.post(reverse("demo_switch_role"), {"role": "audit"})
+        page = self.client.get(reverse("audit_log"))
+        self.assertContains(page, "Wiki-Artikel angelegt")
+        self.assertNotContains(page, "WikiArticle #")
+
+
+class AuditLabelCoverageTests(SimpleTestCase):
+    def test_every_audit_action_in_the_code_has_a_readable_label(self):
+        import ast
+        from pathlib import Path
+
+        from core.audit_labels import ACTION_LABELS
+
+        root = Path(__file__).resolve().parent
+        # Zur Laufzeit zusammengesetzte Codes (core/wiki_services.py, core/views.py).
+        codes = {"wiki.article_archived", "wiki.article_restored", "membership.created", "membership.reactivated"}
+        for path in root.rglob("*.py"):
+            if path.name.startswith("test") or "migrations" in path.parts:
+                continue
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                name = getattr(getattr(node, "func", None), "id", None) or getattr(getattr(node, "func", None), "attr", "")
+                if not (isinstance(node, ast.Call) and name == "audit"):
+                    continue
+                action = next((kw.value for kw in node.keywords if kw.arg == "action"),
+                              node.args[2] if len(node.args) > 2 else None)
+                if isinstance(action, ast.Constant) and isinstance(action.value, str):
+                    codes.add(action.value)
+        self.assertGreater(len(codes), 80)
+        self.assertEqual(sorted(code for code in codes if code not in ACTION_LABELS), [])
+
+
+@override_settings(**SANDBOX_ON)
+class DemoSandboxAccountTests(TestCase):
+    """Nur in der Demo entstandene Konten gelten als Demo-Besuch."""
+
+    def setUp(self):
+        cache.clear()
+        from core.demo_sandbox import create_sandbox
+
+        self.sandbox, self.users = create_sandbox()
+
+    def test_accounts_of_the_installation_are_never_demo_visits(self):
+        from core.demo_sandbox import sandbox_for_user
+
+        self.assertEqual(sandbox_for_user(self.users["demo-admin"]), self.sandbox)
+        root = User.objects.create_superuser("root", "root@example.org", "ein-langes-Passwort-42")
+        Membership.objects.create(user=root, station=self.sandbox.station, role=Membership.Role.MEMBER,
+                                  is_active=False)
+        staff = User.objects.create_user("staff", password="ein-langes-Passwort-42", is_staff=True)
+        Membership.objects.create(user=staff, station=self.sandbox.station, role=Membership.Role.ADMIN)
+        older = User.objects.create_user("aelter", password="ein-langes-Passwort-42")
+        User.objects.filter(pk=older.pk).update(date_joined=self.sandbox.created_at - timedelta(days=1))
+        Membership.objects.create(user=older, station=self.sandbox.station, role=Membership.Role.MEMBER)
+        both = User.objects.create_user("beides", password="ein-langes-Passwort-42")
+        Membership.objects.create(user=both, station=self.sandbox.station, role=Membership.Role.MEMBER,
+                                  is_active=False)
+        Membership.objects.create(user=both, station=Station.get_default(), role=Membership.Role.MEMBER)
+        for user in (root, staff, older, both):
+            self.assertIsNone(sandbox_for_user(User.objects.get(pk=user.pk)), user.username)
+
+    @override_settings(MFA_REQUIRED=True)
+    def test_real_account_with_a_demo_membership_keeps_the_mfa_requirement(self):
+        root = User.objects.create_superuser("root", "root@example.org", "ein-langes-Passwort-42")
+        Membership.objects.create(user=root, station=Station.get_default(), role=Membership.Role.ADMIN)
+        Membership.objects.create(user=root, station=self.sandbox.station, role=Membership.Role.MEMBER,
+                                  is_active=False)
+        self.client.force_login(root)
+        self.assertRedirects(self.client.get(reverse("dashboard")), reverse("mfa_setup"),
+                             fetch_redirect_response=False)
+        # Kein Demo-Besuch: Abmelden beendet die Demo-Wache nicht.
+        self.client.post(reverse("logout"))
+        self.assertTrue(DemoSandbox.objects.filter(pk=self.sandbox.pk, ended_at__isnull=True).exists())
+
+
+@override_settings(**SANDBOX_ON)
+class DemoEveningTests(TestCase):
+    def test_evening_visitors_still_see_an_appointment_today(self):
+        from datetime import datetime, time
+        from unittest import mock
+
+        from core.demo_sandbox import create_sandbox
+        from core.display import display_payload
+
+        cache.clear()
+        evening = timezone.make_aware(datetime.combine(timezone.localdate(), time(22, 30)))
+        with mock.patch("django.utils.timezone.now", return_value=evening):
+            sandbox, _ = create_sandbox()
+            events = display_payload(sandbox.station)["events"]
+        self.assertEqual([event["time"] for event in events], ["19:00"])
+        self.assertIn("Briefing", events[0]["title"])
+
+
+@override_settings(DEMO_MODE=True, DEMO_SANDBOX=False)
+class SharedDemoResetTests(TestCase):
+    """Geteilte Demo: ``load_demo_data --reset`` auch nach Uploads zu Musterdaten."""
+
+    def test_reset_works_with_attachments_on_demo_rows(self):
+        from core.models import HandoverAttachment, NewsAttachment, NewsPost, PinboardAttachment, PinboardNote
+
+        call_command("load_demo_data", stdout=StringIO())
+        admin = User.objects.get(username="demo-admin")
+        post = NewsPost.objects.filter(created_by__username__startswith="demo-").first()
+        note = PinboardNote.objects.filter(author__username__startswith="demo-").first()
+        handover = HandoverEntry.objects.filter(title__startswith="[Demo]").first()
+        common = {"filename": "a.png", "content_type": "image/png", "data": b"x", "size": 1, "uploaded_by": admin}
+        NewsAttachment.objects.create(post=post, station=post.station, **common)
+        PinboardAttachment.objects.create(note=note, station=note.station, **common)
+        HandoverAttachment.objects.create(handover=handover, station=handover.station, **common)
+        call_command("load_demo_data", "--reset", stdout=StringIO())
+        connection.check_constraints()
+        self.assertFalse(NewsAttachment.objects.exists())
+        self.assertFalse(PinboardAttachment.objects.exists())
+        self.assertFalse(HandoverAttachment.objects.exists())
+        self.assertTrue(HandoverEntry.objects.filter(title__startswith="[Demo]").exists())
+
+    def test_first_seed_sends_no_delete_to_append_only_stock_movements(self):
+        from django.test.utils import CaptureQueriesContext
+
+        from core.demo_modules import reset_module_demo
+        from core.warehouse_models import StockMovement
+
+        station = Station.get_default()
+        with CaptureQueriesContext(connection) as ctx:
+            reset_module_demo(station)
+        self.assertFalse([q for q in ctx.captured_queries if "core_stockmovement" in q["sql"]
+                          and q["sql"].lstrip().upper().startswith("DELETE")])
+        call_command("load_demo_data", stdout=StringIO())
+        self.assertTrue(StockMovement.objects.filter(station=station).exists())
+        # Zurücksetzen (mit Eigentümerrechten) räumt die Demo-Bewegungen weiterhin weg.
+        reset_module_demo(station)
+        self.assertFalse(StockMovement.objects.filter(station=station, item__slug__startswith="demo-").exists())

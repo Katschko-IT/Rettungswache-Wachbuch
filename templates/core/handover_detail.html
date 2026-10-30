@@ -32,6 +32,8 @@
       </form>
     {% elif has_acked %}
       <p class="helptext">{% translate "Du hast diese Übergabe bereits quittiert." %}</p>
+    {% elif is_author %}
+      <p class="helptext">{% translate "Deine eigene Übergabe quittieren die Kolleginnen und Kollegen." %}</p>
     {% endif %}
   </section>
   <section class="section-block">

@@ -51,6 +51,7 @@
 
   {# Region Middle-Right #}
   <section class="display-column display-region" data-region="middle_right">
+    {% if display_station.weather_enabled %}
     <div data-module-container="weather">
       <h2 class="display-heading" data-module-heading="weather">{% translate "Wetter" %}</h2>
       <div class="display-weather" data-display-weather hidden>
@@ -60,6 +61,7 @@
       </div>
       <p class="display-empty" data-display-weather-empty>{% translate "Wetter nicht aktiviert" %}</p>
     </div>
+    {% endif %}
     <div data-module-container="birthdays">
       <ul class="display-birthdays" data-display-birthdays data-label="{% translate 'Geburtstag' %}"></ul>
     </div>

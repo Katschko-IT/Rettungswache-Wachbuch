@@ -28,7 +28,9 @@ Oder manuell:
 
 ```bash
 docker compose exec web python manage.py load_demo_data
-docker compose exec web python manage.py load_demo_data --reset   # neu befüllen
+# Neu befüllen löscht auch append-only Musterzeilen (Kasse, Audit, Lager):
+# dafür die Rechte des Datenbank-Eigentümers (Dienst migrate) nutzen.
+docker compose run --rm migrate python manage.py load_demo_data --reset
 ```
 
 Ohne `DEMO_MODE` (nur lokal mit Debug):
@@ -98,18 +100,22 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
 - Auf der Übersicht führt ein **Rundgang „Dein erster Schichtwechsel“** durch
   sechs kurze Aufgaben und hakt sie automatisch ab (Konzept und Recherche:
   [DEMO-KONZEPT.md](DEMO-KONZEPT.md)). Jeder Schritt führt direkt an die
-  richtige Stelle – das Übergabeformular ist vorausgefüllt, für das Quittieren
-  wechselt der Rundgang selbst in die Rolle „Mitglied“. Nach jedem Schritt
-  bestätigt eine Meldung den Fortschritt, das Banner nennt auf jeder Seite den
-  nächsten Schritt. Am Ende geht es zur leicht verständlichen Anleitung
-  **„Selbst betreiben“** (`/selbst-betreiben/`) oder als Auditor ins Audit-Log.
+  richtige Stelle – Übergabe- und Mängelformular sind vorausgefüllt (der
+  Mangel mit Frist morgen 12 Uhr), für das Quittieren wechselt der Rundgang
+  selbst in die Rolle „Mitglied“; die eigene Übergabe kann der Autor nicht
+  quittieren. Nach jedem Schritt bestätigt eine Meldung den Fortschritt, das
+  Banner nennt auf jeder Seite den nächsten Schritt. Am Ende geht es zur leicht
+  verständlichen Anleitung **„Selbst betreiben“** (`/selbst-betreiben/`), als
+  Auditor ins Audit-Log oder mit einem Klick zurück als Master-Admin.
 - Die **Feedback-Seite** (`/feedback/`, [FEEDBACK.md](FEEDBACK.md)) ist in
   der öffentlichen Demo eingeschaltet; Rückmeldungen liest der Betreiber unter
   Einstellungen → Rückmeldungen.
 - Ein Banner zeigt, wann die Demo endet, und wechselt die Rolle
   (Master-Admin, Schichtleitung, Kassenwart, Mitglied, Auditor) innerhalb
-  derselben Demo-Wache. Auditoren landen dabei im Audit-Log. Formulare in
-  anderen offenen Tabs bleiben nach einem Rollenwechsel gültig.
+  derselben Demo-Wache. Der Wechsel bleibt auf der aktuellen Seite, wenn die
+  neue Rolle sie sehen darf, sonst geht es zur Übersicht; Auditoren landen im
+  Audit-Log. Formulare in anderen offenen Tabs bleiben nach einem
+  Rollenwechsel gültig.
 - **Abmelden beendet die Demo:** Die Demo-Konten werden sofort gesperrt, die
   Demo-Wache mit allen Eingaben wird gelöscht. Die Startseite bestätigt das.
 - **Browser geschlossen?** Das Sitzungs-Cookie endet mit dem Browser. Die
@@ -118,8 +124,8 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   Ein zuverlässiges Signal „Tab geschlossen“ gibt es im Browser nicht; deshalb
   diese Fristen.
 - Gesperrt sind Bereiche, die über die eigene Demo-Wache hinaus wirken:
-  Impressum und Datenschutz der Installation, öffentliche Display-Links,
-  Wachenterminal-Registrierung und Handy-Kopplung, App-Zugänge (API-Tokens),
+  Impressum und Datenschutz der Installation, öffentliche Display- und
+  Kalender-Abo-Links, Wachenterminal-Registrierung und Handy-Kopplung, App-Zugänge (API-Tokens),
   E-Mail-Einladungen und das Freigeben bestehender Konten der Installation.
   Auch in der Demo angelegte Teammitglieder erhalten kein App-Token: Token-,
   Kopplungs- und API-Anfragen von Konten einer Demo-Wache enden mit 403.
@@ -133,7 +139,10 @@ Dafür gibt es die **Demo-Wache je Besuch** (`DEMO_SANDBOX=true`):
   Dienstkonto „Wachenterminal“ und ohne Absenden des Wachen-Codes.
 - **Konten der Installation bleiben unberührt:** Gesperrt und gelöscht werden
   nur Konten, die in der Demo-Wache entstanden sind und nirgends sonst
-  Mitglied sind – nie ältere Konten, nie Staff- oder Superuser-Konten.
+  Mitglied sind – nie ältere Konten, nie Staff- oder Superuser-Konten. Nur
+  solche Konten gelten auch als Demo-Besuch (ohne MFA-Pflicht, mit Sperren
+  und Änderungslimit); jedes andere Konto bleibt ein normales Konto, selbst
+  mit einer Mitgliedschaft in einer Demo-Wache.
   Anmeldeprotokolle der Demo-Konten (mit IP-Adresse) werden mitgelöscht.
 - Schutz vor Missbrauch:
   - höchstens `DEMO_SANDBOX_MAX_ACTIVE` (Standard 100) laufende Demos,

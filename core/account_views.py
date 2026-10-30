@@ -311,6 +311,8 @@ def calendar_feed_token_ics(request, token):
         is_active=True,
         station__calendar_enabled=True,
         station__is_active=True,
+        # Demo-Wachen veröffentlichen keine Kalendertexte ohne Anmeldung.
+        station__demo_sandbox__isnull=True,
     )
     feed.last_used_at = timezone.now()
     feed.save(update_fields=["last_used_at"])

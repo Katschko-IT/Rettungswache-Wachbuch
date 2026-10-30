@@ -28,9 +28,10 @@
   {% if demo_tour.complete %}
   <div class="demo-tour-finish">
     <p class="demo-tour-finish-title"><strong>{% translate "Geschafft!" %}</strong> {% translate "So läuft ein Schichtwechsel mit Wachwerk." %}</p>
-    <p>{% translate "Dabei sind entstanden: eine Übergabe mit Lesebestätigung, der Nachweis einer Funktionskontrolle, ein Mangel mit Frist und eine Zahlung in der Kaffeekasse. Jeder Schritt steht mit Zeit und Person im Audit-Log." %}</p>
+    <p>{% translate "Dabei sind entstanden: eine Übergabe mit Lesebestätigung, der Nachweis einer Funktionskontrolle, ein gemeldeter Mangel und eine Zahlung in der Kaffeekasse. Jeder Schritt steht mit Zeit und Person im Audit-Log." %}</p>
     <div class="demo-tour-actions">
       <a class="button primary" href="{% url 'install_guide' %}">{% translate "Wachwerk selbst betreiben" %}</a>
+      {% if demo_tour.role != "admin" %}<form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="admin"><input type="hidden" name="next" value="{% url 'more' %}"><button type="submit" class="button secondary">{% translate "Als Master-Admin weiter: Team, Einstellungen, Display" %}</button></form>{% endif %}
       <form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="audit"><button type="submit" class="button secondary">{% translate "Als Auditor ins Audit-Log schauen" %}</button></form>
       {% if feedback_enabled %}<a class="button secondary" href="{% url 'feedback' %}">{% translate "Feedback geben" %}</a>{% endif %}
     </div>

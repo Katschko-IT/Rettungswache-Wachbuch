@@ -318,9 +318,12 @@ class DemoStatsTests(TestCase):
     def test_completed_tour_counts_on_the_start_day_when_the_demo_is_deleted(self):
         start_demo(self.client)
         started_day = timezone.localdate(DemoSandbox.objects.get().created_at)
-        complete = {"steps": [], "done": 6, "total": 6, "complete": True, "next": None}
-        with mock.patch("core.demo_sandbox.demo_tour", return_value=complete):
-            self.client.post(reverse("logout"))
+        from core.demo_sandbox import TOUR_FLAGS
+
+        # Nur die Datenabfrage ist ersetzt; record_purge läuft wie beim echten Löschen.
+        with mock.patch("core.demo_sandbox._tour_flags", return_value=dict.fromkeys(TOUR_FLAGS, True)):
+            with self.assertNoLogs("core.demo_stats", "WARNING"):
+                self.client.post(reverse("logout"))
         self.assertFalse(DemoSandbox.objects.exists())
         self.assertEqual(DemoDailyStat.objects.get(day=started_day).tour_completed, 1)
 
@@ -372,3 +375,61 @@ class DemoStatsTests(TestCase):
         out = StringIO()
         call_command("demo_stats", "--tage", "7", stdout=out)
         self.assertIn("Summe 7 Tage: 5 Demos, 1 Rundgänge (20 %), 2 Rückmeldungen", out.getvalue())
+
+
+class LockScreenPhoneTests(TestCase):
+    def test_photo_credit_on_phones_flows_above_the_unlock_button(self):
+        # Am Handy lag der fest stehende Lizenzhinweis halb unter dem Knopf
+        # „Zum Entsperren antippen“ (CC BY-SA verlangt eine lesbare Quelle).
+        css = (STATIC / "lockscreen.css").read_text(encoding="utf-8")
+        block = css[css.index("@media (max-width: 40rem)"):]
+        rule = re.search(r"\.is-preview \.lock-credit \{([^}]*)\}", block)
+        self.assertIsNotNone(rule)
+        self.assertIn("position: static", rule.group(1))
+        self.assertIn("margin: 0 1rem 5.5rem", rule.group(1))
+
+
+@override_settings(**SANDBOX_ON)
+class TourLanguageTests(TestCase):
+    """Englische Oberfläche auf dem Rundgang: keine deutschen Auswahllisten und Meldungen."""
+
+    def setUp(self):
+        cache.clear()
+
+    def test_handover_and_defect_choices_follow_the_language(self):
+        from django.utils import translation
+        from django.utils.functional import Promise
+
+        from core.wachalltag_models import Defect
+
+        self.assertIsInstance(HandoverEntry.Priority.URGENT.label, Promise)
+        self.assertIsInstance(Defect.Status.OPEN.label, Promise)
+        with translation.override("en"):
+            self.assertEqual(
+                [str(HandoverEntry.Priority.URGENT.label), str(HandoverEntry.Category.STATION.label),
+                 str(HandoverEntry.Status.OPEN.label), str(Defect.Priority.IMPORTANT.label)],
+                ["Urgent", "Station", "Open", "Important"],
+            )
+        with translation.override("de"):
+            self.assertEqual(str(HandoverEntry.Priority.URGENT.label), "Dringend")
+
+    def test_tour_handover_form_shows_the_priority_in_english(self):
+        self.client.post(reverse("login"), DEMO, HTTP_ACCEPT_LANGUAGE="en")
+        form = self.client.get(f'{reverse("handover_create")}?vorlage=sauerstoff', HTTP_ACCEPT_LANGUAGE="en")
+        self.assertContains(form, '<option value="urgent" selected>Urgent</option>')
+
+    def test_routine_check_message_uses_typographic_quotes(self):
+        start_demo(self.client)
+        response = self.client.post(reverse("mpg_routine_check", args=["demo-defi-rtw1"]), {"quick_pass": "1"},
+                                    follow=True)
+        self.assertContains(response, "Funktionskontrolle für „Defibrillator/Monitor RTW 83-1“ gespeichert.")
+
+
+class WasteCalendarLabelTests(TestCase):
+    def test_settings_labels_use_real_umlauts(self):
+        from core.forms import StationSettingsForm
+
+        form = StationSettingsForm(instance=Station.get_default())
+        self.assertEqual(str(form.fields["waste_calendar_enabled"].label), "Müllkalender aktiviert")
+        self.assertEqual(str(form.fields["waste_calendar_url"].label), "Müllkalender-ICS-URL")
+        self.assertNotIn("Muellkalender", form.as_p())

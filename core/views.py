@@ -747,9 +747,14 @@ def handover_detail(request, pk):
 
     # Lesebestätigungen sind persönlich: nicht für das Wachenterminal (AGENTS.md §4).
     can_ack = not is_service_user(request.user)
+    # Die eigene Übergabe quittieren die anderen – eine Selbstquittung sagt nichts.
+    is_author = handover.author_id == request.user.pk
     if request.method == "POST" and request.POST.get("action") == "acknowledge":
         if not can_ack:
             raise PermissionDenied
+        if is_author:
+            messages.info(request, _("Deine eigene Übergabe quittieren die Kolleginnen und Kollegen."))
+            return redirect("handover_detail", pk=pk)
         _ack, created = acknowledge_handover(handover, request.user)
         messages.success(request, _("Als gelesen quittiert.") if created else _("Bereits quittiert."))
         return redirect("handover_detail", pk=pk)
@@ -793,7 +798,8 @@ def handover_detail(request, pk):
         "handover": handover,
         "acks": acks,
         "has_acked": any(ack.user_id == request.user.pk for ack in acks),
-        "can_ack": can_ack and all(ack.user_id != request.user.pk for ack in acks),
+        "is_author": is_author,
+        "can_ack": can_ack and not is_author and all(ack.user_id != request.user.pk for ack in acks),
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,

@@ -24,7 +24,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import DatabaseError, connection, models, transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, F, OuterRef
 from django.db.models.functions import Length
 from django.shortcuts import redirect
 from django.urls import Resolver404, resolve, reverse
@@ -43,6 +43,9 @@ from .task_board import ensure_default_station_tasks
 logger = logging.getLogger(__name__)
 
 SESSION_KEY = "demo_sandbox_id"
+# Ziel des letzten Rollenwechsels: Darf die neue Rolle die Seite nicht sehen,
+# geht es statt der Fehlerseite zur Startseite der Rolle.
+ROLE_SWITCH_SESSION_KEY = "demo_role_switch_target"
 # Fortschritt des Rundgangs; wird nach jeder Änderung (POST) neu bestimmt.
 TOUR_SESSION_KEY = "demo_tour"
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
@@ -55,6 +58,8 @@ ROLE_KEYS = tuple(account["username"].split("-", 1)[1] for account in DEMO_ACCOU
 BLOCKED_URL_NAMES = frozenset({
     "legal_settings",
     "display_token_create",
+    # Abo-Links liefern Kalendertexte ohne Anmeldung an jeden mit dem Link aus.
+    "calendar_feed_manage",
     "terminal_admin",
     "team_invite_create",
     "feedback_inbox",
@@ -300,13 +305,27 @@ def switch_role(request, sandbox: DemoSandbox, role_key: str, next_url: str = ""
     if csrf_secret:
         request.META["CSRF_COOKIE"] = csrf_secret
     target = _local_url(request, next_url) if role_key != "audit" else None
+    if target:
+        # Gleiche Seite in der neuen Rolle – sofern die Rolle sie sehen darf
+        # (prüft DemoSandboxMiddleware beim nächsten Aufruf).
+        request.session[ROLE_SWITCH_SESSION_KEY] = urlsplit(target).path
     return redirect(target or home_for_role(role_key))
 
 
 def sandbox_for_user(user) -> DemoSandbox | None:
+    """Demo-Wache eines Kontos, das in ihr entstanden ist – sonst None.
+
+    Ein Konto der Installation (Staff, Superuser, älter als die Demo oder auch
+    Mitglied einer echten Wache) wird nie als Demo-Besuch behandelt, selbst
+    wenn es eine Mitgliedschaft in einer Demo-Wache hat: Sonst entfielen etwa
+    die MFA-Pflicht und die Sperren gälten für das falsche Konto.
+    """
     if not getattr(user, "is_authenticated", False):
         return None
-    return DemoSandbox.objects.filter(station__memberships__user_id=user.pk).first()
+    sandbox = DemoSandbox.objects.filter(station__memberships__user_id=user.pk).first()
+    if sandbox is None or user.pk not in sandbox_user_ids([sandbox.station_id]):
+        return None
+    return sandbox
 
 
 def end_sandbox(sandbox: DemoSandbox) -> None:
@@ -428,7 +447,9 @@ def write_refusal(request, sandbox: DemoSandbox) -> str | None:
             count = 1
         if count > budget:
             return _("Diese Demo hat ihr Limit an Änderungen erreicht. Melde dich ab und starte einfach eine neue Demo.")
-    if request.META.get("CONTENT_TYPE", "").startswith("multipart/form-data"):
+    # Djangos ausgewerteter Medientyp ist klein geschrieben; der Multipart-Parser
+    # nimmt jeden Untertyp von multipart/ an (auch „multipart/Form-Data“).
+    if (request.content_type or "").startswith("multipart/"):
         try:
             incoming = int(request.META.get("CONTENT_LENGTH") or 0)
         except ValueError:
@@ -521,6 +542,7 @@ class DemoSandboxMiddleware:
     def __call__(self, request):
         request.demo_sandbox = None
         before = None
+        switched_to = None
         if sandbox_enabled() and request.user.is_authenticated:
             sandbox = self._sandbox(request)
             if sandbox is not None:
@@ -532,6 +554,7 @@ class DemoSandboxMiddleware:
                 if sandbox.last_seen_at < now - timedelta(seconds=60):
                     DemoSandbox.objects.filter(pk=sandbox.pk).update(last_seen_at=now)
                 request.demo_sandbox = sandbox
+                switched_to = request.session.pop(ROLE_SWITCH_SESSION_KEY, None)
                 if request.method not in SAFE_METHODS:
                     # Nur eine Änderung kann den Rundgang voranbringen.
                     before = tour_state(request, sandbox)
@@ -539,6 +562,20 @@ class DemoSandboxMiddleware:
         response = self.get_response(request)
         if before is not None and request.user.is_authenticated and 300 <= response.status_code < 400:
             _celebrate_progress(request, request.demo_sandbox, before)
+        if (
+            switched_to
+            and switched_to == request.path
+            and response.status_code == 403
+            and request.method in SAFE_METHODS
+            and request.demo_sandbox is not None
+        ):
+            role = current_role_key(request, request.demo_sandbox)
+            account = ROLE_ACCOUNTS.get(role)
+            if account is not None:
+                messages.info(request, _(
+                    "Diese Seite gibt es für die Rolle „%(role)s“ nicht – du bist jetzt auf deiner Startseite."
+                ) % {"role": _role_label(account["role"])})
+            return redirect(home_for_role(role))
         return response
 
     @staticmethod
@@ -642,7 +679,9 @@ def _tour_flags(sandbox: DemoSandbox) -> dict:
     station = OuterRef("pk")
     row = Station.objects.filter(pk=sandbox.station_id).annotate(
         handover=Exists(HandoverEntry.objects.filter(station=station, created_at__gt=since)),
-        ack=Exists(HandoverAck.objects.filter(station=station, created_at__gt=since)),
+        # Nur eine Lesebestätigung durch jemand anderen als den Autor zählt.
+        ack=Exists(HandoverAck.objects.filter(station=station, created_at__gt=since)
+                   .exclude(user_id=F("handover__author_id"))),
         device=Exists(DeviceRoutineCheck.objects.filter(station=station, checked_at__gt=since)),
         defect=Exists(Defect.objects.filter(station=station, created_at__gt=since)),
         coffee=Exists(CoffeeEntry.objects.filter(
@@ -723,8 +762,8 @@ def build_tour(request, sandbox: DemoSandbox, state: dict) -> dict:
             "key": "defect",
             "title": _("Mangel melden"),
             "short": _("Mangel melden"),
-            "text": _("Etwas ist kaputt? Mangel mit Frist und verantwortlicher Person anlegen."),
-            "url": reverse("defect_create_web"),
+            "text": _("Etwas ist kaputt? Der Mangel ist schon vorbereitet – mit Frist bis morgen 12 Uhr und dir als verantwortlicher Person. Einfach speichern."),
+            "url": f"{reverse('defect_create_web')}?vorlage=kamera",
             "done": flags["defect"],
         },
         {
@@ -784,6 +823,18 @@ def _celebrate_progress(request, sandbox: DemoSandbox, before: dict) -> None:
         messages.success(request, _(
             "Rundgang geschafft – alle %(total)s Schritte erledigt! Auf der Übersicht siehst du, was dabei entstanden ist."
         ) % {"total": tour["total"]})
+        account = ROLE_ACCOUNTS.get(tour["role"])
+        if account is not None and tour["role"] != "admin":
+            # Schritt 3 hat die Rolle gewechselt: Ohne Hinweis fehlten Team,
+            # Einstellungen und Display einfach.
+            messages.info(request, _(
+                "Du bist gerade %(name)s (%(role)s). Auf der Übersicht geht es mit einem Klick als "
+                "%(admin)s weiter – mit Team, Einstellungen und Display."
+            ) % {
+                "name": account["first_name"],
+                "role": _role_label(account["role"]),
+                "admin": _role_label(Membership.Role.ADMIN),
+            })
         return
     finished = next(step for step in tour["steps"] if step["key"] == newly[-1])
     messages.success(request, _(
@@ -801,9 +852,30 @@ TOUR_HANDOVER_TEMPLATES = {
 }
 
 
-def tour_form_initial(request) -> dict:
-    """Vorbelegung für das Übergabeformular aus dem Rundgang (nur in der Demo)."""
+def _tomorrow_noon() -> str:
+    """Morgen 12 Uhr Ortszeit im Format von ``<input type="datetime-local">``."""
+    from .demo import local_time
+
+    return timezone.localtime(local_time(timezone.localdate() + timedelta(days=1), 12)).strftime("%Y-%m-%dT%H:%M")
+
+
+TOUR_DEFECT_TEMPLATES = {
+    "kamera": lambda: {
+        "title": _("Rückfahrkamera RTW 83-1 zeigt kein Bild"),
+        "description": _("Monitor bleibt beim Rückwärtsfahren schwarz. Bis zur Reparatur beim Rangieren einweisen lassen."),
+        "asset_ref": "RTW 1/83-1 (MU-RD 831)",
+        "priority": "important",
+        "category": "vehicle",
+        "due_at": _tomorrow_noon(),
+    },
+}
+
+TOUR_FORM_TEMPLATES = {"handover": TOUR_HANDOVER_TEMPLATES, "defect": TOUR_DEFECT_TEMPLATES}
+
+
+def tour_form_initial(request, form: str = "handover") -> dict:
+    """Vorbelegung für Übergabe- und Mängelformular aus dem Rundgang (nur in der Demo)."""
     if getattr(request, "demo_sandbox", None) is None:
         return {}
-    template = TOUR_HANDOVER_TEMPLATES.get(request.GET.get("vorlage", ""))
+    template = TOUR_FORM_TEMPLATES[form].get(request.GET.get("vorlage", ""))
     return template() if template else {}

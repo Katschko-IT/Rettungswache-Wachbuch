@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
@@ -142,14 +143,18 @@ def defect_create(request):
                             metadata={"attachment_id": attachment.pk, "size": len(raw)},
                         )
                     audit(request.user, station, "defect.created", item, {"via": "web"})
-                messages.success(request, "Mangel wurde angelegt.")
+                messages.success(request, _("Mangel wurde angelegt."))
                 return redirect("defect_detail_web", pk=item.pk)
+    from .demo_sandbox import tour_form_initial
+
     return render(
         request,
         "core/defect_form.html",
         {
             "priorities": Defect.Priority.choices,
             "categories": Defect.Category.choices,
+            # Nur in der Demo: Rundgang-Schritt 5 kommt vorausgefüllt an.
+            "initial": tour_form_initial(request, "defect"),
         },
     )
 
