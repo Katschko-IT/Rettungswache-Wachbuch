@@ -176,24 +176,32 @@ class VehicleHandoverForm(forms.ModelForm):
             if name != "notes":
                 self.initial.pop(name, None)
                 self.fields[name].initial = None
-        if vehicle is not None:
+        # Verlässlich ist der km-Stand erst nach einer gespeicherten Übernahme.
+        # Neue oder aus dem Gerätemodul übernommene Fahrzeuge tragen sonst nur
+        # den Platzhalter des Modells (10.000 km) und blockierten die erste
+        # Übernahme.
+        self.last_mileage = None
+        if vehicle is not None and vehicle.pk and vehicle.handovers.exists():
+            self.last_mileage = vehicle.current_mileage
             self.fields["mileage"].help_text = _("zuletzt %(km)s km") % {
                 "km": number_format(vehicle.current_mileage, force_grouping=True),
             }
             self.fields["mileage"].widget.attrs["min"] = vehicle.current_mileage
             self.fields["o2_pressure_bar"].help_text = _("zuletzt %(bar)s bar") % {"bar": vehicle.o2_pressure_bar}
+        elif vehicle is not None:
+            self.fields["mileage"].help_text = _("Erste Übernahme: bitte den km-Stand vom Tacho eintragen.")
 
     def clean_mileage(self):
         mileage = self.cleaned_data["mileage"]
-        last = self.vehicle.current_mileage if self.vehicle is not None else None
+        last = self.last_mileage
         if last is not None and mileage < last:
             raise ValidationError(
                 _("Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."),
                 code="mileage_below_last",
                 params={"km": number_format(last, force_grouping=True)},
             )
-        # Tippfehler-Schutz (eine Ziffer zu viel). Ohne bekannten Stand (0)
-        # gibt es keine Obergrenze.
+        # Tippfehler-Schutz (eine Ziffer zu viel). Ohne bekannten Stand (keine
+        # Übernahme oder 0 km) gibt es keine Obergrenze.
         if last and mileage > last + MAX_MILEAGE_STEP_KM:
             raise ValidationError(
                 _(

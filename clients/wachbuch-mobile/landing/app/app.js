@@ -239,7 +239,7 @@
           ${icon("check")}<strong>Checklisten</strong><span>Wiederkehrend</span>
         </button>
         <button type="button" class="module-tile" data-view="reports">
-          ${icon("chart")}<strong>Auswertung</strong><span>Ampel & Owner</span>
+          ${icon("chart")}<strong>Auswertung</strong><span>Mängel, Checks & Ampel</span>
         </button>
       </div>
       <h2 class="section-label">Aktuelle Hinweise</h2>

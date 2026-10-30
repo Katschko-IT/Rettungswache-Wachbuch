@@ -39,10 +39,12 @@ bei Lesebestätigungen und keine Mängelzahlen je Person mehr.
   Sperre bisher umgehen.
 - Fahrzeugübernahme ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder
   Nein beantwortet, der km-Stand startet leer mit „zuletzt … km“ und darf
-  weder darunter noch mehr als 2.000 km darüber liegen (Tippfehler-Schutz),
+  weder darunter noch mehr als 2.000 km darüber liegen (Tippfehler-Schutz;
+  bei der ersten Übernahme eines Fahrzeugs gibt es noch keine Grenze),
   Kraftstoff und AdBlue werden per Schnellwahl gewählt, der O₂-Druck wird
   eingetragen. Ein „Nein“ führt direkt zur vorausgefüllten Mangelmeldung.
-- Meldungen im Fuhrpark sind übersetzt und in ruhigem Ton formuliert.
+- Meldungen im Fuhrpark (Status, Desinfektion, Übernahme, Mangel, Anlegen und
+  Bearbeiten) sind übersetzt und in ruhigem Ton formuliert.
 
 **Medizinprodukte**
 
@@ -65,7 +67,8 @@ bei Lesebestätigungen und keine Mängelzahlen je Person mehr.
   unverändert, werden aber weder angezeigt noch exportiert. Die Zeitspalte ist
   als Ortszeit beschriftet.
 - Wer wann quittiert hat (Liste und CSV-Nachweis), sehen nur noch
-  Schichtleitung und Admin. Mitglieder sehen ihren eigenen Stand.
+  Schichtleitung und Admin. Mitglieder sehen ihren eigenen Stand. Die
+  Spaltenköpfe des CSV-Nachweises folgen der eingestellten Sprache.
 
 **API und App**
 
@@ -73,6 +76,8 @@ bei Lesebestätigungen und keine Mängelzahlen je Person mehr.
   noch eine leere Liste – offene Mängel je Person sind Leistungsdaten.
 - Die App im Ordner `clients/wachbuch-mobile` (Demo und Auswertung) und die
   Demo-Landingpage zeigen keine Mängel je Person mehr.
+- Screenshots auf Startseite, Vorführung und Projektseite zeigen den neuen
+  Fahrzeugstatus ohne Statusnummern.
 
 ## 0.26.0 - 2026-10-29
 

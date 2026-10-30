@@ -508,6 +508,10 @@ msgstr "Aktivierungslink war bereits verbraucht oder widerrufen."
 msgid "Aktivierungslink wurde widerrufen."
 msgstr "Aktivierungslink wurde widerrufen."
 
+#: core/fleet_views.py:218
+msgid "Aktualisieren"
+msgstr "Aktualisieren"
+
 #: templates/core/defect_detail.html:18
 #: templates/core/handover_detail.html:17
 msgid "Aktualisiert"
@@ -1618,6 +1622,7 @@ msgid "Benutzerkonto"
 msgstr "Benutzerkonto"
 
 #: core/forms.py:1209
+#: core/orga_views.py:339
 msgid "Benutzername"
 msgstr "Benutzername"
 
@@ -2380,7 +2385,7 @@ msgstr "Darstellung: Reihenfolge der Bereiche"
 msgid "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden."
 msgstr "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden."
 
-#: core/fleet_views.py:303
+#: core/fleet_views.py:309
 msgid "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich."
 msgstr "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich."
 
@@ -2834,7 +2839,7 @@ msgstr "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten u
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 msgstr "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 
-#: core/fleet_forms.py:191
+#: core/fleet_forms.py:199
 msgid "Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."
 msgstr "Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."
 
@@ -2871,11 +2876,11 @@ msgstr "Desinfektion bis"
 msgid "Desinfektion bis %(time)s Uhr"
 msgstr "Desinfektion bis %(time)s Uhr"
 
-#: core/fleet_views.py:349
+#: core/fleet_views.py:355
 msgid "Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit)."
 msgstr "Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit)."
 
-#: core/fleet_views.py:354
+#: core/fleet_views.py:360
 msgid "Desinfektion für %(vehicle)s erfasst."
 msgstr "Desinfektion für %(vehicle)s erfasst."
 
@@ -2899,7 +2904,7 @@ msgstr "Desinfektionsmittel (VAH-gelistet)"
 msgid "Desinfektionsmittel auffüllen"
 msgstr "Desinfektionsmittel auffüllen"
 
-#: core/fleet_views.py:356
+#: core/fleet_views.py:362
 msgid "Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."
 msgstr "Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."
 
@@ -3229,7 +3234,7 @@ msgstr "Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-W
 msgid "Dieser Browser ist bereits das Terminal „%(label)s“."
 msgstr "Dieser Browser ist bereits das Terminal „%(label)s“."
 
-#: core/fleet_views.py:295
+#: core/fleet_views.py:301
 msgid "Dieser Fahrzeugstatus kann nicht gewählt werden."
 msgstr "Dieser Fahrzeugstatus kann nicht gewählt werden."
 
@@ -3353,6 +3358,10 @@ msgstr "Dringende Übergabe"
 #: templates/core/account.html:74
 msgid "Dringende Übergaben"
 msgstr "Dringende Übergaben"
+
+#: core/fleet_views.py:439
+msgid "Dringender Mangel #%(id)s: %(title)s"
+msgstr "Dringender Mangel #%(id)s: %(title)s"
 
 #: core/audit_labels.py:159
 #: templates/core/fleet_vehicle_detail.html:255
@@ -3541,7 +3550,7 @@ msgstr "Ein zweites Gerät bittet um Freigabe einer Anmeldung für diese Wache."
 msgid "Einbuchen"
 msgstr "Einbuchen"
 
-#: core/fleet_views.py:292
+#: core/fleet_views.py:298
 msgid "Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."
 msgstr "Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."
 
@@ -3967,6 +3976,10 @@ msgstr "Erst mal testen"
 msgid "Erst ohne Anmeldung ansehen: zur Vorführung"
 msgstr "Erst ohne Anmeldung ansehen: zur Vorführung"
 
+#: core/fleet_forms.py:192
+msgid "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
+msgstr "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
+
 #: core/audit_labels.py:85
 msgid "Ersteinrichtung abgeschlossen"
 msgstr "Ersteinrichtung abgeschlossen"
@@ -4118,9 +4131,21 @@ msgstr "Fahrgestell-Hersteller"
 msgid "Fahrzeug"
 msgstr "Fahrzeug"
 
+#: core/fleet_views.py:178
+msgid "Fahrzeug %(vehicle)s angelegt."
+msgstr "Fahrzeug %(vehicle)s angelegt."
+
 #: templates/core/fleet_vehicle_detail.html:20
 msgid "Fahrzeug bearbeiten"
 msgstr "Fahrzeug bearbeiten"
+
+#: core/fleet_views.py:217
+msgid "Fahrzeug bearbeiten: %(vehicle)s"
+msgstr "Fahrzeug bearbeiten: %(vehicle)s"
+
+#: core/fleet_views.py:186
+msgid "Fahrzeug speichern"
+msgstr "Fahrzeug speichern"
 
 #: templates/core/assets_inventory.html:8
 msgid "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick."
@@ -4150,6 +4175,10 @@ msgstr "Fahrzeugakte / Besonderheiten"
 msgid "Fahrzeugcheck"
 msgstr "Fahrzeugcheck"
 
+#: core/fleet_views.py:199
+msgid "Fahrzeugdaten bearbeiten Schichtleitung und Admin."
+msgstr "Fahrzeugdaten bearbeiten Schichtleitung und Admin."
+
 #: core/module_overview.py:44
 #: templates/core/_display_surface.html:46
 #: templates/core/terminal_home.html:67
@@ -4167,6 +4196,10 @@ msgstr "Fahrzeuge & Hygiene"
 #: templates/core/fleet_dashboard.html:47
 msgid "Fahrzeuge gesamt"
 msgstr "Fahrzeuge gesamt"
+
+#: core/fleet_views.py:169
+msgid "Fahrzeuge legen Schichtleitung und Admin an."
+msgstr "Fahrzeuge legen Schichtleitung und Admin an."
 
 #: templates/core/_demo_tour.html:41
 msgid "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle"
@@ -6441,7 +6474,7 @@ msgstr "Kosten"
 msgid "Kraftstoff"
 msgstr "Kraftstoff"
 
-#: core/fleet_views.py:386
+#: core/fleet_views.py:392
 msgid "Kraftstoffstand niedrig (%(percent)s %%)."
 msgstr "Kraftstoffstand niedrig (%(percent)s %%)."
 
@@ -6740,6 +6773,19 @@ msgstr "Mail nicht entschlüsselbar."
 msgid "Mangel"
 msgstr "Mangel"
 
+#: core/fleet_views.py:445
+msgid "Mangel #%(id)s erfasst."
+msgstr "Mangel #%(id)s erfasst."
+
+#: core/fleet_views.py:441
+msgid "Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“."
+msgstr "Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“."
+
+#: core/fleet_views.py:420
+#: templates/core/fleet_vehicle_detail.html:251
+msgid "Mangel an %(vehicle)s"
+msgstr "Mangel an %(vehicle)s"
+
 #: templates/core/defect_form.html:3
 #: templates/core/defect_form.html:8
 #: templates/core/defects.html:12
@@ -6915,7 +6961,7 @@ msgstr "Mehr"
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "Mehr Anhänge sind nicht möglich."
 
-#: core/fleet_forms.py:199
+#: core/fleet_forms.py:207
 msgid "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 msgstr "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 
@@ -7449,6 +7495,7 @@ msgid "Nachvollziehbarkeit"
 msgstr "Nachvollziehbarkeit"
 
 #: core/feedback_models.py:38
+#: core/orga_views.py:340
 msgid "Name"
 msgstr "Name"
 
@@ -7598,6 +7645,7 @@ msgstr "Neuer Terminal-Link"
 msgid "Neuer Wachen-Code"
 msgstr "Neuer Wachen-Code"
 
+#: core/fleet_views.py:186
 #: templates/core/fleet_dashboard.html:15
 #: templates/core/fleet_dashboard.html:181
 msgid "Neues Fahrzeug anlegen"
@@ -8849,6 +8897,10 @@ msgstr "Quittiert"
 msgid "Quittiert & Gültig"
 msgstr "Quittiert & Gültig"
 
+#: core/orga_views.py:341
+msgid "Quittiert am (Ortszeit)"
+msgstr "Quittiert am (Ortszeit)"
+
 #: templates/core/orga_dashboard.html:55
 msgid "Quittierung ausstehend"
 msgstr "Quittierung ausstehend"
@@ -9137,9 +9189,17 @@ msgstr "Rückrufe, bald verfallendes Material und Artikel unter Mindestbestand (
 msgid "Rückrufsperre aktivieren"
 msgstr "Rückrufsperre aktivieren"
 
+#: core/orga_views.py:338
+msgid "SHA-256-Prüfsumme"
+msgstr "SHA-256-Prüfsumme"
+
 #: templates/core/orga_dashboard.html:73
 msgid "SOP Ansicht"
 msgstr "SOP Ansicht"
+
+#: core/orga_views.py:335
+msgid "SOP-Nummer"
+msgstr "SOP-Nummer"
 
 #: templates/core/mpg_device_form.html:137
 msgid "STK-Intervall (Monate):"
@@ -9168,7 +9228,7 @@ msgstr "Sauerstoff O₂"
 msgid "Sauerstoff RTW 83-2 fast leer"
 msgstr "Sauerstoff RTW 83-2 fast leer"
 
-#: core/fleet_views.py:384
+#: core/fleet_views.py:390
 msgid "Sauerstoffvorrat niedrig (%(bar)s bar)."
 msgstr "Sauerstoffvorrat niedrig (%(bar)s bar)."
 
@@ -9205,15 +9265,15 @@ msgstr "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel
 msgid "Schichtübernahme bestätigen"
 msgstr "Schichtübernahme bestätigen"
 
-#: core/fleet_views.py:401
+#: core/fleet_views.py:407
 msgid "Schichtübernahme für %(vehicle)s bestätigt."
 msgstr "Schichtübernahme für %(vehicle)s bestätigt."
 
-#: core/fleet_views.py:399
+#: core/fleet_views.py:405
 msgid "Schichtübernahme gespeichert. Bitte beachten:"
 msgstr "Schichtübernahme gespeichert. Bitte beachten:"
 
-#: core/fleet_views.py:372
+#: core/fleet_views.py:378
 msgid "Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."
 msgstr "Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."
 
@@ -9771,7 +9831,7 @@ msgstr "Status einer Übergabe geändert"
 msgid "Status eines Mangels geändert"
 msgstr "Status eines Mangels geändert"
 
-#: core/fleet_views.py:326
+#: core/fleet_views.py:332
 msgid "Status für %(vehicle)s auf „%(status)s“ gesetzt."
 msgstr "Status für %(vehicle)s auf „%(status)s“ gesetzt."
 
@@ -10117,6 +10177,7 @@ msgid "Tipps für gebrauchte Thin Clients und Mini-PCs"
 msgstr "Tipps für gebrauchte Thin Clients und Mini-PCs"
 
 #: core/audit_labels.py:161
+#: core/orga_views.py:336
 #: core/wiki_forms.py:15
 #: core/wiki_models.py:38
 #: core/wiki_models.py:136
@@ -10422,6 +10483,7 @@ msgstr "Verschlüsselte Nachricht gesendet"
 msgid "Verschlüsselung"
 msgstr "Verschlüsselung"
 
+#: core/orga_views.py:337
 #: templates/base.html:179
 #: templates/core/handover_detail.html:65
 #: templates/core/privacy.html:222
@@ -12305,11 +12367,11 @@ msgstr "z. B. „für Januar bis März“"
 msgid "zuletzt"
 msgstr "zuletzt"
 
-#: core/fleet_forms.py:184
+#: core/fleet_forms.py:190
 msgid "zuletzt %(bar)s bar"
 msgstr "zuletzt %(bar)s bar"
 
-#: core/fleet_forms.py:180
+#: core/fleet_forms.py:186
 msgid "zuletzt %(km)s km"
 msgstr "zuletzt %(km)s km"
 
@@ -12324,6 +12386,10 @@ msgstr "§ 25 Abs. 2 Nr. 2 TDDDG"
 #: templates/core/audit_log.html:6
 msgid "Änderung"
 msgstr "Änderung"
+
+#: core/fleet_views.py:206
+msgid "Änderungen an %(vehicle)s gespeichert."
+msgstr "Änderungen an %(vehicle)s gespeichert."
 
 #: templates/core/handover_edit.html:9
 msgid "Änderungen erzeugen eine neue Revision. Freitexte erscheinen nicht im Audit."
@@ -12466,7 +12532,7 @@ msgstr "Übergaben von mir quittiert"
 msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 msgstr "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 
-#: core/fleet_views.py:391
+#: core/fleet_views.py:397
 msgid "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 msgstr "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 

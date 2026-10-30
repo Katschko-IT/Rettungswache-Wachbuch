@@ -255,6 +255,7 @@ class SOPReceiptDataMinimisationTests(TestCase):
         rows = list(csv.reader(io.StringIO(content), delimiter=";"))
         header = rows[0]
         self.assertNotIn("IP-Adresse", header)
+        self.assertEqual(header[-1], "Quittiert am (Ortszeit)")
         self.assertFalse(any("Browser" in column for column in header), header)
         self.assertEqual(len(rows), 3)
         self.assertTrue(all(len(row) == len(header) for row in rows))

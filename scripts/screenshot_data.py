@@ -24,6 +24,7 @@ import django  # noqa: E402
 django.setup()
 
 from django.conf import settings  # noqa: E402
+from django.core.exceptions import ValidationError  # noqa: E402
 from django.core.management import call_command  # noqa: E402
 
 STATION_NAME = "Rettungswache Nord"
@@ -43,16 +44,21 @@ def main() -> None:
     station = Station.objects.get(memberships__user__username="demo-admin")
     station.name = STATION_NAME
     station.save(update_fields=["name"])
-    changed = 0
+    changed = skipped = 0
     for model in apps.get_app_config("core").get_models():
         for field in ("title", "name"):
             if field not in {f.name for f in model._meta.get_fields()}:
                 continue
             for obj in model.objects.filter(**{f"{field}__startswith": MARKER}):
                 setattr(obj, field, getattr(obj, field)[len(MARKER):])
-                obj.save(update_fields=[field])
+                try:
+                    obj.save(update_fields=[field])
+                except ValidationError:
+                    # Append-only (z. B. Wiki-Revisionen): Eintrag bleibt, wie er ist.
+                    skipped += 1
+                    continue
                 changed += 1
-    print(f"{STATION_NAME}: {changed} Einträge ohne Marker")
+    print(f"{STATION_NAME}: {changed} Einträge ohne Marker, {skipped} unveränderlich übersprungen")
 
 
 if __name__ == "__main__":

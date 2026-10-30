@@ -332,13 +332,13 @@ def export_sop_receipts_csv(request, slug: str):
 
     writer = csv.writer(response, delimiter=";")
     writer.writerow([
-        "SOP-Nummer",
-        "Titel",
-        "Version",
-        "SHA-256 Prüfsumme",
-        "Mitarbeiter (Username)",
-        "Name",
-        "Quittierungszeitpunkt (Ortszeit)",
+        _("SOP-Nummer"),
+        _("Titel"),
+        _("Version"),
+        _("SHA-256-Prüfsumme"),
+        _("Benutzername"),
+        _("Name"),
+        _("Quittiert am (Ortszeit)"),
     ])
 
     for r in sop.receipts.select_related("user", "revision").order_by("-acknowledged_at"):

@@ -248,7 +248,7 @@
       {% csrf_token %}
       <div class="field">
         <label for="fleet_defect_title">{% translate "Betreff des Mangels" %}</label>
-        <input id="fleet_defect_title" type="text" name="title" maxlength="160" value="{% if defect_suggestion %}{{ defect_suggestion.title }}{% else %}Mangel an {{ vehicle.call_sign }}{% endif %}" required>
+        <input id="fleet_defect_title" type="text" name="title" maxlength="160" value="{% if defect_suggestion %}{{ defect_suggestion.title }}{% else %}{% blocktranslate with vehicle=vehicle.call_sign %}Mangel an {{ vehicle }}{% endblocktranslate %}{% endif %}" required>
       </div>
 
       <div class="field">

@@ -263,7 +263,35 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
                 self.assertIsNone(re.search(r"\d", vehicle["status_label"] + short))
 
 
+class DefectReportMessagesTests(FleetFixture):
+    def test_urgent_defect_is_calm_and_translated(self):
+        url = reverse("fleet_vehicle_defect_report", args=[self.vehicle.slug])
+        resp = self.client.post(url, {"title": "Bremse quietscht", "priority": "urgent"}, follow=True)
+        self.assertContains(resp, "steht jetzt auf „Werkstatt“.")
+        self.assertNotContains(resp, "Dringender Mangel erfasst!")
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.WORKSHOP)
+        self.assertTrue(self.vehicle.status_note.startswith("Dringender Mangel #"))
+        page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        self.assertContains(page, 'value="Mangel an RTW 0261"')
+
+    def test_empty_title_falls_back_to_default(self):
+        url = reverse("fleet_vehicle_defect_report", args=[self.vehicle.slug])
+        self.client.post(url, {"title": "  ", "priority": "normal"})
+        from core.wachalltag_models import Defect
+
+        self.assertEqual(Defect.objects.get().title, "Mangel an RTW 0261")
+
+
 class HandoverWithoutPreselectionTests(FleetFixture):
+    def setUp(self):
+        super().setUp()
+        # Eine frühere Übernahme macht den km-Stand (45.000) verlässlich.
+        VehicleHandover.objects.create(
+            station=self.station, vehicle=self.vehicle, crew_member=self.user, mileage=45000,
+            fuel_percent=90, adblue_percent=85, o2_pressure_bar=180,
+        )
+
     def post(self, follow=False, **overrides):
         data = {"mileage": 45120, "fuel_percent": "75", "adblue_percent": "50", "o2_pressure_bar": 190,
                 **CHECKS_YES, "notes": ""}
@@ -291,7 +319,7 @@ class HandoverWithoutPreselectionTests(FleetFixture):
     def test_unanswered_checkpoints_are_rejected_and_input_kept(self):
         resp = self.post(btm_seal_intact=None, vehicle_clean=None, fuel_percent=None, mileage=45120)
         self.assertEqual(resp.status_code, 200)
-        self.assertFalse(VehicleHandover.objects.exists())
+        self.assertEqual(VehicleHandover.objects.count(), 1)
         self.assertContains(resp, "Bitte Ja oder Nein wählen.", count=2)
         self.assertContains(resp, "Bitte den Füllstand wählen.")
         self.assertContains(resp, 'value="45120"')
@@ -302,7 +330,7 @@ class HandoverWithoutPreselectionTests(FleetFixture):
         resp = self.post(mileage=44999)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "nicht unter dem letzten Stand (45.000 km)")
-        self.assertFalse(VehicleHandover.objects.exists())
+        self.assertEqual(VehicleHandover.objects.count(), 1)
         self.vehicle.refresh_from_db()
         self.assertEqual(self.vehicle.current_mileage, 45000)
 
@@ -310,12 +338,25 @@ class HandoverWithoutPreselectionTests(FleetFixture):
         resp = self.post(mileage=450000)  # eine Ziffer zu viel
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Mehr als 2.000 km seit dem letzten Stand (45.000 km)")
-        self.assertFalse(VehicleHandover.objects.exists())
+        self.assertEqual(VehicleHandover.objects.count(), 1)
         self.assertRedirects(self.post(mileage=47000), reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
 
-    def test_unknown_last_mileage_has_no_upper_limit(self):
-        Vehicle.objects.filter(pk=self.vehicle.pk).update(current_mileage=0)
-        self.assertRedirects(self.post(mileage=123456), reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+    def test_first_handover_has_no_bounds(self):
+        # Fahrzeug aus dem Gerätemodul bzw. ohne km-Angabe: nur der Platzhalter 10.000 km.
+        for slug, km in (("ktw-neu", 3500), ("rtw-alt", 158430)):
+            with self.subTest(km=km):
+                vehicle = Vehicle.objects.create(station=self.station, slug=slug, call_sign=slug.upper(),
+                                                 license_plate=slug.upper())
+                self.assertEqual(vehicle.current_mileage, 10000)
+                form = VehicleHandoverForm(auto_id="handover_%s", vehicle=vehicle)
+                self.assertIn('min="0"', str(form["mileage"]))
+                self.assertIn("Erste Übernahme", str(form["mileage"].help_text))
+                data = {"mileage": km, "fuel_percent": "75", "adblue_percent": "50", "o2_pressure_bar": 190,
+                        **CHECKS_YES, "notes": ""}
+                resp = self.client.post(reverse("fleet_vehicle_handover_create", args=[slug]), data)
+                self.assertRedirects(resp, reverse("fleet_vehicle_detail", args=[slug]))
+                vehicle.refresh_from_db()
+                self.assertEqual(vehicle.current_mileage, km)
 
     def test_low_levels_warn_in_plain_language(self):
         resp = self.post(o2_pressure_bar=80, fuel_percent="25", follow=True)
@@ -325,13 +366,13 @@ class HandoverWithoutPreselectionTests(FleetFixture):
     def test_all_yes_saves_without_defect_hint(self):
         resp = self.post()
         self.assertRedirects(resp, reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
-        handover = VehicleHandover.objects.get()
+        handover = VehicleHandover.objects.latest("pk")
         self.assertEqual((handover.fuel_percent, handover.adblue_percent, handover.mileage), (75, 50, 45120))
         self.assertTrue(handover.btm_seal_intact and handover.medical_devices_checked and handover.vehicle_clean)
 
     def test_no_answer_is_saved_and_leads_to_prefilled_defect(self):
         resp = self.post(btm_seal_intact="no")
-        handover = VehicleHandover.objects.get()
+        handover = VehicleHandover.objects.latest("pk")
         self.assertFalse(handover.btm_seal_intact)
         self.assertTrue(handover.vehicle_clean)
         detail = reverse("fleet_vehicle_detail", args=[self.vehicle.slug])

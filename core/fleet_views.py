@@ -3,14 +3,15 @@ from __future__ import annotations
 
 import csv
 from io import BytesIO
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.http import urlencode
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
@@ -165,7 +166,7 @@ def vehicle_create(request):
     station = request.membership.station
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
     if not can_manage:
-        messages.error(request, "Nur Wachleiter und Administratoren dürfen Fahrzeuge anlegen.")
+        messages.error(request, _("Fahrzeuge legen Schichtleitung und Admin an."))
         return redirect("fleet_dashboard")
 
     if request.method == "POST":
@@ -174,7 +175,7 @@ def vehicle_create(request):
             vehicle = form.save(commit=False)
             vehicle.station = station
             vehicle.save()
-            messages.success(request, f"Fahrzeug '{vehicle.call_sign}' erfolgreich registriert.")
+            messages.success(request, _("Fahrzeug %(vehicle)s angelegt.") % {"vehicle": vehicle.call_sign})
             return redirect("fleet_vehicle_detail", slug=vehicle.slug)
     else:
         form = VehicleForm(station=station)
@@ -182,7 +183,7 @@ def vehicle_create(request):
     return render(
         request,
         "core/fleet_vehicle_form.html",
-        {"form": form, "title": "Neues Fahrzeug anlegen", "action_label": "Fahrzeug speichern"},
+        {"form": form, "title": _("Neues Fahrzeug anlegen"), "action_label": _("Fahrzeug speichern")},
     )
 
 
@@ -195,14 +196,14 @@ def vehicle_edit(request, slug: str):
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
     if not can_manage:
-        messages.error(request, "Keine Berechtigung zum Bearbeiten von Fahrzeugdaten.")
+        messages.error(request, _("Fahrzeugdaten bearbeiten Schichtleitung und Admin."))
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
     if request.method == "POST":
         form = VehicleForm(request.POST, instance=vehicle, station=station)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Änderungen an '{vehicle.call_sign}' gespeichert.")
+            messages.success(request, _("Änderungen an %(vehicle)s gespeichert.") % {"vehicle": vehicle.call_sign})
             return redirect("fleet_vehicle_detail", slug=vehicle.slug)
     else:
         form = VehicleForm(instance=vehicle, station=station)
@@ -210,7 +211,12 @@ def vehicle_edit(request, slug: str):
     return render(
         request,
         "core/fleet_vehicle_form.html",
-        {"form": form, "vehicle": vehicle, "title": f"Fahrzeug bearbeiten: {vehicle.call_sign}", "action_label": "Aktualisieren"},
+        {
+            "form": form,
+            "vehicle": vehicle,
+            "title": _("Fahrzeug bearbeiten: %(vehicle)s") % {"vehicle": vehicle.call_sign},
+            "action_label": _("Aktualisieren"),
+        },
     )
 
 
@@ -411,7 +417,7 @@ def vehicle_defect_report(request, slug: str):
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
-    title = request.POST.get("title", f"Mangel an {vehicle.call_sign}").strip()
+    title = request.POST.get("title", "").strip() or _("Mangel an %(vehicle)s") % {"vehicle": vehicle.call_sign}
     description = request.POST.get("description", "").strip()
     priority = request.POST.get("priority", Defect.Priority.IMPORTANT)
 
@@ -428,11 +434,15 @@ def vehicle_defect_report(request, slug: str):
 
     if priority == Defect.Priority.URGENT:
         vehicle.tactical_status = Vehicle.TacticalStatus.WORKSHOP
-        vehicle.status_note = f"Dringender Werkstattmangel #{defect.id}: {title}"
+        # Gespeichert in der Wachensprache (wie die Desinfektionsbemerkung).
+        with translation.override(settings.LANGUAGE_CODE):
+            vehicle.status_note = (gettext("Dringender Mangel #%(id)s: %(title)s") % {"id": defect.id, "title": title})[:255]
         vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
-        messages.warning(request, f"Dringender Mangel erfasst! Fahrzeug wurde sofort auf 'Werkstatt' gesetzt.")
+        messages.warning(request, _("Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“.") % {
+            "id": defect.id, "vehicle": vehicle.call_sign,
+        })
     else:
-        messages.success(request, f"Mangel #{defect.id} erfasst.")
+        messages.success(request, _("Mangel #%(id)s erfasst.") % {"id": defect.id})
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
