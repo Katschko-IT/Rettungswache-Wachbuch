@@ -1,5 +1,7 @@
 # Produkt-Fahrplan: homogenes Wachbuch (Server + Client)
 
+> **Abgelöst** am 30.10.2026 durch [ROADMAP.md](ROADMAP.md). Diese Datei bleibt als Verlauf erhalten.
+
 Stand: 2026-08. Dieser Fahrplan verzahnt den Django-Server
 (`Rettungswache-Wachbuch`) mit dem Flutter-Client
 (`Wachbuch-Client`) zu einem homogenen Produkt. Er wird Stück für Stück in

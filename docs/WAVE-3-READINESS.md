@@ -1,5 +1,7 @@
 # Wave-3-Abnahmen: Readiness-Bewertung
 
+> **Abgelöst** am 30.10.2026 durch [ROADMAP.md](ROADMAP.md). Diese Datei bleibt als Verlauf erhalten.
+
 Stand: 10. Oktober 2026. Bewertung der Abnahme-Readiness für die offenen
 Roadmap-Items R-015 bis R-020 (REMEDIATION-ROADMAP-2026-08.md). Diese
 Bewertung ersetzt keine Abnahme; sie benennt, was vor der jeweiligen

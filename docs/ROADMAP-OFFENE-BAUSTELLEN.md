@@ -1,5 +1,7 @@
 # Wachbuch: Roadmap für die offenen Baustellen
 
+> **Abgelöst** am 30.10.2026 durch [ROADMAP.md](ROADMAP.md). Diese Datei bleibt als Verlauf erhalten.
+
 ## Ausgangsstand
 Arbeitsbaum: /opt/data/workspace/wachbuch-umlaute-pages-20261019. Parent-Vollsuite392 Tests OK,1 Skip; Site10OK. Setup/Wachendaten/Wetter/individuelle Konten/einmalige QR-Aktivierung vorhanden. Drei letzte Parent-Fixes wurden von gemini-4-argon-high ohne reproduzierbaren Defekt im begrenzten Scope nachgeprüft. Keine Produktionsfreigabe. Kein Push/Deployment beauftragt.
 

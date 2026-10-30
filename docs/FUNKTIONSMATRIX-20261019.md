@@ -1,5 +1,7 @@
 # Funktionsmatrix — Wachbuch, Stand 2026-10-19
 
+> **Abgelöst** am 30.10.2026 durch [ROADMAP.md](ROADMAP.md). Diese Datei bleibt als Verlauf erhalten.
+
 Methode und Grenze dieser Matrix:
 
 - Basis ist `scripts/inventory_capabilities.py` (statische Routen-/Template-Referenzanalyse) mit
