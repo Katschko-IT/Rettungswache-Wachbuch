@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import csv
 from io import BytesIO
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
+from django.utils.http import urlencode
+from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
@@ -88,24 +91,19 @@ def fleet_dashboard(request):
     vehicles_list = list(vehicles_qs)
     filter_mode = request.GET.get("filter", "all").strip()
 
-    status_1_count = 0
-    status_2_count = 0
-    in_mission_count = 0
+    ready_count = 0
     disinfection_count = 0
     workshop_count = 0
     urgent_inspections_count = 0
+    out_of_service = (Vehicle.TacticalStatus.WORKSHOP, Vehicle.TacticalStatus.STATUS_6)
 
     for v in vehicles_list:
         st = v.tactical_status
-        if st == Vehicle.TacticalStatus.STATUS_1:
-            status_1_count += 1
-        elif st == Vehicle.TacticalStatus.STATUS_2:
-            status_2_count += 1
-        elif st in (Vehicle.TacticalStatus.STATUS_3, Vehicle.TacticalStatus.STATUS_4):
-            in_mission_count += 1
-        elif st == Vehicle.TacticalStatus.DISINFECTION or v.is_disinfection_locked:
+        if st == Vehicle.TacticalStatus.DISINFECTION or v.is_disinfection_locked:
             disinfection_count += 1
-        elif st in (Vehicle.TacticalStatus.WORKSHOP, Vehicle.TacticalStatus.STATUS_6):
+        elif st in Vehicle.READY_STATUSES:
+            ready_count += 1
+        elif st in out_of_service:
             workshop_count += 1
 
         if v.urgency["level"] in ("overdue", "critical"):
@@ -113,11 +111,13 @@ def fleet_dashboard(request):
 
     # Filter anwenden
     if filter_mode == "ready":
-        vehicles_list = [v for v in vehicles_list if v.tactical_status in (Vehicle.TacticalStatus.STATUS_1, Vehicle.TacticalStatus.STATUS_2)]
+        vehicles_list = [
+            v for v in vehicles_list if v.tactical_status in Vehicle.READY_STATUSES and not v.is_disinfection_locked
+        ]
     elif filter_mode == "disinfection":
         vehicles_list = [v for v in vehicles_list if v.tactical_status == Vehicle.TacticalStatus.DISINFECTION or v.is_disinfection_locked]
     elif filter_mode == "workshop":
-        vehicles_list = [v for v in vehicles_list if v.tactical_status in (Vehicle.TacticalStatus.WORKSHOP, Vehicle.TacticalStatus.STATUS_6)]
+        vehicles_list = [v for v in vehicles_list if v.tactical_status in out_of_service]
     elif filter_mode == "urgent_inspections":
         vehicles_list = [v for v in vehicles_list if v.urgency["level"] in ("overdue", "critical")]
 
@@ -135,8 +135,7 @@ def fleet_dashboard(request):
 
     kpis = {
         "total": len(vehicles_list),
-        "status_1": status_1_count,
-        "status_2": status_2_count,
+        "ready": ready_count,
         "disinfection": disinfection_count,
         "workshop": workshop_count,
         "urgent_inspections": urgent_inspections_count,
@@ -167,7 +166,7 @@ def vehicle_create(request):
     station = request.membership.station
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
     if not can_manage:
-        messages.error(request, "Nur Wachleiter und Administratoren dürfen Fahrzeuge anlegen.")
+        messages.error(request, _("Fahrzeuge legen Schichtleitung und Admin an."))
         return redirect("fleet_dashboard")
 
     if request.method == "POST":
@@ -176,7 +175,7 @@ def vehicle_create(request):
             vehicle = form.save(commit=False)
             vehicle.station = station
             vehicle.save()
-            messages.success(request, f"Fahrzeug '{vehicle.call_sign}' erfolgreich registriert.")
+            messages.success(request, _("Fahrzeug %(vehicle)s angelegt.") % {"vehicle": vehicle.call_sign})
             return redirect("fleet_vehicle_detail", slug=vehicle.slug)
     else:
         form = VehicleForm(station=station)
@@ -184,7 +183,7 @@ def vehicle_create(request):
     return render(
         request,
         "core/fleet_vehicle_form.html",
-        {"form": form, "title": "Neues Fahrzeug anlegen", "action_label": "Fahrzeug speichern"},
+        {"form": form, "title": _("Neues Fahrzeug anlegen"), "action_label": _("Fahrzeug speichern")},
     )
 
 
@@ -197,14 +196,14 @@ def vehicle_edit(request, slug: str):
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
     if not can_manage:
-        messages.error(request, "Keine Berechtigung zum Bearbeiten von Fahrzeugdaten.")
+        messages.error(request, _("Fahrzeugdaten bearbeiten Schichtleitung und Admin."))
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
     if request.method == "POST":
         form = VehicleForm(request.POST, instance=vehicle, station=station)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Änderungen an '{vehicle.call_sign}' gespeichert.")
+            messages.success(request, _("Änderungen an %(vehicle)s gespeichert.") % {"vehicle": vehicle.call_sign})
             return redirect("fleet_vehicle_detail", slug=vehicle.slug)
     else:
         form = VehicleForm(instance=vehicle, station=station)
@@ -212,8 +211,58 @@ def vehicle_edit(request, slug: str):
     return render(
         request,
         "core/fleet_vehicle_form.html",
-        {"form": form, "vehicle": vehicle, "title": f"Fahrzeug bearbeiten: {vehicle.call_sign}", "action_label": "Aktualisieren"},
+        {
+            "form": form,
+            "vehicle": vehicle,
+            "title": _("Fahrzeug bearbeiten: %(vehicle)s") % {"vehicle": vehicle.call_sign},
+            "action_label": _("Aktualisieren"),
+        },
     )
+
+
+def _defect_suggestion(request, vehicle):
+    """Mangelvorschlag nach einer Übernahme mit „Nein“ (``?mangel=…``)."""
+    keys = [key for key in request.GET.get("mangel", "").split(",") if key in VehicleHandover.CHECKPOINT_DEFECTS]
+    if not keys:
+        return None
+    points = [str(VehicleHandover.CHECKPOINT_DEFECTS[key]) for key in keys]
+    return {
+        "title": f"{vehicle.call_sign}: {'; '.join(points)}"[:160],
+        "points": [str(VehicleHandover.CHECKPOINTS[key]) for key in keys],
+    }
+
+
+def _detail_context(request, vehicle, handover_form=None) -> dict:
+    station = request.membership.station
+    handovers = vehicle.handovers.select_related("crew_member").order_by("-performed_at")[:10]
+    disinfections = vehicle.disinfections.select_related("performed_by", "disinfectant").order_by("-started_at")[:10]
+    defects = Defect.objects.filter(
+        station=station,
+        category=Defect.Category.VEHICLE,
+        asset_ref__icontains=vehicle.license_plate,
+    ).order_by("-created_at")[:5]
+
+    can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+
+    # Übernahme ohne Vorauswahl: kein km-Stand, kein Füllstand, kein „Ja“.
+    if handover_form is None:
+        handover_form = VehicleHandoverForm(auto_id="handover_%s", vehicle=vehicle)
+    ensure_default_disinfectant(station)
+    disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
+
+    vehicle_qr_url = request.build_absolute_uri(reverse("fleet_vehicle_qr", args=[vehicle.slug]))
+
+    return {
+        "vehicle": vehicle,
+        "handovers": handovers,
+        "disinfections": disinfections,
+        "defects": defects,
+        "can_manage": can_manage,
+        "handover_form": handover_form,
+        "disinfection_form": disinfection_form,
+        "defect_suggestion": _defect_suggestion(request, vehicle),
+        "vehicle_qr_url": vehicle_qr_url,
+    }
 
 
 @membership_required(allowed_roles=CONTENT_ROLES)
@@ -228,68 +277,46 @@ def vehicle_detail(request, slug: str):
 
         notify_vehicle_ready(vehicle)
 
-    handovers = vehicle.handovers.select_related("crew_member").order_by("-performed_at")[:10]
-    disinfections = vehicle.disinfections.select_related("performed_by", "disinfectant").order_by("-started_at")[:10]
-    defects = Defect.objects.filter(
-        station=station,
-        category=Defect.Category.VEHICLE,
-        asset_ref__icontains=vehicle.license_plate,
-    ).order_by("-created_at")[:5]
-
-    can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
-
-    handover_form = VehicleHandoverForm(auto_id="handover_%s", initial={
-        "mileage": vehicle.current_mileage,
-        "fuel_percent": vehicle.fuel_level_percent,
-        "adblue_percent": vehicle.adblue_level_percent,
-        "o2_pressure_bar": vehicle.o2_pressure_bar,
-    })
-    ensure_default_disinfectant(station)
-    disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
-
-    vehicle_qr_url = request.build_absolute_uri(reverse("fleet_vehicle_qr", args=[vehicle.slug]))
-
-    return render(
-        request,
-        "core/fleet_vehicle_detail.html",
-        {
-            "vehicle": vehicle,
-            "handovers": handovers,
-            "disinfections": disinfections,
-            "defects": defects,
-            "can_manage": can_manage,
-            "handover_form": handover_form,
-            "disinfection_form": disinfection_form,
-            "vehicle_qr_url": vehicle_qr_url,
-        },
-    )
+    return render(request, "core/fleet_vehicle_detail.html", _detail_context(request, vehicle))
 
 
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_POST
 def vehicle_status_change(request, slug: str):
-    """BOS-Taktischen Status ändern (mit Desinfektions-Sperrschutz!)."""
+    """Verfügbarkeit setzen: einsatzbereit, außer Dienst oder Werkstatt.
+
+    Einsatzphasen (frühere Status 2/3/4) werden nicht angenommen, damit keine
+    Zeitreihe von Einsätzen im Audit entsteht. „Desinfektion“ setzt nur das
+    Desinfektionsprotokoll.
+    """
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
     new_status = request.POST.get("status", "").strip()
-    if new_status not in Vehicle.TacticalStatus.values:
-        messages.error(request, "Ungültiger Statuscode.")
+    if new_status == Vehicle.TacticalStatus.DISINFECTION:
+        messages.error(request, _("Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."))
+        return redirect("fleet_vehicle_detail", slug=vehicle.slug)
+    if new_status not in Vehicle.SELECTABLE_STATUSES:
+        messages.error(request, _("Dieser Fahrzeugstatus kann nicht gewählt werden."))
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
-    # Desinfektions-Sperre prüfen: Rückmeldung auf Status 1 oder 2 während Einwirkzeit verboten!
-    if vehicle.is_disinfection_locked and new_status in (Vehicle.TacticalStatus.STATUS_1, Vehicle.TacticalStatus.STATUS_2):
+    # Desinfektions-Sperre: Während der Einwirkzeit nicht einsatzbereit melden.
+    if vehicle.is_disinfection_locked and new_status == Vehicle.TacticalStatus.STATUS_1:
         mins = max(1, int(vehicle.disinfection_remaining_seconds / 60))
         messages.error(
             request,
-            f"SPERRPFLICHT: Fahrzeug befindet sich noch in der Desinfektions-Einwirkzeit! Freigabe erst in {mins} Minute(n) möglich.",
+            _("Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich.")
+            % {"mins": mins},
         )
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
     previous = vehicle.tactical_status
+    if previous in Vehicle.LEGACY_STATUSES:
+        previous = Vehicle.TacticalStatus.STATUS_1
     vehicle.tactical_status = new_status
-    if new_status in (Vehicle.TacticalStatus.STATUS_1, Vehicle.TacticalStatus.STATUS_2):
+    if new_status == Vehicle.TacticalStatus.STATUS_1 or previous == Vehicle.TacticalStatus.DISINFECTION:
+        # Die Desinfektionsbemerkung gilt nach Verlassen der Desinfektion nicht mehr.
         vehicle.status_note = ""
     vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
     audit(request.user, station, "fleet.status_changed", vehicle, {
@@ -302,7 +329,9 @@ def vehicle_status_change(request, slug: str):
 
         mark_vehicle_notifications_read(vehicle)
 
-    messages.success(request, f"Status für {vehicle.call_sign} auf '{vehicle.get_tactical_status_display()}' gesetzt.")
+    messages.success(request, _("Status für %(vehicle)s auf „%(status)s“ gesetzt.") % {
+        "vehicle": vehicle.call_sign, "status": vehicle.get_tactical_status_display(),
+    })
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
 
@@ -322,12 +351,15 @@ def vehicle_disinfection_create(request, slug: str):
         protocol.performed_by = request.user
         protocol.save()
 
-        messages.warning(
-            request,
-            f"Desinfektion erfasst: Fahrzeug {vehicle.call_sign} ist für {protocol.exposure_minutes} Minuten gesperrt (Einwirkzeit bis {timezone.localtime(vehicle.disinfection_locked_until).strftime('%H:%M')} Uhr).",
-        )
+        if protocol.lock_timer_applied and protocol.exposure_minutes > 0:
+            messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
+                "vehicle": vehicle.call_sign,
+                "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
+            })
+        else:
+            messages.success(request, _("Desinfektion für %(vehicle)s erfasst.") % {"vehicle": vehicle.call_sign})
     else:
-        messages.error(request, "Fehlerhafte Angaben beim Desinfektionsprotokoll.")
+        messages.error(request, _("Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."))
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
@@ -336,31 +368,43 @@ def vehicle_disinfection_create(request, slug: str):
 @station_module_required("fleet_enabled")
 @require_POST
 def vehicle_handover_create(request, slug: str):
-    """3-Minuten Express-Schichtübernahme erfassen."""
+    """Fahrzeugübernahme erfassen; jede Angabe ist aktiv gewählt."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
-    form = VehicleHandoverForm(request.POST)
-    if form.is_valid():
-        handover = form.save(commit=False)
-        handover.station = station
-        handover.vehicle = vehicle
-        handover.crew_member = request.user
-        handover.save()
+    form = VehicleHandoverForm(request.POST, auto_id="handover_%s", vehicle=vehicle)
+    if not form.is_valid():
+        # Eingaben bleiben erhalten; Fehler stehen am jeweiligen Feld.
+        messages.error(request, _("Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."))
+        return render(request, "core/fleet_vehicle_detail.html", _detail_context(request, vehicle, handover_form=form))
 
-        # Automatische Warnung bei kritischem Sauerstoff- oder Kraftstoffstand
-        warnings = []
-        if handover.o2_pressure_bar < 100:
-            warnings.append(f"Sauerstoffvorrat niedrig ({handover.o2_pressure_bar} bar)!")
-        if handover.fuel_percent < 30:
-            warnings.append(f"Kraftstoffstand niedrig ({handover.fuel_percent} %)!")
+    handover = form.save(commit=False)
+    handover.station = station
+    handover.vehicle = vehicle
+    handover.crew_member = request.user
+    handover.save()
 
-        if warnings:
-            messages.warning(request, "Schichtübernahme gespeichert mit Warnhinweis: " + " ".join(warnings))
-        else:
-            messages.success(request, f"Schichtübernahme für {vehicle.call_sign} erfolgreich bestätigt (Einsatzklar).")
+    # Automatische Warnung bei kritischem Sauerstoff- oder Kraftstoffstand
+    warnings = []
+    if handover.o2_pressure_bar < 100:
+        warnings.append(_("Sauerstoffvorrat niedrig (%(bar)s bar).") % {"bar": handover.o2_pressure_bar})
+    if handover.fuel_percent < 30:
+        warnings.append(_("Kraftstoffstand niedrig (%(percent)s %%).") % {"percent": handover.fuel_percent})
+
+    failed = handover.failed_checkpoints
+    if failed:
+        # „Nein“ heißt: Mangel melden. Das Formular dazu ist vorausgefüllt.
+        notice = _("Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden.") % {
+            "points": ", ".join(handover.failed_checkpoint_labels),
+        }
+        messages.warning(request, " ".join([notice, *warnings]))
+        url = reverse("fleet_vehicle_detail", args=[vehicle.slug])
+        return redirect(f"{url}?{urlencode({'mangel': ','.join(failed)})}#fleet-defect")
+
+    if warnings:
+        messages.warning(request, " ".join([_("Schichtübernahme gespeichert. Bitte beachten:"), *warnings]))
     else:
-        messages.error(request, "Ungültige Angaben bei der Schichtübernahme.")
+        messages.success(request, _("Schichtübernahme für %(vehicle)s bestätigt.") % {"vehicle": vehicle.call_sign})
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
@@ -373,7 +417,7 @@ def vehicle_defect_report(request, slug: str):
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
-    title = request.POST.get("title", f"Mangel an {vehicle.call_sign}").strip()
+    title = request.POST.get("title", "").strip() or _("Mangel an %(vehicle)s") % {"vehicle": vehicle.call_sign}
     description = request.POST.get("description", "").strip()
     priority = request.POST.get("priority", Defect.Priority.IMPORTANT)
 
@@ -390,11 +434,15 @@ def vehicle_defect_report(request, slug: str):
 
     if priority == Defect.Priority.URGENT:
         vehicle.tactical_status = Vehicle.TacticalStatus.WORKSHOP
-        vehicle.status_note = f"Dringender Werkstattmangel #{defect.id}: {title}"
+        # Gespeichert in der Wachensprache (wie die Desinfektionsbemerkung).
+        with translation.override(settings.LANGUAGE_CODE):
+            vehicle.status_note = (gettext("Dringender Mangel #%(id)s: %(title)s") % {"id": defect.id, "title": title})[:255]
         vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
-        messages.warning(request, f"Dringender Mangel erfasst! Fahrzeug wurde sofort auf 'Werkstatt' gesetzt.")
+        messages.warning(request, _("Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“.") % {
+            "id": defect.id, "vehicle": vehicle.call_sign,
+        })
     else:
-        messages.success(request, f"Mangel #{defect.id} erfasst.")
+        messages.success(request, _("Mangel #%(id)s erfasst.") % {"id": defect.id})
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 

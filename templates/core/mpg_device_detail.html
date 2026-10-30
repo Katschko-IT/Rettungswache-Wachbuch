@@ -109,15 +109,18 @@
 
 {# Aktionen: eine Hauptaktion (Schnellkontrolle), Rest sekundär #}
 <div class="action-bar">
+  {# Schnellkontrolle nur für einsatzklare Geräte; sonst gehört der Befund in die Detailkontrolle. #}
+  {% if device.current_status == 'ready' %}
   <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% translate 'Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?' %}">
     {% csrf_token %}
     <input type="hidden" name="quick_pass" value="1">
     <button type="submit" class="button primary">
-      {% include "core/_icon.html" with name="check" %}{% translate "Alles geprüft, in Ordnung" %}
+      {% include "core/_icon.html" with name="check" %}{% translate "Alles in Ordnung – Funktion geprüft" %}
     </button>
   </form>
+  {% endif %}
 
-  <button type="button" class="button secondary" data-modal-open="check-modal">
+  <button type="button" class="button {% if device.current_status == 'ready' %}secondary{% else %}primary{% endif %}" data-modal-open="check-modal">
     {% include "core/_icon.html" with name="checklists" %}{% translate "Kontrolle mit Details" %}
   </button>
 
@@ -266,12 +269,13 @@
     <h2 id="check-modal-title">{% translate "Funktionskontrolle dokumentieren" %}</h2>
     <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
       {% csrf_token %}
-      <p class="muted text-small">{% translate "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
-      <div class="check-list">
-        <label><input type="checkbox" name="battery_ok"> {% translate "Energieversorgung / Akkus geladen" %}</label>
-        <label><input type="checkbox" name="visual_ok"> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
-        <label><input type="checkbox" name="function_ok"> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
-      </div>
+      <p class="muted text-small">{% translate "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
+      {% for point in check_form.check_points %}
+        <fieldset class="choice-tiles">
+          <legend>{{ point.label }}</legend>
+          {% for radio in point %}<label class="choice-tile" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        </fieldset>
+      {% endfor %}
       <div class="field">
         <label for="check_notes">{% translate "Bemerkungen / Feststellungen:" %}</label>
         <input type="text" id="check_notes" name="notes" maxlength="200" placeholder="{% translate 'Optional' %}">
@@ -379,10 +383,10 @@
         {{ maint_form.performed_by }}
       </div>
       <div class="field-row">
-        <div class="field">
-          <span class="field-label">{% translate "Ergebnis:" %}</span>
-          <label class="checkbox-field" for="{{ maint_form.passed.id_for_label }}">{{ maint_form.passed }} {% translate "Bestanden" %}</label>
-        </div>
+        <fieldset class="choice-tiles">
+          <legend>{% translate "Ergebnis:" %}</legend>
+          {% for radio in maint_form.passed %}<label class="choice-tile" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        </fieldset>
         <div class="field">
           <label for="{{ maint_form.next_due_date.id_for_label }}">{% translate "Nächste Fälligkeit:" %}</label>
           {{ maint_form.next_due_date }}

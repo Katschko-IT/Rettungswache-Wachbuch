@@ -110,11 +110,11 @@ class FleetModuleTests(TestCase):
     def test_vehicle_status_change(self):
         resp = self.client.post(
             reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
-            {"status": Vehicle.TacticalStatus.STATUS_2},
+            {"status": Vehicle.TacticalStatus.STATUS_6},
         )
         self.assertEqual(resp.status_code, 302)
         self.vehicle.refresh_from_db()
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_2)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_6)
 
     def test_disinfection_protocol_and_lock_timer_enforcement(self):
         # 1. Post disinfection protocol
@@ -149,7 +149,7 @@ class FleetModuleTests(TestCase):
         self.vehicle.refresh_from_db()
         # Status remains DISINFECTION
         self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
-        self.assertContains(reject_resp, "SPERRPFLICHT: Fahrzeug befindet sich noch in der Desinfektions-Einwirkzeit")
+        self.assertContains(reject_resp, "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion.")
 
         # 3. Setting to WORKSHOP or STATUS_6 is permitted even during disinfection
         allow_resp = self.client.post(
@@ -165,12 +165,12 @@ class FleetModuleTests(TestCase):
             reverse("fleet_vehicle_handover_create", args=[self.vehicle.slug]),
             {
                 "mileage": 45180,
-                "fuel_percent": 80,
+                "fuel_percent": 75,
                 "adblue_percent": 75,
                 "o2_pressure_bar": 190,
-                "btm_seal_intact": True,
-                "medical_devices_checked": True,
-                "vehicle_clean": True,
+                "btm_seal_intact": "yes",
+                "medical_devices_checked": "yes",
+                "vehicle_clean": "yes",
                 "notes": "Keine Mängel festgestellt",
             },
             follow=True,
@@ -178,7 +178,7 @@ class FleetModuleTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.vehicle.refresh_from_db()
         self.assertEqual(self.vehicle.current_mileage, 45180)
-        self.assertEqual(self.vehicle.fuel_level_percent, 80)
+        self.assertEqual(self.vehicle.fuel_level_percent, 75)
         self.assertEqual(self.vehicle.adblue_level_percent, 75)
         self.assertEqual(self.vehicle.o2_pressure_bar, 190)
 
@@ -190,9 +190,9 @@ class FleetModuleTests(TestCase):
                 "fuel_percent": 25,  # Low!
                 "adblue_percent": 75,
                 "o2_pressure_bar": 80,  # Low!
-                "btm_seal_intact": True,
-                "medical_devices_checked": True,
-                "vehicle_clean": True,
+                "btm_seal_intact": "yes",
+                "medical_devices_checked": "yes",
+                "vehicle_clean": "yes",
                 "notes": "Sauerstoffflasche fast leer",
             },
             follow=True,

@@ -139,6 +139,18 @@ Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checkli
 
 `/reports/` liefert nur leichte Stationsorganisation: offene/überfällige Mängel, überfällige Checks, Asset-Einsatzklarquote, ausgegebene Pools und unquittierte aktive Übergaben. Die Auswertung ist nicht für individuelle Leistungsbewertung vorgesehen.
 
+**Veraltet: `defects_by_owner` (seit 0.26.1).** Das Feld zählte offene Mängel
+je zuständiger Person. Das sind Leistungsdaten über Beschäftigte und liegen
+außerhalb der Produktgrenze. Der Server liefert das Feld nur noch als leere
+Liste (`"defects_by_owner": []`), damit ältere Clients nicht brechen.
+Ältere App-Versionen zeigen unter der Überschrift zu den Mängeln je Person
+dann „Keine Mängel“, auch wenn Mängel offen sind – maßgeblich ist die Zahl
+`open_defects`. Die App im Ordner `clients/wachbuch-mobile` blendet den
+Abschnitt bei leerer Liste aus. Clients sollen das Feld nicht mehr
+auswerten und den Abschnitt entfernen. Das Feld entfällt in einer späteren
+API-Version. Eine Auswertung je Person gibt es nicht, auch nicht als
+Ersatzfeld.
+
 ## Scopes
 
 Bestehende Scopes bleiben bewusst kompatibel:

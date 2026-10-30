@@ -317,7 +317,7 @@ Löschfristen oder organisatorische Freigabe. Details stehen in
 
 ## Projektstand
 
-Version **0.26.0** ist ein Pilotstand für Entwicklung, Erprobung und
+Version **0.26.1** ist ein Pilotstand für Entwicklung, Erprobung und
 Präsentation, **keine Produktionsfreigabe**. Alle Seiten werden automatisiert und
 per Browserlauf über alle Rollen geprüft (siehe
 [`docs/REVIEW-2026-10-24.md`](docs/REVIEW-2026-10-24.md)); das ersetzt keine reale
@@ -333,7 +333,7 @@ und Mitbestimmung sowie eine unabhängige Sicherheitsprüfung. Übersicht:
 
 - [Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) · [Quellseite](site/index.html)
 - [Review und Debugging 2026-10-22](docs/REVIEW-2026-10-22.md)
-- [Roadmap](docs/ROADMAP.md) · [Remediation-Roadmap](docs/REMEDIATION-ROADMAP-2026-08.md)
+- [Roadmap](docs/ROADMAP.md) · [Konkurrenzanalyse](docs/KONKURRENZANALYSE.md) · [Funktionsvorschläge](docs/FUNKTIONSVORSCHLAEGE.md) · [UX-Plan](docs/UX-PLAN.md) · [Remediation-Roadmap](docs/REMEDIATION-ROADMAP-2026-08.md)
 - [Fachmodule](docs/MODULES-RETTUNGSDIENST.md) · [Push-Relay für die App](docs/PUSH-RELAY.md)
 - [Architektur](docs/ARCHITECTURE.md)
 - [Betrieb, Backup und Updates](docs/OPERATIONS.md) · [Release veröffentlichen](docs/RELEASE-0.26.0.md)

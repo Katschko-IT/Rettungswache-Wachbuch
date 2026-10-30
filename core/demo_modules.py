@@ -26,7 +26,6 @@ CONTACT_MARKER = "[Demo]"
 # Fahrzeugstatus → Status in „Geräte & Fahrzeuge“.
 VEHICLE_TO_ASSET = {
     Vehicle.TacticalStatus.STATUS_1: StationAsset.Status.READY,
-    Vehicle.TacticalStatus.STATUS_2: StationAsset.Status.READY,
     Vehicle.TacticalStatus.DISINFECTION: StationAsset.Status.LIMITED,
     Vehicle.TacticalStatus.WORKSHOP: StationAsset.Status.WORKSHOP,
     Vehicle.TacticalStatus.STATUS_6: StationAsset.Status.OOB,
@@ -198,13 +197,13 @@ def seed_module_demo(station, users: dict, *, marker: str = CONTACT_MARKER, fres
         station=station, name=label("Flächendesinfektion Wischtücher"), default_exposure_minutes=15,
     )
     vehicles_spec = [
-        ("demo-rtw-831", "RTW 1/83-1", "MU-RD 831", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_2, "",
+        ("demo-rtw-831", "RTW 1/83-1", "MU-RD 831", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_1, "",
          84213, 22, 64, 190, 140, 25, 2021),
         ("demo-rtw-832", "RTW 1/83-2", "MU-RD 832", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_1, "",
          132904, 81, 70, 200, 260, 120, 2019),
         ("demo-rtw-833", "RTW 1/83-3", "MU-RD 833", Vehicle.VehicleType.RTW, Vehicle.TacticalStatus.STATUS_6,
          "Blaulicht hinten links ohne Funktion – Werkstatttermin steht im Kalender", 201480, 64, 55, 180, 75, 60, 2016),
-        ("demo-nef-821", "NEF 1/82-1", "MU-RD 821", Vehicle.VehicleType.NEF, Vehicle.TacticalStatus.STATUS_2, "",
+        ("demo-nef-821", "NEF 1/82-1", "MU-RD 821", Vehicle.VehicleType.NEF, Vehicle.TacticalStatus.STATUS_1, "",
          61022, 70, 80, 200, 9, 150, 2022),
         ("demo-ktw-851", "KTW 1/85-1", "MU-RD 851", Vehicle.VehicleType.KTW, Vehicle.TacticalStatus.STATUS_1, "",
          158430, 55, 48, 200, 190, 45, 2018),

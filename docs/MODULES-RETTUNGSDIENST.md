@@ -13,7 +13,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
         |                        |                    |                |
         v                        v                    v                v
  🚑 FUHRPARK & HYGIENE     📦 LAGER & APOTHEKE     🩺 MPG & GERÄTE   🏢 ORGANISATION
-  - BOS-Status 1–6          - FEFO-Verfallsdatum    - MPBetreibV      - SOP-Lenkung
+  - Verfügbarkeit           - FEFO-Verfallsdatum    - MPBetreibV      - SOP-Lenkung
   - O2 / Tank / AdBlue      - Kühlkette (2–8 °C)    - STK/MTK Frist   - SHA-256 Hash
   - VAH-Desinfektion        - Mindestbestand-Task   - QR-Ingest       - Lesequittung
   - Auto-Sperrtimer         - 1-Scan Aufrüstung     - Einweisung      - Notruf-Kurzwahl
@@ -32,13 +32,13 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 ## 2. Die fünf Fachmodule im Detail
 
 ### 🚑 Fuhrpark & Hygiene (`/fuhrpark/`)
-- **Taktischer BOS-Status**: Status 1 (Frei Wache), 2 (Frei Funk), 3 (Anfahrt), 4 (Einsatzort), 5 (Sprechwunsch), 6 (Außer Dienst), sowie Spezialstatus `DISINFECTION` und `WORKSHOP`.
+- **Fahrzeugstatus (nur Verfügbarkeit)**: Einsatzbereit, Außer Dienst / nicht einsatzklar und Werkstatt; „Desinfektion (gesperrt)“ setzt nur das Desinfektionsprotokoll. Einsatzphasen (frühere FMS-Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1); Altwerte wurden per Migration auf „Einsatzbereit“ gesetzt. Den Status eines vorhandenen Fahrzeugs ändert nur das Fahrzeug-Cockpit (mit Desinfektionssperre und Audit), nicht das Bearbeiten-Formular. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Art der Desinfektion steht ausschließlich im Protokoll.
 - **Fahrzeug-Telemetrie**:
   - `fuel_level_percent`: Kraftstoffstand in Prozent (Warnung < 50%, Kritisch < 30%).
   - `adblue_level_percent`: AdBlue-Füllstand in Prozent (Warnung < 25%).
   - `o2_pressure_bar`: Flaschendruck in bar (Norm: 200 bar Bezugsskala; Warnung < 100 bar, Kritisch < 50 bar).
   - `current_mileage`: Kilometerstand in km.
-- **Express-Schichtübernahme (3 Min.)**: Schnelle Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand.
+- **Express-Schichtübernahme (3 Min.)**: Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand – ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder Nein beantwortet, der km-Stand startet leer („zuletzt … km“, nicht darunter und höchstens 2.000 km darüber; die erste Übernahme eines Fahrzeugs hat noch keine Grenze), Kraftstoff und AdBlue werden per Schnellwahl gewählt. Ein „Nein“ führt nach dem Speichern zur vorausgefüllten Mangelmeldung.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
   - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.
@@ -70,8 +70,11 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - MTK (Messtechnische Kontrolle gem. § 15 MPBetreibV).
   - Ampel: Rot (<= 30 Tage / abgelaufen), Gelb (31–60 Tage), Grün (> 60 Tage).
 - **Funktionskontrolle**:
-  - Die prüfende Person bestätigt Energieversorgung, Sichtprüfung und Selbsttest einzeln
-    (oder alle drei per Schnellkontrolle). Fehlt ein Punkt, ist die Kontrolle nicht bestanden.
+  - Die prüfende Person beantwortet Energieversorgung, Sichtprüfung und Selbsttest einzeln mit
+    Ja oder Nein. Nichts ist vorausgewählt; ohne Antwort auf jeden Punkt wird nichts gespeichert.
+    Ein „Nein“ heißt nicht bestanden.
+  - Die Schnellkontrolle „Alles in Ordnung – Funktion geprüft“ trägt alle drei Punkte als „Ja“
+    ein und fragt vorher ausdrücklich nach.
   - Ein Selbsttest-Ausdruck oder gescannter Gerätecode kann als Notiz angehängt werden. Er wird
     **nicht** ausgewertet: Herstellerformate sind nicht dokumentiert, eine Heuristik würde
     Kontrollen falsch als bestanden eintragen.
@@ -93,8 +96,11 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Formatierte Versionsnummern (`vX.Y`) mit Revisionshistorie.
   - **Integritätsnachweis**: SHA-256 Prüfsumme über den Dokumenteninhalt zur Manipulationssicherheit gem. GoBD und ISO 27001.
 - **Persönliche Lesequittierung**:
-  - Mitarbeiter quittieren wichtige Anweisungen mit Zeitstempel.
+  - Mitarbeiter quittieren wichtige Anweisungen mit Zeitstempel. Gespeichert werden Person,
+    Version und Zeitpunkt; IP-Adresse und Browser nicht (seit 0.26.1). Ältere Einträge mit
+    diesen Angaben bleiben unverändert, werden aber weder angezeigt noch exportiert.
   - Wachenleitung sieht in Echtzeit die Quittierungsquote je Dokument.
+  - Wer wann quittiert hat (Liste und CSV-Nachweis), sehen seit 0.26.1 nur Schichtleitung und Admin; Mitglieder sehen ihren eigenen Stand.
 - **Notfall-Kurzwahlliste**:
   - Wichtige Ansprechpartner (ILS, Leitender Notarzt, Giftnotruf, Desinfektor, Werkstatt) mit 1-Tap Click-to-Call.
 
@@ -103,7 +109,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Vollbilddarstellung ohne Tastatur-/Mausinteraktion.
   - Live-Uhrzeit, Wachenname und aktuelles Wetter.
   - Heutige Wachentermine und offene Tagesaufgaben mit Fortschrittsbalken.
-  - Taktischer Status aller Rettungsmittel der Wache in Echtzeit.
+  - Verfügbarkeit aller Fahrzeuge der Wache (einsatzbereit, Desinfektion, Werkstatt, außer Dienst) – ohne Einsatzphasen und ohne Art der Desinfektion.
   - MPG-Prüfungs- und Mängelwarnungen.
   - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
 

@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
@@ -111,9 +112,12 @@ def sop_detail(request, slug: str):
     has_acknowledged = sop.user_has_acknowledged(request.user)
 
     all_revisions = sop.revisions.select_related("approved_by").order_by("-created_at")
-    recent_receipts = sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20]
-
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+    # Wer wann quittiert hat, sieht nur die Wachleitung (Nachweispflicht).
+    # Mitglieder sehen ihren eigenen Stand, nicht den der Kolleginnen.
+    recent_receipts = (
+        sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20] if can_manage else []
+    )
 
     return render(
         request,
@@ -142,15 +146,16 @@ def sop_acknowledge(request, slug: str):
         messages.error(request, "Diese SOP hat noch keinen freigegebenen Textstand.")
         return redirect("sop_detail", slug=sop.slug)
 
-    ip = request.META.get("REMOTE_ADDR")
-    ua = request.META.get("HTTP_USER_AGENT", "")[:250]
-
+    # Datensparsam (ab 0.26.1): Für die Kenntnisnahme genügen Person, Version
+    # und Zeitpunkt. IP-Adresse und Browser werden nicht mehr gespeichert;
+    # Altbestände bleiben unverändert (append-only), werden aber nirgends
+    # mehr angezeigt oder exportiert.
     receipt, created = SOPReceipt.objects.get_or_create(
         station=station,
         sop=sop,
         revision=latest_revision,
         user=request.user,
-        defaults={"ip_address": ip, "user_agent": ua, "acknowledged_at": timezone.now()},
+        defaults={"ip_address": None, "user_agent": "", "acknowledged_at": timezone.now()},
     )
 
     if created:
@@ -318,21 +323,22 @@ def export_sop_receipts_csv(request, slug: str):
     """Revisionssicherer Quittierungs-Nachweis für QM-Audits als CSV."""
     station = request.membership.station
     sop = get_object_or_404(SOPDocument, station=station, slug=slug)
+    if request.membership.role not in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}:
+        messages.error(request, _("Den Quittierungsnachweis exportiert die Wachleitung."))
+        return redirect("sop_detail", slug=sop.slug)
 
     response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
     response["Content-Disposition"] = f'attachment; filename="QM_Audit_{sop.doc_number}_{timezone.localdate().isoformat()}.csv"'
 
     writer = csv.writer(response, delimiter=";")
     writer.writerow([
-        "SOP-Nummer",
-        "Titel",
-        "Version",
-        "SHA-256 Prüfsumme",
-        "Mitarbeiter (Username)",
-        "Name",
-        "Quittierungszeitpunkt (UTC)",
-        "IP-Adresse",
-        "Client / Browser",
+        _("SOP-Nummer"),
+        _("Titel"),
+        _("Version"),
+        _("SHA-256-Prüfsumme"),
+        _("Benutzername"),
+        _("Name"),
+        _("Quittiert am (Ortszeit)"),
     ])
 
     for r in sop.receipts.select_related("user", "revision").order_by("-acknowledged_at"):
@@ -344,8 +350,6 @@ def export_sop_receipts_csv(request, slug: str):
             r.user.username,
             r.user.get_full_name(),
             timezone.localtime(r.acknowledged_at).strftime("%Y-%m-%d %H:%M:%S"),
-            r.ip_address or "",
-            r.user_agent or "",
         ])
 
     return response

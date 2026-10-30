@@ -5,6 +5,7 @@ import re
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from .models import Membership
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
@@ -78,6 +79,17 @@ class MedicalDeviceForm(forms.ModelForm):
 
 
 class MaintenanceLogForm(forms.ModelForm):
+    # Ergebnis der Prüfung (STK/MTK/DGUV) aktiv wählen; „Bestanden“ ist nicht
+    # vorbelegt. Nur ein bestandenes Ergebnis verschiebt die Frist am Gerät.
+    passed = forms.TypedChoiceField(
+        label=_("Ergebnis"),
+        choices=(("yes", _("Bestanden")), ("no", _("Nicht bestanden"))),
+        coerce=lambda value: value == "yes",
+        widget=forms.RadioSelect,
+        required=True,
+        error_messages={"required": _("Bitte das Ergebnis wählen.")},
+    )
+
     class Meta:
         model = MaintenanceLog
         fields = [
@@ -96,7 +108,32 @@ class MaintenanceLogForm(forms.ModelForm):
         }
 
 
+YES = "yes"
+NO = "no"
+YES_NO_CHOICES = ((YES, _("Ja")), (NO, _("Nein")))
+
+
+def _yes_no_field(label):
+    """Pflichtfrage Ja/Nein ohne Vorauswahl.
+
+    Ein Prüfnachweis entsteht nur, wenn die prüfende Person jeden Punkt
+    selbst beantwortet. Ein fehlender Wert ist ein Fehler, weder „Ja“ noch
+    „Nein“.
+    """
+    return forms.TypedChoiceField(
+        label=label,
+        choices=YES_NO_CHOICES,
+        coerce=lambda value: value == YES,
+        widget=forms.RadioSelect,
+        required=True,
+        error_messages={"required": _("Bitte Ja oder Nein wählen.")},
+    )
+
+
 class DeviceRoutineCheckForm(forms.ModelForm):
+    battery_ok = _yes_no_field(_("Energieversorgung / Akkus geladen"))
+    visual_ok = _yes_no_field(_("Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"))
+    function_ok = _yes_no_field(_("Selbsttest / Gerätestart fehlerfrei"))
     # Ausdruck oder QR-Text eines Geräte-Selbsttests. Wird nur als Notiz
     # gespeichert; das Ergebnis bestätigt die prüfende Person selbst.
     selftest_protocol = forms.CharField(
@@ -105,6 +142,8 @@ class DeviceRoutineCheckForm(forms.ModelForm):
         label="Selbsttest-Protokoll (optional)",
         widget=forms.Textarea(attrs={"rows": 2}),
     )
+
+    CHECK_POINTS = ("battery_ok", "visual_ok", "function_ok")
 
     class Meta:
         model = DeviceRoutineCheck
@@ -117,6 +156,18 @@ class DeviceRoutineCheckForm(forms.ModelForm):
         widgets = {
             "notes": forms.TextInput(attrs={"placeholder": "Bemerkung (optional bei Mängeln oder Auffälligkeiten)"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Das Modell setzt die Prüfpunkte auf True; im Formular darf davon
+        # nichts als Vorauswahl ankommen.
+        for name in self.CHECK_POINTS:
+            self.initial.pop(name, None)
+            self.fields[name].initial = None
+
+    @property
+    def check_points(self):
+        return [self[name] for name in self.CHECK_POINTS]
 
 
 class DeviceTrainingRecordForm(forms.ModelForm):

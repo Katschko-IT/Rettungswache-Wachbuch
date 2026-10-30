@@ -88,16 +88,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 else if (_report != null) ...[
                   _Metrics(report: _report!),
                   const SizedBox(height: 24),
-                  Text(
-                    l.reportsByOwner,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_report!.defectsByOwner.isEmpty)
-                    Text(l.defectsEmpty)
-                  else
+                  // Ab Server 0.26.1 immer leer (keine Mängel je Person);
+                  // nur ältere Server liefern hier noch Zeilen.
+                  if (_report!.defectsByOwner.isNotEmpty) ...[
+                    Text(
+                      l.reportsByOwner,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
                     ..._report!.defectsByOwner.map(
                       (row) => ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -109,7 +109,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                       ),
                     ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
                   Material(
                     color: Theme.of(context).colorScheme.secondaryContainer,
                     borderRadius: BorderRadius.circular(12),

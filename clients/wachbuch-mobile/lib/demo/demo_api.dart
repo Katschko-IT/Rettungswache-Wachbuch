@@ -486,11 +486,6 @@ class DemoWachbuchApi extends WachbuchApi {
     final overdue = open
         .where((item) => item.dueAt != null && item.dueAt!.isBefore(now))
         .length;
-    final owners = <String, int>{};
-    for (final item in open) {
-      final owner = item.owner;
-      owners[owner] = (owners[owner] ?? 0) + 1;
-    }
     final ready = _assets.where((item) => item.status == 'ready').length;
     return WachalltagReport(
       openDefects: open.length,
@@ -506,9 +501,7 @@ class DemoWachbuchApi extends WachbuchApi {
               .any((ack) => ack.by == profile.username))
           .length,
       oldestOpenDays: 0,
-      defectsByOwner: owners.entries
-          .map((entry) => ReportOwnerCount(owner: entry.key, count: entry.value))
-          .toList(growable: false),
+      // Wie der Server seit 0.26.1: keine offenen Mängel je Person.
     );
   }
 

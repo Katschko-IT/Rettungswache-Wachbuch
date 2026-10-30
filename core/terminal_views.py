@@ -282,8 +282,8 @@ def _lock_screen_data(station) -> dict:
     """Daten für Sperrbildschirm und /terminal/daten/ (nur Zählwerte und Titel)."""
     payload = display_payload(station)
     for vehicle in payload.get("fleet_vehicles", []):
-        # „Status 1: Einsatzbereit auf Wache“ → „Status 1“ für die Statuszeile.
-        vehicle["status_short"] = vehicle.get("status_label", "").split(":")[0]
+        # Kurzform ohne Statusnummer („Einsatzbereit“, „Werkstatt“ …).
+        vehicle.setdefault("status_short", vehicle.get("status_label", ""))
     payload["open_handovers"] = (
         HandoverEntry.objects.filter(station=station).exclude(status=HandoverEntry.Status.DONE).count()
     )
