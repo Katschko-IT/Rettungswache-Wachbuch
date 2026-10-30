@@ -1,6 +1,6 @@
 # Wachbuch Klar - Designregeln
 
-Stand: 11. August 2026
+Stand: 30. Oktober 2026
 
 ## Entscheidung
 
@@ -69,6 +69,116 @@ CSS-Pixel** (Client und WCAG 2.5.5).
 8. Fließtext bleibt auf ungefähr 65 bis 70 Zeichen pro Zeile begrenzt.
 9. Listen und Schreibformulare liegen auf getrennten URLs.
 10. Rot ist für dringende Zustände und Fehler reserviert, nicht für Dekoration.
+
+## Glossar
+
+Das Glossar gilt ab 0.27 für alle Texte der Oberfläche: Webseiten,
+Wachenterminal, Wachen-Display, E-Mails und Benachrichtigungen. Neue Texte
+verwenden nur die Begriffe der ersten Spalte. Die Spalte „Englisch“ ist die
+Vorgabe für `locale/en/LC_MESSAGES/django.po`. Ältere Übersetzungen weichen
+teils noch ab (zum Beispiel „Gesperrt“ → „Closed“, „Übernahme“ → „handover“)
+und werden mit UX-PLAN B4 (0.28) bereinigt.
+
+So wird das Glossar geprüft:
+
+- `core/test_glossary.py` liest die Tabelle zwischen den HTML-Kommentaren
+  `glossar:begin` und `glossar:end`. Jedes Wort in Backticks in der Spalte
+  „Nicht verwenden“ ist für neue übersetzbare Texte gesperrt, auch mit den
+  Endungen -s, -e, -en und -n und in Bindestrich-Wörtern wie
+  „Fahrzeug-Cockpit“ oder „Heilkunde-SOPs“. Geprüft werden alle markierten Texte in Python, Templates
+  und JavaScript (wie `scripts/i18n_catalog.py` sie sammelt).
+- Bestehende Vorkommen sind je Begriff als Ausgangsstand (`BASELINE` im Test)
+  eingefroren. Sie verschwinden mit der Umbenennung in B4. Wer ein altes
+  Vorkommen entfernt, muss nichts nachtragen. Den Ausgangsstand erhöht nur,
+  wer ein altes Vorkommen mit Begründung behalten muss. Ein neues Wort in
+  Backticks gilt sofort; seine vorhandenen Vorkommen kommen mit ihrer Anzahl
+  in den Ausgangsstand.
+- Wörter ohne Backticks sind Hinweise ohne Prüfung. Sie sind in anderer
+  Bedeutung richtig („Telemetrie“ im Sinne von „keine Telemetrie“), oder
+  andere Tests decken sie ab (FMS-Status und Einsatzphasen prüfen die Tests
+  der Produktgrenze).
+- `SOP` ist bewusst gesperrt, auch als „Heilkunde-SOP“: Die Oberfläche sagt
+  „Dienstanweisung“. Inhalte, die eine Wache selbst anlegt, prüft der Test
+  nicht. Der Titel einer Dienstanweisung darf also „SOP …“ heißen.
+- Die Begriffe „Gesperrt“, „Außer Dienst“ und „Außer Betrieb nehmen“ und die
+  Modulnamen im nächsten Abschnitt sind für 0.27 festgelegt (Stand 30.10.2026).
+
+<!-- glossar:begin -->
+| Begriff | Englisch | Nicht verwenden | Bedeutung |
+|---|---|---|---|
+| Wache | station | – | Die Rettungswache. Alle Daten gehören genau einer Wache. |
+| Übergabe | handover | – | Schichtübergabe als Eintrag mit Status. Nie für ein Fahrzeug, dafür gibt es „Fahrzeugübernahme“. |
+| Lesebestätigung | read confirmation | `Lesequittierung` | Vermerk, dass eine Person eine Übergabe, Neuigkeit oder Dienstanweisung gelesen hat. |
+| Gelesen – quittieren | read – acknowledge | – | Schaltfläche für die Lesebestätigung. Nur mit dem eigenen Konto, nie am Wachenterminal. |
+| Mangel | defect | – | Festgestellter Fehler, der behoben werden muss, mit Priorität und Frist. |
+| Tagesaufgaben | daily tasks | – | Digitale Wandtafel der Wache. In der Leiste kurz „Aufgaben“. |
+| Wochenbogen | weekly sheet | – | Wochenansicht der Tagesaufgaben. |
+| Erledigt | done | – | Status und Schaltfläche, wenn eine Aufgabe abgeschlossen ist. |
+| Offen | open | – | Gegenstück zu „Erledigt“. Bleibt ausgeschrieben (Regel 5). |
+| Checkliste | checklist | – | Prüfliste, etwa für die Schichtübernahme oder den Wachenrundgang. |
+| Dienstanweisung | work instruction | `SOP` | Versioniertes Dokument der Wache mit Lesebestätigung, auch für heilkundliche Maßnahmen. |
+| Außer Kraft | no longer in force | – | Dienstanweisung, die nicht mehr gilt. Sie bleibt mit allen Lesebestätigungen erhalten (Paket B). |
+| Fahrzeugzustand | vehicle condition | `Fahrzeugstatus`, FMS-Status | Genau fünf Zustände: Einsatzbereit, Eingeschränkt, Desinfektion, Werkstatt, Außer Dienst. Keine Einsatzphasen, keine Statusziffern. |
+| Einsatzbereit | ready for service | – | Fahrzeugzustand. |
+| Eingeschränkt | restricted | – | Fahrzeugzustand: nutzbar, aber mit Einschränkung. |
+| Desinfektion | disinfection | – | Fahrzeugzustand und Vorgang. Ein Fahrzeug bis zur Freigabe nach der Desinfektion ist im Zustand „Desinfektion“, nicht „Gesperrt“. Stufen heißen nach ihrer Wirkung (etwa „Schlussdesinfektion (viruzid)“), nie nach Erregern. Art und Stufe sehen bis 0.28 nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen sehen „Desinfektion“ mit Datum und Mittel. |
+| Werkstatt | workshop | – | Fahrzeugzustand. |
+| Außer Dienst | out of service | – | Fahrzeugzustand, vorübergehend. Nur für Fahrzeuge. |
+| Fahrzeugübernahme | vehicle takeover | `Cockpit` | Prüfung des Fahrzeugs zu Schichtbeginn, nie „Übergabe“. Seiten heißen „Fahrzeugseite“ oder „Geräteseite“, nicht „Cockpit“. |
+| Füllstände | fill levels | Telemetrie | Kraftstoff, AdBlue und Sauerstoff am Fahrzeug. „Telemetrie“ nur im Datenschutzsinn („keine Telemetrie“). |
+| Medizingerät | medical device | `Asset` | Gerät nach MPBetreibV mit Gerätebuch, Prüffristen und Einweisungen. |
+| Funktionskontrolle | function check | – | Kontrolle vor dem Gebrauch. Die Schaltfläche heißt „Funktion geprüft“. |
+| Stornieren | cancel | – | Die eigene Funktionskontrolle innerhalb von 5 Minuten zurücknehmen. Das Storno ist ein neuer Datensatz, die Kontrolle bleibt erhalten (Paket B). |
+| Einweisung | instruction | – | Einweisung einer Person in ein Medizingerät nach MPBetreibV. Einträge werden nur ergänzt, nie geändert (Paket B). |
+| Gültige Einweisung | valid instruction | – | Die aktuell geltende Einweisung einer Person in ein Gerät (Paket B). |
+| Einweisungspflicht | instruction requirement | – | Je Wache einschaltbar, nur durch den Master-Admin. Ohne gültige Einweisung ist „Funktion geprüft“ für diese Person gesperrt; ein Befund „Nein“ und eine Mangelmeldung werden trotzdem gespeichert. |
+| Gesperrt | locked | – | Medizingerät vorübergehend nicht nutzbar, etwa nach nicht bestandener Funktionskontrolle oder bei offenem Mangel. Aufgehoben nur über die Freigabe. Als Zustand nur für Medizingeräte. Heute teils „Außer Betrieb (Gesperrt)“ (B4). |
+| Außer Betrieb nehmen | decommission | – | Dauerhaft; alle Nachweise bleiben erhalten (Paket B). Oberbegriff für Fahrzeuge, Geräte, Mittel und Dienstanweisungen. Am Objekt heißt es „Ausmustern“ (Fahrzeug, Medizingerät) oder „Außer Kraft“ (Dienstanweisung). Nie für eine vorübergehende Sperre. |
+| Ausmustern | retire | – | Fahrzeug oder Medizingerät dauerhaft außer Betrieb nehmen. Danach im Zustand „Ausgemustert“ (Paket B). |
+| Wachenterminal | station terminal | – | Touch-Gerät in der Wache mit eigenem Dienstkonto, kein persönliches Konto. Nur Alltagsbereiche; keine Lesebestätigung, keine Medizingeräte, keine Fahrzeugübernahme (AGENTS.md § 4). |
+| Sperrbildschirm | lock screen | – | Ruheanzeige des Wachenterminals mit Uhr, Übergaben, Aufgaben und Fahrzeugen. |
+| Wachen-Code | station code | – | Vierstelliger Code, der das Wachenterminal entsperrt. |
+| Wachen-Display | station display | – | Vollbildanzeige, etwa in der Fahrzeughalle, geöffnet über einen Display-Link. |
+| Display-Link | display link | `Display-Token` | Widerrufbarer Zugangs-Link für ein Wachen-Display. |
+| Push-Benachrichtigung | push notification | `Push-Mitteilung` | Benachrichtigung auf Handy oder PC. |
+| Audit | audit | `Logbuch` | Nachvollziehbare Protokollierung der Änderungen. Einträge werden nur ergänzt. |
+| Geräte & Schlüssel | equipment & keys | `Poolbestand` | Modul für Geräte, Schlüssel und Poolmaterial mit Ausgabe und Rückgabe. |
+| Dienstanweisungen & Telefonbuch | work instructions & phone book | `Desk` | Modul für die Dienstanweisungen und das Telefonbuch der Wache. |
+| Mitglied | member | – | Rolle. |
+| Schichtleitung | shift lead | – | Rolle. |
+| Kassenwart | cashier | – | Rolle für die Kaffeekasse. |
+| Master-Admin | master admin | – | Rolle, „der Master-Admin“. |
+| Auditor | auditor | – | Rolle mit Lesezugriff ohne fachliche Freitexte. |
+| Druckansicht | print view | – | Seite zum Ausdrucken leerer Formulare für die Papier-Rückfallebene (Paket G). Kein PDF. |
+| Stammdaten-Import | master data import | – | Import von Artikeln, Lagerorten, Medizingeräten und Fahrzeugen als CSV (Paket F). Konten nur als Einladungen. |
+<!-- glossar:end -->
+
+### Modulnamen (Ziel für B4, 0.28)
+
+Jedes Modul hat einen Namen für die Kachel unter „Mehr“, die Überschrift
+(`h1`) und den Seitentitel. Die Leiste darf eine Kurzform nutzen. Neue Seiten
+in 0.27 verwenden diese Namen. Bestehende Seiten behalten ihren Namen, bis B4
+sie umbenennt. Die erste Spalte ist der Schlüssel `data-more` der Kachel in
+`templates/core/more.html`; „–“ in der Spalte „Leiste“ heißt: nicht in der
+Leiste wählbar.
+
+<!-- modulnamen:begin -->
+| Bereich | Kachel, h1 und Titel | Leiste | Heute abweichend |
+|---|---|---|---|
+| `fleet` | Fahrzeuge | Fahrzeuge | Kachel und h1 „Fuhrpark & Fahrzeuge“, Titel „Fuhrpark & Hygiene“, Leiste „Fuhrpark“ |
+| `mpg` | Medizingeräte | Medizingeräte | Kachel, h1 und Titel „MPG & Medizingeräte“, Leiste „MPG & Geräte“ (mehrdeutig neben „Geräte“) |
+| `assets` | Geräte & Schlüssel | Geräte & Schlüssel | Kachel „Geräte & Poolbestand“, h1 und Titel „Geräte & Status“, Leiste „Geräte“ |
+| `orga` | Dienstanweisungen & Telefonbuch | Dienstanweisungen | Kachel und Titel „Organisation & Desk“, h1 „Organisation & Dienstanweisungen“, Leiste „Organisation“ |
+| `defects` | Mängel | Mängel | Kachel „Mängel & Werkstatt“ |
+| `tasks` | Tagesaufgaben | Aufgaben | – |
+| `calendar` | Kalender | Kalender | Kachel „Wachenkalender“ |
+| `reports` | Auswertung | Auswertung | Kachel „Auswertung & Kennzahlen“ |
+| `display_tokens` | Display-Links | – | Kachel „Display-Tokens“, h1 und Titel „Wachen-Display“ (wie das Display selbst) |
+| `audit` | Audit | – | Kachel „Audit-Logbuch“ |
+| `push` | Push-Benachrichtigungen | – | Kachel „Push-Mitteilungen“, Titel „Benachrichtigungen“ |
+| `team` | Team & Rollen | – | Titel „Team“ |
+| `invites` | Offene Aktivierungen | – | Kachel „Mitarbeiter-Aktivierungen“ |
+<!-- modulnamen:end -->
 
 ## Informationsarchitektur
 
