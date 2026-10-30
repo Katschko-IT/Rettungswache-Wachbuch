@@ -965,10 +965,6 @@ def reports(request):
         return error
     now = timezone.now()
     open_qs = Defect.objects.filter(station=station).exclude(status=Defect.Status.DONE)
-    by_owner = [
-        {"owner": row["owner__username"] or "", "count": row["count"]}
-        for row in open_qs.values("owner__username").annotate(count=Count("id")).order_by("-count", "owner__username")
-    ]
     assets = StationAsset.objects.filter(station=station)
     asset_total = assets.count()
     asset_ready = assets.filter(status=StationAsset.Status.READY).count()
@@ -981,7 +977,10 @@ def reports(request):
             "ok": True,
             "open_defects": open_qs.count(),
             "overdue_defects": overdue_defects,
-            "defects_by_owner": by_owner,
+            # Veraltet seit 0.26.1: offene Mängel je Person sind Leistungsdaten
+            # (AGENTS.md § 1). Das Feld bleibt für ältere Clients als leere
+            # Liste erhalten und entfällt in einer späteren API-Version.
+            "defects_by_owner": [],
             "oldest_open_days": oldest_days,
             "overdue_checks": overdue_checks,
             "assets_total": asset_total,

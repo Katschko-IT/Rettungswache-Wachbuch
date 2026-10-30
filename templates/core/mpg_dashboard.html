@@ -150,12 +150,12 @@
             <span class="status-label danger">{% translate "Außer Betrieb" %}</span>
           {% endif %}
 
-          {# 1-Tap Express Check #}
-          <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}">
+          {# Schnellkontrolle: nur nach ausdrücklicher Bestätigung #}
+          <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% blocktranslate with name=device.name %}„{{ name }}“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?{% endblocktranslate %}">
             {% csrf_token %}
             <input type="hidden" name="quick_pass" value="1">
-            <button type="submit" class="button secondary small" title="{% translate 'Tägliche Funktionskontrolle mit 1 Tap als bestanden bestätigen' %}">
-              {% include "core/_icon.html" with name="check" %}{% translate "Check" %}
+            <button type="submit" class="button secondary small">
+              {% include "core/_icon.html" with name="check" %}{% translate "Alles in Ordnung – Funktion geprüft" %}
             </button>
           </form>
 

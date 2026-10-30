@@ -105,10 +105,10 @@ class MPGModuleTests(TestCase):
         self.assertIsNotNone(self.device.last_routine_check)
         self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
 
-        # Ein fehlender Prüfpunkt sperrt das Gerät und legt einen Mangel an
+        # Ein „Nein“ sperrt das Gerät und legt einen Mangel an
         resp_fail = self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"battery_ok": "on", "visual_ok": "on", "notes": "Defektes EKG-Kabel"},
+            data={"battery_ok": "yes", "visual_ok": "yes", "function_ok": "no", "notes": "Defektes EKG-Kabel"},
         )
         self.assertEqual(resp_fail.status_code, 302)
         self.device.refresh_from_db()
@@ -122,7 +122,7 @@ class MPGModuleTests(TestCase):
     def test_passed_flag_cannot_contradict_check_items(self):
         self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"passed": "on", "battery_ok": "on", "visual_ok": "on"},
+            data={"passed": "on", "battery_ok": "yes", "visual_ok": "yes", "function_ok": "no"},
         )
         check = DeviceRoutineCheck.objects.filter(device=self.device).latest("checked_at")
         self.assertFalse(check.passed)
@@ -230,7 +230,12 @@ class MPGModuleTests(TestCase):
         # Ein „PASS“ im gescannten Text ersetzt keine bestätigten Prüfpunkte.
         self.client.post(
             reverse("mpg_routine_check", args=[self.device.slug]),
-            data={"selftest_protocol": "CP3;SELFTEST:PASS;DEF:200J;BAT:98%"},
+            data={
+                "battery_ok": "yes",
+                "visual_ok": "yes",
+                "function_ok": "no",
+                "selftest_protocol": "CP3;SELFTEST:PASS;DEF:200J;BAT:98%",
+            },
         )
         check = DeviceRoutineCheck.objects.filter(device=self.device).latest("checked_at")
         self.assertFalse(check.passed)
@@ -243,9 +248,9 @@ class MPGModuleTests(TestCase):
         self.client.post(
             reverse("mpg_routine_check", args=[device.slug]),
             data={
-                "battery_ok": "on",
-                "visual_ok": "on",
-                "function_ok": "on",
+                "battery_ok": "yes",
+                "visual_ok": "yes",
+                "function_ok": "yes",
                 "selftest_protocol": "WEINMANN;SELFTEST:FAIL",
             },
         )

@@ -70,8 +70,11 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - MTK (Messtechnische Kontrolle gem. § 15 MPBetreibV).
   - Ampel: Rot (<= 30 Tage / abgelaufen), Gelb (31–60 Tage), Grün (> 60 Tage).
 - **Funktionskontrolle**:
-  - Die prüfende Person bestätigt Energieversorgung, Sichtprüfung und Selbsttest einzeln
-    (oder alle drei per Schnellkontrolle). Fehlt ein Punkt, ist die Kontrolle nicht bestanden.
+  - Die prüfende Person beantwortet Energieversorgung, Sichtprüfung und Selbsttest einzeln mit
+    Ja oder Nein. Nichts ist vorausgewählt; ohne Antwort auf jeden Punkt wird nichts gespeichert.
+    Ein „Nein“ heißt nicht bestanden.
+  - Die Schnellkontrolle „Alles in Ordnung – Funktion geprüft“ trägt alle drei Punkte als „Ja“
+    ein und fragt vorher ausdrücklich nach.
   - Ein Selbsttest-Ausdruck oder gescannter Gerätecode kann als Notiz angehängt werden. Er wird
     **nicht** ausgewertet: Herstellerformate sind nicht dokumentiert, eine Heuristik würde
     Kontrollen falsch als bestanden eintragen.
@@ -93,7 +96,9 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Formatierte Versionsnummern (`vX.Y`) mit Revisionshistorie.
   - **Integritätsnachweis**: SHA-256 Prüfsumme über den Dokumenteninhalt zur Manipulationssicherheit gem. GoBD und ISO 27001.
 - **Persönliche Lesequittierung**:
-  - Mitarbeiter quittieren wichtige Anweisungen mit Zeitstempel.
+  - Mitarbeiter quittieren wichtige Anweisungen mit Zeitstempel. Gespeichert werden Person,
+    Version und Zeitpunkt; IP-Adresse und Browser nicht (seit 0.26.1). Ältere Einträge mit
+    diesen Angaben bleiben unverändert, werden aber weder angezeigt noch exportiert.
   - Wachenleitung sieht in Echtzeit die Quittierungsquote je Dokument.
 - **Notfall-Kurzwahlliste**:
   - Wichtige Ansprechpartner (ILS, Leitender Notarzt, Giftnotruf, Desinfektor, Werkstatt) mit 1-Tap Click-to-Call.

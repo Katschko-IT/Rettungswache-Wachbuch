@@ -300,7 +300,13 @@ def mpg_routine_check(request, slug: str):
     else:
         form = DeviceRoutineCheckForm(request.POST)
         if not form.is_valid():
-            messages.error(request, "Ungültige Eingaben bei der Funktionskontrolle.")
+            if any(name in form.errors for name in DeviceRoutineCheckForm.CHECK_POINTS):
+                messages.error(
+                    request,
+                    _("Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."),
+                )
+            else:
+                messages.error(request, "Ungültige Eingaben bei der Funktionskontrolle.")
             return redirect("mpg_device_detail", slug=device.slug)
         check = form.save(commit=False)
         check.station = station

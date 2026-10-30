@@ -113,7 +113,7 @@
     {% csrf_token %}
     <input type="hidden" name="quick_pass" value="1">
     <button type="submit" class="button primary">
-      {% include "core/_icon.html" with name="check" %}{% translate "Alles geprüft, in Ordnung" %}
+      {% include "core/_icon.html" with name="check" %}{% translate "Alles in Ordnung – Funktion geprüft" %}
     </button>
   </form>
 
@@ -266,12 +266,13 @@
     <h2 id="check-modal-title">{% translate "Funktionskontrolle dokumentieren" %}</h2>
     <form method="post" action="{% url 'mpg_routine_check' device.slug %}">
       {% csrf_token %}
-      <p class="muted text-small">{% translate "Hake nur an, was du selbst geprüft hast. Fehlt ein Haken, gilt die Kontrolle als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
-      <div class="check-list">
-        <label><input type="checkbox" name="battery_ok"> {% translate "Energieversorgung / Akkus geladen" %}</label>
-        <label><input type="checkbox" name="visual_ok"> {% translate "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)" %}</label>
-        <label><input type="checkbox" name="function_ok"> {% translate "Selbsttest / Gerätestart fehlerfrei" %}</label>
-      </div>
+      <p class="muted text-small">{% translate "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt." %}</p>
+      {% for point in check_form.check_points %}
+        <fieldset class="choice-tiles">
+          <legend>{{ point.label }}</legend>
+          {% for radio in point %}<label class="choice-tile" for="{{ radio.id_for_label }}">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+        </fieldset>
+      {% endfor %}
       <div class="field">
         <label for="check_notes">{% translate "Bemerkungen / Feststellungen:" %}</label>
         <input type="text" id="check_notes" name="notes" maxlength="200" placeholder="{% translate 'Optional' %}">
