@@ -1,0 +1,34 @@
+{% load i18n %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Zeile" %}</th>
+        <th scope="col">{% translate "Eintrag" %}</th>
+        <th scope="col">{% translate "Ergebnis" %}</th>
+        <th scope="col">{% translate "Hinweise" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td class="num">{{ row.line }}</td>
+          <td>{{ row.label|default:"–" }}</td>
+          <td>
+            {% if row.status == "error" %}<span class="badge badge-fail">{% translate "Fehler" %}</span>
+            {% elif row.status == "skipped" %}<span class="badge badge-neutral">{% translate "Bereits vorhanden – wird übersprungen" %}</span>
+            {% else %}<span class="badge badge-pass">{% translate "Neu" %}</span>{% endif %}
+          </td>
+          <td>
+            {% if row.errors or row.notes %}
+              <ul class="import-messages">
+                {% for message in row.errors %}<li class="field-error">{{ message }}</li>{% endfor %}
+                {% for message in row.notes %}<li>{{ message }}</li>{% endfor %}
+              </ul>
+            {% else %}–{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

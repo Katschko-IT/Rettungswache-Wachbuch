@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Import abgeschlossen" %} · {{ import_kind.title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{{ import_kind.title }}</p>
+  <h1>{% translate "Import abgeschlossen" %}</h1>
+  <p class="lead">{% blocktranslate with created=counts.created skipped=counts.skipped %}Neu angelegt: {{ created }} · Übersprungen: {{ skipped }}{% endblocktranslate %}</p>
+</header>
+
+<div class="alert" role="status">
+  <p class="m-0">{% translate "Die Datei wurde nicht gespeichert. Prüfsumme (SHA-256):" %} <code>{{ report.digest }}</code></p>
+</div>
+
+{% if report.rows_with_messages %}
+  <section class="section-block">
+    <h2>{% translate "Bitte nacharbeiten" %}</h2>
+    <p>{% translate "Diese Zeilen hatten Hinweise. Die Angaben bitte in Wachwerk prüfen." %}</p>
+    {% include "core/_masterdata_import_rows.html" with rows=report.rows_with_messages %}
+  </section>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Wie geht es weiter?" %}</h2>
+  <div class="form-actions">
+    {% if import_kind.next_url_name %}
+      <a class="button primary" href="{% url import_kind.next_url_name %}">{{ import_kind.next_label }}</a>
+    {% endif %}
+    {% if next_kind %}
+      <a class="button secondary" href="{% url 'masterdata_import_run' next_kind.slug %}">{% blocktranslate with title=next_kind.title %}Weiter mit: {{ title }}{% endblocktranslate %}</a>
+    {% endif %}
+    <a class="button secondary" href="{% url 'masterdata_import' %}">{% translate "Zur Import-Übersicht" %}</a>
+  </div>
+</section>
+{% endblock %}

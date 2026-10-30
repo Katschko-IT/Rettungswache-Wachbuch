@@ -16,6 +16,8 @@
  *   data-auto-submit               sendet das Formular bei Änderung ab
  *   data-print                     öffnet den Druckdialog
  *   data-confirm="Frage?"          Formular nur nach Bestätigung absenden
+ *   data-submit-once               Formular nur einmal absenden (Doppelklick);
+ *                                  nach „Zurück“ im Browser wieder frei
  *   data-scanner                   Kamera-Scanner im Modal (siehe unten)
  *   data-filter-input="selector"   Live-Filter über Karten (Seite „Mehr“)
  *   data-pin-pad="input-id"        Ziffernblock für ein Code-Feld (Wachenterminal)
@@ -149,6 +151,29 @@
     var question = form.getAttribute && form.getAttribute("data-confirm");
     if (question && !window.confirm(question)) {
       event.preventDefault();
+      return;
+    }
+    if (form.hasAttribute && form.hasAttribute("data-submit-once")) {
+      if (form.getAttribute("data-submitted") === "1") {
+        event.preventDefault();
+        return;
+      }
+      form.setAttribute("data-submitted", "1");
+      each("[type=submit]", form, function (button) {
+        button.setAttribute("aria-disabled", "true");
+      });
+    }
+  });
+
+  // Aus dem Browser-Verlauf wiederhergestellte Seiten: Formulare wieder freigeben.
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      each("form[data-submit-once][data-submitted]", document, function (form) {
+        form.removeAttribute("data-submitted");
+        each("[type=submit]", form, function (button) {
+          button.removeAttribute("aria-disabled");
+        });
+      });
     }
   });
 

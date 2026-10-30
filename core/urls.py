@@ -11,6 +11,7 @@ from . import (
     fleet_views,
     help_views,
     i18n_views,
+    masterdata_import_views,
     module_views,
     mpg_views,
     news_views,
@@ -207,5 +208,16 @@ urlpatterns = [
     path("team/<int:pk>/zwei-faktor-zuruecksetzen/", views.membership_mfa_reset, name="membership_mfa_reset"),
     path("einstellungen/", views.station_settings, name="station_settings"),
     path("einstellungen/impressum/", views.legal_settings, name="legal_settings"),
+    path("einstellungen/import/", masterdata_import_views.masterdata_import, name="masterdata_import"),
+    path(
+        "einstellungen/import/<slug:kind>/",
+        masterdata_import_views.masterdata_import_run,
+        name="masterdata_import_run",
+    ),
+    path(
+        "einstellungen/import/<slug:kind>/vorlage.csv",
+        masterdata_import_views.masterdata_import_template,
+        name="masterdata_import_template",
+    ),
     path("audit/", views.audit_log, name="audit_log"),
 ]

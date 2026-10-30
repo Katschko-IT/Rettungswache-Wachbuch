@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .models import Station
 
@@ -271,6 +272,8 @@ class StockMovement(models.Model):
         DISCARD_EXPIRED = "discard_expired", "Ausscheidung (Verfall)"
         RECALL_QUARANTINE = "recall_quarantine", "Sperrung (BfArM-Rückruf)"
         INVENTORY_CORRECTION = "correction", "Inventur-Korrektur"
+        # Erstbuchung beim CSV-Stammdatenimport (core/masterdata_import.py).
+        LEGACY_IMPORT = "legacy", _("Übernahme Altbestand")
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="stock_movements")
     item = models.ForeignKey(MedicalItem, on_delete=models.PROTECT, related_name="movements")

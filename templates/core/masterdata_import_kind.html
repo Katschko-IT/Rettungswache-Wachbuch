@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ import_kind.title }} | {% translate "Stammdaten importieren" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'masterdata_import' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zum Import" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{% translate "Stammdaten importieren" %}</p>
+  <h1>{{ import_kind.title }}</h1>
+  <p class="lead">{{ import_kind.description }}</p>
+</header>
+
+{% if file_error %}
+  <div class="alert danger" role="alert"><p class="m-0">{{ file_error }}</p></div>
+{% endif %}
+
+<section class="section-block">
+  <h2>{% translate "Datei prüfen" %}</h2>
+  {% include "core/_masterdata_import_upload.html" %}
+  <p>
+    <a class="button secondary" href="{% url 'masterdata_import_template' import_kind.slug %}">
+      {% include "core/_icon.html" with name="download" %}{% translate "Vorlage herunterladen" %}
+    </a>
+  </p>
+</section>
+
+<section class="section-block">
+  <h2>{% translate "Was wird nicht übernommen?" %}</h2>
+  <p>{{ import_kind.not_imported_text }}</p>
+</section>
+
+<section class="section-block">
+  <h2>{% translate "Spalten" %}</h2>
+  <p class="help-text">{% translate "Die Überschriften sind fest und bleiben deutsch. Spalten mit * sind Pflicht. Die Reihenfolge ist egal; unbekannte Spalten werden ignoriert." %}</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Spalte" %}</th>
+          <th scope="col">{% translate "Pflicht" %}</th>
+          <th scope="col">{% translate "Bedeutung" %}</th>
+          <th scope="col">{% translate "Erlaubte Werte" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in columns %}
+          <tr>
+            <td><code>{{ entry.column.header }}</code>{% for alias in entry.column.aliases %}<br><small>{% translate "auch:" %} <code>{{ alias }}</code></small>{% endfor %}</td>
+            <td>{% if entry.column.required %}{% translate "Ja" %}{% else %}–{% endif %}</td>
+            <td>{{ entry.column.help }}</td>
+            <td>{{ entry.allowed|join:", "|default:"–" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

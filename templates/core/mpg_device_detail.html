@@ -193,11 +193,14 @@
       <div><dt>{% translate "CE-Kennnummer:" %}</dt><dd>{{ device.ce_notified_body|default:"-" }}</dd></div>
       <div><dt>{% translate "Baujahr / Anschaffung:" %}</dt><dd>{{ device.year_of_manufacture|default:"-" }}{% if device.acquired_at %} ({{ device.acquired_at|date:"d.m.Y" }}){% endif %}</dd></div>
       <div><dt>{% translate "STK-Intervall:" %}</dt><dd>{{ device.stk_interval_months }} {% translate "Monate" %}</dd></div>
-      <div><dt>{% translate "Nächste STK:" %}</dt><dd>{{ device.next_stk_date|date:"d.m.Y"|default:"-" }}</dd></div>
-      {% if device.is_anlage_2 %}<div><dt>{% translate "Nächste MTK:" %}</dt><dd>{{ device.next_mtk_date|date:"d.m.Y"|default:"-" }}</dd></div>{% endif %}
-      <div><dt>{% translate "Nächste DGUV V3:" %}</dt><dd>{{ device.next_dguv_date|date:"d.m.Y"|default:"-" }}</dd></div>
+      <div><dt>{% translate "Nächste STK:" %}</dt><dd>{{ device.next_stk_date|date:"d.m.Y"|default:"-" }}{% if 'stk' in legacy_open %} <span class="badge badge-info">{% translate "Altbestand" %}</span>{% endif %}</dd></div>
+      {% if device.is_anlage_2 %}<div><dt>{% translate "Nächste MTK:" %}</dt><dd>{{ device.next_mtk_date|date:"d.m.Y"|default:"-" }}{% if 'mtk' in legacy_open %} <span class="badge badge-info">{% translate "Altbestand" %}</span>{% endif %}</dd></div>{% endif %}
+      <div><dt>{% translate "Nächste DGUV V3:" %}</dt><dd>{{ device.next_dguv_date|date:"d.m.Y"|default:"-" }}{% if 'dguv' in legacy_open %} <span class="badge badge-info">{% translate "Altbestand" %}</span>{% endif %}</dd></div>
       <div><dt>{% translate "Letzter Funktionscheck:" %}</dt><dd>{{ device.last_routine_check|date:"d.m.Y H:i"|default:"-" }}</dd></div>
     </dl>
+    {% if device.legacy_imported_at %}
+      <p class="note-box">{% blocktranslate with date=device.legacy_imported_at|date:"d.m.Y" %}Aus Altbestand übernommen am {{ date }}. Frühere Prüfungen und Einweisungen sind in den Papierunterlagen dokumentiert.{% endblocktranslate %}</p>
+    {% endif %}
     {% if device.notes %}
       <div class="note-box">
         <strong>{% translate "Notiz:" %}</strong> {{ device.notes }}

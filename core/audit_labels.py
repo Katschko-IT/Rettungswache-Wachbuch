@@ -115,6 +115,11 @@ ACTION_LABELS = {
     "feedback.deleted": _("Rückmeldung gelöscht"),
     "push.outbox_failed": _("Push-Benachrichtigung nicht zustellbar"),
     "system.legacy_cleanup": _("Altdaten einmalig bereinigt"),
+    # Stammdatenimport (core/masterdata_import.py); Anzahl steht in metadata["counts"].
+    "import.storage_locations": _("Lagerorte importiert"),
+    "import.articles": _("Artikel importiert"),
+    "import.stock": _("Altbestand ins Lager übernommen"),
+    "import.medical_devices": _("Medizingeräte importiert (Altbestand)"),
 }
 
 OBJECT_LABELS = {

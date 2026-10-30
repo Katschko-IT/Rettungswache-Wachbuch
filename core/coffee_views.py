@@ -25,6 +25,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from . import coffee as logic
 from .access import CONTENT_ROLES, membership_required, station_module_required
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
+from .csv_safety import starts_like_formula
 from .forms import (
     CoffeeCorrectionForm,
     CoffeeCountForm,
@@ -670,7 +671,7 @@ def coffee_movement_correct(request, pk):
 def _csv_cell(value) -> str:
     text = str(value)
     # Tabellenprogramme führen Zellen mit = + - @ als Formel aus.
-    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+    return "'" + text if starts_like_formula(text) else text
 
 
 @membership_required(CASHIER)

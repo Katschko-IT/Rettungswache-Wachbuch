@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .models import Station
 
@@ -63,6 +64,15 @@ class MedicalDevice(models.Model):
     year_of_manufacture = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Baujahr")
     acquired_at = models.DateField(null=True, blank=True, verbose_name="Anschaffungsdatum")
     decommissioned_at = models.DateField(null=True, blank=True, verbose_name="Außerbetriebnahme")
+    # Nur beim CSV-Stammdatenimport gesetzt (core/masterdata_import.py); frühere
+    # Prüfungen liegen auf Papier, es entstehen keine rückdatierten Einträge.
+    legacy_imported_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name=_("Aus Altbestand übernommen am"),
+        help_text=_("Beim CSV-Import gesetzt. Frühere Prüfungen und Einweisungen liegen auf Papier."),
+    )
 
     # Standort & Status
     location = models.CharField(

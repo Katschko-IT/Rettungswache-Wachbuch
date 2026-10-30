@@ -400,6 +400,17 @@
           </div>
         </a>
 
+        {# Stammdaten importieren (CSV) #}
+        <a class="more-card-item" data-filter-item data-more="import" data-order="{{ more_order.invites|default:44|add:1 }}" href="{% url 'masterdata_import' %}">
+          <div class="more-card-top">
+            <span class="more-card-icon">{% include "core/_icon.html" with name="upload" %}</span>
+          </div>
+          <div>
+            <strong class="more-card-title">{% translate "Stammdaten importieren" %}</strong>
+            <span class="more-card-desc">{% translate "Lagerorte, Artikel, Bestand und Medizingeräte aus einer CSV-Datei übernehmen." %}</span>
+          </div>
+        </a>
+
         {# Darstellung #}
         <a class="more-card-item" data-filter-item data-more="appearance" data-order="{{ more_order.appearance|default:45 }}" href="{% url 'presentation_settings' %}">
           <div class="more-card-top">

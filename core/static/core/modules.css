@@ -646,3 +646,26 @@ body.has-open-modal { overflow: hidden; }
   user-select: all;
 }
 .form-card-secondary { margin-top: var(--space-3); }
+
+/* Stammdatenimport (/einstellungen/import/): Schritte, Arten, Zeilenmeldungen. */
+.import-steps { margin: 0 0 var(--space-3); padding-left: 1.4rem; }
+.import-steps li + li { margin-top: var(--space-2); }
+.import-steps .help-text { display: block; }
+.import-kind-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-3);
+}
+.import-kind-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.import-kind-card h3, .import-kind-card p { margin: 0; }
+.import-kind-card .form-actions { margin-top: auto; }
+.import-messages { margin: 0; padding-left: 1rem; }
+.import-messages li + li { margin-top: .15rem; }

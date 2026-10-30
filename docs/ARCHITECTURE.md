@@ -206,6 +206,26 @@ sequenceDiagram
     end
 ```
 
+### **4. Stammdaten-Import (CSV)**
+
+Nur Master-Admins, nur die eigene Wache (`core/masterdata_import.py`). Der
+Import ist kein allgemeiner Datei-Upload (AGENTS.md § 4): Die CSV-Datei wird
+geprüft, verarbeitet und verworfen.
+
+1. Browser → Proxy → Django: Upload höchstens 1 MB, im Arbeitsspeicher gelesen,
+   normaler CSRF-Schutz.
+2. Prüfen: Zeichenkodierung, Trennzeichen, Spalten; jede Zeile gegen die
+   einmal vorgeladenen Daten der Wache.
+3. Trockenlauf: derselbe Import in `transaction.atomic()`, danach
+   `set_rollback(True)`. Die Vorschau zeigt das Ergebnis je Zeile.
+4. Signierte Vorschau: Inhalt als Base64 im Formular, SHA-256 und ein Token
+   über Wache, Person, Art, Prüfsumme und Ergebnis (1 h). Nichts in Sitzung
+   oder Datenbank.
+5. Bestätigen: erneute Prüfung; weicht das Ergebnis von der Vorschau ab, wird
+   nichts angelegt. Sonst alle Zeilen in einer Transaktion (Sperre der Wache mit
+   `FOR NO KEY UPDATE`, damit parallele Einträge der Wache nicht warten) plus
+   genau ein Audit-Eintrag mit Anzahl und SHA-256.
+
 ---
 
 ## 🔒 **Vertrauensgrenzen**
