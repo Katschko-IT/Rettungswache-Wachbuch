@@ -27,8 +27,8 @@
 {# Fuhrpark-Kennzahlen: Farbe nur bei Handlungsbedarf #}
 <div class="kpi-grid">
   <div class="kpi-card">
-    <span class="kpi-value">{{ kpis.status_1|add:kpis.status_2 }}</span>
-    <span class="kpi-label">{% translate "Einsatzbereit (Status 1/2)" %}</span>
+    <span class="kpi-value">{{ kpis.ready }}</span>
+    <span class="kpi-label">{% translate "Einsatzbereit" %}</span>
   </div>
   <div class="kpi-card{% if kpis.disinfection %} border-warning{% endif %}">
     <span class="kpi-value">{{ kpis.disinfection }}</span>
@@ -36,7 +36,7 @@
   </div>
   <div class="kpi-card{% if kpis.workshop %} border-danger{% endif %}">
     <span class="kpi-value">{{ kpis.workshop }}</span>
-    <span class="kpi-label">{% translate "Werkstatt / Status 6" %}</span>
+    <span class="kpi-label">{% translate "Werkstatt / außer Dienst" %}</span>
   </div>
   <div class="kpi-card{% if kpis.urgent_inspections %} border-warning{% endif %}">
     <span class="kpi-value">{{ kpis.urgent_inspections }}</span>
@@ -51,7 +51,7 @@
 {# Filter & Suchleiste #}
 <nav class="filter-tabs fleet-filter" aria-label="{% translate 'Fuhrpark Ansicht' %}">
   <a href="?filter=all{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Fahrzeuge" %} <span class="count">({{ vehicles|length }})</span></a>
-  <a href="?filter=ready{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ready' %}aria-current="page"{% endif %}><span class="dot dot-success" aria-hidden="true"></span>{% translate "Einsatzbereit (1 & 2)" %}</a>
+  <a href="?filter=ready{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ready' %}aria-current="page"{% endif %}><span class="dot dot-success" aria-hidden="true"></span>{% translate "Einsatzbereit" %} <span class="count">({{ kpis.ready }})</span></a>
   <a href="?filter=disinfection{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'disinfection' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "In Desinfektion" %} <span class="count">({{ kpis.disinfection }})</span></a>
   <a href="?filter=workshop{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'workshop' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Werkstatt / Ausfall" %} <span class="count">({{ kpis.workshop }})</span></a>
   <a href="?filter=urgent_inspections{% if vehicle_type %}&type={{ vehicle_type }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent_inspections' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Fristen fällig" %} <span class="count">({{ kpis.urgent_inspections }})</span></a>
@@ -105,18 +105,15 @@
           </div>
           <small>{{ vehicle.chassis_manufacturer }} &middot; {{ vehicle.body_manufacturer }} &middot; {{ vehicle.current_mileage|default:0 }} km</small>
           <div class="cluster">
-            {% if vehicle.tactical_status == '1' %}
-              <span class="status-label status-done">Status 1: Einsatzbereit Wache</span>
-            {% elif vehicle.tactical_status == '2' %}
-              <span class="status-label status-done">Status 2: Einsatzbereit Funk</span>
-            {% elif vehicle.tactical_status == '3' or vehicle.tactical_status == '4' %}
-              <span class="status-label info">Status {{ vehicle.tactical_status }}: Im Einsatz</span>
-            {% elif vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
-              <span class="status-label warning">Desinfektion (Gesperrt)</span>
+            {# Nur Verfügbarkeit; keine Statusnummern oder Einsatzphasen #}
+            {% if vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
+              <span class="status-label warning">{% translate "Desinfektion (gesperrt)" %}</span>
             {% elif vehicle.tactical_status == 'workshop' %}
-              <span class="status-label danger">Werkstatt</span>
+              <span class="status-label danger">{{ vehicle.get_tactical_status_display }}</span>
+            {% elif vehicle.tactical_status == '6' %}
+              <span class="status-label">{{ vehicle.get_tactical_status_display }}</span>
             {% else %}
-              <span class="status-label">Status 6: Außer Dienst</span>
+              <span class="status-label status-done">{% translate "Einsatzbereit" %}</span>
             {% endif %}
           </div>
           {% if vehicle.is_disinfection_locked %}

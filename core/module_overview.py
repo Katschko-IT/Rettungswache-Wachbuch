@@ -28,7 +28,7 @@ def module_attention_cards(station, user) -> list[dict]:
     if station.fleet_enabled:
         from .fleet_models import Vehicle
 
-        ready = {Vehicle.TacticalStatus.STATUS_1, Vehicle.TacticalStatus.STATUS_2}
+        ready = set(Vehicle.READY_STATUSES)
         vehicles = list(Vehicle.objects.filter(station=station, is_active=True))
         if vehicles:
             not_ready = sum(1 for v in vehicles if v.tactical_status not in ready or v.is_disinfection_locked)

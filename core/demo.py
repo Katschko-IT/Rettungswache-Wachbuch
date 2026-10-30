@@ -322,7 +322,7 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
          "Larynxmasken Größe 2 fehlen. Nachschub ist im Zentrallager bestellt; bis dahin das Set aus dem "
          "Reserverucksack nehmen.", [jonas]),
         (jonas, 3, "vehicle", "urgent", "in_progress", "RTW 83-3: Blaulicht hinten links ohne Funktion",
-         "Fahrzeug steht auf Status 6. Werkstatttermin ist im Kalender eingetragen, Ersatz ist RTW 83-2.",
+         "Fahrzeug ist außer Dienst. Werkstatttermin ist im Kalender eingetragen, Ersatz ist RTW 83-2.",
          [lead, tim]),
         (member, 5, "vehicle", "important", "open", "RTW 83-1 – Tankstand unter einem Viertel",
          "Nach der letzten Fahrt nicht mehr getankt. Tankkarte liegt im Fahrzeug.", [lea]),
