@@ -10,7 +10,9 @@ einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
 
 - `sudo /opt/wachbuch/wachbuch update` (oder nachts mit `auto-update an alle`)
   macht vorher ein Backup, lädt Dateien und Images und startet neu.
-- Migrationen `0058` bis `0065`: Der Code von 0.25.0 läuft mit dem neuen
+- Kurze Unterbrechung beim Update: Anwendung und Worker halten vor dem
+  Backup an, damit eine Rückkehr keine Einträge verliert.
+- Migrationen `0058` bis `0066`: Der Code von 0.25.0 läuft mit dem neuen
   Schema nicht. Scheitert der Start, setzt `wachbuch` die Datenbank selbst auf
   das Backup von vor dem Update zurück; von Hand geht es zurück mit
   `wachbuch update 0.25.0` und danach `wachbuch restore <Backup>`.
@@ -20,6 +22,8 @@ einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
   Standardwerte.
 - Die öffentliche Demo (`install.sh --demo`, `DEMO_SANDBOX=true`) braucht
   0.26.0 oder neuer.
+- Caddy lauscht nur auf IPv4. Wer nach der vorläufigen Hetzner-Anleitung
+  einen AAAA-Eintrag angelegt hat, entfernt ihn; Besucher nutzen dann IPv4.
 - Server nach [docs/HETZNER.md](docs/HETZNER.md): `harden-host.sh` und
   `offsite-storagebox.sh` einmal erneut ausführen, damit Überwachung und
   Offsite-Kopie den neuen Stand bekommen.
@@ -109,13 +113,47 @@ einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
   - Kaffeekasse: „Ich habe bezahlt“ bucht bei Doppeltipp nur einmal (API:
     `duplicate: true`); CSV-Export in Ortszeit; Ziffern wie „²“ führen nicht
     mehr zu Fehler 500.
-  - Lager: Materialbuchungen auch gegen Löschen gesperrt; übernommene
-    Schlüssel, Geräte und Fahrzeuge lösen kein „Bestellen“ mehr aus.
+  - Lager: Materialbuchungen auch gegen Löschen gesperrt; Schlüssel,
+    Funkgeräte und Pool-Geräte erscheinen nicht mehr als Lagerartikel mit
+    „Kein Bestand“ (Migration 0066 entfernt alte Kopien) und lösen keine
+    falschen Mindestbestand-Warnungen mehr aus.
   - Rückmeldungen: Posteingang nur für den Betreiber der Installation.
   - Passkey-Anmeldung weist gesperrte Konten ab.
   - Tabellen auf dem Handy scrollen nicht mehr seitlich.
   - Tests: Abfragezahl-Regressionen, append-only-Sperren aller Journaltabellen,
     CSP-Prüfung über ganze Templates.
+
+- **Nach der zweiten Review behoben:**
+  - Rückkehr nach einem gescheiterten Update spielt nur genau das Backup
+    dieses Updates ein; scheitert das Backup oder seine Kopie, bricht das
+    Update ab. Anwendung und Worker halten vor dem Backup an; was die neue
+    Version bis zur Rückkehr geschrieben hat, wird vorher gesichert.
+  - Volle Platte: `.env`, `compose.yml` und die übrigen Dateien werden nur
+    noch über eine vollständige Kopie ersetzt und können nicht mehr leer
+    werden. `wachbuch restore NAME` löscht den gewählten Dump nicht mehr.
+  - `wachbuch uninstall` entfernt auch die Profile demo und signal; Rollback
+    mit `--build` stellt `compose.build.yml` wieder her; `wachwerk-health`
+    erwartet `housekeeping` nur, wo die Installation ihn kennt.
+  - Geräte & Fahrzeuge: „Ausgeben“ und „Zurückgeben“ funktionieren auf
+    PostgreSQL wieder (vorher Fehler 500); die Gegenbuchung der Kaffeekasse
+    funktioniert mit der eingeschränkten Datenbankrolle.
+  - Wand-Display: in der öffentlichen Demo ohne Livestream (Abfrage jede
+    Minute), höchstens halb so viele Streams wie Gunicorn-Threads; Auditoren
+    bekommen über die Sitzung keine Display-Daten; auf Handys passt die
+    Anzeige und hat „Zurück zur Übersicht“.
+  - Demo-Konten bekommen keine App-Tokens (auch nicht per Passwort eines in
+    der Demo angelegten Kontos); das Upload-Limit gilt für jede Schreibweise
+    von multipart; Kalender-Abo-Links sind in der Demo gesperrt; Staff- und
+    Superuser-Konten behalten die MFA-Pflicht auch mit Demo-Mitgliedschaft.
+  - Rundgang: „Rundgang abgeschlossen“ wird gezählt; die eigene Übergabe lässt
+    sich nicht selbst quittieren; Schritt 5 kommt vorausgefüllt; danach mit
+    einem Klick zurück als Master-Admin; der Rollenwechsel bleibt auf der
+    Seite, wenn die Rolle sie sehen darf.
+  - Lesbares Audit-Log für alle Ereignisse; englische Bezeichnungen für
+    Kategorien, Dringlichkeit und Status; keine technischen Kontonamen auf
+    der Team-Seite; „Müllkalender“ mit Umlaut.
+  - `load_demo_data --reset` scheitert nicht mehr an Anhängen und braucht
+    kein DELETE auf Lagerbewegungen.
 
 - **Öffentlicher Betrieb abgesichert:**
   - Ein Demo-Besuch kann keine Konten der Installation mehr in seine

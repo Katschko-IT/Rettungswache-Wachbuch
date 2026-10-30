@@ -37,8 +37,8 @@
     </div>
     <p class="demo-tour-finish-more"><strong>{% translate "Noch mehr entdecken:" %}</strong></p>
     <ul class="demo-tour-more">
-      {% if request.membership.role != "auditor" %}<li><a href="{% url 'demo_lock_screen' %}">{% translate "Touch-Terminal der Wache" %}</a> – {% translate "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock" %}</li>{% endif %}
-      <li><a href="{% url 'display_home' %}">{% translate "Wand-Display" %}</a> – {% translate "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle" %}</li>
+      {% if request.membership.role != "auditor" %}<li><a href="{% url 'demo_lock_screen' %}">{% translate "Touch-Terminal der Wache" %}</a> – {% translate "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock" %}</li>
+      <li><a href="{% url 'display_home' %}">{% translate "Wand-Display" %}</a> – {% translate "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle" %}</li>{% endif %}
       <li><a href="{% url 'it_privacy' %}">{% translate "Für IT und Datenschutz" %}</a> – {% translate "was gespeichert wird, wo es liegt und wie es geschützt ist" %}</li>
       <li>{% translate "Offline ausprobieren: Flugmodus an und die Übersicht neu laden – zuletzt geöffnete Seiten bleiben lesbar. Auf der Wache läuft alles im eigenen Netz weiter, auch wenn das Internet ausfällt." %}</li>
     </ul>

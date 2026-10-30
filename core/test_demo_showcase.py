@@ -427,9 +427,13 @@ class TourLanguageTests(TestCase):
 
 class WasteCalendarLabelTests(TestCase):
     def test_settings_labels_use_real_umlauts(self):
+        from django.utils import translation
+
         from core.forms import StationSettingsForm
 
-        form = StationSettingsForm(instance=Station.get_default())
-        self.assertEqual(str(form.fields["waste_calendar_enabled"].label), "Müllkalender aktiviert")
-        self.assertEqual(str(form.fields["waste_calendar_url"].label), "Müllkalender-ICS-URL")
-        self.assertNotIn("Muellkalender", form.as_p())
+        # Unabhängig von der Sprache, die ein vorheriger Test aktiviert hat.
+        with translation.override("de"):
+            form = StationSettingsForm(instance=Station.get_default())
+            self.assertEqual(str(form.fields["waste_calendar_enabled"].label), "Müllkalender aktiviert")
+            self.assertEqual(str(form.fields["waste_calendar_url"].label), "Müllkalender-ICS-URL")
+            self.assertNotIn("Muellkalender", form.as_p())
