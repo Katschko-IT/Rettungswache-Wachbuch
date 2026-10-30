@@ -230,7 +230,8 @@ Sofortiges Backup mit Kopie auf den Host (`./backups/` im Installationsordner):
 docker compose exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once
 ```
 
-Wiederherstellung (fragt nach, legt vorher ein Sicherheits-Backup an, hält
+Wiederherstellung (fragt nach, legt vorher ein Sicherheits-Backup an – ohne
+dabei alte Dumps im Volume zu löschen, auch nicht den gewählten –, hält
 Anwendung und Worker an, ersetzt das Schema `public` in einer Transaktion
 vollständig durch den Dump und setzt danach Migrationen und Rollenrechte neu).
 Weil das ganze Schema ersetzt wird, klappt das auch mit einem Dump von vor
@@ -440,12 +441,14 @@ Canonical Version steht in `core/version.py` und kann mit `APP_VERSION` in `.env
 ./wachbuch update 0.25.0     # bestimmte Version
 ```
 
-`update` erstellt zuerst ein Backup (Abbruch, wenn es scheitert), lädt
-`compose.yml`, Caddyfile und `wachbuch` passend zur Version, setzt
-`WACHBUCH_VERSION`, zieht die Images und startet mit `up -d --wait` neu.
-Migrationen laufen dabei automatisch im Dienst `migrate`. Lassen sich die
-Images nicht laden, gehen Dateien und Version zurück und der laufende Stand
-bleibt; startet die neue Fassung nicht, folgt derselbe Rollback wie beim
+`update` lädt `compose.yml`, Caddyfile und `wachbuch` passend zur Version,
+setzt `WACHBUCH_VERSION` und zieht die Images, während die Anwendung weiterläuft.
+Erst dann hält es Anwendung und Worker an, erstellt das Backup und startet mit
+`up -d --wait` neu; nach dem Backup schreibt niemand mehr, was ein Rollback
+verwerfen müsste. Migrationen laufen dabei automatisch im Dienst `migrate`.
+Lassen sich die Images nicht laden oder scheitert das Backup (auch die Kopie
+nach `./backups/`), gehen Dateien und Version zurück und der bisherige Stand
+läuft weiter; startet die neue Fassung nicht, folgt derselbe Rollback wie beim
 Auto-Update (Schritt 5 unten). Nach einem erfolgreichen Update entfernt
 `update` ältere Images des Wachbuchs (nur die mit dem Label
 `org.opencontainers.image.source` dieses Repositorys) und startet Caddy neu,
@@ -474,18 +477,24 @@ Ablauf jedes Laufs (Protokoll: `logs/auto-update.log`):
    `WACHBUCH_SOURCE`) werden übersprungen.
 2. Laufende Images unter `…-wb-rollback` sichern, dann `pull`.
 3. Nichts Neues und alle Container auf dem aktuellen Stand → Ende ohne Neustart.
-4. Sonst Backup (Abbruch ohne Änderung, wenn es scheitert), dann `up --wait`.
-5. Startet die neue Fassung nicht, werden Images, `compose.yml`, Caddyfile,
-   `wachbuch` und `WACHBUCH_VERSION` zurückgesetzt und die vorherige Fassung
-   gestartet. Django schreibt jede Migration einzeln fest: Hat die neue
-   Version schon Migrationen eingespielt (Zahl der Zeilen in
-   `django_migrations` vor und nach dem Start), werden vorher Anwendung und
-   Worker angehalten und die Datenbank aus dem Backup von Schritt 4
-   zurückgesetzt – alter Code läuft nie auf einem neueren Datenbankstand.
-   Änderungen zwischen Backup und Rollback (nachts meist keine) gehen dabei
-   verloren. Gelingt das Zurücksetzen nicht, bleibt die neue Version
-   eingestellt und wird erneut gestartet; das Protokoll nennt die nächsten
-   Schritte.
+4. Sonst Anwendung und Worker anhalten, Backup, dann `up --wait`. Scheitert
+   das Backup oder seine Kopie nach `./backups/`, ist der Lauf ohne Änderung
+   abgebrochen und die Anwendung läuft wieder.
+5. Startet die neue Fassung nicht, werden Images, `compose.yml`
+   (bei `--build` auch `compose.build.yml`), Caddyfile, `wachbuch` und
+   `WACHBUCH_VERSION` zurückgesetzt und die vorherige Fassung gestartet.
+   Django schreibt jede Migration einzeln fest: Hat die neue Version schon
+   Migrationen eingespielt (Zahl der Zeilen in `django_migrations` vor und
+   nach dem Start), werden vorher Anwendung und Worker angehalten und die
+   Datenbank aus genau dem Backup von Schritt 4 zurückgesetzt (nie aus einer
+   anderen Datei in `./backups/`) – alter Code läuft nie auf einem neueren
+   Datenbankstand. Was die neue Version bis dahin geschrieben hat, sichert
+   der Rollback vorher in ein eigenes Backup; das Protokoll nennt die Datei
+   (einspielbar nur mit der neuen Version). Gelingt das Zurücksetzen nicht,
+   bleibt die neue Version eingestellt und wird erneut gestartet; das
+   Protokoll nennt die nächsten Schritte. Lassen sich Dateien oder `.env`
+   nicht zurückschreiben (volle Platte), startet nichts; die Kopien bleiben
+   unter `logs/rollback/`, `.env` wird nie halb geschrieben.
 6. Nach Erfolg: Caddy neu starten, falls sich das Caddyfile geändert hat
    (auch nach einem Update mit einer älteren CLI), ältere eigene Images und alte
    Dumps unter `./backups/` entfernen.

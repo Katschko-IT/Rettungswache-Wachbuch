@@ -111,6 +111,10 @@ SERVICES = [
 ]
 
 
+COMPOSE_025 = "services:\n  db:\n    image: db\n  web:\n    image: app\n  backup:\n    image: backup\n"
+COMPOSE_026 = COMPOSE_025 + "  housekeeping:\n    image: app\n"
+
+
 class HealthSandbox:
     """Ein installierter Demo-Server mit gesunden Diensten (alles per Attrappe)."""
 
@@ -133,6 +137,8 @@ class HealthSandbox:
             "DEMO_SANDBOX=true\nWACHBUCH_AUTO_UPDATE=sicherheit\nWACHBUCH_VERSION=0.26.0\n",
             encoding="utf-8",
         )
+        # Installierte compose.yml (Auszug): ab 0.26.0 mit housekeeping.
+        (self.dir / "compose.yml").write_text(COMPOSE_026, encoding="utf-8")
         self.write_update_log(f"{log_stamp(timedelta(hours=3))} Alles aktuell (Version 0.26.0).")
         (self.backups / "rwsth-20261029T000000Z.dump").write_bytes(b"PGDMP")
         self.settings = {"WACHWERK_DIR": str(self.dir), "PING_URL": PING,
@@ -223,6 +229,17 @@ class HealthCheckTests(SimpleTestCase):
         result = self.box.run()
         self.assert_alert(result, "Dienst feed-worker: exited")
         self.assertIn("Dienst redis fehlt", result.stderr)
+
+    def test_housekeeping_is_expected_only_where_the_installed_compose_defines_it(self):
+        # Die Prüfung kommt aus main; eine 0.25-Installation hat den Dienst nicht.
+        self.box.state["containers"] = [c for c in self.box.state["containers"] if c["service"] != "housekeeping"]
+        self.assert_alert(self.box.run(), "Dienst housekeeping fehlt")
+        self.box.reset_calls()
+        (self.box.dir / "compose.yml").write_text(COMPOSE_025, encoding="utf-8")
+        result = self.box.run("--verbose")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("housekeeping", result.stdout + result.stderr)
+        self.assertEqual([p["url"] for p in self.box.pings()], [PING])
 
     def test_alert_only_after_consecutive_failures(self):
         del self.box.settings["FAILS_BEFORE_ALERT"]  # Standard: 2

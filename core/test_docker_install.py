@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -466,6 +467,114 @@ class AutoUpdateCliTests(SimpleTestCase):
         # Vorherige Images bleiben für einen Rollback von Hand erhalten.
         self.assertTrue(any(name.endswith("-wb-rollback") for name in self.state()["images"]))
 
+    def test_failed_host_copy_aborts_instead_of_restoring_an_older_dump(self):
+        # set -e greift in `if ! (cmd_backup)` nicht: Früher lief das Update
+        # weiter, und der Rollback nahm die neueste *ältere* Kopie.
+        self.failing_version_update(cp_fails=True)
+        backups = self.dir / "backups"
+        backups.mkdir()
+        (backups / "rwsth-20261020T033000Z.dump").write_text("PGDMP migrations=70\n", encoding="utf-8")
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.resets(), [], "nie auf eine andere Kopie zurücksetzen")
+        self.assertEqual(self.state()["migrations"], 88)
+        self.assertFalse([c for c in self.compose_calls("up") if "--wait" in c], "neue Version nie gestartet")
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        self.assertIn("Backup fehlgeschlagen", self.log())
+        self.assertFalse(list(backups.glob("*.tmp")))
+        # Die für das Backup angehaltene Anwendung läuft wieder wie vorher.
+        self.assertEqual(self.state()["running"], self.images("0.25.0", self.OLD))
+
+    def test_rollback_restores_the_dump_of_this_update_not_the_newest_name(self):
+        self.failing_version_update()
+        backups = self.dir / "backups"
+        backups.mkdir()
+        # Von Hand angelegt; sortiert hinter den Zeitstempel-Namen.
+        (backups / "rwsth-vor-umzug.dump").write_text("PGDMP migrations=70\n", encoding="utf-8")
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.state()["restored"], "PGDMP migrations=88\n")
+        self.assertEqual(self.state()["migrations"], 88)
+
+    def test_rollback_keeps_a_dump_of_what_the_new_version_wrote(self):
+        self.failing_version_update()
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        calls = self.calls()
+        dumps = [i for i, c in enumerate(calls) if c[:2] == ["compose", "exec"] and "once" in c]
+        reset = [i for i, c in enumerate(calls) if c[:2] == ["compose", "run"] and any("pg_restore" in a for a in c)]
+        self.assertEqual(len(dumps), 2, "vor dem Update und vor dem Zurücksetzen")
+        self.assertLess(dumps[1], reset[0])
+        saved = self.dir / "backups" / "rwsth-test-2.dump"
+        self.assertEqual(saved.read_text(encoding="utf-8"), "PGDMP migrations=94\n")
+        self.assertEqual(self.state()["restored"], "PGDMP migrations=88\n")
+        self.assertIn("gesichert: backups/rwsth-test-2.dump", self.log())
+        self.assertIn("Rollback erfolgreich", self.log())
+
+    def assert_backup_after_pull_with_app_stopped(self):
+        calls = self.calls()
+        pull = calls.index(self.compose_calls("pull")[0])
+        stops = [i for i, c in enumerate(calls) if c[:2] == ["compose", "stop"] and "web" in c]
+        dump = next(i for i, c in enumerate(calls) if c[:2] == ["compose", "exec"] and "once" in c)
+        up = calls.index(self.compose_calls("up")[0])
+        self.assertTrue(stops, "Anwendung vor dem Backup anhalten")
+        self.assertLess(pull, stops[0], "erst laden (kann dauern), dann anhalten")
+        self.assertLess(stops[0], dump, "nach dem Backup schreibt niemand mehr")
+        self.assertLess(dump, up)
+
+    def test_manual_update_backs_up_after_pull_with_app_stopped(self):
+        self.publish_release("0.26.0")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.26.0", self.NEW))
+        result = self.run_cli("-y", "update", "0.26.0")
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assert_backup_after_pull_with_app_stopped()
+
+    def test_auto_update_backs_up_with_app_stopped(self):
+        self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="sicherheit")
+        self.set_state(images=self.images("0.25.0", self.OLD), remote=self.images("0.25.0", self.NEW))
+        result = self.run_cli("auto-update", "run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assert_backup_after_pull_with_app_stopped()
+
+    def fail_awk_for_value(self, value):
+        """awk scheitert wie auf voller Platte, wenn env_set VALUE schreibt."""
+        awk = self.bin / "awk"
+        awk.write_text(f'#!/bin/sh\nif [ "${{V:-}}" = "{value}" ]; then\n'
+                       '    echo "awk: write failure (No space left on device)" >&2; exit 2\nfi\n'
+                       f'exec {shutil.which("awk")} "$@"\n', encoding="utf-8")
+        awk.chmod(0o755)
+
+    def test_failed_env_write_in_rollback_keeps_env_and_starts_nothing(self):
+        self.failing_version_update()
+        self.fail_awk_for_value("0.25.0")
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        env = (self.dir / ".env").read_text(encoding="utf-8")
+        self.assertIn("POSTGRES_DB=rwsth\n", env, "Geheimnisse in .env bleiben")
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+        self.assertFalse(list(self.dir.glob(".env.tmp.*")))
+        log = self.log()
+        self.assertIn("nicht zurückgesetzt", log)
+        self.assertNotIn("Rollback erfolgreich", log)
+        self.assertEqual(len([c for c in self.compose_calls("up") if "--wait" in c]), 1, "kein Start im Mischstand")
+
+    def test_failed_file_restore_keeps_rollback_copies(self):
+        self.failing_version_update()
+        # cp auf voller Platte: Ziel schon gekürzt, dann Fehler.
+        cp = self.bin / "cp"
+        cp.write_text('#!/bin/sh\nfor last; do :; done\ncase "$*" in\n'
+                      '    "-p logs/rollback/compose.yml "*) : >"$last"; echo "cp: No space left on device" >&2; exit 1 ;;\n'
+                      f'esac\nexec {shutil.which("cp")} "$@"\n', encoding="utf-8")
+        cp.chmod(0o755)
+        result = self.run_cli("auto-update", "run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# 0.26.0\n")
+        self.assertEqual((self.dir / "logs" / "rollback" / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0", "Version passt weiter zu den Dateien")
+        self.assertNotIn("Rollback erfolgreich", self.log())
+        self.assertEqual(len([c for c in self.compose_calls("up") if "--wait" in c]), 1)
+
     def test_unreadable_migration_state_aborts_version_update(self):
         self.write_env(WACHBUCH_VERSION="0.25.0", WACHBUCH_AUTO_UPDATE="alle")
         self.publish_release("0.26.0")
@@ -589,6 +698,51 @@ class AutoUpdateCliTests(SimpleTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(self.compose_calls("pull"))
         self.assertEqual(self.env("WACHBUCH_VERSION"), "0.26.0")
+
+    def test_build_mode_rollback_restores_build_override(self):
+        # Sonst bliebe das neue compose.build.yml (housekeeping: *app-build)
+        # neben dem alten compose.yml: ein Dienst ohne Befehl und Umgebung.
+        self.write_env(WACHBUCH_VERSION="0.25.0", COMPOSE_FILE="compose.yml:compose.build.yml")
+        (self.dir / "compose.build.yml").write_text("# alt build\n", encoding="utf-8")
+        self.publish_release("0.26.0")
+        (self.remote / "v0.26.0" / "compose.build.yml").write_text("# 0.26.0 build\n", encoding="utf-8")
+        self.set_state(images=self.images("0.25.0", self.OLD), build_fails=True)
+        result = self.run_cli("-y", "update", "0.26.0")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Bauen fehlgeschlagen", result.stderr)
+        self.assertEqual((self.dir / "compose.build.yml").read_text(encoding="utf-8"), "# alt build\n")
+        self.assertEqual((self.dir / "compose.yml").read_text(encoding="utf-8"), "# alt\n")
+        self.assertEqual(self.env("WACHBUCH_VERSION"), "0.25.0")
+
+    def test_restore_from_volume_keeps_an_old_chosen_dump(self):
+        # Das Sicherheits-Backup dünnt das Volume nicht aus: Der gewählte Dump
+        # ist älter als BACKUP_RETENTION_DAYS (Standard 7).
+        chosen = "rwsth-20261021T013000Z.dump"
+        self.set_state(images=self.images("0.25.0", self.OLD), migrations=94,
+                       volume={chosen: {"migrations": 88, "age_days": 8}})
+        result = self.run_cli("-y", "restore", chosen)
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertIn("Wiederherstellung abgeschlossen", result.stdout)
+        self.assertEqual(self.state()["migrations"], 88)
+        self.assertIn(chosen, self.state()["volume"])
+        self.assertEqual((self.dir / "backups" / "rwsth-test.dump").read_text(encoding="utf-8"),
+                         "PGDMP migrations=94\n", "Sicherheits-Backup des Stands davor")
+
+    def test_uninstall_covers_every_compose_profile(self):
+        # Mit --profile ersetzt Compose COMPOSE_PROFILES; Dienste fehlender
+        # Profile (demo-cleaner, signal) blieben sonst samt Netz und Volume.
+        compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+        profiles = set(re.findall(r'^    profiles: \["([a-z-]+)"\]$', compose, flags=re.M))
+        self.assertTrue({"ops", "https", "demo", "signal"} <= profiles, profiles)
+        self.write_env(WACHBUCH_VERSION="0.26.0", COMPOSE_PROFILES="https,demo")
+        for args in (("uninstall",), ("uninstall", "--purge")):
+            with self.subTest(args=args):
+                result = self.run_cli("-y", *args)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                down = [c for c in self.calls() if c[:1] == ["compose"] and "down" in c][-1]
+                used = {down[i + 1] for i, arg in enumerate(down[:-1]) if arg == "--profile"}
+                self.assertEqual(used, profiles)
+                self.assertEqual("--volumes" in down, "--purge" in args)
 
     def test_public_demo_refuses_versions_without_sandbox(self):
         self.write_env(WACHBUCH_VERSION="0.26.0", DEMO_MODE="true", DEMO_SANDBOX="true")

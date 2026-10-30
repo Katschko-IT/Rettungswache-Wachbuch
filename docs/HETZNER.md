@@ -37,12 +37,12 @@ etwa 3–4 € für die Storage Box.
    Server einen Fehler, kommt eine E-Mail.
 3. **Externe Prüfung** (empfohlen): healthchecks.io bekommt nur die Meldungen
    des Servers selbst, und der prüft sich über `127.0.0.1`. Falsches DNS, eine
-   falsch eingestellte Hetzner-Firewall, kaputtes IPv6 oder ein Zertifikat,
-   das nur von außen scheitert, bleiben dort grün. Deshalb zusätzlich einen
+   falsch eingestellte Hetzner-Firewall oder ein Zertifikat, das nur von
+   außen scheitert, bleiben dort grün. Deshalb zusätzlich einen
    unabhängigen Dienst (z. B. Uptime Kuma auf einem anderen Rechner oder ein
    kostenloser Uptime-Monitor) alle 5 Minuten
-   `https://demo.rwsth.de/healthz/` abrufen lassen, über IPv4 **und** IPv6,
-   mit Stichwortprüfung auf `"status": "ok"` und E-Mail bei Ausfall.
+   `https://demo.rwsth.de/healthz/` abrufen lassen, mit Stichwortprüfung auf
+   `"status": "ok"` und E-Mail bei Ausfall.
 4. **Backup-Schlüssel** (für Schritt 6), einmalig auf deinem Rechner:
    ```bash
    gpg --default-preference-list "AES256 AES192 AES SHA512 SHA384 SHA256 ZLIB BZIP2 ZIP Uncompressed" \
@@ -103,12 +103,21 @@ In konsoleH die Domain `rwsth.de` öffnen > *DNS-Verwaltung*:
 | Name | Typ | Wert |
 | --- | --- | --- |
 | `demo` | A | IPv4 des Servers |
-| `demo` | AAAA | IPv6 des Servers (Adresse mit `::1` am Ende) |
 
 Prüfen (nach ein paar Minuten): `dig +short demo.rwsth.de` zeigt die IPv4.
-Ob die Seite über IPv6 wirklich antwortet, zeigt Test 16 in Abschnitt 7.
-Klappt das nicht, den AAAA-Eintrag entfernen, bis es geht – sonst warten
-IPv6-Besucher (und Let's Encrypt) erst auf eine Zeitüberschreitung.
+
+**Keinen AAAA-Eintrag (IPv6) anlegen.** Das Wachbuch veröffentlicht Caddy
+nur über IPv4. Besucher mit IPv6 kommen trotzdem an: Ohne AAAA-Eintrag
+nehmen ihre Geräte IPv4. Mit AAAA-Eintrag und IPv6-Port reichte Docker
+IPv6-Verbindungen über seinen Hilfsprozess `docker-proxy` weiter, und das
+Wachbuch sähe alle IPv6-Besucher unter derselben internen Adresse. Die
+Anmeldesperre nach Fehlversuchen und die Grenzen je Anschluss (Demo-Starts,
+Feedback) träfen dann alle IPv6-Besucher gemeinsam. Sinnvoll ist ein
+AAAA-Eintrag erst, wenn der Docker-Daemon IPv6 mit `ip6tables` weiterleitet
+(`"ipv6": true` in `/etc/docker/daemon.json`, `ip6tables` ist ab Docker 27
+Standard) und eine eigene Compose-Ergänzung dem Netz `web-ingress` IPv6 gibt
+(`enable_ipv6: true`) und Caddy zusätzlich auf `[::]` veröffentlicht. Ob dann
+die echten Adressen ankommen, zeigt Test 16 in Abschnitt 7.
 
 ## 3. Server härten
 
@@ -262,7 +271,7 @@ Erst wenn diese Tabelle abgehakt ist, ist der Betrieb erprobt.
 | 13 | Zurück zur alten Version | `sudo /opt/wachbuch/wachbuch update <alte-version>` | alte Version läuft wieder |
 | 14 | Neustart | `sudo reboot`, 3 Minuten warten | Seite erreichbar, Test 1 grün |
 | 15 | Automatische Updates | `sudo /opt/wachbuch/wachbuch auto-update status` | Zeitplan aktiv, letzter Lauf ohne Fehler; Test 1 zeigt „automatisches Update (…): Alles aktuell“ |
-| 16 | IPv6 | von einem Rechner mit IPv6: `curl -6 -sI https://demo.rwsth.de/healthz/` | `HTTP/2 200` (sonst AAAA-Eintrag entfernen, Schritt 2) |
+| 16 | IPv6 | `dig +short AAAA demo.rwsth.de` und `sudo ss -ltn 'sport = :443'` | keine AAAA-Adresse, Port 443 nur auf `0.0.0.0` (Schritt 2). Nur wer IPv6 wie dort beschrieben eingerichtet hat: von einem Rechner mit IPv6 einmal falsch anmelden; unter `/django-admin/` bei den Anmeldeversuchen (Axes) steht dessen IPv6-Adresse, nicht `172.…` – sonst AAAA-Eintrag wieder entfernen |
 | 17 | Externe Prüfung | Server in der Hetzner Cloud Console ausschalten, 10 Minuten warten | E-Mail vom externen Dienst aus Schritt 0 **und** von healthchecks.io |
 
 > Test 13 nur zurück auf eine Version **ohne** neuere Datenbank-Migrationen

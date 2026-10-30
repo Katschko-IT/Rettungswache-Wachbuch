@@ -144,7 +144,7 @@ docker compose exec web python manage.py grant_station_admin BENUTZERNAME
 | `wachbuch logs [dienst]` | Logs, z. B. `web`, `notify-worker`, `backup`, `caddy` |
 | `wachbuch backup` | sofortiger Dump, Kopie nach `./backups/` |
 | `wachbuch restore DATEI` | Wiederherstellung mit Rückfrage; vorher Sicherheits-Backup, Einspielen in einer Transaktion, danach Migrationen und Rechte |
-| `wachbuch update [X.Y.Z]` | Backup, neue `compose.yml`/Caddyfile/`wachbuch`, `pull`, `up --wait`; startet die neue Fassung nicht, Rollback wie beim Auto-Update |
+| `wachbuch update [X.Y.Z]` | neue `compose.yml`/Caddyfile/`wachbuch`, `pull`, dann Anwendung anhalten, Backup, `up --wait`; startet die neue Fassung nicht, Rollback wie beim Auto-Update |
 | `wachbuch auto-update an [sicherheit\|alle] [--zeit HH:MM]` / `aus` / `status` | nächtliche Updates mit Backup und Rollback (siehe OPERATIONS.md) |
 | `wachbuch setup-code` | Einrichtungscode anzeigen |
 | `wachbuch stop` / `start` | anhalten / starten |

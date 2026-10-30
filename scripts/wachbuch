@@ -28,9 +28,9 @@ wachbuch – Verwaltung des Rettungswache-Wachbuchs
   backup              sofort ein Backup erstellen und nach ./backups kopieren
   restore DATEI       Datenbank aus einem Backup wiederherstellen (mit Rückfrage)
                       DATEI: Pfad auf diesem Rechner oder Name aus dem Backup-Volume
-  update [VERSION]    Backup, neue Version laden, neu starten; startet sie
-                      nicht, Rollback (bei schon migrierter Datenbank mit
-                      dem Backup vor dem Update)
+  update [VERSION]    neue Version laden, Anwendung anhalten, Backup, neu
+                      starten; startet sie nicht, Rollback (bei schon
+                      migrierter Datenbank mit genau diesem Backup)
   auto-update an [sicherheit|alle] [--zeit HH:MM]
                       nächtliche Updates einschalten (Standard: sicherheit, 03:30)
                         sicherheit: gleiche Version, neu gebaute Images
@@ -66,6 +66,9 @@ fi
 
 # Compose liest COMPOSE_FILE, COMPOSE_PROJECT_NAME und COMPOSE_PROFILES aus .env.
 dc() { docker compose "$@"; }
+# Mit jedem Profil aus docker-compose.yml (ersetzt COMPOSE_PROFILES): sieht
+# auch Dienste, deren Profil gerade aus ist.
+dc_all() { dc --profile ops --profile https --profile demo --profile signal "$@"; }
 
 env_get() {
     value=$(sed -n "s/^$1=//p" .env | tail -n 1)
@@ -76,14 +79,20 @@ env_get() {
     printf '%s' "$value"
 }
 
+# Die neue Fassung entsteht neben .env (cp -p: gleiche Rechte, gleicher
+# Besitzer) und ersetzt sie erst vollständig per mv. Scheitert ein Schritt
+# (z. B. volle Platte), bleibt .env unverändert und env_set gibt 1 zurück –
+# auch dort, wo set -e nicht greift (Rollback in einer if-Bedingung).
 env_set() {
-    if grep -q "^$1=" .env; then
-        K="$1" V="$2" awk 'BEGIN { k = ENVIRON["K"]; v = ENVIRON["V"] }
-            index($0, k "=") == 1 { print k "=" v; next } { print }' .env >.env.tmp.$$
-        cat .env.tmp.$$ >.env
-        rm -f .env.tmp.$$
-    else
-        printf '%s=%s\n' "$1" "$2" >>.env
+    env_tmp=".env.tmp.$$"
+    if ! cp -p .env "$env_tmp" \
+        || ! K="$1" V="$2" awk 'BEGIN { k = ENVIRON["K"]; v = ENVIRON["V"] }
+            index($0, k "=") == 1 { print k "=" v; found = 1; next } { print }
+            END { if (!found) print k "=" v }' .env >"$env_tmp" \
+        || ! mv -f "$env_tmp" .env; then
+        rm -f "$env_tmp"
+        warn ".env nicht geändert ($1); Platte voll oder Ordner nicht beschreibbar?"
+        return 1
     fi
 }
 
@@ -109,6 +118,18 @@ http_get() {
 }
 
 running() { [ -n "$(dc ps -q --status running "$1" 2>/dev/null)" ]; }
+
+# APP_SERVICES ohne Dienste, die die eingestellte compose.yml nicht kennt
+# (z. B. housekeeping vor 0.26.0): `docker compose stop` bricht sonst mit
+# „no such service“ ab, ohne etwas anzuhalten.
+app_services() {
+    known=$(dc_all config --services 2>/dev/null) || known=""
+    for service in $APP_SERVICES; do
+        if [ -z "$known" ] || printf '%s\n' "$known" | grep -qx "$service"; then
+            printf '%s ' "$service"
+        fi
+    done
+}
 
 build_mode() {
     case "$(env_get COMPOSE_FILE)" in *compose.build.yml*) return 0 ;; esac
@@ -141,15 +162,21 @@ cmd_logs() {
 }
 
 # Erstellt einen Dump im Backup-Volume und kopiert ihn nach ./backups.
+# Jeder Schritt wird einzeln geprüft: Update und Auto-Update rufen es als
+# `if ! (cmd_backup)` auf, dort greift set -e nicht. Den Pfad genau dieser
+# Kopie schreibt es nach logs/last-backup (der Rollback nimmt nur sie).
+# cmd_backup keep: das Backup-Volume dabei nicht ausdünnen (restore braucht
+# seine Quelle noch, auch wenn sie älter als BACKUP_RETENTION_DAYS ist).
 cmd_backup() {
+    if [ "${1:-}" = keep ]; then set -- -e BACKUP_RETENTION_DAYS=0; else set --; fi
     if running backup; then
-        output=$(dc exec -T backup /bin/sh /usr/local/bin/rwsth-backup-loop once) || {
+        output=$(dc exec -T "$@" backup /bin/sh /usr/local/bin/rwsth-backup-loop once) || {
             printf '%s\n' "$output"
             die "Backup fehlgeschlagen."
         }
     else
         running db || die "Die Datenbank läuft nicht (wachbuch start)."
-        output=$(dc run --rm --no-deps -T backup once) || {
+        output=$(dc run --rm --no-deps -T "$@" backup once) || {
             printf '%s\n' "$output"
             die "Backup fehlgeschlagen."
         }
@@ -157,16 +184,32 @@ cmd_backup() {
     printf '%s\n' "$output" | grep -v '^BACKUP_FILE=' || true
     file=$(printf '%s\n' "$output" | sed -n 's/^BACKUP_FILE=//p' | tail -n 1)
     [ -n "$file" ] || die "Backup-Datei unbekannt."
-    mkdir -p backups
-    chmod 700 backups
-    if running backup; then
-        dc cp "backup:$file" "backups/" >/dev/null
-    else
-        dc run --rm --no-deps -T --entrypoint cat backup "$file" >"backups/$(basename "$file")"
+    host_copy="backups/$(basename "$file")"
+    if ! mkdir -p backups logs || ! chmod 700 backups; then
+        die "$WACHBUCH_DIR/backups nicht beschreibbar."
     fi
-    chmod 600 "backups/$(basename "$file")"
-    say "Backup: $WACHBUCH_DIR/backups/$(basename "$file")"
+    # Nie eine vorhandene Kopie ersetzen (gleicher Zeitstempel).
+    [ ! -e "$host_copy" ] || die "$host_copy gibt es schon – nicht überschrieben."
+    copied=1
+    if running backup; then
+        dc cp "backup:$file" "$host_copy.tmp" >/dev/null || copied=0
+    else
+        dc run --rm --no-deps -T --entrypoint cat backup "$file" >"$host_copy.tmp" || copied=0
+    fi
+    if [ "$copied" -eq 0 ] || [ ! -s "$host_copy.tmp" ] || ! chmod 600 "$host_copy.tmp" \
+        || ! mv "$host_copy.tmp" "$host_copy"; then
+        rm -f "$host_copy.tmp"
+        die "Kopie nach $WACHBUCH_DIR/$host_copy fehlgeschlagen (Platz, Rechte?); der Dump liegt im Backup-Volume ($file)."
+    fi
+    printf '%s\n' "$host_copy" >logs/last-backup || die "logs/last-backup nicht schreibbar."
+    say "Backup: $WACHBUCH_DIR/$host_copy"
     say "Zusammen mit .env an einem zweiten Ort aufbewahren."
+}
+
+# Kopie, die cmd_backup zuletzt angelegt hat; leer, wenn sie fehlt oder leer ist.
+last_backup() {
+    last=$(cat logs/last-backup 2>/dev/null) || return 0
+    if [ -n "$last" ] && [ -s "$last" ]; then printf '%s' "$last"; fi
 }
 
 # Setzt die Datenbank vollständig auf den Stand eines Dumps, auch wenn neuere
@@ -215,10 +258,12 @@ Alle Änderungen seit diesem Backup gehen verloren." "WIEDERHERSTELLEN" \
         || die "Abgebrochen."
 
     say "Sicherheits-Backup des aktuellen Stands"
-    cmd_backup
+    # Ohne Ausdünnen: Es löschte sonst einen gewählten Dump, der älter als
+    # BACKUP_RETENTION_DAYS ist, aus dem Volume.
+    cmd_backup keep
     say "Anwendung anhalten"
-    # shellcheck disable=SC2086
-    dc stop $APP_SERVICES
+    # shellcheck disable=SC2046
+    dc stop $(app_services)
     say "Wiederherstellen"
     if [ "$mode" = host ]; then
         reset_database "$source_file" \
@@ -281,9 +326,9 @@ refresh_files() {
     done
     for pair in "$@"; do
         to=${pair#*:}
-        mv "$to.download.$$" "$to"
+        mv "$to.download.$$" "$to" || die "$to nicht ersetzt."
     done
-    chmod 755 wachbuch
+    chmod 755 wachbuch || die "wachbuch nicht ausführbar."
 }
 
 cmd_update() {
@@ -319,20 +364,18 @@ Migrationen von $current; die alte Version kann daran scheitern. Danach mit
             ;;
     esac
 
-    dump=""
-    if running db; then
-        say "Backup vor dem Update"
-        cmd_backup
-        dump=$(newest_host_dump)
-    else
-        warn "Datenbank läuft nicht – Update ohne vorheriges Backup; startet eine neue Version nicht, gibt es keinen Rollback."
-    fi
     before=$(snapshot_images)
     new_version=1
-    save_rollback_files
+    save_rollback_files || die "Kopien für den Rollback nicht angelegt (Platte voll?) – nichts geändert."
     say "Dateien aktualisieren ($target)"
-    refresh_files "$ref"
-    env_set WACHBUCH_VERSION "$target"
+    if ! (refresh_files "$ref"); then
+        restore_rollback_files || true
+        die "Dateien für $target nicht geladen – nichts geändert."
+    fi
+    if ! env_set WACHBUCH_VERSION "$target"; then
+        restore_rollback_files || true
+        die "WACHBUCH_VERSION nicht gesetzt – Dateien zurückgesetzt, nichts geändert."
+    fi
     keep_rollback_images "$before"
     if build_mode; then
         say "Images neu bauen"
@@ -353,12 +396,16 @@ Migrationen von $current; die alte Version kann daran scheitern. Danach mit
         check_schema=1
     fi
     UPDATE_LOG=""
+    dump=""
+    migrations_before=""
+    if running db; then
+        prepare_rollback || die "Update auf $target abgebrochen (Meldungen oben)."
+    else
+        warn "Datenbank läuft nicht – Update ohne vorheriges Backup; startet eine neue Version nicht, gibt es keinen Rollback."
+    fi
     start_or_roll_back || die "Update auf $target fehlgeschlagen (Meldungen oben)."
     cmd_status
 }
-
-# Gerade erstellter Dump: Namen tragen einen UTC-Zeitstempel.
-newest_host_dump() { find backups -maxdepth 1 -type f -name 'rwsth-*.dump' 2>/dev/null | sort | tail -n 1; }
 
 # --- Automatische Updates ----------------------------------------------------
 
@@ -434,20 +481,31 @@ drop_rollback_images() {
     done
 }
 
-ROLLBACK_FILES="compose.yml deploy/caddy/Caddyfile wachbuch"
+# Alles, was refresh_files ersetzt (compose.build.yml nur bei --build).
+ROLLBACK_FILES="compose.yml compose.build.yml deploy/caddy/Caddyfile wachbuch"
 
 save_rollback_files() {
     rm -rf logs/rollback
     for file in $ROLLBACK_FILES; do
         [ -f "$file" ] || continue
-        mkdir -p "logs/rollback/$(dirname "$file")"
-        cp -p "$file" "logs/rollback/$file"
+        if ! mkdir -p "logs/rollback/$(dirname "$file")" || ! cp -p "$file" "logs/rollback/$file"; then
+            rm -rf logs/rollback
+            return 1
+        fi
     done
 }
 
+# Kopie neben die Datei, dann mv: Eine volle Platte kürzt nie die laufende
+# Datei. Beim ersten Fehler Abbruch (Rückgabe 1); die Kopien unter
+# logs/rollback verschwinden erst, wenn alles zurück ist.
 restore_rollback_files() {
     for file in $ROLLBACK_FILES; do
-        [ -f "logs/rollback/$file" ] && cp -p "logs/rollback/$file" "$file"
+        [ -f "logs/rollback/$file" ] || continue
+        if ! cp -p "logs/rollback/$file" "$file.rollback.$$" || ! mv -f "$file.rollback.$$" "$file"; then
+            rm -f "$file.rollback.$$"
+            warn "$file nicht zurückgesetzt – Kopien bleiben unter $WACHBUCH_DIR/logs/rollback."
+            return 1
+        fi
     done
     rm -rf logs/rollback
 }
@@ -498,13 +556,16 @@ cmd_auto_update_run() {
     new_version=0
     if [ "$target" != "$current" ]; then
         auto_log "Neue Version $target (bisher $current)."
-        save_rollback_files
-        if ! (refresh_files "v$target") >>"$AUTO_LOG" 2>&1; then
-            restore_rollback_files
+        if ! save_rollback_files; then
+            auto_log "Kopien für den Rollback nicht angelegt (Platte voll?); nichts geändert."
+            return 1
+        fi
+        if ! (refresh_files "v$target") >>"$AUTO_LOG" 2>&1 \
+            || ! env_set WACHBUCH_VERSION "$target" >>"$AUTO_LOG" 2>&1; then
+            restore_rollback_files >>"$AUTO_LOG" 2>&1 || true
             auto_log "Dateien für $target konnten nicht geladen werden; nichts geändert."
             return 1
         fi
-        env_set WACHBUCH_VERSION "$target"
         new_version=1
     fi
 
@@ -528,14 +589,8 @@ cmd_auto_update_run() {
         return 0
     fi
 
-    auto_log "Backup vor dem Update"
-    if ! (cmd_backup) >>"$AUTO_LOG" 2>&1; then
-        abort_update
-        auto_log "Backup fehlgeschlagen – Update abgebrochen, laufender Stand unverändert."
-        return 1
-    fi
-    dump=$(newest_host_dump)
     check_schema=$new_version
+    prepare_rollback || return 1
     if start_or_roll_back; then
         return 0
     fi
@@ -556,18 +611,53 @@ missing_own_images() {  # eigene Images (Tag statt Digest) ohne lokale ID
     done
 }
 
+# Rückgabe 1, wenn Dateien oder WACHBUCH_VERSION nicht zurückgesetzt sind
+# (z. B. volle Platte): Dann darf nichts mit dem Mischstand starten.
 roll_back_files_and_images() {
     restore_images "$before"
     if [ "$new_version" -eq 1 ]; then
-        restore_rollback_files
-        env_set WACHBUCH_VERSION "$current"
+        if ! quiet restore_rollback_files || ! quiet env_set WACHBUCH_VERSION "$current"; then
+            note "FEHLER: Dateien/Version nicht zurückgesetzt (Platte voll?) – nichts gestartet; Kopien unter logs/rollback, vorherige Version ${current:-?}."
+            return 1
+        fi
     fi
 }
 
 # Abbruch vor dem Neustart: Der laufende Stand wurde nicht angefasst.
 abort_update() {
-    roll_back_files_and_images
+    roll_back_files_and_images || return 1
     drop_rollback_images "$before"
+}
+
+# Unmittelbar vor dem Neustart: Migrationsstand merken (check_schema=1) und
+# bei angehaltener Anwendung das Backup erstellen, auf das ein Rollback
+# zurückgeht – was danach noch geschrieben würde, ginge dabei verloren. dump
+# ist genau diese Kopie, nie eine andere, ältere Datei. Scheitert etwas, ist
+# das Update abgebrochen und es läuft wieder der bisherige Stand (Rückgabe 1,
+# Grund als letzte Meldung).
+prepare_rollback() {
+    dump=""
+    migrations_before=""
+    if [ "$check_schema" -eq 1 ]; then
+        migrations_before=$(migration_count)
+        if [ -z "$migrations_before" ]; then
+            abort_update || return 1
+            note "Migrationsstand nicht lesbar – Update abgebrochen, laufender Stand unverändert."
+            return 1
+        fi
+    fi
+    note "Anwendung anhalten, Backup vor dem Update"
+    rm -f logs/last-backup
+    writers=$(app_services)
+    # shellcheck disable=SC2086
+    if { [ -z "$writers" ] || quiet dc stop $writers; } && (quiet cmd_backup); then
+        dump=$(last_backup)
+        [ -z "$dump" ] || return 0
+    fi
+    abort_update || return 1
+    note "Backup fehlgeschlagen – Update abgebrochen, laufender Stand unverändert."
+    quiet dc up -d --remove-orphans || note "Anwendung startet nicht wieder – bitte 'wachbuch start' und 'wachbuch logs' prüfen."
+    return 1
 }
 
 # Caddy liest das Caddyfile nur beim Start, und refresh_files ersetzt die Datei
@@ -595,19 +685,12 @@ prune_host_backups() {
 # Startet den eingestellten Stand. Scheitert der Start, geht es zurück auf
 # Images ($before), Dateien und WACHBUCH_VERSION ($current). Hat die neue
 # Fassung schon Migrationen eingespielt, kommt vorher die Datenbank aus dem
-# Backup vor dem Update ($dump) zurück – alter Code läuft nie auf einem neueren
-# Datenbankstand. Gelingt das nicht, bleibt die neue Fassung eingestellt.
-# Erwartet: before current target new_version check_schema dump
+# Backup vor dem Update ($dump, von prepare_rollback) zurück – alter Code
+# läuft nie auf einem neueren Datenbankstand. Was die neue Fassung bis dahin
+# geschrieben hat, wird vorher noch gesichert. Gelingt das Zurücksetzen
+# nicht, bleibt die neue Fassung eingestellt.
+# Erwartet: before current target new_version check_schema dump migrations_before
 start_or_roll_back() {
-    migrations_before=""
-    if [ "$check_schema" -eq 1 ] && [ -n "$dump" ]; then
-        migrations_before=$(migration_count)
-        if [ -z "$migrations_before" ]; then
-            abort_update
-            note "Migrationsstand nicht lesbar – Update abgebrochen, laufender Stand unverändert."
-            return 1
-        fi
-    fi
     note "Neustart mit Version $target"
     if quiet dc up -d --remove-orphans --wait --wait-timeout 600 && refresh_caddy; then
         rm -rf logs/rollback
@@ -627,8 +710,8 @@ start_or_roll_back() {
     note "Start fehlgeschlagen – Rollback auf den vorherigen Stand."
     if [ -n "$migrations_before" ]; then
         # Nichts darf mehr schreiben, auch kein noch laufendes migrate.
-        # shellcheck disable=SC2086
-        quiet dc stop $APP_SERVICES migrate || true
+        # shellcheck disable=SC2046
+        quiet dc stop $(app_services) migrate || true
         # Läuft die Datenbank nicht (z. B. neues db-Image defekt), konnte auch
         # migrate nicht laufen.
         migrations_now="$migrations_before"
@@ -637,6 +720,16 @@ start_or_roll_back() {
         fi
         if [ "$migrations_now" != "$migrations_before" ]; then
             note "Version $target hat die Datenbank schon migriert (${migrations_now:-?} statt $migrations_before Migrationen) – Datenbank zurück auf $dump."
+            # Was Version $target seit dem Backup geschrieben hat, nicht
+            # spurlos verwerfen. Im Subshell: ein die bricht den Rollback nicht ab.
+            rm -f logs/last-backup
+            saved=""
+            if (quiet cmd_backup keep); then saved=$(last_backup); fi
+            if [ -n "$saved" ] && [ "$saved" != "$dump" ]; then
+                note "Stand von Version $target gesichert: $saved (Änderungen seit dem Backup vor dem Update; einspielbar nur mit Version $target: 'wachbuch update $target', dann 'wachbuch restore $saved')."
+            else
+                note "Warnung: Stand von Version $target nicht gesichert – Änderungen seit $dump gehen verloren."
+            fi
             if ! quiet reset_database "$dump"; then
                 note "FEHLER: Datenbank nicht zurückgesetzt. Version $target bleibt eingestellt, damit Version ${current:-?} nicht auf dem neueren Datenbankstand läuft. Prüfen: 'wachbuch logs migrate web'; dann 'wachbuch update $target' erneut oder zurück mit 'wachbuch update ${current:-VERSION}' und danach 'wachbuch restore $dump'."
                 quiet dc up -d --remove-orphans || true
@@ -645,7 +738,8 @@ start_or_roll_back() {
             note "Datenbank auf den Stand vor dem Update zurückgesetzt."
         fi
     fi
-    roll_back_files_and_images
+    # Nie mit halb zurückgesetzten Dateien oder falscher Version starten.
+    roll_back_files_and_images || return 1
     if quiet dc up -d --remove-orphans --wait --wait-timeout 600 && refresh_caddy; then
         drop_rollback_images "$before"
         note "Rollback erfolgreich; es läuft wieder Version ${current:-vorher}."
@@ -814,12 +908,14 @@ cmd_uninstall() {
     if [ "$purge" -eq 1 ]; then
         confirm "Container UND alle Daten (Datenbank, Backups im Volume, Zertifikate) werden gelöscht.
 Kopien unter $WACHBUCH_DIR/backups und die .env bleiben." "ALLES LOESCHEN" || die "Abgebrochen."
-        dc --profile ops --profile https down --volumes --remove-orphans
+        # Alle Profile: down entfernt nur Dienste eingeschalteter Profile, und
+        # --remove-orphans zählt Dienste ausgeschalteter Profile nicht mit.
+        dc_all down --volumes --remove-orphans
         say "Container und Volumes entfernt."
     else
         confirm "Die Wachbuch-Container werden entfernt. Daten (Volumes) bleiben erhalten." "ENTFERNEN" \
             || die "Abgebrochen."
-        dc --profile ops --profile https down --remove-orphans
+        dc_all down --remove-orphans
         say "Container entfernt; Daten bleiben in den Docker-Volumes (wachbuch start stellt alles wieder her)."
     fi
     say "Der Ordner $WACHBUCH_DIR (mit .env) bleibt bestehen; bei Bedarf von Hand löschen."

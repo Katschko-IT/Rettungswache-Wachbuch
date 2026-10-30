@@ -175,10 +175,11 @@ Die vollständige Anleitung mit Härtung des Servers, Überwachung,
 verschlüsselten Backups außer Haus und einem Betriebstest steht in
 [HETZNER.md](HETZNER.md). In Kurzform:
 
-1. **Server anlegen** und die öffentliche IPv4- (und IPv6-)Adresse notieren.
+1. **Server anlegen** und die öffentliche IPv4-Adresse notieren.
    Welche Hardware reicht: [HARDWARE.md](HARDWARE.md).
-2. **DNS:** Beim Domain-Anbieter für `demo` einen A-Eintrag (und AAAA-Eintrag)
-   auf diese Adresse anlegen. Prüfen: `dig +short demo.rwsth.de`.
+2. **DNS:** Beim Domain-Anbieter für `demo` einen A-Eintrag auf diese Adresse
+   anlegen, keinen AAAA-Eintrag (Begründung: [HETZNER.md](HETZNER.md),
+   Schritt 2). Prüfen: `dig +short demo.rwsth.de`.
 3. **Server härten:** `deploy/hetzner/harden-host.sh` (SSH nur mit Schlüssel,
    Firewall, fail2ban, automatische Updates, Überwachung).
 4. **Installieren** mit eingeschalteter Demo (auf dem Server):
