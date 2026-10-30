@@ -94,6 +94,24 @@ class DisinfectionStaysNeutralTests(FleetFixture):
         self.assertEqual(len(api.json()["results"]), 1)
         self.assert_no_pathogen(api.content.decode())
 
+    def test_fleet_dashboard_lists_protocols_without_kind(self):
+        self.disinfect()
+        html = self.client.get(reverse("fleet_dashboard")).content.decode()
+        section = html.split("RKI-Desinfektionsbuch (Letzte Protokolle)", 1)[1].split("</table>", 1)[0]
+        self.assertIn("RTW 0261", section)
+        self.assertIn(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]) + "#fleet-disinfection-history",
+                      section)
+        self.assertNotIn("Art der Desinfektion", section)
+        self.assert_no_pathogen(html)
+
+    def test_note_is_stored_in_station_language(self):
+        from django.utils import translation
+
+        with translation.override("en"):
+            self.disinfect()
+        self.vehicle.refresh_from_db()
+        self.assertTrue(self.vehicle.status_note.startswith("Desinfektion bis "), self.vehicle.status_note)
+
     def test_vehicle_page_shows_kind_only_in_protocol_history(self):
         self.disinfect()
         page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug])).content.decode()
@@ -110,7 +128,12 @@ class NeutralStatusMigrationTests(FleetFixture):
 
     def test_rewrites_old_notes_and_mission_statuses_but_not_audit(self):
         old = "Desinfektion läuft (Gezielte Schlussdesinfektion: MRSA / VRE / 3MRGN): Gesperrt bis 14:30 Uhr"
-        Vehicle.objects.filter(pk=self.vehicle.pk).update(tactical_status="3", status_note=old)
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(tactical_status="disinfection", status_note=old)
+        # Abgelaufene Desinfektion: Die alte Bemerkung ist veraltet und wird geleert.
+        stale = Vehicle.objects.create(
+            station=self.station, slug="rtw-s", call_sign="RTW S", license_plate="RW-S",
+            tactical_status="3", status_note="Desinfektion läuft (Noro): Gesperrt bis 09:15 Uhr",
+        )
         broken = Vehicle.objects.create(
             station=self.station, slug="rtw-b", call_sign="RTW B", license_plate="RW-B",
             tactical_status="disinfection", status_note="Desinfektion läuft (Norovirus)",
@@ -129,8 +152,10 @@ class NeutralStatusMigrationTests(FleetFixture):
 
         self.vehicle.refresh_from_db()
         broken.refresh_from_db()
-        self.assertEqual(self.vehicle.tactical_status, "1")
+        stale.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, "disinfection")
         self.assertEqual(self.vehicle.status_note, "Desinfektion bis 14:30 Uhr")
+        self.assertEqual((stale.tactical_status, stale.status_note), ("1", ""))
         self.assertEqual(broken.status_note, "Desinfektion läuft")
         self.assertEqual(broken.tactical_status, "disinfection")
         self.assertEqual([Vehicle.objects.get(pk=v.pk).tactical_status for v in others], ["1", "1", "6", "workshop"])
@@ -158,7 +183,7 @@ class DisinfectionNoteLabelTests(FleetFixture):
 
 class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
     def test_forms_offer_only_neutral_states(self):
-        form = VehicleForm(instance=self.vehicle, station=self.station)
+        form = VehicleForm(station=self.station)
         self.assertEqual([value for value, _ in form.fields["tactical_status"].choices], ["1", "6", "workshop"])
         for value, label in Vehicle.TacticalStatus.choices:
             self.assertIsNone(re.search(r"\d", str(label)), label)
@@ -173,12 +198,41 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
         self.assertIsNone(re.search(r"Status [1-6]|1 &amp; 2|Status 1/2", dashboard))
 
     def test_vehicle_form_rejects_mission_phase(self):
+        data = {"call_sign": "RTW 0262", "license_plate": "RW-0262", "vehicle_type": "rtw",
+                "current_mileage": 45000, "fuel_level_percent": 90, "adblue_level_percent": 85,
+                "o2_pressure_bar": 180}
+        for value in ("2", "3", "4", "disinfection"):
+            with self.subTest(value=value):
+                form = VehicleForm({**data, "tactical_status": value}, station=self.station)
+                self.assertFalse(form.is_valid())
+                self.assertIn("tactical_status", form.errors)
+
+    def test_edit_form_cannot_change_status_or_lift_disinfection_lock(self):
+        self.disinfect()
+        self.vehicle.refresh_from_db()
+        self.assertTrue(self.vehicle.is_disinfection_locked)
+        form = VehicleForm(instance=self.vehicle, station=self.station)
+        self.assertNotIn("tactical_status", form.fields)
+        page = self.client.get(reverse("fleet_vehicle_edit", args=[self.vehicle.slug]))
+        self.assertNotContains(page, 'name="tactical_status"')
+        self.assertContains(page, "Den Status ändert das Fahrzeug-Cockpit")
         data = {"call_sign": "RTW 0261", "license_plate": "RW-0261", "vehicle_type": "rtw",
                 "current_mileage": 45000, "fuel_level_percent": 90, "adblue_level_percent": 85,
-                "o2_pressure_bar": 180, "tactical_status": "3"}
-        form = VehicleForm(data, instance=self.vehicle, station=self.station)
-        self.assertFalse(form.is_valid())
-        self.assertIn("tactical_status", form.errors)
+                "o2_pressure_bar": 180, "tactical_status": "1", "status_note": ""}
+        resp = self.client.post(reverse("fleet_vehicle_edit", args=[self.vehicle.slug]), data)
+        self.assertRedirects(resp, reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
+        self.assertTrue(self.vehicle.is_disinfection_locked)
+
+    def test_status_change_during_lock_is_refused_with_translated_message(self):
+        self.disinfect()
+        resp = self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
+                                {"status": "1"}, follow=True)
+        self.assertContains(resp, "noch in der Einwirkzeit")
+        self.assertNotContains(resp, "SPERRPFLICHT")
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
 
     def test_mission_phases_and_manual_disinfection_are_rejected(self):
         for value in ("2", "3", "4", "disinfection"):
@@ -210,12 +264,12 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
 
 
 class HandoverWithoutPreselectionTests(FleetFixture):
-    def post(self, **overrides):
+    def post(self, follow=False, **overrides):
         data = {"mileage": 45120, "fuel_percent": "75", "adblue_percent": "50", "o2_pressure_bar": 190,
                 **CHECKS_YES, "notes": ""}
         data.update(overrides)
         return self.client.post(reverse("fleet_vehicle_handover_create", args=[self.vehicle.slug]),
-                                {k: v for k, v in data.items() if v is not None})
+                                {k: v for k, v in data.items() if v is not None}, follow=follow)
 
     def test_unbound_form_has_no_preselection(self):
         form = VehicleHandoverForm(auto_id="handover_%s", vehicle=self.vehicle)
@@ -251,6 +305,22 @@ class HandoverWithoutPreselectionTests(FleetFixture):
         self.assertFalse(VehicleHandover.objects.exists())
         self.vehicle.refresh_from_db()
         self.assertEqual(self.vehicle.current_mileage, 45000)
+
+    def test_mileage_jump_over_limit_is_rejected(self):
+        resp = self.post(mileage=450000)  # eine Ziffer zu viel
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Mehr als 2.000 km seit dem letzten Stand (45.000 km)")
+        self.assertFalse(VehicleHandover.objects.exists())
+        self.assertRedirects(self.post(mileage=47000), reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+
+    def test_unknown_last_mileage_has_no_upper_limit(self):
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(current_mileage=0)
+        self.assertRedirects(self.post(mileage=123456), reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+
+    def test_low_levels_warn_in_plain_language(self):
+        resp = self.post(o2_pressure_bar=80, fuel_percent="25", follow=True)
+        self.assertContains(resp, "Sauerstoffvorrat niedrig (80 bar).")
+        self.assertContains(resp, "Kraftstoffstand niedrig (25 %).")
 
     def test_all_yes_saves_without_defect_hint(self):
         resp = self.post()

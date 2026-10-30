@@ -79,6 +79,7 @@
     <legend>{% translate "Status & Füllstände" %}</legend>
 
     <div class="field-row">
+      {% if "tactical_status" in form.fields %}
       <div class="field">
         <label for="{{ form.tactical_status.id_for_label }}">
           {% translate "Fahrzeugstatus" %}:
@@ -86,6 +87,13 @@
         {{ form.tactical_status }}
         {% if form.tactical_status.errors %}<div class="form-error">{{ form.tactical_status.errors }}</div>{% endif %}
       </div>
+      {% elif vehicle %}
+      <div class="field">
+        <span class="field-label">{% translate "Fahrzeugstatus" %}:</span>
+        <p><strong>{{ vehicle.status_short }}</strong></p>
+        <p class="field-hint">{% translate "Den Status ändert das Fahrzeug-Cockpit, damit Desinfektionssperre und Protokoll gelten." %}</p>
+      </div>
+      {% endif %}
       <div class="field">
         <label for="{{ form.status_note.id_for_label }}">
           {% translate "Status-Bemerkung" %}:

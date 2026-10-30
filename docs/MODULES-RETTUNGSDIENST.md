@@ -32,13 +32,13 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 ## 2. Die fünf Fachmodule im Detail
 
 ### 🚑 Fuhrpark & Hygiene (`/fuhrpark/`)
-- **Fahrzeugstatus (nur Verfügbarkeit)**: Einsatzbereit, Außer Dienst / nicht einsatzklar und Werkstatt; „Desinfektion (gesperrt)“ setzt nur das Desinfektionsprotokoll. Einsatzphasen (frühere FMS-Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1); Altwerte wurden per Migration auf „Einsatzbereit“ gesetzt. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Art der Desinfektion steht ausschließlich im Protokoll.
+- **Fahrzeugstatus (nur Verfügbarkeit)**: Einsatzbereit, Außer Dienst / nicht einsatzklar und Werkstatt; „Desinfektion (gesperrt)“ setzt nur das Desinfektionsprotokoll. Einsatzphasen (frühere FMS-Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1); Altwerte wurden per Migration auf „Einsatzbereit“ gesetzt. Den Status eines vorhandenen Fahrzeugs ändert nur das Fahrzeug-Cockpit (mit Desinfektionssperre und Audit), nicht das Bearbeiten-Formular. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Art der Desinfektion steht ausschließlich im Protokoll.
 - **Fahrzeug-Telemetrie**:
   - `fuel_level_percent`: Kraftstoffstand in Prozent (Warnung < 50%, Kritisch < 30%).
   - `adblue_level_percent`: AdBlue-Füllstand in Prozent (Warnung < 25%).
   - `o2_pressure_bar`: Flaschendruck in bar (Norm: 200 bar Bezugsskala; Warnung < 100 bar, Kritisch < 50 bar).
   - `current_mileage`: Kilometerstand in km.
-- **Express-Schichtübernahme (3 Min.)**: Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand – ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder Nein beantwortet, der km-Stand startet leer („zuletzt … km“, nicht darunter), Kraftstoff und AdBlue werden per Schnellwahl gewählt. Ein „Nein“ führt nach dem Speichern zur vorausgefüllten Mangelmeldung.
+- **Express-Schichtübernahme (3 Min.)**: Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand – ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder Nein beantwortet, der km-Stand startet leer („zuletzt … km“, nicht darunter und höchstens 2.000 km darüber), Kraftstoff und AdBlue werden per Schnellwahl gewählt. Ein „Nein“ führt nach dem Speichern zur vorausgefüllten Mangelmeldung.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
   - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.
@@ -100,6 +100,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     Version und Zeitpunkt; IP-Adresse und Browser nicht (seit 0.26.1). Ältere Einträge mit
     diesen Angaben bleiben unverändert, werden aber weder angezeigt noch exportiert.
   - Wachenleitung sieht in Echtzeit die Quittierungsquote je Dokument.
+  - Wer wann quittiert hat (Liste und CSV-Nachweis), sehen seit 0.26.1 nur Schichtleitung und Admin; Mitglieder sehen ihren eigenen Stand.
 - **Notfall-Kurzwahlliste**:
   - Wichtige Ansprechpartner (ILS, Leitender Notarzt, Giftnotruf, Desinfektor, Werkstatt) mit 1-Tap Click-to-Call.
 
@@ -108,7 +109,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Vollbilddarstellung ohne Tastatur-/Mausinteraktion.
   - Live-Uhrzeit, Wachenname und aktuelles Wetter.
   - Heutige Wachentermine und offene Tagesaufgaben mit Fortschrittsbalken.
-  - Taktischer Status aller Rettungsmittel der Wache in Echtzeit.
+  - Verfügbarkeit aller Fahrzeuge der Wache (einsatzbereit, Desinfektion, Werkstatt, außer Dienst) – ohne Einsatzphasen und ohne Art der Desinfektion.
   - MPG-Prüfungs- und Mängelwarnungen.
   - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
 

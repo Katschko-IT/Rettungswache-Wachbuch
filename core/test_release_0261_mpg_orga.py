@@ -19,8 +19,8 @@ from django.utils import timezone
 
 from core.api.views import hash_api_token
 from core.models import ApiToken, Membership, NewsAcknowledgement, Station
-from core.mpg_forms import DeviceRoutineCheckForm
-from core.mpg_models import DeviceRoutineCheck, MedicalDevice
+from core.mpg_forms import DeviceRoutineCheckForm, MaintenanceLogForm
+from core.mpg_models import DeviceRoutineCheck, MaintenanceLog, MedicalDevice
 from core.orga_models import SOPDocument, SOPReceipt, SOPRevision
 from core.wachalltag_models import Defect, HandoverAck
 
@@ -147,6 +147,69 @@ class RoutineCheckWithoutPreselectionTests(TestCase):
         self.assertIn("Schnellkontrolle", check.notes)
 
 
+class QuickPassOnlyForReadyDevicesTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(name="RW 0.26.1 QP", slug="rw-0261-qp", mpg_enabled=True)
+        self.user = User.objects.create_user(username="qp-pruefer", password="x-test-pass-123")
+        Membership.objects.create(user=self.user, station=self.station, role=Membership.Role.MEMBER)
+        self.client.force_login(self.user)
+
+    def test_quick_pass_hidden_and_refused_unless_ready(self):
+        for status in (MedicalDevice.Status.LIMITED, MedicalDevice.Status.MAINTENANCE,
+                       MedicalDevice.Status.OOB, MedicalDevice.Status.DECOMMISSIONED):
+            with self.subTest(status=status):
+                device = MedicalDevice.objects.create(
+                    station=self.station, slug=f"geraet-{status}", name=f"Gerät {status}", current_status=status,
+                )
+                detail = self.client.get(reverse("mpg_device_detail", args=[device.slug])).content.decode()
+                self.assertNotIn('name="quick_pass"', detail)
+                self.assertIn('data-modal-open="check-modal"', detail)
+                response = self.client.post(reverse("mpg_routine_check", args=[device.slug]), {"quick_pass": "1"})
+                self.assertEqual(response.status_code, 302)
+                self.assertFalse(DeviceRoutineCheck.objects.filter(device=device).exists())
+                device.refresh_from_db()
+                self.assertEqual(device.current_status, status)
+        dashboard = self.client.get(reverse("mpg_dashboard")).content.decode()
+        self.assertNotIn('name="quick_pass"', dashboard)
+
+
+class MaintenanceResultWithoutPreselectionTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(name="RW 0.26.1 STK", slug="rw-0261-stk", mpg_enabled=True)
+        self.lead = User.objects.create_user(username="stk-lead", password="x-test-pass-123")
+        Membership.objects.create(user=self.lead, station=self.station, role=Membership.Role.SHIFT_LEAD)
+        self.device = MedicalDevice.objects.create(station=self.station, slug="defi-stk", name="Defi STK")
+        self.client.force_login(self.lead)
+        self.url = reverse("mpg_maintenance_create", args=[self.device.slug])
+        self.data = {"kind": MaintenanceLog.Kind.STK, "performed_at": timezone.localdate().isoformat(),
+                     "performed_by": "Medizintechnik GmbH", "next_due_date": "2028-10-01", "findings": ""}
+
+    def test_result_has_no_preselection(self):
+        form = MaintenanceLogForm()
+        self.assertIsNone(form["passed"].value())
+        self.assertTrue(form.fields["passed"].required)
+        html = self.client.get(reverse("mpg_device_detail", args=[self.device.slug])).content.decode()
+        radios = _inputs(html, "passed")
+        self.assertEqual(len(radios), 2)
+        self.assertFalse(any(re.search(r"\schecked[\s>=/]", radio) for radio in radios), radios)
+
+    def test_missing_result_is_rejected(self):
+        response = self.client.post(self.url, self.data, follow=True)
+        self.assertContains(response, "Bitte das Ergebnis wählen")
+        self.assertFalse(MaintenanceLog.objects.exists())
+
+    def test_failed_result_does_not_move_the_deadline(self):
+        before = self.device.next_stk_date
+        self.client.post(self.url, {**self.data, "passed": "no"})
+        log = MaintenanceLog.objects.get()
+        self.assertFalse(log.passed)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.next_stk_date, before)
+        self.client.post(self.url, {**self.data, "passed": "yes"})
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.next_stk_date.isoformat(), "2028-10-01")
+
+
 class SOPReceiptDataMinimisationTests(TestCase):
     def setUp(self):
         self.station = Station.objects.create(name="RW Orga 0.26.1", slug="rw-0261-orga", orga_enabled=True)
@@ -205,6 +268,19 @@ class SOPReceiptDataMinimisationTests(TestCase):
         html = self.client.get(reverse("sop_detail", args=[self.sop.slug])).content.decode()
         self.assertNotIn("198.51.100.77", html)
         self.assertNotIn("LegacyBrowser", html)
+
+    def test_members_see_only_their_own_state(self):
+        self.client.force_login(self.colleague)
+        html = self.client.get(reverse("sop_detail", args=[self.sop.slug])).content.decode()
+        self.assertNotIn("Mitarbeiter-Quittierungsbuch", html)
+        self.assertNotIn(reverse("sop_export_audit", args=[self.sop.slug]), html)
+        response = self.client.get(reverse("sop_export_audit", args=[self.sop.slug]))
+        self.assertRedirects(response, reverse("sop_detail", args=[self.sop.slug]), fetch_redirect_response=False)
+        self.client.force_login(self.user)
+        self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]))
+        html = self.client.get(reverse("sop_detail", args=[self.sop.slug])).content.decode()
+        self.assertIn("Mitarbeiter-Quittierungsbuch", html)
+        self.assertIn("altbestand", html)
 
     def test_legacy_rows_stay_untouched(self):
         self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]))

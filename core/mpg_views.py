@@ -288,6 +288,13 @@ def mpg_routine_check(request, slug: str):
     was_locked = device.current_status == MedicalDevice.Status.OOB
 
     if request.POST.get("quick_pass") == "1":
+        if device.current_status != MedicalDevice.Status.READY:
+            # Nur ein einsatzklares Gerät kann pauschal „in Ordnung“ sein.
+            messages.error(
+                request,
+                _("Die Schnellkontrolle gibt es nur für einsatzklare Geräte. Bitte die Kontrolle mit Details erfassen."),
+            )
+            return redirect("mpg_device_detail", slug=device.slug)
         check = DeviceRoutineCheck(
             station=station,
             device=device,
@@ -306,7 +313,7 @@ def mpg_routine_check(request, slug: str):
                     _("Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."),
                 )
             else:
-                messages.error(request, "Ungültige Eingaben bei der Funktionskontrolle.")
+                messages.error(request, _("Funktionskontrolle nicht gespeichert. Bitte die Angaben prüfen."))
             return redirect("mpg_device_detail", slug=device.slug)
         check = form.save(commit=False)
         check.station = station
@@ -396,8 +403,10 @@ def mpg_maintenance_create(request, slug: str):
         log.created_by = request.user
         log.save()
         messages.success(request, f"{log.get_kind_display()} für '{device.name}' erfolgreich dokumentiert.")
+    elif "passed" in form.errors:
+        messages.error(request, _("Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."))
     else:
-        messages.error(request, "Bitte Eingaben im Prüfungsformular prüfen.")
+        messages.error(request, _("Prüfung nicht gespeichert. Bitte die Angaben im Prüfungsformular prüfen."))
 
     return redirect("mpg_device_detail", slug=device.slug)
 

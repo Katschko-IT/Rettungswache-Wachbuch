@@ -193,7 +193,6 @@
         <tr>
           <th>{% translate "Datum / Uhrzeit" %}</th>
           <th>{% translate "Fahrzeug" %}</th>
-          <th>{% translate "Art der Desinfektion" %}</th>
           <th>{% translate "Mittel" %}</th>
           <th class="num">{% translate "Einwirkzeit" %}</th>
           <th>{% translate "Desinfektor / Personal" %}</th>
@@ -203,8 +202,8 @@
         {% for proto in recent_disinfections %}
           <tr>
             <td class="nowrap">{{ proto.started_at|date:"d.m.Y H:i" }} Uhr</td>
-            <td><strong>{{ proto.vehicle.call_sign }}</strong>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}</td>
-            <td>{{ proto.get_kind_display }}</td>
+            {# Die Art (Erreger) steht nur im Protokoll am Fahrzeug, nicht in der Übersicht. #}
+            <td><a href="{% url 'fleet_vehicle_detail' proto.vehicle.slug %}#fleet-disinfection-history"><strong>{{ proto.vehicle.call_sign }}</strong></a>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}</td>
             <td>{{ proto.disinfectant.name }}</td>
             <td class="num nowrap">{{ proto.exposure_minutes }} Min.</td>
             <td>{{ proto.performed_by.get_full_name|default:proto.performed_by.username }}</td>

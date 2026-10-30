@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
@@ -111,9 +112,12 @@ def sop_detail(request, slug: str):
     has_acknowledged = sop.user_has_acknowledged(request.user)
 
     all_revisions = sop.revisions.select_related("approved_by").order_by("-created_at")
-    recent_receipts = sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20]
-
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+    # Wer wann quittiert hat, sieht nur die Wachleitung (Nachweispflicht).
+    # Mitglieder sehen ihren eigenen Stand, nicht den der Kolleginnen.
+    recent_receipts = (
+        sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20] if can_manage else []
+    )
 
     return render(
         request,
@@ -319,6 +323,9 @@ def export_sop_receipts_csv(request, slug: str):
     """Revisionssicherer Quittierungs-Nachweis für QM-Audits als CSV."""
     station = request.membership.station
     sop = get_object_or_404(SOPDocument, station=station, slug=slug)
+    if request.membership.role not in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}:
+        messages.error(request, _("Den Quittierungsnachweis exportiert die Wachleitung."))
+        return redirect("sop_detail", slug=sop.slug)
 
     response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
     response["Content-Disposition"] = f'attachment; filename="QM_Audit_{sop.doc_number}_{timezone.localdate().isoformat()}.csv"'

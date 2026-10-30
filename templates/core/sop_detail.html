@@ -33,10 +33,10 @@
       <a class="button secondary" href="{% url 'sop_revision_create' sop.slug %}">
         {% include "core/_icon.html" with name="refresh" %}{% translate "Neue Version publizieren" %}
       </a>
+      <a class="button ghost" href="{% url 'sop_export_audit' sop.slug %}">
+        {% include "core/_icon.html" with name="download" %}{% translate "Quittierungs-Audit (CSV)" %}
+      </a>
     {% endif %}
-    <a class="button ghost" href="{% url 'sop_export_audit' sop.slug %}">
-      {% include "core/_icon.html" with name="download" %}{% translate "Quittierungs-Audit (CSV)" %}
-    </a>
   </div>
 </header>
 
@@ -112,6 +112,7 @@
     </div>
   </section>
 
+  {% if can_manage %}
   <section class="section-block">
     <h2>{% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h2>
     <div class="item-list">
@@ -128,5 +129,6 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
 </div>
 {% endblock %}

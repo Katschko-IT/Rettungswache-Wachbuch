@@ -11,6 +11,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+from django.utils import translation
 from django.utils.translation import gettext, gettext_lazy as _
 
 from .models import Station
@@ -202,8 +204,13 @@ class Vehicle(models.Model):
 
 
 def neutral_disinfection_note(lock_until) -> str:
-    """Statusbemerkung während der Einwirkzeit, ohne Art oder Erreger."""
-    return gettext("Desinfektion bis %(time)s Uhr") % {"time": timezone.localtime(lock_until).strftime("%H:%M")}
+    """Statusbemerkung während der Einwirkzeit, ohne Art oder Erreger.
+
+    Gespeichert in der Wachensprache, nicht in der Sprache der Person, die
+    gerade das Protokoll erfasst.
+    """
+    with translation.override(settings.LANGUAGE_CODE):
+        return gettext("Desinfektion bis %(time)s Uhr") % {"time": timezone.localtime(lock_until).strftime("%H:%M")}
 
 
 class DisinfectantMaster(models.Model):

@@ -273,7 +273,7 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Optional": "Lehnwort, identisch",
             "Details": "Lehnwort, identisch",
             "OK": "Lehnwort, identisch",
-            "Check": "Lehnwort, identisch",
+            "Reserve": "Tankanzeige, im Englischen identisch",
             "Normal": "Lehnwort, identisch",
             "AdBlue": "Markenname",
             "AdBlue (%)": "Markenname mit Einheit",

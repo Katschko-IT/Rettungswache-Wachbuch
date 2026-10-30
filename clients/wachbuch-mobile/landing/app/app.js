@@ -516,27 +516,16 @@
     const assets = p.assets || [];
     const lists = p.checklists || [];
     const openDefects = defects.filter((d) => d.status !== "done");
-    const byOwner = {};
-    openDefects.forEach((d) => {
-      const key = d.owner || "ohne Owner";
-      byOwner[key] = (byOwner[key] || 0) + 1;
-    });
     const ready = assets.filter((a) => a.status === "ready").length;
     const ampQuote = assets.length
       ? Math.round((ready / assets.length) * 100)
       : 0;
     const overdueChecks = lists.filter((c) => c.overdue).length;
-    return { openDefects, byOwner, ampQuote, overdueChecks, assets, ready };
+    return { openDefects, ampQuote, overdueChecks, assets, ready };
   }
 
   function renderReports() {
     const stats = reportStats();
-    const ownerRows = Object.entries(stats.byOwner)
-      .map(
-        ([owner, count]) =>
-          `<li><strong>${count}</strong> · ${owner}</li>`,
-      )
-      .join("");
     els.main.innerHTML = `
       <h1 class="section-label">Auswertung</h1>
       <p class="hint-line">Leichte Client-Aggregation über Demo-Daten (Phase I) — kein Server-Report.</p>
@@ -551,10 +540,6 @@
           <strong>${stats.ampQuote}%</strong><span>Assets einsatzklar</span>
         </div>
       </div>
-      <h2 class="section-label">Offene Mängel nach Owner</h2>
-      <ul class="report-list">
-        ${ownerRows || "<li>Keine offenen Mängel.</li>"}
-      </ul>
       <h2 class="section-label">Asset-Ampel</h2>
       <p class="hint-line">${stats.ready} von ${stats.assets.length} Fahrzeugen/Geräten einsatzklar.</p>
       <button type="button" class="btn btn-ghost" data-view="overview">← Zur Übersicht</button>

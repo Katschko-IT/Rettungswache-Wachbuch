@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand: 30. Oktober 2026 · aktuelle Version 0.26.0. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
+Stand: 30. Oktober 2026 · aktuelle Version 0.26.1. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
 
 ## Vision
 
@@ -29,6 +29,8 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 - **Weiter offen** (anders als bisher teils angegeben): R-010 Backup-Rolle [~], R-016 Monitoring [ ], R-017 Offsite und Restore-Nachweis [ ] (für Pi/LAN fehlt Offsite ganz), R-015 Pentest [ ], R-018 Barrierefreiheit [ ], R-019 Last [ ].
 
 ## Sofort – 0.26.1 „Schaden begrenzen“ (Zielfenster Mitte November 2026, ca. 1,5 PW, ohne Schemaumbau)
+
+**Stand:** umgesetzt in 0.26.1 (2026-10-30), siehe [CHANGELOG](../CHANGELOG.md). Zusätzlich: Status nur noch über das Fahrzeug-Cockpit, km-Plausibilität, STK/MTK-Ergebnis ohne Vorauswahl, Quittierungsliste nur für die Wachleitung. Offen für 0.27: AdBlue „nicht vorhanden“ für Fahrzeuge ohne AdBlue, Bereinigung alter Audit-Einträge und SOP-Altbestände (IP/Browser).
 
 | Baustein | Aufwand |
 |---|---|

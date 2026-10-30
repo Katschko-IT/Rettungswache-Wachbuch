@@ -79,6 +79,17 @@ class MedicalDeviceForm(forms.ModelForm):
 
 
 class MaintenanceLogForm(forms.ModelForm):
+    # Ergebnis der Prüfung (STK/MTK/DGUV) aktiv wählen; „Bestanden“ ist nicht
+    # vorbelegt. Nur ein bestandenes Ergebnis verschiebt die Frist am Gerät.
+    passed = forms.TypedChoiceField(
+        label=_("Ergebnis"),
+        choices=(("yes", _("Bestanden")), ("no", _("Nicht bestanden"))),
+        coerce=lambda value: value == "yes",
+        widget=forms.RadioSelect,
+        required=True,
+        error_messages={"required": _("Bitte das Ergebnis wählen.")},
+    )
+
     class Meta:
         model = MaintenanceLog
         fields = [

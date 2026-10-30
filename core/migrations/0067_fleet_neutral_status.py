@@ -4,7 +4,9 @@
   Altwerte und werden auf „Einsatzbereit“ (1) gesetzt. Nur der aktuelle Wert
   wird umgestellt; Audit-Einträge bleiben unberührt (Bereinigung in 0.27).
 - Statusbemerkungen „Desinfektion läuft (<Art>): Gesperrt bis HH:MM Uhr“
-  verraten den Erreger. Sie werden neutral: „Desinfektion bis HH:MM Uhr“.
+  verraten den Erreger. Steht das Fahrzeug noch in der Desinfektion, wird die
+  Bemerkung neutral („Desinfektion bis HH:MM Uhr“); sonst ist sie veraltet und
+  wird geleert.
 - Bemerkungsfeld des Desinfektionsprotokolls mit Hinweis statt „Transportgrund“.
 
 Keine Schemaänderung: Die AlterField-Operationen ändern nur Auswahltexte und
@@ -16,6 +18,7 @@ from django.db import migrations, models
 
 LEGACY_STATUSES = ("2", "3", "4")
 READY = "1"
+DISINFECTION = "disinfection"
 OLD_NOTE_PREFIX = "Desinfektion läuft ("
 TIME_AT_END = re.compile(r"(\d{1,2}:\d{2})\s*Uhr\s*$")
 
@@ -30,7 +33,9 @@ def neutral_note(note: str) -> str:
 def neutralize_vehicles(apps, schema_editor):
     Vehicle = apps.get_model("core", "Vehicle")
     Vehicle.objects.filter(tactical_status__in=LEGACY_STATUSES).update(tactical_status=READY)
-    for vehicle in Vehicle.objects.filter(status_note__startswith=OLD_NOTE_PREFIX).only("pk", "status_note"):
+    stale = Vehicle.objects.filter(status_note__startswith=OLD_NOTE_PREFIX)
+    stale.exclude(tactical_status=DISINFECTION).update(status_note="")
+    for vehicle in stale.filter(tactical_status=DISINFECTION).only("pk", "status_note"):
         Vehicle.objects.filter(pk=vehicle.pk).update(status_note=neutral_note(vehicle.status_note))
 
 

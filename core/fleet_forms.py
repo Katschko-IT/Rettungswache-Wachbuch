@@ -45,17 +45,18 @@ class VehicleForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         self.station = station
         super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Den Status eines vorhandenen Fahrzeugs ändert nur das Cockpit:
+            # dort gelten Desinfektionssperre und Audit. Das Bearbeiten-Formular
+            # könnte beides sonst umgehen.
+            del self.fields["tactical_status"]
+            return
         # Nur Verfügbarkeitszustände; Einsatzphasen (frühere Status 2/3/4) gibt
-        # es nicht. „Desinfektion“ setzt das Protokoll – sie bleibt nur stehen,
-        # wenn das Fahrzeug gerade darin ist, damit Bearbeiten sie nicht aufhebt.
-        allowed = list(Vehicle.SELECTABLE_STATUSES)
-        if self.instance.pk and self.instance.tactical_status == Vehicle.TacticalStatus.DISINFECTION:
-            allowed.append(Vehicle.TacticalStatus.DISINFECTION)
+        # es nicht, „Desinfektion“ setzt nur das Protokoll.
         self.fields["tactical_status"].choices = [
-            (value, label) for value, label in Vehicle.TacticalStatus.choices if value in allowed
+            (value, label) for value, label in Vehicle.TacticalStatus.choices
+            if value in Vehicle.SELECTABLE_STATUSES
         ]
-        if self.instance.pk and self.instance.tactical_status in Vehicle.LEGACY_STATUSES:
-            self.initial["tactical_status"] = Vehicle.TacticalStatus.STATUS_1
 
     def clean(self):
         cleaned_data = super().clean()
@@ -102,6 +103,8 @@ class DisinfectionProtocolForm(forms.ModelForm):
 
 
 YES_NO_CHOICES = [("yes", _("Ja")), ("no", _("Nein"))]
+# Größter plausibler Sprung zwischen zwei Übernahmen.
+MAX_MILEAGE_STEP_KM = 2000
 # Schnellwahl statt vorbelegter Prozentzahl; gespeichert wird der Prozentwert.
 FILL_LEVEL_CHOICES = [(10, _("Reserve")), (25, "¼"), (50, "½"), (75, "¾"), (100, _("Voll"))]
 
@@ -188,6 +191,20 @@ class VehicleHandoverForm(forms.ModelForm):
                 _("Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."),
                 code="mileage_below_last",
                 params={"km": number_format(last, force_grouping=True)},
+            )
+        # Tippfehler-Schutz (eine Ziffer zu viel). Ohne bekannten Stand (0)
+        # gibt es keine Obergrenze.
+        if last and mileage > last + MAX_MILEAGE_STEP_KM:
+            raise ValidationError(
+                _(
+                    "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. "
+                    "Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
+                ),
+                code="mileage_implausible",
+                params={
+                    "step": number_format(MAX_MILEAGE_STEP_KM, force_grouping=True),
+                    "km": number_format(last, force_grouping=True),
+                },
             )
         return mileage
 

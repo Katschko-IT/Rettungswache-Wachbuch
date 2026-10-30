@@ -150,7 +150,8 @@
             <span class="status-label danger">{% translate "Außer Betrieb" %}</span>
           {% endif %}
 
-          {# Schnellkontrolle: nur nach ausdrücklicher Bestätigung #}
+          {# Schnellkontrolle: nur für einsatzklare Geräte und nach ausdrücklicher Bestätigung #}
+          {% if device.current_status == 'ready' %}
           <form class="inline" method="post" action="{% url 'mpg_routine_check' device.slug %}" data-confirm="{% blocktranslate with name=device.name %}„{{ name }}“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?{% endblocktranslate %}">
             {% csrf_token %}
             <input type="hidden" name="quick_pass" value="1">
@@ -158,6 +159,7 @@
               {% include "core/_icon.html" with name="check" %}{% translate "Alles in Ordnung – Funktion geprüft" %}
             </button>
           </form>
+          {% endif %}
 
           <a href="{% url 'mpg_device_detail' device.slug %}" class="button secondary small">
             {% translate "Details" %}

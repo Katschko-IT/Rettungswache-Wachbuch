@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.26.1 - 2026-10-30
+
+„Schaden begrenzen“: Das Wachbuch speichert und zeigt nur noch, was es für die
+Wache braucht. Keine Erregernamen außerhalb des Desinfektionsprotokolls, keine
+Einsatzphasen, keine vorab gesetzten Häkchen in Prüfformularen, keine IP-Adressen
+bei Lesebestätigungen und keine Mängelzahlen je Person mehr.
+
+**Upgrade-Hinweise:**
+
+- `sudo /opt/wachbuch/wachbuch update` wie gewohnt.
+- Migration `0067` ändert kein Schema. Sie setzt Fahrzeuge mit den früheren
+  Status 2/3/4 auf „Einsatzbereit“, macht laufende Desinfektionsbemerkungen
+  neutral („Desinfektion bis HH:MM Uhr“) und leert veraltete
+  Desinfektionsbemerkungen. Audit-Einträge bleiben unverändert. Der Schritt
+  lässt sich nicht zurückdrehen; 0.26.0 läuft mit den geänderten Daten weiter.
+- API: `defects_by_owner` in `/api/v1/reports/` liefert nur noch `[]`.
+  Ältere App-Versionen zeigen dort „Keine Mängel“; maßgeblich ist
+  `open_defects`.
+
+**Fuhrpark**
+
+- Desinfektion: Fahrzeugstatus, Wanddisplay, Sperrbildschirm, Übersicht,
+  Fuhrpark-Cockpit, CSV-Export und App zeigen nur noch „Desinfektion bis
+  HH:MM Uhr“. Die Art der Desinfektion (z. B. Erreger) steht ausschließlich im
+  Desinfektionsprotokoll am Fahrzeug. Die Bemerkung wird in der Wachensprache
+  gespeichert.
+- Das Bemerkungsfeld im Desinfektionsprotokoll heißt „Bemerkung (keine
+  Patienten- oder Einsatzangaben)“ und weist darauf hin, keine Patienten- oder
+  Einsatzdaten einzutragen.
+- Fahrzeugstatus nur noch als Verfügbarkeit: Einsatzbereit, Außer Dienst /
+  nicht einsatzklar, Werkstatt; „Desinfektion“ setzt allein das Protokoll.
+  Einsatzphasen (frühere Status 2/3/4) sind nicht mehr wählbar und werden vom
+  Server abgewiesen. Statusnummern verschwinden aus Beschriftungen, Meldungen,
+  Display und Sperrbildschirm.
+- Den Status eines vorhandenen Fahrzeugs ändert nur noch das Fahrzeug-Cockpit
+  (mit Desinfektionssperre und Audit). Das Bearbeiten-Formular konnte die
+  Sperre bisher umgehen.
+- Fahrzeugübernahme ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder
+  Nein beantwortet, der km-Stand startet leer mit „zuletzt … km“ und darf
+  weder darunter noch mehr als 2.000 km darüber liegen (Tippfehler-Schutz),
+  Kraftstoff und AdBlue werden per Schnellwahl gewählt, der O₂-Druck wird
+  eingetragen. Ein „Nein“ führt direkt zur vorausgefüllten Mangelmeldung.
+- Meldungen im Fuhrpark sind übersetzt und in ruhigem Ton formuliert.
+
+**Medizinprodukte**
+
+- Die Funktionskontrolle fragt Energieversorgung, Sichtprüfung und Selbsttest
+  als Pflichtfragen Ja/Nein ohne Vorauswahl ab. Ohne Antwort auf jeden Punkt
+  wird nichts gespeichert; ein „Nein“ sperrt das Gerät wie bisher bis zur
+  Freigabe.
+- STK, MTK und andere Prüfungen: Das Ergebnis („Bestanden“ / „Nicht
+  bestanden“) ist nicht mehr vorab angehakt und muss gewählt werden. Nur ein
+  bestandenes Ergebnis verschiebt die Frist am Gerät.
+- Die Schnellkontrolle heißt „Alles in Ordnung – Funktion geprüft“, fragt vor
+  dem Speichern nach und gibt es nur noch für einsatzklare Geräte; für
+  eingeschränkte, gesperrte oder ausgemusterte Geräte bleibt die Kontrolle mit
+  Details.
+
+**Dienstanweisungen**
+
+- Lesebestätigungen speichern keine IP-Adresse und keinen Browser mehr. Der
+  CSV-Nachweis enthält diese Spalten nicht mehr; ältere Einträge bleiben
+  unverändert, werden aber weder angezeigt noch exportiert. Die Zeitspalte ist
+  als Ortszeit beschriftet.
+- Wer wann quittiert hat (Liste und CSV-Nachweis), sehen nur noch
+  Schichtleitung und Admin. Mitglieder sehen ihren eigenen Stand.
+
+**API und App**
+
+- `defects_by_owner` in `/api/v1/reports/` ist abgekündigt und liefert nur
+  noch eine leere Liste – offene Mängel je Person sind Leistungsdaten.
+- Die App im Ordner `clients/wachbuch-mobile` (Demo und Auswertung) und die
+  Demo-Landingpage zeigen keine Mängel je Person mehr.
+
 ## 0.26.0 - 2026-10-29
 
 Öffentliche Demo mit eigener Demo-Wache je Besuch, Betrieb ohne Eingriff auf

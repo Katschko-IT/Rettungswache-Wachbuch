@@ -317,7 +317,7 @@ Löschfristen oder organisatorische Freigabe. Details stehen in
 
 ## Projektstand
 
-Version **0.26.0** ist ein Pilotstand für Entwicklung, Erprobung und
+Version **0.26.1** ist ein Pilotstand für Entwicklung, Erprobung und
 Präsentation, **keine Produktionsfreigabe**. Alle Seiten werden automatisiert und
 per Browserlauf über alle Rollen geprüft (siehe
 [`docs/REVIEW-2026-10-24.md`](docs/REVIEW-2026-10-24.md)); das ersetzt keine reale

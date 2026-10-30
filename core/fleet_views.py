@@ -300,7 +300,8 @@ def vehicle_status_change(request, slug: str):
         mins = max(1, int(vehicle.disinfection_remaining_seconds / 60))
         messages.error(
             request,
-            f"SPERRPFLICHT: Fahrzeug befindet sich noch in der Desinfektions-Einwirkzeit! Freigabe erst in {mins} Minute(n) möglich.",
+            _("Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich.")
+            % {"mins": mins},
         )
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
@@ -344,12 +345,15 @@ def vehicle_disinfection_create(request, slug: str):
         protocol.performed_by = request.user
         protocol.save()
 
-        messages.warning(
-            request,
-            f"Desinfektion erfasst: Fahrzeug {vehicle.call_sign} ist für {protocol.exposure_minutes} Minuten gesperrt (Einwirkzeit bis {timezone.localtime(vehicle.disinfection_locked_until).strftime('%H:%M')} Uhr).",
-        )
+        if protocol.lock_timer_applied and protocol.exposure_minutes > 0:
+            messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
+                "vehicle": vehicle.call_sign,
+                "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
+            })
+        else:
+            messages.success(request, _("Desinfektion für %(vehicle)s erfasst.") % {"vehicle": vehicle.call_sign})
     else:
-        messages.error(request, "Fehlerhafte Angaben beim Desinfektionsprotokoll.")
+        messages.error(request, _("Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."))
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
@@ -377,9 +381,9 @@ def vehicle_handover_create(request, slug: str):
     # Automatische Warnung bei kritischem Sauerstoff- oder Kraftstoffstand
     warnings = []
     if handover.o2_pressure_bar < 100:
-        warnings.append(f"Sauerstoffvorrat niedrig ({handover.o2_pressure_bar} bar)!")
+        warnings.append(_("Sauerstoffvorrat niedrig (%(bar)s bar).") % {"bar": handover.o2_pressure_bar})
     if handover.fuel_percent < 30:
-        warnings.append(f"Kraftstoffstand niedrig ({handover.fuel_percent} %)!")
+        warnings.append(_("Kraftstoffstand niedrig (%(percent)s %%).") % {"percent": handover.fuel_percent})
 
     failed = handover.failed_checkpoints
     if failed:
@@ -392,7 +396,7 @@ def vehicle_handover_create(request, slug: str):
         return redirect(f"{url}?{urlencode({'mangel': ','.join(failed)})}#fleet-defect")
 
     if warnings:
-        messages.warning(request, "Schichtübernahme gespeichert mit Warnhinweis: " + " ".join(warnings))
+        messages.warning(request, " ".join([_("Schichtübernahme gespeichert. Bitte beachten:"), *warnings]))
     else:
         messages.success(request, _("Schichtübernahme für %(vehicle)s bestätigt.") % {"vehicle": vehicle.call_sign})
 

@@ -149,7 +149,7 @@ class FleetModuleTests(TestCase):
         self.vehicle.refresh_from_db()
         # Status remains DISINFECTION
         self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
-        self.assertContains(reject_resp, "SPERRPFLICHT: Fahrzeug befindet sich noch in der Desinfektions-Einwirkzeit")
+        self.assertContains(reject_resp, "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion.")
 
         # 3. Setting to WORKSHOP or STATUS_6 is permitted even during disinfection
         allow_resp = self.client.post(
