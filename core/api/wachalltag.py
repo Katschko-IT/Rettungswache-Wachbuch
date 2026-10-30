@@ -29,7 +29,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from core.access import CONTENT_ROLES
 from core.device_status import IN_SERVICE, asset_release_blockers
 from core.models import Checklist, HandoverEntry, Membership
-from core.services import audit
+from core.services import acknowledge_handover, audit
 from core.wachalltag_models import (
     AssetEvent,
     ChecklistSchedule,
@@ -543,7 +543,7 @@ def defect_detail(request, pk):
             }
             for event in item.events.select_related("actor").all()[:100]
         ]
-        data["attachments"] = [_attachment_json(a) for a in item.attachments.select_related("uploaded_by").all()]
+        data["attachments"] = [_attachment_json(a) for a in item.attachments.select_related("uploaded_by").defer("data")]
         return JsonResponse({"ok": True, **data})
 
     if (error := _scope(request, "write:handovers")) or (error := _content_role(request)):
@@ -822,9 +822,7 @@ def handover_ack(request, pk):
     handover = HandoverEntry.objects.filter(pk=pk, station=station).first()
     if handover is None:
         return base._json_error(request, "Uebergabe nicht gefunden.", status=404)
-    item, created = HandoverAck.objects.get_or_create(station=station, handover=handover, user=request.user)
-    if created:
-        audit(request.user, station, "handover.acknowledged", handover, {"handover": handover.pk})
+    item, created = acknowledge_handover(handover, request.user)
     return JsonResponse({"ok": True, **_ack_json(item)}, status=201 if created else 200)
 
 
@@ -842,7 +840,7 @@ def defect_attachments(request, pk):
     if request.method == "GET":
         if (error := _scope(request, "read:handovers")) or (error := _content_role(request)):
             return error
-        items = defect.attachments.select_related("uploaded_by").all()
+        items = defect.attachments.select_related("uploaded_by").defer("data")
         return JsonResponse({"ok": True, "results": [_attachment_json(item) for item in items]})
     if (error := _scope(request, "write:handovers")) or (error := _content_role(request)):
         return error

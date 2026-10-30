@@ -16,6 +16,6 @@
   {% if correlation_id %}
   <p class="error-meta">{% translate "Korrelations-ID" %}: <code>{{ correlation_id }}</code></p>
   {% endif %}
-  <p class="error-support">{% translate "Damit wir helfen können: Wende dich an den Wachbuch-Support und teile die obenstehende Korrelations-ID sowie ungefähr die durchgeführte Aktion." %}</p>
+  {% translate "Damit Leitung oder Administration deiner Wache helfen können: Nenne ihnen die obenstehende Korrelations-ID sowie ungefähr die durchgeführte Aktion." as support_text %}{% include "errors/_support.html" %}
 </section>
 {% endblock %}

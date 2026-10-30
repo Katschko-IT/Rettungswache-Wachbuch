@@ -13,6 +13,9 @@ REPO_SLUG="Katschko-IT/Rettungswache-Wachbuch"
 DEFAULT_BASE_URL="https://raw.githubusercontent.com/${REPO_SLUG}"
 MIN_COMPOSE_MAJOR=2
 MIN_COMPOSE_MINOR=20
+# Erste Version mit eigener Demo-Wache je Besuch. Ältere Images legen mit
+# DEMO_MODE gemeinsame Konten mit öffentlichem Passwort in der Wache an.
+MIN_DEMO_VERSION=0.26.0
 
 # --- Ausgabe ---------------------------------------------------------------
 say() { printf '\n==> %s\n' "$*"; }
@@ -45,13 +48,17 @@ Aufruf: sh install.sh [Optionen]
                       gebaute Images), alle (auch neue Versionen derselben
                       Hauptversion) oder aus; ohne Angabe wird gefragt
                       (Standard und bei --yes: sicherheit)
+  --demo              öffentliche Demo (docs/DEMO.md): eigene Demo-Wache je
+                      Besuch, Aufräumdienst und Zwei-Faktor-Pflicht für
+                      echte Konten; sinnvoll mit --mode domain
   --no-start          nur Dateien und .env anlegen, nichts starten
   -y, --yes           keine Rückfragen, Standardwerte verwenden
   -h, --help          diese Hilfe
 
 Alle Optionen gehen auch als Umgebungsvariablen: WACHBUCH_DIR, WACHBUCH_NAME,
 WACHBUCH_MODE, WACHBUCH_DOMAIN, WACHBUCH_EMAIL, WACHBUCH_PORT,
-WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL, WACHBUCH_AUTO_UPDATE.
+WACHBUCH_VERSION, WACHBUCH_SOURCE, WACHBUCH_BASE_URL, WACHBUCH_AUTO_UPDATE,
+WACHBUCH_DEMO (true).
 EOF
 }
 
@@ -72,6 +79,8 @@ BUILD=0
 ASSUME_YES=0
 NO_START=0
 OPT_AUTO="${WACHBUCH_AUTO_UPDATE:-}"
+DEMO=0
+[ "${WACHBUCH_DEMO:-}" != "true" ] || DEMO=1
 
 need_value() {
     if [ $# -lt 2 ] || [ -z "$2" ]; then
@@ -95,6 +104,7 @@ while [ $# -gt 0 ]; do
         --project) need_value "$@"; PROJECT="$2"; shift ;;
         --build) BUILD=1 ;;
         --auto-update) need_value "$@"; OPT_AUTO="$2"; shift ;;
+        --demo) DEMO=1 ;;
         --no-start) NO_START=1 ;;
         -y|--yes) ASSUME_YES=1 ;;
         -h|--help) usage; exit 0 ;;
@@ -124,6 +134,18 @@ is_ipv4() {
         *[!0-9.]*|'') return 1 ;;
     esac
     [ "$(printf '%s' "$1" | awk -F. 'NF == 4 { print "ok" }')" = "ok" ]
+}
+
+# 0, wenn Version $1 älter ist als $2 (nur Ziffern und Punkte).
+version_lt() {
+    awk -v a="$1" -v b="$2" 'BEGIN {
+        split(a, x, "."); split(b, y, ".")
+        for (i = 1; i <= 3; i++) {
+            if (x[i] + 0 < y[i] + 0) exit 0
+            if (x[i] + 0 > y[i] + 0) exit 1
+        }
+        exit 1
+    }'
 }
 
 # Interaktiv nur mit Terminal; bei "curl | sh" liest das Skript von /dev/tty.
@@ -460,6 +482,16 @@ case "$VERSION" in
     *[!0-9.]*) die "Ungültige Version: $VERSION (Format X.Y.Z)" ;;
     *) REF="v$VERSION" ;;
 esac
+# Öffentliche Demo nur mit Images, die DEMO_SANDBOX kennen. "latest" (auch
+# nach einer gescheiterten GitHub-Abfrage) ist das letzte Release, nicht main.
+# Lokal gebaute Images entsprechen dem Checkout und sind ausgenommen.
+if [ "$BUILD" -eq 0 ] && { [ "$DEMO" -eq 1 ] || [ "$(env_get DEMO_SANDBOX)" = "true" ]; }; then
+    [ "$VERSION" != "latest" ] \
+        || die "Öffentliche Demo: Version nicht ermittelbar (GitHub-API). Bitte --version $MIN_DEMO_VERSION oder neuer angeben."
+    if version_lt "$VERSION" "$MIN_DEMO_VERSION"; then
+        die "Die öffentliche Demo braucht Version $MIN_DEMO_VERSION oder neuer (gewählt: $VERSION)."
+    fi
+fi
 if [ "$BUILD" -eq 1 ]; then
     info "Images:     lokal gebaut aus $SOURCE"
 else
@@ -594,8 +626,33 @@ put TRUSTED_PROXY "$D_PROXY"
 put WEBAUTHN_ENABLED "$D_WEBAUTHN"
 put WEBAUTHN_RP_ID "$D_RP_ID"
 put WEBAUTHN_ORIGIN "$D_RP_ORIGIN"
-put COMPOSE_PROFILES "$D_PROFILES"
+# Von Hand ergänzte Profile (z. B. signal) bleiben; nur https folgt der Betriebsart.
+extra_profiles=$(env_get COMPOSE_PROFILES | tr ',' '\n' | grep -vx -e https -e '' | paste -sd, -)
+put COMPOSE_PROFILES "$D_PROFILES${extra_profiles:+${D_PROFILES:+,}$extra_profiles}"
 put CADDY_TLS "$D_TLS"
+
+# Öffentliche Demo: Schalter und Pflicht zum zweiten Faktor (Demo-Konten sind
+# davon ausgenommen). Das Profil "demo" startet den Aufräumdienst und bleibt
+# auch erhalten, wenn eine spätere Installation die Profile neu setzt.
+if [ "$DEMO" -eq 1 ]; then
+    [ "$MODE" = "domain" ] || warn "--demo ist für eine öffentliche Domain gedacht (--mode domain)."
+    env_set DEMO_MODE true
+    env_set DEMO_SANDBOX true
+    env_set MFA_REQUIRED true
+    # Das veröffentlichte Standardpasswort der gemeinsamen Demo-Konten darf
+    # auf einem öffentlichen Server nie gelten.
+    case "$(env_get DEMO_PASSWORD)" in
+        ''|replace-*|Demo-Passwort-12345) env_set DEMO_PASSWORD "$(rand_hex)" ;;
+    esac
+fi
+if [ "$(env_get DEMO_SANDBOX)" = "true" ]; then
+    profiles=$(env_get COMPOSE_PROFILES)
+    case ",$profiles," in
+        *,demo,*) ;;
+        *) env_set COMPOSE_PROFILES "${profiles:+$profiles,}demo" ;;
+    esac
+    info "Öffentliche Demo an (DEMO_SANDBOX=true, Profil demo)"
+fi
 chmod 600 "$ENV_FILE"
 info "Schlüssel gesetzt, Rechte 600"
 
@@ -674,6 +731,12 @@ case "$AUTO" in
 esac
 
 CODE=$(env_get SETUP_BOOTSTRAP_TOKEN)
+# Nach dem Abschluss ist der Assistent gesperrt; der Code darf in .env bleiben.
+if [ -n "$CODE" ] && [ "$(dc exec -T web python manage.py shell -c \
+    'from core.setup_wizard import setup_completed; print("ja" if setup_completed() else "nein")' \
+    2>/dev/null | tail -n 1)" = "ja" ]; then
+    CODE=""
+fi
 cat <<EOF
 
 Fertig. Das Wachbuch läuft.
@@ -687,8 +750,8 @@ Fertig. Das Wachbuch läuft.
 
 WICHTIG: $ENV_FILE enthält alle Schlüssel. Offline sichern
 (z. B. USB-Stick im Tresor). Ohne diese Datei sind Datenbank und Backups
-nicht mehr nutzbar. Nach der Ersteinrichtung SETUP_BOOTSTRAP_TOKEN in .env
-leeren und "$TARGET_DIR/wachbuch start" ausführen.
+nicht mehr nutzbar. Der Einrichtungscode gilt nur bis zum Abschluss der
+Ersteinrichtung; danach ist der Assistent gesperrt.
 EOF
 case "$MODE" in
     lan)

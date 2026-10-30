@@ -26,6 +26,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from . import weather
 from .access import membership_required
 from .forms import ActivationPasswordForm, EmployeeInviteForm, SetupWizardForm
+from .middleware import rate_limit_ip
 from .models import EmployeeActivation, Membership, Station
 from .rate_limit import consume as rate_limit_consume
 from .services import audit
@@ -63,7 +64,7 @@ ACTIVATION_LOOKUP_WINDOW = 60
 
 
 def _client_key(request) -> str:
-    return getattr(request, "client_ip", None) or request.META.get("REMOTE_ADDR", "unknown")
+    return rate_limit_ip(request)
 
 
 def _allowed_timezone_names() -> set[str]:

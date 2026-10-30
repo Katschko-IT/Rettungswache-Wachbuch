@@ -168,15 +168,15 @@ sudo reboot</code></pre>
   <div class="pub-wrap">
     <div class="pub-section-head">
       <h2 id="install-daily">{% translate "Im Alltag" %}</h2>
-      <p class="pub-muted">{% translate "Alle Befehle laufen im Installationsordner, unter Linux /opt/wachbuch:" %}</p>
+      <p class="pub-muted">{% translate "Verwaltet wird mit dem Programm „wachbuch“ im Installationsordner. Unter Linux mit sudo und vollem Pfad wie unten, unter macOS ohne sudo als ~/wachbuch/wachbuch:" %}</p>
     </div>
     <table class="facts">
       <tbody>
-        <tr><th scope="row"><code>wachbuch status</code></th><td>{% translate "Läuft alles?" %}</td></tr>
-        <tr><th scope="row"><code>wachbuch update</code></th><td>{% translate "Neue Version holen – vorher wird automatisch gesichert." %}</td></tr>
-        <tr><th scope="row"><code>wachbuch backup</code></th><td>{% translate "Sofort ein Backup anlegen." %}</td></tr>
-        <tr><th scope="row"><code>wachbuch restore DATEI</code></th><td>{% translate "Ein Backup wiederherstellen (mit Rückfrage)." %}</td></tr>
-        <tr><th scope="row"><code>wachbuch setup-code</code></th><td>{% translate "Den Einrichtungscode noch einmal anzeigen." %}</td></tr>
+        <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch status</code></th><td>{% translate "Läuft alles?" %}</td></tr>
+        <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch update</code></th><td>{% translate "Neue Version holen – vorher wird automatisch gesichert." %}</td></tr>
+        <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch backup</code></th><td>{% translate "Sofort ein Backup anlegen." %}</td></tr>
+        <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch restore DATEI</code></th><td>{% translate "Ein Backup wiederherstellen (mit Rückfrage)." %}</td></tr>
+        <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch setup-code</code></th><td>{% translate "Den Einrichtungscode noch einmal anzeigen." %}</td></tr>
       </tbody>
     </table>
   </div>
@@ -194,7 +194,7 @@ sudo reboot</code></pre>
       </details>
       <details>
         <summary>{% translate "Ich habe den Einrichtungscode nicht mehr." %}</summary>
-        <p>{% translate "Im Installationsordner „wachbuch setup-code“ ausführen. Nach abgeschlossener Einrichtung gibt es keinen Code mehr – dann ist das auch richtig so." %}</p>
+        <p>{% translate "„sudo /opt/wachbuch/wachbuch setup-code“ ausführen (macOS: ~/wachbuch/wachbuch setup-code). Nach abgeschlossener Einrichtung gibt es keinen Code mehr – dann ist das auch richtig so." %}</p>
       </details>
       <details>
         <summary>{% translate "Der Installer meldet einen belegten Port." %}</summary>

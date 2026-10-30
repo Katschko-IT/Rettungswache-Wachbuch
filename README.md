@@ -7,6 +7,11 @@ Ein selbst gehostetes, mobiles **Wachbuch** für die interne Organisation einer
 Rettungswache. Die Anwendung organisiert den Wachenalltag und ist **kein**
 Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.
 
+> **Live ausprobieren: [demo.rwsth.de](https://demo.rwsth.de/)** – anmelden mit
+> **Demo** / **Demo**. Jeder Besuch bekommt eine eigene Wache mit erfundenen
+> Daten und einen kurzen Rundgang; beim Abmelden (spätestens nach zwei Stunden)
+> wird sie gelöscht. Wie die Demo betrieben wird: [`docs/DEMO.md`](docs/DEMO.md).
+
 [Projektwebseite](https://katschko-it.github.io/Rettungswache-Wachbuch/) ·
 [Quellcode der Webseite](site/index.html). Die Projektseite ist statisch, ohne
 JavaScript und ohne externe Ressourcen. Veröffentlichung und Konfiguration sind in
@@ -64,15 +69,22 @@ Im Installationsordner liegt die kleine Verwaltung `wachbuch`:
 /opt/wachbuch/wachbuch uninstall       # Container entfernen (Daten nur mit --purge)
 ```
 
-**Updates im Alltag:** Die Images des aktuellen Releases werden jede Woche neu
+**Updates im Alltag:** Die Images der neuesten Version und ihrer Vorgängerin
+(jeweils der neueste Patch, z. B. 0.26.1 und 0.25.3) werden jede Woche neu
 gebaut und enthalten so die Sicherheitsupdates von Debian/Alpine. Mit
 `wachbuch auto-update an` holt die Installation sie nachts selbst (der Installer
 fragt danach). Vorher entsteht ein Backup; startet die neue Fassung nicht,
 läuft automatisch wieder die vorherige. `auto-update an alle` übernimmt
-zusätzlich neue Versionen derselben Hauptversion.
+zusätzlich neue Versionen derselben Hauptversion – das empfiehlt sich für
+Server im Internet: Ältere Versionen erhalten keine Neubauten mehr, und
+Caddy und Redis wechseln nur mit einer neuen Version.
 
 Alle Optionen, manuelle Installation und Reverse-Proxy-Varianten:
 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+Eigener Server im Internet (z. B. Hetzner Cloud) mit Härtung, Überwachung,
+verschlüsselten Backups außer Haus und Betriebstest:
+[`docs/HETZNER.md`](docs/HETZNER.md).
 
 ## Funktionen
 
@@ -171,8 +183,8 @@ lokalen HTTP-Betrieb vorgesehen.
 Die Ersteinrichtung läuft **immer über den Assistenten** unter `/setup/`: Er fragt
 den Einrichtungscode (`SETUP_BOOTSTRAP_TOKEN`) ab und führt durch Wachenname,
 Anschrift, Zeitzone, erstes Admin-Konto, Rollen und Module; ohne Code existiert die
-Route nicht. Nach Abschluss den Code in `.env` leeren und neu starten
-(`wachbuch start`). Details: [`docs/PILOT-HTTPS-LOCAL.md`](docs/PILOT-HTTPS-LOCAL.md).
+Route nicht. Nach dem Abschluss ist der Assistent gesperrt (404), der Code also
+wertlos; leeren kann man ihn trotzdem. Details: [`docs/PILOT-HTTPS-LOCAL.md`](docs/PILOT-HTTPS-LOCAL.md).
 
 Weitere Teamkonten legt der **Master-Admin** unter `/team/anlegen/` an oder per
 Einladung; Freigaben bleiben stationsbezogen. Optional kann
@@ -305,7 +317,7 @@ Löschfristen oder organisatorische Freigabe. Details stehen in
 
 ## Projektstand
 
-Version **0.25.0** ist ein Pilotstand für Entwicklung, Erprobung und
+Version **0.26.0** ist ein Pilotstand für Entwicklung, Erprobung und
 Präsentation, **keine Produktionsfreigabe**. Alle Seiten werden automatisiert und
 per Browserlauf über alle Rollen geprüft (siehe
 [`docs/REVIEW-2026-10-24.md`](docs/REVIEW-2026-10-24.md)); das ersetzt keine reale
@@ -324,7 +336,8 @@ und Mitbestimmung sowie eine unabhängige Sicherheitsprüfung. Übersicht:
 - [Roadmap](docs/ROADMAP.md) · [Remediation-Roadmap](docs/REMEDIATION-ROADMAP-2026-08.md)
 - [Fachmodule](docs/MODULES-RETTUNGSDIENST.md) · [Push-Relay für die App](docs/PUSH-RELAY.md)
 - [Architektur](docs/ARCHITECTURE.md)
-- [Betrieb, Backup und Updates](docs/OPERATIONS.md)
+- [Betrieb, Backup und Updates](docs/OPERATIONS.md) · [Release veröffentlichen](docs/RELEASE-0.26.0.md)
+- [Öffentliche Demo](docs/DEMO.md) – live unter [demo.rwsth.de](https://demo.rwsth.de/)
 - [Lokaler Betrieb ohne WAN](docs/OFFLINE-BETRIEB.md)
 - [API für Mobile-/Drittclients](docs/API.md)
 - [Krypto nach BSI TR-02102](docs/CRYPTO-BSI.md)

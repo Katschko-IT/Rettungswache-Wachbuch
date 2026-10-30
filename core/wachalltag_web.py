@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
@@ -142,14 +143,18 @@ def defect_create(request):
                             metadata={"attachment_id": attachment.pk, "size": len(raw)},
                         )
                     audit(request.user, station, "defect.created", item, {"via": "web"})
-                messages.success(request, "Mangel wurde angelegt.")
+                messages.success(request, _("Mangel wurde angelegt."))
                 return redirect("defect_detail_web", pk=item.pk)
+    from .demo_sandbox import tour_form_initial
+
     return render(
         request,
         "core/defect_form.html",
         {
             "priorities": Defect.Priority.choices,
             "categories": Defect.Category.choices,
+            # Nur in der Demo: Rundgang-Schritt 5 kommt vorausgefüllt an.
+            "initial": tour_form_initial(request, "defect"),
         },
     )
 
@@ -235,7 +240,7 @@ def defect_detail(request, pk):
         {
             "item": item,
             "events": item.events.select_related("actor").all()[:100],
-            "attachments": item.attachments.select_related("uploaded_by").all(),
+            "attachments": item.attachments.select_related("uploaded_by").defer("data"),
             "statuses": Defect.Status.choices,
             "can_close": _is_adminish(request.membership),
         },
@@ -311,7 +316,12 @@ def assets_inventory(request):
         elif action in {"checkout", "checkin"}:
             item_id = request.POST.get("item_id") or ""
             with transaction.atomic():
-                inv = get_object_or_404(InventoryItem.objects.select_for_update().select_related("holder"), station=station, item_id=item_id)
+                # of=("self",): holder ist nullable (LEFT OUTER JOIN); PostgreSQL
+                # verweigert FOR UPDATE auf der nullbaren Seite (wie in der API).
+                inv = get_object_or_404(
+                    InventoryItem.objects.select_for_update(of=("self",)).select_related("holder"),
+                    station=station, item_id=item_id,
+                )
                 if action == "checkout":
                     if inv.holder_id and inv.holder_id != request.user.id:
                         messages.error(request, f"Bereits ausgegeben an {inv.holder.username}.")

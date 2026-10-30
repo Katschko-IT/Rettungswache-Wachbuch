@@ -9,7 +9,7 @@
     <p class="lead">{% translate "Einmal-Links dieser Wache. Roh-Token werden nicht gespeichert und können nicht erneut angezeigt werden." %}</p>
   </div>
   <div class="form-actions">
-    <a class="button primary" href="{% url 'team_invite_create' %}">{% translate "Mitarbeiterzugang anlegen" %}</a>
+    {% if not demo_banner %}<a class="button primary" href="{% url 'team_invite_create' %}">{% translate "Mitarbeiterzugang anlegen" %}</a>{% endif %}
   </div>
 </header>
 

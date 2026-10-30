@@ -107,13 +107,18 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="empty-state">{% translate "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm." %}</p>
+    <p class="empty-state">{% if demo_banner %}{% translate "Noch kein Wandmonitor verbunden." %}{% else %}{% translate "Noch kein Wandmonitor verbunden. Erzeuge unten einen Link für deinen ersten Bildschirm." %}{% endif %}</p>
   {% endif %}
 </section>
 
 {# Neuen Wandmonitor anbinden #}
 <section class="section-block">
   <h2>{% translate "Neuen Monitor verbinden" %}</h2>
+  {% if demo_banner %}
+  {# Display-Links wirken außerhalb der Demo-Wache und sind in der Demo gesperrt. #}
+  <p class="helptext">{% translate "In der Demo gesperrt: Ein Bildschirm-Link würde ohne Anmeldung außerhalb deiner Demo-Wache funktionieren. Wie der Wandmonitor aussieht, zeigt die Vorschau." %}</p>
+  <p class="form-actions"><a class="button primary" href="{% url 'display_home' %}">{% translate "Vorschau öffnen" %}</a></p>
+  {% else %}
   <form method="post" action="{% url 'display_token_create' %}">
     {% csrf_token %}
     <div class="field">
@@ -124,5 +129,6 @@
       <button class="button secondary" type="submit">{% include "core/_icon.html" with name="plus" %}{% translate "Neuen Bildschirm-Link erzeugen" %}</button>
     </div>
   </form>
+  {% endif %}
 </section>
 {% endblock %}

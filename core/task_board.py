@@ -49,6 +49,10 @@ DEFAULT_TASKS = (
 
 def ensure_default_station_tasks(station):
     """Legt die Standardvorlage einmalig und parallelitätssicher an."""
+    # Schneller Weg ohne Sperre: Übersicht und Aufgabenseiten rufen das bei
+    # jedem Aufruf; die Vorlage gibt es dann fast immer schon.
+    if StationTask.objects.filter(station=station).exists():
+        return 0
     with transaction.atomic():
         # Lock the stable station row before checking for tasks. A lock on a
         # non-existing StationTask row would not serialize two first requests.

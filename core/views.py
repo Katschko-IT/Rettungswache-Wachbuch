@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date, timedelta
 from urllib.parse import quote, urlencode
 
@@ -6,10 +7,11 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import IntegrityError, connection, transaction
-from django.db.models import Case, IntegerField, Value, When
+from django.db.models import Case, IntegerField, Prefetch, Value, When
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -75,7 +77,7 @@ from .api.wachalltag import (
     attachment_is_valid,
 )
 from .attachments import read_uploads
-from .wachalltag_models import ChecklistSchedule, Defect, InventoryItem, StationAsset
+from .wachalltag_models import ChecklistSchedule, Defect, HandoverAck, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
 from .mfa import (
     confirm_device,
@@ -88,6 +90,7 @@ from .mfa import (
     verify_totp,
 )
 from .services import (
+    acknowledge_handover,
     archive_pinboard_note,
     audit,
     change_handover_status,
@@ -106,12 +109,41 @@ from .task_board import (
     week_board,
 )
 
+logger = logging.getLogger(__name__)
 
-def healthz(request: HttpRequest) -> JsonResponse:
+
+def _health_database() -> None:
     with connection.cursor() as cursor:
         cursor.execute("SELECT 1")
         cursor.fetchone()
-    return JsonResponse({"status": "ok", "version": settings.APP_VERSION})
+
+
+def _health_cache() -> None:
+    # Mit Redis hängen Sitzungen, Rate-Limits und der Demo-Start am Cache; ohne
+    # Redis ist er prozesslokal und die Prüfung gelingt immer.
+    cache.set("healthz", "ok", timeout=30)
+    if cache.get("healthz") != "ok":
+        raise RuntimeError("Cache liefert den geschriebenen Wert nicht zurück")
+
+
+def healthz(request: HttpRequest) -> JsonResponse:
+    """Lebenszeichen für Docker, Caddy und wachwerk-health: Datenbank und Cache."""
+    checks = {}
+    for name, check in (("database", _health_database), ("cache", _health_cache)):
+        try:
+            check()
+            checks[name] = "ok"
+        except Exception as exc:
+            logger.warning("healthz: %s nicht erreichbar (%s)", name, type(exc).__name__)
+            checks[name] = "error"
+    healthy = all(value == "ok" for value in checks.values())
+    if not healthy:
+        # Der Healthcheck fragt alle 15 Sekunden: kein Fehlerereignis je Abfrage.
+        request._error_event_recorded = True
+    return JsonResponse(
+        {"status": "ok" if healthy else "error", "version": settings.APP_VERSION, "checks": checks},
+        status=200 if healthy else 503,
+    )
 
 
 def _render_error(request: HttpRequest, *, status: int, code: str, template_name: str) -> HttpResponse:
@@ -146,6 +178,25 @@ def permission_denied(request, exception=None):
         code=ERROR_CODE_FORBIDDEN,
         template_name="errors/403.html",
     )
+
+
+def csrf_failure(request, reason=""):
+    """Abgelaufenes Formular (CSRF): eigene Seite statt Djangos Rohtext."""
+    if is_api_request(request):
+        return json_error(request, ERROR_CODE_FORBIDDEN, status=403)
+    back = request.META.get("HTTP_REFERER", "")
+    if not url_has_allowed_host_and_scheme(back, {request.get_host()}, require_https=request.is_secure()):
+        back = reverse("landing")
+    correlation_id = correlation_id_for_request(request)
+    response = render(request, "errors/403_csrf.html", {
+        "status_code": 403,
+        "error_code": ERROR_CODE_FORBIDDEN,
+        "correlation_id": correlation_id,
+        "error_label": _("Seite veraltet"),
+        "back_url": back,
+    }, status=403)
+    response[RESPONSE_CORRELATION_HEADER] = correlation_id
+    return response
 
 
 def page_not_found(request, exception=None):
@@ -393,9 +444,14 @@ def landing(request):
             return redirect("dashboard")
         return redirect("access")
     from .demo_sandbox import demo_notice
+    from .demo_stats import active_for_landing
     from .setup_wizard import setup_pending
 
-    return render(request, "core/landing.html", {"setup_pending": setup_pending(), "demo_notice": demo_notice(request)})
+    return render(request, "core/landing.html", {
+        "setup_pending": setup_pending(),
+        "demo_notice": demo_notice(request),
+        "demo_active": active_for_landing(),
+    })
 
 
 @require_GET
@@ -655,7 +711,9 @@ def handover_list(request):
 @membership_required(CONTENT_ROLES)
 @require_http_methods(["GET", "POST"])
 def handover_create(request):
-    form = HandoverForm(request.POST or None)
+    from .demo_sandbox import tour_form_initial
+
+    form = HandoverForm(request.POST or None, initial=tour_form_initial(request))
     if request.method == "POST" and form.is_valid():
         uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
         if upload_error:
@@ -685,6 +743,21 @@ def handover_detail(request, pk):
         pk=pk,
         station=request.membership.station,
     )
+    from .terminal import is_service_user
+
+    # Lesebestätigungen sind persönlich: nicht für das Wachenterminal (AGENTS.md §4).
+    can_ack = not is_service_user(request.user)
+    # Die eigene Übergabe quittieren die anderen – eine Selbstquittung sagt nichts.
+    is_author = handover.author_id == request.user.pk
+    if request.method == "POST" and request.POST.get("action") == "acknowledge":
+        if not can_ack:
+            raise PermissionDenied
+        if is_author:
+            messages.info(request, _("Deine eigene Übergabe quittieren die Kolleginnen und Kollegen."))
+            return redirect("handover_detail", pk=pk)
+        _ack, created = acknowledge_handover(handover, request.user)
+        messages.success(request, _("Als gelesen quittiert.") if created else _("Bereits quittiert."))
+        return redirect("handover_detail", pk=pk)
     if request.method == "POST" and request.POST.get("action") == "upload":
         upload = request.FILES.get("attachment")
         if upload is None:
@@ -720,12 +793,19 @@ def handover_detail(request, pk):
         Membership.Role.SHIFT_LEAD,
         Membership.Role.ADMIN,
     }
+    acks = list(HandoverAck.objects.filter(handover=handover).select_related("user"))
     return render(request, "core/handover_detail.html", {
         "handover": handover,
+        "acks": acks,
+        "has_acked": any(ack.user_id == request.user.pk for ack in acks),
+        "is_author": is_author,
+        "can_ack": can_ack and not is_author and all(ack.user_id != request.user.pk for ack in acks),
         "status_form": HandoverStatusForm(instance=handover),
         "can_change_status": can_change_status,
         "can_edit_content": can_change_status,
-        "attachments": handover.attachments.select_related("uploaded_by").all(),
+        # Ohne den Dateiinhalt: Die Liste zeigt nur Name und Größe.
+        "attachments": handover.attachments.select_related("uploaded_by").defer("data"),
+        "max_attachments": MAX_ATTACHMENTS_PER_HANDOVER,
         "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
     })
 
@@ -1038,7 +1118,9 @@ def team(request):
     station = request.membership.station
     members = Membership.objects.filter(station=station).select_related("user")
     pending_registrations = pending_registrations_for_station(station)
-    pending_count = users_awaiting_station_access(station).count()
+    # Eine Demo-Wache sieht keine Konten der Installation (auch nicht deren Anzahl).
+    in_demo = getattr(request, "demo_sandbox", None) is not None
+    pending_count = 0 if in_demo else users_awaiting_station_access(station).count()
     return render(request, "core/team.html", {
         "page_obj": page_for(request, members, 25),
         "pending_count": pending_count,
@@ -1332,13 +1414,22 @@ def station_settings(request):
         if imported is not None:
             messages.success(request, _("Müllkalender übernommen: %(count)s Termine.") % {"count": imported})
         return redirect("station_settings")
-    return render(request, "core/station_settings.html", {"form": form})
+    from .feedback import can_read_feedback
+
+    return render(request, "core/station_settings.html", {
+        "form": form,
+        "can_read_feedback": can_read_feedback(request),
+    })
 
 
 @membership_required({Membership.Role.AUDITOR, Membership.Role.ADMIN})
 def audit_log(request):
+    from .audit_labels import annotate
+
     events = AuditEvent.objects.filter(station=request.membership.station).select_related("actor")
-    return render(request, "core/audit_log.html", {"page_obj": page_for(request, events, 30)})
+    page = page_for(request, events, 30)
+    page.object_list = annotate(page.object_list)
+    return render(request, "core/audit_log.html", {"page_obj": page})
 
 
 @require_http_methods(["GET", "POST"])
@@ -1465,6 +1556,7 @@ def pinboard(request):
     notes = (
         PinboardNote.objects.filter(station=station, is_archived=False)
         .select_related("author")
+        .prefetch_related(Prefetch("attachments", queryset=PinboardAttachment.objects.defer("data")))
         .order_by("-is_pinned", "-updated_at")
     )
     can_manage = request.membership.role in PINBOARD_MANAGE_ROLES

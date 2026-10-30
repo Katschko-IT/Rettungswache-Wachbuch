@@ -313,7 +313,7 @@ paths:
     post:
       summary: Report own payment (any member; method cash/transfer/paypal/wero, amount_euros, note)
       responses:
-        "201": { description: Payment recorded; returns own status and payment ways }
+        "201": { description: "Payment recorded; returns own status and payment ways. An identical report by the same person within 60 s (double tap, client retry) is not booked again: the response carries the first entry's id and duplicate: true." }
         "422": { $ref: "#/components/responses/Error" }
   /checklisten/:
     get:

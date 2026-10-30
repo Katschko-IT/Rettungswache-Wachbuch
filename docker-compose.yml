@@ -177,10 +177,13 @@ services:
       DEMO_SANDBOX_IDLE_MINUTES: ${DEMO_SANDBOX_IDLE_MINUTES:-30}
       DEMO_SANDBOX_MAX_MINUTES: ${DEMO_SANDBOX_MAX_MINUTES:-120}
       DEMO_SANDBOX_MAX_ACTIVE: ${DEMO_SANDBOX_MAX_ACTIVE:-100}
-      DEMO_SANDBOX_PER_IP_HOUR: ${DEMO_SANDBOX_PER_IP_HOUR:-10}
+      DEMO_SANDBOX_PER_IP_HOUR: ${DEMO_SANDBOX_PER_IP_HOUR:-30}
+      DEMO_SANDBOX_MAX_WRITES: ${DEMO_SANDBOX_MAX_WRITES:-400}
+      DEMO_SANDBOX_MAX_UPLOAD_MB: ${DEMO_SANDBOX_MAX_UPLOAD_MB:-25}
       # Öffentliche Feedback-Seite (docs/FEEDBACK.md); leer = an, wenn DEMO_SANDBOX an ist
       FEEDBACK_ENABLED: ${FEEDBACK_ENABLED:-}
       FEEDBACK_RETENTION_DAYS: ${FEEDBACK_RETENTION_DAYS:-365}
+      FEEDBACK_PER_IP_HOUR: ${FEEDBACK_PER_IP_HOUR:-5}
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       REGISTRATION_RATE_LIMIT: ${REGISTRATION_RATE_LIMIT:-5}
       WEBAUTHN_ENABLED: ${WEBAUTHN_ENABLED:-true}
@@ -315,6 +318,8 @@ services:
       SIGNAL_API_URL: ${SIGNAL_API_URL:-}
       SIGNAL_NUMBER: ${SIGNAL_NUMBER:-}
       SITE_URL: ${SITE_URL:-}
+      # Name in der Fußzeile der Kaffeekassen-Erinnerung (wie im web-Dienst).
+      APP_NAME: ${APP_NAME:-Wachwerk}
       EMAIL_HOST: ${EMAIL_HOST:-}
       EMAIL_PORT: ${EMAIL_PORT:-587}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
@@ -349,6 +354,8 @@ services:
     logging: *default-logging
     command: ["/app/scripts/start-push-worker.sh"]
     environment:
+      # push_worker erneuert die Datei nach jedem erfolgreichen Durchlauf.
+      PUSH_HEARTBEAT_FILE: /tmp/push_worker.alive
       DJANGO_SECRET_KEY: ${PUSH_WORKER_SECRET_KEY}
       DJANGO_DEBUG: "false"
       DB_HOST: db
@@ -367,15 +374,64 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Alter des Lebenszeichens statt "Datei vorhanden": Ein Worker, der die
+    # Datenbank nicht erreicht, wird unhealthy. 300 s, weil ein Stapel mit
+    # 25 Zustellungen à 10 s Zeitlimit dauern kann.
     healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/push_worker.alive"]
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/push_worker.alive') < 300 else 1)"]
       interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 60s
     networks:
       - worker-db
       - egress
+    tmpfs:
+      - /tmp
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  # Aufräumen nach den Aufbewahrungsfristen, ohne Cron auf dem Host
+  # (core/management/commands/housekeeping.py): abgelaufene Sitzungen,
+  # Anmeldeprotokolle, Fehlerereignisse, QR-Anmeldungen, Push-Nachrichten,
+  # Feed-Einträge, Rückmeldungen. Beim Start, dann stündlich; in jedem Profil.
+  # App-Rolle: Audit, Kaffeekasse & Co. (append-only) darf sie nicht löschen.
+  housekeeping:
+    image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["python", "manage.py", "housekeeping", "--watch", "--interval", "3600",
+              "--heartbeat-file", "/tmp/housekeeping.alive"]
+    # Kein HTTP-Listener: Lebenszeichen nach jedem Durchlauf und jede Minute
+    # der Wartezeit; nach 10 Fehlversuchen in Folge startet Docker neu.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/housekeeping.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "false"
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${APP_DB_USER}
+      DB_PASSWORD: ${APP_DB_PASSWORD}
+      ALLOWED_HOSTS: localhost
+      RETENTION_FEED_DAYS: ${RETENTION_FEED_DAYS:-90}
+      FEEDBACK_RETENTION_DAYS: ${FEEDBACK_RETENTION_DAYS:-365}
+      ERROR_EVENT_RETENTION_DAYS: ${ERROR_EVENT_RETENTION_DAYS:-30}
+      LOGIN_LOG_RETENTION_DAYS: ${LOGIN_LOG_RETENTION_DAYS:-30}
+      # Kein REDIS_URL: Sitzungen liegen dauerhaft in PostgreSQL; ihre
+      # Kopien im Cache verfallen von selbst.
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - app-db
     tmpfs:
       - /tmp
     read_only: true
@@ -485,12 +541,21 @@ services:
   # Öffentliche Demo (docs/DEMO.md): löscht beendete und abgelaufene
   # Demo-Wachen. Läuft mit den Rechten des Datenbank-Eigentümers, weil auch
   # append-only Zeilen der Demo-Wachen gelöscht werden. COMPOSE_PROFILES=demo.
+  # Ein Prozess prüft jede Minute; ohne eigenen Healthcheck erbte der Dienst
+  # den Gunicorn-Check des Images und wurde nie "healthy".
   demo-cleaner:
     image: ${WACHBUCH_REGISTRY:-ghcr.io/katschko-it}/rettungswache-wachbuch:${WACHBUCH_VERSION:-latest}
     profiles: ["demo"]
     restart: unless-stopped
     logging: *default-logging
-    command: ["sh", "-c", "while true; do python manage.py purge_demo_sandboxes; sleep 60; done"]
+    command: ["python", "manage.py", "purge_demo_sandboxes", "--watch", "--interval", "60",
+              "--heartbeat-file", "/tmp/demo_cleaner.alive"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/demo_cleaner.alive') < 180 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       CRYPTO_MASTER_KEY: ${CRYPTO_MASTER_KEY:-}
@@ -547,6 +612,10 @@ services:
       - FOWNER
       - SETGID
       - SETUID
+    # Ausdrücklich, weil deploy/hetzner/harden-host.sh no-new-privileges als
+    # Docker-Standard setzt (daemon.json); sonst startet signal dort nicht.
+    security_opt:
+      - no-new-privileges:false
 
   # Optionaler TLS-Proxy: COMPOSE_PROFILES=https (install.sh --mode lan|domain).
   # LAN: CADDY_TLS=internal (eigene CA); Domain: CADDY_TLS=<E-Mail> für
@@ -559,6 +628,12 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Nur IPv4. Ohne Host-Adresse veröffentlichte Docker die Ports auch auf
+    # IPv6; web-ingress hat aber kein IPv6, also reichte docker-proxy jede
+    # IPv6-Verbindung von der Gateway-Adresse des Netzes weiter. Caddy und
+    # web sähen dann alle IPv6-Besucher als eine IPv4-Adresse (gemeinsame
+    # Anmeldesperre und Begrenzungen je Anschluss). Kein AAAA-Eintrag, siehe
+    # docs/HETZNER.md, Schritt 2.
     ports:
       - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
       - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:${HTTP_REDIRECT_PORT:-80}:80"

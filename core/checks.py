@@ -27,7 +27,20 @@ def privacy_security_deployment_checks(app_configs, **kwargs):
             )
         )
 
-    if not settings.MFA_REQUIRED:
+    if not settings.MFA_REQUIRED and settings.DEMO_MODE and not getattr(settings, "DEMO_SANDBOX", False):
+        # settings.py schaltet die Pflicht für die gemeinsame Vorführ-Demo ab,
+        # auch wenn MFA_REQUIRED=true gesetzt ist; der Hinweis muss das sagen.
+        warnings.append(
+            Warning(
+                "MFA-Pflicht ist durch DEMO_MODE abgeschaltet (gemeinsame Vorführ-Demo).",
+                hint=(
+                    "Für produktive Wachen DEMO_MODE=false setzen. Eine öffentliche Demo "
+                    "mit DEMO_SANDBOX=true behält MFA_REQUIRED für die Konten der Installation."
+                ),
+                id="wachbuch.W102",
+            )
+        )
+    elif not settings.MFA_REQUIRED:
         warnings.append(
             Warning(
                 "MFA_REQUIRED ist deaktiviert.",

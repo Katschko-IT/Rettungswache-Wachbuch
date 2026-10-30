@@ -30,7 +30,7 @@
     {% else %}
       <p class="empty-state">{% translate "Keine Anhänge." %}</p>
     {% endif %}
-    {% if can_edit %}
+    {% if can_edit and attachments|length < max_attachments %}
     <form method="post" enctype="multipart/form-data" class="inline-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="upload">

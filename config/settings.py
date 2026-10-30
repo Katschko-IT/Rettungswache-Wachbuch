@@ -316,17 +316,24 @@ MFA_ENABLED = env_bool("MFA_ENABLED", default=True)
 MFA_REQUIRED = env_bool("MFA_REQUIRED", default=False)
 DEMO_MODE = env_bool("DEMO_MODE", default=False)
 DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "Demo-Passwort-12345").strip() or "Demo-Passwort-12345"
-if DEMO_MODE:
-    # Presentations should not require MFA setup on every demo account.
-    MFA_REQUIRED = False
 # Öffentliche Demo (docs/DEMO.md): Jeder Besuch mit „Demo“/„Demo“ bekommt
 # eine eigene Demo-Wache mit Musterdaten. Abmelden beendet sie; nach
 # Leerlauf oder Höchstdauer räumt ``purge_demo_sandboxes`` sie ab.
 DEMO_SANDBOX = DEMO_MODE and env_bool("DEMO_SANDBOX", default=False)
+if DEMO_MODE and not DEMO_SANDBOX:
+    # Gemeinsame Vorführ-Demo: keine MFA-Einrichtung auf jedem Demo-Konto.
+    # Die öffentliche Demo behält MFA_REQUIRED für echte Konten; Demo-Besuche
+    # nimmt MfaEnforcementMiddleware aus.
+    MFA_REQUIRED = False
 DEMO_SANDBOX_IDLE_MINUTES = int(os.getenv("DEMO_SANDBOX_IDLE_MINUTES", "30") or "30")
 DEMO_SANDBOX_MAX_MINUTES = int(os.getenv("DEMO_SANDBOX_MAX_MINUTES", "120") or "120")
 DEMO_SANDBOX_MAX_ACTIVE = int(os.getenv("DEMO_SANDBOX_MAX_ACTIVE", "100") or "100")
-DEMO_SANDBOX_PER_IP_HOUR = int(os.getenv("DEMO_SANDBOX_PER_IP_HOUR", "10") or "10")
+# Neue Demos je Anschluss und Stunde. Eine Wache oder ein Schulungsraum geht
+# oft über eine gemeinsame Adresse ins Netz; 30 reicht für eine Gruppe.
+DEMO_SANDBOX_PER_IP_HOUR = int(os.getenv("DEMO_SANDBOX_PER_IP_HOUR", "30") or "30")
+# Grenzen je Demo-Besuch: Anzahl Änderungen (POST) und Speicher für Dateien.
+DEMO_SANDBOX_MAX_WRITES = int(os.getenv("DEMO_SANDBOX_MAX_WRITES", "400") or "400")
+DEMO_SANDBOX_MAX_UPLOAD_MB = int(os.getenv("DEMO_SANDBOX_MAX_UPLOAD_MB", "25") or "25")
 # Öffentliche Feedback-Seite (docs/FEEDBACK.md); in der öffentlichen Demo an.
 # Leer (wie Compose ungesetzte Variablen weitergibt) = Standard, nicht „aus“.
 FEEDBACK_ENABLED = env_bool("FEEDBACK_ENABLED") if os.getenv("FEEDBACK_ENABLED", "").strip() else DEMO_SANDBOX
@@ -424,6 +431,8 @@ PUSH_ALLOWED_ENDPOINT_HOSTS = {
 SESSION_COOKIE_NAME = "rwsth_session"
 CSRF_COOKIE_NAME = "rwsth_csrf"
 CSRF_COOKIE_HTTPONLY = True
+# Abgelaufenes Formular: eigene Seite mit Weg zurück statt Djangos Rohtext.
+CSRF_FAILURE_VIEW = "core.views.csrf_failure"
 SESSION_COOKIE_AGE = 60 * 60 * 12
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = False

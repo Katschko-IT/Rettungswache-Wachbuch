@@ -261,7 +261,9 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .note-box.danger { background: var(--danger-soft); }
 
 /* —— Tabellen ———————————————————————————————————————————————————— */
-.table-responsive { width: 100%; overflow-x: auto; }
+/* position: relative hält absolut positionierte Screenreader-Texte (.sr-only)
+   im Scrollbereich; sonst wird auf dem Handy die ganze Seite breiter. */
+.table-responsive { position: relative; width: 100%; overflow-x: auto; }
 .data-table, .table, .table-compact {
   width: 100%;
   border-collapse: collapse;

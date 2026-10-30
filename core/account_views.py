@@ -143,6 +143,8 @@ def passkey_login_verify(request):
         user = verify_authentication(json.dumps(body["credential"]), challenge)
     except Exception:
         return JsonResponse({"ok": False, "error": "Passkey konnte nicht geprüft werden."}, status=400)
+    if not getattr(user, "is_active", False):
+        return JsonResponse({"ok": False, "error": "Passkey konnte nicht geprüft werden."}, status=400)
     request.session.pop("webauthn_login_challenge", None)
     request.session["auth_method"] = "passkey"
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
@@ -309,6 +311,8 @@ def calendar_feed_token_ics(request, token):
         is_active=True,
         station__calendar_enabled=True,
         station__is_active=True,
+        # Demo-Wachen veröffentlichen keine Kalendertexte ohne Anmeldung.
+        station__demo_sandbox__isnull=True,
     )
     feed.last_used_at = timezone.now()
     feed.save(update_fields=["last_used_at"])

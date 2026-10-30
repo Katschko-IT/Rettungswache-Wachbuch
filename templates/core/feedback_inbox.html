@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n demo_stats_tags %}
 {% block title %}{% translate "Rückmeldungen" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading">
@@ -7,6 +7,7 @@
   <h1>{% translate "Rückmeldungen" %}</h1>
   <p class="context-line">{% blocktranslate with days=retention_days %}Aus dem öffentlichen Feedback-Formular. Einträge werden nach {{ days }} Tagen automatisch gelöscht.{% endblocktranslate %}</p>
 </header>
+{% demo_stats_card %}
 <nav class="filter-nav" aria-label="{% translate 'Filter' %}">
   <a href="?status=open"{% if status == 'open' %} aria-current="page"{% endif %}>{% translate "Offen" %} ({{ counts.open }})</a>
   {% for value, label in statuses %}<a href="?status={{ value }}"{% if status == value %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}

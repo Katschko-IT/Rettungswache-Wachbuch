@@ -4,11 +4,12 @@
   <link rel="stylesheet" href="{% static 'core/fonts.css' %}">
   <link rel="stylesheet" href="{% static 'core/lockscreen.css' %}">
 </head>
-<body class="lock-body" data-lock-screen>
+<body class="lock-body{% if preview %} is-preview{% endif %}" data-lock-screen>
   <div class="lock-bg {{ background.css_class }}" aria-hidden="true"></div>
   <div class="lock-scrim" aria-hidden="true"></div>
 
-  <main class="lock-layout" data-lock-root data-data-url="{% url 'terminal_data' %}">
+  {# preview: Vorschau aus der Demo (core/showcase_views.py) – kein Gerät, kein Dienstkonto, kein Absenden. #}
+  <main class="lock-layout" data-lock-root data-data-url="{% if not preview %}{% url 'terminal_data' %}{% endif %}">
     <header class="lock-time">
       <p class="lock-station">{{ terminal.station.name }}</p>
       <p class="lock-clock" data-lock-clock>{% now "H:i" %}</p>
@@ -16,12 +17,14 @@
     </header>
 
     <section class="lock-widgets" aria-label="{% translate 'Wache heute' %}">
+      {% if data.weather or not preview %}
       <article class="lock-card lock-card-weather{% if not data.weather %} is-empty{% endif %}" data-lock-weather>
         <h2>{% translate "Wetter" %}</h2>
         <p class="lock-big" data-lock-weather-temp>{% if data.weather %}{{ data.weather.max }}° / {{ data.weather.min }}°{% endif %}</p>
         <p data-lock-weather-label>{% if data.weather %}{{ data.weather.label }}{% endif %}</p>
         <p class="lock-empty lock-when-empty">{% translate "Nicht eingerichtet" %}</p>
       </article>
+      {% endif %}
 
       <article class="lock-card">
         <h2>{% translate "Übergaben" %}</h2>
@@ -70,6 +73,13 @@
   <button type="button" class="terminal-unlock-hint" data-unlock-open>
     {% include "core/_icon.html" with name="lock" %}{% translate "Zum Entsperren antippen" %}
   </button>
+  {% if preview %}
+  <aside class="terminal-preview-note" aria-labelledby="terminal-preview-title">
+    <p id="terminal-preview-title"><strong>{% translate "Vorschau aus der Demo" %}</strong></p>
+    <p class="terminal-preview-text">{% translate "So sieht das Touch-Terminal in der Fahrzeughalle aus – mit den Daten deiner Demo-Wache. Antippen öffnet den runden Ziffernblock für den Wachen-Code." %}</p>
+    <a href="{% url 'dashboard' %}">{% translate "Zurück zur Demo" %}</a>
+  </aside>
+  {% else %}
   <div class="terminal-app-qr" aria-label="{% translate 'Handy verbinden' %}">
     {% if wifi_ssid %}
       <figure>
@@ -82,13 +92,14 @@
       <figcaption>{% if wifi_ssid %}<strong>2</strong> {% endif %}{% translate "App verbinden" %}</figcaption>
     </figure>
   </div>
+  {% endif %}
   {% if background.credit %}
     <p class="lock-credit">{% translate "Foto" %}: {{ background.credit }}</p>
   {% endif %}
 
   <div class="terminal-unlock{% if error_text %} has-error{% endif %}" data-unlock-panel role="dialog" aria-modal="true" aria-labelledby="terminal-unlock-title"{% if not error_text %} hidden{% endif %}>
-    <form method="post" class="terminal-unlock-inner" autocomplete="off">
-      {% csrf_token %}
+    {% if preview %}<div class="terminal-unlock-inner">{% else %}<form method="post" class="terminal-unlock-inner" autocomplete="off">
+      {% csrf_token %}{% endif %}
       <p class="terminal-unlock-station">{{ terminal.station.name }}</p>
       <h1 id="terminal-unlock-title">{% translate "Wachen-Code eingeben" %}</h1>
       <input id="terminal-code" class="visually-hidden" type="password" name="code" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="{% translate 'Wachen-Code' %}">
@@ -96,14 +107,15 @@
         <span></span><span></span><span></span><span></span>
       </div>
       <p class="terminal-unlock-error" role="alert">{{ error_text }}</p>
-      <div class="terminal-keypad" data-pin-pad="terminal-code" data-pin-autosubmit>
+      {% if preview %}<p class="terminal-unlock-note">{% translate "Vorschau: Am echten Terminal öffnet der vierstellige Wachen-Code jetzt den Alltagsmodus der Wache." %}</p>{% endif %}
+      <div class="terminal-keypad" data-pin-pad="terminal-code"{% if not preview %} data-pin-autosubmit{% endif %}>
         {% for key in "123456789" %}<button type="button" data-pin-key="{{ key }}">{{ key }}</button>{% endfor %}
         <span class="terminal-key-spacer" aria-hidden="true"></span>
         <button type="button" data-pin-key="0">0</button>
         <button type="button" class="terminal-key-text" data-pin-key="back" aria-label="{% translate 'Letzte Ziffer löschen' %}">⌫</button>
       </div>
       <button type="button" class="terminal-unlock-cancel" data-unlock-close>{% translate "Abbrechen" %}</button>
-    </form>
+    {% if preview %}</div>{% else %}</form>{% endif %}
   </div>
 
   <script src="{% static 'core/ui.js' %}" defer></script>

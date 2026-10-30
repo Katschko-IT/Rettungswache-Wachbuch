@@ -33,7 +33,11 @@ CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 FROM pgbase AS backup
 LABEL org.opencontainers.image.title="Rettungswache-Wachbuch Backup" \
       org.opencontainers.image.description="pg_dump-Schleife und Restore-Test fuer das Wachbuch"
-RUN apk add --no-cache gnupg
+# gosu braucht nur das db-Image (Entrypoint wechselt von root zu postgres);
+# Backup und Restore-Test starten direkt als UID 70. Ohne die Go-Datei meldet
+# der Sicherheitsscan hier auch keine Go-stdlib-CVEs mehr.
+RUN apk add --no-cache gnupg \
+    && rm -f /usr/local/bin/gosu
 
 COPY --chmod=0755 scripts/backup-loop.sh /usr/local/bin/rwsth-backup-loop
 COPY --chmod=0755 scripts/restore-test.sh /usr/local/bin/rwsth-restore-test

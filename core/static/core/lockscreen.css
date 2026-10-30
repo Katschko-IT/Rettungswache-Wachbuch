@@ -253,6 +253,21 @@
   }
 }
 
+/* Vorschau am Handy: Der fest stehende Knopf „Zum Entsperren antippen“ ist
+   fast so breit wie der Bildschirm. Die Bildquelle (CC-Lizenzhinweis) läuft
+   deshalb im Seitenfluss unter den Karten mit und endet oberhalb des Knopfs. */
+@media (max-width: 40rem) {
+  /* Den Abstand zum Knopf hält dann die Bildquelle (sonst bleiben 7rem). */
+  .is-preview .lock-layout:has(~ .lock-credit) {
+    padding-bottom: 1rem;
+  }
+  .is-preview .lock-credit {
+    position: static;
+    max-width: none;
+    margin: 0 1rem 5.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lock-bg {
     animation: none;

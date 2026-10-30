@@ -153,13 +153,21 @@ def coffee_pay(request):
         reason = _("Selbst eingetragen: %(method)s") % {"method": CoffeeEntry.Method(method).label}
         if note:
             reason = f"{reason} – {note}"
+        reason = reason[:200]
         with transaction.atomic():
-            entry = CoffeeEntry.objects.create(
-                station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason[:200],
-                kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+            duplicate = logic.recent_self_report(
+                station, request.user, amount_cents=form.amount_cents(), method=method, reason=reason,
             )
-            audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
-        messages.success(request, _("Danke! Deine Zahlung ist eingetragen."))
+            if duplicate is None:
+                entry = CoffeeEntry.objects.create(
+                    station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason,
+                    kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+                )
+                audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
+        if duplicate is not None:
+            messages.info(request, _("Diese Zahlung ist schon eingetragen."))
+        else:
+            messages.success(request, _("Danke! Deine Zahlung ist eingetragen."))
         return redirect("coffee")
     return render(request, "core/coffee_pay.html", {
         "form": form, "station": station, "fund": fund, "status": status,
@@ -167,11 +175,17 @@ def coffee_pay(request):
     })
 
 
+def _ascii_number(raw, max_digits: int) -> int | None:
+    """Nur ASCII-Ziffern: str.isdigit() lässt auch „²“ durch, int() dann nicht."""
+    if raw and raw.isascii() and raw.isdigit() and len(raw) <= max_digits:
+        return int(raw)
+    return None
+
+
 def _chosen_amount(raw) -> int:
     """Betrag aus den Schnellwahl-Links (?betrag=1500, in Cent)."""
-    if raw and raw.isdigit() and 0 < int(raw) <= 50000:
-        return int(raw)
-    return 0
+    amount = _ascii_number(raw, 5)
+    return amount if amount and amount <= 50000 else 0
 
 
 def _quick_amounts(fund, status) -> list:
@@ -379,9 +393,9 @@ def coffee_ledger(request):
     entries = CoffeeEntry.objects.filter(station=station).select_related(
         "member", "created_by", "correction_of"
     ).prefetch_related("corrections")
-    person = request.GET.get("person")
-    if person and person.isdigit():
-        entries = entries.filter(member_id=int(person))
+    person = _ascii_number(request.GET.get("person"), 9)
+    if person is not None:
+        entries = entries.filter(member_id=person)
     self_reported = request.GET.get("selbst") == "1"
     if self_reported:
         entries = [e for e in entries if e.created_by_id == e.member_id and e.kind == CoffeeEntry.Kind.PAYMENT]
@@ -425,7 +439,10 @@ def coffee_correct(request, pk):
     if request.method == "POST" and form.is_valid():
         try:
             with transaction.atomic():
-                original = get_object_or_404(base_qs.select_for_update())
+                # Kein select_for_update: Das Kassenbuch ist append-only, die
+                # App-Datenbankrolle hat dort kein UPDATE-Recht, und PostgreSQL
+                # verlangt es für FOR UPDATE. Eine zweite Gegenbuchung verhindert
+                # die Constraint unique_coffee_correction (Fehlerzweig unten).
                 if original.corrections.exists():
                     messages.error(request, _("Diese Buchung wurde bereits korrigiert."))
                     return redirect("coffee")
@@ -666,16 +683,18 @@ def coffee_export(request):
     writer = csv.writer(response, delimiter=";")
     writer.writerow([_("Datum"), _("Bereich"), _("Person"), _("Art"), _("Zahlungsweg/Topf"), _("Monat"),
                      _("Betrag EUR"), _("Grund"), _("Erfasst von")])
+    # Ortszeit der Wache statt UTC, sonst landen Buchungen um Mitternacht im falschen Tag.
+    zone = logic.station_zone(station)
     for entry in CoffeeEntry.objects.filter(station=station).select_related("member", "created_by").order_by("created_at"):
         writer.writerow([
-            entry.created_at.strftime("%Y-%m-%d %H:%M"), _("Person"), _csv_cell(_person(entry.member)),
+            entry.created_at.astimezone(zone).strftime("%Y-%m-%d %H:%M"), _("Person"), _csv_cell(_person(entry.member)),
             entry.get_kind_display(), entry.get_method_display() if entry.method else "",
             entry.period.strftime("%Y-%m") if entry.period else "", f"{entry.amount_cents / 100:.2f}".replace(".", ","),
             _csv_cell(entry.reason), _csv_cell(_person(entry.created_by)) if entry.created_by else _("automatisch"),
         ])
     for movement in CoffeeCashMovement.objects.filter(station=station).select_related("created_by").order_by("created_at"):
         writer.writerow([
-            movement.created_at.strftime("%Y-%m-%d %H:%M"), _("Kasse"), "", movement.get_kind_display(),
+            movement.created_at.astimezone(zone).strftime("%Y-%m-%d %H:%M"), _("Kasse"), "", movement.get_kind_display(),
             movement.get_pot_display(), "", f"{movement.amount_cents / 100:.2f}".replace(".", ","),
             _csv_cell(movement.reason), _csv_cell(_person(movement.created_by)),
         ])

@@ -1,6 +1,177 @@
 # Changelog
 
-## Unveröffentlicht
+## 0.26.0 - 2026-10-29
+
+Öffentliche Demo mit eigener Demo-Wache je Besuch, Betrieb ohne Eingriff auf
+einem eigenen Server (Hetzner-Anleitung und -Skripte) und eine Gesamtreview mit
+über 100 geprüften Funden. Ablauf des Releases: [docs/RELEASE-0.26.0.md](docs/RELEASE-0.26.0.md).
+
+**Upgrade-Hinweise:**
+
+- `sudo /opt/wachbuch/wachbuch update` (oder nachts mit `auto-update an alle`)
+  macht vorher ein Backup, lädt Dateien und Images und startet neu.
+- Kurze Unterbrechung beim Update: Anwendung und Worker halten vor dem
+  Backup an, damit eine Rückkehr keine Einträge verliert.
+- Migrationen `0058` bis `0066`: Der Code von 0.25.0 läuft mit dem neuen
+  Schema nicht. Scheitert der Start, setzt `wachbuch` die Datenbank selbst auf
+  das Backup von vor dem Update zurück; von Hand geht es zurück mit
+  `wachbuch update 0.25.0` und danach `wachbuch restore <Backup>`.
+- Neue Compose-Dienste: `housekeeping` (immer) und `demo-cleaner` (Profil
+  `demo`). Neue Variablen u. a. `LOGIN_LOG_RETENTION_DAYS`,
+  `DEMO_SANDBOX_MAX_WRITES`, `DEMO_SANDBOX_MAX_UPLOAD_MB`; alle haben
+  Standardwerte.
+- Die öffentliche Demo (`install.sh --demo`, `DEMO_SANDBOX=true`) braucht
+  0.26.0 oder neuer.
+- Caddy lauscht nur auf IPv4. Wer nach der vorläufigen Hetzner-Anleitung
+  einen AAAA-Eintrag angelegt hat, entfernt ihn; Besucher nutzen dann IPv4.
+- Server nach [docs/HETZNER.md](docs/HETZNER.md): `harden-host.sh` und
+  `offsite-storagebox.sh` einmal erneut ausführen, damit Überwachung und
+  Offsite-Kopie den neuen Stand bekommen.
+
+- **Betrieb ohne Eingriff:**
+  - Neuer Dienst `housekeeping` in jedem Profil: löscht stündlich abgelaufene
+    Sitzungen, Anmeldeprotokolle (`LOGIN_LOG_RETENTION_DAYS`, Standard 30),
+    Fehlerereignisse, QR-Anmeldungen, alte Push-Nachrichten, Feed-Einträge und
+    Rückmeldungen nach ihren Fristen – ohne Cron auf dem Host. Append-only
+    Daten bleiben unberührt.
+  - `demo-cleaner` läuft als ein Prozess mit eigenem Healthcheck; vorher wurde
+    er nie „healthy“ und ließ Installation, Update und Auto-Update scheitern.
+  - `push-worker` meldet sich nur nach erfolgreichem Durchlauf gesund und
+    erholt sich nach einem Neustart der Datenbank; `notify-worker` beendet sich
+    bei SIGTERM sofort.
+  - `/healthz/` prüft auch den Cache (Redis) und antwortet bei Ausfall mit 503.
+  - Müllkalender-URLs werden automatisch abgerufen (feed-worker, alle 6
+    Stunden, neue URLs innerhalb von 15 Minuten).
+  - Caddy ist ohne `HTTPS_BIND_ADDRESS` auch über IPv6 erreichbar;
+    `FEEDBACK_PER_IP_HOUR` und `APP_NAME` wirken jetzt auch in Compose; kein
+    falsches „Control server error“ mehr beim Start von Gunicorn.
+- **Updates und Releases:**
+  - Rollback nach einem gescheiterten Update: Hat die neue Version schon
+    migriert, wird die Datenbank aus dem Backup vor dem Update zurückgesetzt;
+    alter Code läuft nie auf einem neueren Datenbankstand.
+  - `wachbuch update` ist atomar (Pull-/Build-Fehler ändern nichts, Fehlstart
+    führt zum Rollback, Rückfrage beim Wechsel auf eine ältere Version);
+    `wachbuch restore` ersetzt das Schema vollständig in einer Transaktion.
+  - Nach Updates werden ältere Images und alte Dumps unter `./backups`
+    entfernt; Caddy startet neu, wenn sich das Caddyfile geändert hat.
+  - `install.sh --demo` und `wachbuch update` verlangen in der öffentlichen
+    Demo Version 0.26.0 oder neuer; `--demo` setzt ein zufälliges
+    `DEMO_PASSWORD`. `install.sh` behält von Hand ergänzte Profile.
+  - Gemeinsame Demo-Konten einer früheren Vorführ-Demo werden in der
+    öffentlichen Demo gesperrt; `load_demo_data` verweigert `DEMO_SANDBOX=true`.
+  - Der Einrichtungscode muss nach der Ersteinrichtung nicht mehr von Hand
+    entfernt werden; der Assistent ist danach gesperrt.
+  - `publish-image.yml` prüft Tag, Version und CHANGELOG, scannt die Images
+    und legt das GitHub-Release erst nach allen Images an.
+  - Wöchentlicher Image-Neubau wieder grün (gosu im PostgreSQL-Image vom Scan
+    ausgenommen, im Backup-Image entfernt); neu gebaut werden die zwei
+    neuesten Minor-Versionen. Projektseite: Pages-Deployment wieder grün,
+    Seitentests laufen in der CI, Knopf „Live-Demo ausprobieren“.
+- **Eigener Server im Internet** ([docs/HETZNER.md](docs/HETZNER.md)):
+  - `deploy/hetzner/harden-host.sh`: Docker, SSH nur mit Schlüssel (erst wenn
+    Schlüssel und sudo nachweislich funktionieren), Firewall und fail2ban auf
+    dem echten SSH-Port, automatische Sicherheitsupdates auch für Docker.
+  - `wachwerk-health`: prüft alle Dienste, Zertifikat, Backups, Offsite-Kopie,
+    5xx-Fehler, das letzte automatische Update und die wöchentliche
+    Wiederherstellungsprobe; ohne Fehlalarme während Installation und
+    nächtlichem Update; startet „unhealthy“ Container neu (höchstens dreimal
+    je Stunde).
+  - `offsite-storagebox.sh`: GnuPG-verschlüsselte Backups auf eine Hetzner
+    Storage Box, ohne Löschabgleich, mit Alarm, wenn keine neue Kopie entsteht.
+  - Caddy: Zeitgrenzen gegen langsame Clients, Anfragen höchstens 20 MB, keine
+    Server-Kennung.
+- **Demo, die überzeugt:**
+  - Der Rundgang führt Schritt für Schritt (vorausgefülltes Formular,
+    automatischer Rollenwechsel, Fortschritt im Banner, Abschluss mit Blick ins
+    Audit-Log und Links zu Touch-Terminal, Wand-Display und IT-Seite).
+  - Musterdaten wie auf einer echten Rettungswache: RTW, NEF und KTW mit
+    Funkrufnamen, Medizinprodukte mit stimmigen Prüffristen, Lager mit Chargen
+    und Rückruf, Mängel, Neuigkeiten, Pinnwand, Wiki und Kaffeekasse mit
+    Verlauf; ohne „[Demo]“-Marker.
+  - Vorschau des Sperrbildschirms vom Touch-Terminal mit den Daten der eigenen
+    Demo-Wache, ohne Terminal und ohne Dienstkonto.
+  - Wachen-Display zeigt Fahrzeugstatus, Gerätefristen und Materialwarnungen;
+    Neuigkeiten erscheinen wieder im Laufband.
+  - Startseite der öffentlichen Demo mit „Demo starten – ohne Konto“ als
+    Haupteinstieg, Vertrauenszeichen und „Gerade aktiv: N Demo-Wachen“; neue
+    Seite „Für IT und Datenschutz“.
+  - Audit-Log in Klartext; Fehlerseiten verweisen auf die eigene Wache;
+    Auswahllisten mit echten Umlauten; Rollenbezeichnungen übersetzbar.
+  - Übergaben lassen sich im Browser quittieren; Rollenwechsel zum Auditor
+    öffnet das Audit-Log statt einer Fehlerseite; Formulare in anderen Tabs
+    bleiben nach dem Wechsel gültig; eigene Seite bei abgelaufenen Formularen.
+  - Banner auf dem Handy kompakt; gesperrte Aktionen werden nicht angeboten.
+  - Demo-Start deutlich schneller, abgelaufene Demos werden stapelweise
+    gelöscht; `DEMO_SANDBOX_PER_IP_HOUR` steht auf 30 (Gruppen hinter einem
+    Anschluss).
+  - Anonyme Demo-Kennzahlen je Tag (gestartet, Rundgang abgeschlossen,
+    Rückmeldungen) im Feedback-Posteingang und per `manage.py demo_stats`.
+- **Kern: schneller und robuster:**
+  - Übersicht, Lager, Nachbestellung, Orga, Neuigkeiten und Pinnwand mit fester
+    Zahl an Datenbankabfragen; Anhangslisten laden den Dateiinhalt nicht mehr
+    mit; Übersicht und Aufgaben sperren die Wache beim Aufruf nicht mehr.
+  - Kaffeekasse: „Ich habe bezahlt“ bucht bei Doppeltipp nur einmal (API:
+    `duplicate: true`); CSV-Export in Ortszeit; Ziffern wie „²“ führen nicht
+    mehr zu Fehler 500.
+  - Lager: Materialbuchungen auch gegen Löschen gesperrt; Schlüssel,
+    Funkgeräte und Pool-Geräte erscheinen nicht mehr als Lagerartikel mit
+    „Kein Bestand“ (Migration 0066 entfernt alte Kopien) und lösen keine
+    falschen Mindestbestand-Warnungen mehr aus.
+  - Rückmeldungen: Posteingang nur für den Betreiber der Installation.
+  - Passkey-Anmeldung weist gesperrte Konten ab.
+  - Tabellen auf dem Handy scrollen nicht mehr seitlich.
+  - Tests: Abfragezahl-Regressionen, append-only-Sperren aller Journaltabellen,
+    CSP-Prüfung über ganze Templates.
+
+- **Nach der zweiten Review behoben:**
+  - Rückkehr nach einem gescheiterten Update spielt nur genau das Backup
+    dieses Updates ein; scheitert das Backup oder seine Kopie, bricht das
+    Update ab. Anwendung und Worker halten vor dem Backup an; was die neue
+    Version bis zur Rückkehr geschrieben hat, wird vorher gesichert.
+  - Volle Platte: `.env`, `compose.yml` und die übrigen Dateien werden nur
+    noch über eine vollständige Kopie ersetzt und können nicht mehr leer
+    werden. `wachbuch restore NAME` löscht den gewählten Dump nicht mehr.
+  - `wachbuch uninstall` entfernt auch die Profile demo und signal; Rollback
+    mit `--build` stellt `compose.build.yml` wieder her; `wachwerk-health`
+    erwartet `housekeeping` nur, wo die Installation ihn kennt.
+  - Geräte & Fahrzeuge: „Ausgeben“ und „Zurückgeben“ funktionieren auf
+    PostgreSQL wieder (vorher Fehler 500); die Gegenbuchung der Kaffeekasse
+    funktioniert mit der eingeschränkten Datenbankrolle.
+  - Wand-Display: in der öffentlichen Demo ohne Livestream (Abfrage jede
+    Minute), höchstens halb so viele Streams wie Gunicorn-Threads; Auditoren
+    bekommen über die Sitzung keine Display-Daten; auf Handys passt die
+    Anzeige und hat „Zurück zur Übersicht“.
+  - Demo-Konten bekommen keine App-Tokens (auch nicht per Passwort eines in
+    der Demo angelegten Kontos); das Upload-Limit gilt für jede Schreibweise
+    von multipart; Kalender-Abo-Links sind in der Demo gesperrt; Staff- und
+    Superuser-Konten behalten die MFA-Pflicht auch mit Demo-Mitgliedschaft.
+  - Rundgang: „Rundgang abgeschlossen“ wird gezählt; die eigene Übergabe lässt
+    sich nicht selbst quittieren; Schritt 5 kommt vorausgefüllt; danach mit
+    einem Klick zurück als Master-Admin; der Rollenwechsel bleibt auf der
+    Seite, wenn die Rolle sie sehen darf.
+  - Lesbares Audit-Log für alle Ereignisse; englische Bezeichnungen für
+    Kategorien, Dringlichkeit und Status; keine technischen Kontonamen auf
+    der Team-Seite; „Müllkalender“ mit Umlaut.
+  - `load_demo_data --reset` scheitert nicht mehr an Anhängen und braucht
+    kein DELETE auf Lagerbewegungen.
+
+- **Öffentlicher Betrieb abgesichert:**
+  - Ein Demo-Besuch kann keine Konten der Installation mehr in seine
+    Demo-Wache holen. Bisher ließen sich Konten ohne Mitgliedschaft (z. B. ein
+    Notfall-Superuser) zuordnen, ihr zweiter Faktor zurücksetzen und beim
+    Abmelden löschen. Gesperrt und gelöscht werden nur noch Konten, die in der
+    Demo entstanden sind, nie Staff- oder Superuser-Konten.
+  - In der Demo gesperrt: Freigeben bestehender Konten,
+    Zwei-Faktor-Zurücksetzen, App-Zugänge und Handy-Kopplung.
+  - Je Demo höchstens 400 Änderungen und 25 MB Dateien
+    (`DEMO_SANDBOX_MAX_WRITES`, `DEMO_SANDBOX_MAX_UPLOAD_MB`).
+  - Begrenzungen zählen IPv6-Anschlüsse je /64-Netz (Demo-Start, Feedback,
+    Registrierung, Einrichtung, API).
+  - Anmeldeprotokolle (django-axes) der Demo-Konten werden mit der Demo gelöscht.
+  - Der Django-Admin (`/django-admin/`) meldet nur noch über die normale
+    Anmeldung mit zweitem Faktor an; seine eigene Anmeldeseite umging TOTP.
+  - `MFA_REQUIRED` bleibt in der öffentlichen Demo wirksam (bisher schaltete
+    `DEMO_MODE` es immer ab); Demo-Besuche sind ausgenommen.
 
 - **Öffentliche Demo mit eigener Demo-Wache je Besuch** (`DEMO_SANDBOX=true`,
   [docs/DEMO.md](docs/DEMO.md)).

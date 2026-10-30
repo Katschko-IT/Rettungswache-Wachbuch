@@ -84,7 +84,7 @@
         <span class="status-label status-{{ defect.status }}">{{ defect.get_status_display }}</span>
         <span class="row-content">
           <strong><a href="{% url 'defect_detail_web' defect.pk %}">{{ defect.title }}</a></strong>
-          <small>{{ defect.asset_ref }} &middot; {{ defect.created_at|date:"d.m.Y H:i" }} &middot; {{ defect.created_by.get_full_name|default:defect.created_by.username }}</small>
+          <small>{% if defect.asset_ref %}{{ defect.asset_ref }} &middot; {% endif %}{{ defect.created_at|date:"d.m.Y H:i" }} &middot; {{ defect.created_by.get_full_name|default:defect.created_by.username }}</small>
         </span>
         <span class="status-label priority-{{ defect.priority }}">{{ defect.get_priority_display }}</span>
       </div>

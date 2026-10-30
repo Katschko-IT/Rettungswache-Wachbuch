@@ -43,6 +43,7 @@ from ..errors import (
     json_error,
     log_exception,
 )
+from ..middleware import rate_limit_ip
 from ..forms import CalendarEventForm, CoffeeEntryForm, HandoverForm, HandoverStatusForm, PinboardNoteForm
 from ..models import (
     ApiToken,
@@ -94,7 +95,7 @@ def api_rate_limit(bucket: str, get_key: callable = None):
             elif getattr(request, "user", None) is not None and request.user.is_authenticated:
                 raw_key = f"user:{request.user.pk}"
             else:
-                raw_key = getattr(request, "client_ip", None) or "unknown"
+                raw_key = rate_limit_ip(request)
 
             if not consume(bucket, raw_key, limit=limit, window_seconds=window_seconds):
                 response = _json_error(
@@ -203,8 +204,7 @@ def _token_rate_limit_key(request):
         body = _parse_json(request)
         if isinstance(body, dict):
             username = str(body.get("username") or "").strip()
-    client_ip = getattr(request, "client_ip", None) or "unknown"
-    return f"{client_ip}|{username}"
+    return f"{rate_limit_ip(request)}|{username}"
 
 
 def _extract_bearer_token(request):
@@ -238,6 +238,20 @@ def resolve_api_token(raw_token: str):
     return token
 
 
+DEMO_NO_APP_ACCESS = "In der Demo gibt es keine App-Zugänge."
+
+
+def _is_demo_account(user) -> bool:
+    """Konto einer Demo-Wache der öffentlichen Demo.
+
+    App-Tokens überdauern die Sitzung, und Token-Anfragen laufen an der
+    Demo-Middleware vorbei (Änderungs-/Upload-Grenzen, gesperrte Bereiche).
+    """
+    from ..demo_sandbox import sandbox_enabled, sandbox_for_user
+
+    return sandbox_enabled() and sandbox_for_user(user) is not None
+
+
 def api_token_required(view):
     @wraps(view)
     def wrapped(request, *args, **kwargs):
@@ -250,6 +264,8 @@ def api_token_required(view):
         membership = get_membership(token.user)
         if membership is None:
             return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
+        if _is_demo_account(token.user):
+            return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
         # „Zuletzt genutzt“ minutengenau: Ein Schreibzugriff pro Lese-Anfrage
         # erzeugt bei vielen Handys einer Wache nur Sperren ohne Mehrwert.
         now = timezone.now()
@@ -331,6 +347,8 @@ def pairing_exchange(request):
     if membership is None:
         return _json_error(request, "Kopplungscode ist ungültig oder abgelaufen.", status=401)
     user = membership.user
+    if _is_demo_account(user):
+        return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
     from ..mfa import mfa_required, user_has_confirmed_mfa
 
     if mfa_required() and not user_has_confirmed_mfa(user):
@@ -399,6 +417,9 @@ def obtain_token(request):
     membership = get_membership(user)
     if membership is None:
         return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
+    if _is_demo_account(user):
+        # Z. B. ein in der Demo angelegtes Teammitglied mit Passwort.
+        return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
     from ..mfa import mfa_required, user_has_confirmed_mfa
 
     if user_has_confirmed_mfa(user):
@@ -930,13 +951,24 @@ def coffee_paid_api(request):
     reason = _("Selbst eingetragen: %(method)s") % {"method": CoffeeEntry.Method(method).label}
     if note:
         reason = f"{reason} – {note}"
+    reason = reason[:200]
+    from ..coffee import recent_self_report
+
     with transaction.atomic():
-        entry = CoffeeEntry.objects.create(
-            station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason[:200],
-            kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+        # Wiederholt die App die Anfrage (wackliges Netz), gilt die erste Buchung.
+        entry = recent_self_report(
+            station, request.user, amount_cents=form.amount_cents(), method=method, reason=reason,
         )
-        audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
-    return JsonResponse({"ok": True, "id": entry.pk, **_coffee_own_payload(request, station)}, status=201)
+        duplicate = entry is not None
+        if not duplicate:
+            entry = CoffeeEntry.objects.create(
+                station=station, member=request.user, amount_cents=form.amount_cents(), reason=reason,
+                kind=CoffeeEntry.Kind.PAYMENT, method=method, created_by=request.user,
+            )
+            audit(request.user, station, "coffee.payment_reported", entry, {"fields": ["amount_cents", "method"]})
+    return JsonResponse(
+        {"ok": True, "id": entry.pk, "duplicate": duplicate, **_coffee_own_payload(request, station)}, status=201,
+    )
 
 
 @csrf_exempt

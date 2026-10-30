@@ -47,18 +47,10 @@ def warehouse_dashboard(request):
             station=station, slug="rtw-01", name="RTW 01/83-01 Schrank", kind=StorageLocation.Kind.VEHICLE
         )
 
-    # Legacy InventoryItem nahtlos synchronisieren
-    from .wachalltag_models import InventoryItem
-    for legacy in InventoryItem.objects.filter(station=station):
-        if not MedicalItem.objects.filter(station=station, slug=legacy.item_id).exists():
-            MedicalItem.objects.create(
-                station=station,
-                slug=legacy.item_id,
-                name=legacy.label,
-                category=MedicalItem.Category.AIRWAY if "atmung" in legacy.label.lower() else MedicalItem.Category.OTHER,
-            )
-
-    items_qs = MedicalItem.objects.filter(station=station).prefetch_related("batches", "stock_items")
+    # Schlüssel, Funkgeräte und Pool-Geräte (InventoryItem, /geraete/) sind kein
+    # Verbrauchsmaterial und werden hier nicht mehr gespiegelt; alte Spiegelungen
+    # entfernt Migration 0066.
+    items_qs = MedicalItem.objects.filter(station=station).prefetch_related("batches", "stock_items__batch")
 
     query = request.GET.get("q", "").strip()
     if query:

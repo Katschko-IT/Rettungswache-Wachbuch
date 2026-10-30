@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy
 
 
 class Station(models.Model):
@@ -159,11 +160,11 @@ class Station(models.Model):
 
 class Membership(models.Model):
     class Role(models.TextChoices):
-        MEMBER = "member", "Mitglied"
-        SHIFT_LEAD = "shift_lead", "Schichtleitung"
-        CASHIER = "cashier", "Kassenwart"
-        ADMIN = "admin", "Master-Admin"
-        AUDITOR = "auditor", "Auditor"
+        MEMBER = "member", gettext_lazy("Mitglied")
+        SHIFT_LEAD = "shift_lead", gettext_lazy("Schichtleitung")
+        CASHIER = "cashier", gettext_lazy("Kassenwart")
+        ADMIN = "admin", gettext_lazy("Master-Admin")
+        AUDITOR = "auditor", gettext_lazy("Auditor")
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="station_memberships")
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="memberships")
@@ -188,21 +189,21 @@ class Membership(models.Model):
 
 class HandoverEntry(models.Model):
     class Category(models.TextChoices):
-        STATION = "station", "Wache"
-        VEHICLE = "vehicle", "Fahrzeugstatus"
-        MATERIAL = "material", "Material"
-        TASK = "task", "Offene Aufgabe"
-        SAFETY = "safety", "Sicherheit/Mangel"
+        STATION = "station", gettext_lazy("Wache")
+        VEHICLE = "vehicle", gettext_lazy("Fahrzeugstatus")
+        MATERIAL = "material", gettext_lazy("Material")
+        TASK = "task", gettext_lazy("Offene Aufgabe")
+        SAFETY = "safety", gettext_lazy("Sicherheit/Mangel")
 
     class Priority(models.TextChoices):
-        NORMAL = "normal", "Normal"
-        IMPORTANT = "important", "Wichtig"
-        URGENT = "urgent", "Dringend"
+        NORMAL = "normal", gettext_lazy("Normal")
+        IMPORTANT = "important", gettext_lazy("Wichtig")
+        URGENT = "urgent", gettext_lazy("Dringend")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Offen"
-        IN_PROGRESS = "in_progress", "In Bearbeitung"
-        DONE = "done", "Erledigt"
+        OPEN = "open", gettext_lazy("Offen")
+        IN_PROGRESS = "in_progress", gettext_lazy("In Bearbeitung")
+        DONE = "done", gettext_lazy("Erledigt")
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="handovers")
     category = models.CharField(max_length=20, choices=Category.choices)

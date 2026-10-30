@@ -3,6 +3,14 @@
 {% block title %}{% translate "Audit" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <header class="page-heading"><p class="context-line">{% translate "Nachvollziehbarkeit" %}</p><h1>{% translate "Audit" %}</h1><p class="lead">{% translate "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte." %}</p></header>
-<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Audit-Ereignisse, horizontal scrollbar auf kleinen Bildschirmen' %}"><table class="responsive-table"><caption>{% translate "Letzte Audit-Ereignisse" %}</caption><thead><tr><th scope="col">{% translate "Zeit" %}</th><th scope="col">{% translate "Akteur" %}</th><th scope="col">{% translate "Aktion" %}</th><th scope="col">{% translate "Objekt" %}</th><th scope="col">{% translate "Änderung" %}</th></tr></thead><tbody>{% for event in page_obj %}<tr><td data-label="Zeit"><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i:s" }}</time></td><td data-label="Akteur">{{ event.actor.first_name|default:event.actor.username|default:"System" }}</td><td data-label="Aktion">{{ event.action }}</td><td data-label="Objekt">{{ event.object_type }} #{{ event.object_id }}{% if event.metadata.fields %}<small>{{ event.metadata.fields|join:", " }}</small>{% endif %}</td><td data-label="Änderung">{% if event.metadata.changes %}{% for key, diff in event.metadata.changes.items %}<small>{{ key }}: {{ diff.from }} → {{ diff.to }}</small>{% endfor %}{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="5">{% translate "Noch keine Audit-Ereignisse." %}</td></tr>{% endfor %}</tbody></table></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Audit-Ereignisse, horizontal scrollbar auf kleinen Bildschirmen' %}"><table class="responsive-table audit-table"><caption>{% translate "Letzte Audit-Ereignisse" %}</caption><thead><tr><th scope="col">{% translate "Zeit" %}</th><th scope="col">{% translate "Akteur" %}</th><th scope="col">{% translate "Aktion" %}</th><th scope="col">{% translate "Objekt" %}</th><th scope="col">{% translate "Änderung" %}</th></tr></thead><tbody>
+{% for event in page_obj %}<tr>
+  <td data-label="Zeit"><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"d.m.Y H:i:s" }}</time></td>
+  <td data-label="Akteur">{{ event.actor.first_name|default:event.actor.username|default:"System" }}</td>
+  <td data-label="Aktion">{{ event.action_label }}<small class="audit-code">{{ event.action }}</small></td>
+  <td data-label="Objekt">{{ event.object_label }} #{{ event.object_id }}{% if event.field_labels %}<small>{{ event.field_labels|join:", " }}</small>{% endif %}</td>
+  <td data-label="Änderung">{% for row in event.change_rows %}<small>{{ row.field }}: {% if row.changed %}{% translate "geändert" %}{% else %}{{ row.from }} → {{ row.to }}{% endif %}</small>{% empty %}—{% endfor %}</td>
+</tr>{% empty %}<tr><td colspan="5">{% translate "Noch keine Audit-Ereignisse." %}</td></tr>{% endfor %}
+</tbody></table></div>
 {% include "core/pagination.html" %}
 {% endblock %}

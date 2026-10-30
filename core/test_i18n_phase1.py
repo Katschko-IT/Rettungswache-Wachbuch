@@ -314,7 +314,12 @@ class I18nFoundationTests(TestCase):
         self.assertContains(res_404_en, "Not found.", status_code=404)
         self.assertContains(res_404_en, "The requested page does not exist or has been moved.", status_code=404)
         self.assertContains(res_404_en, "To home page", status_code=404)
-        self.assertContains(res_404_en, "Need help? Contact logbook support and share the correlation ID.", status_code=404)
+        self.assertContains(
+            res_404_en,
+            "Need help? Contact the management or administrator of your station and give them the correlation ID.",
+            status_code=404,
+        )
+        self.assertNotContains(res_404_en, "logbook support", status_code=404)
 
         client_de = Client()
         client_de.cookies["wachbuch_language"] = "de"

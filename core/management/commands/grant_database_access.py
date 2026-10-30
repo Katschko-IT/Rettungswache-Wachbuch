@@ -4,6 +4,9 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
+# Spalten, die sync_waste_calendar braucht (Filter, Sortierung, Abruf).
+WASTE_STATION_COLUMNS = ("id", "name", "is_active", "waste_calendar_enabled", "waste_calendar_url")
+
 
 class Command(BaseCommand):
     help = "Vergibt minimale Laufzeitrechte nach den Migrationen."
@@ -36,10 +39,15 @@ class Command(BaseCommand):
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {app_role}",
             f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {app_role}",
             f"REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
-            f"core_handoverrevision, core_checklistcompletion FROM {app_role}",
+            f"core_handoverrevision, core_checklistcompletion, core_stockmovement FROM {app_role}",
             f"GRANT SELECT, UPDATE (last_success_at, last_error_at, last_error) ON core_feedsource TO {feed_role}",
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON core_feeditem TO {feed_role}",
             f"GRANT USAGE, SELECT ON SEQUENCE core_feeditem_id_seq TO {feed_role}",
+            # Müllkalender (sync_waste_calendar im feed-worker): nur diese
+            # Spalten der Wache, nicht IBAN, Adresse oder Signal-Gruppe.
+            f"GRANT SELECT ({', '.join(WASTE_STATION_COLUMNS)}) ON core_station TO {feed_role}",
+            f"GRANT SELECT, INSERT, DELETE ON core_wastecollection TO {feed_role}",
+            f"GRANT USAGE, SELECT ON SEQUENCE core_wastecollection_id_seq TO {feed_role}",
             f"GRANT SELECT, UPDATE ON core_pushoutbox TO {push_role}",
             f"GRANT SELECT, DELETE ON core_pushsubscription TO {push_role}",
             f"GRANT SELECT, DELETE ON core_mobilepushdevice TO {push_role}",

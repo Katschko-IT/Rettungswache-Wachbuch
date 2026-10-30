@@ -1,9 +1,12 @@
 """Ansichten für den Bereich Neuigkeiten."""
 from __future__ import annotations
 
+from collections import defaultdict
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -14,10 +17,18 @@ from .access import CONTENT_ROLES, membership_required
 from .api.wachalltag import (
     ALLOWED_ATTACHMENT_TYPES,
     MAX_ATTACHMENT_BYTES,
+    MAX_ATTACHMENTS_PER_HANDOVER,
     attachment_is_valid,
 )
-from .models import NewsAttachment, NewsPost
-from .news import acknowledge, acknowledgement_status, active_posts, archived_posts
+from .models import NewsAcknowledgement, NewsAttachment, NewsPost
+from .news import (
+    acknowledge,
+    acknowledgement_status,
+    active_posts,
+    archived_posts,
+    news_audience_ids,
+    status_from,
+)
 from .services import audit
 
 EDITOR_ROLES = {"shift_lead", "admin"}
@@ -27,18 +38,27 @@ EDITOR_ROLES = {"shift_lead", "admin"}
 @require_GET
 def news_index(request):
     station = request.membership.station
+    # Leserschaft und Quittungen einmal für alle Neuigkeiten laden; Anhänge
+    # nur als Kennung (die Liste zeigt bloß „mit Anhang“, nicht den Inhalt).
+    audience = news_audience_ids(station)
+    active = list(active_posts(station).select_related("created_by").prefetch_related(
+        Prefetch("attachments", queryset=NewsAttachment.objects.only("id", "post_id")),
+    ))
+    archived = list(archived_posts(station).select_related("created_by")[:20])
+    acknowledged = defaultdict(set)
+    for post_id, user_id in NewsAcknowledgement.objects.filter(
+        post__in=[post.pk for post in active + archived],
+    ).values_list("post_id", "user_id"):
+        acknowledged[post_id].add(user_id)
     posts = []
-    for post in active_posts(station).select_related("created_by").prefetch_related("attachments"):
-        status = acknowledgement_status(post)
+    for post in active:
+        status = status_from(audience, acknowledged[post.pk])
         posts.append({
             "post": post,
             "status": status,
             "has_read": request.user.id not in status["missing"],
         })
-    archive = []
-    for post in archived_posts(station).select_related("created_by")[:20]:
-        status = acknowledgement_status(post)
-        archive.append({"post": post, "status": status})
+    archive = [{"post": post, "status": status_from(audience, acknowledged[post.pk])} for post in archived]
     return render(request, "core/news_index.html", {
         "posts": posts,
         "archive": archive,
@@ -71,6 +91,8 @@ def news_detail(request, pk):
                 messages.error(request, _("Erlaubt sind JPEG, PNG, WebP und PDF."))
             elif upload.size > MAX_ATTACHMENT_BYTES:
                 messages.error(request, _("Datei darf maximal 5 MiB groß sein."))
+            elif post.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
+                messages.error(request, _("Mehr Anhänge sind nicht möglich."))
             else:
                 raw = upload.read()
                 if not attachment_is_valid(raw, upload.content_type):
@@ -93,7 +115,8 @@ def news_detail(request, pk):
         "post": post,
         "status": status,
         "has_read": request.user.id not in status["missing"],
-        "attachments": post.attachments.select_related("uploaded_by").all(),
+        "attachments": post.attachments.select_related("uploaded_by").defer("data"),
+        "max_attachments": MAX_ATTACHMENTS_PER_HANDOVER,
         "can_edit": request.membership.role in EDITOR_ROLES,
         "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
     })

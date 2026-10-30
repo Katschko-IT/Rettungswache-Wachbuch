@@ -13,9 +13,12 @@ kanonischen Repository `Katschko-IT/Rettungswache-Wachbuch` unter Settings → P
 **GitHub Actions** als Quelle aktiviert sein. Ein Quellordner `/site` wird bei
 „Deploy from a branch“ nicht unterstützt; dort sind nur `/` oder `/docs` möglich.
 
-Der Workflow prüft `site/`, stellt ausschließlich `index.html`, `styles.css`,
-`.nojekyll` und `assets/` als Artefakt bereit und veröffentlicht über die
-Pages-Actions. Tests und dieses README werden nicht mit ausgeliefert.
+Der Workflow prüft `site/` mit `site/tests/check_site.py`, stellt ausschließlich
+`index.html`, `en/index.html`, `styles.css`, `.nojekyll` und `assets/` als
+Artefakt bereit und veröffentlicht über die Pages-Actions. Tests und dieses
+README werden nicht mit ausgeliefert. Dieselben Seitentests laufen auch in der
+Django-Testsuite (`core/test_project_site.py`), damit ein Pull Request sie
+schon vor dem Merge sieht.
 Relative Assetpfade unterstützen den Repository-Unterpfad. Keine `CNAME`-Datei,
 keine eigene Domain, keine Datenbank und kein Backend gehören zum Pages-Artefakt.
 Die tatsächlich veröffentlichte URL und der Deploymentstatus sind im Workflow
@@ -25,9 +28,6 @@ und in den Repository-Pages-Einstellungen zu prüfen.
 
 - Deutsch: `site/index.html` (Pfad `/Rettungswache-Wachbuch/`).
 - Englisch: `site/en/index.html` (Pfad `/Rettungswache-Wachbuch/en/`).
-- Das derzeitige Pages-Artefakt enthält `en/` noch nicht. Bis der Workflow
-  entsprechend erweitert und neu veröffentlicht ist, ist die englische Fassung
-  nicht öffentlich erreichbar; sie ist kein Live-Nachweis.
 - Beide Seiten nutzen dieselbe `site/styles.css` und dieselben Dateien unter
   `site/assets/`; im Ordner `en/` liegt ausschließlich `index.html`. Die
   Sprachumschaltung im Kopfbereich verlinkt reziprok (`en/` bzw. `../`) und ist
@@ -38,15 +38,19 @@ und in den Repository-Pages-Einstellungen zu prüfen.
 ## Inhalte und Richtlinien
 
 - HTML/CSS ohne JavaScript, CDN oder Analytics.
-- Lokale Source-Sans-3-Schriften unter `assets/fonts/`, mit SIL-OFL-Lizenztext.
+- Lokale Schrift Atkinson Hyperlegible Next unter `assets/design/fonts/`, mit
+  Lizenztext.
 - Designregeln aus `docs/DESIGN-SYSTEM.md`.
 - Funktionsaussagen aus README, Architektur, Betriebs- und Sicherheitsdokumentation.
 - Keine Demo-Werbeaufmachung und keine erfundenen Rechts-/Zertifizierungszusagen.
+  Einzige Ausnahme: der Knopf „Live-Demo ausprobieren“ (`pub-live`) zur
+  öffentlichen Demo unter <https://demo.rwsth.de/> mit dem Hinweis zu den
+  Zugangsdaten (`pub-live-note`) im Kopfbereich.
 - Servergetrenntes Handy, Client-Outbox und Synchronisierung sind nicht implementiert.
 
 ## Screenshots
 
-Die WebP-Bilder unter `assets/screenshots/` stammen aus der lokal gestarteten App
+Die WebP-Bilder unter `assets/design/screens/` stammen aus der lokal gestarteten App
 mit synthetischen Konten und einer getrennten Testdatenbank. Es sind keine Montagen
 oder fremden Bildschirmbilder. Personen, Wachen und Vorgänge sind frei erfunden.
 Anmeldetoken, QR-Geheimnisse, Einladungslinks und die Testdatenbank werden nicht

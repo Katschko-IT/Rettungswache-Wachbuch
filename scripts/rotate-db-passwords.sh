@@ -65,6 +65,6 @@ awk -v app="$NEW_APP" -v feed="$NEW_FEED" -v backup="$NEW_BACKUP" -v push="$NEW_
 ' .env > "$TMP"
 cp "$TMP" .env
 
-echo "Updated .env. Restarting web, notify-worker, feed-worker, backup and push-worker ..."
-docker compose up -d --force-recreate web notify-worker feed-worker backup push-worker
+echo "Updated .env. Restarting web, notify-worker, housekeeping, feed-worker, backup and push-worker ..."
+docker compose up -d --force-recreate web notify-worker housekeeping feed-worker backup push-worker
 echo "Done. Verify /healthz/ and worker logs."

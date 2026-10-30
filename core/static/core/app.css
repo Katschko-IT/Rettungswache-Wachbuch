@@ -806,6 +806,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .payment-privacy { margin: .75rem 0 0; color: var(--muted); font-size: .82rem; }
 
 .table-wrap {
+  position: relative; /* hält .sr-only im Scrollbereich (siehe .table-responsive) */
   overflow-x: auto;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -2271,12 +2272,30 @@ button.text-action {
   gap: .5rem 1rem;
 }
 .demo-bar-text { margin: 0; flex: 1 1 22rem; }
+.demo-bar-short { display: none; }
 .demo-bar-role { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0; }
 .demo-bar-role label { font-weight: 600; }
 .demo-bar-role select { min-height: var(--touch); }
 .demo-login-hint { margin-bottom: 1rem; }
 .demo-login-hint p { margin: .25rem 0 0; }
-.demo-bar-tour { font-weight: 600; }
+.demo-bar-tour { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; flex: 1 1 100%; }
+.demo-bar-tour form { margin: 0; }
+.demo-bar-progress { font-weight: 600; }
+.demo-bar-here { font-weight: 600; color: var(--accent-dark); }
+@media (max-width: 40rem) {
+  .demo-bar-inner { padding: .5rem 1rem; gap: .4rem .75rem; }
+  .demo-bar-detail { display: none; }
+  .demo-bar-short { display: inline; }
+  .demo-bar-text { flex: 1 1 100%; }
+  .demo-bar-role { flex: 1 1 auto; flex-wrap: nowrap; }
+  .demo-bar-role select { flex: 1 1 auto; min-width: 0; }
+  .demo-bar-role label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .demo-bar-tour { flex-wrap: nowrap; }
+  .demo-bar-tour .button, .demo-bar-tour form { flex: 1 1 auto; }
+  .demo-bar-tour form .button { width: 100%; }
+}
 
 /* Demo-Rundgang „Dein erster Schichtwechsel“ */
 .demo-tour {
@@ -2284,6 +2303,7 @@ button.text-action {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
+  scroll-margin-top: 1rem;
 }
 .demo-tour summary {
   display: flex;
@@ -2307,6 +2327,7 @@ button.text-action {
   border-radius: var(--radius);
   background: var(--surface-soft);
 }
+.demo-tour-step form { margin: 0; }
 .demo-tour-step.is-next { background: var(--accent-soft); }
 .demo-tour-step.is-done { opacity: .75; }
 .demo-tour-mark {
@@ -2321,12 +2342,35 @@ button.text-action {
 }
 .demo-tour-step.is-done .demo-tour-mark { background: var(--success); border-color: var(--success); color: var(--on-strong); }
 .demo-tour-copy p { margin: .15rem 0 0; color: var(--muted); }
-.demo-tour-finish { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; padding: 0 1.25rem 1.25rem; }
-.demo-tour-finish p { margin: 0; flex: 1 1 18rem; }
+.demo-tour.is-complete { border-color: var(--success); }
+.demo-tour-finish {
+  display: grid;
+  gap: .6rem;
+  margin: 0 1.25rem 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
+  background: var(--success-soft);
+  border-left: 4px solid var(--success);
+}
+.demo-tour-finish p { margin: 0; }
+.demo-tour-finish-title { font-size: 1.1rem; }
+.demo-tour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .75rem; }
+.demo-tour-actions form { margin: 0; }
+.demo-tour-finish-more { margin: 1rem 0 .25rem; }
+.demo-tour-more { margin: 0; padding-left: 1.2rem; display: grid; gap: .35rem; }
 @media (max-width: 40rem) {
   .demo-tour-step { grid-template-columns: 2rem minmax(0, 1fr); }
-  .demo-tour-step .button { grid-column: 2; justify-self: start; }
+  .demo-tour-step .button, .demo-tour-step form { grid-column: 2; justify-self: start; }
 }
+
+/* Demo: Beispielnachrichten der Signal-Gruppe */
+.signal-preview { display: grid; gap: .5rem; margin: .75rem 0 1rem; padding: 1rem; border-radius: var(--radius-lg); background: var(--surface-soft); }
+.signal-bubble { justify-self: start; max-width: 32rem; margin: 0; padding: .6rem .9rem; border-radius: 1rem 1rem 1rem .25rem; background: var(--surface); border: 1px solid var(--line); }
+
+/* Lesebestätigungen einer Übergabe */
+.ack-list { list-style: none; margin: .5rem 0 .75rem; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
+.ack-list li { display: inline-flex; align-items: baseline; gap: .4rem; padding: .3rem .75rem; border-radius: 999px; background: var(--success-soft); }
+.ack-list time { color: var(--muted); font-size: .85rem; }
 
 /* Posteingang für Rückmeldungen */
 .feedback-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .75rem; }
@@ -2339,3 +2383,19 @@ button.text-action {
 .feedback-contact { margin: 0 0 .75rem; }
 .feedback-entry .form-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .feedback-entry .form-actions form { margin: 0; }
+
+/* Öffentliche Demo: „Demo starten“ statt „Anmelden“ im Kopf */
+.header-demo { display: flex; margin: 0; }
+
+/* Audit: lesbare Aktion, technischer Code klein darunter */
+.audit-table .audit-code { font-family: var(--mono); font-size: .78rem; }
+
+/* Demo-Kennzahlen im Feedback-Posteingang (core/demo_stats.py) */
+.demo-stats { margin: 0 0 1.5rem; padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.demo-stats h2 { margin: 0 0 .25rem; font-size: 1.15rem; }
+.demo-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .75rem; margin: 1rem 0; }
+.demo-stats-grid div { padding: .6rem .8rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-soft); }
+.demo-stats-grid dt { color: var(--muted); font-size: .88rem; }
+.demo-stats-grid dd { margin: .15rem 0 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.demo-stats-grid small { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.demo-stats-days summary { display: flex; align-items: center; min-height: var(--touch); font-weight: 600; cursor: pointer; }

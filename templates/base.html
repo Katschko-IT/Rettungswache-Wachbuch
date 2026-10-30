@@ -60,7 +60,14 @@
         </div>
       {% else %}
         <div class="account">
-          <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+          {% if demo_mode and demo_sandbox_enabled %}
+            <form class="header-demo" method="post" action="{% url 'demo_login' %}">
+              {% csrf_token %}
+              <button type="submit" class="button primary">{% translate "Demo starten" %}</button>
+            </form>
+          {% else %}
+            <a class="button secondary header-login" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+          {% endif %}
         </div>
       {% endif %}
       </div>
@@ -116,17 +123,36 @@
   {% if demo_banner %}
     <aside class="demo-bar" aria-label="{% translate 'Demo' %}">
       <div class="demo-bar-inner">
-        <p class="demo-bar-text"><strong>{% translate "Demo" %}</strong> – {% blocktranslate with time=demo_banner.ends_at|time:"H:i" minutes=demo_banner.idle_minutes %}Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach {{ minutes }} Minuten ohne Aktivität oder spätestens um {{ time }} Uhr wird alles gelöscht.{% endblocktranslate %}</p>
+        <p class="demo-bar-text"><strong>{% translate "Demo" %}</strong><span class="demo-bar-detail"> – {% blocktranslate with time=demo_banner.ends_at|time:"H:i" minutes=demo_banner.idle_minutes %}Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach {{ minutes }} Minuten ohne Aktivität oder spätestens um {{ time }} Uhr wird alles gelöscht.{% endblocktranslate %}</span><span class="demo-bar-short"> · {% blocktranslate with time=demo_banner.ends_at|time:"H:i" %}endet spätestens {{ time }} Uhr{% endblocktranslate %}</span></p>
         <form class="demo-bar-role" method="post" action="{% url 'demo_switch_role' %}">
           {% csrf_token %}
+          {# Gleiche Seite in der neuen Rolle; sieht die Rolle sie nicht, geht es zur Startseite. #}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <label for="demo-role">{% translate "Rolle ansehen als" %}</label>
-          <select id="demo-role" name="role">
-            {% for key, label in demo_banner.roles %}<option value="{{ key }}"{% if key == demo_banner.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          <select id="demo-role" name="role" data-auto-submit>
+            {% for key, label, name in demo_banner.roles %}<option value="{{ key }}"{% if key == demo_banner.role %} selected{% endif %}>{{ label }} ({{ name }})</option>{% endfor %}
           </select>
           <button type="submit" class="button secondary">{% translate "Wechseln" %}</button>
         </form>
-        {% if demo_tour and request.resolver_match.url_name != 'dashboard' %}
-          <a class="demo-bar-tour" href="{% url 'dashboard' %}">{% blocktranslate with done=demo_tour.done total=demo_tour.total %}Rundgang: {{ done }} von {{ total }}{% endblocktranslate %}</a>
+        {% if demo_tour %}
+          <div class="demo-bar-tour">
+            {% if demo_banner.role == 'audit' %}
+              <form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="admin"><input type="hidden" name="next" value="{% url 'dashboard' %}#demo-tour"><button type="submit" class="text-action">{% translate "Zurück zum Rundgang" %}</button></form>
+            {% elif demo_tour.complete %}
+              <a href="{% url 'dashboard' %}#demo-tour">{% translate "Rundgang geschafft ✓" %}</a>
+            {% else %}
+              <a class="demo-bar-progress" href="{% if request.resolver_match.url_name != 'dashboard' %}{% url 'dashboard' %}{% endif %}#demo-tour" aria-label="{% blocktranslate with done=demo_tour.done total=demo_tour.total %}Rundgang: {{ done }} von {{ total }} erledigt{% endblocktranslate %}">{% blocktranslate with done=demo_tour.done total=demo_tour.total %}Rundgang {{ done }}/{{ total }}{% endblocktranslate %}</a>
+              {% with step=demo_tour.next %}
+                {% if step.switch_role %}
+                  <form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="{{ step.switch_role }}"><input type="hidden" name="next" value="{{ step.url }}"><button type="submit" class="button primary">{% blocktranslate with title=step.short %}Weiter: {{ title }}{% endblocktranslate %}</button></form>
+                {% elif step.here %}
+                  <span class="demo-bar-here">{% blocktranslate with title=step.short %}Du bist da: {{ title }}{% endblocktranslate %}</span>
+                {% else %}
+                  <a class="button primary" href="{{ step.url }}">{% blocktranslate with title=step.short %}Weiter: {{ title }}{% endblocktranslate %}</a>
+                {% endif %}
+              {% endwith %}
+            {% endif %}
+          </div>
         {% endif %}
       </div>
     </aside>
@@ -146,6 +172,7 @@
       {% if not current_membership %}<a href="{% url 'vorfuehrung' %}"{% if request.resolver_match.url_name == 'vorfuehrung' %} aria-current="page"{% endif %}>{% translate "Vorführung" %}</a>{% endif %}
       {% if feedback_enabled %}<a href="{% url 'feedback' %}"{% if request.resolver_match.url_name == 'feedback' %} aria-current="page"{% endif %}>{% translate "Feedback" %}</a>{% endif %}
       <a href="{% url 'install_guide' %}"{% if request.resolver_match.url_name == 'install_guide' %} aria-current="page"{% endif %}>{% translate "Selbst betreiben" %}</a>
+      {% if not current_membership %}<a href="{% url 'it_privacy' %}"{% if request.resolver_match.url_name == 'it_privacy' %} aria-current="page"{% endif %}>{% translate "IT & Datenschutz" %}</a>{% endif %}
       <a href="{% url 'legal_notice' %}"{% if request.resolver_match.url_name == 'legal_notice' %} aria-current="page"{% endif %}>{% translate "Impressum" %}</a>
       <a href="{% url 'privacy' %}"{% if request.resolver_match.url_name == 'privacy' %} aria-current="page"{% endif %}>{% translate "Datenschutz & Cookies" %}</a>
       <a href="{% url 'help_index' %}">{% translate "Hilfe" %}</a>

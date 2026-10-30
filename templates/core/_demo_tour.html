@@ -1,5 +1,5 @@
 {% load i18n %}
-<section class="demo-tour" aria-labelledby="demo-tour-title">
+<section class="demo-tour{% if demo_tour.complete %} is-complete{% endif %}" id="demo-tour" aria-labelledby="demo-tour-title">
   <details{% if not demo_tour.complete %} open{% endif %}>
     <summary>
       <span id="demo-tour-title" class="demo-tour-title">{% translate "Demo-Rundgang: Dein erster Schichtwechsel" %}</span>
@@ -9,21 +9,39 @@
     <ol class="demo-tour-steps">
       {% for step in demo_tour.steps %}
       <li class="demo-tour-step{% if step.done %} is-done{% endif %}{% if step == demo_tour.next %} is-next{% endif %}">
-        <span class="demo-tour-mark" aria-hidden="true">{% if step.done %}✓{% else %}{{ forloop.counter }}{% endif %}</span>
+        <span class="demo-tour-mark" aria-hidden="true">{% if step.done %}✓{% else %}{{ step.number }}{% endif %}</span>
         <div class="demo-tour-copy">
           <strong>{{ step.title }}</strong>{% if step.done %} <span class="visually-hidden">{% translate "erledigt" %}</span>{% endif %}
           <p>{{ step.text }}</p>
         </div>
-        {% if not step.done %}<a class="button {% if step == demo_tour.next %}primary{% else %}secondary{% endif %}" href="{{ step.url }}">{% translate "Los" %}</a>{% endif %}
+        {% if not step.done %}
+          {% if step.switch_role %}
+          <form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="{{ step.switch_role }}"><input type="hidden" name="next" value="{{ step.url }}"><button type="submit" class="button {% if step == demo_tour.next %}primary{% else %}secondary{% endif %}">{% blocktranslate with role=step.role_label %}Los als {{ role }}{% endblocktranslate %}</button></form>
+          {% else %}
+          <a class="button {% if step == demo_tour.next %}primary{% else %}secondary{% endif %}" href="{{ step.url }}">{% translate "Los" %}</a>
+          {% endif %}
+        {% endif %}
       </li>
       {% endfor %}
     </ol>
-    {% if demo_tour.complete %}
-    <div class="demo-tour-finish">
-      <p><strong>{% translate "Geschafft!" %}</strong> {% translate "So läuft ein Schichtwechsel mit Wachwerk. Möchtest du es auf deiner Wache einsetzen?" %}</p>
+  </details>
+  {% if demo_tour.complete %}
+  <div class="demo-tour-finish">
+    <p class="demo-tour-finish-title"><strong>{% translate "Geschafft!" %}</strong> {% translate "So läuft ein Schichtwechsel mit Wachwerk." %}</p>
+    <p>{% translate "Dabei sind entstanden: eine Übergabe mit Lesebestätigung, der Nachweis einer Funktionskontrolle, ein gemeldeter Mangel und eine Zahlung in der Kaffeekasse. Jeder Schritt steht mit Zeit und Person im Audit-Log." %}</p>
+    <div class="demo-tour-actions">
       <a class="button primary" href="{% url 'install_guide' %}">{% translate "Wachwerk selbst betreiben" %}</a>
+      {% if demo_tour.role != "admin" %}<form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="admin"><input type="hidden" name="next" value="{% url 'more' %}"><button type="submit" class="button secondary">{% translate "Als Master-Admin weiter: Team, Einstellungen, Display" %}</button></form>{% endif %}
+      <form method="post" action="{% url 'demo_switch_role' %}">{% csrf_token %}<input type="hidden" name="role" value="audit"><button type="submit" class="button secondary">{% translate "Als Auditor ins Audit-Log schauen" %}</button></form>
       {% if feedback_enabled %}<a class="button secondary" href="{% url 'feedback' %}">{% translate "Feedback geben" %}</a>{% endif %}
     </div>
-    {% endif %}
-  </details>
+    <p class="demo-tour-finish-more"><strong>{% translate "Noch mehr entdecken:" %}</strong></p>
+    <ul class="demo-tour-more">
+      {% if request.membership.role != "auditor" %}<li><a href="{% url 'demo_lock_screen' %}">{% translate "Touch-Terminal der Wache" %}</a> – {% translate "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock" %}</li>
+      <li><a href="{% url 'display_home' %}">{% translate "Wand-Display" %}</a> – {% translate "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle" %}</li>{% endif %}
+      <li><a href="{% url 'it_privacy' %}">{% translate "Für IT und Datenschutz" %}</a> – {% translate "was gespeichert wird, wo es liegt und wie es geschützt ist" %}</li>
+      <li>{% translate "Offline ausprobieren: Flugmodus an und die Übersicht neu laden – zuletzt geöffnete Seiten bleiben lesbar. Auf der Wache läuft alles im eigenen Netz weiter, auch wenn das Internet ausfällt." %}</li>
+    </ul>
+  </div>
+  {% endif %}
 </section>

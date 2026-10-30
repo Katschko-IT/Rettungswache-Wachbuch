@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy
 
 from .models import Checklist, HandoverEntry, Station
 
@@ -46,24 +47,24 @@ DEFECT_WORKFLOW_ORDERING = [
 
 class Defect(models.Model):
     class Priority(models.TextChoices):
-        NORMAL = "normal", "Normal"
-        IMPORTANT = "important", "Wichtig"
-        URGENT = "urgent", "Dringend"
+        NORMAL = "normal", gettext_lazy("Normal")
+        IMPORTANT = "important", gettext_lazy("Wichtig")
+        URGENT = "urgent", gettext_lazy("Dringend")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Offen"
-        IN_PROGRESS = "in_progress", "In Bearbeitung"
-        WAITING = "waiting", "Wartend"
-        DONE = "done", "Erledigt"
+        OPEN = "open", gettext_lazy("Offen")
+        IN_PROGRESS = "in_progress", gettext_lazy("In Bearbeitung")
+        WAITING = "waiting", gettext_lazy("Wartend")
+        DONE = "done", gettext_lazy("Erledigt")
 
     class Category(models.TextChoices):
-        VEHICLE = "vehicle", "Fahrzeug"
-        MATERIAL = "material", "Material"
-        SAFETY = "safety", "Sicherheit"
-        FACILITY = "facility", "Gebaeude"
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
-        TASK = "task", "Aufgabe"
+        VEHICLE = "vehicle", gettext_lazy("Fahrzeug")
+        MATERIAL = "material", gettext_lazy("Material")
+        SAFETY = "safety", gettext_lazy("Sicherheit")
+        FACILITY = "facility", gettext_lazy("Gebäude")
+        KEY = "key", gettext_lazy("Schlüssel")
+        DEVICE = "device", gettext_lazy("Gerät")
+        TASK = "task", gettext_lazy("Aufgabe")
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="defects")
     title = models.CharField(max_length=160)
@@ -129,6 +130,18 @@ class DefectEvent(models.Model):
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["station", "-created_at"], name="defect_event_station_idx")]
 
+    @staticmethod
+    def _status_label(value):
+        return Defect.Status(value).label if value in Defect.Status.values else value
+
+    @property
+    def from_status_label(self):
+        return self._status_label(self.from_status)
+
+    @property
+    def to_status_label(self):
+        return self._status_label(self.to_status)
+
     def save(self, *args, **kwargs):
         if self.pk:
             raise ValidationError("Mangel-Ereignisse dürfen nicht verändert werden.")
@@ -142,13 +155,13 @@ class DefectEvent(models.Model):
 class StationAsset(models.Model):
     class Kind(models.TextChoices):
         VEHICLE = "vehicle", "Fahrzeug"
-        DEVICE = "device", "Geraet"
-        KEY = "key", "Schluessel"
+        DEVICE = "device", "Gerät"
+        KEY = "key", "Schlüssel"
 
     class Status(models.TextChoices):
         READY = "ready", "Einsatzklar"
-        LIMITED = "limited", "Eingeschraenkt"
-        OOB = "oob", "Ausser Betrieb"
+        LIMITED = "limited", "Eingeschränkt"
+        OOB = "oob", "Außer Betrieb"
         WORKSHOP = "workshop", "Werkstatt"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="station_assets")
@@ -233,8 +246,8 @@ class HandoverAck(models.Model):
 
 class InventoryItem(models.Model):
     class Kind(models.TextChoices):
-        KEY = "key", "Schluessel"
-        DEVICE = "device", "Geraet"
+        KEY = "key", "Schlüssel"
+        DEVICE = "device", "Gerät"
         VEHICLE = "vehicle", "Fahrzeug"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="inventory_items")
@@ -280,7 +293,7 @@ class InventoryItem(models.Model):
 class InventoryEvent(models.Model):
     class Action(models.TextChoices):
         CHECKOUT = "checkout", "Ausgabe"
-        CHECKIN = "checkin", "Rueckgabe"
+        CHECKIN = "checkin", "Rückgabe"
 
     item = models.ForeignKey(InventoryItem, on_delete=models.PROTECT, related_name="events")
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="inventory_events")
@@ -311,8 +324,8 @@ class InventoryEvent(models.Model):
 
 class ChecklistSchedule(models.Model):
     class Interval(models.TextChoices):
-        DAILY = "daily", "Taeglich"
-        WEEKLY = "weekly", "Woechentlich"
+        DAILY = "daily", "Täglich"
+        WEEKLY = "weekly", "Wöchentlich"
         MONTHLY = "monthly", "Monatlich"
 
     checklist = models.OneToOneField(Checklist, on_delete=models.PROTECT, related_name="schedule")

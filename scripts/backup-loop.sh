@@ -45,6 +45,29 @@ prepare_gpg() {
         err "Kein öffentlicher Schlüssel für $BACKUP_GPG_RECIPIENT gefunden. Schlüsseldatei in den Ordner BACKUP_GPG_KEY_DIR (Host) legen."
         return 1
     fi
+    warn_if_aead_key || true
+}
+
+# GnuPG ab 2.3 verschlüsselt im AEAD-Format (OCB-Paket), sobald der Schlüssel
+# dieses Merkmal ankündigt (Voreinstellung neuer Schlüssel ab 2.3). GnuPG 2.2
+# (Debian 12) und andere OpenPGP-Programme können solche Dateien nicht öffnen.
+# Keine gpg-Option schaltet das beim Verschlüsseln ab (geprüft mit 2.4.4:
+# --rfc4880, --openpgp, --compliance=openpgp, --personal-aead-preferences);
+# Abhilfe nur am Schlüssel, siehe docs/HETZNER.md, Abschnitt 0.
+warn_if_aead_key() {
+    features=$(gpg --batch --export "$BACKUP_GPG_RECIPIENT" 2>/dev/null \
+        | gpg --batch --list-packets 2>/dev/null \
+        | sed -n 's/.*(features: \([0-9A-Fa-f][0-9A-Fa-f]\).*/\1/p')
+    for byte in $features; do
+        case "$byte" in
+            # Bit 0x02 im ersten Merkmal-Byte = AEAD
+            ?[2367ABEFabef])
+                log "Hinweis: Schlüssel $BACKUP_GPG_RECIPIENT kündigt AEAD an; die verschlüsselten Backups lassen sich nur mit GnuPG 2.3 oder neuer öffnen (nicht mit Debian 12). Abhilfe: docs/HETZNER.md, Abschnitt 0."
+                return 0
+                ;;
+        esac
+    done
+    return 0
 }
 
 encrypt_dump() {

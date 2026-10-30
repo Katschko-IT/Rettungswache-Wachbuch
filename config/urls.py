@@ -24,6 +24,26 @@ from core.views import (
     web_manifest,
 )
 
+def admin_login(request, extra_context=None):
+    """Django-Admin nur über die normale Anmeldung (mit zweitem Faktor).
+
+    Die eigene Anmeldeseite des Django-Admins kennt weder TOTP noch Passkeys;
+    sie würde den zweiten Faktor umgehen.
+    """
+    from django.contrib.auth.views import redirect_to_login
+    from django.core.exceptions import PermissionDenied
+    from django.shortcuts import redirect
+    from django.urls import reverse
+
+    if request.user.is_authenticated:
+        if admin.site.has_permission(request):
+            return redirect("admin:index")
+        raise PermissionDenied
+    return redirect_to_login(reverse("admin:index"), reverse("login"))
+
+
+admin.site.login = admin_login
+
 handler400 = "core.views.bad_request"
 handler403 = "core.views.permission_denied"
 handler404 = "core.views.page_not_found"

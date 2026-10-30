@@ -154,7 +154,8 @@ def make_qr_data_uri(content: str) -> str:
 def verify_totp_with_time_step(device: TotpDevice, token: str, valid_window: int = 1) -> tuple[bool, int | None]:
     """Verify TOTP token and return (True, time_step) if valid, else (False, None)."""
     token = (token or "").strip().replace(" ", "")
-    if not token.isdigit():
+    # isascii(): hmac.compare_digest lehnt Nicht-ASCII-Text mit TypeError ab.
+    if not (token.isascii() and token.isdigit()):
         return False, None
     totp = pyotp.TOTP(totp_plaintext(device))
     base_step = totp.timecode(timezone.now())

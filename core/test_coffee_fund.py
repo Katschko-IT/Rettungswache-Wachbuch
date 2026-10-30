@@ -5,6 +5,7 @@ import datetime as dt
 from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -196,7 +197,7 @@ class CoffeeViewTests(CoffeeFixture):
         self.client.force_login(self.cashier)
         self.client.post(reverse("coffee_movement_correct", args=[movement.pk]), {"reason": "doppelt"})
         self.assertEqual(logic.pots(self.station).cash_cents, 2000)
-        with self.assertRaises(Exception):
+        with self.assertRaisesMessage(ValidationError, "Kassenbewegungen dürfen nicht gelöscht werden."):
             movement.delete()
 
     def test_export_neutralises_formulas(self):

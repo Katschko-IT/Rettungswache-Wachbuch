@@ -98,10 +98,10 @@ def module_attention_cards(station, user) -> list[dict]:
     if station.orga_enabled:
         from .orga_models import SOPDocument
 
-        sops = SOPDocument.objects.filter(
+        sops = SOPDocument.list_with_ack_state(SOPDocument.objects.filter(
             station=station, status=SOPDocument.Status.ACTIVE, requires_acknowledgment=True,
-        )
-        if sops.exists():
+        ), user)
+        if sops:
             pending = sum(1 for sop in sops if not sop.user_has_acknowledged(user))
             cards.append(_card(
                 "orga", "orga_dashboard", "filter=pending" if pending else "",

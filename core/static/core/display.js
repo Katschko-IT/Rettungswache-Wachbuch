@@ -275,6 +275,69 @@
     show(section, true);
   }
 
+  /* Listen, die nur erscheinen, wenn es etwas zu sehen gibt (Fahrzeuge,
+   * Gerätefristen, Material). Ein in der Konfiguration abgeschaltetes Modul
+   * bleibt verborgen (data-module-off aus applyLayout). */
+  function renderModuleList(root, selector, items, build) {
+    var list = root.querySelector(selector);
+    if (!list) {
+      return;
+    }
+    var container = list.closest("[data-module-container]");
+    list.textContent = "";
+    (items || []).forEach(function (item) {
+      list.appendChild(build(item, list));
+    });
+    if (container) {
+      container.hidden = container.hasAttribute("data-module-off") || !(items && items.length);
+    }
+  }
+
+  function safeClass(value) {
+    return String(value || "").replace(/[^a-z0-9_-]/gi, "");
+  }
+
+  function textNode(tag, className, value) {
+    var node = document.createElement(tag);
+    node.className = className;
+    node.textContent = value;
+    return node;
+  }
+
+  function renderFleet(root, vehicles) {
+    renderModuleList(root, "[data-display-fleet]", vehicles, function (vehicle, list) {
+      var item = document.createElement("li");
+      item.className = "display-vehicle display-status-" + safeClass(vehicle.status);
+      item.appendChild(textNode("strong", "display-vehicle-name", vehicle.call_sign || ""));
+      item.appendChild(textNode("span", "display-vehicle-status", vehicle.status_label || ""));
+      var bits = [];
+      if (vehicle.is_locked && vehicle.locked_until) {
+        bits.push((list.getAttribute("data-locked-label") || "Desinfektion bis") + " " + vehicle.locked_until);
+      }
+      if (vehicle.awaiting_release) {
+        bits.push(list.getAttribute("data-release-label") || "Freigabe offen");
+      }
+      if (typeof vehicle.fuel === "number") {
+        bits.push((list.getAttribute("data-fuel-label") || "Kraftstoff") + " " + vehicle.fuel + " %");
+      }
+      if (typeof vehicle.o2 === "number") {
+        bits.push("O₂ " + vehicle.o2 + " bar");
+      }
+      item.appendChild(textNode("span", "display-vehicle-meta", bits.join(" · ")));
+      return item;
+    });
+  }
+
+  function renderAlerts(root, selector, alerts) {
+    renderModuleList(root, selector, alerts, function (alert) {
+      var item = document.createElement("li");
+      item.className = "display-alert display-level-" + safeClass(alert.level);
+      item.appendChild(textNode("strong", "display-alert-name", alert.name || ""));
+      item.appendChild(textNode("span", "display-alert-label", alert.label || ""));
+      return item;
+    });
+  }
+
   function renderUrgent(root, count) {
     var block = root.querySelector("[data-display-urgent-block]");
     var value = root.querySelector("[data-display-urgent]");
@@ -295,8 +358,10 @@
       }
       if (mod.enabled === false) {
         container.hidden = true;
+        container.setAttribute("data-module-off", "");
         return;
       }
+      container.removeAttribute("data-module-off");
       container.hidden = false;
 
       if (typeof mod.header === "string" && mod.header.trim() !== "") {
@@ -389,6 +454,9 @@
       renderTraffic(root, payload.traffic);
       renderUrgent(root, payload.urgent_handovers);
       renderPinboardNews(root, payload.pinboard, payload.news);
+      renderFleet(root, payload.fleet_vehicles);
+      renderAlerts(root, "[data-display-mpg]", payload.mpg_alerts);
+      renderAlerts(root, "[data-display-warehouse]", payload.warehouse_alerts);
     });
   }
 
@@ -525,26 +593,37 @@
   function initStandalone() {
     var prompt = document.querySelector("[data-display-prompt]");
     var button = document.querySelector("[data-display-fullscreen]");
+    var element = document.documentElement;
+
+    /* Die Leiste (Rückweg-Link, Vollbild-Knopf) verschwindet nur im Vollbild.
+     * Ohne Vollbild-Funktion (z. B. iPhone) bleibt der Rückweg sichtbar. */
+    function syncPrompt() {
+      if (!prompt) {
+        return;
+      }
+      var anyVisible = Array.prototype.some.call(prompt.children, function (child) {
+        return !child.hidden;
+      });
+      prompt.hidden = Boolean(document.fullscreenElement) || !anyVisible;
+    }
+
     if (button) {
+      if (!element.requestFullscreen) {
+        button.hidden = true;
+      }
       button.addEventListener("click", function () {
-        var element = document.documentElement;
-        if (element.requestFullscreen) {
-          element.requestFullscreen({ navigationUI: "hide" }).catch(function () {});
-        }
         requestWakeLock();
-        if (prompt) {
-          prompt.hidden = true;
+        if (!element.requestFullscreen) {
+          return;
         }
+        element.requestFullscreen({ navigationUI: "hide" }).catch(function () {
+          button.hidden = true;
+          syncPrompt();
+        });
       });
     }
-    if (prompt) {
-      prompt.hidden = Boolean(document.fullscreenElement);
-    }
-    document.addEventListener("fullscreenchange", function () {
-      if (prompt) {
-        prompt.hidden = Boolean(document.fullscreenElement);
-      }
-    });
+    syncPrompt();
+    document.addEventListener("fullscreenchange", syncPrompt);
   }
 
   function init() {
