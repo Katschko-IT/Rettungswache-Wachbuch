@@ -476,6 +476,8 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "holidays_enabled": _("Feiertage im Kalender"),
             "holiday_state": _("Bundesland für Feiertage"),
             "weather_enabled": _("Wettervorhersage aktiviert (Open-Meteo)"),
+            "waste_calendar_enabled": _("Müllkalender aktiviert"),
+            "waste_calendar_url": _("Müllkalender-ICS-URL"),
             "street": _("Straße und Hausnummer"),
             "postal_code": _("Postleitzahl"),
             "city": _("Ort"),

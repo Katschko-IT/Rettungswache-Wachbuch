@@ -35,7 +35,12 @@ VEHICLE_TO_ASSET = {
 
 def reset_module_demo(station) -> None:
     """Entfernt Demo-Objekte der Fachmodule in FK-sicherer Reihenfolge."""
-    StockMovement.objects.filter(station=station, item__slug__startswith=PREFIX).delete()
+    # Lagerbewegungen sind append-only: Der App-Rolle fehlt DELETE darauf, und
+    # PostgreSQL prüft das Recht auch, wenn keine Zeile passt. Beim ersten
+    # Laden (``load_demo_data`` als App-Rolle) gibt es nichts zu löschen.
+    movements = StockMovement.objects.filter(station=station, item__slug__startswith=PREFIX)
+    if movements.exists():
+        movements.delete()
     StockItem.objects.filter(station=station, item__slug__startswith=PREFIX).delete()
     ItemBatch.objects.filter(station=station, item__slug__startswith=PREFIX).delete()
     MedicalItem.objects.filter(station=station, slug__startswith=PREFIX).delete()

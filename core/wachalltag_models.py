@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy
 
 from .models import Checklist, HandoverEntry, Station
 
@@ -46,24 +47,24 @@ DEFECT_WORKFLOW_ORDERING = [
 
 class Defect(models.Model):
     class Priority(models.TextChoices):
-        NORMAL = "normal", "Normal"
-        IMPORTANT = "important", "Wichtig"
-        URGENT = "urgent", "Dringend"
+        NORMAL = "normal", gettext_lazy("Normal")
+        IMPORTANT = "important", gettext_lazy("Wichtig")
+        URGENT = "urgent", gettext_lazy("Dringend")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Offen"
-        IN_PROGRESS = "in_progress", "In Bearbeitung"
-        WAITING = "waiting", "Wartend"
-        DONE = "done", "Erledigt"
+        OPEN = "open", gettext_lazy("Offen")
+        IN_PROGRESS = "in_progress", gettext_lazy("In Bearbeitung")
+        WAITING = "waiting", gettext_lazy("Wartend")
+        DONE = "done", gettext_lazy("Erledigt")
 
     class Category(models.TextChoices):
-        VEHICLE = "vehicle", "Fahrzeug"
-        MATERIAL = "material", "Material"
-        SAFETY = "safety", "Sicherheit"
-        FACILITY = "facility", "Gebäude"
-        KEY = "key", "Schlüssel"
-        DEVICE = "device", "Gerät"
-        TASK = "task", "Aufgabe"
+        VEHICLE = "vehicle", gettext_lazy("Fahrzeug")
+        MATERIAL = "material", gettext_lazy("Material")
+        SAFETY = "safety", gettext_lazy("Sicherheit")
+        FACILITY = "facility", gettext_lazy("Gebäude")
+        KEY = "key", gettext_lazy("Schlüssel")
+        DEVICE = "device", gettext_lazy("Gerät")
+        TASK = "task", gettext_lazy("Aufgabe")
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="defects")
     title = models.CharField(max_length=160)

@@ -36,6 +36,6 @@
 </section>
 {% endif %}
 
-<section class="section-block flush"><div class="member-list-clean">{% for member in page_obj %}<article><div><strong>{{ member.user.first_name|default:member.user.username }}</strong><span>{{ member.user.username }}</span></div><span>{{ member.get_role_display }}</span><span class="status-label {% if member.is_active %}success{% else %}neutral{% endif %}">{% if member.is_active %}{% translate "Aktiv" %}{% else %}{% translate "Inaktiv" %}{% endif %}</span><a href="{% url 'membership_update' member.pk %}">{{ member.user.first_name|default:member.user.username }} {% translate "bearbeiten" %}</a></article>{% empty %}<p class="empty-state">{% translate "Noch keine Mitgliedschaften." %}</p>{% endfor %}</div></section>
+<section class="section-block flush"><div class="member-list-clean">{% for member in page_obj %}<article><div><strong>{{ member.user.first_name|default:member.user.username }}</strong>{% if not demo_banner %}<span>{{ member.user.username }}</span>{% endif %}</div><span>{{ member.get_role_display }}</span><span class="status-label {% if member.is_active %}success{% else %}neutral{% endif %}">{% if member.is_active %}{% translate "Aktiv" %}{% else %}{% translate "Inaktiv" %}{% endif %}</span><a href="{% url 'membership_update' member.pk %}">{{ member.user.first_name|default:member.user.username }} {% translate "bearbeiten" %}</a></article>{% empty %}<p class="empty-state">{% translate "Noch keine Mitgliedschaften." %}</p>{% endfor %}</div></section>
 {% include "core/pagination.html" %}
 {% endblock %}

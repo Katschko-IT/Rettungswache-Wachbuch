@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
@@ -323,7 +324,7 @@ def mpg_routine_check(request, slug: str):
             "Abschluss aller Mängel freigibt.",
         )
     else:
-        messages.success(request, f"Funktionskontrolle für '{device.name}' gespeichert.")
+        messages.success(request, _("Funktionskontrolle für „%(name)s“ gespeichert.") % {"name": device.name})
     return redirect("mpg_device_detail", slug=device.slug)
 
 

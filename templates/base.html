@@ -126,6 +126,8 @@
         <p class="demo-bar-text"><strong>{% translate "Demo" %}</strong><span class="demo-bar-detail"> – {% blocktranslate with time=demo_banner.ends_at|time:"H:i" minutes=demo_banner.idle_minutes %}Deine eigene Demo-Wache mit Musterdaten. Beim Abmelden, nach {{ minutes }} Minuten ohne Aktivität oder spätestens um {{ time }} Uhr wird alles gelöscht.{% endblocktranslate %}</span><span class="demo-bar-short"> · {% blocktranslate with time=demo_banner.ends_at|time:"H:i" %}endet spätestens {{ time }} Uhr{% endblocktranslate %}</span></p>
         <form class="demo-bar-role" method="post" action="{% url 'demo_switch_role' %}">
           {% csrf_token %}
+          {# Gleiche Seite in der neuen Rolle; sieht die Rolle sie nicht, geht es zur Startseite. #}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <label for="demo-role">{% translate "Rolle ansehen als" %}</label>
           <select id="demo-role" name="role" data-auto-submit>
             {% for key, label, name in demo_banner.roles %}<option value="{{ key }}"{% if key == demo_banner.role %} selected{% endif %}>{{ label }} ({{ name }})</option>{% endfor %}

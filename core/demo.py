@@ -21,11 +21,14 @@ from .models import (
     ChecklistCompletion,
     ChecklistItem,
     CoffeeEntry,
+    HandoverAttachment,
     HandoverEntry,
     HandoverRevision,
     Membership,
     NewsAcknowledgement,
+    NewsAttachment,
     NewsPost,
+    PinboardAttachment,
     PinboardNote,
     Station,
     StationTask,
@@ -190,8 +193,14 @@ def reset_demo_data(station: Station):
         DefectEvent.objects.filter(defect__in=demo_defects).delete()
         DefectAttachment.objects.filter(defect__in=demo_defects).delete()
         demo_defects.delete()
-        NewsPost.objects.filter(station=station, created_by_id__in=user_ids).delete()
-        PinboardNote.objects.filter(station=station, author_id__in=user_ids).delete()
+        # Anhänge schützen ihre Einträge (PROTECT): zuerst die Anhänge löschen.
+        demo_posts = NewsPost.objects.filter(station=station, created_by_id__in=user_ids)
+        NewsAttachment.objects.filter(post__in=demo_posts).delete()
+        demo_posts.delete()
+        demo_notes = PinboardNote.objects.filter(station=station, author_id__in=user_ids)
+        PinboardAttachment.objects.filter(note__in=demo_notes).delete()
+        demo_notes.delete()
+        HandoverAttachment.objects.filter(handover__in=demo_handovers).delete()
         articles = WikiArticle.objects.filter(station=station, created_by_id__in=user_ids)
         WikiRevision.objects.filter(article__in=articles).delete()
         articles.delete()
@@ -349,10 +358,15 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
 
     # --- Termine: tagsüber an Werktagen ----------------------------------
     briefing = local_time(today, 7) if timezone.localtime(now).hour < 7 else local_time(today, 19)
+    earlier = []
     if briefing <= now:
+        # Abends bleibt das Briefing von 19 Uhr unter „Heute“ stehen
+        # (Sperrbildschirm, Wand-Display); das nächste folgt morgen früh.
+        earlier = [(lead, briefing, 15, "Schichtwechsel-Briefing",
+                    "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugstatus, Besonderheiten.")]
         briefing = local_time(today + timedelta(days=1), 7)
     workdays = next_workdays(station, today + timedelta(days=1), 8)
-    events = [
+    events = earlier + [
         (lead, briefing, 15, "Schichtwechsel-Briefing",
          "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugstatus, Besonderheiten."),
         (lead, local_time(workdays[0], 8), 60, "RTW 83-3 in die Werkstatt (Blaulicht)",
@@ -524,17 +538,21 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
     ))
 
     # --- Mängel mit Frist und Verlauf -------------------------------------
-    for author, hours, owner, category, priority, status, due_days, title, description in (
+    # Bezug wie im Fuhrpark „Rufname (Kennzeichen)“: So erscheint der Mangel
+    # auch beim Fahrzeug.
+    for author, hours, owner, category, priority, status, due_days, title, asset_ref, description in (
         (jonas, 20, lead, "vehicle", "urgent", "open", 1, "Trage RTW 83-2: Verriegelung hakt",
+         "RTW 1/83-2 (MU-RD 832)",
          "Fahrgestell rastet erst beim zweiten Versuch ein. Bis zur Reparatur vor jeder Fahrt prüfen."),
         (lea, 9, admin, "facility", "important", "in_progress", 6, "Rolltor Fahrzeughalle 2 schließt schwer",
-         "Haustechnik kommt in dieser Woche. Bis dahin Tor von Hand nachführen."),
+         "Fahrzeughalle 2", "Haustechnik kommt in dieser Woche. Bis dahin Tor von Hand nachführen."),
         (tim, 96, admin, "facility", "normal", "done", None, "Seifenspender Umkleide defekt",
-         "Spender ist getauscht."),
+         "Umkleide", "Spender ist getauscht."),
     ):
         reported = ago(hours)
         defect = insert_at(Defect(
-            station=station, title=label(title), description=description, priority=priority, status=status,
+            station=station, title=label(title), description=description, asset_ref=asset_ref,
+            priority=priority, status=status,
             category=category, owner=owner, created_by=author,
             due_at=local_time(today + timedelta(days=due_days), 12) if due_days else None,
             closed_at=reported + timedelta(days=2) if status == Defect.Status.DONE else None,

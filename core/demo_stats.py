@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from types import SimpleNamespace
 
 from django.core.cache import cache
 from django.db import DatabaseError, transaction
@@ -67,14 +66,18 @@ def record_purge(sandbox) -> None:
     Gezählt wird für den Tag, an dem die Demo begann, damit „gestartet“ und
     „Rundgang abgeschlossen“ vergleichbar bleiben.
     """
-    from .demo_sandbox import demo_tour
+    from .demo_sandbox import _tour_flags
 
     try:
-        tour = demo_tour(SimpleNamespace(demo_sandbox=sandbox))
+        # Ohne Anfrage aus den Daten der Wache bestimmt; Schritt 1 (Übersicht)
+        # ist immer erledigt. Eigener Savepoint: Ein Abfragefehler darf die
+        # umgebende Lösch-Transaktion (PostgreSQL) nicht abbrechen.
+        with transaction.atomic():
+            complete = all(_tour_flags(sandbox).values())
     except Exception:  # noqa: BLE001 - eine Statistik darf das Löschen nie verhindern
         logger.warning("Rundgang der Demo %s nicht auswertbar.", sandbox.token, exc_info=True)
         return
-    if tour and tour.get("complete"):
+    if complete:
         _bump("tour_completed", timezone.localdate(sandbox.created_at))
 
 
