@@ -142,15 +142,16 @@ def sop_acknowledge(request, slug: str):
         messages.error(request, "Diese SOP hat noch keinen freigegebenen Textstand.")
         return redirect("sop_detail", slug=sop.slug)
 
-    ip = request.META.get("REMOTE_ADDR")
-    ua = request.META.get("HTTP_USER_AGENT", "")[:250]
-
+    # Datensparsam (ab 0.26.1): Für die Kenntnisnahme genügen Person, Version
+    # und Zeitpunkt. IP-Adresse und Browser werden nicht mehr gespeichert;
+    # Altbestände bleiben unverändert (append-only), werden aber nirgends
+    # mehr angezeigt oder exportiert.
     receipt, created = SOPReceipt.objects.get_or_create(
         station=station,
         sop=sop,
         revision=latest_revision,
         user=request.user,
-        defaults={"ip_address": ip, "user_agent": ua, "acknowledged_at": timezone.now()},
+        defaults={"ip_address": None, "user_agent": "", "acknowledged_at": timezone.now()},
     )
 
     if created:
@@ -330,9 +331,7 @@ def export_sop_receipts_csv(request, slug: str):
         "SHA-256 Prüfsumme",
         "Mitarbeiter (Username)",
         "Name",
-        "Quittierungszeitpunkt (UTC)",
-        "IP-Adresse",
-        "Client / Browser",
+        "Quittierungszeitpunkt (Ortszeit)",
     ])
 
     for r in sop.receipts.select_related("user", "revision").order_by("-acknowledged_at"):
@@ -344,8 +343,6 @@ def export_sop_receipts_csv(request, slug: str):
             r.user.username,
             r.user.get_full_name(),
             timezone.localtime(r.acknowledged_at).strftime("%Y-%m-%d %H:%M:%S"),
-            r.ip_address or "",
-            r.user_agent or "",
         ])
 
     return response

@@ -162,6 +162,9 @@ class SOPReceipt(models.Model):
     revision = models.ForeignKey(SOPRevision, on_delete=models.CASCADE, related_name="receipts")
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="sop_receipts")
     acknowledged_at = models.DateTimeField(default=timezone.now, verbose_name="Quittiert am")
+    # Seit 0.26.1 werden IP-Adresse und Browser nicht mehr erfasst (leer/None).
+    # Die Felder bleiben nur für unveränderte Altbestände (append-only) und
+    # werden weder angezeigt noch exportiert. Über die Bereinigung entscheidet 0.27.
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-Adresse")
     user_agent = models.CharField(max_length=255, blank=True, default="", verbose_name="Browser / Gerät")
 
