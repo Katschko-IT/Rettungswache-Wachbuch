@@ -22,8 +22,13 @@
 
 <section class="section-block">
   <h2>{% translate "Wie geht es weiter?" %}</h2>
+  {% if locations_missing %}
+    <p>{% translate "Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an." %}</p>
+  {% endif %}
   <div class="form-actions">
-    {% if import_kind.next_url_name %}
+    {% if locations_kind %}
+      <a class="button primary" href="{% url 'masterdata_import_run' locations_kind.slug %}">{% blocktranslate with title=locations_kind.title %}Weiter mit: {{ title }}{% endblocktranslate %}</a>
+    {% elif import_kind.next_url_name and not locations_missing %}
       <a class="button primary" href="{% url import_kind.next_url_name %}">{{ import_kind.next_label }}</a>
     {% endif %}
     {% if next_kind %}

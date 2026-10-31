@@ -35,6 +35,7 @@ from .masterdata_import import (
     token_plan,
 )
 from .models import Membership
+from .warehouse_models import StorageLocation
 
 ADMIN_ONLY = {Membership.Role.ADMIN}
 
@@ -146,11 +147,19 @@ def _commit(request, kind):
     if not report.committed:
         return _preview(request, kind, report, raw)
     following = next_kind(kind, station)
+    # „Zum Lager“ auf einer Wache ohne Lagerorte legte drei Beispiel-Lagerorte an
+    # (warehouse_dashboard), die sich nicht löschen lassen. Dann zuerst Lagerorte.
+    locations_missing = (
+        kind.next_url_name == "warehouse_dashboard"
+        and not StorageLocation.objects.filter(station=station).exists()
+    )
     return render(request, "core/masterdata_import_done.html", {
         "import_kind": kind,
         "report": report,
         "counts": report.counts,
         "next_kind": following,
+        "locations_missing": locations_missing,
+        "locations_kind": get_kind("lagerorte", station) if locations_missing else None,
     })
 
 

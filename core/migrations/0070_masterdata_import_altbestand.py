@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0067_fleet_neutral_status"),
+        ("core", "0069_fleet_states_disinfection_levels"),
     ]
 
     operations = [

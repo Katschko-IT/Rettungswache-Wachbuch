@@ -7,7 +7,7 @@ msgstr "Project-Id-Version: Wachbuch\nReport-Msgid-Bugs-To: \nPOT-Creation-Date:
 msgid "%(active)s/%(total)s Bausteine aktiv"
 msgstr "%(active)s/%(total)s modules active"
 
-#: core/coffee_views.py:290
+#: core/coffee_views.py:291
 msgid "%(amount)s bar von %(person)s eingetragen."
 msgstr "%(amount)s in cash from %(person)s recorded."
 
@@ -44,11 +44,11 @@ msgstr "%(expiring)s batches expire soon"
 msgid "%(fee)s € bar von %(person)s erhalten"
 msgstr "€%(fee)s received in cash from %(person)s"
 
-#: core/coffee_views.py:384
+#: core/coffee_views.py:385
 msgid "%(month)s ist befreit."
 msgstr "%(month)s is waived."
 
-#: core/coffee_views.py:199
+#: core/coffee_views.py:200
 msgid "%(n)s Monat(e)"
 msgstr "%(n)s month(s)"
 
@@ -68,19 +68,19 @@ msgstr "%(paid)s of %(total)s paid"
 msgid "%(paid)s von %(total)s haben schon bezahlt."
 msgstr "%(paid)s of %(total)s have already paid."
 
-#: core/coffee_views.py:310
+#: core/coffee_views.py:311
 msgid "%(person)s hat heute schon eine Erinnerung bekommen."
 msgstr "%(person)s has already received a reminder today."
 
-#: core/coffee_views.py:498
+#: core/coffee_views.py:499
 msgid "%(person)s zahlt ab nächstem Monat keinen Beitrag mehr."
 msgstr "%(person)s no longer pays a fee from next month."
 
-#: core/coffee_views.py:491
+#: core/coffee_views.py:492
 msgid "%(person)s zahlt jetzt den Monatsbeitrag."
 msgstr "%(person)s now pays the monthly fee."
 
-#: core/coffee_views.py:501
+#: core/coffee_views.py:502
 msgid "%(person)s zahlt wieder den Monatsbeitrag."
 msgstr "%(person)s pays the monthly fee again."
 
@@ -104,7 +104,7 @@ msgstr "%(vehicle)s is back in service and stays “Out of service” until the 
 msgid "%(vehicle)s steht jetzt auf „%(status)s“."
 msgstr "%(vehicle)s is now set to “%(status)s”."
 
-#: core/coffee_views.py:664
+#: core/coffee_views.py:665
 msgid "%(what)s über %(amount)s wird durch eine Gegenbuchung ausgeglichen; das Original bleibt sichtbar."
 msgstr "%(what)s of %(amount)s is offset by a counter-entry; the original remains visible."
 
@@ -363,11 +363,11 @@ msgstr "Stop charging a fee from next month?"
 #: templates/core/handover_edit.html:17
 #: templates/core/handover_form.html:25
 #: templates/core/membership_form.html:4
-#: templates/core/mpg_device_detail.html:320
-#: templates/core/mpg_device_detail.html:355
-#: templates/core/mpg_device_detail.html:389
-#: templates/core/mpg_device_detail.html:431
-#: templates/core/mpg_device_detail.html:489
+#: templates/core/mpg_device_detail.html:323
+#: templates/core/mpg_device_detail.html:358
+#: templates/core/mpg_device_detail.html:392
+#: templates/core/mpg_device_detail.html:434
+#: templates/core/mpg_device_detail.html:492
 #: templates/core/mpg_device_form.html:202
 #: templates/core/news_form.html:26
 #: templates/core/orga_dashboard.html:248
@@ -483,7 +483,7 @@ msgstr "Action"
 msgid "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte."
 msgstr "Actions and structured before/after values, without operational free text."
 
-#: core/audit_labels.py:175
+#: core/audit_labels.py:180
 #: templates/core/defects.html:15
 #: templates/core/display_token_config.html:23
 #: templates/core/display_tokens.html:41
@@ -660,6 +660,18 @@ msgstr "All parts run as Docker containers on one machine: a mini PC or Raspberr
 msgid "Alle Werte lassen sich später unter Einstellungen ändern. Kommunale Quellen sind nur dort wählbar."
 msgstr "All values can be changed later under Settings. Municipal sources can only be selected there."
 
+#: templates/core/masterdata_import_preview.html:61
+msgid "Alle Zeilen anzeigen (%(n)s)"
+msgstr "Show all rows (%(n)s)"
+
+#: templates/core/masterdata_import_preview.html:87
+msgid "Alle Zeilen sind bereits vorhanden oder werden übersprungen."
+msgstr "All rows already exist or are skipped."
+
+#: templates/core/masterdata_import_preview.html:70
+msgid "Alle Zeilen werden in einem Schritt übernommen. Vorhandenes bleibt unverändert."
+msgstr "All rows are imported in one step. Existing records stay unchanged."
+
 #: templates/core/install_guide.html:24
 msgid "Alle drei Wege nutzen dieselbe Software und denselben Installer. Ihr könnt später wechseln – ein Backup lässt sich überall wiederherstellen."
 msgstr "All three routes use the same software and the same installer. You can switch later – a backup can be restored anywhere."
@@ -681,7 +693,7 @@ msgstr "Disable all second factors"
 msgid "Alle Übergaben"
 msgstr "All handovers"
 
-#: core/coffee_views.py:194
+#: core/coffee_views.py:195
 msgid "Alles Offene"
 msgstr "Everything outstanding"
 
@@ -726,12 +738,12 @@ msgstr "Install Debian or Ubuntu Server (LTS, 64-bit) as the operating system, t
 msgid "Als ICS speichern"
 msgstr "Save as ICS"
 
-#: core/demo_sandbox.py:746
-#: core/demo_sandbox.py:747
+#: core/demo_sandbox.py:749
+#: core/demo_sandbox.py:750
 msgid "Als Kollegin quittieren"
 msgstr "Acknowledge as a colleague"
 
-#: core/demo_sandbox.py:748
+#: core/demo_sandbox.py:751
 msgid "Als Mara (Mitglied) die Übergabe öffnen und „Gelesen – quittieren“ antippen. Den Rollenwechsel erledigt der Rundgang."
 msgstr "Open the handover as Mara (member) and tap “Read – acknowledge”. The tour switches the role for you."
 
@@ -755,6 +767,16 @@ msgstr "Acknowledged as read."
 #: templates/core/feedback_inbox.html:36
 msgid "Als „%(label)s“ markieren"
 msgstr "Mark as “%(label)s”"
+
+#: templates/core/mpg_device_detail.html:196
+#: templates/core/mpg_device_detail.html:197
+#: templates/core/mpg_device_detail.html:198
+msgid "Altbestand"
+msgstr "Carried over"
+
+#: core/audit_labels.py:121
+msgid "Altbestand ins Lager übernommen"
+msgstr "Existing stock carried over into the warehouse"
 
 #: core/audit_labels.py:117
 msgid "Altdaten einmalig bereinigt"
@@ -787,6 +809,10 @@ msgstr "Provider (name or organisation)"
 #: core/forms.py:1018
 msgid "Anbieter (Träger, Verein oder Person)"
 msgstr "Provider (operator, association or person)"
+
+#: templates/core/masterdata_import_preview.html:79
+msgid "Andere Datei prüfen"
+msgstr "Check another file"
 
 #: core/site_profile.py:20
 msgid "Anderer Standort (siehe Hosting-Angabe)"
@@ -930,7 +956,7 @@ msgstr "Sign-in could not be completed."
 msgid "Anmeldung mit manuellem Code"
 msgstr "Login with manual code"
 
-#: core/audit_labels.py:150
+#: core/audit_labels.py:155
 msgid "Anmeldung per QR-Code"
 msgstr "QR code sign-in"
 
@@ -966,7 +992,7 @@ msgstr "Sign-in was rejected on the mobile device."
 msgid "Anmeldung wurde widerrufen."
 msgstr "Sign-in was revoked."
 
-#: templates/core/more.html:447
+#: templates/core/more.html:458
 msgid "Anmeldung zusätzlich mit Authenticator-App oder Passkey absichern."
 msgstr "Protect sign-in with an authenticator app or passkey."
 
@@ -1041,7 +1067,7 @@ msgstr "App tokens"
 msgid "App-Tokens / API"
 msgstr "App tokens / API"
 
-#: core/audit_labels.py:148
+#: core/audit_labels.py:153
 msgid "App-Zugang"
 msgstr "App access"
 
@@ -1084,7 +1110,7 @@ msgstr "Archived"
 msgid "Archivierte"
 msgstr "Archived"
 
-#: core/coffee_views.py:684
+#: core/coffee_views.py:685
 #: core/feedback_models.py:34
 #: core/forms.py:296
 #: templates/core/coffee_cash.html:33
@@ -1092,14 +1118,31 @@ msgstr "Archived"
 msgid "Art"
 msgstr "Type"
 
+#: core/masterdata_import.py:1405
+msgid "Art des Lagerorts. Leer: Sonstiger Lagerort."
+msgstr "Type of storage location. Empty: other storage location."
+
+#: core/masterdata_import.py:1427
 #: core/module_overview.py:102
 #: core/wiki_models.py:129
 msgid "Artikel"
 msgstr "Article"
 
+#: core/audit_labels.py:120
+msgid "Artikel importiert"
+msgstr "Articles imported"
+
 #: templates/core/warehouse_reorder.html:33
 msgid "Artikel mit Nachbestell-Bedarf"
 msgstr "Items needing reorder"
+
+#: core/masterdata_import.py:1191
+msgid "Artikel, Charge und Lagerort stehen schon in Zeile %(line)s."
+msgstr "Article, batch and storage location are already in row %(line)s."
+
+#: core/masterdata_import.py:1133
+msgid "Artikel, PZN oder GTIN fehlt."
+msgstr "Article, PZN or GTIN is missing."
 
 #: templates/core/warehouse_reorder.html:41
 msgid "Artikelbezeichnung"
@@ -1112,6 +1155,10 @@ msgstr "Item name & units"
 #: templates/core/warehouse_item_form.html:29
 msgid "Artikelbezeichnung*"
 msgstr "Item name*"
+
+#: core/masterdata_import.py:1428
+msgid "Artikelstamm für Medikamente und Material: PZN, GTIN, Einheit, Mindest- und Sollbestand."
+msgstr "Article master data for medication and supplies: PZN, GTIN, unit, minimum and target stock."
 
 #: templates/core/help_index.html:50
 msgid "Artikelstand %(help_revision)s · Produktversion %(app_version)s"
@@ -1136,11 +1183,11 @@ msgstr "Even a demonstration with fictional operational content processes real c
 msgid "Audit"
 msgstr "Audit"
 
-#: core/audit_labels.py:190
+#: core/audit_labels.py:195
 msgid "Audit-Einträge mit früheren Einsatzphasen (neutralisiert)"
 msgstr "Audit entries with former mission phases (neutralised)"
 
-#: core/audit_labels.py:191
+#: core/audit_labels.py:196
 msgid "Audit-Einträge nur mit Wechsel der Einsatzphase (gelöscht)"
 msgstr "Audit entries with only a mission phase change (deleted)"
 
@@ -1156,7 +1203,7 @@ msgstr "Audit log, coffee fund, checklist completions and handover versions are 
 msgid "Audit-Log: wer wann was geändert hat – mit Feldnamen und Statuswerten, ohne Freitexte."
 msgstr "Audit log: who changed what and when – with field names and status values, without free text."
 
-#: templates/core/more.html:433
+#: templates/core/more.html:444
 msgid "Audit-Logbuch"
 msgstr "Audit log"
 
@@ -1244,6 +1291,18 @@ msgstr "Edit task template"
 msgid "Aufgabenansicht"
 msgstr "Task view"
 
+#: core/masterdata_import.py:1485
+msgid "Aufgedrucktes MHD; „05/2027“ gilt als Monatsende."
+msgstr "Printed expiry date; “05/2027” means the end of the month."
+
+#: core/mpg_models.py:73
+msgid "Aus Altbestand übernommen am"
+msgstr "Carried over from existing records on"
+
+#: templates/core/mpg_device_detail.html:202
+msgid "Aus Altbestand übernommen am %(date)s. Frühere Prüfungen und Einweisungen sind in den Papierunterlagen dokumentiert."
+msgstr "Carried over from existing records on %(date)s. Earlier inspections and trainings are documented in the paper records."
+
 #: templates/core/feedback_inbox.html:8
 msgid "Aus dem öffentlichen Feedback-Formular. Einträge werden nach %(days)s Tagen automatisch gelöscht."
 msgstr "From the public feedback form. Entries are deleted automatically after %(days)s days."
@@ -1264,7 +1323,7 @@ msgstr "Issue"
 msgid "Ausgegeben"
 msgstr "Issued"
 
-#: core/audit_labels.py:139
+#: core/audit_labels.py:144
 msgid "Aushang"
 msgstr "Notice"
 
@@ -1309,7 +1368,7 @@ msgstr "Notices"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Descriptive title of the entry (max. 160 characters)."
 
-#: core/audit_labels.py:124
+#: core/audit_labels.py:129
 #: core/views.py:566
 msgid "Ausstattung"
 msgstr "Equipment"
@@ -1379,6 +1438,10 @@ msgstr "Decommissioned."
 msgid "Außer Betrieb genommene Fahrzeuge"
 msgstr "Decommissioned vehicles"
 
+#: core/masterdata_import.py:1296
+msgid "Außer Betrieb genommene Geräte werden nicht übernommen."
+msgstr "Decommissioned devices are not imported."
+
 #: core/retire_views.py:131
 msgid "Außer Betrieb genommene Medizingeräte"
 msgstr "Decommissioned medical devices"
@@ -1388,7 +1451,7 @@ msgstr "Decommissioned medical devices"
 msgid "Außer Betrieb nehmen"
 msgstr "Decommission"
 
-#: core/audit_labels.py:205
+#: core/audit_labels.py:210
 #: core/fleet_models.py:52
 #: templates/core/fleet_vehicle_detail.html:102
 msgid "Außer Dienst"
@@ -1441,7 +1504,7 @@ msgstr "Cash: simply put it in the cash box and then tick it off in Wachwerk und
 msgid "Bareinzahlungen der Teilnehmenden zählen zum Bestand der Kasse, erscheinen hier aber ohne Namen nur in der Summe."
 msgstr "Cash payments by participants count towards the cash box but appear here only as a total, without names."
 
-#: core/coffee_views.py:596
+#: core/coffee_views.py:597
 msgid "Bargeld aufs Konto bringen, Startbestand oder Spende eintragen."
 msgstr "Take cash to the bank, record an opening balance or a donation."
 
@@ -1483,7 +1546,7 @@ msgstr "Roadworks and closures"
 msgid "Baustellen weiter entfernt werden ausgeblendet (1–200 km)."
 msgstr "Roadworks further away are hidden (1–200 km)."
 
-#: templates/core/mpg_device_detail.html:303
+#: templates/core/mpg_device_detail.html:306
 msgid "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 msgstr "Answer every check item yourself with Yes or No. A “No” counts as failed: the device is locked and a defect is created."
 
@@ -1501,6 +1564,10 @@ msgstr "Edit"
 msgid "Bearbeitet von"
 msgstr "Edited by"
 
+#: templates/core/masterdata_import_kind.html:43
+msgid "Bedeutung"
+msgstr "Meaning"
+
 #: templates/core/mpg_device_form.html:184
 msgid "Bedienungsanleitung & Notizen"
 msgstr "Operating manual & notes"
@@ -1513,11 +1580,11 @@ msgstr "Operating manual (PDF/web)"
 msgid "Beenden"
 msgstr "End"
 
-#: core/coffee_views.py:372
+#: core/coffee_views.py:373
 msgid "Befreit"
 msgstr "Waived"
 
-#: core/coffee_views.py:377
+#: core/coffee_views.py:378
 msgid "Befreiung %(month)s: %(reason)s"
 msgstr "Waiver %(month)s: %(reason)s"
 
@@ -1525,7 +1592,7 @@ msgstr "Waiver %(month)s: %(reason)s"
 msgid "Befund"
 msgstr "Finding"
 
-#: templates/core/mpg_device_detail.html:427
+#: templates/core/mpg_device_detail.html:430
 msgid "Befund / Bemerkungen:"
 msgstr "Findings / remarks:"
 
@@ -1536,6 +1603,10 @@ msgstr "Qualification valid in digital device passport"
 #: templates/core/feeds.html:6
 msgid "Behördenmeldungen"
 msgstr "Official reports"
+
+#: core/masterdata_import.py:1322
+msgid "Bei Anlage 2 (MTK) bitte das MTK-Intervall angeben."
+msgstr "For Annex 2 (MTK) please enter the MTK interval."
 
 #: core/forms.py:1023
 msgid "Bei Vereinen und Gesellschaften: Vorstand oder Geschäftsführung."
@@ -1593,7 +1664,11 @@ msgstr "When disabled, the day, month, and previous time of consent are removed.
 msgid "Beim Ausscheiden wird das Konto gesperrt; freiwillige Angaben lassen sich jederzeit zurücknehmen. Aufbewahrungsfristen für Audit, externe Meldungen und Rückmeldungen sind einstellbar."
 msgstr "When someone leaves, the account is locked; voluntary details can be withdrawn at any time. Retention periods for audit, external notices and feedback are configurable."
 
-#: core/demo_sandbox.py:757
+#: core/mpg_models.py:74
+msgid "Beim CSV-Import gesetzt. Frühere Prüfungen und Einweisungen liegen auf Papier."
+msgstr "Set by the CSV import. Earlier inspections and trainings are on paper."
+
+#: core/demo_sandbox.py:760
 msgid "Beim Defibrillator von RTW 83-1 die Funktionskontrolle bestätigen – so entsteht nebenbei der Nachweis für die nächste Prüfung."
 msgstr "Confirm the function check on the defibrillator of RTW 83-1 – this also creates the record for the next inspection."
 
@@ -1638,11 +1713,11 @@ msgstr "Remark"
 msgid "Bemerkung (keine Patienten- oder Einsatzangaben)"
 msgstr "Note (no patient or mission details)"
 
-#: templates/core/mpg_device_detail.html:311
+#: templates/core/mpg_device_detail.html:314
 msgid "Bemerkungen / Feststellungen:"
 msgstr "Remarks / findings:"
 
-#: templates/core/more.html:460
+#: templates/core/more.html:471
 msgid "Benachrichtigung auf Handy oder PC bei dringenden Übergaben."
 msgstr "Notifications on phone or PC for urgent handovers."
 
@@ -1686,7 +1761,7 @@ msgstr "Username for sign-in"
 msgid "Berechtigung"
 msgstr "Permission"
 
-#: core/coffee_views.py:684
+#: core/coffee_views.py:685
 msgid "Bereich"
 msgstr "Area"
 
@@ -1714,6 +1789,10 @@ msgstr "Already acknowledged."
 msgid "Bereits registriert? Anmelden"
 msgstr "Already registered? Log in"
 
+#: templates/core/_masterdata_import_rows.html:19
+msgid "Bereits vorhanden – wird übersprungen"
+msgstr "Already exists – will be skipped"
+
 #: templates/core/privacy.html:90
 msgid "Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Erkennung und Abwehr böswilliger Angriffe (z. B. Rate-Limiting und Brute-Force-Schutz)."
 msgstr "Provision of the network connection, stability, troubleshooting, as well as detection and defense against malicious attacks (e.g., rate limiting and brute-force protection)."
@@ -1730,9 +1809,21 @@ msgstr "Crew notified about disinfection"
 msgid "Beschreibung"
 msgstr "Description"
 
+#: core/masterdata_import.py:1470
+msgid "Bestand (Altbestand)"
+msgstr "Stock (carried over)"
+
+#: core/masterdata_import.py:1205
+msgid "Bestand 0 wird nicht übernommen."
+msgstr "Stock 0 is not imported."
+
 #: core/module_overview.py:107
 msgid "Bestand ausreichend"
 msgstr "stock sufficient"
+
+#: core/masterdata_import.py:1382
+msgid "Bestand bitte über „Bestand (Altbestand)“ übernehmen."
+msgstr "Please import stock via “Stock (carried over)”."
 
 #: templates/core/warehouse_dashboard.html:10
 msgid "Bestand nach Lagerort, Chargen mit Verfallsdatum (was zuerst abläuft, wird zuerst verbraucht) und Mindestbestände."
@@ -1757,6 +1848,10 @@ msgstr "Stock control & minimum quantities"
 #: templates/core/mpg_dashboard.html:22
 msgid "Bestandsverzeichnis (CSV)"
 msgstr "Inventory register (CSV)"
+
+#: core/masterdata_import.py:1515
+msgid "Bestandsverzeichnis nach § 14 MPBetreibV mit Prüffristen. Importierte Geräte sind als Altbestand gekennzeichnet, bis die erste Prüfung in Wachwerk eingetragen ist."
+msgstr "Device inventory under § 14 MPBetreibV with inspection deadlines. Imported devices are marked as carried over until the first inspection is recorded in Wachwerk."
 
 #: templates/core/landing.html:109
 msgid "Bestandsverzeichnis, STK-/MTK-Fristen, Funktionskontrollen und Einweisungsnachweise."
@@ -1803,7 +1898,7 @@ msgstr "Confirmed by"
 msgid "Bestätigungscode"
 msgstr "Confirmation code"
 
-#: core/audit_labels.py:176
+#: core/audit_labels.py:181
 #: templates/core/coffee.html:103
 #: templates/core/coffee.html:146
 #: templates/core/coffee.html:152
@@ -1816,7 +1911,7 @@ msgstr "Confirmation code"
 msgid "Betrag"
 msgstr "Amount"
 
-#: core/coffee_views.py:685
+#: core/coffee_views.py:686
 msgid "Betrag EUR"
 msgstr "Amount EUR"
 
@@ -1896,9 +1991,25 @@ msgstr "Paid from"
 msgid "Bezeichnung"
 msgstr "Designation"
 
+#: core/masterdata_import.py:1433
+msgid "Bezeichnung des Artikels."
+msgstr "Name of the article."
+
+#: core/masterdata_import.py:1523
+msgid "Bezeichnung des Geräts."
+msgstr "Name of the device."
+
+#: core/masterdata_import.py:1403
+msgid "Bezeichnung des Lagerorts, z. B. „Fach 3“."
+msgstr "Name of the storage location, e.g. “Compartment 3”."
+
 #: templates/core/display_tokens.html:125
 msgid "Bezeichnung des Monitors"
 msgstr "Monitor name"
+
+#: core/masterdata_import.py:1479
+msgid "Bezeichnung eines vorhandenen Artikels (oder PZN/GTIN)."
+msgstr "Name of an existing article (or PZN/GTIN)."
 
 #: templates/core/defect_detail.html:15
 msgid "Bezug"
@@ -2018,6 +2129,10 @@ msgstr "Please enter the oxygen pressure."
 msgid "Bitte den km-Stand eintragen."
 msgstr "Please enter the odometer reading."
 
+#: templates/core/masterdata_import_preview.html:83
+msgid "Bitte die Datei korrigieren und erneut prüfen."
+msgstr "Please correct the file and check it again."
+
 #: core/fleet_models.py:220
 msgid "Bitte die Stufe nach Umfang oder Wirkbereich benennen, nicht nach Erregern."
 msgstr "Please name the level by scope or spectrum of activity, not by pathogen."
@@ -2092,6 +2207,14 @@ msgstr "Please describe it briefly and record the defect."
 msgid "Bitte leer lassen"
 msgstr "Please leave empty"
 
+#: templates/core/masterdata_import_done.html:17
+msgid "Bitte nacharbeiten"
+msgstr "Please follow up"
+
+#: core/masterdata_import.py:837
+msgid "Bitte ohne „→“ oder „>“ (Trennzeichen für Pfade)."
+msgstr "Please do not use “→” or “>” (path separators)."
+
 #: templates/core/activate_account.html:17
 msgid "Bitte wende dich an den Master-Admin deiner Wache, um einen neuen Link zu erhalten."
 msgstr "Please contact your station's master admin to receive a new link."
@@ -2111,6 +2234,10 @@ msgstr "Please fetch the weather preview first or deselect the weather display."
 #: core/templatetags/js_i18n.py:35
 msgid "Bitte zuerst unter Mein Konto Schlüssel einrichten."
 msgstr "Please set up keys under My Account first."
+
+#: core/masterdata_import.py:1384
+msgid "Bitte „Nächste …“ von der Prüfplakette übernehmen."
+msgstr "Please copy “Next …” from the inspection sticker."
 
 #: templates/core/tasks_today.html:57
 msgid "Blau · individuell / monatlich"
@@ -2199,6 +2326,11 @@ msgstr "CE marking number:"
 msgid "CSRF-Schutz (sitzungsbasiert)"
 msgstr "CSRF protection (session-based)"
 
+#: core/masterdata_import_views.py:44
+#: templates/core/_masterdata_import_upload.html:5
+msgid "CSV-Datei"
+msgstr "CSV file"
+
 #: templates/core/it_privacy.html:21
 msgid "Caddy liefert HTTPS mit eigenem Zertifikat; Datenbank und Zwischenspeicher haben keinen Port nach außen."
 msgstr "Caddy provides HTTPS with its own certificate; the database and cache have no port to the outside."
@@ -2239,7 +2371,11 @@ msgstr "Batches and expiry by FEFO, minimum stock and a ready-made reorder propo
 msgid "Chargennummer (Lot):"
 msgstr "Batch number (lot):"
 
-#: core/audit_labels.py:183
+#: core/masterdata_import.py:1483
+msgid "Chargennummer wie auf der Packung."
+msgstr "Batch number as printed on the package."
+
+#: core/audit_labels.py:188
 msgid "Chat"
 msgstr "Chat"
 
@@ -2265,7 +2401,7 @@ msgstr "Chat key (E2EE)"
 msgid "Chat-Schlüssel einrichten"
 msgstr "Set up chat key"
 
-#: core/audit_labels.py:152
+#: core/audit_labels.py:157
 msgid "Chatgruppe"
 msgstr "Chat group"
 
@@ -2273,7 +2409,7 @@ msgstr "Chat group"
 msgid "Chatgruppe angelegt"
 msgstr "Chat group created"
 
-#: core/audit_labels.py:138
+#: core/audit_labels.py:143
 msgid "Chatnachricht"
 msgstr "Chat message"
 
@@ -2285,7 +2421,7 @@ msgstr "Chat message hidden"
 msgid "Chatnachricht gesendet"
 msgstr "Chat message sent"
 
-#: core/audit_labels.py:130
+#: core/audit_labels.py:135
 #: core/views.py:577
 msgid "Checkliste"
 msgstr "checklist"
@@ -2298,7 +2434,7 @@ msgstr "Checklist completed"
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
-#: core/audit_labels.py:182
+#: core/audit_labels.py:187
 #: core/navigation.py:31
 #: core/navigation.py:58
 #: core/views.py:577
@@ -2310,11 +2446,11 @@ msgstr "Checklist was marked as completed."
 msgid "Checklisten"
 msgstr "Checklists"
 
-#: core/audit_labels.py:129
+#: core/audit_labels.py:134
 msgid "Checklisten-Abschluss"
 msgstr "Checklist completion"
 
-#: core/audit_labels.py:145
+#: core/audit_labels.py:150
 msgid "Checklisten-Rhythmus"
 msgstr "Checklist schedule"
 
@@ -2414,7 +2550,7 @@ msgstr "Thank you – everyone has read it. The item is archived."
 msgid "Danke! Deine Rückmeldung ist angekommen."
 msgstr "Thank you! Your feedback has arrived."
 
-#: core/coffee_views.py:170
+#: core/coffee_views.py:171
 msgid "Danke! Deine Zahlung ist eingetragen."
 msgstr "Thank you! Your payment has been recorded."
 
@@ -2432,7 +2568,7 @@ msgstr "Wachwerk then shows a legal notice; provider, address and email are mand
 msgid "Darstellung"
 msgstr "Layout"
 
-#: templates/core/more.html:409
+#: templates/core/more.html:420
 msgid "Darstellung & Leiste"
 msgstr "Display & bar"
 
@@ -2464,7 +2600,7 @@ msgstr "The vehicle is still within the disinfection contact time. Release possi
 msgid "Das Fahrzeug nimmt keine neuen Einträge an. Übernahmen und Desinfektionen unten bleiben als Nachweis erhalten."
 msgstr "The vehicle accepts no new entries. Takeovers and disinfections below remain on record."
 
-#: core/demo_sandbox.py:740
+#: core/demo_sandbox.py:743
 msgid "Das Formular ist schon ausgefüllt: „Sauerstoff RTW 83-2 fast leer“, Dringlichkeit „Dringend“. Einfach speichern."
 msgstr "The form is already filled in: “Oxygen RTW 83-2 almost empty”, priority “Urgent”. Just save it."
 
@@ -2480,9 +2616,17 @@ msgstr "The year of birth is not collected."
 msgid "Das Gerät ist im Medizinproduktebuch gesperrt oder außer Betrieb genommen. Freigeben kann die Schichtleitung es nur dort, mit einer Funktionskontrolle."
 msgstr "The device is locked or decommissioned in the medical device log. Shift leads can only release it there, with a function check."
 
+#: core/masterdata_import.py:1280
+msgid "Das Gerät ist laut Datei nicht einsatzklar. Bitte die Zeile entfernen, das Gerät einzeln anlegen und über „Mangel melden“ sperren."
+msgstr "According to the file the device is not ready for use. Please remove the row, create the device individually and lock it via “Report defect”."
+
 #: templates/core/mpg_device_detail.html:55
 msgid "Das Gerät nimmt keine neuen Kontrollen, Prüfungen, Einweisungen oder Mängel an. Die Nachweise unten bleiben erhalten."
 msgstr "The device accepts no new checks, inspections, instructions or defects. The records below remain."
+
+#: core/masterdata_import.py:513
+msgid "Das Jahr muss zwischen %(min)s und %(max)s liegen."
+msgstr "The year must be between %(min)s and %(max)s."
 
 #: templates/core/install_guide.html:102
 msgid "Das Komplett-Skript für eigenes WLAN und Touch-Terminal gibt es bisher nur für den Raspberry Pi. Auf anderen Rechnern mit dem Installer im Modus „lan“ installieren, das WLAN über einen eigenen Access Point bereitstellen und für das Touch-Terminal in der Datei .env „TERMINAL_ENABLED=true“ setzen und am Touch-Monitor die Terminal-Seite im Browser-Vollbild öffnen."
@@ -2495,6 +2639,10 @@ msgstr "The account is created without a password. The person sets their passwor
 #: templates/core/activate_account.html:23
 msgid "Das Passwort wird ausschließlich von dir gesetzt. Der Link ist einmalig gültig und läuft am %(date)s ab."
 msgstr "You set the password yourself. The link is valid once and expires on %(date)s."
+
+#: core/masterdata_import.py:341
+msgid "Das Trennzeichen in der Zeile „sep=…“ wird nicht unterstützt. Bitte ; oder , verwenden."
+msgstr "The separator in the “sep=…” line is not supported. Please use ; or ,."
 
 #: templates/core/handover_form.html:24
 msgid "Das Wachbuch ist nur für Wachenorganisation, Material, Fahrzeuge und offene Aufgaben vorgesehen. Patienten- und Einsatzdokumentation bleibt im freigegebenen Fachverfahren."
@@ -2524,6 +2672,14 @@ msgstr "The linked account is not in any group. Add the station phone to the sta
 msgid "Das gemeinsame Terminal öffnet mit dem Wachen-Code nur den Alltagsmodus – keine Medizingeräte, keine Fahrzeugübernahme, keine Verwaltung. Es funktioniert nur an registrierten Geräten."
 msgstr "With the station code the shared terminal only opens everyday mode – no medical devices, no vehicle takeover, no administration. It only works on registered devices."
 
+#: core/masterdata_import.py:266
+msgid "Das ist eine Excel-Datei. Bitte in Excel „Speichern unter“ → „CSV UTF-8 (durch Trennzeichen getrennt)“ wählen."
+msgstr "This is an Excel file. In Excel, please choose “Save as” → “CSV UTF-8 (comma delimited)”."
+
+#: core/masterdata_import.py:1371
+msgid "Das vorhandene Gerät ist außer Betrieb genommen und bleibt es."
+msgstr "The existing device is decommissioned and stays that way."
+
 #: core/news_views.py:93
 #: core/views.py:768
 msgid "Datei darf maximal 5 MiB groß sein."
@@ -2537,6 +2693,19 @@ msgstr "The file is not a valid image and not a readable PDF."
 #: core/errors.py:68
 msgid "Datei oder Anfrage ist zu groß."
 msgstr "File or request is too large."
+
+#: templates/core/masterdata_import.html:44
+#: templates/core/masterdata_import_kind.html:20
+msgid "Datei prüfen"
+msgstr "Check file"
+
+#: templates/core/_masterdata_import_upload.html:10
+msgid "Datei prüfen (Trockenlauf)"
+msgstr "Check file (dry run)"
+
+#: templates/core/masterdata_import.html:19
+msgid "Datei prüfen – nichts wird gespeichert"
+msgstr "Check the file – nothing is saved"
 
 #: core/errors.py:69
 msgid "Dateityp wird nicht unterstützt."
@@ -2574,6 +2743,10 @@ msgstr "View privacy notice"
 msgid "Datenschutz und Cookies"
 msgstr "Privacy and cookies"
 
+#: templates/core/masterdata_import.html:56
+msgid "Datenschutz und Grenzen"
+msgstr "Privacy and limits"
+
 #: templates/core/privacy.html:7
 msgid "Datenschutz, Cookies und Informationssicherheit"
 msgstr "Privacy, cookies, and information security"
@@ -2610,7 +2783,7 @@ msgstr "Privacy information for the team"
 msgid "Datenschutzkonforme Geburtstagsanzeige von Teammitgliedern (nur mit Einwilligung)."
 msgstr "Privacy-compliant birthday display for team members (only with consent)."
 
-#: core/coffee_views.py:684
+#: core/coffee_views.py:685
 #: templates/core/coffee.html:146
 #: templates/core/coffee.html:150
 #: templates/core/coffee_cash.html:33
@@ -2633,7 +2806,17 @@ msgstr "Date and time of access"
 msgid "Datum und ob die Kasse stimmte – ohne Namen."
 msgstr "Date and whether the cash box was correct – without names."
 
-#: templates/core/mpg_device_detail.html:451
+#: core/masterdata_import.py:1550
+#: core/masterdata_import.py:1551
+#: core/masterdata_import.py:1553
+msgid "Datum von der Prüfplakette; „06/2027“ gilt als Monatsende."
+msgstr "Date from the inspection sticker; “06/2027” means the end of the month."
+
+#: core/masterdata_import.py:1538
+msgid "Datum, nicht in der Zukunft."
+msgstr "Date, not in the future."
+
+#: templates/core/mpg_device_detail.html:454
 msgid "Datum:"
 msgstr "Date:"
 
@@ -2661,11 +2844,11 @@ msgstr "Your personal account with all permissions. The crew gets their own acco
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Your user instruction (§ 11)"
 
-#: core/demo_sandbox.py:661
+#: core/demo_sandbox.py:664
 msgid "Deine Demo ist abgelaufen und wurde gelöscht. Mit „Demo“ / „Demo“ startest du eine neue."
 msgstr "Your demo has expired and was deleted. Sign in with “Demo” / “Demo” to start a new one."
 
-#: core/demo_sandbox.py:659
+#: core/demo_sandbox.py:662
 msgid "Deine Demo ist beendet. Alle Eingaben und die Demo-Wache wurden gelöscht."
 msgstr "Your demo has ended. The demo station and everything you entered were deleted."
 
@@ -2768,6 +2951,10 @@ msgstr "The condition is changed in the vehicle cockpit so that the disinfection
 #: templates/registration/mfa_setup.html:30
 msgid "Den sechsstelligen Code aus der App hier eingeben:"
 msgstr "Enter the six-digit code from the app here:"
+
+#: core/masterdata_import.py:1170
+msgid "Der Artikel ist nicht kühlpflichtig; das Datum wird nicht übernommen."
+msgstr "The article does not need cooling; the date is not imported."
 
 #: templates/core/vorfuehrung.html:114
 msgid "Der Assistent legt mit dem Einrichtungscode Wache und erstes Admin-Konto an."
@@ -2874,7 +3061,7 @@ msgstr "The server is operated by %(provider)s as a processor (Art. 28 GDPR)."
 msgid "Der Signal-Dienst konnte keinen Kopplungscode erzeugen. Hat der Container Internetzugang? Details:"
 msgstr "The Signal service could not create a linking code. Does the container have internet access? Details:"
 
-#: core/demo_sandbox.py:459
+#: core/demo_sandbox.py:462
 msgid "Der Speicher dieser Demo ist voll (höchstens %(mb)s MB Dateien). Starte eine neue Demo, um weitere Dateien hochzuladen."
 msgstr "This demo's storage is full (at most %(mb)s MB of files). Start a new demo to upload more files."
 
@@ -2917,6 +3104,14 @@ msgstr "The station code is set."
 #: templates/core/chat_signal.html:13
 msgid "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten und Verläufe bleiben dort – in dieser Anwendung werden keine Chatnachrichten gespeichert."
 msgstr "The station chat runs in a Signal group of your station. Messages and history stay there – this application stores no chat messages."
+
+#: core/masterdata_import.py:305
+msgid "Der Wert darf nicht mit =, +, -, @ oder einem Tabulator beginnen."
+msgstr "The value must not start with =, +, -, @ or a tab."
+
+#: core/masterdata_import.py:300
+msgid "Der Wert ist länger als %(max)s Zeichen."
+msgstr "The value is longer than %(max)s characters."
 
 #: templates/core/system_status.html:43
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
@@ -2977,7 +3172,7 @@ msgstr "Disinfection by the station's levels, with contact time lock."
 msgid "Desinfektions-Einwirkzeit läuft"
 msgstr "Disinfection contact time running"
 
-#: core/audit_labels.py:193
+#: core/audit_labels.py:198
 msgid "Desinfektionsbemerkungen aus der Zeit vor 0.26.1"
 msgstr "Disinfection notes from before 0.26.1"
 
@@ -3011,7 +3206,7 @@ msgstr "Disinfection record not saved. Please check the highlighted entries."
 msgid "Desinfektor / Personal"
 msgstr "Disinfector / staff"
 
-#: core/audit_labels.py:169
+#: core/audit_labels.py:174
 #: templates/core/mpg_dashboard.html:168
 #: templates/core/warehouse_reorder.html:67
 msgid "Details"
@@ -3069,6 +3264,58 @@ msgstr "The crew connects the app via the station Wi-Fi: scan the “Connect app
 msgid "Die Beteiligung der zuständigen Personalvertretung / des Betriebsrats sowie den Abschluss erforderlicher Dienst- oder Betriebsvereinbarungen."
 msgstr "Participation of the competent staff council / works council and the conclusion of necessary service or works agreements."
 
+#: core/masterdata_import.py:1182
+msgid "Die Charge ist mit einem anderen MHD (%(date)s) vorhanden."
+msgstr "The batch already exists with a different expiry date (%(date)s)."
+
+#: core/masterdata_import.py:1187
+msgid "Die Charge ist vorhanden; ihr Datum bleibt unverändert."
+msgstr "The batch already exists; its date stays unchanged."
+
+#: core/masterdata_import.py:292
+msgid "Die Datei enthält doppelt umgewandelte Umlaute (z. B. „Ã¼“ statt „ü“). Bitte die Originaldatei erneut als „CSV UTF-8“ speichern."
+msgstr "The file contains double-converted umlauts (e.g. “Ã¼” instead of “ü”). Please save the original file again as “CSV UTF-8”."
+
+#: core/masterdata_import.py:392
+msgid "Die Datei enthält keine Datenzeilen."
+msgstr "The file contains no data rows."
+
+#: core/masterdata_import.py:390
+msgid "Die Datei enthält keine Spaltenüberschriften."
+msgstr "The file contains no column headers."
+
+#: core/masterdata_import.py:370
+msgid "Die Datei hat mehr als %(max)s Datenzeilen. Bitte auf mehrere Dateien aufteilen."
+msgstr "The file has more than %(max)s data rows. Please split it into several files."
+
+#: core/masterdata_import.py:401
+msgid "Die Datei hat mehr als %(max)s Spalten."
+msgstr "The file has more than %(max)s columns."
+
+#: core/masterdata_import_views.py:121
+msgid "Die Datei ist größer als %(max)s MB. Bitte auf mehrere Dateien aufteilen."
+msgstr "The file is larger than %(max)s MB. Please split it into several files."
+
+#: core/masterdata_import.py:270
+msgid "Die Datei ist in UTF-16 gespeichert. Bitte in Excel „CSV UTF-8 (durch Trennzeichen getrennt)“ wählen."
+msgstr "The file is saved as UTF-16. In Excel, please choose “CSV UTF-8 (comma delimited)”."
+
+#: core/masterdata_import.py:274
+msgid "Die Datei ist keine Textdatei. Bitte in Excel „CSV UTF-8 (durch Trennzeichen getrennt)“ wählen."
+msgstr "The file is not a text file. In Excel, please choose “CSV UTF-8 (comma delimited)”."
+
+#: core/masterdata_import.py:263
+msgid "Die Datei ist leer."
+msgstr "The file is empty."
+
+#: templates/core/masterdata_import_preview.html:23
+msgid "Die Datei lässt sich so nicht importieren."
+msgstr "The file cannot be imported like this."
+
+#: templates/core/masterdata_import_done.html:12
+msgid "Die Datei wurde nicht gespeichert. Prüfsumme (SHA-256):"
+msgstr "The file was not saved. Checksum (SHA-256):"
+
 #: templates/core/privacy.html:165
 msgid "Die Daten werden ausschließlich auf dem eigenen Server in der Wache gespeichert; ein externer Hosting-Dienstleister ist nicht beteiligt."
 msgstr "Data is stored exclusively on the station’s own server; no external hosting provider is involved."
@@ -3077,7 +3324,7 @@ msgstr "Data is stored exclusively on the station’s own server; no external ho
 msgid "Die Datenbank ist derzeit ausgelastet. Bitte versuchen Sie es erneut."
 msgstr "The database is currently busy. Please try again."
 
-#: core/coffee_views.py:317
+#: core/coffee_views.py:318
 msgid "Die E-Mail konnte nicht gesendet werden. Bitte die E-Mail-Einstellungen prüfen."
 msgstr "The email could not be sent. Please check the email settings."
 
@@ -3089,7 +3336,7 @@ msgstr "The reminder contains the amount, open months, IBAN, reference and the t
 msgid "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich."
 msgstr "Initial setup is already completed. Setting up again is not possible."
 
-#: templates/core/mpg_device_detail.html:342
+#: templates/core/mpg_device_detail.html:345
 msgid "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert."
 msgstr "The release is recorded as a function check in your name."
 
@@ -3134,13 +3381,37 @@ msgstr "The port specification of the waste calendar URL is invalid."
 msgid "Die Revisionsnummer muss mindestens 1 sein."
 msgstr "The revision number must be at least 1."
 
-#: core/mpg_views.py:300
+#: core/mpg_views.py:309
 msgid "Die Schnellkontrolle gibt es nur für einsatzklare Geräte. Bitte die Kontrolle mit Details erfassen."
 msgstr "The quick check is only available for devices that are ready for use. Please record the detailed check."
+
+#: core/masterdata_import.py:415
+msgid "Die Spalte „%(header)s“ kommt doppelt vor (auch als „%(other)s“)."
+msgstr "The column “%(header)s” appears twice (also as “%(other)s”)."
+
+#: core/masterdata_import_views.py:143
+msgid "Die Vorschau ist abgelaufen oder die Datei wurde verändert. Bitte erneut prüfen."
+msgstr "The preview has expired or the file was changed. Please check it again."
+
+#: templates/core/masterdata_import.html:20
+msgid "Die Vorschau zeigt jede Zeile als neu, vorhanden oder fehlerhaft."
+msgstr "The preview shows each row as new, existing or faulty."
 
 #: core/setup_views.py:322
 msgid "Die Wettervorschau ist nur sinnvoll, wenn die Wetteranzeige aktiviert ist. Bitte zuerst „5-Tage-Wetter … anzeigen“ auswählen."
 msgstr "The weather preview is only useful when the weather display is enabled. Please select \"Show 5-day weather at the station location\" first."
+
+#: core/masterdata_import.py:460
+msgid "Die Zahl wurde vom Tabellenprogramm gekürzt (z. B. 4,01E+12). Bitte die Spalte als Text formatieren."
+msgstr "The spreadsheet program shortened the number (e.g. 4.01E+12). Please format the column as text."
+
+#: core/masterdata_import.py:285
+msgid "Die Zeichenkodierung der Datei ist unbekannt. Bitte als „CSV UTF-8 (durch Trennzeichen getrennt)“ speichern."
+msgstr "The character encoding of the file is unknown. Please save it as “CSV UTF-8 (comma delimited)”."
+
+#: core/masterdata_import.py:934
+msgid "Die Zuordnung der übergeordneten Lagerorte bildet einen Kreis."
+msgstr "The parent storage locations form a loop."
 
 #: templates/errors/404.html:9
 msgid "Die angeforderte Seite existiert nicht oder wurde verschoben."
@@ -3158,11 +3429,15 @@ msgstr "The formal operator identity and serviceable address have not yet been a
 msgid "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:"
 msgstr "The technical protection concept includes the following measures; their effective configuration in specific operations must be verified separately:"
 
+#: templates/core/masterdata_import_kind.html:36
+msgid "Die Überschriften sind fest und bleiben deutsch. Spalten mit * sind Pflicht. Die Reihenfolge ist egal; unbekannte Spalten werden ignoriert."
+msgstr "The headers are fixed and stay in German. Columns marked * are required. The order does not matter; unknown columns are ignored."
+
 #: templates/core/vorfuehrung.html:25
 msgid "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
 msgstr "The overview shows what needs attention first: urgent handovers, due deadlines, locked devices, low stock. Everything unremarkable sits in one quiet line."
 
-#: core/audit_labels.py:128
+#: core/audit_labels.py:133
 #: core/module_overview.py:120
 msgid "Dienstanweisung"
 msgstr "Work instruction"
@@ -3215,21 +3490,25 @@ msgstr "These details appear publicly in the legal notice and privacy notice. Ha
 msgid "Diese Aufgabe gilt nicht für den gewählten Tag."
 msgstr "This task does not apply to the selected day."
 
-#: core/coffee_views.py:645
+#: core/coffee_views.py:646
 msgid "Diese Bewegung kann nicht (mehr) korrigiert werden."
 msgstr "This movement cannot be corrected (any more)."
 
-#: core/coffee_views.py:657
+#: core/coffee_views.py:658
 msgid "Diese Bewegung wurde bereits korrigiert."
 msgstr "This movement has already been corrected."
 
-#: core/coffee_views.py:436
-#: core/coffee_views.py:464
-#: core/coffee_views.py:447
+#: core/coffee_views.py:437
+#: core/coffee_views.py:465
+#: core/coffee_views.py:448
 msgid "Diese Buchung wurde bereits korrigiert."
 msgstr "This entry has already been corrected."
 
-#: core/demo_sandbox.py:449
+#: core/masterdata_import.py:1179
+msgid "Diese Charge ist gesperrt (Rückruf)."
+msgstr "This batch is blocked (recall)."
+
+#: core/demo_sandbox.py:452
 msgid "Diese Demo hat ihr Limit an Änderungen erreicht. Melde dich ab und starte einfach eine neue Demo."
 msgstr "This demo has reached its limit of changes. Log out and simply start a new demo."
 
@@ -3278,7 +3557,7 @@ msgstr "This instance is not configured in demo mode. This implies neither that 
 msgid "Diese QR-Anmeldung ist abgelaufen."
 msgstr "This QR sign-in has expired."
 
-#: core/demo_sandbox.py:575
+#: core/demo_sandbox.py:578
 msgid "Diese Seite gibt es für die Rolle „%(role)s“ nicht – du bist jetzt auf deiner Startseite."
 msgstr "This page is not available for the “%(role)s” role – you are now on your start page."
 
@@ -3302,13 +3581,21 @@ msgstr "This station has not been set up yet."
 msgid "Diese Woche"
 msgstr "This week"
 
-#: core/coffee_views.py:168
+#: core/coffee_views.py:169
 msgid "Diese Zahlung ist schon eingetragen."
 msgstr "This payment has already been recorded."
 
 #: templates/core/coffee.html:108
 msgid "Diese Zahlungsdaten sind im Team öffentlich sichtbar (Zweck: Gemeinschaftskasse). Es werden keine Transaktionsdaten Dritter gespeichert."
 msgstr "These payment details are publicly visible within the team (purpose: shared fund). No transaction data of third parties is stored."
+
+#: templates/core/masterdata_import_done.html:18
+msgid "Diese Zeilen hatten Hinweise. Die Angaben bitte in Wachwerk prüfen."
+msgstr "These rows had notes. Please check the details in Wachwerk."
+
+#: core/masterdata_import.py:1198
+msgid "Dieselbe Charge hat in Zeile %(line)s ein anderes MHD oder Out-of-Fridge-Datum."
+msgstr "The same batch has a different expiry or out-of-fridge date in row %(line)s."
 
 #: templates/core/landing.html:60
 #: templates/core/vorfuehrung.html:29
@@ -3346,7 +3633,7 @@ msgstr "This username is already taken."
 msgid "Dieser Benutzername ist reserviert."
 msgstr "This username is reserved."
 
-#: core/demo_sandbox.py:604
+#: core/demo_sandbox.py:607
 msgid "Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-Wache hinaus wirkt."
 msgstr "This area is locked in the demo because it affects more than your own demo station."
 
@@ -3358,6 +3645,10 @@ msgstr "This browser is already the terminal “%(label)s”."
 msgid "Dieser Hinweis ist archiviert und für reguläre Mitglieder nicht sichtbar."
 msgstr "This note is archived and not visible to regular members."
 
+#: core/masterdata_import.py:947
+msgid "Dieser Lagerort steht schon in Zeile %(line)s."
+msgstr "This storage location is already in row %(line)s."
+
 #: templates/core/team_invite.html:11
 msgid "Dieser Link und der QR-Code werden"
 msgstr "This link and the QR code will be"
@@ -3366,11 +3657,11 @@ msgstr "This link and the QR code will be"
 msgid "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des Monitors:"
 msgstr "This link is shown only once. Copy it to the monitor's browser:"
 
-#: core/coffee_views.py:382
+#: core/coffee_views.py:383
 msgid "Dieser Monat ist bereits befreit."
 msgstr "This month is already waived."
 
-#: templates/core/mpg_device_detail.html:281
+#: templates/core/mpg_device_detail.html:284
 msgid "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät."
 msgstr "This QR code leads directly to this mobile device cockpit. Print it and stick it on the device in a weatherproof way."
 
@@ -3447,7 +3738,7 @@ msgstr "Right here on the screen"
 msgid "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgstr "Direct team coordination and optional Signal group integration."
 
-#: core/audit_labels.py:154
+#: core/audit_labels.py:159
 msgid "Direktnachricht"
 msgstr "Direct message"
 
@@ -3485,7 +3776,7 @@ msgstr "Set the four-digit station code there as well."
 msgid "Dringend"
 msgstr "Urgent"
 
-#: templates/core/mpg_device_detail.html:379
+#: templates/core/mpg_device_detail.html:382
 msgid "Dringend (Sofort außer Betrieb)"
 msgstr "Urgent (out of service immediately)"
 
@@ -3507,16 +3798,16 @@ msgstr "Urgent handovers"
 msgid "Dringender Mangel #%(id)s: %(title)s"
 msgstr "Urgent defect #%(id)s: %(title)s"
 
-#: core/audit_labels.py:166
+#: core/audit_labels.py:171
 #: templates/core/fleet_vehicle_detail.html:289
 msgid "Dringlichkeit"
 msgstr "Urgency"
 
-#: templates/core/mpg_device_detail.html:377
+#: templates/core/mpg_device_detail.html:380
 msgid "Dringlichkeit:"
 msgstr "Urgency:"
 
-#: core/coffee_views.py:352
+#: core/coffee_views.py:353
 msgid "Du bekommst die Erinnerung wieder per E-Mail."
 msgstr "You will receive the reminder by email again."
 
@@ -3536,7 +3827,7 @@ msgstr "You are here: %(title)s"
 msgid "Du bist eingewiesen"
 msgstr "You have been instructed"
 
-#: core/demo_sandbox.py:830
+#: core/demo_sandbox.py:833
 msgid "Du bist gerade %(name)s (%(role)s). Auf der Übersicht geht es mit einem Klick als %(admin)s weiter – mit Team, Einstellungen und Display."
 msgstr "You are currently %(name)s (%(role)s). On the overview, one click lets you continue as %(admin)s – with team, settings and display."
 
@@ -3581,7 +3872,7 @@ msgstr "Email for a reply"
 msgid "E-Mail-Erinnerung abbestellen"
 msgstr "Unsubscribe from email reminder"
 
-#: core/coffee_views.py:354
+#: core/coffee_views.py:355
 msgid "E-Mail-Erinnerung abbestellt."
 msgstr "Email reminder unsubscribed."
 
@@ -3630,9 +3921,17 @@ msgstr "The station’s own Wi-Fi, a touch terminal in the vehicle hall, phones 
 msgid "Ein 64-Bit-Rechner mit Docker und Compose v2 genügt: ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles und erzeugt sämtliche Schlüssel selbst."
 msgstr "A 64-bit machine with Docker and Compose v2 is enough: a small server, a Raspberry Pi 5 or a Mac. The installer checks everything and generates all keys itself."
 
+#: core/masterdata_import.py:1066
+msgid "Ein Artikel gleichen Namens ohne PZN/GTIN ist vorhanden. PZN bzw. GTIN bitte dort ergänzen."
+msgstr "An article with the same name and no PZN/GTIN exists. Please add the PZN or GTIN there."
+
 #: templates/core/install_guide.html:178
 msgid "Ein Backup wiederherstellen (mit Rückfrage)."
 msgstr "Restore a backup (asks for confirmation)."
+
+#: core/masterdata_import.py:914
+msgid "Ein Lagerort kann nicht sich selbst übergeordnet sein."
+msgstr "A storage location cannot be its own parent."
 
 #: templates/core/install_guide.html:47
 msgid "Ein Linux-Rechner oder Mac mit Docker."
@@ -3702,6 +4001,10 @@ msgstr "A disinfection is recorded via the disinfection log."
 msgid "Eine Domain, bei der du einen DNS-Eintrag anlegen kannst, z. B. wache.example.org"
 msgstr "A domain where you can create a DNS record, e.g. wache.example.org"
 
+#: core/masterdata_import.py:580
+msgid "Eine GTIN/EAN hat 8, 12, 13 oder 14 Ziffern."
+msgstr "A GTIN/EAN has 8, 12, 13 or 14 digits."
+
 #: templates/core/vorfuehrung.html:98
 msgid "Eine Instanz gehört einer Wache. Keine zentrale Betreiberinstanz, keine Telemetrie."
 msgstr "One instance belongs to one station. No central operator, no telemetry."
@@ -3709,6 +4012,10 @@ msgstr "One instance belongs to one station. No central operator, no telemetry."
 #: templates/core/news_index.html:37
 msgid "Eine Neuigkeit wandert automatisch ins Archiv, sobald alle sie gelesen haben."
 msgstr "An item moves to the archive automatically once everyone has read it."
+
+#: core/masterdata_import.py:561
+msgid "Eine PZN hat höchstens 8 Ziffern."
+msgstr "A PZN has at most 8 digits."
 
 #: templates/core/privacy.html:211
 msgid "Eine formale Festlegung der Verantwortlichkeit durch den Träger oder Betreiber."
@@ -3731,13 +4038,13 @@ msgstr "A USB stick or second disk that is kept in a safe place"
 msgid "Eingeschränkt"
 msgstr "Restricted"
 
-#: templates/core/mpg_device_detail.html:265
+#: templates/core/mpg_device_detail.html:268
 #: templates/core/mpg_geraetepass.html:74
 #: templates/core/mpg_geraetepass.html:75
 msgid "Eingewiesen am:"
 msgstr "Instructed on:"
 
-#: templates/core/mpg_device_detail.html:259
+#: templates/core/mpg_device_detail.html:262
 msgid "Eingewiesenes Personal gem. § 11 MPBetreibV"
 msgstr "Instructed staff per § 11 MPBetreibV"
 
@@ -3753,18 +4060,18 @@ msgstr "Purchase"
 msgid "Einkauf aus der Kaffeekasse"
 msgstr "Purchase from the coffee fund"
 
-#: core/coffee_views.py:568
+#: core/coffee_views.py:569
 msgid "Einkauf eingetragen. Den Beleg bitte in die Kasse legen."
 msgstr "Purchase recorded. Please put the receipt in the cash box."
 
-#: core/coffee_views.py:572
-#: core/coffee_views.py:574
+#: core/coffee_views.py:573
+#: core/coffee_views.py:575
 #: templates/core/coffee.html:138
 #: templates/core/coffee_cash.html:12
 msgid "Einkauf eintragen"
 msgstr "Record purchase"
 
-#: core/audit_labels.py:147
+#: core/audit_labels.py:152
 msgid "Einladung"
 msgstr "Invitation"
 
@@ -3822,10 +4129,10 @@ msgstr "Setup code"
 msgid "Einrichtungscode eingeben"
 msgstr "Enter setup code"
 
-#: core/audit_labels.py:201
-#: core/audit_labels.py:202
-#: core/audit_labels.py:203
-#: core/audit_labels.py:204
+#: core/audit_labels.py:206
+#: core/audit_labels.py:207
+#: core/audit_labels.py:208
+#: core/audit_labels.py:209
 #: core/fleet_models.py:48
 #: templates/core/fleet_dashboard.html:34
 #: templates/core/fleet_dashboard.html:61
@@ -3866,7 +4173,7 @@ msgstr "Save setting"
 msgid "Einstellungen"
 msgstr "Settings"
 
-#: core/coffee_views.py:532
+#: core/coffee_views.py:533
 msgid "Einstellungen der Kaffeekasse gespeichert."
 msgstr "Coffee fund settings saved."
 
@@ -3886,7 +4193,11 @@ msgstr "Settings were saved."
 msgid "Einstellungen öffnen"
 msgstr "Open settings"
 
-#: core/coffee_views.py:597
+#: templates/core/_masterdata_import_rows.html:7
+msgid "Eintrag"
+msgstr "Entry"
+
+#: core/coffee_views.py:598
 #: templates/core/coffee_participants.html:16
 msgid "Eintragen"
 msgstr "Add"
@@ -3895,26 +4206,26 @@ msgstr "Add"
 msgid "Einträge im Alltagsmodus erscheinen unter „Wachenterminal“. Wer einen Eintrag persönlich verantworten muss (z. B. Medizingeräte, Fahrzeugübernahme), nutzt das eigene Konto."
 msgstr "Entries in everyday mode appear under “Station terminal”. Anyone who must personally answer for an entry (e.g. medical devices, vehicle handover) uses their own account."
 
-#: templates/core/mpg_device_detail.html:447
+#: templates/core/mpg_device_detail.html:450
 msgid "Einweiser / Gerätebeauftragter:"
 msgstr "Instructor / device officer:"
 
-#: templates/core/mpg_device_detail.html:476
+#: templates/core/mpg_device_detail.html:479
 #: templates/core/mpg_geraetepass.html:29
 #: templates/core/mpg_geraetepass.html:74
 msgid "Einweiser:"
 msgstr "Instructor:"
 
 #: templates/core/mpg_device_detail.html:171
-#: templates/core/mpg_device_detail.html:270
+#: templates/core/mpg_device_detail.html:273
 msgid "Einweisung dokumentieren"
 msgstr "Document instruction"
 
-#: templates/core/mpg_device_detail.html:440
+#: templates/core/mpg_device_detail.html:443
 msgid "Einweisung gem. § 11 MPBetreibV"
 msgstr "Instruction per § 11 MPBetreibV"
 
-#: templates/core/mpg_device_detail.html:490
+#: templates/core/mpg_device_detail.html:493
 msgid "Einweisung speichern"
 msgstr "Save instruction"
 
@@ -3954,7 +4265,7 @@ msgstr "Payment (%(method)s)"
 msgid "Einzahlung/Gutschrift"
 msgstr "Payment/credit"
 
-#: templates/core/mpg_device_detail.html:467
+#: templates/core/mpg_device_detail.html:470
 msgid "Einzelschulung erfassen"
 msgstr "Record individual training"
 
@@ -3986,13 +4297,17 @@ msgid "Empfänger:"
 msgstr "Recipient:"
 
 #: core/mpg_forms.py:141
-#: templates/core/mpg_device_detail.html:346
+#: templates/core/mpg_device_detail.html:349
 msgid "Energieversorgung / Akkus geladen"
 msgstr "Power supply / batteries charged"
 
 #: templates/registration/mfa_manage.html:17
 msgid "Entfernen"
 msgstr "Remove"
+
+#: templates/core/masterdata_import.html:24
+msgid "Enthält die Datei einen Fehler, wird nichts übernommen."
+msgstr "If the file contains an error, nothing is imported."
 
 #: core/forms.py:131
 msgid "Entnahme/Belastung"
@@ -4023,7 +4338,7 @@ msgstr "Corresponds to the laminated sheet on the wall. No duty scheduling and n
 msgid "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses aktive Medizinprodukt."
 msgstr "Record all mandatory information per MPBetreibV § 13 & § 14 for this active medical device."
 
-#: core/coffee_views.py:685
+#: core/coffee_views.py:686
 #: templates/core/coffee_cash.html:33
 #: templates/core/coffee_cash.html:42
 #: templates/core/coffee_ledger.html:21
@@ -4032,10 +4347,11 @@ msgid "Erfasst von"
 msgstr "Recorded by"
 
 #: core/mpg_forms.py:92
+#: templates/core/_masterdata_import_rows.html:8
 msgid "Ergebnis"
 msgstr "Result"
 
-#: templates/core/mpg_device_detail.html:418
+#: templates/core/mpg_device_detail.html:421
 msgid "Ergebnis:"
 msgstr "Result:"
 
@@ -4043,7 +4359,7 @@ msgstr "Result:"
 msgid "Erinnerung ab Tag"
 msgstr "Reminder from day"
 
-#: core/coffee_views.py:320
+#: core/coffee_views.py:321
 msgid "Erinnerung an %(person)s gesendet."
 msgstr "Reminder sent to %(person)s."
 
@@ -4077,14 +4393,26 @@ msgstr "Reminders and notices via Signal"
 msgid "Erkannt: "
 msgstr "Detected: "
 
+#: templates/core/masterdata_import_preview.html:13
+msgid "Erkannt: %(encoding)s, Trennzeichen %(delimiter)s."
+msgstr "Detected: %(encoding)s, separator %(delimiter)s."
+
 #: templates/core/warehouse_dashboard.html:182
 msgid "Erkennt automatisch SecurPharm 2D-Codes (PZN, Lot-Nr., Verfallsdatum) und Standard-Barcodes (EAN/GTIN)."
 msgstr "Automatically detects SecurPharm 2D codes (PZN, lot no., expiry date) and standard barcodes (EAN/GTIN)."
+
+#: core/masterdata_import.py:474
+msgid "Erlaubt sind %(min)s bis %(max)s."
+msgstr "Allowed are %(min)s to %(max)s."
 
 #: core/news_views.py:91
 #: core/views.py:766
 msgid "Erlaubt sind JPEG, PNG, WebP und PDF."
 msgstr "Only JPEG, PNG, WebP and PDF are allowed."
+
+#: templates/core/masterdata_import_kind.html:44
+msgid "Erlaubte Werte"
+msgstr "Allowed values"
 
 #: core/feedback_models.py:31
 #: core/models.py:206
@@ -4097,7 +4425,7 @@ msgstr "Only JPEG, PNG, WebP and PDF are allowed."
 msgid "Erledigt"
 msgstr "Done"
 
-#: core/audit_labels.py:133
+#: core/audit_labels.py:138
 msgid "Erledigte Wachaufgabe"
 msgstr "Completed station task"
 
@@ -4192,7 +4520,7 @@ msgstr "Creates a personal QR code (valid for 2 minutes, once). The person scans
 msgid "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
 msgstr "Creates a personal QR code that is valid for 2 minutes."
 
-#: templates/core/mpg_device_detail.html:368
+#: templates/core/mpg_device_detail.html:371
 msgid "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 msgstr "Immediately creates a defect in the log and locks this device. It is released only once the defect is closed."
 
@@ -4224,7 +4552,7 @@ msgstr "Escape to reset"
 msgid "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt."
 msgstr "Escalates immediately to the station defect board and notifies the workshop if urgent."
 
-#: templates/core/mpg_device_detail.html:290
+#: templates/core/mpg_device_detail.html:293
 msgid "Etikett drucken"
 msgstr "Print label"
 
@@ -4232,7 +4560,7 @@ msgstr "Print label"
 msgid "Etwas anderes"
 msgstr "Something else"
 
-#: core/demo_sandbox.py:765
+#: core/demo_sandbox.py:768
 msgid "Etwas ist kaputt? Der Mangel ist schon vorbereitet – mit Frist bis morgen 12 Uhr und dir als verantwortlicher Person. Einfach speichern."
 msgstr "Something broken? The defect is already filled in – due tomorrow at 12:00, with you as the responsible person. Just save it."
 
@@ -4277,7 +4605,7 @@ msgstr "Specialist modules: vehicles, medical devices with inspection deadlines,
 msgid "Fahrgestell-Hersteller"
 msgstr "Chassis manufacturer"
 
-#: core/audit_labels.py:127
+#: core/audit_labels.py:132
 #: core/module_overview.py:50
 #: core/module_overview.py:56
 #: core/wachalltag_models.py:61
@@ -4413,7 +4741,7 @@ msgstr "Vehicle master data & identification"
 msgid "Fahrzeugtyp"
 msgstr "Vehicle type"
 
-#: core/audit_labels.py:172
+#: core/audit_labels.py:177
 #: core/display_views.py:386
 #: core/fleet_models.py:77
 #: core/models.py:193
@@ -4474,6 +4802,8 @@ msgid "Feedback-Formular:"
 msgstr "Feedback form:"
 
 #: core/feedback_models.py:19
+#: templates/core/_masterdata_import_rows.html:18
+#: templates/core/masterdata_import_preview.html:36
 msgid "Fehler"
 msgstr "Bug"
 
@@ -4486,7 +4816,7 @@ msgstr "Report a problem"
 msgid "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert."
 msgstr "Errors are traceably corrected by an offsetting entry."
 
-#: templates/core/mpg_device_detail.html:385
+#: templates/core/mpg_device_detail.html:388
 msgid "Fehlerbeschreibung:"
 msgstr "Fault description:"
 
@@ -4510,7 +4840,7 @@ msgstr "\\\"Public holidays in calendar\\\""
 msgid "Fertig: Die App ist mit deinem Konto angemeldet."
 msgstr "Done: the app is signed in with your account."
 
-#: templates/core/more.html:410
+#: templates/core/more.html:421
 msgid "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
 msgstr "Choose which areas appear in the bar and in which order."
 
@@ -4580,11 +4910,11 @@ msgstr "Awaiting release by the crew"
 msgid "Freigabe erfolgt durch den Master-Admin."
 msgstr "Approval is granted by the master admin."
 
-#: templates/core/mpg_device_detail.html:332
+#: templates/core/mpg_device_detail.html:335
 msgid "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 msgstr "Release is only possible once all defects are resolved:"
 
-#: templates/core/mpg_device_detail.html:356
+#: templates/core/mpg_device_detail.html:359
 #: templates/core/team.html:31
 msgid "Freigeben"
 msgstr "Approve"
@@ -4592,6 +4922,10 @@ msgstr "Approve"
 #: templates/core/sop_detail.html:92
 msgid "Freigegeben durch"
 msgstr "Approved by"
+
+#: core/masterdata_import.py:1383
+msgid "Freitext wird nicht übernommen."
+msgstr "Free text is not imported."
 
 #: core/forms.py:513
 msgid "Freitext, z. B. Verwendungszweck oder Ansprechpartner."
@@ -4629,7 +4963,7 @@ msgstr "Voluntary display"
 msgid "Freiwillige Teamfunktion"
 msgstr "Voluntary team feature"
 
-#: core/audit_labels.py:171
+#: core/audit_labels.py:176
 #: templates/core/defect_detail.html:17
 #: templates/core/task_row.html:14
 msgid "Frist"
@@ -4700,7 +5034,7 @@ msgstr "Locations in the system:"
 msgid "Funkrufname (OPTA)*"
 msgstr "Radio call sign (OPTA)*"
 
-#: templates/core/mpg_device_detail.html:300
+#: templates/core/mpg_device_detail.html:303
 msgid "Funktionskontrolle dokumentieren"
 msgstr "Document function check"
 
@@ -4708,21 +5042,26 @@ msgstr "Document function check"
 msgid "Funktionskontrolle eingetragen"
 msgstr "Function check recorded"
 
-#: core/mpg_views.py:345
+#: core/mpg_views.py:354
 msgid "Funktionskontrolle für „%(name)s“ gespeichert."
 msgstr "Function check for “%(name)s” saved."
 
-#: core/mpg_views.py:321
+#: core/mpg_views.py:330
 msgid "Funktionskontrolle nicht gespeichert. Bitte die Angaben prüfen."
 msgstr "Function check not saved. Please check the entries."
 
-#: core/mpg_views.py:318
+#: core/mpg_views.py:327
 msgid "Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."
 msgstr "Function check not saved: please answer every check item with Yes or No."
 
-#: templates/core/mpg_device_detail.html:235
+#: templates/core/mpg_device_detail.html:238
 msgid "Funktionskontrollen (Schicht-Checks)"
 msgstr "Function checks (shift checks)"
+
+#: core/masterdata_import.py:1561
+#: core/masterdata_import.py:1562
+msgid "Funktionskontrollen werden nicht übernommen."
+msgstr "Function checks are not imported."
 
 #: core/display_views.py:445
 msgid "Fußzeile / Ticker"
@@ -4745,7 +5084,7 @@ msgstr "Due date:"
 msgid "Füllstände & Telemetrie"
 msgstr "Fill levels & telemetry"
 
-#: core/coffee_views.py:305
+#: core/coffee_views.py:306
 msgid "Für %(person)s ist keine E-Mail-Adresse hinterlegt oder der E-Mail-Versand ist nicht eingerichtet."
 msgstr "%(person)s has no email address or email is not set up."
 
@@ -4785,7 +5124,7 @@ msgstr "Visible to everyone: balance, purchases and cash counts – without deta
 msgid "Für das Touch-Terminal"
 msgstr "For the touch terminal"
 
-#: core/coffee_views.py:331
+#: core/coffee_views.py:332
 msgid "Für dein Konto ist keine E-Mail-Adresse hinterlegt oder der E-Mail-Versand ist nicht eingerichtet."
 msgstr "Your account has no email address or email is not set up."
 
@@ -4901,6 +5240,22 @@ msgstr "GS1 scanner"
 msgid "GTIN / Barcode (EAN):"
 msgstr "GTIN / barcode (EAN):"
 
+#: core/masterdata_import.py:1482
+msgid "GTIN eines vorhandenen Artikels."
+msgstr "GTIN of an existing article."
+
+#: core/masterdata_import.py:1441
+msgid "GTIN/EAN mit 8, 12, 13 oder 14 Ziffern."
+msgstr "GTIN/EAN with 8, 12, 13 or 14 digits."
+
+#: core/masterdata_import.py:1443
+msgid "Ganze Zahl. Leer: 0."
+msgstr "Whole number. Empty: 0."
+
+#: core/masterdata_import.py:1445
+msgid "Ganze Zahl. Leer: wie Mindestbestand."
+msgstr "Whole number. Empty: same as minimum stock."
+
 #: templates/core/landing.html:69
 msgid "Gebaut für die Wache, nicht fürs Büro"
 msgstr "Built for the station, not the office"
@@ -4935,7 +5290,7 @@ msgstr "Set birthday"
 msgid "Geburtstage"
 msgstr "Birthdays"
 
-#: core/audit_labels.py:142
+#: core/audit_labels.py:147
 msgid "Geburtstagsanzeige"
 msgstr "Birthday display"
 
@@ -4963,13 +5318,13 @@ msgstr "Offsetting amount"
 msgid "Gegenbuchung"
 msgstr "Offsetting entry"
 
-#: core/coffee_views.py:666
+#: core/coffee_views.py:667
 #: templates/core/coffee_correction.html:4
 msgid "Gegenbuchung erfassen"
 msgstr "Record offsetting entry"
 
-#: core/coffee_views.py:466
-#: core/coffee_views.py:659
+#: core/coffee_views.py:467
+#: core/coffee_views.py:660
 msgid "Gegenbuchung wurde erfasst."
 msgstr "Offsetting entry was recorded."
 
@@ -4983,7 +5338,7 @@ msgstr "Offsetting entry for #"
 msgid "Gelb · nur heute"
 msgstr "Yellow · today only"
 
-#: core/coffee_views.py:573
+#: core/coffee_views.py:574
 msgid "Geld aus der Kasse oder vom Konto für Kaffee, Milch, Filter … Alle im Team sehen den Einkauf."
 msgstr "Money from the cash box or the account for coffee, milk, filters … Everyone on the team sees the purchase."
 
@@ -5027,7 +5382,7 @@ msgstr "Active right now"
 msgid "Gerade aktiv: %(count)s Demo-Wachen"
 msgstr "Active right now: %(count)s demo stations"
 
-#: core/demo_sandbox.py:172
+#: core/demo_sandbox.py:175
 msgid "Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuchen."
 msgstr "Too many demos are running right now. Please try again in a few minutes."
 
@@ -5046,11 +5401,11 @@ msgid "Gerät dauerhaft außer Betrieb nehmen? Es verschwindet aus Übersicht, G
 msgstr "Permanently decommission this device? It disappears from the overview, the device pass and the display. Inspections, checks and instructions remain on record."
 
 #: templates/core/mpg_device_detail.html:158
-#: templates/core/mpg_device_detail.html:330
+#: templates/core/mpg_device_detail.html:333
 msgid "Gerät freigeben"
 msgstr "Release device"
 
-#: core/demo_sandbox.py:756
+#: core/demo_sandbox.py:759
 msgid "Gerät prüfen"
 msgstr "Check device"
 
@@ -5109,7 +5464,7 @@ msgstr "Device deadlines"
 msgid "Gerätekontrolle"
 msgstr "Equipment check"
 
-#: templates/core/mpg_device_detail.html:366
+#: templates/core/mpg_device_detail.html:369
 msgid "Gerätemangel melden & Gerät sperren"
 msgstr "Report device defect & lock device"
 
@@ -5121,7 +5476,7 @@ msgstr "Device passport & training"
 msgid "Gerätestammdaten & Identifikation"
 msgstr "Device master data & identification"
 
-#: core/audit_labels.py:173
+#: core/audit_labels.py:178
 msgid "Gerätestatus"
 msgstr "Device status"
 
@@ -5189,6 +5544,11 @@ msgstr "Closed"
 msgid "Gesperrt. Freigabe über „Gerät freigeben“; dauerhaft außer Betrieb nehmen über „Außer Betrieb nehmen“ auf der Geräteseite."
 msgstr "Locked. Release it with “Release device”; decommission it permanently with “Decommission” on the device page."
 
+#: core/masterdata_import.py:1153
+#: core/masterdata_import.py:1495
+msgid "Gesperrte Chargen werden nicht übernommen."
+msgstr "Blocked batches are not imported."
+
 #: templates/core/warehouse_dashboard.html:63
 msgid "Gesperrte Rückrufe"
 msgstr "Locked recalls"
@@ -5221,6 +5581,22 @@ msgstr "Poison control & toxicology"
 msgid "Gigabit-LAN; für das Wachen-WLAN ein eigener Access Point"
 msgstr "Gigabit LAN; a separate access point for the station Wi-Fi"
 
+#: core/masterdata_import.py:1047
+msgid "Gleich wie Zeile %(line)s."
+msgstr "Same as row %(line)s."
+
+#: core/masterdata_import.py:1353
+msgid "Gleiche Inventarnummer wie Zeile %(line)s."
+msgstr "Same inventory number as row %(line)s."
+
+#: core/masterdata_import.py:1358
+msgid "Gleiche Seriennummer und gleicher Hersteller wie Zeile %(line)s."
+msgstr "Same serial number and manufacturer as row %(line)s."
+
+#: core/masterdata_import.py:1058
+msgid "Gleicher Name wie Zeile %(line)s, aber andere PZN."
+msgstr "Same name as row %(line)s, but a different PZN."
+
 #: templates/core/diagnostics_events.html:17
 msgid "Globale Ereignisse ohne sicheren Wachenbezug werden hier nicht angezeigt. Die Aufbewahrung folgt einer technischen Richtlinie (%(days)s Tage), keine gesetzliche Frist."
 msgstr "Global events without a verified station reference are not displayed here. Retention follows a technical policy (%(days)s days), not a statutory period."
@@ -5241,7 +5617,7 @@ msgstr "Upper/lower case, spaces and hyphens do not matter."
 msgid "Große Digitaluhr, Wochentag, formatiertes Datum und Stationsname."
 msgstr "Large digital clock, weekday, formatted date and station name."
 
-#: core/coffee_views.py:685
+#: core/coffee_views.py:686
 #: core/forms.py:142
 #: core/forms.py:301
 #: templates/core/coffee.html:146
@@ -5264,7 +5640,7 @@ msgstr "Reason:"
 msgid "Grunddesinfektion"
 msgstr "Deep disinfection"
 
-#: templates/core/mpg_device_detail.html:463
+#: templates/core/mpg_device_detail.html:466
 msgid "Gruppe einweisen"
 msgstr "Instruct group"
 
@@ -5272,11 +5648,11 @@ msgstr "Instruct group"
 msgid "Gruppe für Kaffeekasse und Hinweise"
 msgstr "Group for coffee fund and notices"
 
-#: core/audit_labels.py:153
+#: core/audit_labels.py:158
 msgid "Gruppennachricht"
 msgstr "Group message"
 
-#: templates/core/mpg_device_detail.html:443
+#: templates/core/mpg_device_detail.html:446
 msgid "Gruppenschulung (Mehrere Mitarbeiter auf einmal)"
 msgstr "Group training (several employees at once)"
 
@@ -5515,6 +5891,7 @@ msgstr "Note was restored."
 msgid "Hinweis zum Bezahlen"
 msgstr "Payment note"
 
+#: templates/core/_masterdata_import_rows.html:9
 #: templates/core/wiki_index.html:43
 msgid "Hinweise"
 msgstr "Notes"
@@ -5562,6 +5939,27 @@ msgstr "Tick a box to move a section into the top bar – clear it so the sectio
 #: core/forms.py:409
 msgid "Höchstens %(max)s Gebiete, durch Komma getrennt."
 msgstr "At most %(max)s areas, separated by commas."
+
+#: core/masterdata_import.py:628
+msgid "Höchstens %(max)s Zeichen."
+msgstr "At most %(max)s characters."
+
+#: templates/core/masterdata_import.html:58
+msgid "Höchstens %(max_mb)s MB und 2000 Zeilen je Datei. Status, Füllstände, Prüfprotokolle, Einweisungen und Notizen werden nie übernommen."
+msgstr "At most %(max_mb)s MB and 2000 rows per file. Status, fill levels, inspection records, trainings and notes are never imported."
+
+#: templates/core/_masterdata_import_upload.html:8
+msgid "Höchstens %(max_mb)s MB. Die Datei wird nicht gespeichert."
+msgstr "At most %(max_mb)s MB. The file is not saved."
+
+#: core/masterdata_import.py:1529
+#: core/masterdata_import.py:1530
+msgid "Höchstens 120 Zeichen."
+msgstr "At most 120 characters."
+
+#: core/masterdata_import.py:1535
+msgid "Höchstens 80 Zeichen."
+msgstr "At most 80 characters."
 
 #: core/forms.py:246
 #: core/forms.py:492
@@ -5662,6 +6060,19 @@ msgstr "Paid in advance up to and including"
 msgid "Im Wachen-Netz stellt Wachwerk ein eigenes Zertifikat aus. Das Stammzertifikat einmal auf jedem Gerät als vertrauenswürdig installieren. Der Installer zeigt den Befehl, mit dem du die Datei wachbuch-ca.crt erhältst."
 msgstr "On the station network Wachwerk issues its own certificate. Install the root certificate as trusted once on every device. The installer shows the command that gives you the file wachbuch-ca.crt."
 
+#: templates/core/masterdata_import_done.html:3
+#: templates/core/masterdata_import_done.html:7
+msgid "Import abgeschlossen"
+msgstr "Import completed"
+
+#: templates/core/masterdata_import_preview.html:69
+msgid "Importieren"
+msgstr "Import"
+
+#: templates/core/masterdata_import.html:23
+msgid "Importieren – alle Zeilen oder keine"
+msgstr "Import – all rows or none"
+
 #: templates/base.html:176
 #: templates/core/impressum.html:3
 #: templates/core/impressum.html:6
@@ -5683,7 +6094,7 @@ msgstr "Legal notice (provider)"
 msgid "Impressum ansehen"
 msgstr "View legal notice"
 
-#: core/audit_labels.py:151
+#: core/audit_labels.py:156
 msgid "Impressum und Datenschutz"
 msgstr "Legal notice and privacy"
 
@@ -5715,6 +6126,10 @@ msgstr "In progress"
 #: templates/core/fleet_dashboard.html:63
 msgid "In Desinfektion"
 msgstr "In disinfection"
+
+#: templates/core/masterdata_import.html:16
+msgid "In Excel: „Speichern unter“ → „CSV UTF-8 (durch Trennzeichen getrennt)“. PZN, GTIN und Inventarnummern am besten als Text formatieren."
+msgstr "In Excel: “Save as” → “CSV UTF-8 (comma delimited)”. Format PZN, GTIN and inventory numbers as text."
 
 #: core/fleet_models.py:264
 msgid "In Gebrauch"
@@ -5940,8 +6355,17 @@ msgstr "JPEG, PNG, WebP or PDF, at most %(max_upload_mb)s MB."
 
 #: core/fleet_forms.py:123
 #: core/mpg_forms.py:120
+#: templates/core/masterdata_import_kind.html:51
 msgid "Ja"
 msgstr "Yes"
+
+#: core/masterdata_import.py:1447
+msgid "Ja für 2–8 °C. Leer: Nein."
+msgstr "Yes for 2–8 °C. Empty: no."
+
+#: core/masterdata_import.py:1407
+msgid "Ja, wenn der Ort gekühlt ist. Leer: Ja nur beim Kühlschrank."
+msgstr "Yes if the location is cooled. Empty: yes only for a fridge."
 
 #: templates/core/coffee_book.html:23
 #: templates/core/coffee_book.html:24
@@ -5974,13 +6398,17 @@ msgstr "Every handover carries priority, status and history. The next shift sees
 msgid "Jetzt anmelden"
 msgstr "Sign in now"
 
+#: templates/core/masterdata_import_preview.html:78
+msgid "Jetzt importieren (%(new)s neu)"
+msgstr "Import now (%(new)s new)"
+
 #: core/task_board.py:89
 msgid "KW %(week)s"
 msgstr "CW %(week)s"
 
-#: core/audit_labels.py:134
-#: core/audit_labels.py:136
-#: core/audit_labels.py:181
+#: core/audit_labels.py:139
+#: core/audit_labels.py:141
+#: core/audit_labels.py:186
 #: core/coffee_models.py:52
 #: core/navigation.py:28
 #: core/navigation.py:56
@@ -6010,8 +6438,8 @@ msgstr "Coffee fund %(station)s: %(amount)s outstanding"
 msgid "Kaffeekasse %(station)s: Zahlungsangaben"
 msgstr "Coffee fund %(station)s: payment details"
 
-#: core/demo_sandbox.py:771
-#: core/demo_sandbox.py:772
+#: core/demo_sandbox.py:774
+#: core/demo_sandbox.py:775
 msgid "Kaffeekasse bezahlen"
 msgstr "Pay into the coffee fund"
 
@@ -6044,7 +6472,7 @@ msgstr "Coffee fund: fees and payments of the participants."
 msgid "Kaffeekassen"
 msgstr "Coffee funds"
 
-#: core/audit_labels.py:180
+#: core/audit_labels.py:185
 #: core/navigation.py:15
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
@@ -6099,7 +6527,7 @@ msgstr "Initializing camera..."
 msgid "Kamerazugriff nicht verfügbar oder verweigert."
 msgstr "Camera access not available or denied."
 
-#: core/coffee_views.py:697
+#: core/coffee_views.py:698
 msgid "Kasse"
 msgstr "Cash box"
 
@@ -6117,15 +6545,15 @@ msgstr "Cash box was correct."
 msgid "Kasse verwalten"
 msgstr "Manage fund"
 
-#: core/audit_labels.py:135
+#: core/audit_labels.py:140
 msgid "Kassenbewegung"
 msgstr "Cash movement"
 
-#: core/coffee_views.py:591
+#: core/coffee_views.py:592
 msgid "Kassenbewegung eingetragen."
 msgstr "Cash movement recorded."
 
-#: core/coffee_views.py:595
+#: core/coffee_views.py:596
 #: templates/core/coffee_cash.html:17
 msgid "Kassenbewegung eintragen"
 msgstr "Record cash movement"
@@ -6134,7 +6562,7 @@ msgstr "Record cash movement"
 msgid "Kassenbewegung gebucht"
 msgstr "Cash movement recorded"
 
-#: core/coffee_views.py:663
+#: core/coffee_views.py:664
 msgid "Kassenbewegung korrigieren"
 msgstr "Correct cash movement"
 
@@ -6155,7 +6583,7 @@ msgstr "Cash movements, horizontally scrollable on small screens"
 msgid "Kassenbuch, horizontal scrollbar auf kleinen Bildschirmen"
 msgstr "Cash log, horizontally scrollable on small screens"
 
-#: core/coffee_views.py:420
+#: core/coffee_views.py:421
 msgid "Kassenbuchung wurde erfasst."
 msgstr "Cash entry was recorded."
 
@@ -6170,22 +6598,22 @@ msgstr "Balance, deposits and entries of the shared fund."
 
 #: core/audit_labels.py:55
 #: core/coffee_models.py:102
-#: core/coffee_views.py:613
-#: core/coffee_views.py:631
+#: core/coffee_views.py:614
+#: core/coffee_views.py:632
 #: templates/core/coffee.html:24
 #: templates/core/coffee_cash.html:16
 msgid "Kassensturz"
 msgstr "Cash count"
 
-#: core/coffee_views.py:625
+#: core/coffee_views.py:626
 msgid "Kassensturz gespeichert. Differenz: %(diff)s"
 msgstr "Cash count saved. Difference: %(diff)s"
 
-#: core/coffee_views.py:627
+#: core/coffee_views.py:628
 msgid "Kassensturz gespeichert: Die Kasse stimmt."
 msgstr "Cash count saved: the cash box is correct."
 
-#: core/coffee_views.py:634
+#: core/coffee_views.py:635
 msgid "Kassensturz speichern"
 msgstr "Save cash count"
 
@@ -6197,7 +6625,7 @@ msgstr "Cash count result to the Signal group"
 msgid "Kassenwart"
 msgstr "Cashier"
 
-#: core/audit_labels.py:167
+#: core/audit_labels.py:172
 #: templates/core/defect_form.html:17
 #: templates/core/handover_form.html:10
 #: templates/core/mpg_dashboard.html:69
@@ -6211,6 +6639,18 @@ msgstr "Category"
 #: templates/core/warehouse_item_form.html:37
 msgid "Kategorie:"
 msgstr "Category:"
+
+#: core/masterdata_import.py:1131
+msgid "Kein Artikel mit dieser Bezeichnung. Bitte zuerst die Artikel importieren."
+msgstr "No article with this name. Please import the articles first."
+
+#: core/masterdata_import.py:1122
+msgid "Kein Artikel mit dieser GTIN. Bitte zuerst die Artikel importieren."
+msgstr "No article with this GTIN. Please import the articles first."
+
+#: core/masterdata_import.py:1117
+msgid "Kein Artikel mit dieser PZN. Bitte zuerst die Artikel importieren."
+msgstr "No article with this PZN. Please import the articles first."
 
 #: templates/core/warehouse_dashboard.html:132
 msgid "Kein Bestand / Keine Charge"
@@ -6489,6 +6929,10 @@ msgstr "No daily tasks."
 msgid "Keine zusätzlichen Aufgaben."
 msgstr "No additional tasks."
 
+#: core/masterdata_import.py:1536
+msgid "Kennnummer der benannten Stelle, z. B. 0123."
+msgstr "Number of the notified body, e.g. 0123."
+
 #: templates/core/sop_detail.html:52
 msgid "Kenntnisnahme quittiert"
 msgstr "Acknowledgement confirmed"
@@ -6525,6 +6969,10 @@ msgstr "Colleagues"
 #: templates/core/install_guide.html:146
 msgid "Kolleginnen und Kollegen per Einladungslink oder QR-Code einladen. Die Datei .env im Installationsordner auf den USB-Stick kopieren und sicher verwahren – ohne sie sind Datenbank und Backups nicht mehr lesbar. Dann automatische Updates einschalten:"
 msgstr "Invite colleagues with an invitation link or QR code. Copy the .env file from the installation folder to the USB stick and keep it safe – without it the database and backups can no longer be read. Then switch on automatic updates:"
+
+#: core/masterdata_import.py:79
+msgid "Komma (,)"
+msgstr "comma (,)"
 
 #: core/forms.py:503
 msgid "Kommagetrennt, z. B. A2, A33 (höchstens 6). Benötigt Koordinaten der Wache."
@@ -6605,7 +7053,7 @@ msgstr "Create and approve accounts and assign roles."
 msgid "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild."
 msgstr "Accounts: name, username, role per station, optionally a small profile picture."
 
-#: core/audit_labels.py:146
+#: core/audit_labels.py:151
 #: core/coffee_models.py:97
 #: templates/core/signal_account.html:7
 #: templates/registration/mfa_manage.html:6
@@ -6642,7 +7090,7 @@ msgstr "Account links"
 msgid "Kontoinhaber für Überweisungen"
 msgstr "Account holder for transfers"
 
-#: templates/core/mpg_device_detail.html:253
+#: templates/core/mpg_device_detail.html:256
 msgid "Kontrolle erfassen"
 msgstr "Record check"
 
@@ -6721,6 +7169,10 @@ msgstr "Short notices and notes – no operational or personal data."
 msgid "Kurze Aushänge, Schichthinweise und Ankündigungen für die Wachmannschaft."
 msgstr "Short notices, shift notes and announcements for the station crew."
 
+#: core/masterdata_import.py:1414
+msgid "Kurze Beschreibung, höchstens 255 Zeichen."
+msgstr "Short description, at most 255 characters."
+
 #: core/forms.py:771
 #: templates/core/chat.html:48
 msgid "Kurze Nachricht"
@@ -6741,6 +7193,10 @@ msgstr "Kitchen and refrigerator"
 #: templates/core/warehouse_item_form.html:81
 msgid "Kühlkette & Out-of-Fridge Haltbarkeit"
 msgstr "Cold chain & out-of-fridge shelf life"
+
+#: core/masterdata_import.py:1210
+msgid "Kühlpflichtiger Artikel außerhalb der Kühlung ohne Out-of-Fridge-Datum. Bitte prüfen."
+msgstr "Article that needs cooling outside the fridge without an out-of-fridge date. Please check."
 
 #: templates/core/warehouse_item_form.html:85
 msgid "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)"
@@ -6773,9 +7229,37 @@ msgstr "Storeroom with stock, batches, expiry dates and one item below minimum s
 msgid "Lager und Material"
 msgstr "Storeroom and supplies"
 
+#: templates/core/masterdata_import.html:51
+msgid "Lager und Medizingeräte sind für diese Wache ausgeschaltet. Unter Wacheneinstellungen lassen sie sich einschalten."
+msgstr "Warehouse and medical devices are switched off for this station. They can be switched on in the station settings."
+
+#: core/masterdata_import.py:1395
+msgid "Lager, Fahrzeugschränke, Koffer und Kühlschränke. Untergeordnete Orte über die Spalte „Übergeordneter Lagerort“."
+msgstr "Stores, vehicle cabinets, cases and fridges. Child locations via the column “Übergeordneter Lagerort”."
+
 #: templates/core/warehouse_dashboard.html:58
 msgid "Lageransicht"
 msgstr "Storage view"
+
+#: core/masterdata_import.py:1394
+msgid "Lagerorte"
+msgstr "Storage locations"
+
+#: templates/core/masterdata_import_done.html:26
+msgid "Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an."
+msgstr "Please import storage locations before the warehouse is opened for the first time; otherwise Wachwerk creates three sample storage locations there."
+
+#: core/audit_labels.py:119
+msgid "Lagerorte importiert"
+msgstr "Storage locations imported"
+
+#: templates/core/more.html:410
+msgid "Lagerorte, Artikel, Bestand und Medizingeräte aus einer CSV-Datei übernehmen."
+msgstr "Import storage locations, articles, stock and medical devices from a CSV file."
+
+#: templates/core/masterdata_import.html:8
+msgid "Lagerorte, Artikel, Bestand und Medizingeräte aus einer Tabelle übernehmen. Erst prüfen, dann importieren. Vorhandenes wird nie überschrieben."
+msgstr "Import storage locations, articles, stock and medical devices from a spreadsheet. Check first, then import. Existing records are never overwritten."
 
 #: core/site_profile.py:34
 msgid "Land"
@@ -6789,9 +7273,13 @@ msgstr "Ticker in the footer for current station notices and news."
 msgid "Laufende Version:"
 msgstr "Current version:"
 
-#: core/coffee_views.py:632
+#: core/coffee_views.py:633
 msgid "Laut Buchungen sollten %(amount)s in der Kasse sein. Bitte zählen und den Betrag eintragen; eine Differenz wird als eigene Buchung festgehalten."
 msgstr "According to the entries there should be %(amount)s in the cash box. Please count and enter the amount; any difference is recorded as a separate entry."
+
+#: core/masterdata_import.py:1283
+msgid "Laut Datei eingeschränkt. Der Status wird nicht übernommen; nach dem Import bitte prüfen und bei Bedarf einen Mangel melden."
+msgstr "Limited according to the file. The status is not imported; please check after the import and report a defect if needed."
 
 #: core/forms.py:1027
 msgid "Leer = Anschrift der Wache."
@@ -6808,6 +7296,22 @@ msgstr "Empty = provider email."
 #: core/forms.py:1019
 msgid "Leer = Name der Wache."
 msgstr "Empty = station name."
+
+#: core/masterdata_import.py:1435
+msgid "Leer: Sonstiges Material."
+msgstr "Empty: other supplies."
+
+#: core/masterdata_import.py:1525
+msgid "Leer: Sonstiges aktives Medizinprodukt."
+msgstr "Empty: other active medical device."
+
+#: core/masterdata_import.py:1437
+msgid "Leer: Stück. Auch „Stk“, „Amp“ oder „Pck“."
+msgstr "Empty: piece. Also “Stk”, “Amp” or “Pck”."
+
+#: core/masterdata_import.py:1539
+msgid "Leer: Wache."
+msgstr "Empty: station."
 
 #: templates/base.html:206
 msgid "Leertaste"
@@ -6829,7 +7333,7 @@ msgstr "Dispatch center & dispatching"
 msgid "Lenovo ThinkCentre M720q / M920q Tiny, gebraucht (Mini-PC)"
 msgstr "Lenovo ThinkCentre M720q / M920q Tiny, used (mini PC)"
 
-#: core/audit_labels.py:192
+#: core/audit_labels.py:197
 msgid "Lesebestätigungen mit IP-Adresse oder Browser"
 msgstr "Read confirmations with IP address or browser"
 
@@ -6990,11 +7494,15 @@ msgstr "MPG device log"
 msgid "MTK-Intervall (Monate):"
 msgstr "MTK interval (months):"
 
+#: core/masterdata_import.py:1542
+msgid "MTK-Pflicht. Leer: Nein."
+msgstr "MTK required. Empty: no."
+
 #: core/templatetags/js_i18n.py:48
 msgid "Mail nicht entschlüsselbar."
 msgstr "Email cannot be decrypted."
 
-#: core/audit_labels.py:123
+#: core/audit_labels.py:128
 #: core/views.py:569
 #: templates/core/defect_detail.html:7
 msgid "Mangel"
@@ -7031,14 +7539,14 @@ msgstr "Record defect"
 msgid "Mangel gemeldet"
 msgstr "Defect reported"
 
-#: core/demo_sandbox.py:763
-#: core/demo_sandbox.py:764
+#: core/demo_sandbox.py:766
+#: core/demo_sandbox.py:767
 #: templates/core/defects.html:32
 #: templates/core/terminal_menu.html:29
 msgid "Mangel melden"
 msgstr "Report a defect"
 
-#: templates/core/mpg_device_detail.html:390
+#: templates/core/mpg_device_detail.html:393
 msgid "Mangel melden & Sperren"
 msgstr "Report defect & lock"
 
@@ -7078,6 +7586,7 @@ msgid "Mappe, horizontal scrollbar auf kleinen Bildschirmen"
 msgstr "Ledger book, horizontally scrollable on small screens"
 
 #: core/models.py:166
+#: templates/core/masterdata_import.html:6
 #: templates/core/team.html:7
 #: templates/core/team_form.html:7
 #: templates/core/team_invite_form.html:6
@@ -7129,7 +7638,7 @@ msgstr "Max."
 msgid "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 msgstr "Max. days unrefrigerated at room temperature (e.g. on the RTW):"
 
-#: core/audit_labels.py:126
+#: core/audit_labels.py:131
 #: core/module_overview.py:80
 msgid "Medizingerät"
 msgstr "Medical device"
@@ -7146,7 +7655,7 @@ msgstr "Medical device released"
 msgid "Medizingerät gesperrt"
 msgstr "Medical device locked"
 
-#: core/demo_sandbox.py:755
+#: core/demo_sandbox.py:758
 msgid "Medizingerät prüfen"
 msgstr "Check a medical device"
 
@@ -7154,10 +7663,15 @@ msgstr "Check a medical device"
 msgid "Medizingerät wieder in Betrieb genommen"
 msgstr "Medical device returned to service"
 
+#: core/masterdata_import.py:1514
 #: core/module_overview.py:80
 #: templates/core/landing.html:109
 msgid "Medizingeräte"
 msgstr "Medical devices"
+
+#: core/audit_labels.py:122
+msgid "Medizingeräte importiert (Altbestand)"
+msgstr "Medical devices imported (carried over)"
 
 #: templates/core/vorfuehrung.html:56
 msgid "Medizingeräte mit Prüffristen und gesperrten Geräten im dunklen Modus."
@@ -7207,6 +7721,10 @@ msgstr "No more attachments are possible."
 #: core/fleet_forms.py:225
 msgid "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 msgstr "More than %(step)s km since the last reading (%(km)s km) – please check the mileage. If it is correct, station management enters it in the vehicle data."
+
+#: core/masterdata_import.py:1129
+msgid "Mehrere Artikel heißen so. Bitte die PZN oder GTIN angeben."
+msgstr "Several articles have this name. Please enter the PZN or GTIN."
 
 #: core/navigation.py:33
 #: core/navigation.py:64
@@ -7268,6 +7786,10 @@ msgstr "Reports & traffic"
 msgid "Meldungen &amp; Verkehr"
 msgstr "Reports &amp; traffic"
 
+#: core/masterdata_import.py:1492
+msgid "Menge an diesem Lagerort. 0 wird übersprungen."
+msgstr "Quantity at this storage location. 0 is skipped."
+
 #: templates/core/warehouse_item_detail.html:194
 #: templates/core/warehouse_item_detail.html:235
 msgid "Menge:"
@@ -7309,6 +7831,10 @@ msgstr "At least one second factor must be retained."
 msgid "Mindestens eine Angabe fehlt oder ist ungültig."
 msgstr "At least one field is missing or invalid."
 
+#: core/masterdata_import.py:430
+msgid "Mindestens eine dieser Spalten wird gebraucht: %(headers)s."
+msgstr "At least one of these columns is needed: %(headers)s."
+
 #: templates/core/system_status.html:8
 msgid "Minimale technische Auskunft für die Wachenadministration. Es werden keine Protokolle, Pfade oder Zugangsdaten angezeigt."
 msgstr "Minimal technical information for station administration. No logs, paths, or credentials are displayed."
@@ -7316,6 +7842,10 @@ msgstr "Minimal technical information for station administration. No logs, paths
 #: templates/core/defect_form.html:20
 msgid "Mir zuordnen"
 msgstr "Assign to me"
+
+#: templates/core/masterdata_import_preview.html:35
+msgid "Mit Hinweis"
+msgstr "With note"
 
 #: templates/registration/mfa_verify.html:19
 msgid "Mit Passkey bestätigen"
@@ -7351,7 +7881,7 @@ msgstr "One command with Docker on your own server, a mini PC or a Raspberry Pi 
 msgid "Mitarbeiter"
 msgstr "Employee"
 
-#: templates/core/mpg_device_detail.html:455
+#: templates/core/mpg_device_detail.html:458
 msgid "Mitarbeiter auswählen:"
 msgstr "Select employee:"
 
@@ -7364,7 +7894,7 @@ msgstr "Employee activations"
 msgid "Mitarbeiter-Quittierungsbuch (Audit Trail)"
 msgstr "Employee acknowledgement log (audit trail)"
 
-#: templates/core/mpg_device_detail.html:471
+#: templates/core/mpg_device_detail.html:474
 msgid "Mitarbeiter:"
 msgstr "Employee:"
 
@@ -7393,7 +7923,7 @@ msgstr "Edit member"
 msgid "Mitglieder einer Chatgruppe geändert"
 msgstr "Chat group members changed"
 
-#: core/audit_labels.py:141
+#: core/audit_labels.py:146
 msgid "Mitgliedschaft"
 msgstr "Membership"
 
@@ -7473,7 +8003,7 @@ msgstr "Modular components & screen zones"
 msgid "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen."
 msgstr "Modular full-screen display for wall monitors and mission displays based on the MagicMirror² architecture. All components, zones and content can be freely combined."
 
-#: core/audit_labels.py:188
+#: core/audit_labels.py:193
 msgid "Module"
 msgstr "Modules"
 
@@ -7489,7 +8019,7 @@ msgstr "Freely combine modules and screen zones following the MagicMirror princi
 msgid "Modulübersicht"
 msgstr "Module overview"
 
-#: core/coffee_views.py:684
+#: core/coffee_views.py:685
 msgid "Monat"
 msgstr "Month"
 
@@ -7500,6 +8030,18 @@ msgstr "Waive month"
 #: templates/core/mpg_device_detail.html:195
 msgid "Monate"
 msgstr "Months"
+
+#: core/masterdata_import.py:1548
+msgid "Monate, 1 bis 120. Leer: 12."
+msgstr "Months, 1 to 120. Empty: 12."
+
+#: core/masterdata_import.py:1544
+msgid "Monate, 1 bis 120. Leer: 24."
+msgstr "Months, 1 to 120. Empty: 24."
+
+#: core/masterdata_import.py:1546
+msgid "Monate, 1 bis 120. Pflicht bei Anlage 2."
+msgstr "Months, 1 to 120. Required for Annex 2."
 
 #: core/coffee_models.py:41
 msgid "Monatliche Erinnerung in die Signal-Gruppe"
@@ -7531,7 +8073,7 @@ msgstr "Monthly fee €%(fee)s: put cash in the box or transfer it – and tick 
 msgid "Monatsbeitrag %(month)s"
 msgstr "Monthly fee %(month)s"
 
-#: core/coffee_views.py:286
+#: core/coffee_views.py:287
 msgid "Monatsbeitrag bar erhalten"
 msgstr "Monthly fee received in cash"
 
@@ -7555,7 +8097,7 @@ msgstr "Monthly fee, “I have paid” with one tap, GiroCode for the bank trans
 msgid "Monatsbeiträge aller Teilnehmenden im Jahr %(y)s"
 msgstr "Monthly fees of all participants in %(y)s"
 
-#: core/demo_sandbox.py:865
+#: core/demo_sandbox.py:868
 msgid "Monitor bleibt beim Rückwärtsfahren schwarz. Bis zur Reparatur beim Rangieren einweisen lassen."
 msgstr "The screen stays black when reversing. Until it is repaired, have someone guide you when manoeuvring."
 
@@ -7567,7 +8109,7 @@ msgstr "Music"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
-#: core/audit_labels.py:187
+#: core/audit_labels.py:192
 #: core/navigation.py:20
 #: core/navigation.py:50
 #: core/views.py:569
@@ -7732,7 +8274,7 @@ msgstr "At night, with a backup first; if the new version does not start, the pr
 msgid "Nachvollziehbar"
 msgstr "Traceable"
 
-#: templates/core/more.html:434
+#: templates/core/more.html:445
 msgid "Nachvollziehbare Protokollierung der Änderungen für Prüfer und QM."
 msgstr "Traceable logging of changes for auditors and QM."
 
@@ -7770,11 +8312,19 @@ msgstr "Station name and mode: “local” (this computer only), “lan” (on t
 msgid "Name für den Überweisungs-QR (GiroCode). Am besten ein eigenes Konto der Kasse."
 msgstr "Name for the transfer QR code (GiroCode). Ideally a separate account for the fund."
 
+#: core/masterdata_import.py:1411
+msgid "Name oder Pfad eines vorhandenen Lagerorts oder einer Zeile dieser Datei, z. B. „RTW 1 → Schrank links“. Leer: oberste Ebene."
+msgstr "Name or path of an existing storage location or of a row in this file, e.g. “RTW 1 → Left cabinet”. Empty: top level."
+
+#: core/masterdata_import.py:1490
+msgid "Name oder Pfad eines vorhandenen Lagerorts, z. B. „RTW 1 → Fach 3“."
+msgstr "Name or path of an existing storage location, e.g. “RTW 1 → Compartment 3”."
+
 #: core/site_profile.py:59
 msgid "Name und Sitz des Rechenzentrums (Auftragsverarbeiter), leer bei eigenem Server."
 msgstr "Name and seat of the data centre (processor), empty for an own server."
 
-#: templates/core/more.html:421
+#: templates/core/more.html:432
 msgid "Name, Anschrift, Wetter und welche Module die Wache nutzt."
 msgstr "Name, address, weather and which modules the station uses."
 
@@ -7797,8 +8347,14 @@ msgid "Netzwerk"
 msgstr "Network"
 
 #: core/feedback_models.py:29
+#: templates/core/_masterdata_import_rows.html:20
+#: templates/core/masterdata_import_preview.html:33
 msgid "Neu"
 msgstr "New"
+
+#: templates/core/masterdata_import_done.html:8
+msgid "Neu angelegt: %(created)s · Übersprungen: %(skipped)s"
+msgstr "Created: %(created)s · Skipped: %(skipped)s"
 
 #: templates/core/crypto_setup.html:31
 msgid "Neu erzeugen"
@@ -7922,7 +8478,7 @@ msgstr "New password"
 msgid "Neues Token (nur einmal sichtbar):"
 msgstr "New token (visible only once):"
 
-#: core/audit_labels.py:140
+#: core/audit_labels.py:145
 msgid "Neuigkeit"
 msgstr "News item"
 
@@ -7940,7 +8496,7 @@ msgstr "News item published"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
-#: core/audit_labels.py:184
+#: core/audit_labels.py:189
 #: core/navigation.py:17
 #: core/navigation.py:61
 #: templates/core/more.html:285
@@ -7970,9 +8526,17 @@ msgstr "Not found."
 msgid "Nicht nötig: Der Assistent ist ab jetzt gesperrt. Wer mag, leert SETUP_BOOTSTRAP_TOKEN in der Datei .env."
 msgstr "Not needed: the wizard is now locked. If you like, clear SETUP_BOOTSTRAP_TOKEN in the .env file."
 
+#: templates/core/masterdata_import_preview.html:42
+msgid "Nicht übernommene Spalten"
+msgstr "Columns not imported"
+
 #: templates/core/dashboard.html:8
 msgid "Nichts Dringendes offen"
 msgstr "Nothing urgent open"
+
+#: templates/core/masterdata_import_preview.html:86
+msgid "Nichts Neues zu importieren"
+msgstr "Nothing new to import"
 
 #: templates/core/setup_wizard.html:35
 msgid "Niederschlag"
@@ -8044,7 +8608,7 @@ msgstr "No transactions yet."
 msgid "Noch keine Desinfektionen protokolliert."
 msgstr "No disinfections logged yet."
 
-#: templates/core/mpg_device_detail.html:270
+#: templates/core/mpg_device_detail.html:273
 msgid "Noch keine Einweisungen für dieses Gerät."
 msgstr "No instructions for this device yet."
 
@@ -8052,7 +8616,7 @@ msgstr "No instructions for this device yet."
 msgid "Noch keine Fahrzeuge oder Geräte angelegt."
 msgstr "No vehicles or equipment created yet."
 
-#: templates/core/mpg_device_detail.html:253
+#: templates/core/mpg_device_detail.html:256
 msgid "Noch keine Funktionskontrollen."
 msgstr "No function checks yet."
 
@@ -8084,7 +8648,7 @@ msgstr "No memberships yet."
 msgid "Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis."
 msgstr "No messages yet. Write your colleagues a quick note."
 
-#: templates/core/mpg_device_detail.html:225
+#: templates/core/mpg_device_detail.html:228
 msgid "Noch keine Prüfprotokolle."
 msgstr "No inspection reports yet."
 
@@ -8146,7 +8710,7 @@ msgstr "Nobody has acknowledged this handover as read yet."
 
 #: core/models.py:199
 #: core/wachalltag_models.py:50
-#: templates/core/mpg_device_detail.html:381
+#: templates/core/mpg_device_detail.html:384
 msgid "Normal"
 msgstr "Normal"
 
@@ -8168,11 +8732,11 @@ msgstr "Emergency speed dial & important contacts"
 msgid "Notiz (optional)"
 msgstr "Note (optional)"
 
-#: templates/core/mpg_device_detail.html:485
+#: templates/core/mpg_device_detail.html:488
 msgid "Notiz / Zertifikat-Nr:"
 msgstr "Note / certificate no.:"
 
-#: templates/core/mpg_device_detail.html:203
+#: templates/core/mpg_device_detail.html:206
 #: templates/core/warehouse_item_detail.html:198
 msgid "Notiz:"
 msgstr "Note:"
@@ -8205,6 +8769,14 @@ msgstr "Only on this computer at http://localhost:8090."
 msgid "Nur bei echten Einzahlungen; Bargeld zählt dann zum Bestand der Kasse."
 msgstr "Only for actual payments; cash then counts towards the cash box."
 
+#: core/masterdata_import.py:1450
+msgid "Nur bei kühlpflichtigen Artikeln: Haltbarkeit ungekühlt in Tagen."
+msgstr "Only for articles that need cooling: shelf life without cooling in days."
+
+#: core/masterdata_import.py:1488
+msgid "Nur bei kühlpflichtigen Artikeln: Tag, an dem die Kühlung endete."
+msgstr "Only for articles that need cooling: day the cooling ended."
+
 #: templates/core/vorfuehrung.html:113
 msgid "Nur dieser Rechner, Wachen-WLAN mit eigener CA oder eigene Domain mit Let's Encrypt."
 msgstr "This machine only, station Wi-Fi with its own CA, or your own domain with Let's Encrypt."
@@ -8225,6 +8797,10 @@ msgstr "Only for urgent handovers of this station. No tracking, no ads."
 msgid "Nur nötig bei redaktionellen Inhalten (§ 18 Abs. 2 MStV)."
 msgstr "Only needed for editorial content (§ 18(2) MStV)."
 
+#: core/masterdata_import.py:1494
+msgid "Nur zum Abgleich mit dem Artikel."
+msgstr "Only for comparison with the article."
+
 #: templates/core/calendar_feed.html:9
 msgid "Nur-Lese-ICS-Feed für Apple/Google/Outlook. Der Link ist geheim – bei Verlust widerrufen."
 msgstr "Read-only ICS feed for Apple/Google/Outlook. The link is secret – revoke if lost."
@@ -8238,7 +8814,7 @@ msgstr "Next DGUV V3:"
 msgid "Nächste Fälligkeit"
 msgstr "Next due date"
 
-#: templates/core/mpg_device_detail.html:422
+#: templates/core/mpg_device_detail.html:425
 msgid "Nächste Fälligkeit:"
 msgstr "Next due date:"
 
@@ -8292,7 +8868,7 @@ msgstr "Top left"
 msgid "Oben rechts"
 msgstr "Top right"
 
-#: core/demo_sandbox.py:732
+#: core/demo_sandbox.py:735
 msgid "Oben steht, was die Schicht wissen muss: dringende Übergaben, fällige Fristen, knappes Material."
 msgstr "At the top you see what the shift needs to know: urgent handovers, due deadlines, low stock."
 
@@ -8440,7 +9016,7 @@ msgstr "Without explicit consent, the address is not transmitted to the weather 
 msgid "Open Source (AGPL-3.0)"
 msgstr "Open source (AGPL-3.0)"
 
-#: templates/core/mpg_device_detail.html:312
+#: templates/core/mpg_device_detail.html:315
 msgid "Optional"
 msgstr "Optional"
 
@@ -8531,11 +9107,15 @@ msgstr "PZN"
 msgid "PZN (Pharmazentralnummer):"
 msgstr "PZN (German pharmaceutical number):"
 
+#: core/masterdata_import.py:1481
+msgid "PZN eines vorhandenen Artikels; hat Vorrang vor der Bezeichnung."
+msgstr "PZN of an existing article; takes precedence over the name."
+
 #: templates/core/warehouse_item_form.html:42
 msgid "Packungs- / Zähleinheit:"
 msgstr "Pack / counting unit:"
 
-#: core/audit_labels.py:149
+#: core/audit_labels.py:154
 #: templates/registration/mfa_setup.html:44
 msgid "Passkey"
 msgstr "Passkey"
@@ -8697,9 +9277,9 @@ msgstr "\\\"PayPal.me link\\\""
 msgid "PayPal.me-Links müssen mit https:// beginnen."
 msgstr "PayPal.me links must start with https://."
 
-#: core/audit_labels.py:178
-#: core/coffee_views.py:684
-#: core/coffee_views.py:690
+#: core/audit_labels.py:183
+#: core/coffee_views.py:685
+#: core/coffee_views.py:691
 #: core/forms.py:266
 #: templates/core/coffee_book.html:33
 #: templates/core/coffee_correction.html:4
@@ -8760,6 +9340,19 @@ msgstr "Personal pairing QR code"
 msgid "Persönlicher Zugang"
 msgstr "Personal access"
 
+#: templates/core/masterdata_import_kind.html:42
+msgid "Pflicht"
+msgstr "Required"
+
+#: core/masterdata_import.py:1527
+msgid "Pflicht: I, IIa, IIb oder III."
+msgstr "Required: I, IIa, IIb or III."
+
+#: core/masterdata_import.py:616
+#: core/masterdata_import.py:1149
+msgid "Pflichtfeld ist leer."
+msgstr "Required field is empty."
+
 #: templates/core/sop_detail.html:60
 msgid "Pflichtquittierung ausstehend"
 msgstr "Mandatory acknowledgement pending"
@@ -8768,7 +9361,15 @@ msgstr "Mandatory acknowledgement pending"
 msgid "Pflichtquittierung für Wachpersonal aktivieren"
 msgstr "Enable mandatory acknowledgement for station staff"
 
-#: core/audit_labels.py:185
+#: core/masterdata_import.py:426
+msgid "Pflichtspalte fehlt: %(headers)s."
+msgstr "Required column missing: %(headers)s."
+
+#: core/masterdata_import.py:1439
+msgid "Pharmazentralnummer; fehlende führende Nullen werden ergänzt."
+msgstr "Pharmacy product number (PZN); missing leading zeros are added."
+
+#: core/audit_labels.py:190
 #: core/navigation.py:19
 #: core/navigation.py:60
 #: templates/core/more.html:232
@@ -8788,7 +9389,7 @@ msgstr "Police"
 msgid "Pool-/Schlüsselobjekt anlegen"
 msgstr "Create pool/key object"
 
-#: core/audit_labels.py:125
+#: core/audit_labels.py:130
 msgid "Poolartikel"
 msgstr "Pool item"
 
@@ -8924,11 +9525,11 @@ msgstr "Processor"
 msgid "Prozessor / Speicher"
 msgstr "Processor / storage"
 
-#: templates/core/mpg_device_detail.html:408
+#: templates/core/mpg_device_detail.html:411
 msgid "Prüfdatum:"
 msgstr "Inspection date:"
 
-#: templates/core/mpg_device_detail.html:413
+#: templates/core/mpg_device_detail.html:416
 msgid "Prüfer / Fachbetrieb:"
 msgstr "Inspector / specialist company:"
 
@@ -8951,27 +9552,31 @@ msgstr "Inspection deadline status"
 msgid "Prüfintervalle"
 msgstr "Inspection intervals"
 
-#: templates/core/mpg_device_detail.html:209
+#: templates/core/mpg_device_detail.html:212
 msgid "Prüfprotokolle (STK / MTK / DGUV)"
 msgstr "Inspection reports (STK / MTK / DGUV)"
 
-#: templates/core/mpg_device_detail.html:399
+#: templates/core/masterdata_import_preview.html:14
+msgid "Prüfsumme (SHA-256):"
+msgstr "Checksum (SHA-256):"
+
+#: templates/core/mpg_device_detail.html:402
 msgid "Prüfung / STK dokumentieren"
 msgstr "Document inspection / STK"
 
-#: templates/core/mpg_device_detail.html:225
+#: templates/core/mpg_device_detail.html:228
 msgid "Prüfung eintragen"
 msgstr "Record inspection"
 
-#: core/mpg_views.py:416
+#: core/mpg_views.py:425
 msgid "Prüfung nicht gespeichert. Bitte die Angaben im Prüfungsformular prüfen."
 msgstr "Inspection not saved. Please check the entries in the inspection form."
 
-#: core/mpg_views.py:414
+#: core/mpg_views.py:423
 msgid "Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."
 msgstr "Inspection not saved: please choose the result (passed or failed)."
 
-#: templates/core/mpg_device_detail.html:404
+#: templates/core/mpg_device_detail.html:407
 msgid "Prüfungsart:"
 msgstr "Inspection type:"
 
@@ -8996,7 +9601,7 @@ msgstr "Push could not be activated."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
-#: core/audit_labels.py:159
+#: core/audit_labels.py:164
 msgid "Push-Benachrichtigung"
 msgstr "Push notification"
 
@@ -9014,7 +9619,7 @@ msgstr "Push notifications"
 msgid "Push-Benachrichtigungen deaktiviert."
 msgstr "Push notifications disabled."
 
-#: templates/core/more.html:459
+#: templates/core/more.html:470
 msgid "Push-Mitteilungen"
 msgstr "Push notifications"
 
@@ -9276,11 +9881,15 @@ msgstr "Registration:"
 msgid "Registrierungsanfrage abgelehnt"
 msgstr "Registration request rejected"
 
+#: templates/core/masterdata_import.html:27
+msgid "Reihenfolge: zuerst Lagerorte, dann Artikel, dann Bestand, danach Medizingeräte. Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an."
+msgstr "Order: storage locations first, then articles, then stock, then medical devices. Please import storage locations before the warehouse is opened for the first time; otherwise Wachwerk creates three sample storage locations there."
+
 #: core/fleet_forms.py:127
 msgid "Reserve"
 msgstr "Reserve"
 
-#: core/demo_sandbox.py:850
+#: core/demo_sandbox.py:853
 msgid "Reserveflasche im RTW 83-2 unter 50 bar. Bitte vor Schichtbeginn tauschen – volle Flaschen stehen im Zentrallager."
 msgstr "Spare cylinder in RTW 83-2 below 50 bar. Please replace before the shift starts – full cylinders are in the central store."
 
@@ -9345,7 +9954,7 @@ msgstr "Revision review due on"
 msgid "Risikoklasse gem. EU-MDR:"
 msgstr "Risk class per EU MDR:"
 
-#: core/audit_labels.py:174
+#: core/audit_labels.py:179
 #: core/forms.py:330
 #: core/forms.py:352
 #: core/forms.py:374
@@ -9387,7 +9996,7 @@ msgstr "Tour %(done)s/%(total)s"
 msgid "Rundgang abgeschlossen"
 msgstr "Tour completed"
 
-#: core/demo_sandbox.py:823
+#: core/demo_sandbox.py:826
 msgid "Rundgang geschafft – alle %(total)s Schritte erledigt! Auf der Übersicht siehst du, was dabei entstanden ist."
 msgstr "Tour completed – all %(total)s steps done! The overview shows what you created."
 
@@ -9403,15 +10012,15 @@ msgstr "Tour, feedback and rating: last 30 days. A tour counts once the demo sta
 msgid "Rundgang: %(done)s von %(total)s erledigt"
 msgstr "Tour: %(done)s of %(total)s done"
 
-#: core/demo_sandbox.py:840
+#: core/demo_sandbox.py:843
 msgid "Rundgang: Schritt %(number)s von %(total)s geschafft. Als Nächstes: %(next)s – oben im Banner geht es weiter."
 msgstr "Tour: step %(number)s of %(total)s done. Next: %(next)s – continue in the banner at the top."
 
-#: core/demo_sandbox.py:864
+#: core/demo_sandbox.py:867
 msgid "Rückfahrkamera RTW 83-1 zeigt kein Bild"
 msgstr "Reversing camera RTW 83-1 shows no picture"
 
-#: core/audit_labels.py:158
+#: core/audit_labels.py:163
 msgid "Rückmeldung"
 msgstr "Feedback"
 
@@ -9464,6 +10073,10 @@ msgstr "STK interval (months):"
 msgid "STK-Intervall:"
 msgstr "STK interval:"
 
+#: core/masterdata_import.py:1540
+msgid "STK-Pflicht. Leer: Ja."
+msgstr "STK required. Empty: yes."
+
 #: templates/core/privacy.html:124
 #: templates/core/privacy.html:149
 msgid "SameSite:"
@@ -9479,7 +10092,7 @@ msgstr "SameSite="
 msgid "Sauerstoff O₂"
 msgstr "Oxygen O₂"
 
-#: core/demo_sandbox.py:849
+#: core/demo_sandbox.py:852
 msgid "Sauerstoff RTW 83-2 fast leer"
 msgstr "Oxygen RTW 83-2 almost empty"
 
@@ -9534,7 +10147,7 @@ msgstr "Shift handover not saved. Please check the highlighted entries."
 
 #: templates/core/fleet_dashboard.html:241
 #: templates/core/mpg_dashboard.html:244
-#: templates/core/mpg_device_detail.html:339
+#: templates/core/mpg_device_detail.html:342
 #: templates/core/warehouse_dashboard.html:201
 msgid "Schließen"
 msgstr "Close"
@@ -9573,7 +10186,7 @@ msgstr "Unlock key"
 msgid "Schlüssel entsperrt."
 msgstr "Keys unlocked."
 
-#: core/audit_labels.py:156
+#: core/audit_labels.py:161
 msgid "Schlüssel für verschlüsselte Nachrichten"
 msgstr "Keys for encrypted messages"
 
@@ -9626,7 +10239,7 @@ msgstr "Write operations such as new handovers, status changes, or cash book ent
 msgid "Schritt-für-Schritt-Anleitung"
 msgstr "Step-by-step guide"
 
-#: templates/core/mpg_device_detail.html:480
+#: templates/core/mpg_device_detail.html:483
 #: templates/core/mpg_geraetepass.html:29
 msgid "Schulungsdatum:"
 msgstr "Training date:"
@@ -9651,6 +10264,10 @@ msgstr "Scopes:"
 #: templates/core/privacy.html:147
 msgid "Secure:"
 msgstr "Secure:"
+
+#: templates/core/masterdata_import_preview.html:19
+msgid "Seit der Prüfung hat sich der Datenbestand geändert. Es wurde nichts importiert. Bitte die neue Vorschau prüfen und erneut bestätigen."
+msgstr "The data has changed since the check. Nothing was imported. Please review the new preview and confirm again."
 
 #: templates/core/diagnostics_events.html:53
 #: templates/core/wiki_index.html:67
@@ -9688,7 +10305,7 @@ msgid "Selbst betreiben"
 msgstr "Run it yourself"
 
 #: core/api/views.py:951
-#: core/coffee_views.py:153
+#: core/coffee_views.py:154
 msgid "Selbst eingetragen: %(method)s"
 msgstr "Self-reported: %(method)s"
 
@@ -9701,7 +10318,7 @@ msgid "Selbst hosten"
 msgstr "Self-host"
 
 #: core/mpg_forms.py:143
-#: templates/core/mpg_device_detail.html:348
+#: templates/core/mpg_device_detail.html:351
 msgid "Selbsttest / Gerätestart fehlerfrei"
 msgstr "Self-test / device start without errors"
 
@@ -9709,7 +10326,7 @@ msgstr "Self-test / device start without errors"
 msgid "Selbsttest eines Medizingeräts nicht in Ordnung"
 msgstr "Self-test of a medical device not OK"
 
-#: templates/core/mpg_device_detail.html:315
+#: templates/core/mpg_device_detail.html:318
 msgid "Selbsttest-Protokoll (optional):"
 msgstr "Self-test record (optional):"
 
@@ -9717,11 +10334,15 @@ msgstr "Self-test record (optional):"
 msgid "Selbsttests der Medizingeräte in Ordnung"
 msgstr "Medical device self-tests fine"
 
+#: core/masterdata_import.py:78
+msgid "Semikolon (;)"
+msgstr "semicolon (;)"
+
 #: core/templatetags/js_i18n.py:46
 msgid "Senden fehlgeschlagen."
 msgstr "Sending failed."
 
-#: core/coffee_views.py:337
+#: core/coffee_views.py:338
 #: core/signal_views.py:97
 msgid "Senden fehlgeschlagen: %(error)s"
 msgstr "Sending failed: %(error)s"
@@ -9729,6 +10350,15 @@ msgstr "Sending failed: %(error)s"
 #: templates/core/mpg_device_form.html:63
 msgid "Seriennummer (SN):"
 msgstr "Serial number (SN):"
+
+#: core/masterdata_import.py:1307
+msgid "Seriennummer oder Inventarnummer fehlt (§ 14 MPBetreibV)."
+msgstr "Serial number or inventory number is missing (§ 14 MPBetreibV)."
+
+#: core/masterdata_import.py:1532
+#: core/masterdata_import.py:1533
+msgid "Seriennummer oder Inventarnummer ist Pflicht."
+msgstr "Serial number or inventory number is required."
 
 #: templates/core/mpg_device_detail.html:190
 msgid "Seriennummer:"
@@ -9786,7 +10416,7 @@ msgid "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 msgstr "Only voluntarily shared days and months are visible."
 
 #: core/mpg_forms.py:142
-#: templates/core/mpg_device_detail.html:347
+#: templates/core/mpg_device_detail.html:350
 msgid "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"
 msgstr "Visual inspection & completeness (cables, sensors)"
 
@@ -9862,7 +10492,7 @@ msgstr "Signal group or internal chat"
 msgid "Signal-Gruppe öffnen"
 msgstr "Open Signal group"
 
-#: core/audit_labels.py:157
+#: core/audit_labels.py:162
 msgid "Signal-Kontakt"
 msgstr "Signal contact"
 
@@ -9889,6 +10519,10 @@ msgstr "Session-bound feed (browser)"
 #: core/wiki_models.py:34
 msgid "Slug"
 msgstr "Slug"
+
+#: templates/core/masterdata_import.html:12
+msgid "So geht es"
+msgstr "How it works"
 
 #: templates/core/_demo_tour.html:30
 msgid "So läuft ein Schichtwechsel mit Wachwerk."
@@ -9942,6 +10576,18 @@ msgstr "Other contacts"
 msgid "Sonstiges"
 msgstr "Other"
 
+#: templates/core/masterdata_import_kind.html:41
+msgid "Spalte"
+msgstr "Column"
+
+#: core/masterdata_import.py:379
+msgid "Spalte %(number)s: Wert ohne Spaltenüberschrift."
+msgstr "Column %(number)s: value without a column header."
+
+#: templates/core/masterdata_import_kind.html:35
+msgid "Spalten"
+msgstr "Columns"
+
 #: templates/core/install_guide.html:69
 msgid "Speicher"
 msgstr "Storage"
@@ -9951,7 +10597,7 @@ msgstr "Storage"
 #: templates/core/coffee_settings.html:19
 #: templates/core/defect_detail.html:27
 #: templates/core/legal_settings.html:46
-#: templates/core/mpg_device_detail.html:321
+#: templates/core/mpg_device_detail.html:324
 #: templates/core/pinboard_form.html:20
 #: templates/core/signal_admin.html:41
 #: templates/core/station_settings.html:28
@@ -10003,6 +10649,14 @@ msgstr "Later"
 #: templates/core/warehouse_item_detail.html:36
 msgid "Stammdaten bearbeiten"
 msgstr "Edit master data"
+
+#: templates/core/masterdata_import.html:3
+#: templates/core/masterdata_import.html:7
+#: templates/core/masterdata_import_kind.html:3
+#: templates/core/masterdata_import_kind.html:10
+#: templates/core/more.html:409
+msgid "Stammdaten importieren"
+msgstr "Import master data"
 
 #: templates/core/fleet_vehicle_form.html:13
 msgid "Stammdaten, technische Merkmale und gesetzliche Prüfintervalle (StVZO § 29 HU / DGUV Vorschrift 70)."
@@ -10065,7 +10719,7 @@ msgstr "Station phone book"
 msgid "Stationsübersicht"
 msgstr "Station overview"
 
-#: core/audit_labels.py:165
+#: core/audit_labels.py:170
 #: templates/core/assets_inventory.html:20
 #: templates/core/defect_detail.html:14
 #: templates/core/defect_detail.html:25
@@ -10216,6 +10870,10 @@ msgstr "TOTP confirmed since %(date)s."
 msgid "TOTP-Code (aus der Authenticator-App):"
 msgstr "TOTP code (from the authenticator app):"
 
+#: core/masterdata_import.py:80
+msgid "Tabulator"
+msgstr "tab"
+
 #: templates/core/_demo_stats_card.html:18
 #: templates/core/_demo_stats_card.html:19
 msgid "Tag"
@@ -10308,11 +10966,11 @@ msgid "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Bet
 msgstr "Technical product information for operators and users. The specific operator must supplement this information with its complete data subject information under Art. 13/14 GDPR."
 
 #: core/navigation.py:73
-#: templates/core/more.html:472
+#: templates/core/more.html:483
 msgid "Technische Verwaltung"
 msgstr "Technical administration"
 
-#: templates/core/more.html:473
+#: templates/core/more.html:484
 msgid "Technische Verwaltung für Serveradministratoren."
 msgstr "Technical administration for server administrators."
 
@@ -10324,7 +10982,7 @@ msgstr "Technical and organisational measures"
 msgid "Technischer Fahrzeugcheck"
 msgstr "Technical vehicle check"
 
-#: core/audit_labels.py:137
+#: core/audit_labels.py:142
 msgid "Teilnahme Kaffeekasse"
 msgstr "Coffee fund membership"
 
@@ -10366,7 +11024,7 @@ msgstr "Provider phone (optional)"
 msgid "Telefonbucheinträge"
 msgstr "Phone book entries"
 
-#: core/audit_labels.py:131
+#: core/audit_labels.py:136
 msgid "Termin"
 msgstr "Appointment"
 
@@ -10398,7 +11056,7 @@ msgstr "Create terminal link"
 msgid "Termine der Wache, Feiertage und Kalender-Abo für das Handy."
 msgstr "Station appointments, public holidays and a calendar subscription for your phone."
 
-#: core/coffee_views.py:339
+#: core/coffee_views.py:340
 msgid "Test-E-Mail an %(email)s gesendet."
 msgstr "Test email sent to %(email)s."
 
@@ -10425,7 +11083,7 @@ msgstr "Text"
 msgid "Text / Handlungsanweisung (Markdown)"
 msgstr "Text / instructions (Markdown)"
 
-#: templates/core/mpg_device_detail.html:316
+#: templates/core/mpg_device_detail.html:319
 msgid "Text vom Geräteausdruck oder gescannter QR-Inhalt"
 msgstr "Text from the device printout or scanned QR content"
 
@@ -10441,7 +11099,7 @@ msgstr "Deep cleaning / weekly closing"
 msgid "Tipps für gebrauchte Thin Clients und Mini-PCs"
 msgstr "Tips for used thin clients and mini PCs"
 
-#: core/audit_labels.py:168
+#: core/audit_labels.py:173
 #: core/orga_views.py:348
 #: core/wiki_forms.py:15
 #: core/wiki_models.py:38
@@ -10456,7 +11114,7 @@ msgstr "Title"
 msgid "Titel der Dienstanweisung*"
 msgstr "Title of the work instruction*"
 
-#: templates/core/mpg_device_detail.html:373
+#: templates/core/mpg_device_detail.html:376
 msgid "Titel des Mangels:"
 msgstr "Title of the defect:"
 
@@ -10503,6 +11161,10 @@ msgstr "Transport via HTTPS. Two-factor secrets are stored encrypted with AES-25
 msgid "Treffer für „%(help_query)s“"
 msgstr "Results for “%(help_query)s”"
 
+#: templates/core/masterdata_import_preview.html:10
+msgid "Trockenlauf – noch nichts gespeichert"
+msgstr "Dry run – nothing saved yet"
+
 #: templates/core/privacy.html:123
 #: templates/core/privacy.html:148
 msgid "True (für clientseitige Skripte unzugänglich)"
@@ -10547,6 +11209,10 @@ msgstr "UDI-DI (GS1 GTIN):"
 #: templates/core/mpg_device_detail.html:192
 msgid "UDI-DI (GTIN):"
 msgstr "UDI-DI (GTIN):"
+
+#: core/masterdata_import.py:74
+msgid "UTF-8 mit BOM"
+msgstr "UTF-8 with BOM"
 
 #: templates/core/fleet_vehicle_detail.html:151
 msgid "UVV-Prüfung (DGUV Vorschrift 70)"
@@ -10641,7 +11307,7 @@ msgstr "User-Agent (browser type, operating system) and Referrer-URL (if transmi
 msgid "Validierung"
 msgstr "Validation"
 
-#: core/audit_labels.py:170
+#: core/audit_labels.py:175
 msgid "Verantwortlich"
 msgstr "Responsible"
 
@@ -10735,7 +11401,7 @@ msgstr "Encrypted – cannot be decrypted (missing keys)."
 msgid "Verschlüsselte Direktnachricht gesendet"
 msgstr "Encrypted direct message sent"
 
-#: core/audit_labels.py:155
+#: core/audit_labels.py:160
 msgid "Verschlüsselte Nachricht"
 msgstr "Encrypted message"
 
@@ -10820,6 +11486,10 @@ msgstr "Release blocker: technical information incomplete pending operator appro
 msgid "Vier-Augen-Prinzip: eine zweite Person zählt mit."
 msgstr "Four-eyes principle: a second person counts as well."
 
+#: core/masterdata_import.py:1537
+msgid "Vierstellige Jahreszahl."
+msgstr "Four-digit year."
+
 #: core/fleet_forms.py:127
 msgid "Voll"
 msgstr "Full"
@@ -10862,7 +11532,7 @@ msgstr "From storage location:"
 msgid "Von diesem Anschluss kamen gerade viele Rückmeldungen. Bitte später erneut versuchen."
 msgstr "A lot of feedback just came from this connection. Please try again later."
 
-#: core/demo_sandbox.py:181
+#: core/demo_sandbox.py:184
 msgid "Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gestartet. In spätestens einer Stunde geht es wieder – bis dahin zeigt die Vorführung alle Funktionen ohne Anmeldung."
 msgstr "Many demos have already been started from this connection in the last hour. It will work again within an hour at the latest – until then the presentation shows all features without logging in."
 
@@ -10892,6 +11562,30 @@ msgstr "View the presentation"
 msgid "Vorführungsfolien"
 msgstr "Presentation slides"
 
+#: templates/core/masterdata_import.html:38
+msgid "Vorhanden: %(existing)s"
+msgstr "Existing: %(existing)s"
+
+#: core/masterdata_import.py:1459
+msgid "Vorhandene Artikel (gleiche PZN, GTIN oder Bezeichnung) werden übersprungen und nicht geändert. Hinweise und Dosierungstexte werden nicht übernommen. Bestände kommen über „Bestand (Altbestand)“."
+msgstr "Existing articles (same PZN, GTIN or name) are skipped and not changed. Notes and dosage texts are not imported. Stock is imported via “Stock (carried over)”."
+
+#: core/masterdata_import.py:1503
+msgid "Vorhandene Bestände (gleiche Charge am gleichen Lagerort) werden übersprungen und nicht geändert. Gesperrte Chargen und Betäubungsmittel werden nicht übernommen."
+msgstr "Existing stock (same batch at the same storage location) is skipped and not changed. Blocked batches and narcotics are not imported."
+
+#: core/masterdata_import.py:1471
+msgid "Vorhandene Chargen je Lagerort, gebucht als „Übernahme Altbestand“. Artikel und Lagerorte müssen schon angelegt sein. Betäubungsmittel gehören nicht hierher; ihr Bestand bleibt im BtM-Buch."
+msgstr "Existing batches per storage location, booked as “Carried-over stock”. Articles and storage locations must already exist. Narcotics do not belong here; their stock stays in the narcotics register."
+
+#: core/masterdata_import.py:1571
+msgid "Vorhandene Geräte (gleiche Inventarnummer oder gleiche Seriennummer beim gleichen Hersteller) werden übersprungen und nicht geändert. Status, Funktionskontrollen, Prüfprotokolle, Einweisungen und Notizen werden nicht übernommen; es entstehen keine rückdatierten Einträge im Medizinproduktebuch."
+msgstr "Existing devices (same inventory number, or same serial number from the same manufacturer) are skipped and not changed. Status, function checks, inspection records, trainings and notes are not imported; no back-dated entries are created in the medical device log."
+
+#: core/masterdata_import.py:1416
+msgid "Vorhandene Lagerorte (gleicher Pfad) werden übersprungen und nicht geändert. Lagerorte lassen sich nach dem Import nicht bearbeiten oder löschen; die Datei deshalb vorher genau prüfen."
+msgstr "Existing storage locations (same path) are skipped and not changed. Storage locations cannot be edited or deleted after the import, so please check the file carefully beforehand."
+
 #: templates/core/vorfuehrung.html:159
 msgid "Vorherige Folie"
 msgstr "Previous slide"
@@ -10907,6 +11601,15 @@ msgstr "Previous day"
 #: core/diagnostics_models.py:28
 msgid "Vorlage"
 msgstr "Template"
+
+#: templates/core/masterdata_import.html:41
+#: templates/core/masterdata_import_kind.html:24
+msgid "Vorlage herunterladen"
+msgstr "Download template"
+
+#: templates/core/masterdata_import.html:15
+msgid "Vorlage herunterladen und ausfüllen"
+msgstr "Download and fill in the template"
 
 #: templates/core/it_privacy.html:139
 msgid "Vorlage mit Datenklassen"
@@ -10943,6 +11646,10 @@ msgstr "Pre-production"
 msgid "Vorprüfung Datenschutz-Folgenabschätzung"
 msgstr "Data protection impact assessment screening"
 
+#: templates/core/masterdata_import_preview.html:3
+msgid "Vorschau"
+msgstr "Preview"
+
 #: templates/core/terminal_home.html:78
 msgid "Vorschau aus der Demo"
 msgstr "Preview from the demo"
@@ -10950,6 +11657,10 @@ msgstr "Preview from the demo"
 #: templates/core/display_tokens.html:120
 msgid "Vorschau öffnen"
 msgstr "Open preview"
+
+#: templates/core/masterdata_import_preview.html:11
+msgid "Vorschau: %(title)s"
+msgstr "Preview: %(title)s"
 
 #: templates/core/terminal_home.html:110
 msgid "Vorschau: Am echten Terminal öffnet der vierstellige Wachen-Code jetzt den Alltagsmodus der Wache."
@@ -10986,7 +11697,7 @@ msgstr "Daily watch routine"
 msgid "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor."
 msgstr "Everyday station work: handovers, defects, tasks, checklists and appointments with timestamp and author."
 
-#: core/audit_labels.py:132
+#: core/audit_labels.py:137
 msgid "Wachaufgabe"
 msgstr "Station task"
 
@@ -11034,7 +11745,7 @@ msgstr "Watch log demonstration"
 msgid "Wachdienst-Aufgaben"
 msgstr "Watch duty tasks"
 
-#: core/audit_labels.py:121
+#: core/audit_labels.py:126
 #: core/models.py:192
 #: core/wiki_models.py:30
 #: templates/core/chat.html:11
@@ -11140,7 +11851,7 @@ msgstr "Station chat"
 msgid "Wachendaten"
 msgstr "Station data"
 
-#: templates/core/more.html:420
+#: templates/core/more.html:431
 msgid "Wacheneinstellungen"
 msgstr "Station settings"
 
@@ -11158,7 +11869,7 @@ msgstr "Station calendar"
 msgid "Wachenorganisation"
 msgstr "Station organization"
 
-#: core/audit_labels.py:143
+#: core/audit_labels.py:148
 #: templates/base.html:81
 #: templates/core/setup_done.html:29
 #: templates/core/team.html:15
@@ -11236,6 +11947,10 @@ msgstr "Wachwerk is publicly reachable on the internet (own domain)"
 msgid "Wachwerk selbst betreiben"
 msgstr "Run Wachwerk yourself"
 
+#: templates/core/masterdata_import.html:57
+msgid "Wachwerk speichert die Datei nicht. Sie wird nur im Arbeitsspeicher gelesen; Zwischenpuffer des Proxys werden nach der Anfrage verworfen. Im Audit-Log stehen nur Anzahl und Prüfsumme."
+msgstr "Wachwerk does not store the file. It is only read in memory; temporary buffers of the proxy are discarded after the request. The audit log only holds counts and the checksum."
+
 #: templates/core/privacy.html:187
 msgid "Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen."
 msgstr "Wachwerk provides technical deletion and cleanup mechanisms, but does not determine legally permissible periods across the board. Prior to production operations, the operator must define an approved deletion and retention concept for each data class."
@@ -11277,7 +11992,7 @@ msgstr "Waiting"
 msgid "Wartung / STK eintragen"
 msgstr "Enter maintenance / STK"
 
-#: templates/core/mpg_device_detail.html:432
+#: templates/core/mpg_device_detail.html:435
 msgid "Wartung buchen"
 msgstr "Book maintenance"
 
@@ -11302,7 +12017,7 @@ msgstr "What the shift needs to know. At a glance."
 msgid "Was du im Feedback-Formular einträgst (Art der Rückmeldung, Nachricht, freiwillig Rolle, Bewertung, Name und E-Mail), wird mit dem Zeitpunkt gespeichert, damit der Betreiber die Rückmeldung lesen und auf Wunsch antworten kann (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Die IP-Adresse wird dabei nicht gespeichert; zum Schutz vor Missbrauch zählt der Server Absendungen je Anschluss nur kurzzeitig als gesalzenen Prüfwert im Zwischenspeicher. Die Einträge werden nach Bearbeitung, spätestens nach %(days)s Tagen gelöscht. Die Einwilligung kannst du jederzeit beim Betreiber widerrufen."
 msgstr "What you enter in the feedback form (type of feedback, message and, optionally, role, rating, name and email) is stored with the time so that the operator can read it and reply if you wish (consent, Art. 6(1)(a) GDPR). The IP address is not stored; to prevent abuse, the server only briefly counts submissions per connection as a salted check value in its cache. Entries are deleted after processing, at the latest after %(days)s days. You can withdraw your consent at any time by contacting the operator."
 
-#: templates/core/mpg_device_detail.html:386
+#: templates/core/mpg_device_detail.html:389
 msgid "Was genau ist defekt? Fehlermeldung auf Display?"
 msgstr "What exactly is defective? Error message on the display?"
 
@@ -11314,11 +12029,19 @@ msgstr "What needs attention now"
 msgid "Was passiert, wenn der Rechner kaputtgeht?"
 msgstr "What happens if the computer breaks?"
 
+#: templates/core/masterdata_import.html:31
+msgid "Was soll übernommen werden?"
+msgstr "What do you want to import?"
+
 #: templates/core/signal_admin.html:52
 msgid "Was verschickt wird"
 msgstr "What is sent"
 
-#: templates/core/mpg_device_detail.html:351
+#: templates/core/masterdata_import_kind.html:30
+msgid "Was wird nicht übernommen?"
+msgstr "What is not imported?"
+
+#: templates/core/mpg_device_detail.html:354
 msgid "Was wurde behoben?"
 msgstr "What was fixed?"
 
@@ -11347,6 +12070,11 @@ msgstr "Switch"
 #: templates/core/wiki_index.html:69
 msgid "Weiter"
 msgstr "Next"
+
+#: templates/core/masterdata_import_done.html:30
+#: templates/core/masterdata_import_done.html:35
+msgid "Weiter mit: %(title)s"
+msgstr "Continue with: %(title)s"
 
 #: templates/registration/qr_manual.html:24
 msgid "Weiter zur Bestätigung"
@@ -11485,7 +12213,7 @@ msgstr "Weather, traffic, waste calendar, Signal, push"
 msgid "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 msgstr "Weather: When the weather forecast is enabled, the address is automatically geocoded via OpenStreetMap and Open-Meteo and shown on the station display."
 
-#: templates/core/mpg_device_detail.html:279
+#: templates/core/mpg_device_detail.html:282
 msgid "Wetterfester QR-Code für Geräteaufkleber"
 msgstr "Weatherproof QR code for device stickers"
 
@@ -11507,7 +12235,7 @@ msgstr "The weather preview does not match the address entered."
 
 #: core/models.py:200
 #: core/wachalltag_models.py:51
-#: templates/core/mpg_device_detail.html:380
+#: templates/core/mpg_device_detail.html:383
 msgid "Wichtig"
 msgstr "Important"
 
@@ -11537,6 +12265,10 @@ msgstr "Revocable tokens for open-source apps (iOS/Android), similar to Paperles
 msgid "Widerrufen"
 msgstr "Revoke"
 
+#: core/masterdata_import.py:1050
+msgid "Widerspricht Zeile %(line)s (gleiche PZN, GTIN oder Bezeichnung, andere Angaben)."
+msgstr "Contradicts row %(line)s (same PZN, GTIN or name, different details)."
+
 #: templates/core/coffee_pay.html:9
 msgid "Wie das Kreuz in der Mappe: Trag ein, was du in die Kasse gelegt oder überwiesen hast. Der Kassenwart gleicht das beim Kassensturz bzw. mit dem Kontoauszug ab."
 msgstr "Like the tick in the ledger book: record what you put in the box or transferred. The treasurer checks it at the cash count or against the bank statement."
@@ -11544,6 +12276,10 @@ msgstr "Like the tick in the ledger book: record what you put in the box or tran
 #: templates/core/tasks_week.html:9
 msgid "Wie der laminierte Wandbogen: sieben Tage, farbige Aufgabenbereiche, Fortschritt auf einen Blick."
 msgstr "Like the laminated wall sheet: seven days, colored task areas, progress at a glance."
+
+#: templates/core/masterdata_import_done.html:24
+msgid "Wie geht es weiter?"
+msgstr "What next?"
 
 #: core/feedback.py:47
 msgid "Wie gut gefällt dir Wachwerk? (1 = gar nicht, 5 = sehr)"
@@ -11591,12 +12327,12 @@ msgstr "Schedule recurring checks daily, weekly or monthly."
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Process and document recurring checks in station operations."
 
-#: core/audit_labels.py:186
+#: core/audit_labels.py:191
 #: core/navigation.py:18
 msgid "Wiki"
 msgstr "Wiki"
 
-#: core/audit_labels.py:144
+#: core/audit_labels.py:149
 #: core/wiki_models.py:83
 #: core/wiki_models.py:84
 msgid "Wiki-Artikel"
@@ -11634,6 +12370,10 @@ msgstr "Wiki revisions must not be deleted."
 msgid "Wiki-Revisionen dürfen nicht verändert werden."
 msgstr "Wiki revisions must not be modified."
 
+#: core/masterdata_import.py:75
+msgid "Windows-1252 (ANSI)"
+msgstr "Windows-1252 (ANSI code page)"
+
 #: core/signal_views.py:51
 msgid "Wir haben dir per Signal einen Code geschickt."
 msgstr "We have sent you a code via Signal."
@@ -11642,11 +12382,15 @@ msgstr "We have sent you a code via Signal."
 msgid "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen."
 msgstr "Automatically given a cryptographic SHA-256 checksum hash when saved."
 
+#: core/masterdata_import.py:1556
+msgid "Wird nicht übernommen. Gesperrte Geräte oder Geräte in Wartung verhindern den Import; außer Betrieb genommene Geräte werden übersprungen."
+msgstr "Not imported. Locked devices or devices in maintenance block the import; decommissioned devices are skipped."
+
 #: templates/registration/qr_confirm.html:48
 msgid "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 msgstr "Only prompted if no QR code was scanned."
 
-#: templates/core/mpg_device_detail.html:317
+#: templates/core/mpg_device_detail.html:320
 msgid "Wird nur als Notiz gespeichert und nicht ausgewertet."
 msgstr "Stored as a note only, not evaluated."
 
@@ -11727,12 +12471,12 @@ msgstr "Coffee fund payment reminder sent by email"
 msgid "Zahlungshinweis"
 msgstr "\\\"Payment note\\\""
 
-#: core/audit_labels.py:177
+#: core/audit_labels.py:182
 #: core/forms.py:136
 msgid "Zahlungsweg"
 msgstr "Payment method"
 
-#: core/coffee_views.py:684
+#: core/coffee_views.py:685
 msgid "Zahlungsweg/Topf"
 msgstr "Payment method/pot"
 
@@ -11740,6 +12484,22 @@ msgstr "Payment method/pot"
 #: templates/core/coffee_settings.html:15
 msgid "Zahlungswege"
 msgstr "Payment methods"
+
+#: templates/core/_masterdata_import_rows.html:6
+msgid "Zeile"
+msgstr "Row"
+
+#: core/masterdata_import.py:1668
+msgid "Zeile %(line)s konnte nicht gespeichert werden. Es wurde nichts importiert."
+msgstr "Row %(line)s could not be saved. Nothing was imported."
+
+#: core/masterdata_import.py:360
+msgid "Zeile %(line)s lässt sich nicht lesen. Bitte Anführungszeichen in dieser Zeile prüfen."
+msgstr "Row %(line)s cannot be read. Please check the quotation marks in this row."
+
+#: templates/core/masterdata_import_preview.html:53
+msgid "Zeilen mit Fehlern oder Hinweisen"
+msgstr "Rows with errors or notes"
 
 #: templates/core/audit_log.html:6
 msgid "Zeit"
@@ -11760,6 +12520,10 @@ msgstr "Numbers and symbols"
 #: templates/core/chat_signal.html:48
 msgid "Zu den Einstellungen"
 msgstr "Go to settings"
+
+#: core/masterdata_import.py:1581
+msgid "Zu den Medizingeräten"
+msgstr "Go to medical devices"
 
 #: templates/core/activate_account.html:12
 msgid "Zu viele Aktivierungsversuche. Bitte warte eine Minute und versuche es erneut."
@@ -11864,6 +12628,12 @@ msgstr "Skip to content"
 msgid "Zum Kalender"
 msgstr "Open calendar"
 
+#: core/masterdata_import.py:1423
+#: core/masterdata_import.py:1466
+#: core/masterdata_import.py:1510
+msgid "Zum Lager"
+msgstr "Go to warehouse"
+
 #: templates/core/setup_done.html:49
 msgid "Zum Sperrbildschirm"
 msgstr "Go to lock screen"
@@ -11879,6 +12649,10 @@ msgstr "To personal area"
 #: templates/core/activate_account.html:19
 msgid "Zur Anmeldung"
 msgstr "Go to sign-in"
+
+#: templates/core/masterdata_import_done.html:37
+msgid "Zur Import-Übersicht"
+msgstr "Back to the import overview"
 
 #: templates/emails/coffee_reminder.html:28
 msgid "Zur Kaffeekasse in Wachwerk"
@@ -11984,6 +12758,10 @@ msgstr "Back to handovers"
 msgid "Zurück zum Hinweis"
 msgstr "Back to note"
 
+#: templates/core/masterdata_import_kind.html:6
+msgid "Zurück zum Import"
+msgstr "Back to the import"
+
 #: templates/core/calendar_feed.html:5
 #: templates/core/calendar_form.html:5
 msgid "Zurück zum Kalender"
@@ -12066,6 +12844,10 @@ msgstr "Back to SOP"
 #: templates/core/sop_detail.html:7
 msgid "Zurück zur SOP-Übersicht"
 msgstr "Back to SOP overview"
+
+#: templates/core/masterdata_import_preview.html:6
+msgid "Zurück zur Spaltenbeschreibung"
+msgstr "Back to the column description"
 
 #: templates/core/task_form.html:5
 msgid "Zurück zur Vorlage"
@@ -12153,7 +12935,7 @@ msgid "Zwei-Faktor"
 msgstr "Two-factor"
 
 #: templates/core/account.html:66
-#: templates/core/more.html:446
+#: templates/core/more.html:457
 msgid "Zwei-Faktor / Passkeys"
 msgstr "Two-factor / Passkeys"
 
@@ -12259,6 +13041,10 @@ msgstr "all ready"
 msgid "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 msgstr "displayed. The server only stores a hash of the token. Role:"
 
+#: templates/core/masterdata_import_kind.html:50
+msgid "auch:"
+msgstr "also:"
+
 #: templates/core/feedback_inbox.html:25
 msgid "aus der Demo"
 msgstr "from the demo"
@@ -12271,7 +13057,7 @@ msgstr "issued"
 msgid "ausgeschieden"
 msgstr "left"
 
-#: core/coffee_views.py:693
+#: core/coffee_views.py:694
 #: templates/core/coffee_ledger.html:29
 msgid "automatisch"
 msgstr "automatic"
@@ -12367,6 +13153,10 @@ msgstr "completed"
 msgid "erreichbar"
 msgstr "reachable"
 
+#: core/masterdata_import.py:1331
+msgid "fehlt, obwohl das Gerät unter Anlage 1 fällt."
+msgstr "is missing although the device falls under Annex 1."
+
 #: core/views.py:577
 msgid "fällig oder überfällig"
 msgstr "due or overdue"
@@ -12392,6 +13182,10 @@ msgstr "counted"
 msgid "geändert"
 msgstr "changed"
 
+#: core/masterdata_import.py:1024
+msgid "gilt nur für kühlpflichtige Artikel und wird nicht übernommen."
+msgstr "only applies to articles that need cooling and is not imported."
+
 #: templates/core/dashboard.html:79
 msgid "heute erledigt"
 msgstr "completed today"
@@ -12410,7 +13204,11 @@ msgstr "always in the bar"
 msgid "in der Kaffeekasse der %(station)s sind %(amount)s € offen."
 msgstr "€%(amount)s is outstanding in the coffee fund of %(station)s."
 
-#: core/audit_labels.py:247
+#: core/masterdata_import.py:1333
+msgid "ist angegeben, aber Anlage 2 (MTK) steht auf Nein."
+msgstr "is given, but Annex 2 (MTK) is set to no."
+
+#: core/audit_labels.py:252
 #: templates/core/system_status.html:40
 msgid "ja"
 msgstr "yes"
@@ -12425,10 +13223,30 @@ msgstr "none"
 msgid "km-Stand"
 msgstr "mileage"
 
+#: core/masterdata_import.py:1499
+msgid "kommt aus dem Artikel"
+msgstr "taken from the article"
+
 #: templates/core/coffee.html:57
 #: templates/core/coffee_book.html:58
 msgid "kommt noch"
 msgstr "upcoming"
+
+#: core/masterdata_import.py:1161
+msgid "liegt in der Vergangenheit."
+msgstr "is in the past."
+
+#: core/masterdata_import.py:1329
+msgid "liegt in der Vergangenheit. Die Prüfung ist überfällig."
+msgstr "is in the past. The inspection is overdue."
+
+#: core/masterdata_import.py:1315
+msgid "liegt in der Zukunft."
+msgstr "is in the future."
+
+#: core/masterdata_import.py:1020
+msgid "liegt unter dem Mindestbestand."
+msgstr "is below the minimum stock."
 
 #: templates/core/install_guide.html:88
 msgid "mehr Reserve beim Arbeitsspeicher"
@@ -12450,7 +13268,7 @@ msgstr "counted with"
 msgid "nach Fehlversuchen gesperrt bis"
 msgstr "locked after failed attempts until"
 
-#: core/audit_labels.py:249
+#: core/audit_labels.py:254
 #: templates/core/system_status.html:40
 msgid "nein"
 msgstr "no"
@@ -12537,10 +13355,18 @@ msgstr "since %(date)s"
 msgid "selbst"
 msgstr "self"
 
+#: core/masterdata_import.py:81
+msgid "senkrechter Strich (|)"
+msgstr "vertical bar (|)"
+
 #: templates/core/install_guide.html:86
 #: templates/core/install_guide.html:87
 msgid "sparsamer Wachen-Server"
 msgstr "energy-efficient station server"
+
+#: core/masterdata_import.py:423
+msgid "unbekannte Spalte – wird nicht übernommen"
+msgstr "unknown column – not imported"
 
 #: templates/registration/qr_wait.html:43
 msgid "und geben Sie den manuellen Code ein."
@@ -12583,6 +13409,10 @@ msgstr "not yet acknowledged by you"
 msgid "was gespeichert wird, wo es liegt und wie es geschützt ist"
 msgstr "what is stored, where it lives and how it is protected"
 
+#: core/masterdata_import.py:1168
+msgid "weicht vom Artikel ab (dort: %(unit)s)."
+msgstr "differs from the article (there: %(unit)s)."
+
 #: templates/core/install_guide.html:84
 #: templates/core/install_guide.html:85
 msgid "wenige Watt"
@@ -12596,6 +13426,19 @@ msgstr "revoke"
 #: templates/core/install_guide.html:85
 msgid "wie Pi 5, etwas langsamer"
 msgstr "like the Pi 5, a little slower"
+
+#: core/masterdata_import.py:1563
+msgid "wird beim Import neu gesetzt"
+msgstr "set anew by the import"
+
+#: core/masterdata_import.py:1500
+msgid "wird berechnet"
+msgstr "is calculated"
+
+#: core/masterdata_import.py:1566
+#: core/masterdata_import.py:1569
+msgid "wird nicht übernommen"
+msgstr "not imported"
 
 #: templates/registration/qr_confirm.html:47
 #: templates/registration/qr_manual.html:21
@@ -12742,7 +13585,7 @@ msgstr "Via https with a free Let’s Encrypt certificate."
 msgid "Überfällig / OOB"
 msgstr "Overdue / OOB"
 
-#: core/audit_labels.py:122
+#: core/audit_labels.py:127
 msgid "Übergabe"
 msgstr "Handover"
 
@@ -12754,7 +13597,7 @@ msgstr "Handover acknowledged as read"
 msgid "Übergabe angelegt"
 msgstr "Handover created"
 
-#: core/demo_sandbox.py:739
+#: core/demo_sandbox.py:742
 #: templates/core/dashboard.html:10
 #: templates/core/dashboard.html:70
 #: templates/core/handover_form.html:3
@@ -12773,7 +13616,7 @@ msgstr "Edit handover"
 msgid "Übergabe bearbeitet"
 msgstr "Handover edited"
 
-#: core/demo_sandbox.py:738
+#: core/demo_sandbox.py:741
 msgid "Übergabe für die nächste Schicht anlegen"
 msgstr "Create a handover for the next shift"
 
@@ -12801,7 +13644,7 @@ msgstr "Handover log"
 msgid "Übergabeliste"
 msgstr "Handover list"
 
-#: core/audit_labels.py:179
+#: core/audit_labels.py:184
 #: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
@@ -12830,6 +13673,10 @@ msgstr "Handovers acknowledged by me"
 #: templates/core/landing.html:19
 msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 msgstr "Handovers, defects, vehicles, medical devices, supplies and work instructions in one place – in the browser, as an app and on the monitor in the vehicle bay."
+
+#: core/warehouse_models.py:276
+msgid "Übernahme Altbestand"
+msgstr "Carried-over stock"
 
 #: core/fleet_views.py:433
 msgid "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
@@ -12861,10 +13708,14 @@ msgstr "A station's overview on desktop: five items need attention, including an
 msgid "Übersicht einer Wache: oben steht, wie viele Punkte Aufmerksamkeit brauchen, darunter dringende Übergaben, fällige Fristen und offene Dienstanweisungen."
 msgstr "Station overview: the heading says how many items need attention, followed by urgent handovers, due deadlines and open instructions."
 
-#: core/demo_sandbox.py:730
-#: core/demo_sandbox.py:731
+#: core/demo_sandbox.py:733
+#: core/demo_sandbox.py:734
 msgid "Übersicht lesen"
 msgstr "Read the overview"
+
+#: templates/core/masterdata_import_preview.html:34
+msgid "Übersprungen"
+msgstr "Skipped"
 
 #: templates/core/privacy.html:87
 msgid "Übertragene Datenmenge"
@@ -12909,11 +13760,69 @@ msgstr "“%(name)s” is back in service and stays locked until a shift lead re
 msgid "„%(name)s“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 msgstr "“%(name)s”: battery, visual check and self-test checked and fine?"
 
+#: core/masterdata_import.py:766
+msgid "„%(value)s“ gibt es auf dieser Wache nicht. Bitte zuerst die Lagerorte importieren."
+msgstr "“%(value)s” does not exist at this station. Please import the storage locations first."
+
+#: core/masterdata_import.py:916
+msgid "„%(value)s“ gibt es weder auf dieser Wache noch in der Datei."
+msgstr "“%(value)s” exists neither at this station nor in the file."
+
+#: core/masterdata_import.py:1276
+msgid "„%(value)s“ ist kein bekannter Gerätestatus. Erlaubt: %(allowed)s."
+msgstr "“%(value)s” is not a known device status. Allowed: %(allowed)s."
+
+#: core/masterdata_import.py:547
+msgid "„%(value)s“ ist kein erlaubter Wert. Erlaubt: %(allowed)s."
+msgstr "“%(value)s” is not an allowed value. Allowed: %(allowed)s."
+
+#: core/masterdata_import.py:762
+#: core/masterdata_import.py:843
+msgid "„%(value)s“ ist kein gültiger Pfad."
+msgstr "“%(value)s” is not a valid path."
+
+#: core/masterdata_import.py:511
+msgid "„%(value)s“ ist kein gültiges Datum (TT.MM.JJJJ oder JJJJ-MM-TT)."
+msgstr "“%(value)s” is not a valid date (DD.MM.YYYY or YYYY-MM-DD)."
+
+#: core/masterdata_import.py:509
+msgid "„%(value)s“ ist kein gültiges Datum (TT.MM.JJJJ, JJJJ-MM-TT oder MM/JJJJ)."
+msgstr "“%(value)s” is not a valid date (DD.MM.YYYY, YYYY-MM-DD or MM/YYYY)."
+
+#: core/masterdata_import.py:559
+msgid "„%(value)s“ ist keine PZN (nur Ziffern)."
+msgstr "“%(value)s” is not a PZN (digits only)."
+
+#: core/masterdata_import.py:471
+msgid "„%(value)s“ ist keine ganze Zahl."
+msgstr "“%(value)s” is not a whole number."
+
+#: core/masterdata_import.py:799
+msgid "„%(value)s“ ist mehrdeutig. Bitte als Pfad angeben, z. B. „%(example)s“."
+msgstr "“%(value)s” is ambiguous. Please enter it as a path, e.g. “%(example)s”."
+
+#: core/masterdata_import.py:798
+msgid "„%(value)s“ ist mehrdeutig: Diesen Pfad gibt es auf dieser Wache mehrmals."
+msgstr "“%(value)s” is ambiguous: this path exists more than once at this station."
+
+#: core/masterdata_import.py:565
+#: core/masterdata_import.py:582
+msgid "„%(value)s“ ist ungültig (Prüfziffer)."
+msgstr "“%(value)s” is invalid (check digit)."
+
+#: core/masterdata_import.py:484
+msgid "„%(value)s“ ist weder Ja noch Nein."
+msgstr "“%(value)s” is neither yes nor no."
+
+#: core/masterdata_import.py:808
+msgid "„%(value)s“ steht für den Lagerort mit genau diesem Pfad. Ist „%(example)s“ gemeint, bitte den ganzen Pfad angeben."
+msgstr "“%(value)s” means the storage location with exactly this path. If you mean “%(example)s”, please enter the full path."
+
 #: templates/core/terminal_unregistered.html:16
 msgid "„Dieses Gerät als Terminal einrichten“ tippen. Danach erscheint der Sperrbildschirm."
 msgstr "Tap “Set up this device as terminal”. The lock screen appears afterwards."
 
-#: core/demo_sandbox.py:773
+#: core/demo_sandbox.py:776
 msgid "„Ich habe bezahlt“ antippen – der offene Monat ist sofort abgehakt, ganz ohne Zettel."
 msgstr "Tap “I have paid” – the open month is ticked off right away, no paper needed."
 

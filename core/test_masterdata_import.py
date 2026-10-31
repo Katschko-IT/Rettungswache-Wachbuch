@@ -191,6 +191,15 @@ class CsvReadingTests(SimpleTestCase):
         with self.assertRaisesMessage(mi.CellError, "8, 12, 13 oder 14"):
             mi.parse_gtin("12345")
 
+    def test_non_ascii_digits_are_cell_errors_not_aborts(self):
+        # str.isdigit() hält „²“ für eine Ziffer; int() bräche dann den ganzen Import ab.
+        with self.assertRaisesMessage(mi.CellError, "keine PZN"):
+            mi.parse_pzn("1234²")
+        with self.assertRaisesMessage(mi.CellError, "8, 12, 13 oder 14"):
+            mi.parse_gtin("400638133393²")
+        with self.assertRaisesMessage(mi.CellError, "keine PZN"):
+            mi.parse_pzn("١٢٣٤٥٦٧٨")
+
     def test_date_formats_and_month_only_dates(self):
         self.assertEqual(mi.parse_date("2027-05-31"), date(2027, 5, 31))
         self.assertEqual(mi.parse_date("1.6.2027"), date(2027, 6, 1))
@@ -435,6 +444,14 @@ class ArticleImportTests(ImportTestCase):
         self.assertFalse(report.committed)
         self.assertIn("Widerspricht Zeile 2", report.rows[1].errors[0])
         self.assertFalse(MedicalItem.objects.filter(name="B").exists())
+
+    def test_superscript_pzn_is_a_row_error_and_keeps_the_preview(self):
+        report = self.run_kind("artikel", [["Artikel", "PZN", "GTIN"], ["A", "1234²", ""],
+                                           ["B", "", "400638133393²"], ["C", VALID_PZN[0], ""]], commit=False)
+        self.assertEqual(report.file_errors, [])
+        self.assertEqual([row.status for row in report.rows], ["error", "error", "new"])
+        self.assertIn("keine PZN", report.rows[0].errors[0])
+        self.assertIn("GTIN", report.rows[1].errors[0])
 
     def test_unknown_category_lists_allowed_values(self):
         report = self.run_kind("artikel", [["Artikel", "Kategorie"], ["A", "Spielzeug"]])
@@ -722,6 +739,10 @@ class DeviceImportTests(ImportTestCase):
         existing.refresh_from_db()
         self.assertEqual(existing.next_stk_date, date(2027, 1, 31))
         self.assertIsNone(existing.legacy_imported_at)
+        # B1: Ein Import nimmt ein außer Betrieb genommenes Gerät nie wieder in Betrieb.
+        self.assertEqual(report.rows[0].notes, [])
+        self.assertIn("außer Betrieb genommen und bleibt es", report.rows[1].notes[0])
+        self.assertEqual(MedicalDevice.objects.get(slug="alt").current_status, MedicalDevice.Status.DECOMMISSIONED)
 
     def test_same_serial_from_other_manufacturer_is_new_and_duplicates_in_file_are_errors(self):
         MedicalDevice.objects.create(station=self.station, slug="defi", name="Defi", serial_number="SN1",
@@ -739,7 +760,7 @@ class DeviceImportTests(ImportTestCase):
         self.assertEqual(set(MedicalDevice.objects.values_list("current_status", flat=True)), {"ready"})
 
     def test_locked_device_row_blocks_commit(self):
-        for status in ("Außer Betrieb (Gesperrt)", "In Wartung / STK", "oob", "defekt"):
+        for status in ("Gesperrt", "Außer Betrieb (Gesperrt)", "In Wartung / STK", "oob", "defekt"):
             report = self.run_kind("medizingeraete", [self.HEADER, self.row(), self.row(serial="2", status=status)])
             self.assertFalse(report.committed, status)
             self.assertIn("Mangel melden", report.rows[1].errors[0], status)
@@ -754,6 +775,36 @@ class DeviceImportTests(ImportTestCase):
         self.assertImported(report, created=1)
         self.assertEqual([row.status for row in report.rows], ["skipped", "skipped", "new"])
         self.assertEqual(MedicalDevice.objects.get().serial_number, "3")
+        self.assertIn("Außer Betrieb genommene Geräte", report.rows[0].notes[0])
+
+    def test_decommissioned_row_with_cell_problems_does_not_block_valid_row(self):
+        # Das Bestandsverzeichnis listet auch außer Betrieb genommene Geräte; deren
+        # Nummern oder Risikoklasse fehlen oft. Die Zeile wird übersprungen, nicht geprüft.
+        report = self.run_kind("medizingeraete", [
+            self.HEADER,
+            self.row(name="Alt", serial="", inventory="", risk="", next_stk="irgendwann", status="Ausgemustert"),
+            self.row(name="Neu", serial="", inventory="INV-9"),
+        ])
+        self.assertImported(report, created=1)
+        self.assertEqual([(row.status, row.errors) for row in report.rows], [("skipped", []), ("new", [])])
+        self.assertEqual(report.rows[0].label, "Alt")
+        self.assertEqual(MedicalDevice.objects.get().name, "Neu")
+
+    def test_export_with_retired_device_round_trip_skips_it(self):
+        from core.evidence import retire_device
+
+        common = {"station": self.station, "risk_class": "IIa", "manufacturer": "GS"}
+        MedicalDevice.objects.create(slug="aktiv", name="Aktiv", serial_number="SN-A", **common)
+        retired = MedicalDevice.objects.create(slug="alt", name="Alt", serial_number="SN-B", **common)
+        self.assertTrue(retire_device(retired, actor=self.admin))
+        self.client.force_login(self.admin)
+        export = self.client.get(reverse("mpg_export_bestandsverzeichnis")).content
+        self.assertIn("Außerbetriebnahme", export.decode("utf-8-sig").splitlines()[0])
+        report = self.run_kind("medizingeraete", [], raw=export, station=self.other, actor=self.other_admin)
+        self.assertImported(report, created=1)
+        self.assertIn("Außerbetriebnahme", [header for header, _hint in report.ignored_headers])
+        self.assertEqual(list(MedicalDevice.objects.filter(station=self.other).values_list("name", flat=True)),
+                         ["Aktiv"])
 
     def test_past_dates_and_missing_stk_give_hints(self):
         report = self.run_kind("medizingeraete", [self.HEADER, self.row(next_stk="2001-01-01"),
@@ -887,10 +938,16 @@ class ImportViewSecurityTests(ImportTestCase):
     def test_preview_writes_nothing(self):
         models = (MedicalItem, StorageLocation, ItemBatch, StockItem, StockMovement, MedicalDevice, StationAsset,
                   MaintenanceLog, AuditEvent, User, Membership)
+        # Für den Bestand: vorhandener Artikel und Lagerort, neue Charge.
+        self.item("Kompresse", pzn=VALID_PZN[1])
+        self.location("Fach 9")
+        mhd = (timezone.localdate() + timedelta(days=300)).isoformat()
         before = {model: model.objects.count() for model in models}
         for slug, rows in (
             ("lagerorte", [["Lagerort"], ["Hauptlager"]]),
             ("artikel", self.ARTICLE_ROWS),
+            ("bestand", [["Artikel", "Charge (Lot)", "Hersteller-MHD", "Lagerort", "Bestand"],
+                         ["Kompresse", "L-9", mhd, "Fach 9", "5"]]),
             ("medizingeraete", [["Gerätebezeichnung", "Risikoklasse", "Seriennummer"], ["Absaugpumpe", "IIa", "1"]]),
         ):
             response = self.upload(rows, slug=slug)
@@ -920,6 +977,20 @@ class ImportViewSecurityTests(ImportTestCase):
         self.assertNotIn("liste.csv", json.dumps(event.metadata))
         audit_page = self.client.get(reverse("audit_log"))
         self.assertContains(audit_page, "Artikel importiert")
+
+    def test_done_page_points_to_locations_before_warehouse(self):
+        # Ohne Lagerorte legte „Zum Lager“ drei Beispiel-Lagerorte an (warehouse_dashboard).
+        done = self.commit(self.upload())
+        self.assertTrue(done.context["locations_missing"])
+        self.assertNotContains(done, f'href="{reverse("warehouse_dashboard")}"')
+        self.assertContains(done, reverse("masterdata_import_run", args=["lagerorte"]))
+        self.assertContains(done, "drei Beispiel-Lagerorte")
+        self.assertFalse(StorageLocation.objects.filter(station=self.station).exists())
+        self.location("Hauptlager")
+        done = self.commit(self.upload([["Artikel"], ["Zweiter Artikel"]]))
+        self.assertFalse(done.context["locations_missing"])
+        self.assertContains(done, f'href="{reverse("warehouse_dashboard")}"')
+        self.assertNotContains(done, "drei Beispiel-Lagerorte")
 
     def test_commit_rejects_tampered_payload_expired_token_and_foreign_station_or_user(self):
         preview = self.upload()

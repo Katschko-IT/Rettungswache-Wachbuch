@@ -67,6 +67,7 @@ TOKEN_MAX_AGE = 3600
 # Größe des Base64-Inhalts im Bestätigungsformular (1 MiB Datei → 1 398 104 Zeichen).
 MAX_PAYLOAD_CHARS = 1_400_000
 PATH_SEPARATOR_RE = re.compile(r"\s*(?:→|->|>)\s*")
+ASCII_DIGITS_RE = re.compile(r"[0-9]+")
 MOJIBAKE_MARKERS = ("Ã¤", "Ã¶", "Ã¼", "ÃŸ", "Ã„", "Ã–", "Ãœ", "â€")
 ENCODING_LABELS = {
     "utf-8": "UTF-8",
@@ -553,7 +554,8 @@ def parse_pzn(value: str) -> str:
     text = re.sub(r"^pzn[\s:\-]*", "", value.strip(), flags=re.IGNORECASE).replace(" ", "")
     if _scientific(text):
         raise truncated_number_error()
-    if not text.isdigit():
+    # Nur ASCII-Ziffern: str.isdigit() ließe z. B. „²“ durch, int() bräche dann ab.
+    if not ASCII_DIGITS_RE.fullmatch(text):
         raise CellError(_("„%(value)s“ ist keine PZN (nur Ziffern).") % {"value": value})
     if len(text) > 8:
         raise CellError(_("Eine PZN hat höchstens 8 Ziffern."))
@@ -574,7 +576,7 @@ def parse_gtin(value: str) -> str:
     text = value.replace(" ", "")
     if _scientific(text):
         raise truncated_number_error()
-    if not text.isdigit() or len(text) not in (8, 12, 13, 14):
+    if not ASCII_DIGITS_RE.fullmatch(text) or len(text) not in (8, 12, 13, 14):
         raise CellError(_("Eine GTIN/EAN hat 8, 12, 13 oder 14 Ziffern."))
     if not gtin_check_digit_ok(text):
         raise CellError(_("„%(value)s“ ist ungültig (Prüfziffer).") % {"value": value})
@@ -1243,13 +1245,15 @@ class MedicalDeviceHandler(KindHandler):
     STATUS_SYNONYMS = {
         "einsatzbereit": "ready", "ok": "ready", "in ordnung": "ready",
         "gesperrt": "oob", "außer betrieb": "oob", "defekt": "oob",
+        # Bezeichnung im Bestandsverzeichnis vor 0.27 (seit 0.27 „Gesperrt“).
+        "außer betrieb (gesperrt)": "oob",
         "wartung": "maintenance", "in wartung": "maintenance",
         "ausgemustert": "decommissioned", "außer betrieb genommen": "decommissioned",
     }
 
     def preload(self):
         devices = list(MedicalDevice.objects.filter(station=self.station).only(
-            "id", "slug", "inventory_number", "serial_number", "manufacturer",
+            "id", "slug", "inventory_number", "serial_number", "manufacturer", "current_status",
         ))
         self.by_inventory = {norm(d.inventory_number): d for d in devices if d.inventory_number.strip()}
         self.by_serial = {
@@ -1262,11 +1266,12 @@ class MedicalDeviceHandler(KindHandler):
         self.seen_inventory: dict[str, int] = {}
         self.seen_serial: dict[tuple, int] = {}
 
-    def _status(self, cells, result) -> bool:
-        """False, wenn die Zeile wegen des Status übersprungen wird."""
+    def _status_code(self, cells) -> str | None:
         if not cells.has("status"):
-            return True
-        code = choice_lookup(MedicalDevice.Status, self.STATUS_SYNONYMS).get(norm(cells.raw("status")))
+            return MedicalDevice.Status.READY
+        return choice_lookup(MedicalDevice.Status, self.STATUS_SYNONYMS).get(norm(cells.raw("status")))
+
+    def _status(self, cells, code) -> None:
         if code is None:
             cells.fail("status", _("„%(value)s“ ist kein bekannter Gerätestatus. Erlaubt: %(allowed)s.") % {
                 "value": cells.raw("status"), "allowed": ", ".join(allowed_labels(MedicalDevice.Status)),
@@ -1274,16 +1279,22 @@ class MedicalDeviceHandler(KindHandler):
         elif code in (MedicalDevice.Status.OOB, MedicalDevice.Status.MAINTENANCE):
             cells.fail("status", _("Das Gerät ist laut Datei nicht einsatzklar. Bitte die Zeile entfernen, das Gerät "
                                    "einzeln anlegen und über „Mangel melden“ sperren."))
-        elif code == MedicalDevice.Status.DECOMMISSIONED:
-            result.status = "skipped"
-            cells.note("status", _("Ausgemusterte Geräte werden nicht übernommen."))
-            return False
         elif code == MedicalDevice.Status.LIMITED:
             cells.note("status", _("Laut Datei eingeschränkt. Der Status wird nicht übernommen; "
                                    "nach dem Import bitte prüfen und bei Bedarf einen Mangel melden."))
-        return True
 
     def validate(self, cells, result):
+        status = self._status_code(cells)
+        if status == MedicalDevice.Status.DECOMMISSIONED:
+            # Außer Betrieb genommene Geräte (core/evidence.py) werden nie angelegt.
+            # Deshalb vor allen anderen Prüfungen: Eine fehlende Nummer oder ein
+            # anderer Zellfehler in dieser Zeile darf den Import nicht verhindern.
+            result.status = "skipped"
+            result.label = " · ".join(
+                part for part in (cells.raw("name"), cells.raw("inventory") or cells.raw("serial")) if part
+            )
+            cells.note("status", _("Außer Betrieb genommene Geräte werden nicht übernommen."))
+            return {"instance": None}
         name = cells.text("name", 160, required=True)
         category = cells.choice("category", MedicalDevice.Category, self.CATEGORY_SYNONYMS,
                                 default=MedicalDevice.Category.OTHER)
@@ -1321,7 +1332,7 @@ class MedicalDeviceHandler(KindHandler):
         if next_mtk and not anlage_2:
             cells.note("next_mtk", _("ist angegeben, aber Anlage 2 (MTK) steht auf Nein."))
         result.label = " · ".join(part for part in (name, inventory or serial) if part)
-        importable = self._status(cells, result)
+        self._status(cells, status)
 
         instance = MedicalDevice(
             station=self.station, slug="x", name=name, category=category, risk_class=risk or "",
@@ -1333,7 +1344,7 @@ class MedicalDeviceHandler(KindHandler):
         )
         if risk:
             _model_errors(instance, ["station", "slug"], result)
-        if not importable or result.errors:
+        if result.errors:
             return {"instance": instance}
 
         inventory_key = norm(inventory) if inventory else ""
@@ -1352,8 +1363,12 @@ class MedicalDeviceHandler(KindHandler):
             self.seen_inventory[inventory_key] = result.line
         if serial_key:
             self.seen_serial[serial_key] = result.line
-        if inventory_key in self.by_inventory or serial_key in self.by_serial:
+        existing = self.by_inventory.get(inventory_key) or self.by_serial.get(serial_key)
+        if existing is not None:
             result.status = "skipped"
+            if existing.current_status == MedicalDevice.Status.DECOMMISSIONED:
+                # Ein Import nimmt ein Gerät nie wieder in Betrieb (core/evidence.py).
+                result.notes.append(_("Das vorhandene Gerät ist außer Betrieb genommen und bleibt es."))
         return {"instance": instance}
 
     def apply(self, plan, result):
@@ -1539,7 +1554,7 @@ KINDS = {
                    aliases=("Nächste DGUV",)),
             Column("Status", "status",
                    gettext_lazy("Wird nicht übernommen. Gesperrte Geräte oder Geräte in Wartung verhindern den "
-                                "Import; ausgemusterte Geräte werden übersprungen."),
+                                "Import; außer Betrieb genommene Geräte werden übersprungen."),
                    aliases=("Betriebsstatus",), allowed=_device_allowed(MedicalDevice.Status)),
         ),
         ignored_headers=(

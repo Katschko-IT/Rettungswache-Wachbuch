@@ -37,7 +37,9 @@ Excel gibt, werden einmal übernommen. Danach wird in Wachwerk gepflegt.
 Lagerorte, legt Wachwerk drei Beispiel-Lagerorte an („Zentrallager / Apotheke“,
 „Medikamentenkühlschrank“, „RTW 01/83-01 Schrank“). Diese lassen sich heute nicht
 löschen. Deshalb die Lagerorte importieren, **bevor** das Lager zum ersten Mal
-geöffnet wird.
+geöffnet wird. Hat die Wache nach einem Artikel- oder Bestandsimport noch keine
+Lagerorte, bietet die Ergebnisseite statt „Zum Lager“ „Weiter mit: Lagerorte“
+an.
 
 ## Grundsätze
 
@@ -180,19 +182,24 @@ Fahrzeugen), die Spalte vorher auf Pfade (`RTW 1 → Fach 3`) ändern.
 | Status | wird **nicht** übernommen (siehe unten) |
 
 Schlüssel: gleiche Inventarnummer oder gleiche Seriennummer beim gleichen
-Hersteller, auch bei ausgemusterten Geräten.
+Hersteller, auch bei außer Betrieb genommenen Geräten. Ein solches Gerät bleibt
+außer Betrieb genommen (Hinweis in der Vorschau); ein Import nimmt nie ein Gerät
+wieder in Betrieb (`core/evidence.py`).
 
 **Status in der Datei** (z. B. aus dem Bestandsverzeichnis):
 
 - „Einsatzklar“ oder leer: wird importiert.
 - „Eingeschränkt“: wird importiert, mit Hinweis.
-- „Außer Betrieb (Gesperrt)“, „In Wartung / STK“: **Fehler**. Ein Gerät, das
+- „Gesperrt“ (bis 0.26 „Außer Betrieb (Gesperrt)“), „In Wartung / STK“: **Fehler**. Ein Gerät, das
   auf Papier gesperrt ist, darf nicht als einsatzklar erscheinen. Die Zeile
   entfernen, das Gerät einzeln anlegen und über „Mangel melden“ sperren.
-- „Ausgemustert“ / „Außer Betrieb genommen“: wird übersprungen.
+- „Außer Betrieb genommen“ (auch „Ausgemustert“): wird übersprungen. Die übrigen
+  Zellen dieser Zeile werden nicht geprüft; eine fehlende Serien- oder
+  Inventarnummer verhindert den Import dann nicht.
 
 Spalten wie „Letzte STK“ oder „Letzte Funktionskontrolle“ werden ignoriert:
-Bitte die nächste Fälligkeit von der Prüfplakette übernehmen.
+Bitte die nächste Fälligkeit von der Prüfplakette übernehmen. Die Spalte
+„Außerbetriebnahme“ aus dem Bestandsverzeichnis wird ebenfalls ignoriert.
 
 ## Altbestand-Kennzeichnung
 

@@ -123,8 +123,9 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Stammdaten-Import und Altbestand** (`/einstellungen/import/`, nur Master-Admin):
   - Geräte aus dem bisherigen Bestandsverzeichnis per CSV; Risikoklasse und
     Serien- oder Inventarnummer sind Pflicht. Gesperrte Geräte oder Geräte in
-    Wartung verhindern den Import, ausgemusterte werden übersprungen; der Status
-    wird nie übernommen.
+    Wartung verhindern den Import, außer Betrieb genommene werden übersprungen;
+    der Status wird nie übernommen. Ein vorhandenes, außer Betrieb genommenes
+    Gerät bleibt es.
   - Importierte Geräte tragen „Aus Altbestand übernommen am …“
     (`legacy_imported_at`) und neben Nächste STK/MTK/DGUV V3 das Kennzeichen
     „Altbestand“, bis eine bestandene Prüfung dieser Art eingetragen ist. Es
