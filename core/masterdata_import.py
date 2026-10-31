@@ -742,30 +742,69 @@ class _LocationIndex:
             current = self.objects.get(current.parent_id)
         return tuple(reversed(parts))
 
-    def display_path(self, loc) -> str:
+    def display_parts(self, loc) -> tuple:
         parts, seen, current = [], set(), loc
         while current is not None and current.pk not in seen:
             seen.add(current.pk)
             parts.append(current.name)
             current = self.objects.get(current.parent_id)
-        return " → ".join(reversed(parts))
+        return tuple(reversed(parts))
+
+    def display_path(self, loc) -> str:
+        return " → ".join(self.display_parts(loc))
 
     def find(self, value: str):
-        """(Lagerort, Fehlermeldung) für einen Namen oder Pfad „A → B“."""
+        """(Lagerort, Fehlermeldung, Hinweis) für einen Namen oder Pfad „A → B“."""
         segments = path_segments(value)
         if any(not part for part in segments):
-            return None, _("„%(value)s“ ist kein gültiger Pfad.") % {"value": value}
+            return None, _("„%(value)s“ ist kein gültiger Pfad.") % {"value": value}, ""
         wanted = tuple(norm(part) for part in segments)
         matches = [loc for loc in self.by_name.get(wanted[-1], []) if self.paths[loc.pk][-len(wanted):] == wanted]
         if not matches:
             return None, _("„%(value)s“ gibt es auf dieser Wache nicht. Bitte zuerst die Lagerorte importieren.") % {
                 "value": value,
-            }
-        if len(matches) > 1:
-            return None, _("„%(value)s“ ist mehrdeutig. Bitte als Pfad angeben, z. B. „%(example)s“.") % {
-                "value": value, "example": self.display_path(matches[0]),
-            }
-        return matches[0], ""
+            }, ""
+        chosen, others = pick_location_match(matches, wanted, lambda loc: self.paths[loc.pk])
+        if chosen is None:
+            return None, ambiguous_location_message(
+                value, others, wanted, lambda loc: self.paths[loc.pk], self.display_path,
+            ), ""
+        return chosen, "", exact_location_note(self.display_path(chosen), others, self.display_path)
+
+
+def pick_location_match(matches, wanted: tuple, path_of):
+    """(Treffer, übrige Kandidaten) unter Lagerorten, deren Pfad auf `wanted` endet.
+
+    Ein Kandidat mit genau diesem vollständigen Pfad geht vor. Sonst wäre ein
+    Lagerort der obersten Ebene nicht erreichbar, sobald sein Name auch weiter
+    unten vorkommt („Kühlschrank“ neben „RTW 1 → Kühlschrank“). Treffer None:
+    mehrdeutig; die übrigen Kandidaten sind dann die mehrdeutigen.
+    """
+    if len(matches) == 1:
+        return matches[0], []
+    exact = [match for match in matches if path_of(match) == wanted]
+    if len(exact) == 1:
+        return exact[0], [match for match in matches if match is not exact[0]]
+    return None, exact or matches
+
+
+def ambiguous_location_message(value: str, candidates, wanted: tuple, path_of, display) -> str:
+    """Meldung „mehrdeutig“ mit einem Beispielpfad, der sich von der Eingabe unterscheidet."""
+    longer = [candidate for candidate in candidates if path_of(candidate) != wanted]
+    if not longer:
+        # Mehrere vorhandene Lagerorte mit genau demselben Pfad: kein Pfad hilft weiter.
+        return _("„%(value)s“ ist mehrdeutig: Diesen Pfad gibt es auf dieser Wache mehrmals.") % {"value": value}
+    return _("„%(value)s“ ist mehrdeutig. Bitte als Pfad angeben, z. B. „%(example)s“.") % {
+        "value": value, "example": display(longer[0]),
+    }
+
+
+def exact_location_note(chosen: str, others, display) -> str:
+    """Hinweis, wenn der genaue Pfad gewählt wurde, obwohl es den Namen auch anderswo gibt."""
+    if not others:
+        return ""
+    return _("„%(value)s“ steht für den Lagerort mit genau diesem Pfad. Ist „%(example)s“ gemeint, "
+             "bitte den ganzen Pfad angeben.") % {"value": chosen, "example": display(others[0])}
 
 
 class _Cycle(Exception):
@@ -814,7 +853,16 @@ class StorageLocationHandler(KindHandler):
         for position, (_result, plan) in enumerate(nodes):
             by_name[norm(plan["name"])].append(position)
         memo: dict[int, tuple] = {}
+        shown: dict[int, tuple] = {}  # Pfad in der Schreibweise der Datei bzw. Datenbank
         parents: dict[int, tuple] = {}
+        parent_notes: dict[int, str] = {}
+
+        def parts_of(candidate) -> tuple:
+            source, ref, _path = candidate
+            return self.index.display_parts(ref) if source == "db" else shown[ref]
+
+        def display(candidate) -> str:
+            return " → ".join(parts_of(candidate))
 
         def path_of(position, visiting):
             if position in memo:
@@ -826,14 +874,16 @@ class StorageLocationHandler(KindHandler):
                 plan = nodes[position][1]
                 own = norm(plan["name"])
                 if plan["ref"] is None:
-                    path = (own,)
+                    path, written = (own,), (plan["name"],)
                 else:
                     parent = resolve(plan["ref"], position, visiting)
                     parents[position] = parent
                     path = parent[2] + (own,)
+                    written = parts_of(parent) + (plan["name"],)
             finally:
                 visiting.discard(position)
             memo[position] = path
+            shown[position] = written
             return path
 
         def resolve(ref, position, visiting):
@@ -863,11 +913,14 @@ class StorageLocationHandler(KindHandler):
                 raise _Unresolved(
                     _("„%(value)s“ gibt es weder auf dieser Wache noch in der Datei.") % {"value": " → ".join(ref)}
                 )
-            if len(candidates) > 1:
-                raise _Unresolved(
-                    _("„%(value)s“ ist mehrdeutig. Bitte als Pfad angeben, z. B. „A → B“.") % {"value": " → ".join(ref)}
-                )
-            return candidates[0]
+            chosen, others = pick_location_match(candidates, wanted, lambda candidate: candidate[2])
+            if chosen is None:
+                raise _Unresolved(ambiguous_location_message(
+                    " → ".join(ref), others, wanted, lambda candidate: candidate[2], display,
+                ))
+            if others:
+                parent_notes[position] = exact_location_note(display(chosen), others, display)
+            return chosen
 
         first_line: dict[tuple, int] = {}
         for position, (result, plan) in enumerate(nodes):
@@ -884,6 +937,8 @@ class StorageLocationHandler(KindHandler):
                 continue
             plan["path"] = path
             plan["parent"] = parents.get(position)
+            if position in parent_notes:
+                result.notes.append(f"{self.kind.column('parent').header}: {parent_notes[position]}")
             if path in first_line:
                 result.errors.append(
                     f"{self.kind.column('name').header}: "
@@ -1083,9 +1138,11 @@ class StockHandler(KindHandler):
         oof = cells.day("oof")
         location = None
         if cells.has("location"):
-            location, problem = self.locations.find(cells.raw("location"))
+            location, problem, hint = self.locations.find(cells.raw("location"))
             if problem:
                 cells.fail("location", problem)
+            elif hint:
+                cells.note("location", hint)
         elif "location" not in cells.bad:
             cells.fail("location", _("Pflichtfeld ist leer."))
         quantity = cells.integer("quantity", 0, 100_000, required=True)

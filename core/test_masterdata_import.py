@@ -73,6 +73,11 @@ VALID_PZN = valid_pzns(3)
 
 
 class CsvReadingTests(SimpleTestCase):
+    def setUp(self):
+        super().setUp()
+        # Meldungen werden auf Deutsch geprüft, unabhängig von der Sprache vorheriger Tests.
+        self.enterContext(translation.override("de"))
+
     def test_decodes_utf8_with_and_without_bom(self):
         self.assertEqual(mi.decode_upload("Artikel;Kühl\r\n".encode("utf-8-sig")), ("Artikel;Kühl\r\n", "utf-8-sig"))
         self.assertEqual(mi.decode_upload("Artikel;Kühl\r\n".encode("utf-8")), ("Artikel;Kühl\r\n", "utf-8"))
@@ -232,6 +237,7 @@ class CsvReadingTests(SimpleTestCase):
 
 class ImportTestCase(TestCase):
     def setUp(self):
+        self.enterContext(translation.override("de"))
         self.station = Station.objects.create(name="RW Import", slug="rw-import", warehouse_enabled=True,
                                               mpg_enabled=True)
         self.admin = User.objects.create_user(username="chefin", password="x-test-pass-123")
@@ -299,12 +305,40 @@ class StorageLocationImportTests(ImportTestCase):
         self.location("Schrank links", parent=rtw2)
         report = self.run_kind("lagerorte", [self.HEADER, ["Fach 3", "", "", "Schrank links", ""]])
         self.assertIn("mehrdeutig", report.rows[0].errors[0])
+        # Das Beispiel ist ein Pfad, der weiterhilft, nicht die Eingabe selbst.
+        self.assertIn("z. B. „RTW 1 → Schrank links“", report.rows[0].errors[0])
         report = self.run_kind("lagerorte", [self.HEADER, ["Fach 3", "", "", "RTW 2 → Schrank links", ""],
                                              ["Fach 3", "", "", "RTW 1 > Schrank links", ""]])
         self.assertImported(report, created=2)
         self.assertEqual(
             sorted(loc.parent.parent.name for loc in StorageLocation.objects.filter(name="Fach 3")), ["RTW 1", "RTW 2"],
         )
+
+    def test_top_level_parent_wins_over_same_name_further_down(self):
+        top = self.location("Kühlschrank")
+        nested = self.location("Kühlschrank", parent=self.location("RTW 1"))
+        report = self.run_kind("lagerorte", [self.HEADER, ["Fach oben", "", "", "Kühlschrank", ""],
+                                             ["Fach RTW", "", "", "RTW 1 → Kühlschrank", ""]])
+        self.assertImported(report, created=2)
+        self.assertEqual(StorageLocation.objects.get(name="Fach oben").parent, top)
+        self.assertEqual(StorageLocation.objects.get(name="Fach RTW").parent, nested)
+        self.assertIn("genau diesem Pfad", report.rows[0].notes[0])
+        self.assertIn("„RTW 1 → Kühlschrank“", report.rows[0].notes[0])
+        self.assertEqual(report.rows[1].notes, [])
+
+    def test_top_level_parent_wins_within_the_file(self):
+        report = self.run_kind("lagerorte", [
+            self.HEADER,
+            ["Fach oben", "", "", "kühlschrank", ""], ["Fach RTW", "", "", "RTW 1 > Kühlschrank", ""],
+            ["Kühlschrank", "Kühlschrank", "", "RTW 1", ""], ["RTW 1", "Fahrzeug", "", "", ""],
+            ["Kühlschrank", "Kühlschrank", "", "", ""],
+        ])
+        self.assertImported(report, created=5)
+        top = StorageLocation.objects.get(name="Kühlschrank", parent=None)
+        nested = StorageLocation.objects.get(name="Kühlschrank", parent__name="RTW 1")
+        self.assertEqual(StorageLocation.objects.get(name="Fach oben").parent, top)
+        self.assertEqual(StorageLocation.objects.get(name="Fach RTW").parent, nested)
+        self.assertIn("„RTW 1 → Kühlschrank“", report.rows[0].notes[0])
 
     def test_same_child_name_under_different_parents(self):
         report = self.run_kind("lagerorte", [
@@ -537,6 +571,32 @@ class StockImportTests(ImportTestCase):
                                                          "RTW 1 → Fach 3", "1", "", ""]])
         self.assertImported(report, created=1)
         self.assertEqual(StockItem.objects.get().location, fach1)
+
+    def test_top_level_location_wins_over_same_name_further_down(self):
+        nested = self.location("Kühlschrank", kind=StorageLocation.Kind.FRIDGE, is_cold_storage=True,
+                               parent=self.location("RTW 1", kind=StorageLocation.Kind.VEHICLE))
+        report = self.run_kind("bestand", [
+            self.HEADER,
+            ["Mullbinde", "", "L1", self.mhd.isoformat(), "", "Kühlschrank", "1", "", ""],
+            ["Mullbinde", "", "L2", self.mhd.isoformat(), "", "RTW 1 → Kühlschrank", "2", "", ""],
+        ])
+        self.assertImported(report, created=2)
+        self.assertEqual(StockItem.objects.get(batch__batch_number="L1").location, self.kuehl)
+        self.assertEqual(StockItem.objects.get(batch__batch_number="L2").location, nested)
+        self.assertIn("genau diesem Pfad", " ".join(report.rows[0].notes))
+        self.assertIn("„RTW 1 → Kühlschrank“", " ".join(report.rows[0].notes))
+        self.assertNotIn("genau diesem Pfad", " ".join(report.rows[1].notes))
+        self.assertEqual(report.rows[0].label, "Mullbinde · L1 · Kühlschrank")
+
+    def test_same_path_twice_is_ambiguous_without_misleading_example(self):
+        self.location("Hauptlager")
+        report = self.run_kind("bestand", [self.HEADER, ["Mullbinde", "", "L1", self.mhd.isoformat(), "",
+                                                         "Hauptlager", "1", "", ""]])
+        self.assertFalse(report.committed)
+        self.assertIn("mehrdeutig", report.rows[0].errors[0])
+        self.assertIn("mehrmals", report.rows[0].errors[0])
+        self.assertNotIn("z. B.", report.rows[0].errors[0])
+        self.assertFalse(StockItem.objects.exists())
 
     def test_cooling_item_out_of_fridge_shortens_effective_date(self):
         oof = timezone.localdate() - timedelta(days=4)

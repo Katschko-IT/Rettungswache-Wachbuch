@@ -100,6 +100,17 @@ Schlüssel: der volle Pfad (z. B. `RTW 1 → Schrank links → Fach 3`). Ein Nam
 mehrfach vorkommt, muss als Pfad angegeben werden. Kreise und Selbstbezug sind
 Fehler.
 
+So werden Namen und Pfade gelesen (hier und in der Spalte „Lagerort“ beim
+Bestand):
+
+- Gibt es einen Lagerort mit **genau diesem vollständigen Pfad**, ist er gemeint.
+  `Kühlschrank` ist also der Kühlschrank auf oberster Ebene, auch wenn es
+  `RTW 1 → Kühlschrank` gibt. Die Vorschau zeigt dann einen Hinweis; für den
+  Kühlschrank im RTW den ganzen Pfad `RTW 1 → Kühlschrank` schreiben.
+- Sonst genügt das Ende des Pfads, wenn es nur einen solchen Lagerort gibt
+  (`Fach 3` oder `Schrank links → Fach 3`). Passen mehrere, ist das ein Fehler
+  „mehrdeutig“ mit einem Beispielpfad.
+
 ### Artikel (`artikel`)
 
 | Spalte | Bedeutung |
@@ -134,7 +145,7 @@ BtM-Buch.
 | Charge (Lot)* | wie auf der Packung |
 | Hersteller-MHD* | aufgedrucktes MHD; `05/2027` = 31.05.2027 |
 | Out-of-Fridge Datum | nur bei kühlpflichtigen Artikeln |
-| Lagerort* | Name oder Pfad eines vorhandenen Lagerorts |
+| Lagerort* | Name oder Pfad eines vorhandenen Lagerorts (gelesen wie bei den Lagerorten beschrieben) |
 | Bestand* | Menge; 0 wird mit Hinweis übersprungen |
 | Einheit | nur zum Abgleich, Abweichung ist ein Hinweis |
 | Status / Rückruf | „Gesperrt …“ ist ein Fehler; gesperrte Chargen werden nicht übernommen |
@@ -244,7 +255,8 @@ Importieren sind gesperrt.
 | „Das ist eine Excel-Datei …“ | Als CSV speichern, nicht als .xlsx |
 | „Die Zahl wurde vom Tabellenprogramm gekürzt …“ | Spalte als Text formatieren, Werte neu eintragen |
 | „… ist ungültig (Prüfziffer)“ | PZN/GTIN von der Packung prüfen |
-| „… ist mehrdeutig. Bitte als Pfad angeben …“ | `Eltern → Name` schreiben |
+| „… ist mehrdeutig. Bitte als Pfad angeben …“ | den ganzen Pfad schreiben, z. B. `RTW 1 → Fach 3` |
+| „… steht für den Lagerort mit genau diesem Pfad …“ (Hinweis) | Passt so, wenn der Lagerort auf oberster Ebene gemeint ist; sonst den ganzen Pfad schreiben |
 | „Pflichtspalte fehlt: …“ | Überschrift aus der Vorlage übernehmen |
 | „Die Vorschau ist abgelaufen …“ | Datei erneut prüfen |
 | „Seit der Prüfung hat sich der Datenbestand geändert …“ | Neue Vorschau ansehen und erneut bestätigen |
