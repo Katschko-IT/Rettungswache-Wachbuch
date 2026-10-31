@@ -267,7 +267,10 @@ sequenceDiagram
 #### **Datenebene**
 - **Argon2id** für Passwort-Hashing
 - **AES-256-GCM** für E2EE-Chat und TOTP at rest
-- **Unveränderliche Daten** (Audit, Kaffeekasse, Übergaberevisionen)
+- **Unveränderliche Daten** (Audit, Kaffeekasse, Übergaberevisionen, MPG-Prüfungen
+  und Funktionskontrollen, Versionen von Dienstanweisungen)
+- **Nachweise per PROTECT**: Nachweis-Tabellen (`core/evidence.py`) hängen nur per
+  PROTECT an ihren Objekten; Objekte werden außer Betrieb genommen statt gelöscht
 - **DB-Constraints** für Datenintegrität
 
 ---

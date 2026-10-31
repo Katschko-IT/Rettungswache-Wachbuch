@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from django import forms
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from .orga_models import SOPDocument, SOPRevision, StationContact
 
@@ -36,6 +37,12 @@ class SOPDocumentForm(forms.ModelForm):
             "review_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "doc_number": forms.TextInput(attrs={"placeholder": "z. B. SOP-MED-01"}),
             "title": forms.TextInput(attrs={"placeholder": "z. B. Invasive Notfallnarkose & RSI"}),
+        }
+        help_texts = {
+            "status": _(
+                "Dienstanweisungen werden nicht gelöscht. „Außer Kraft“ nimmt sie aus der Pflichtlektüre; "
+                "Versionen und Quittierungen bleiben als Nachweis erhalten."
+            ),
         }
 
     def __init__(self, *args, station=None, **kwargs):

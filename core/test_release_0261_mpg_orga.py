@@ -163,7 +163,12 @@ class QuickPassOnlyForReadyDevicesTests(TestCase):
                 )
                 detail = self.client.get(reverse("mpg_device_detail", args=[device.slug])).content.decode()
                 self.assertNotIn('name="quick_pass"', detail)
-                self.assertIn('data-modal-open="check-modal"', detail)
+                if status == MedicalDevice.Status.DECOMMISSIONED:
+                    # Außer Betrieb genommen: keine Kontrolle mehr, nur der Hinweis.
+                    self.assertNotIn('data-modal-open="check-modal"', detail)
+                    self.assertIn("Außer Betrieb genommen.", detail)
+                else:
+                    self.assertIn('data-modal-open="check-modal"', detail)
                 response = self.client.post(reverse("mpg_routine_check", args=[device.slug]), {"quick_pass": "1"})
                 self.assertEqual(response.status_code, 302)
                 self.assertFalse(DeviceRoutineCheck.objects.filter(device=device).exists())

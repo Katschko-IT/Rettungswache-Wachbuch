@@ -46,6 +46,15 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Hauptuntersuchung gem. § 29 StVZO.
   - UVV-Prüfung gem. DGUV Vorschrift 70.
   - 10g-Tragentischprüfung gem. DIN EN 1789.
+- **Außer Betrieb nehmen statt löschen** (seit 0.27, `core/evidence.py`):
+  - Schichtleitung und Admin nehmen ein Fahrzeug auf der Fahrzeugseite außer Betrieb. Es
+    verschwindet aus Übersicht, Display und Sperrbildschirm und nimmt keine Übernahme,
+    Desinfektion, Statusänderung oder Mangelmeldung mehr an; Übernahmen und Desinfektionen
+    bleiben sichtbar. „Wieder in Betrieb nehmen“ setzt es auf „Außer Dienst“, bis die
+    Besatzung es einsatzbereit meldet. Liste: `/fuhrpark/ausser-betrieb/`; Audit
+    `fleet.vehicle_retired` / `fleet.vehicle_reactivated`; CSV-Spalte „In Betrieb“.
+  - Desinfektionsmittel werden im Django-Admin über „In Gebrauch“ aus dem Protokoll
+    genommen, nicht gelöscht. Mindestens ein Mittel der Wache bleibt in Gebrauch.
 
 ### 📦 Lager & Material (`/lager/`)
 - **FEFO-Prinzip (First-Expired-First-Out)**: Chargen mit dem kürzesten Verfallsdatum werden automatisch priorisiert vorgeschlagen.
@@ -89,6 +98,19 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     freigegeben werden (Web und API, HTTP 409).
 - **Digitale Einweisungsmatrix (§ 11 MPBetreibV)**:
   - Dokumentation von Geräte-Erst- und Wiederholungseinweisungen inklusive Gruppenschulungen.
+- **Nachweise und Außerbetriebnahme** (seit 0.27, `core/evidence.py`):
+  - Prüfungen (STK/MTK/DGUV) und Funktionskontrollen sind append-only; eine Korrektur ist ein
+    neuer Eintrag. Kein Nachweis verschwindet, wenn ein Gerät gelöscht werden soll (PROTECT).
+  - Schichtleitung und Admin nehmen ein Gerät dauerhaft außer Betrieb („Außer Betrieb
+    nehmen“ auf der Geräteseite, mit Datum „Außerbetriebnahme“ und Audit `mpg.device_retired`).
+    Es verschwindet aus Übersicht, Gerätepass und Display und nimmt keine Kontrolle, Prüfung,
+    Einweisung, Mangelmeldung oder Freigabe mehr an. Das Bearbeiten-Formular bietet diesen
+    Status nicht an.
+  - „Wieder in Betrieb nehmen“ lässt das Gerät gesperrt, bis die Schichtleitung es mit einer
+    dokumentierten Funktionskontrolle freigibt. Liste: `/mpg/ausser-betrieb/`; das
+    Bestandsverzeichnis (CSV) hat die Spalte „Außerbetriebnahme“.
+  - Ein gesperrtes oder außer Betrieb genommenes Gerät lässt sich unter „Geräte & Fahrzeuge“
+    nicht freigeben (Web und API, HTTP 409); das geht nur im Medizinproduktebuch.
 
 ### 🏢 Organisation & Desk (`/orga/`)
 - **QM-Dokumentenlenkung**:
@@ -101,6 +123,11 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     diesen Angaben bleiben unverändert, werden aber weder angezeigt noch exportiert.
   - Wachenleitung sieht in Echtzeit die Quittierungsquote je Dokument.
   - Wer wann quittiert hat (Liste und CSV-Nachweis), sehen seit 0.26.1 nur Schichtleitung und Admin; Mitglieder sehen ihren eigenen Stand.
+- **Außer Kraft statt löschen** (seit 0.27):
+  - Dienstanweisungen werden nicht gelöscht. Der Status „Außer Kraft“ nimmt sie aus der
+    Pflichtlektüre; neue Quittierungen gibt es dann nicht. Versionen sind append-only,
+    Versionen und Quittierungen bleiben als Nachweis erhalten. Jeder Statuswechsel steht im
+    Audit (`orga.sop_status_changed`).
 - **Notfall-Kurzwahlliste**:
   - Wichtige Ansprechpartner (ILS, Leitender Notarzt, Giftnotruf, Desinfektor, Werkstatt) mit 1-Tap Click-to-Call.
 

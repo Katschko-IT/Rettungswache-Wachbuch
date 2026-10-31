@@ -40,8 +40,13 @@
   </div>
 </header>
 
-{# Quittierung der Mitarbeiterin / des Mitarbeiters #}
-{% if sop.requires_acknowledgment %}
+{# Quittierung der Mitarbeiterin / des Mitarbeiters; außer Kraft gibt es keine neue #}
+{% if sop.status == 'archived' %}
+  <div class="alert" role="status">
+    <strong>{% translate "Außer Kraft" %}</strong>
+    <p class="m-0">{% translate "Diese Dienstanweisung ist außer Kraft. Versionen und Quittierungen bleiben als Nachweis erhalten." %}</p>
+  </div>
+{% elif sop.requires_acknowledgment %}
   {% if has_acknowledged %}
     <div class="alert success">
       <strong class="state success">{% translate "Kenntnisnahme quittiert" %}</strong>

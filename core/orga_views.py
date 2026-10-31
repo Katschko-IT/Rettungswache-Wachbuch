@@ -15,6 +15,7 @@ from .access import CONTENT_ROLES, membership_required, station_module_required
 from .models import CalendarEvent, Membership, Station
 from .orga_forms import SOPDocumentForm, SOPRevisionForm, StationContactForm
 from .orga_models import SOPDocument, SOPReceipt, SOPRevision, StationContact
+from .services import audit
 from .wiki_models import WikiArticle
 
 
@@ -145,6 +146,10 @@ def sop_acknowledge(request, slug: str):
     if not latest_revision:
         messages.error(request, "Diese SOP hat noch keinen freigegebenen Textstand.")
         return redirect("sop_detail", slug=sop.slug)
+    if sop.status == SOPDocument.Status.ARCHIVED:
+        # Außer Kraft: Versionen und Quittierungen bleiben, neue gibt es nicht.
+        messages.error(request, _("Diese Dienstanweisung ist außer Kraft und kann nicht mehr quittiert werden."))
+        return redirect("sop_detail", slug=sop.slug)
 
     # Datensparsam (ab 0.26.1): Für die Kenntnisnahme genügen Person, Version
     # und Zeitpunkt. IP-Adresse und Browser werden nicht mehr gespeichert;
@@ -224,9 +229,16 @@ def sop_edit(request, slug: str):
         return redirect("sop_detail", slug=sop.slug)
 
     if request.method == "POST":
+        # Vor is_valid() merken: Die Prüfung schreibt die Eingaben schon in die Instanz.
+        previous_status = sop.status
         form = SOPDocumentForm(request.POST, instance=sop, station=station)
         if form.is_valid():
             form.save()
+            if sop.status != previous_status:
+                # „Außer Kraft“ ersetzt das Löschen; jeder Wechsel steht im Audit.
+                audit(request.user, station, "orga.sop_status_changed", sop, {
+                    "fields": ["status"], "from": previous_status, "to": sop.status,
+                })
             messages.success(request, f"Änderungen an '{sop.doc_number}' gespeichert.")
             return redirect("sop_detail", slug=sop.slug)
     else:

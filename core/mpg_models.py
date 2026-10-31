@@ -43,8 +43,9 @@ class MedicalDevice(models.Model):
         READY = "ready", "Einsatzklar"
         LIMITED = "limited", "Eingeschränkt"
         MAINTENANCE = "maintenance", "In Wartung / STK"
-        OOB = "oob", "Außer Betrieb (Gesperrt)"
-        DECOMMISSIONED = "decommissioned", "Ausgemustert"
+        OOB = "oob", "Gesperrt"
+        # Dauerhaft außer Betrieb genommen (core/evidence.py); Nachweise bleiben.
+        DECOMMISSIONED = "decommissioned", "Außer Betrieb genommen"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="medical_devices")
     slug = models.SlugField(max_length=64, help_text="Eindeutiger Bezeichner für QR-Code-URL (/mpg/d/<slug>/)")
@@ -197,7 +198,7 @@ class MaintenanceLog(models.Model):
         REPAIR = "repair", "Instandsetzung / Reparatur"
         INSPECTION = "inspection", "Herstellerwartung"
 
-    device = models.ForeignKey(MedicalDevice, on_delete=models.CASCADE, related_name="maintenance_logs")
+    device = models.ForeignKey(MedicalDevice, on_delete=models.PROTECT, related_name="maintenance_logs")
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="mpg_maintenance_logs")
     kind = models.CharField(max_length=20, choices=Kind.choices, verbose_name="Prüfungsart")
     performed_at = models.DateField(default=timezone.localdate, verbose_name="Prüfungsdatum")
@@ -215,6 +216,10 @@ class MaintenanceLog(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        # Medizinproduktebuch: Ein Prüfeintrag wird nie geändert; eine Korrektur
+        # ist ein neuer Eintrag (AGENTS.md § 4).
+        if self.pk:
+            raise ValidationError("Prüf- und Wartungseinträge dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Wartungseintrag")
         super().save(*args, **kwargs)
 
@@ -238,13 +243,16 @@ class MaintenanceLog(models.Model):
             if updated:
                 self.device.save(update_fields=["next_stk_date", "next_mtk_date", "next_dguv_date", "current_status", "updated_at"])
 
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Prüf- und Wartungseinträge dürfen nicht gelöscht werden.")
+
 
 class DeviceTrainingRecord(models.Model):
     """Dokumentation von Einweisungen nach § 11 MPBetreibV (Basis des digitalen Gerätepasses)."""
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="device_trainings")
-    device = models.ForeignKey(MedicalDevice, on_delete=models.CASCADE, related_name="trainings")
-    trainee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_trainings")
+    device = models.ForeignKey(MedicalDevice, on_delete=models.PROTECT, related_name="trainings")
+    trainee = models.ForeignKey(User, on_delete=models.PROTECT, related_name="device_trainings")
     instructor = models.CharField(max_length=140, verbose_name="Einweiser / Gerätebeauftragter (§ 11 MPBetreibV)")
     trained_at = models.DateField(default=timezone.localdate, verbose_name="Schulungsdatum")
     notes = models.CharField(max_length=300, blank=True, default="", verbose_name="Bemerkung")
@@ -268,7 +276,7 @@ class DeviceRoutineCheck(models.Model):
     """Tägliche oder schichtweise Funktionskontrolle gem. Herstellervorgaben und Betreiberplan."""
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="device_routine_checks")
-    device = models.ForeignKey(MedicalDevice, on_delete=models.CASCADE, related_name="routine_checks")
+    device = models.ForeignKey(MedicalDevice, on_delete=models.PROTECT, related_name="routine_checks")
     performed_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="device_routine_checks")
     checked_at = models.DateTimeField(auto_now_add=True)
     passed = models.BooleanField(default=True, verbose_name="Funktionskontrolle bestanden")
@@ -284,6 +292,8 @@ class DeviceRoutineCheck(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Funktionskontrollen dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Funktionskontrolle")
         # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
         self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
@@ -323,3 +333,6 @@ class DeviceRoutineCheck(models.Model):
             self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
             update_fields += ["current_status", "status_note"]
         self.device.save(update_fields=update_fields)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Funktionskontrollen dürfen nicht gelöscht werden.")

@@ -23,8 +23,28 @@
     <a class="button secondary" href="{% url 'fleet_vehicle_qr' vehicle.slug %}" target="_blank">
       {% include "core/_icon.html" with name="print" %}{% translate "QR-Sticker drucken" %}
     </a>
+    {% if can_manage and vehicle.is_active %}
+      <form class="inline" method="post" action="{% url 'fleet_vehicle_retire' vehicle.slug %}" data-confirm="{% translate 'Fahrzeug außer Betrieb nehmen? Es verschwindet aus Übersicht, Display und Sperrbildschirm. Übernahmen und Desinfektionen bleiben als Nachweis erhalten.' %}">
+        {% csrf_token %}
+        <button type="submit" class="button ghost">{% translate "Außer Betrieb nehmen" %}</button>
+      </form>
+    {% endif %}
   </div>
 </header>
+
+{# Außer Betrieb genommen: keine neuen Einträge, die Nachweise bleiben sichtbar #}
+{% if not vehicle.is_active %}
+<div class="alert" role="status">
+  <strong>{% translate "Außer Betrieb genommen." %}</strong>
+  <p class="m-0">{% translate "Das Fahrzeug nimmt keine neuen Einträge an. Übernahmen und Desinfektionen unten bleiben als Nachweis erhalten." %}</p>
+  {% if can_manage %}
+    <form class="inline" method="post" action="{% url 'fleet_vehicle_reactivate' vehicle.slug %}" data-confirm="{% translate 'Fahrzeug wieder in Betrieb nehmen? Es steht danach auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet.' %}">
+      {% csrf_token %}
+      <button type="submit" class="button secondary">{% translate "Wieder in Betrieb nehmen" %}</button>
+    </form>
+  {% endif %}
+</div>
+{% else %}
 
 {# Desinfektions-Sperre bzw. Freigabe durch die Besatzung #}
 {% if vehicle.is_disinfection_locked %}
@@ -205,6 +225,9 @@
       <div class="field">
         <label for="{{ disinfection_form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
         {{ disinfection_form.disinfectant }}
+        {% if not disinfection_form.fields.disinfectant.queryset.exists %}
+          <p class="field-hint">{% translate "Kein Desinfektionsmittel in Gebrauch. Bitte im Admin-Bereich unter „Desinfektionsmittel“ ein Mittel auf „In Gebrauch“ setzen." %}</p>
+        {% endif %}
       </div>
 
       <div class="field">
@@ -271,6 +294,7 @@
     </form>
   </section>
 </div>
+{% endif %}
 
 {# Protokoll-Historie: Schichtübernahmen & Desinfektionsbuch #}
 <div class="grid-2">
@@ -290,7 +314,7 @@
           {% if h.failed_checkpoints %}<span class="badge badge-fail">{% translate "Befund" %}</span>{% else %}<span class="badge badge-pass">{% translate "OK" %}</span>{% endif %}
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Schichtübernahmen dokumentiert." %} <a href="#fleet-handover">{% translate "Schichtübernahme bestätigen" %}</a></p>
+        <p class="empty-state">{% translate "Noch keine Schichtübernahmen dokumentiert." %}{% if vehicle.is_active %} <a href="#fleet-handover">{% translate "Schichtübernahme bestätigen" %}</a>{% endif %}</p>
       {% endfor %}
     </div>
   </section>
@@ -308,7 +332,7 @@
           <span class="badge badge-info">{% translate "RKI-konform" %}</span>
         </div>
       {% empty %}
-        <p class="empty-state">{% translate "Noch keine Desinfektionen protokolliert." %} <a href="#fleet-disinfection">{% translate "RKI-Desinfektionsprotokoll" %}</a></p>
+        <p class="empty-state">{% translate "Noch keine Desinfektionen protokolliert." %}{% if vehicle.is_active %} <a href="#fleet-disinfection">{% translate "RKI-Desinfektionsprotokoll" %}</a>{% endif %}</p>
       {% endfor %}
     </div>
   </section>

@@ -277,16 +277,50 @@ class AppVersionAdmin(admin.ModelAdmin):
     )
 
 
+from django import forms  # noqa: E402
+from django.utils.translation import gettext_lazy as _  # noqa: E402
+
 from .fleet_models import DisinfectantMaster  # noqa: E402
+
+
+class DisinfectantMasterAdminForm(forms.ModelForm):
+    class Meta:
+        model = DisinfectantMaster
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        station = cleaned_data.get("station")
+        if station is None and self.instance.station_id:
+            station = self.instance.station
+        if station is not None and cleaned_data.get("is_active") is False:
+            others = DisinfectantMaster.objects.filter(station=station, is_active=True)
+            if self.instance.pk:
+                others = others.exclude(pk=self.instance.pk)
+            if not others.exists():
+                # Ohne Mittel in Gebrauch ließe sich keine Desinfektion mehr erfassen.
+                raise ValidationError({"is_active": _(
+                    "Mindestens ein Mittel muss in Gebrauch bleiben, sonst kann niemand eine Desinfektion "
+                    "erfassen. Bitte zuerst ein anderes Mittel auf „In Gebrauch“ setzen."
+                )})
+        return cleaned_data
 
 
 @admin.register(DisinfectantMaster)
 class DisinfectantMasterAdmin(admin.ModelAdmin):
-    """Desinfektionsmittel je Wache: Name, Wirkspektrum und Einwirkzeit."""
+    """Desinfektionsmittel je Wache: Name, Wirkspektrum und Einwirkzeit.
 
-    list_display = ("name", "station", "default_exposure_minutes", "is_vah_listed")
-    list_filter = ("station", "is_vah_listed")
+    Nicht löschen, sondern „In Gebrauch“ abwählen: Desinfektionsprotokolle
+    verweisen auf das Mittel und bleiben als Nachweis erhalten.
+    """
+
+    form = DisinfectantMasterAdminForm
+    list_display = ("name", "station", "default_exposure_minutes", "is_vah_listed", "is_active")
+    list_filter = ("station", "is_vah_listed", "is_active")
     search_fields = ("name", "manufacturer")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 from .notification_models import SignalOutbox  # noqa: E402

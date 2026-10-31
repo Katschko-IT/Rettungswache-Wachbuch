@@ -90,10 +90,12 @@ class Defect(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
     # Gesperrtes Medizinprodukt: Solange der Mangel offen ist, bleibt das Gerät
-    # außer Betrieb (siehe core/device_status.py).
+    # gesperrt (siehe core/device_status.py). PROTECT: Ein gerätebezogener Mangel
+    # ist eine Funktionsstörung im Medizinproduktebuch und bleibt mit dem Gerät
+    # verbunden (core/evidence.py).
     medical_device = models.ForeignKey(
         "core.MedicalDevice",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name="defects",
         null=True,
         blank=True,

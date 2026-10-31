@@ -38,8 +38,13 @@ class Command(BaseCommand):
             f"GRANT USAGE ON SCHEMA public TO {app_role}, {feed_role}, {backup_role}, {push_role}",
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {app_role}",
             f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {app_role}",
+            # Append-only (AGENTS.md § 4). Diese Tabellen werden in der App nie
+            # geändert und nie mit FOR UPDATE gesperrt; Löschen (Demo-Reset,
+            # Fristen) läuft mit Eigentümerrechten. Eine Anweisung, damit
+            # core/test_review_final_core.py sie lesen kann.
             f"REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
-            f"core_handoverrevision, core_checklistcompletion, core_stockmovement FROM {app_role}",
+            f"core_handoverrevision, core_checklistcompletion, core_stockmovement, "
+            f"core_maintenancelog, core_deviceroutinecheck FROM {app_role}",
             f"GRANT SELECT, UPDATE (last_success_at, last_error_at, last_error) ON core_feedsource TO {feed_role}",
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON core_feeditem TO {feed_role}",
             f"GRANT USAGE, SELECT ON SEQUENCE core_feeditem_id_seq TO {feed_role}",

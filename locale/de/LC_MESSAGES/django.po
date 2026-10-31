@@ -92,6 +92,14 @@ msgstr "%(read)s von %(total)s gelesen"
 msgid "%(read)s von %(total)s haben gelesen."
 msgstr "%(read)s von %(total)s haben gelesen."
 
+#: core/retire_views.py:33
+msgid "%(vehicle)s ist außer Betrieb genommen. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
+msgstr "%(vehicle)s ist außer Betrieb genommen. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
+
+#: core/retire_views.py:49
+msgid "%(vehicle)s ist wieder in Betrieb und steht auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet."
+msgstr "%(vehicle)s ist wieder in Betrieb und steht auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet."
+
 #: core/coffee_views.py:664
 msgid "%(what)s über %(amount)s wird durch eine Gegenbuchung ausgeglichen; das Original bleibt sichtbar."
 msgstr "%(what)s über %(amount)s wird durch eine Gegenbuchung ausgeglichen; das Original bleibt sichtbar."
@@ -205,7 +213,7 @@ msgstr "2. Welche echten Daten beim Besuch anfallen"
 msgid "2. Welcher Rechner?"
 msgstr "2. Welcher Rechner?"
 
-#: templates/core/fleet_vehicle_detail.html:148
+#: templates/core/fleet_vehicle_detail.html:168
 msgid "3-Minuten Schichtübernahme"
 msgstr "3-Minuten Schichtübernahme"
 
@@ -351,17 +359,17 @@ msgstr "Ab nächstem Monat keinen Beitrag mehr berechnen?"
 #: templates/core/handover_edit.html:17
 #: templates/core/handover_form.html:25
 #: templates/core/membership_form.html:4
-#: templates/core/mpg_device_detail.html:289
-#: templates/core/mpg_device_detail.html:324
-#: templates/core/mpg_device_detail.html:358
-#: templates/core/mpg_device_detail.html:400
-#: templates/core/mpg_device_detail.html:458
-#: templates/core/mpg_device_form.html:194
+#: templates/core/mpg_device_detail.html:320
+#: templates/core/mpg_device_detail.html:355
+#: templates/core/mpg_device_detail.html:389
+#: templates/core/mpg_device_detail.html:431
+#: templates/core/mpg_device_detail.html:489
+#: templates/core/mpg_device_form.html:202
 #: templates/core/news_form.html:26
 #: templates/core/orga_dashboard.html:248
 #: templates/core/presentation.html:43
 #: templates/core/signal_account.html:28
-#: templates/core/sop_form.html:108
+#: templates/core/sop_form.html:109
 #: templates/core/sop_revision_form.html:64
 #: templates/core/task_form.html:24
 #: templates/core/team_form.html:17
@@ -422,10 +430,10 @@ msgstr "Abschalten und Nummer löschen"
 msgid "Absenden"
 msgstr "Absenden"
 
-#: core/fleet_forms.py:149
-#: templates/core/fleet_dashboard.html:146
-#: templates/core/fleet_vehicle_detail.html:106
-#: templates/core/fleet_vehicle_detail.html:285
+#: core/fleet_forms.py:150
+#: templates/core/fleet_dashboard.html:149
+#: templates/core/fleet_vehicle_detail.html:126
+#: templates/core/fleet_vehicle_detail.html:309
 msgid "AdBlue"
 msgstr "AdBlue"
 
@@ -447,7 +455,7 @@ msgstr "Administration"
 msgid "Administration & Profil"
 msgstr "Administration & Profil"
 
-#: templates/core/mpg_device_detail.html:114
+#: templates/core/mpg_device_detail.html:143
 msgid "Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 msgstr "Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 
@@ -471,7 +479,7 @@ msgstr "Aktion"
 msgid "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte."
 msgstr "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte."
 
-#: core/audit_labels.py:168
+#: core/audit_labels.py:174
 #: templates/core/defects.html:15
 #: templates/core/display_token_config.html:23
 #: templates/core/display_tokens.html:41
@@ -508,7 +516,7 @@ msgstr "Aktivierungslink war bereits verbraucht oder widerrufen."
 msgid "Aktivierungslink wurde widerrufen."
 msgstr "Aktivierungslink wurde widerrufen."
 
-#: core/fleet_views.py:218
+#: core/fleet_views.py:219
 msgid "Aktualisieren"
 msgstr "Aktualisieren"
 
@@ -526,7 +534,7 @@ msgid "Aktualisierter Volltext (Markdown)*"
 msgstr "Aktualisierter Volltext (Markdown)*"
 
 #: templates/core/news_index.html:14
-#: templates/core/sop_detail.html:106
+#: templates/core/sop_detail.html:111
 msgid "Aktuell"
 msgstr "Aktuell"
 
@@ -546,11 +554,12 @@ msgstr "Aktuell keine gesperrten Chargen auf der Wache."
 msgid "Aktuelle Revisionsnummer"
 msgstr "Aktuelle Revisionsnummer"
 
-#: templates/core/mpg_device_detail.html:44
+#: templates/core/mpg_device_detail.html:70
 msgid "Aktueller Betriebsstatus"
 msgstr "Aktueller Betriebsstatus"
 
-#: templates/core/mpg_device_form.html:113
+#: templates/core/mpg_device_form.html:114
+#: templates/core/mpg_device_form.html:121
 msgid "Aktueller Status:"
 msgstr "Aktueller Status:"
 
@@ -558,7 +567,7 @@ msgstr "Aktueller Status:"
 msgid "Akut fällig / Abgelaufen"
 msgstr "Akut fällig / Abgelaufen"
 
-#: templates/core/mpg_dashboard.html:57
+#: templates/core/mpg_dashboard.html:60
 msgid "Akut fällig / Überfällig"
 msgstr "Akut fällig / Überfällig"
 
@@ -605,21 +614,21 @@ msgstr "Alle Dienstanweisungen"
 msgid "Alle Dienstübergaben"
 msgstr "Alle Dienstübergaben"
 
-#: templates/core/fleet_dashboard.html:53
-#: templates/core/fleet_dashboard.html:181
+#: templates/core/fleet_dashboard.html:56
+#: templates/core/fleet_dashboard.html:184
 msgid "Alle Fahrzeuge"
 msgstr "Alle Fahrzeuge"
 
-#: templates/core/fleet_dashboard.html:63
-#: templates/core/fleet_dashboard.html:64
+#: templates/core/fleet_dashboard.html:66
+#: templates/core/fleet_dashboard.html:67
 msgid "Alle Fahrzeugtypen"
 msgstr "Alle Fahrzeugtypen"
 
-#: templates/core/mpg_dashboard.html:56
+#: templates/core/mpg_dashboard.html:59
 msgid "Alle Geräte"
 msgstr "Alle Geräte"
 
-#: templates/core/mpg_dashboard.html:67
+#: templates/core/mpg_dashboard.html:70
 #: templates/core/orga_dashboard.html:82
 #: templates/core/orga_dashboard.html:83
 #: templates/core/warehouse_dashboard.html:69
@@ -676,8 +685,8 @@ msgstr "Alles Offene"
 msgid "Alles bezahlt"
 msgstr "Alles bezahlt"
 
-#: templates/core/mpg_dashboard.html:159
-#: templates/core/mpg_device_detail.html:118
+#: templates/core/mpg_dashboard.html:162
+#: templates/core/mpg_device_detail.html:147
 msgid "Alles in Ordnung – Funktion geprüft"
 msgstr "Alles in Ordnung – Funktion geprüft"
 
@@ -726,7 +735,7 @@ msgstr "Als Mara (Mitglied) die Übergabe öffnen und „Gelesen – quittieren�
 msgid "Als Master-Admin weiter: Team, Einstellungen, Display"
 msgstr "Als Master-Admin weiter: Team, Einstellungen, Display"
 
-#: templates/core/sop_detail.html:57
+#: templates/core/sop_detail.html:62
 msgid "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen."
 msgstr "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen."
 
@@ -840,11 +849,11 @@ msgstr "Anhänge"
 msgid "Anhänge (optional)"
 msgstr "Anhänge (optional)"
 
-#: templates/core/mpg_device_form.html:131
+#: templates/core/mpg_device_form.html:139
 msgid "Anlage 1 (STK-Pflicht)"
 msgstr "Anlage 1 (STK-Pflicht)"
 
-#: templates/core/mpg_device_form.html:132
+#: templates/core/mpg_device_form.html:140
 msgid "Anlage 2 (MTK-Pflicht)"
 msgstr "Anlage 2 (MTK-Pflicht)"
 
@@ -913,27 +922,27 @@ msgstr "Anmeldung konnte nicht abgeschlossen werden."
 msgid "Anmeldung mit manuellem Code"
 msgstr "Anmeldung mit manuellem Code"
 
-#: core/audit_labels.py:143
+#: core/audit_labels.py:149
 msgid "Anmeldung per QR-Code"
 msgstr "Anmeldung per QR-Code"
 
-#: core/audit_labels.py:93
+#: core/audit_labels.py:98
 msgid "Anmeldung per QR-Code abgelehnt"
 msgstr "Anmeldung per QR-Code abgelehnt"
 
-#: core/audit_labels.py:94
+#: core/audit_labels.py:99
 msgid "Anmeldung per QR-Code abgeschlossen"
 msgstr "Anmeldung per QR-Code abgeschlossen"
 
-#: core/audit_labels.py:91
+#: core/audit_labels.py:96
 msgid "Anmeldung per QR-Code angefordert"
 msgstr "Anmeldung per QR-Code angefordert"
 
-#: core/audit_labels.py:92
+#: core/audit_labels.py:97
 msgid "Anmeldung per QR-Code bestätigt"
 msgstr "Anmeldung per QR-Code bestätigt"
 
-#: core/audit_labels.py:95
+#: core/audit_labels.py:100
 msgid "Anmeldung per QR-Code widerrufen"
 msgstr "Anmeldung per QR-Code widerrufen"
 
@@ -1024,19 +1033,19 @@ msgstr "App-Tokens"
 msgid "App-Tokens / API"
 msgstr "App-Tokens / API"
 
-#: core/audit_labels.py:141
+#: core/audit_labels.py:147
 msgid "App-Zugang"
 msgstr "App-Zugang"
 
-#: core/audit_labels.py:87
+#: core/audit_labels.py:92
 msgid "App-Zugang erstellt"
 msgstr "App-Zugang erstellt"
 
-#: core/audit_labels.py:88
+#: core/audit_labels.py:93
 msgid "App-Zugang widerrufen"
 msgstr "App-Zugang widerrufen"
 
-#: core/audit_labels.py:89
+#: core/audit_labels.py:94
 msgid "App-Zugänge nach Passwortänderung widerrufen"
 msgstr "App-Zugänge nach Passwortänderung widerrufen"
 
@@ -1046,7 +1055,7 @@ msgstr "Arbeitsspeicher"
 
 #: templates/core/handover_list.html:13
 #: templates/core/news_index.html:36
-#: templates/core/sop_detail.html:108
+#: templates/core/sop_detail.html:113
 msgid "Archiv"
 msgstr "Archiv"
 
@@ -1075,7 +1084,7 @@ msgstr "Archivierte"
 msgid "Art"
 msgstr "Art"
 
-#: templates/core/fleet_vehicle_detail.html:211
+#: templates/core/fleet_vehicle_detail.html:234
 msgid "Art der Desinfektion"
 msgstr "Art der Desinfektion"
 
@@ -1243,15 +1252,15 @@ msgstr "Ausgeben"
 msgid "Ausgegeben"
 msgstr "Ausgegeben"
 
-#: core/audit_labels.py:132
+#: core/audit_labels.py:138
 msgid "Aushang"
 msgstr "Aushang"
 
-#: core/audit_labels.py:59
+#: core/audit_labels.py:64
 msgid "Aushang angeheftet"
 msgstr "Aushang angeheftet"
 
-#: core/audit_labels.py:57
+#: core/audit_labels.py:62
 msgid "Aushang angelegt"
 msgstr "Aushang angelegt"
 
@@ -1260,11 +1269,11 @@ msgstr "Aushang angelegt"
 msgid "Aushang anlegen"
 msgstr "Aushang anlegen"
 
-#: core/audit_labels.py:60
+#: core/audit_labels.py:65
 msgid "Aushang archiviert"
 msgstr "Aushang archiviert"
 
-#: core/audit_labels.py:58
+#: core/audit_labels.py:63
 msgid "Aushang bearbeitet"
 msgstr "Aushang bearbeitet"
 
@@ -1288,7 +1297,7 @@ msgstr "Aushänge"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 
-#: core/audit_labels.py:118
+#: core/audit_labels.py:123
 #: core/views.py:566
 msgid "Ausstattung"
 msgstr "Ausstattung"
@@ -1337,23 +1346,48 @@ msgstr "Autobahnen und Bundesstraßen"
 msgid "Automatischer Bestellschein"
 msgstr "Automatischer Bestellschein"
 
-#: templates/core/mpg_dashboard.html:59
-#: templates/core/mpg_dashboard.html:150
-msgid "Außer Betrieb"
-msgstr "Außer Betrieb"
+#: templates/core/fleet_dashboard.html:25
+#: templates/core/mpg_dashboard.html:28
+#: templates/core/mpg_device_detail.html:81
+#: templates/core/mpg_device_form.html:122
+#: templates/core/retired_list.html:29
+msgid "Außer Betrieb genommen"
+msgstr "Außer Betrieb genommen"
 
-#: templates/core/mpg_device_detail.html:53
-msgid "Außer Betrieb (Gesperrt)"
-msgstr "Außer Betrieb (Gesperrt)"
+#: templates/core/mpg_device_detail.html:50
+msgid "Außer Betrieb genommen am %(date)s."
+msgstr "Außer Betrieb genommen am %(date)s."
+
+#: templates/core/fleet_vehicle_detail.html:38
+#: templates/core/mpg_device_detail.html:52
+msgid "Außer Betrieb genommen."
+msgstr "Außer Betrieb genommen."
+
+#: core/retire_views.py:72
+msgid "Außer Betrieb genommene Fahrzeuge"
+msgstr "Außer Betrieb genommene Fahrzeuge"
+
+#: core/retire_views.py:131
+msgid "Außer Betrieb genommene Medizingeräte"
+msgstr "Außer Betrieb genommene Medizingeräte"
+
+#: templates/core/fleet_vehicle_detail.html:29
+#: templates/core/mpg_device_detail.html:39
+msgid "Außer Betrieb nehmen"
+msgstr "Außer Betrieb nehmen"
 
 #: core/fleet_models.py:119
-#: templates/core/fleet_vehicle_detail.html:76
+#: templates/core/fleet_vehicle_detail.html:96
 msgid "Außer Dienst"
 msgstr "Außer Dienst"
 
 #: core/fleet_models.py:52
 msgid "Außer Dienst / nicht einsatzklar"
 msgstr "Außer Dienst / nicht einsatzklar"
+
+#: templates/core/sop_detail.html:46
+msgid "Außer Kraft"
+msgstr "Außer Kraft"
 
 #: templates/core/install_guide.html:105
 msgid "Außerdem"
@@ -1377,11 +1411,11 @@ msgstr "BIC muss 8 oder 11 alphanumerische Zeichen haben."
 msgid "BIC:"
 msgstr "BIC:"
 
-#: core/fleet_models.py:312
+#: core/fleet_models.py:322
 msgid "BTM-Plombe nicht unversehrt"
 msgstr "BTM-Plombe nicht unversehrt"
 
-#: core/fleet_models.py:306
+#: core/fleet_models.py:316
 msgid "BTM-Plombe unversehrt & geprüft"
 msgstr "BTM-Plombe unversehrt & geprüft"
 
@@ -1420,7 +1454,7 @@ msgstr "Bargeld in der Kasse (laut Buchungen)"
 msgid "Baujahr"
 msgstr "Baujahr"
 
-#: templates/core/mpg_device_detail.html:164
+#: templates/core/mpg_device_detail.html:194
 msgid "Baujahr / Anschaffung:"
 msgstr "Baujahr / Anschaffung:"
 
@@ -1440,11 +1474,11 @@ msgstr "Baustellen und Sperrungen"
 msgid "Baustellen weiter entfernt werden ausgeblendet (1–200 km)."
 msgstr "Baustellen weiter entfernt werden ausgeblendet (1–200 km)."
 
-#: templates/core/mpg_device_detail.html:272
+#: templates/core/mpg_device_detail.html:303
 msgid "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 msgstr "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 
-#: templates/core/fleet_dashboard.html:175
+#: templates/core/fleet_dashboard.html:178
 #: templates/core/mpg_device_detail.html:30
 #: templates/core/orga_dashboard.html:129
 #: templates/core/pinboard.html:29
@@ -1458,11 +1492,11 @@ msgstr "Bearbeiten"
 msgid "Bearbeitet von"
 msgstr "Bearbeitet von"
 
-#: templates/core/mpg_device_form.html:176
+#: templates/core/mpg_device_form.html:184
 msgid "Bedienungsanleitung & Notizen"
 msgstr "Bedienungsanleitung & Notizen"
 
-#: templates/core/mpg_device_detail.html:148
+#: templates/core/mpg_device_detail.html:177
 msgid "Bedienungsanleitung (PDF/Web)"
 msgstr "Bedienungsanleitung (PDF/Web)"
 
@@ -1478,15 +1512,15 @@ msgstr "Befreit"
 msgid "Befreiung %(month)s: %(reason)s"
 msgstr "Befreiung %(month)s: %(reason)s"
 
-#: templates/core/fleet_vehicle_detail.html:290
+#: templates/core/fleet_vehicle_detail.html:314
 msgid "Befund"
 msgstr "Befund"
 
-#: templates/core/mpg_device_detail.html:396
+#: templates/core/mpg_device_detail.html:427
 msgid "Befund / Bemerkungen:"
 msgstr "Befund / Bemerkungen:"
 
-#: templates/core/mpg_device_detail.html:100
+#: templates/core/mpg_device_detail.html:128
 msgid "Befähigung im digitalen Gerätepass gültig"
 msgstr "Befähigung im digitalen Gerätepass gültig"
 
@@ -1502,7 +1536,7 @@ msgstr "Bei Vereinen und Gesellschaften: Vorstand oder Geschäftsführung."
 msgid "Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll."
 msgstr "Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll."
 
-#: templates/core/fleet_vehicle_detail.html:242
+#: templates/core/fleet_vehicle_detail.html:265
 msgid "Bei der Übernahme mit „Nein“ beantwortet:"
 msgstr "Bei der Übernahme mit „Nein“ beantwortet:"
 
@@ -1526,7 +1560,7 @@ msgstr "Bei jeder Anmeldung fragt Wachwerk zusätzlich nach einem sechsstelligen
 msgid "Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."
 msgstr "Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."
 
-#: templates/core/fleet_vehicle_detail.html:185
+#: templates/core/fleet_vehicle_detail.html:205
 msgid "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für diesen Punkt."
 msgstr "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für diesen Punkt."
 
@@ -1587,15 +1621,15 @@ msgstr "Beitrag ab Monat"
 msgid "Beitrag bis Monat"
 msgstr "Beitrag bis Monat"
 
-#: templates/core/fleet_vehicle_detail.html:188
+#: templates/core/fleet_vehicle_detail.html:208
 msgid "Bemerkung"
 msgstr "Bemerkung"
 
-#: core/fleet_models.py:258
+#: core/fleet_models.py:268
 msgid "Bemerkung (keine Patienten- oder Einsatzangaben)"
 msgstr "Bemerkung (keine Patienten- oder Einsatzangaben)"
 
-#: templates/core/mpg_device_detail.html:280
+#: templates/core/mpg_device_detail.html:311
 msgid "Bemerkungen / Feststellungen:"
 msgstr "Bemerkungen / Feststellungen:"
 
@@ -1622,7 +1656,7 @@ msgid "Benutzerkonto"
 msgstr "Benutzerkonto"
 
 #: core/forms.py:1209
-#: core/orga_views.py:339
+#: core/orga_views.py:351
 msgid "Benutzername"
 msgstr "Benutzername"
 
@@ -1679,7 +1713,7 @@ msgstr "Bereitstellung der Netzwerkverbindung, Stabilität, Fehlersuche sowie Er
 msgid "Besatzung einladen"
 msgstr "Besatzung einladen"
 
-#: core/audit_labels.py:34
+#: core/audit_labels.py:39
 msgid "Besatzung über Desinfektion benachrichtigt"
 msgstr "Besatzung über Desinfektion benachrichtigt"
 
@@ -1703,7 +1737,7 @@ msgstr "Bestand nach Lagerorten (Fahrzeuge, Schränke, Koffer)"
 msgid "Bestand, Chargen und Verfallsdaten, Mindestbestände und Bestellvorschlag."
 msgstr "Bestand, Chargen und Verfallsdaten, Mindestbestände und Bestellvorschlag."
 
-#: core/mpg_forms.py:86
+#: core/mpg_forms.py:93
 msgid "Bestanden"
 msgstr "Bestanden"
 
@@ -1752,7 +1786,7 @@ msgstr "Bestätigen"
 msgid "Bestätigungscode"
 msgstr "Bestätigungscode"
 
-#: core/audit_labels.py:169
+#: core/audit_labels.py:175
 #: templates/core/coffee.html:103
 #: templates/core/coffee.html:146
 #: templates/core/coffee.html:152
@@ -1780,7 +1814,7 @@ msgstr "Betrag in EUR"
 msgid "Betreff"
 msgstr "Betreff"
 
-#: templates/core/fleet_vehicle_detail.html:250
+#: templates/core/fleet_vehicle_detail.html:273
 msgid "Betreff des Mangels"
 msgstr "Betreff des Mangels"
 
@@ -1801,11 +1835,11 @@ msgstr "Betrieb, Löschung und Verträge"
 msgid "Betriebsart wählen"
 msgstr "Betriebsart wählen"
 
-#: templates/core/mpg_dashboard.html:60
+#: templates/core/mpg_dashboard.html:63
 msgid "Betriebsbereit"
 msgstr "Betriebsbereit"
 
-#: templates/core/mpg_dashboard.html:46
+#: templates/core/mpg_dashboard.html:49
 msgid "Betriebsbereit & STK OK"
 msgstr "Betriebsbereit & STK OK"
 
@@ -1913,12 +1947,12 @@ msgstr "Bisherige Version: v"
 msgid "Bitte Eingaben prüfen"
 msgstr "Bitte Eingaben prüfen"
 
-#: templates/core/fleet_vehicle_detail.html:40
+#: templates/core/fleet_vehicle_detail.html:60
 msgid "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei."
 msgstr "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei."
 
-#: core/fleet_forms.py:118
-#: core/mpg_forms.py:129
+#: core/fleet_forms.py:119
+#: core/mpg_forms.py:136
 msgid "Bitte Ja oder Nein wählen."
 msgstr "Bitte Ja oder Nein wählen."
 
@@ -1943,19 +1977,19 @@ msgstr "Bitte Titel und Text ausfüllen."
 msgid "Bitte Wache wählen"
 msgstr "Bitte Wache wählen"
 
-#: core/mpg_forms.py:90
+#: core/mpg_forms.py:97
 msgid "Bitte das Ergebnis wählen."
 msgstr "Bitte das Ergebnis wählen."
 
-#: core/fleet_forms.py:128
+#: core/fleet_forms.py:129
 msgid "Bitte den Füllstand wählen."
 msgstr "Bitte den Füllstand wählen."
 
-#: core/fleet_forms.py:146
+#: core/fleet_forms.py:147
 msgid "Bitte den Sauerstoffdruck eintragen."
 msgstr "Bitte den Sauerstoffdruck eintragen."
 
-#: core/fleet_forms.py:139
+#: core/fleet_forms.py:140
 msgid "Bitte den km-Stand eintragen."
 msgstr "Bitte den km-Stand eintragen."
 
@@ -2017,7 +2051,7 @@ msgstr "Bitte keine Patienten-, Einsatz- oder sonstigen vertraulichen Daten."
 msgid "Bitte keine echten Namen oder Daten eingeben."
 msgstr "Bitte keine echten Namen oder Daten eingeben."
 
-#: templates/core/fleet_vehicle_detail.html:243
+#: templates/core/fleet_vehicle_detail.html:266
 msgid "Bitte kurz beschreiben und den Mangel erfassen."
 msgstr "Bitte kurz beschreiben und den Mangel erfassen."
 
@@ -2079,7 +2113,7 @@ msgstr "Browser · App · Terminal · Monitor"
 msgid "Buchstaben"
 msgstr "Buchstaben"
 
-#: core/audit_labels.py:45
+#: core/audit_labels.py:50
 msgid "Buchung der Kaffeekasse korrigiert"
 msgstr "Buchung der Kaffeekasse korrigiert"
 
@@ -2091,7 +2125,7 @@ msgstr "Buchung der Kaffeekasse korrigiert"
 msgid "Buchung erfassen"
 msgstr "Buchung erfassen"
 
-#: core/audit_labels.py:44
+#: core/audit_labels.py:49
 msgid "Buchung in der Kaffeekasse"
 msgstr "Buchung in der Kaffeekasse"
 
@@ -2124,7 +2158,7 @@ msgstr "Bundesland für Feiertage"
 msgid "CE-Kennnr.:"
 msgstr "CE-Kennnr.:"
 
-#: templates/core/mpg_device_detail.html:163
+#: templates/core/mpg_device_detail.html:193
 msgid "CE-Kennnummer:"
 msgstr "CE-Kennnummer:"
 
@@ -2172,7 +2206,7 @@ msgstr "Chargen und Verfall nach FEFO, Mindestbestände und ein fertiger Bestell
 msgid "Chargennummer (Lot):"
 msgstr "Chargennummer (Lot):"
 
-#: core/audit_labels.py:176
+#: core/audit_labels.py:182
 msgid "Chat"
 msgstr "Chat"
 
@@ -2198,32 +2232,32 @@ msgstr "Chat-Schlüssel (E2EE)"
 msgid "Chat-Schlüssel einrichten"
 msgstr "Chat-Schlüssel einrichten"
 
-#: core/audit_labels.py:145
+#: core/audit_labels.py:151
 msgid "Chatgruppe"
 msgstr "Chatgruppe"
 
-#: core/audit_labels.py:99
+#: core/audit_labels.py:104
 msgid "Chatgruppe angelegt"
 msgstr "Chatgruppe angelegt"
 
-#: core/audit_labels.py:131
+#: core/audit_labels.py:137
 msgid "Chatnachricht"
 msgstr "Chatnachricht"
 
-#: core/audit_labels.py:56
+#: core/audit_labels.py:61
 msgid "Chatnachricht ausgeblendet"
 msgstr "Chatnachricht ausgeblendet"
 
-#: core/audit_labels.py:55
+#: core/audit_labels.py:60
 msgid "Chatnachricht gesendet"
 msgstr "Chatnachricht gesendet"
 
-#: core/audit_labels.py:123
+#: core/audit_labels.py:129
 #: core/views.py:577
 msgid "Checkliste"
 msgstr "Checkliste"
 
-#: core/audit_labels.py:35
+#: core/audit_labels.py:40
 msgid "Checkliste abgeschlossen"
 msgstr "Checkliste abgeschlossen"
 
@@ -2231,7 +2265,7 @@ msgstr "Checkliste abgeschlossen"
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checkliste wurde als erledigt vermerkt."
 
-#: core/audit_labels.py:175
+#: core/audit_labels.py:181
 #: core/navigation.py:31
 #: core/navigation.py:58
 #: core/views.py:577
@@ -2243,19 +2277,19 @@ msgstr "Checkliste wurde als erledigt vermerkt."
 msgid "Checklisten"
 msgstr "Checklisten"
 
-#: core/audit_labels.py:122
+#: core/audit_labels.py:128
 msgid "Checklisten-Abschluss"
 msgstr "Checklisten-Abschluss"
 
-#: core/audit_labels.py:138
+#: core/audit_labels.py:144
 msgid "Checklisten-Rhythmus"
 msgstr "Checklisten-Rhythmus"
 
-#: core/audit_labels.py:37
+#: core/audit_labels.py:42
 msgid "Checklisten-Rhythmus entfernt"
 msgstr "Checklisten-Rhythmus entfernt"
 
-#: core/audit_labels.py:36
+#: core/audit_labels.py:41
 msgid "Checklisten-Rhythmus geändert"
 msgstr "Checklisten-Rhythmus geändert"
 
@@ -2267,7 +2301,7 @@ msgstr "Clientseitig verschlüsselt gespeichert"
 msgid "Clientseitige Verschlüsselung"
 msgstr "Clientseitige Verschlüsselung"
 
-#: templates/core/fleet_dashboard.html:168
+#: templates/core/fleet_dashboard.html:171
 msgid "Cockpit & Schichtübernahme"
 msgstr "Cockpit & Schichtübernahme"
 
@@ -2311,7 +2345,7 @@ msgstr "Core i3/i5 der 8./9. Generation; bis 32 GB; NVMe- und SATA-SSD"
 msgid "Correlation-ID muss dem Muster ^[A-Za-z0-9_-]{1,128}$ entsprechen."
 msgstr "Correlation-ID muss dem Muster ^[A-Za-z0-9_-]{1,128}$ entsprechen."
 
-#: templates/core/mpg_device_form.html:163
+#: templates/core/mpg_device_form.html:171
 msgid "DGUV V3 Intervall (M):"
 msgstr "DGUV V3 Intervall (M):"
 
@@ -2381,13 +2415,17 @@ msgstr "Darstellung speichern"
 msgid "Darstellung: Reihenfolge der Bereiche"
 msgstr "Darstellung: Reihenfolge der Bereiche"
 
-#: templates/core/fleet_vehicle_detail.html:34
+#: templates/core/fleet_vehicle_detail.html:54
 msgid "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden."
 msgstr "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden."
 
-#: core/fleet_views.py:309
+#: core/fleet_views.py:311
 msgid "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich."
 msgstr "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich."
+
+#: templates/core/fleet_vehicle_detail.html:39
+msgid "Das Fahrzeug nimmt keine neuen Einträge an. Übernahmen und Desinfektionen unten bleiben als Nachweis erhalten."
+msgstr "Das Fahrzeug nimmt keine neuen Einträge an. Übernahmen und Desinfektionen unten bleiben als Nachweis erhalten."
 
 #: core/demo_sandbox.py:740
 msgid "Das Formular ist schon ausgefüllt: „Sauerstoff RTW 83-2 fast leer“, Dringlichkeit „Dringend“. Einfach speichern."
@@ -2400,6 +2438,14 @@ msgstr "Das Formular stammt aus einer älteren Ansicht – zum Beispiel aus eine
 #: templates/core/birthday_settings.html:6
 msgid "Das Geburtsjahr wird nicht erhoben."
 msgstr "Das Geburtsjahr wird nicht erhoben."
+
+#: core/wachalltag_web.py:289
+msgid "Das Gerät ist im Medizinproduktebuch gesperrt oder außer Betrieb genommen. Freigeben kann die Schichtleitung es nur dort, mit einer Funktionskontrolle."
+msgstr "Das Gerät ist im Medizinproduktebuch gesperrt oder außer Betrieb genommen. Freigeben kann die Schichtleitung es nur dort, mit einer Funktionskontrolle."
+
+#: templates/core/mpg_device_detail.html:55
+msgid "Das Gerät nimmt keine neuen Kontrollen, Prüfungen, Einweisungen oder Mängel an. Die Nachweise unten bleiben erhalten."
+msgstr "Das Gerät nimmt keine neuen Kontrollen, Prüfungen, Einweisungen oder Mängel an. Die Nachweise unten bleiben erhalten."
 
 #: templates/core/install_guide.html:102
 msgid "Das Komplett-Skript für eigenes WLAN und Touch-Terminal gibt es bisher nur für den Raspberry Pi. Auf anderen Rechnern mit dem Installer im Modus „lan“ installieren, das WLAN über einen eigenen Access Point bereitstellen und für das Touch-Terminal in der Datei .env „TERMINAL_ENABLED=true“ setzen und am Touch-Monitor die Terminal-Seite im Browser-Vollbild öffnen."
@@ -2538,7 +2584,7 @@ msgstr "Datenschutzkonforme Geburtstagsanzeige von Teammitgliedern (nur mit Einw
 msgid "Datum"
 msgstr "Datum"
 
-#: templates/core/fleet_dashboard.html:194
+#: templates/core/fleet_dashboard.html:197
 msgid "Datum / Uhrzeit"
 msgstr "Datum / Uhrzeit"
 
@@ -2550,7 +2596,7 @@ msgstr "Datum und Uhrzeit des Abrufs"
 msgid "Datum und ob die Kasse stimmte – ohne Namen."
 msgstr "Datum und ob die Kasse stimmte – ohne Namen."
 
-#: templates/core/mpg_device_detail.html:420
+#: templates/core/mpg_device_detail.html:451
 msgid "Datum:"
 msgstr "Datum:"
 
@@ -2574,7 +2620,7 @@ msgstr "Dein Profilbild"
 msgid "Dein persönliches Konto mit allen Rechten. Die Besatzung bekommt später eigene Konten über Team → Einladungen."
 msgstr "Dein persönliches Konto mit allen Rechten. Die Besatzung bekommt später eigene Konten über Team → Einladungen."
 
-#: templates/core/mpg_device_detail.html:90
+#: templates/core/mpg_device_detail.html:118
 msgid "Deine Anwender-Einweisung (§ 11)"
 msgstr "Deine Anwender-Einweisung (§ 11)"
 
@@ -2670,7 +2716,7 @@ msgstr "Demos in 7 Tagen"
 msgid "Den Einrichtungscode noch einmal anzeigen."
 msgstr "Den Einrichtungscode noch einmal anzeigen."
 
-#: core/orga_views.py:327
+#: core/orga_views.py:339
 msgid "Den Quittierungsnachweis exportiert die Wachleitung."
 msgstr "Den Quittierungsnachweis exportiert die Wachleitung."
 
@@ -2839,7 +2885,7 @@ msgstr "Der Wachenchat läuft in einer Signal-Gruppe deiner Wache. Nachrichten u
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 msgstr "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 
-#: core/fleet_forms.py:199
+#: core/fleet_forms.py:200
 msgid "Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."
 msgstr "Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."
 
@@ -2859,12 +2905,12 @@ msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ih
 msgid "Desinfektion"
 msgstr "Desinfektion"
 
-#: templates/core/fleet_dashboard.html:35
+#: templates/core/fleet_dashboard.html:38
 msgid "Desinfektion (Gesperrt)"
 msgstr "Desinfektion (Gesperrt)"
 
 #: core/fleet_models.py:53
-#: templates/core/fleet_dashboard.html:110
+#: templates/core/fleet_dashboard.html:113
 msgid "Desinfektion (gesperrt)"
 msgstr "Desinfektion (gesperrt)"
 
@@ -2876,27 +2922,27 @@ msgstr "Desinfektion bis"
 msgid "Desinfektion bis %(time)s Uhr"
 msgstr "Desinfektion bis %(time)s Uhr"
 
-#: core/fleet_views.py:355
+#: core/fleet_views.py:358
 msgid "Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit)."
 msgstr "Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit)."
 
-#: core/fleet_views.py:360
+#: core/fleet_views.py:363
 msgid "Desinfektion für %(vehicle)s erfasst."
 msgstr "Desinfektion für %(vehicle)s erfasst."
 
-#: templates/core/fleet_vehicle_detail.html:231
+#: templates/core/fleet_vehicle_detail.html:254
 msgid "Desinfektion starten & Fahrzeug sperren"
 msgstr "Desinfektion starten & Fahrzeug sperren"
 
-#: templates/core/fleet_vehicle_detail.html:32
+#: templates/core/fleet_vehicle_detail.html:52
 msgid "Desinfektions-Einwirkzeit läuft"
 msgstr "Desinfektions-Einwirkzeit läuft"
 
-#: templates/core/fleet_vehicle_detail.html:299
+#: templates/core/fleet_vehicle_detail.html:323
 msgid "Desinfektionsbuch-Historie"
 msgstr "Desinfektionsbuch-Historie"
 
-#: templates/core/fleet_vehicle_detail.html:206
+#: templates/core/fleet_vehicle_detail.html:226
 msgid "Desinfektionsmittel (VAH-gelistet)"
 msgstr "Desinfektionsmittel (VAH-gelistet)"
 
@@ -2904,16 +2950,16 @@ msgstr "Desinfektionsmittel (VAH-gelistet)"
 msgid "Desinfektionsmittel auffüllen"
 msgstr "Desinfektionsmittel auffüllen"
 
-#: core/fleet_views.py:362
+#: core/fleet_views.py:365
 msgid "Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."
 msgstr "Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."
 
-#: templates/core/fleet_dashboard.html:198
+#: templates/core/fleet_dashboard.html:201
 msgid "Desinfektor / Personal"
 msgstr "Desinfektor / Personal"
 
-#: core/audit_labels.py:162
-#: templates/core/mpg_dashboard.html:165
+#: core/audit_labels.py:168
+#: templates/core/mpg_dashboard.html:168
 #: templates/core/warehouse_reorder.html:67
 msgid "Details"
 msgstr "Details"
@@ -2990,7 +3036,7 @@ msgstr "Die Erinnerung enthält Betrag, offene Monate, IBAN, Verwendungszweck un
 msgid "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich."
 msgstr "Die Erstinstallation ist bereits abgeschlossen. Eine erneute Einrichtung ist nicht möglich."
 
-#: templates/core/mpg_device_detail.html:311
+#: templates/core/mpg_device_detail.html:342
 msgid "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert."
 msgstr "Die Freigabe wird als Funktionskontrolle auf deinen Namen dokumentiert."
 
@@ -3035,7 +3081,7 @@ msgstr "Die Portangabe der Müllkalender-URL ist ungültig."
 msgid "Die Revisionsnummer muss mindestens 1 sein."
 msgstr "Die Revisionsnummer muss mindestens 1 sein."
 
-#: core/mpg_views.py:295
+#: core/mpg_views.py:300
 msgid "Die Schnellkontrolle gibt es nur für einsatzklare Geräte. Bitte die Kontrolle mit Details erfassen."
 msgstr "Die Schnellkontrolle gibt es nur für einsatzklare Geräte. Bitte die Kontrolle mit Details erfassen."
 
@@ -3063,6 +3109,7 @@ msgstr "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksa
 msgid "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
 msgstr "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
 
+#: core/audit_labels.py:127
 #: core/module_overview.py:108
 msgid "Dienstanweisung"
 msgstr "Dienstanweisung"
@@ -3094,6 +3141,10 @@ msgstr "Dienstanweisungen mit Lesebestätigung und das Telefonbuch der Wache."
 #: templates/core/landing.html:100
 msgid "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender."
 msgstr "Dienstanweisungen mit Versionen und Lesebestätigung, Wiki, Neuigkeiten und Wachenkalender."
+
+#: core/orga_forms.py:42
+msgid "Dienstanweisungen werden nicht gelöscht. „Außer Kraft“ nimmt sie aus der Pflichtlektüre; Versionen und Quittierungen bleiben als Nachweis erhalten."
+msgstr "Dienstanweisungen werden nicht gelöscht. „Außer Kraft“ nimmt sie aus der Pflichtlektüre; Versionen und Quittierungen bleiben als Nachweis erhalten."
 
 #: core/views.py:506
 msgid "Dienststellen-Aufgaben"
@@ -3129,6 +3180,14 @@ msgstr "Diese Buchung wurde bereits korrigiert."
 msgid "Diese Demo hat ihr Limit an Änderungen erreicht. Melde dich ab und starte einfach eine neue Demo."
 msgstr "Diese Demo hat ihr Limit an Änderungen erreicht. Melde dich ab und starte einfach eine neue Demo."
 
+#: core/orga_views.py:151
+msgid "Diese Dienstanweisung ist außer Kraft und kann nicht mehr quittiert werden."
+msgstr "Diese Dienstanweisung ist außer Kraft und kann nicht mehr quittiert werden."
+
+#: templates/core/sop_detail.html:47
+msgid "Diese Dienstanweisung ist außer Kraft. Versionen und Quittierungen bleiben als Nachweis erhalten."
+msgstr "Diese Dienstanweisung ist außer Kraft. Versionen und Quittierungen bleiben als Nachweis erhalten."
+
 #: templates/core/privacy.html:20
 msgid "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt"
 msgstr "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt"
@@ -3137,6 +3196,14 @@ msgstr "Diese Dokumentation ist eine rein technische Vorab-Information für die 
 #: templates/emails/coffee_reminder.txt:23
 msgid "Diese Erinnerung kommt automatisch von %(app)s. Abbestellen: Kaffeekasse → „E-Mail-Erinnerung abbestellen“."
 msgstr "Diese Erinnerung kommt automatisch von %(app)s. Abbestellen: Kaffeekasse → „E-Mail-Erinnerung abbestellen“."
+
+#: core/retire_views.py:73
+msgid "Diese Fahrzeuge erscheinen nicht mehr in Übersicht, Display und Sperrbildschirm. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
+msgstr "Diese Fahrzeuge erscheinen nicht mehr in Übersicht, Display und Sperrbildschirm. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
+
+#: core/retire_views.py:132
+msgid "Diese Geräte erscheinen nicht mehr in Übersicht, Gerätepass und Display. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
+msgstr "Diese Geräte erscheinen nicht mehr in Übersicht, Gerätepass und Display. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
 
 #: core/signal_views.py:86
 msgid "Diese Gruppe kennt das verbundene Signal-Konto nicht."
@@ -3234,7 +3301,7 @@ msgstr "Dieser Bereich ist in der Demo gesperrt, weil er über die eigene Demo-W
 msgid "Dieser Browser ist bereits das Terminal „%(label)s“."
 msgstr "Dieser Browser ist bereits das Terminal „%(label)s“."
 
-#: core/fleet_views.py:301
+#: core/fleet_views.py:303
 msgid "Dieser Fahrzeugstatus kann nicht gewählt werden."
 msgstr "Dieser Fahrzeugstatus kann nicht gewählt werden."
 
@@ -3254,9 +3321,21 @@ msgstr "Dieser Link wird nur einmalig angezeigt. Kopiere ihn auf den Browser des
 msgid "Dieser Monat ist bereits befreit."
 msgstr "Dieser Monat ist bereits befreit."
 
-#: templates/core/mpg_device_detail.html:251
+#: templates/core/mpg_device_detail.html:281
 msgid "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät."
 msgstr "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät."
+
+#: core/evidence.py:91
+msgid "Dieses Fahrzeug ist außer Betrieb genommen. Es nimmt keine neuen Einträge an."
+msgstr "Dieses Fahrzeug ist außer Betrieb genommen. Es nimmt keine neuen Einträge an."
+
+#: core/retire_views.py:37
+msgid "Dieses Fahrzeug ist bereits außer Betrieb genommen."
+msgstr "Dieses Fahrzeug ist bereits außer Betrieb genommen."
+
+#: core/retire_views.py:53
+msgid "Dieses Fahrzeug ist in Betrieb."
+msgstr "Dieses Fahrzeug ist in Betrieb."
 
 #: templates/core/terminal_admin.html:97
 msgid "Dieses Gerät als Terminal einrichten"
@@ -3269,6 +3348,18 @@ msgstr "Dieses Gerät als Wachenterminal einrichten"
 #: templates/core/setup_done.html:30
 msgid "Dieses Gerät ist als Terminal eingerichtet."
 msgstr "Dieses Gerät ist als Terminal eingerichtet."
+
+#: core/evidence.py:92
+msgid "Dieses Gerät ist außer Betrieb genommen. Kontrollen, Prüfungen, Einweisungen und Mängel können nicht mehr erfasst werden."
+msgstr "Dieses Gerät ist außer Betrieb genommen. Kontrollen, Prüfungen, Einweisungen und Mängel können nicht mehr erfasst werden."
+
+#: core/retire_views.py:93
+msgid "Dieses Gerät ist bereits außer Betrieb genommen."
+msgstr "Dieses Gerät ist bereits außer Betrieb genommen."
+
+#: core/retire_views.py:109
+msgid "Dieses Gerät ist in Betrieb."
+msgstr "Dieses Gerät ist in Betrieb."
 
 #: templates/core/terminal_unregistered.html:7
 msgid "Dieses Gerät ist noch kein Wachenterminal"
@@ -3303,7 +3394,7 @@ msgstr "Direkt hier am Bildschirm"
 msgid "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgstr "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 
-#: core/audit_labels.py:147
+#: core/audit_labels.py:153
 msgid "Direktnachricht"
 msgstr "Direktnachricht"
 
@@ -3341,11 +3432,11 @@ msgstr "Dort auch den vierstelligen Wachen-Code festlegen."
 msgid "Dringend"
 msgstr "Dringend"
 
-#: templates/core/mpg_device_detail.html:348
+#: templates/core/mpg_device_detail.html:379
 msgid "Dringend (Sofort außer Betrieb)"
 msgstr "Dringend (Sofort außer Betrieb)"
 
-#: templates/core/fleet_vehicle_detail.html:259
+#: templates/core/fleet_vehicle_detail.html:282
 msgid "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)"
 msgstr "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)"
 
@@ -3359,16 +3450,16 @@ msgstr "Dringende Übergabe"
 msgid "Dringende Übergaben"
 msgstr "Dringende Übergaben"
 
-#: core/fleet_views.py:439
+#: core/fleet_views.py:444
 msgid "Dringender Mangel #%(id)s: %(title)s"
 msgstr "Dringender Mangel #%(id)s: %(title)s"
 
-#: core/audit_labels.py:159
-#: templates/core/fleet_vehicle_detail.html:255
+#: core/audit_labels.py:165
+#: templates/core/fleet_vehicle_detail.html:278
 msgid "Dringlichkeit"
 msgstr "Dringlichkeit"
 
-#: templates/core/mpg_device_detail.html:346
+#: templates/core/mpg_device_detail.html:377
 msgid "Dringlichkeit:"
 msgstr "Dringlichkeit:"
 
@@ -3388,7 +3479,7 @@ msgstr "Du bist (noch) nicht für den Monatsbeitrag eingetragen. Sprich bitte de
 msgid "Du bist da: %(title)s"
 msgstr "Du bist da: %(title)s"
 
-#: templates/core/mpg_device_detail.html:93
+#: templates/core/mpg_device_detail.html:121
 msgid "Du bist eingewiesen"
 msgstr "Du bist eingewiesen"
 
@@ -3396,7 +3487,7 @@ msgstr "Du bist eingewiesen"
 msgid "Du bist gerade %(name)s (%(role)s). Auf der Übersicht geht es mit einem Klick als %(admin)s weiter – mit Team, Einstellungen und Display."
 msgstr "Du bist gerade %(name)s (%(role)s). Auf der Übersicht geht es mit einem Klick als %(admin)s weiter – mit Team, Einstellungen und Display."
 
-#: templates/core/sop_detail.html:49
+#: templates/core/sop_detail.html:54
 msgid "Du hast diese Version (v%(version)s) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert."
 msgstr "Du hast diese Version (v%(version)s) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert."
 
@@ -3550,7 +3641,7 @@ msgstr "Ein zweites Gerät bittet um Freigabe einer Anmeldung für diese Wache."
 msgid "Einbuchen"
 msgstr "Einbuchen"
 
-#: core/fleet_views.py:298
+#: core/fleet_views.py:300
 msgid "Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."
 msgstr "Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."
 
@@ -3578,18 +3669,18 @@ msgstr "Einen Monitor mit HDMI oder DisplayPort und USB-Touch, 15 bis 22 Zoll"
 msgid "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird"
 msgstr "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird"
 
-#: templates/core/mpg_dashboard.html:146
-#: templates/core/mpg_device_detail.html:49
+#: templates/core/mpg_dashboard.html:149
+#: templates/core/mpg_device_detail.html:75
 msgid "Eingeschränkt"
 msgstr "Eingeschränkt"
 
-#: templates/core/mpg_device_detail.html:235
+#: templates/core/mpg_device_detail.html:265
 #: templates/core/mpg_geraetepass.html:74
 #: templates/core/mpg_geraetepass.html:75
 msgid "Eingewiesen am:"
 msgstr "Eingewiesen am:"
 
-#: templates/core/mpg_device_detail.html:229
+#: templates/core/mpg_device_detail.html:259
 msgid "Eingewiesenes Personal gem. § 11 MPBetreibV"
 msgstr "Eingewiesenes Personal gem. § 11 MPBetreibV"
 
@@ -3601,7 +3692,7 @@ msgstr "Einheit"
 msgid "Einkauf"
 msgstr "Einkauf"
 
-#: core/audit_labels.py:47
+#: core/audit_labels.py:52
 msgid "Einkauf aus der Kaffeekasse"
 msgstr "Einkauf aus der Kaffeekasse"
 
@@ -3616,19 +3707,19 @@ msgstr "Einkauf eingetragen. Den Beleg bitte in die Kasse legen."
 msgid "Einkauf eintragen"
 msgstr "Einkauf eintragen"
 
-#: core/audit_labels.py:140
+#: core/audit_labels.py:146
 msgid "Einladung"
 msgstr "Einladung"
 
-#: core/audit_labels.py:81
+#: core/audit_labels.py:86
 msgid "Einladung angenommen, Konto aktiviert"
 msgstr "Einladung angenommen, Konto aktiviert"
 
-#: core/audit_labels.py:80
+#: core/audit_labels.py:85
 msgid "Einladung erstellt"
 msgstr "Einladung erstellt"
 
-#: core/audit_labels.py:82
+#: core/audit_labels.py:87
 msgid "Einladung widerrufen"
 msgstr "Einladung widerrufen"
 
@@ -3676,10 +3767,10 @@ msgstr "Einrichtungscode eingeben"
 
 #: core/fleet_models.py:48
 #: core/fleet_models.py:123
-#: templates/core/fleet_dashboard.html:31
-#: templates/core/fleet_dashboard.html:54
-#: templates/core/fleet_dashboard.html:116
-#: templates/core/fleet_vehicle_detail.html:70
+#: templates/core/fleet_dashboard.html:34
+#: templates/core/fleet_dashboard.html:57
+#: templates/core/fleet_dashboard.html:119
+#: templates/core/fleet_vehicle_detail.html:90
 msgid "Einsatzbereit"
 msgstr "Einsatzbereit"
 
@@ -3693,8 +3784,8 @@ msgstr "Einsatzbereit (alter Status)"
 msgid "Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizingeräte mit STK- und MTK-Fristen; ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt."
 msgstr "Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizingeräte mit STK- und MTK-Fristen; ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt."
 
-#: templates/core/mpg_dashboard.html:144
-#: templates/core/mpg_device_detail.html:47
+#: templates/core/mpg_dashboard.html:147
+#: templates/core/mpg_device_detail.html:73
 msgid "Einsatzklar"
 msgstr "Einsatzklar"
 
@@ -3725,11 +3816,11 @@ msgstr "Einstellungen"
 msgid "Einstellungen der Kaffeekasse gespeichert."
 msgstr "Einstellungen der Kaffeekasse gespeichert."
 
-#: core/audit_labels.py:51
+#: core/audit_labels.py:56
 msgid "Einstellungen der Kaffeekasse geändert"
 msgstr "Einstellungen der Kaffeekasse geändert"
 
-#: core/audit_labels.py:65
+#: core/audit_labels.py:70
 msgid "Einstellungen der Wache geändert"
 msgstr "Einstellungen der Wache geändert"
 
@@ -3750,26 +3841,26 @@ msgstr "Eintragen"
 msgid "Einträge im Alltagsmodus erscheinen unter „Wachenterminal“. Wer einen Eintrag persönlich verantworten muss (z. B. Medizingeräte, Fahrzeugübernahme), nutzt das eigene Konto."
 msgstr "Einträge im Alltagsmodus erscheinen unter „Wachenterminal“. Wer einen Eintrag persönlich verantworten muss (z. B. Medizingeräte, Fahrzeugübernahme), nutzt das eigene Konto."
 
-#: templates/core/mpg_device_detail.html:416
+#: templates/core/mpg_device_detail.html:447
 msgid "Einweiser / Gerätebeauftragter:"
 msgstr "Einweiser / Gerätebeauftragter:"
 
-#: templates/core/mpg_device_detail.html:445
+#: templates/core/mpg_device_detail.html:476
 #: templates/core/mpg_geraetepass.html:29
 #: templates/core/mpg_geraetepass.html:74
 msgid "Einweiser:"
 msgstr "Einweiser:"
 
-#: templates/core/mpg_device_detail.html:142
-#: templates/core/mpg_device_detail.html:240
+#: templates/core/mpg_device_detail.html:171
+#: templates/core/mpg_device_detail.html:270
 msgid "Einweisung dokumentieren"
 msgstr "Einweisung dokumentieren"
 
-#: templates/core/mpg_device_detail.html:409
+#: templates/core/mpg_device_detail.html:440
 msgid "Einweisung gem. § 11 MPBetreibV"
 msgstr "Einweisung gem. § 11 MPBetreibV"
 
-#: templates/core/mpg_device_detail.html:459
+#: templates/core/mpg_device_detail.html:490
 msgid "Einweisung speichern"
 msgstr "Einweisung speichern"
 
@@ -3777,15 +3868,15 @@ msgstr "Einweisung speichern"
 msgid "Einweisungen nach § 11 MPBetreibV"
 msgstr "Einweisungen nach § 11 MPBetreibV"
 
-#: templates/core/fleet_dashboard.html:197
+#: templates/core/fleet_dashboard.html:200
 msgid "Einwirkzeit"
 msgstr "Einwirkzeit"
 
-#: templates/core/fleet_vehicle_detail.html:216
+#: templates/core/fleet_vehicle_detail.html:239
 msgid "Einwirkzeit (Min)"
 msgstr "Einwirkzeit (Min)"
 
-#: templates/core/fleet_vehicle_detail.html:39
+#: templates/core/fleet_vehicle_detail.html:59
 msgid "Einwirkzeit abgelaufen – Freigabe durch die Besatzung"
 msgstr "Einwirkzeit abgelaufen – Freigabe durch die Besatzung"
 
@@ -3801,7 +3892,7 @@ msgstr "Einzahlung (%(method)s)"
 msgid "Einzahlung/Gutschrift"
 msgstr "Einzahlung/Gutschrift"
 
-#: templates/core/mpg_device_detail.html:436
+#: templates/core/mpg_device_detail.html:467
 msgid "Einzelschulung erfassen"
 msgstr "Einzelschulung erfassen"
 
@@ -3832,8 +3923,8 @@ msgstr "Empfänger und Text sind nötig."
 msgid "Empfänger:"
 msgstr "Empfänger:"
 
-#: core/mpg_forms.py:134
-#: templates/core/mpg_device_detail.html:315
+#: core/mpg_forms.py:141
+#: templates/core/mpg_device_detail.html:346
 msgid "Energieversorgung / Akkus geladen"
 msgstr "Energieversorgung / Akkus geladen"
 
@@ -3878,11 +3969,11 @@ msgstr "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses ak
 msgid "Erfasst von"
 msgstr "Erfasst von"
 
-#: core/mpg_forms.py:85
+#: core/mpg_forms.py:92
 msgid "Ergebnis"
 msgstr "Ergebnis"
 
-#: templates/core/mpg_device_detail.html:387
+#: templates/core/mpg_device_detail.html:418
 msgid "Ergebnis:"
 msgstr "Ergebnis:"
 
@@ -3918,8 +4009,8 @@ msgstr "Erinnerungen per Signal"
 msgid "Erinnerungen und Hinweise per Signal"
 msgstr "Erinnerungen und Hinweise per Signal"
 
-#: templates/core/fleet_dashboard.html:219
-#: templates/core/mpg_dashboard.html:218
+#: templates/core/fleet_dashboard.html:222
+#: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Erkannt: "
 msgstr "Erkannt: "
@@ -3944,7 +4035,7 @@ msgstr "Erlaubt sind JPEG, PNG, WebP und PDF."
 msgid "Erledigt"
 msgstr "Erledigt"
 
-#: core/audit_labels.py:126
+#: core/audit_labels.py:132
 msgid "Erledigte Wachaufgabe"
 msgstr "Erledigte Wachaufgabe"
 
@@ -3976,11 +4067,11 @@ msgstr "Erst mal testen"
 msgid "Erst ohne Anmeldung ansehen: zur Vorführung"
 msgstr "Erst ohne Anmeldung ansehen: zur Vorführung"
 
-#: core/fleet_forms.py:192
+#: core/fleet_forms.py:193
 msgid "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
 msgstr "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
 
-#: core/audit_labels.py:85
+#: core/audit_labels.py:90
 msgid "Ersteinrichtung abgeschlossen"
 msgstr "Ersteinrichtung abgeschlossen"
 
@@ -4010,7 +4101,7 @@ msgstr "Erstellt von"
 msgid "Ersten Artikel erfassen"
 msgstr "Ersten Artikel erfassen"
 
-#: templates/core/sop_form.html:85
+#: templates/core/sop_form.html:86
 msgid "Erstfassung / Inhalt (Version 1.0)"
 msgstr "Erstfassung / Inhalt (Version 1.0)"
 
@@ -4039,9 +4130,9 @@ msgstr "Erzeugt einen persönlichen QR-Code (2 Minuten gültig, einmalig). Die P
 msgid "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
 msgstr "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
 
-#: templates/core/mpg_device_detail.html:337
-msgid "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
-msgstr "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
+#: templates/core/mpg_device_detail.html:368
+msgid "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
+msgstr "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 
 #: templates/core/coffee_book.html:20
 msgid "Es ist noch kein Monatsbeitrag festgelegt."
@@ -4067,11 +4158,11 @@ msgstr "Esc beendet die Anzeige"
 msgid "Escape zum Zurücksetzen"
 msgstr "Escape zum Zurücksetzen"
 
-#: templates/core/fleet_vehicle_detail.html:239
+#: templates/core/fleet_vehicle_detail.html:262
 msgid "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt."
 msgstr "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt."
 
-#: templates/core/mpg_device_detail.html:260
+#: templates/core/mpg_device_detail.html:290
 msgid "Etikett drucken"
 msgstr "Etikett drucken"
 
@@ -4124,38 +4215,54 @@ msgstr "Fachmodule: Fahrzeuge, Medizingeräte mit Prüffristen, Material mit Bes
 msgid "Fahrgestell-Hersteller"
 msgstr "Fahrgestell-Hersteller"
 
-#: core/audit_labels.py:121
+#: core/audit_labels.py:126
 #: core/module_overview.py:44
 #: core/wachalltag_models.py:61
-#: templates/core/fleet_dashboard.html:195
+#: templates/core/fleet_dashboard.html:198
 msgid "Fahrzeug"
 msgstr "Fahrzeug"
 
-#: core/fleet_views.py:178
+#: core/fleet_views.py:179
 msgid "Fahrzeug %(vehicle)s angelegt."
 msgstr "Fahrzeug %(vehicle)s angelegt."
+
+#: core/audit_labels.py:36
+msgid "Fahrzeug außer Betrieb genommen"
+msgstr "Fahrzeug außer Betrieb genommen"
+
+#: templates/core/fleet_vehicle_detail.html:27
+msgid "Fahrzeug außer Betrieb nehmen? Es verschwindet aus Übersicht, Display und Sperrbildschirm. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
+msgstr "Fahrzeug außer Betrieb nehmen? Es verschwindet aus Übersicht, Display und Sperrbildschirm. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
 
 #: templates/core/fleet_vehicle_detail.html:20
 msgid "Fahrzeug bearbeiten"
 msgstr "Fahrzeug bearbeiten"
 
-#: core/fleet_views.py:217
+#: core/fleet_views.py:218
 msgid "Fahrzeug bearbeiten: %(vehicle)s"
 msgstr "Fahrzeug bearbeiten: %(vehicle)s"
 
-#: core/fleet_views.py:186
+#: core/fleet_views.py:187
 msgid "Fahrzeug speichern"
 msgstr "Fahrzeug speichern"
+
+#: core/audit_labels.py:37
+msgid "Fahrzeug wieder in Betrieb genommen"
+msgstr "Fahrzeug wieder in Betrieb genommen"
+
+#: templates/core/fleet_vehicle_detail.html:41
+msgid "Fahrzeug wieder in Betrieb nehmen? Es steht danach auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet."
+msgstr "Fahrzeug wieder in Betrieb nehmen? Es steht danach auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet."
 
 #: templates/core/assets_inventory.html:8
 msgid "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick."
 msgstr "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick."
 
-#: templates/core/fleet_dashboard.html:95
+#: templates/core/fleet_dashboard.html:98
 msgid "Fahrzeug-Matrix"
 msgstr "Fahrzeug-Matrix"
 
-#: templates/core/fleet_dashboard.html:221
+#: templates/core/fleet_dashboard.html:224
 msgid "Fahrzeug-QR scannen"
 msgstr "Fahrzeug-QR scannen"
 
@@ -4175,7 +4282,7 @@ msgstr "Fahrzeugakte / Besonderheiten"
 msgid "Fahrzeugcheck"
 msgstr "Fahrzeugcheck"
 
-#: core/fleet_views.py:199
+#: core/fleet_views.py:200
 msgid "Fahrzeugdaten bearbeiten Schichtleitung und Admin."
 msgstr "Fahrzeugdaten bearbeiten Schichtleitung und Admin."
 
@@ -4193,13 +4300,21 @@ msgstr "Fahrzeuge & Geräte"
 msgid "Fahrzeuge & Hygiene"
 msgstr "Fahrzeuge & Hygiene"
 
-#: templates/core/fleet_dashboard.html:47
+#: templates/core/fleet_dashboard.html:50
 msgid "Fahrzeuge gesamt"
 msgstr "Fahrzeuge gesamt"
 
-#: core/fleet_views.py:169
+#: core/fleet_views.py:170
 msgid "Fahrzeuge legen Schichtleitung und Admin an."
 msgstr "Fahrzeuge legen Schichtleitung und Admin an."
+
+#: core/retire_views.py:31
+msgid "Fahrzeuge nehmen Schichtleitung und Admin außer Betrieb."
+msgstr "Fahrzeuge nehmen Schichtleitung und Admin außer Betrieb."
+
+#: core/retire_views.py:47
+msgid "Fahrzeuge nehmen Schichtleitung und Admin wieder in Betrieb."
+msgstr "Fahrzeuge nehmen Schichtleitung und Admin wieder in Betrieb."
 
 #: templates/core/_demo_tour.html:41
 msgid "Fahrzeuge, Geräte-Fristen und Material auf einen Blick für den Monitor in der Halle"
@@ -4230,16 +4345,16 @@ msgstr "Fahrzeugfristen"
 msgid "Fahrzeugstammdaten & Kennzeichnung"
 msgstr "Fahrzeugstammdaten & Kennzeichnung"
 
-#: core/audit_labels.py:165
+#: core/audit_labels.py:171
 #: core/display_views.py:386
 #: core/models.py:193
-#: templates/core/fleet_vehicle_detail.html:50
+#: templates/core/fleet_vehicle_detail.html:70
 #: templates/core/fleet_vehicle_form.html:85
 #: templates/core/fleet_vehicle_form.html:92
 msgid "Fahrzeugstatus"
 msgstr "Fahrzeugstatus"
 
-#: core/audit_labels.py:33
+#: core/audit_labels.py:35
 msgid "Fahrzeugstatus geändert"
 msgstr "Fahrzeugstatus geändert"
 
@@ -4259,7 +4374,7 @@ msgstr "Fahrzeugtyp"
 msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
 msgstr "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
 
-#: core/audit_labels.py:68
+#: core/audit_labels.py:73
 msgid "Falscher Wachen-Code am Terminal"
 msgstr "Falscher Wachen-Code am Terminal"
 
@@ -4306,7 +4421,7 @@ msgstr "Fehler melden"
 msgid "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert."
 msgstr "Fehler werden nachvollziehbar durch Gegenbuchung korrigiert."
 
-#: templates/core/mpg_device_detail.html:354
+#: templates/core/mpg_device_detail.html:385
 msgid "Fehlerbeschreibung:"
 msgstr "Fehlerbeschreibung:"
 
@@ -4345,8 +4460,8 @@ msgid "Filter"
 msgstr "Filter"
 
 #: templates/core/diagnostics_events.html:25
-#: templates/core/fleet_dashboard.html:69
-#: templates/core/mpg_dashboard.html:72
+#: templates/core/fleet_dashboard.html:72
+#: templates/core/mpg_dashboard.html:75
 #: templates/core/orga_dashboard.html:88
 #: templates/core/warehouse_dashboard.html:75
 msgid "Filtern"
@@ -4396,16 +4511,16 @@ msgstr "Freigabe durch die Besatzung offen"
 msgid "Freigabe erfolgt durch den Master-Admin."
 msgstr "Freigabe erfolgt durch den Master-Admin."
 
-#: templates/core/mpg_device_detail.html:301
+#: templates/core/mpg_device_detail.html:332
 msgid "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 msgstr "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 
-#: templates/core/mpg_device_detail.html:325
+#: templates/core/mpg_device_detail.html:356
 #: templates/core/team.html:31
 msgid "Freigeben"
 msgstr "Freigeben"
 
-#: templates/core/sop_detail.html:87
+#: templates/core/sop_detail.html:92
 msgid "Freigegeben durch"
 msgstr "Freigegeben durch"
 
@@ -4445,7 +4560,7 @@ msgstr "Freiwillige Anzeige"
 msgid "Freiwillige Teamfunktion"
 msgstr "Freiwillige Teamfunktion"
 
-#: core/audit_labels.py:164
+#: core/audit_labels.py:170
 #: templates/core/defect_detail.html:17
 #: templates/core/task_row.html:14
 msgid "Frist"
@@ -4455,11 +4570,11 @@ msgstr "Frist"
 msgid "Frist (optional)"
 msgstr "Frist (optional)"
 
-#: templates/core/fleet_dashboard.html:154
+#: templates/core/fleet_dashboard.html:157
 msgid "Fristen & Prüfungen"
 msgstr "Fristen & Prüfungen"
 
-#: templates/core/fleet_dashboard.html:57
+#: templates/core/fleet_dashboard.html:60
 msgid "Fristen fällig"
 msgstr "Fristen fällig"
 
@@ -4483,7 +4598,7 @@ msgstr "Fuhrpark & Fahrzeuge"
 msgid "Fuhrpark & Hygiene"
 msgstr "Fuhrpark & Hygiene"
 
-#: templates/core/fleet_dashboard.html:52
+#: templates/core/fleet_dashboard.html:55
 msgid "Fuhrpark Ansicht"
 msgstr "Fuhrpark Ansicht"
 
@@ -4516,7 +4631,7 @@ msgstr "Fundorte im System:"
 msgid "Funkrufname (OPTA)*"
 msgstr "Funkrufname (OPTA)*"
 
-#: templates/core/mpg_device_detail.html:269
+#: templates/core/mpg_device_detail.html:300
 msgid "Funktionskontrolle dokumentieren"
 msgstr "Funktionskontrolle dokumentieren"
 
@@ -4524,19 +4639,19 @@ msgstr "Funktionskontrolle dokumentieren"
 msgid "Funktionskontrolle eingetragen"
 msgstr "Funktionskontrolle eingetragen"
 
-#: core/mpg_views.py:340
+#: core/mpg_views.py:345
 msgid "Funktionskontrolle für „%(name)s“ gespeichert."
 msgstr "Funktionskontrolle für „%(name)s“ gespeichert."
 
-#: core/mpg_views.py:316
+#: core/mpg_views.py:321
 msgid "Funktionskontrolle nicht gespeichert. Bitte die Angaben prüfen."
 msgstr "Funktionskontrolle nicht gespeichert. Bitte die Angaben prüfen."
 
-#: core/mpg_views.py:313
+#: core/mpg_views.py:318
 msgid "Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."
 msgstr "Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."
 
-#: templates/core/mpg_device_detail.html:205
+#: templates/core/mpg_device_detail.html:235
 msgid "Funktionskontrollen (Schicht-Checks)"
 msgstr "Funktionskontrollen (Schicht-Checks)"
 
@@ -4549,15 +4664,15 @@ msgstr "Fußzeile / Ticker"
 msgid "Fällig am"
 msgstr "Fällig am"
 
-#: templates/core/mpg_dashboard.html:38
+#: templates/core/mpg_dashboard.html:41
 msgid "Fällig ≤ 30 Tage"
 msgstr "Fällig ≤ 30 Tage"
 
-#: templates/core/mpg_device_detail.html:82
+#: templates/core/mpg_device_detail.html:110
 msgid "Fälligkeitsdatum:"
 msgstr "Fälligkeitsdatum:"
 
-#: templates/core/fleet_vehicle_detail.html:84
+#: templates/core/fleet_vehicle_detail.html:104
 msgid "Füllstände & Telemetrie"
 msgstr "Füllstände & Telemetrie"
 
@@ -4657,7 +4772,7 @@ msgstr "Für die nächste Schicht"
 msgid "Für die nächste Übergabe"
 msgstr "Für die nächste Übergabe"
 
-#: templates/core/sop_detail.html:77
+#: templates/core/sop_detail.html:82
 msgid "Für diese Dienstanweisung ist noch kein Textstand hinterlegt."
 msgstr "Für diese Dienstanweisung ist noch kein Textstand hinterlegt."
 
@@ -4751,15 +4866,15 @@ msgstr "Geburtstag einstellen"
 msgid "Geburtstage"
 msgstr "Geburtstage"
 
-#: core/audit_labels.py:135
+#: core/audit_labels.py:141
 msgid "Geburtstagsanzeige"
 msgstr "Geburtstagsanzeige"
 
-#: core/audit_labels.py:98
+#: core/audit_labels.py:103
 msgid "Geburtstagsanzeige beim Austritt entfernt"
 msgstr "Geburtstagsanzeige beim Austritt entfernt"
 
-#: core/audit_labels.py:66
+#: core/audit_labels.py:71
 msgid "Geburtstagsanzeige geändert"
 msgstr "Geburtstagsanzeige geändert"
 
@@ -4815,7 +4930,7 @@ msgstr "Gelesen"
 msgid "Gelesen – quittieren"
 msgstr "Gelesen – quittieren"
 
-#: templates/core/sop_detail.html:63
+#: templates/core/sop_detail.html:68
 msgid "Gelesen, verstanden & quittieren"
 msgstr "Gelesen, verstanden & quittieren"
 
@@ -4827,11 +4942,11 @@ msgstr "Gemeinschaftskasse"
 msgid "Gemieteter Cloud-Server mit 2 GB RAM in einem deutschen Rechenzentrum und eine eigene (Sub-)Domain."
 msgstr "Gemieteter Cloud-Server mit 2 GB RAM in einem deutschen Rechenzentrum und eine eigene (Sub-)Domain."
 
-#: templates/core/fleet_vehicle_detail.html:264
+#: templates/core/fleet_vehicle_detail.html:287
 msgid "Genaue Beschreibung"
 msgstr "Genaue Beschreibung"
 
-#: templates/core/fleet_vehicle_detail.html:43
+#: templates/core/fleet_vehicle_detail.html:63
 msgid "Geprüft – einsatzbereit melden"
 msgstr "Geprüft – einsatzbereit melden"
 
@@ -4853,18 +4968,26 @@ msgstr "Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuch
 msgid "Gerät"
 msgstr "Gerät"
 
-#: templates/core/mpg_dashboard.html:175
+#: templates/core/mpg_dashboard.html:178
 msgid "Gerät anlegen"
 msgstr "Gerät anlegen"
 
-#: templates/core/mpg_device_detail.html:129
-#: templates/core/mpg_device_detail.html:299
+#: templates/core/mpg_device_detail.html:37
+msgid "Gerät dauerhaft außer Betrieb nehmen? Es verschwindet aus Übersicht, Gerätepass und Display. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
+msgstr "Gerät dauerhaft außer Betrieb nehmen? Es verschwindet aus Übersicht, Gerätepass und Display. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
+
+#: templates/core/mpg_device_detail.html:158
+#: templates/core/mpg_device_detail.html:330
 msgid "Gerät freigeben"
 msgstr "Gerät freigeben"
 
 #: core/demo_sandbox.py:756
 msgid "Gerät prüfen"
 msgstr "Gerät prüfen"
+
+#: templates/core/mpg_device_detail.html:57
+msgid "Gerät wieder in Betrieb nehmen? Es bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt."
+msgstr "Gerät wieder in Betrieb nehmen? Es bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt."
 
 #: core/navigation.py:21
 msgid "Geräte"
@@ -4880,11 +5003,11 @@ msgstr "Geräte & Poolbestand"
 msgid "Geräte & Status"
 msgstr "Geräte & Status"
 
-#: templates/core/mpg_dashboard.html:65
+#: templates/core/mpg_dashboard.html:68
 msgid "Geräte durchsuchen"
 msgstr "Geräte durchsuchen"
 
-#: templates/core/mpg_dashboard.html:50
+#: templates/core/mpg_dashboard.html:53
 msgid "Geräte im Filter"
 msgstr "Geräte im Filter"
 
@@ -4892,7 +5015,7 @@ msgstr "Geräte im Filter"
 msgid "Geräte mit fest verlötetem Arbeitsspeicher unter 2 GB oder nur 8–16 GB eMMC-Speicher (z. B. Dell Wyse 3040), 32-Bit-Geräte und alles, was nur von einer SD-Karte läuft."
 msgstr "Geräte mit fest verlötetem Arbeitsspeicher unter 2 GB oder nur 8–16 GB eMMC-Speicher (z. B. Dell Wyse 3040), 32-Bit-Geräte und alles, was nur von einer SD-Karte läuft."
 
-#: templates/core/mpg_dashboard.html:220
+#: templates/core/mpg_dashboard.html:223
 msgid "Geräte-QR-Code scannen"
 msgstr "Geräte-QR-Code scannen"
 
@@ -4917,7 +5040,7 @@ msgstr "Gerätefristen"
 msgid "Gerätekontrolle"
 msgstr "Gerätekontrolle"
 
-#: templates/core/mpg_device_detail.html:335
+#: templates/core/mpg_device_detail.html:366
 msgid "Gerätemangel melden & Gerät sperren"
 msgstr "Gerätemangel melden & Gerät sperren"
 
@@ -4929,7 +5052,7 @@ msgstr "Gerätepass & Schulungen"
 msgid "Gerätestammdaten & Identifikation"
 msgstr "Gerätestammdaten & Identifikation"
 
-#: core/audit_labels.py:166
+#: core/audit_labels.py:172
 msgid "Gerätestatus"
 msgstr "Gerätestatus"
 
@@ -4941,7 +5064,7 @@ msgstr "Gesamtbestand Wache:"
 msgid "Gesamten Kalender als ICS"
 msgstr "Gesamten Kalender als ICS"
 
-#: templates/core/fleet_vehicle_detail.html:129
+#: templates/core/fleet_vehicle_detail.html:149
 msgid "Gesamtstatus Fristenampel"
 msgstr "Gesamtstatus Fristenampel"
 
@@ -4962,7 +5085,7 @@ msgstr "Gesendet"
 msgid "Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."
 msgstr "Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."
 
-#: templates/core/fleet_vehicle_detail.html:122
+#: templates/core/fleet_vehicle_detail.html:142
 msgid "Gesetzliche Fristen & Prüfungen"
 msgstr "Gesetzliche Fristen & Prüfungen"
 
@@ -4970,7 +5093,7 @@ msgstr "Gesetzliche Fristen & Prüfungen"
 msgid "Gesetzliche Fristen (§ 29 StVZO, UVV, DIN EN 1789)"
 msgstr "Gesetzliche Fristen (§ 29 StVZO, UVV, DIN EN 1789)"
 
-#: templates/core/mpg_device_form.html:128
+#: templates/core/mpg_device_form.html:136
 msgid "Gesetzliche Prüffristen (STK / MTK / DGUV V3)"
 msgstr "Gesetzliche Prüffristen (STK / MTK / DGUV V3)"
 
@@ -4987,8 +5110,15 @@ msgid "Gespeicherter Schlüsselumschlag ist beschädigt."
 msgstr "Gespeicherter Schlüsselumschlag ist beschädigt."
 
 #: templates/core/_display_surface.html:87
+#: templates/core/mpg_dashboard.html:62
+#: templates/core/mpg_dashboard.html:153
+#: templates/core/mpg_device_detail.html:79
 msgid "Gesperrt"
 msgstr "Gesperrt"
+
+#: core/mpg_forms.py:67
+msgid "Gesperrt. Freigabe über „Gerät freigeben“; dauerhaft außer Betrieb nehmen über „Außer Betrieb nehmen“ auf der Geräteseite."
+msgstr "Gesperrt. Freigabe über „Gerät freigeben“; dauerhaft außer Betrieb nehmen über „Außer Betrieb nehmen“ auf der Geräteseite."
 
 #: templates/core/warehouse_dashboard.html:63
 msgid "Gesperrte Rückrufe"
@@ -5061,7 +5191,7 @@ msgstr "Grund"
 msgid "Grund:"
 msgstr "Grund:"
 
-#: templates/core/mpg_device_detail.html:432
+#: templates/core/mpg_device_detail.html:463
 msgid "Gruppe einweisen"
 msgstr "Gruppe einweisen"
 
@@ -5069,11 +5199,11 @@ msgstr "Gruppe einweisen"
 msgid "Gruppe für Kaffeekasse und Hinweise"
 msgstr "Gruppe für Kaffeekasse und Hinweise"
 
-#: core/audit_labels.py:146
+#: core/audit_labels.py:152
 msgid "Gruppennachricht"
 msgstr "Gruppennachricht"
 
-#: templates/core/mpg_device_detail.html:412
+#: templates/core/mpg_device_detail.html:443
 msgid "Gruppenschulung (Mehrere Mitarbeiter auf einmal)"
 msgstr "Gruppenschulung (Mehrere Mitarbeiter auf einmal)"
 
@@ -5095,7 +5225,7 @@ msgstr "Gültig / In Kraft"
 
 #: templates/core/orga_dashboard.html:111
 #: templates/core/sop_detail.html:23
-#: templates/core/sop_form.html:64
+#: templates/core/sop_form.html:65
 msgid "Gültig ab"
 msgstr "Gültig ab"
 
@@ -5150,7 +5280,7 @@ msgstr "Hallo %(name)s,"
 msgid "Haltbar > 90 Tage"
 msgstr "Haltbar > 90 Tage"
 
-#: templates/core/mpg_dashboard.html:222
+#: templates/core/mpg_dashboard.html:225
 msgid "Halte die Kamera auf den QR-Code am Gerät oder gib den Geräteslug / Inventarnummer direkt ein."
 msgstr "Halte die Kamera auf den QR-Code am Gerät oder gib den Geräteslug / Inventarnummer direkt ein."
 
@@ -5172,7 +5302,7 @@ msgstr "Handy verloren oder gewechselt? Ein Admin kann die Zwei-Faktor-Anmeldung
 msgid "Handy verloren oder gewechselt? Nach dem Zurücksetzen richtet die Person bei der nächsten Anmeldung eine Authenticator-App neu ein."
 msgstr "Handy verloren oder gewechselt? Nach dem Zurücksetzen richtet die Person bei der nächsten Anmeldung eine Authenticator-App neu ein."
 
-#: core/audit_labels.py:73
+#: core/audit_labels.py:78
 msgid "Handy-Kopplung für eine Person erstellt"
 msgstr "Handy-Kopplung für eine Person erstellt"
 
@@ -5202,7 +5332,7 @@ msgstr "Hauptnavigation"
 msgid "Hauptrufnummer*"
 msgstr "Hauptrufnummer*"
 
-#: templates/core/fleet_vehicle_detail.html:124
+#: templates/core/fleet_vehicle_detail.html:144
 msgid "Hauptuntersuchung (§ 29 StVZO)"
 msgstr "Hauptuntersuchung (§ 29 StVZO)"
 
@@ -5219,7 +5349,7 @@ msgstr "Hell oder dunkel umschalten"
 msgid "Hersteller-MHD:"
 msgstr "Hersteller-MHD:"
 
-#: templates/core/mpg_device_detail.html:158
+#: templates/core/mpg_device_detail.html:188
 #: templates/core/mpg_device_form.html:50
 msgid "Hersteller:"
 msgstr "Hersteller:"
@@ -5480,11 +5610,11 @@ msgstr "Impressum (Anbieter)"
 msgid "Impressum ansehen"
 msgstr "Impressum ansehen"
 
-#: core/audit_labels.py:144
+#: core/audit_labels.py:150
 msgid "Impressum und Datenschutz"
 msgstr "Impressum und Datenschutz"
 
-#: core/audit_labels.py:86
+#: core/audit_labels.py:91
 msgid "Impressum und Datenschutz geändert"
 msgstr "Impressum und Datenschutz geändert"
 
@@ -5509,9 +5639,13 @@ msgstr "In Arbeit"
 msgid "In Bearbeitung"
 msgstr "In Bearbeitung"
 
-#: templates/core/fleet_dashboard.html:55
+#: templates/core/fleet_dashboard.html:58
 msgid "In Desinfektion"
 msgstr "In Desinfektion"
+
+#: core/fleet_models.py:229
+msgid "In Gebrauch"
+msgstr "In Gebrauch"
 
 #: templates/core/more.html:45
 #: templates/core/more.html:59
@@ -5539,11 +5673,11 @@ msgstr "In Leiste"
 msgid "In Notfall-Schnellwahlleiste anzeigen"
 msgstr "In Notfall-Schnellwahlleiste anzeigen"
 
-#: templates/core/mpg_dashboard.html:148
+#: templates/core/mpg_dashboard.html:151
 msgid "In Wartung"
 msgstr "In Wartung"
 
-#: templates/core/mpg_device_detail.html:51
+#: templates/core/mpg_device_detail.html:77
 msgid "In Wartung / STK"
 msgstr "In Wartung / STK"
 
@@ -5669,7 +5803,7 @@ msgstr "Installierbar als Web-App, dazu quelloffene Apps für iOS und Android ü
 msgid "Installieren"
 msgstr "Installieren"
 
-#: templates/core/mpg_device_form.html:186
+#: templates/core/mpg_device_form.html:194
 msgid "Interne Notizen / Historie:"
 msgstr "Interne Notizen / Historie:"
 
@@ -5702,7 +5836,7 @@ msgstr "Inventar"
 msgid "Inventarnummer / Barcode:"
 msgstr "Inventarnummer / Barcode:"
 
-#: templates/core/mpg_device_detail.html:161
+#: templates/core/mpg_device_detail.html:191
 msgid "Inventarnummer:"
 msgstr "Inventarnummer:"
 
@@ -5727,8 +5861,8 @@ msgstr "JPEG, PNG, WebP oder PDF, maximal %(max_upload_mb)s MB je Datei."
 msgid "JPEG, PNG, WebP oder PDF, maximal %(max_upload_mb)s MB."
 msgstr "JPEG, PNG, WebP oder PDF, maximal %(max_upload_mb)s MB."
 
-#: core/fleet_forms.py:105
-#: core/mpg_forms.py:113
+#: core/fleet_forms.py:106
+#: core/mpg_forms.py:120
 msgid "Ja"
 msgstr "Ja"
 
@@ -5767,9 +5901,9 @@ msgstr "Jetzt anmelden"
 msgid "KW %(week)s"
 msgstr "KW %(week)s"
 
-#: core/audit_labels.py:127
-#: core/audit_labels.py:129
-#: core/audit_labels.py:174
+#: core/audit_labels.py:133
+#: core/audit_labels.py:135
+#: core/audit_labels.py:180
 #: core/coffee_models.py:52
 #: core/navigation.py:28
 #: core/navigation.py:56
@@ -5804,7 +5938,7 @@ msgstr "Kaffeekasse %(station)s: Zahlungsangaben"
 msgid "Kaffeekasse bezahlen"
 msgstr "Kaffeekasse bezahlen"
 
-#: core/audit_labels.py:54
+#: core/audit_labels.py:59
 msgid "Kaffeekasse exportiert"
 msgstr "Kaffeekasse exportiert"
 
@@ -5833,7 +5967,7 @@ msgstr "Kaffeekasse: Beiträge und Zahlungen der Teilnehmenden."
 msgid "Kaffeekassen"
 msgstr "Kaffeekassen"
 
-#: core/audit_labels.py:173
+#: core/audit_labels.py:179
 #: core/navigation.py:15
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
@@ -5862,28 +5996,28 @@ msgstr "Kalenderwoche wählen"
 msgid "Kamera aktiv - Barcode fokussieren"
 msgstr "Kamera aktiv - Barcode fokussieren"
 
-#: templates/core/fleet_dashboard.html:219
+#: templates/core/fleet_dashboard.html:222
 msgid "Kamera aktiv - Fahrzeug-QR fokussieren"
 msgstr "Kamera aktiv - Fahrzeug-QR fokussieren"
 
-#: templates/core/mpg_dashboard.html:218
+#: templates/core/mpg_dashboard.html:221
 msgid "Kamera aktiv - QR-Code fokussieren"
 msgstr "Kamera aktiv - QR-Code fokussieren"
 
-#: templates/core/fleet_dashboard.html:219
-#: templates/core/mpg_dashboard.html:218
+#: templates/core/fleet_dashboard.html:222
+#: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Kamera nicht verfügbar. Bitte manuell eingeben."
 msgstr "Kamera nicht verfügbar. Bitte manuell eingeben."
 
-#: templates/core/fleet_dashboard.html:224
-#: templates/core/mpg_dashboard.html:228
+#: templates/core/fleet_dashboard.html:227
+#: templates/core/mpg_dashboard.html:231
 #: templates/core/warehouse_dashboard.html:188
 msgid "Kamera wird initialisiert..."
 msgstr "Kamera wird initialisiert..."
 
-#: templates/core/fleet_dashboard.html:219
-#: templates/core/mpg_dashboard.html:218
+#: templates/core/fleet_dashboard.html:222
+#: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Kamerazugriff nicht verfügbar oder verweigert."
 msgstr "Kamerazugriff nicht verfügbar oder verweigert."
@@ -5906,7 +6040,7 @@ msgstr "Kasse stimmte."
 msgid "Kasse verwalten"
 msgstr "Kasse verwalten"
 
-#: core/audit_labels.py:128
+#: core/audit_labels.py:134
 msgid "Kassenbewegung"
 msgstr "Kassenbewegung"
 
@@ -5919,7 +6053,7 @@ msgstr "Kassenbewegung eingetragen."
 msgid "Kassenbewegung eintragen"
 msgstr "Kassenbewegung eintragen"
 
-#: core/audit_labels.py:48
+#: core/audit_labels.py:53
 msgid "Kassenbewegung gebucht"
 msgstr "Kassenbewegung gebucht"
 
@@ -5927,7 +6061,7 @@ msgstr "Kassenbewegung gebucht"
 msgid "Kassenbewegung korrigieren"
 msgstr "Kassenbewegung korrigieren"
 
-#: core/audit_labels.py:49
+#: core/audit_labels.py:54
 msgid "Kassenbewegung korrigiert"
 msgstr "Kassenbewegung korrigiert"
 
@@ -5957,7 +6091,7 @@ msgstr "Kassenbuchungen"
 msgid "Kassenstand, Einzahlungen und Buchungen der Gemeinschaftskasse."
 msgstr "Kassenstand, Einzahlungen und Buchungen der Gemeinschaftskasse."
 
-#: core/audit_labels.py:50
+#: core/audit_labels.py:55
 #: core/coffee_models.py:102
 #: core/coffee_views.py:613
 #: core/coffee_views.py:631
@@ -5986,10 +6120,10 @@ msgstr "Kassensturz-Ergebnis in die Signal-Gruppe"
 msgid "Kassenwart"
 msgstr "Kassenwart"
 
-#: core/audit_labels.py:160
+#: core/audit_labels.py:166
 #: templates/core/defect_form.html:17
 #: templates/core/handover_form.html:10
-#: templates/core/mpg_dashboard.html:66
+#: templates/core/mpg_dashboard.html:69
 #: templates/core/orga_dashboard.html:209
 #: templates/core/sop_form.html:49
 #: templates/core/warehouse_reorder.html:42
@@ -6008,6 +6142,10 @@ msgstr "Kein Bestand / Keine Charge"
 #: templates/core/vorfuehrung.html:98
 msgid "Kein Cloud-Dienst"
 msgstr "Kein Cloud-Dienst"
+
+#: templates/core/fleet_vehicle_detail.html:229
+msgid "Kein Desinfektionsmittel in Gebrauch. Bitte im Admin-Bereich unter „Desinfektionsmittel“ ein Mittel auf „In Gebrauch“ setzen."
+msgstr "Kein Desinfektionsmittel in Gebrauch. Bitte im Admin-Bereich unter „Desinfektionsmittel“ ein Mittel auf „In Gebrauch“ setzen."
 
 #: templates/core/vorfuehrung.html:95
 msgid "Kein Einsatzleitsystem"
@@ -6096,17 +6234,21 @@ msgstr "Keine Dienstplanung"
 msgid "Keine Dienstpläne und keine Leistungs- oder Lesestatistiken über Personen."
 msgstr "Keine Dienstpläne und keine Leistungs- oder Lesestatistiken über Personen."
 
-#: templates/core/mpg_device_detail.html:65
+#: templates/core/mpg_device_detail.html:93
 msgid "Keine Einschränkungen vermerkt"
 msgstr "Keine Einschränkungen vermerkt"
 
-#: templates/core/mpg_device_detail.html:95
+#: templates/core/mpg_device_detail.html:123
 #: templates/core/mpg_geraetepass.html:78
 #: templates/core/mpg_geraetepass.html:78
 msgid "Keine Einweisung dokumentiert"
 msgstr "Keine Einweisung dokumentiert"
 
-#: templates/core/fleet_dashboard.html:181
+#: core/retire_views.py:74
+msgid "Keine Fahrzeuge außer Betrieb genommen."
+msgstr "Keine Fahrzeuge außer Betrieb genommen."
+
+#: templates/core/fleet_dashboard.html:184
 msgid "Keine Fahrzeuge für diesen Filter gefunden."
 msgstr "Keine Fahrzeuge für diesen Filter gefunden."
 
@@ -6142,7 +6284,11 @@ msgstr "Keine Kontakte angelegt."
 msgid "Keine Lizenzkosten. Nur Hardware bzw. die Miete für einen kleinen Server – aktuelle Preise beim Händler oder Anbieter prüfen."
 msgstr "Keine Lizenzkosten. Nur Hardware bzw. die Miete für einen kleinen Server – aktuelle Preise beim Händler oder Anbieter prüfen."
 
-#: templates/core/mpg_dashboard.html:173
+#: core/retire_views.py:133
+msgid "Keine Medizingeräte außer Betrieb genommen."
+msgstr "Keine Medizingeräte außer Betrieb genommen."
+
+#: templates/core/mpg_dashboard.html:176
 msgid "Keine Medizinprodukte gefunden."
 msgstr "Keine Medizinprodukte gefunden."
 
@@ -6174,7 +6320,7 @@ msgstr "Keine Post."
 msgid "Keine Produktionsfreigabe."
 msgstr "Keine Produktionsfreigabe."
 
-#: templates/core/mpg_device_detail.html:84
+#: templates/core/mpg_device_detail.html:112
 msgid "Keine Prüftermine hinterlegt"
 msgstr "Keine Prüftermine hinterlegt"
 
@@ -6266,7 +6412,7 @@ msgstr "Keine täglichen Aufgaben."
 msgid "Keine zusätzlichen Aufgaben."
 msgstr "Keine zusätzlichen Aufgaben."
 
-#: templates/core/sop_detail.html:47
+#: templates/core/sop_detail.html:52
 msgid "Kenntnisnahme quittiert"
 msgstr "Kenntnisnahme quittiert"
 
@@ -6274,7 +6420,7 @@ msgstr "Kenntnisnahme quittiert"
 msgid "Kernmodule"
 msgstr "Kernmodule"
 
-#: templates/core/fleet_vehicle_detail.html:114
+#: templates/core/fleet_vehicle_detail.html:134
 #: templates/core/fleet_vehicle_form.html:108
 msgid "Kilometerstand"
 msgstr "Kilometerstand"
@@ -6382,7 +6528,7 @@ msgstr "Konten anlegen, freigeben und Rollen zuweisen."
 msgid "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild."
 msgstr "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild."
 
-#: core/audit_labels.py:139
+#: core/audit_labels.py:145
 #: core/coffee_models.py:97
 #: templates/core/signal_account.html:7
 #: templates/registration/mfa_manage.html:6
@@ -6399,7 +6545,7 @@ msgstr "Konto aktivieren"
 msgid "Konto aktiviert. Bitte jetzt mit dem neuen Passwort anmelden."
 msgstr "Konto aktiviert. Bitte jetzt mit dem neuen Passwort anmelden."
 
-#: core/audit_labels.py:62
+#: core/audit_labels.py:67
 msgid "Konto angelegt"
 msgstr "Konto angelegt"
 
@@ -6419,11 +6565,11 @@ msgstr "Konto-Links"
 msgid "Kontoinhaber für Überweisungen"
 msgstr "Kontoinhaber für Überweisungen"
 
-#: templates/core/mpg_device_detail.html:223
+#: templates/core/mpg_device_detail.html:253
 msgid "Kontrolle erfassen"
 msgstr "Kontrolle erfassen"
 
-#: templates/core/mpg_device_detail.html:124
+#: templates/core/mpg_device_detail.html:153
 msgid "Kontrolle mit Details"
 msgstr "Kontrolle mit Details"
 
@@ -6466,15 +6612,15 @@ msgstr "Korrigieren"
 msgid "Kosten"
 msgstr "Kosten"
 
-#: core/fleet_forms.py:148
+#: core/fleet_forms.py:149
 #: templates/core/_display_surface.html:47
-#: templates/core/fleet_dashboard.html:128
-#: templates/core/fleet_vehicle_detail.html:88
-#: templates/core/fleet_vehicle_detail.html:285
+#: templates/core/fleet_dashboard.html:131
+#: templates/core/fleet_vehicle_detail.html:108
+#: templates/core/fleet_vehicle_detail.html:309
 msgid "Kraftstoff"
 msgstr "Kraftstoff"
 
-#: core/fleet_views.py:392
+#: core/fleet_views.py:396
 msgid "Kraftstoffstand niedrig (%(percent)s %%)."
 msgstr "Kraftstoffstand niedrig (%(percent)s %%)."
 
@@ -6614,11 +6760,11 @@ msgstr "Letzte 14 Tage"
 msgid "Letzte Audit-Ereignisse"
 msgstr "Letzte Audit-Ereignisse"
 
-#: templates/core/fleet_vehicle_detail.html:127
+#: templates/core/fleet_vehicle_detail.html:147
 msgid "Letzte Desinfektion"
 msgstr "Letzte Desinfektion"
 
-#: templates/core/mpg_dashboard.html:201
+#: templates/core/mpg_dashboard.html:204
 msgid "Letzte Funktionskontrollen"
 msgstr "Letzte Funktionskontrollen"
 
@@ -6626,11 +6772,11 @@ msgstr "Letzte Funktionskontrollen"
 msgid "Letzte Materialbewegungen (Audit-Journal)"
 msgstr "Letzte Materialbewegungen (Audit-Journal)"
 
-#: templates/core/fleet_vehicle_detail.html:278
+#: templates/core/fleet_vehicle_detail.html:302
 msgid "Letzte Schichtübernahmen"
 msgstr "Letzte Schichtübernahmen"
 
-#: templates/core/mpg_dashboard.html:185
+#: templates/core/mpg_dashboard.html:188
 msgid "Letzte Wartungen & STK-Prüfungen"
 msgstr "Letzte Wartungen & STK-Prüfungen"
 
@@ -6638,11 +6784,11 @@ msgstr "Letzte Wartungen & STK-Prüfungen"
 msgid "Letzte Ziffer löschen"
 msgstr "Letzte Ziffer löschen"
 
-#: templates/core/mpg_dashboard.html:134
+#: templates/core/mpg_dashboard.html:137
 msgid "Letzter Check:"
 msgstr "Letzter Check:"
 
-#: templates/core/mpg_device_detail.html:169
+#: templates/core/mpg_device_detail.html:199
 msgid "Letzter Funktionscheck:"
 msgstr "Letzter Funktionscheck:"
 
@@ -6662,7 +6808,7 @@ msgstr "Link"
 msgid "Link der Signal-Gruppe, z. B. https://signal.group/#…"
 msgstr "Link der Signal-Gruppe, z. B. https://signal.group/#…"
 
-#: templates/core/mpg_device_form.html:179
+#: templates/core/mpg_device_form.html:187
 msgid "Link zur Online-Gebrauchsanweisung:"
 msgstr "Link zur Online-Gebrauchsanweisung:"
 
@@ -6751,7 +6897,7 @@ msgstr "MPG & Medizingeräte"
 msgid "MPG & Medizingeräte (Medizinproduktebuch)"
 msgstr "MPG & Medizingeräte (Medizinproduktebuch)"
 
-#: templates/core/mpg_dashboard.html:55
+#: templates/core/mpg_dashboard.html:58
 msgid "MPG Ansicht"
 msgstr "MPG Ansicht"
 
@@ -6759,7 +6905,7 @@ msgstr "MPG Ansicht"
 msgid "MPG Gerätebuch"
 msgstr "MPG Gerätebuch"
 
-#: templates/core/mpg_device_form.html:150
+#: templates/core/mpg_device_form.html:158
 msgid "MTK-Intervall (Monate):"
 msgstr "MTK-Intervall (Monate):"
 
@@ -6767,22 +6913,22 @@ msgstr "MTK-Intervall (Monate):"
 msgid "Mail nicht entschlüsselbar."
 msgstr "Mail nicht entschlüsselbar."
 
-#: core/audit_labels.py:117
+#: core/audit_labels.py:122
 #: core/views.py:569
 #: templates/core/defect_detail.html:7
 msgid "Mangel"
 msgstr "Mangel"
 
-#: core/fleet_views.py:445
+#: core/fleet_views.py:450
 msgid "Mangel #%(id)s erfasst."
 msgstr "Mangel #%(id)s erfasst."
 
-#: core/fleet_views.py:441
+#: core/fleet_views.py:446
 msgid "Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“."
 msgstr "Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“."
 
-#: core/fleet_views.py:420
-#: templates/core/fleet_vehicle_detail.html:251
+#: core/fleet_views.py:425
+#: templates/core/fleet_vehicle_detail.html:274
 msgid "Mangel an %(vehicle)s"
 msgstr "Mangel an %(vehicle)s"
 
@@ -6796,7 +6942,7 @@ msgstr "Mangel anlegen"
 msgid "Mangel bearbeitet"
 msgstr "Mangel bearbeitet"
 
-#: templates/core/fleet_vehicle_detail.html:269
+#: templates/core/fleet_vehicle_detail.html:292
 msgid "Mangel erfassen"
 msgstr "Mangel erfassen"
 
@@ -6811,11 +6957,11 @@ msgstr "Mangel gemeldet"
 msgid "Mangel melden"
 msgstr "Mangel melden"
 
-#: templates/core/mpg_device_detail.html:359
+#: templates/core/mpg_device_detail.html:390
 msgid "Mangel melden & Sperren"
 msgstr "Mangel melden & Sperren"
 
-#: templates/core/mpg_device_detail.html:134
+#: templates/core/mpg_device_detail.html:163
 msgid "Mangel melden / Sperren"
 msgstr "Mangel melden / Sperren"
 
@@ -6827,7 +6973,7 @@ msgstr "Mangel speichern"
 msgid "Mangel wurde angelegt."
 msgstr "Mangel wurde angelegt."
 
-#: templates/core/mpg_dashboard.html:233
+#: templates/core/mpg_dashboard.html:236
 msgid "Manuelle Eingabe:"
 msgstr "Manuelle Eingabe:"
 
@@ -6902,10 +7048,14 @@ msgstr "Max."
 msgid "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 msgstr "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 
-#: core/audit_labels.py:120
+#: core/audit_labels.py:125
 #: core/module_overview.py:68
 msgid "Medizingerät"
 msgstr "Medizingerät"
+
+#: core/audit_labels.py:33
+msgid "Medizingerät außer Betrieb genommen"
+msgstr "Medizingerät außer Betrieb genommen"
 
 #: core/audit_labels.py:32
 msgid "Medizingerät freigegeben"
@@ -6918,6 +7068,10 @@ msgstr "Medizingerät gesperrt"
 #: core/demo_sandbox.py:755
 msgid "Medizingerät prüfen"
 msgstr "Medizingerät prüfen"
+
+#: core/audit_labels.py:34
+msgid "Medizingerät wieder in Betrieb genommen"
+msgstr "Medizingerät wieder in Betrieb genommen"
 
 #: core/module_overview.py:68
 #: templates/core/landing.html:109
@@ -6932,11 +7086,19 @@ msgstr "Medizingeräte mit Prüffristen und gesperrten Geräten im dunklen Modus
 msgid "Medizingeräte mit überfälliger oder bald fälliger STK/MTK und gesperrte Geräte (nur mit MPG-Modul)."
 msgstr "Medizingeräte mit überfälliger oder bald fälliger STK/MTK und gesperrte Geräte (nur mit MPG-Modul)."
 
+#: core/retire_views.py:87
+msgid "Medizingeräte nehmen Schichtleitung und Admin außer Betrieb."
+msgstr "Medizingeräte nehmen Schichtleitung und Admin außer Betrieb."
+
+#: core/retire_views.py:103
+msgid "Medizingeräte nehmen Schichtleitung und Admin wieder in Betrieb."
+msgstr "Medizingeräte nehmen Schichtleitung und Admin wieder in Betrieb."
+
 #: templates/core/mpg_dashboard.html:8
 msgid "Medizinprodukte"
 msgstr "Medizinprodukte"
 
-#: templates/core/mpg_dashboard.html:98
+#: templates/core/mpg_dashboard.html:101
 msgid "Medizinprodukte & Prüffristen-Ampel"
 msgstr "Medizinprodukte & Prüffristen-Ampel"
 
@@ -6944,7 +7106,7 @@ msgstr "Medizinprodukte & Prüffristen-Ampel"
 msgid "Medizinproduktebuch"
 msgstr "Medizinproduktebuch"
 
-#: templates/core/mpg_device_detail.html:156
+#: templates/core/mpg_device_detail.html:186
 msgid "Medizinproduktebuch-Stammdaten"
 msgstr "Medizinproduktebuch-Stammdaten"
 
@@ -6961,7 +7123,7 @@ msgstr "Mehr"
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "Mehr Anhänge sind nicht möglich."
 
-#: core/fleet_forms.py:207
+#: core/fleet_forms.py:208
 msgid "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 msgstr "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 
@@ -7054,6 +7216,10 @@ msgstr "Mindestbestand Wache:"
 msgid "Mindestens"
 msgstr "Mindestens"
 
+#: core/admin.py:302
+msgid "Mindestens ein Mittel muss in Gebrauch bleiben, sonst kann niemand eine Desinfektion erfassen. Bitte zuerst ein anderes Mittel auf „In Gebrauch“ setzen."
+msgstr "Mindestens ein Mittel muss in Gebrauch bleiben, sonst kann niemand eine Desinfektion erfassen. Bitte zuerst ein anderes Mittel auf „In Gebrauch“ setzen."
+
 #: core/account_views.py:242
 msgid "Mindestens ein zweiter Faktor muss erhalten bleiben."
 msgstr "Mindestens ein zweiter Faktor muss erhalten bleiben."
@@ -7104,7 +7270,7 @@ msgstr "Mit einem Befehl per Docker auf einem eigenen Server, einem Mini-PC oder
 msgid "Mitarbeiter"
 msgstr "Mitarbeiter"
 
-#: templates/core/mpg_device_detail.html:424
+#: templates/core/mpg_device_detail.html:455
 msgid "Mitarbeiter auswählen:"
 msgstr "Mitarbeiter auswählen:"
 
@@ -7113,11 +7279,11 @@ msgstr "Mitarbeiter auswählen:"
 msgid "Mitarbeiter-Aktivierungen"
 msgstr "Mitarbeiter-Aktivierungen"
 
-#: templates/core/sop_detail.html:117
+#: templates/core/sop_detail.html:122
 msgid "Mitarbeiter-Quittierungsbuch (Audit Trail)"
 msgstr "Mitarbeiter-Quittierungsbuch (Audit Trail)"
 
-#: templates/core/mpg_device_detail.html:440
+#: templates/core/mpg_device_detail.html:471
 msgid "Mitarbeiter:"
 msgstr "Mitarbeiter:"
 
@@ -7142,19 +7308,19 @@ msgstr "Mitglied"
 msgid "Mitglied bearbeiten"
 msgstr "Mitglied bearbeiten"
 
-#: core/audit_labels.py:100
+#: core/audit_labels.py:105
 msgid "Mitglieder einer Chatgruppe geändert"
 msgstr "Mitglieder einer Chatgruppe geändert"
 
-#: core/audit_labels.py:134
+#: core/audit_labels.py:140
 msgid "Mitgliedschaft"
 msgstr "Mitgliedschaft"
 
-#: core/audit_labels.py:79
+#: core/audit_labels.py:84
 msgid "Mitgliedschaft erneut freigegeben"
 msgstr "Mitgliedschaft erneut freigegeben"
 
-#: core/audit_labels.py:78
+#: core/audit_labels.py:83
 msgid "Mitgliedschaft freigegeben"
 msgstr "Mitgliedschaft freigegeben"
 
@@ -7178,9 +7344,13 @@ msgstr "Mitte rechts"
 msgid "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich."
 msgstr "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich."
 
-#: templates/core/fleet_dashboard.html:196
+#: templates/core/fleet_dashboard.html:199
 msgid "Mittel"
 msgstr "Mittel"
+
+#: core/fleet_models.py:230
+msgid "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. Bestehende Nachweise bleiben erhalten."
+msgstr "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. Bestehende Nachweise bleiben erhalten."
 
 #: templates/core/api_tokens.html:7
 msgid "Mobile &amp; Integrationen"
@@ -7194,7 +7364,7 @@ msgstr "Mobile-App verbinden"
 msgid "Mobiles Wachbuch für die interne Organisation einer Rettungswache."
 msgstr "Mobiles Wachbuch für die interne Organisation einer Rettungswache."
 
-#: templates/core/mpg_device_detail.html:159
+#: templates/core/mpg_device_detail.html:189
 msgid "Modell / Typ:"
 msgstr "Modell / Typ:"
 
@@ -7226,7 +7396,7 @@ msgstr "Modulare Bausteine & Bildschirmzonen"
 msgid "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen."
 msgstr "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen."
 
-#: core/audit_labels.py:181
+#: core/audit_labels.py:187
 msgid "Module"
 msgstr "Module"
 
@@ -7250,7 +7420,7 @@ msgstr "Monat"
 msgid "Monat befreien"
 msgstr "Monat befreien"
 
-#: templates/core/mpg_device_detail.html:165
+#: templates/core/mpg_device_detail.html:195
 msgid "Monate"
 msgstr "Monate"
 
@@ -7288,7 +7458,7 @@ msgstr "Monatsbeitrag %(month)s"
 msgid "Monatsbeitrag bar erhalten"
 msgstr "Monatsbeitrag bar erhalten"
 
-#: core/audit_labels.py:46
+#: core/audit_labels.py:51
 msgid "Monatsbeitrag erlassen"
 msgstr "Monatsbeitrag erlassen"
 
@@ -7320,7 +7490,7 @@ msgstr "Musik"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Musterdaten zum Testen – nicht für den Echtbetrieb."
 
-#: core/audit_labels.py:180
+#: core/audit_labels.py:186
 #: core/navigation.py:20
 #: core/navigation.py:50
 #: core/views.py:569
@@ -7454,7 +7624,7 @@ msgstr "Nachname"
 msgid "Nachricht"
 msgstr "Nachricht"
 
-#: core/audit_labels.py:101
+#: core/audit_labels.py:106
 msgid "Nachricht in einer Chatgruppe gesendet"
 msgstr "Nachricht in einer Chatgruppe gesendet"
 
@@ -7495,7 +7665,7 @@ msgid "Nachvollziehbarkeit"
 msgstr "Nachvollziehbarkeit"
 
 #: core/feedback_models.py:38
-#: core/orga_views.py:340
+#: core/orga_views.py:352
 msgid "Name"
 msgstr "Name"
 
@@ -7535,9 +7705,9 @@ msgstr "Name, Organisationsprofil und sichtbare Module dieser Organisationseinhe
 msgid "Name:"
 msgstr "Name:"
 
-#: core/fleet_forms.py:105
-#: core/mpg_forms.py:113
-#: templates/core/fleet_vehicle_detail.html:287
+#: core/fleet_forms.py:106
+#: core/mpg_forms.py:120
+#: templates/core/fleet_vehicle_detail.html:311
 msgid "Nein"
 msgstr "Nein"
 
@@ -7591,7 +7761,7 @@ msgid "Neue Version holen – vorher wird automatisch gesichert."
 msgstr "Neue Version holen – vorher wird automatisch gesichert."
 
 #: templates/core/sop_detail.html:34
-#: templates/core/sop_detail.html:77
+#: templates/core/sop_detail.html:82
 msgid "Neue Version publizieren"
 msgstr "Neue Version publizieren"
 
@@ -7645,9 +7815,9 @@ msgstr "Neuer Terminal-Link"
 msgid "Neuer Wachen-Code"
 msgstr "Neuer Wachen-Code"
 
-#: core/fleet_views.py:186
+#: core/fleet_views.py:187
 #: templates/core/fleet_dashboard.html:15
-#: templates/core/fleet_dashboard.html:181
+#: templates/core/fleet_dashboard.html:184
 msgid "Neues Fahrzeug anlegen"
 msgstr "Neues Fahrzeug anlegen"
 
@@ -7671,7 +7841,7 @@ msgstr "Neues Passwort"
 msgid "Neues Token (nur einmal sichtbar):"
 msgstr "Neues Token (nur einmal sichtbar):"
 
-#: core/audit_labels.py:133
+#: core/audit_labels.py:139
 msgid "Neuigkeit"
 msgstr "Neuigkeit"
 
@@ -7681,7 +7851,7 @@ msgstr "Neuigkeit"
 msgid "Neuigkeit anlegen"
 msgstr "Neuigkeit anlegen"
 
-#: core/audit_labels.py:61
+#: core/audit_labels.py:66
 msgid "Neuigkeit veröffentlicht"
 msgstr "Neuigkeit veröffentlicht"
 
@@ -7689,7 +7859,7 @@ msgstr "Neuigkeit veröffentlicht"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "Neuigkeit wurde veröffentlicht."
 
-#: core/audit_labels.py:177
+#: core/audit_labels.py:183
 #: core/navigation.py:17
 #: core/navigation.py:61
 #: templates/core/more.html:285
@@ -7699,7 +7869,7 @@ msgstr "Neuigkeit wurde veröffentlicht."
 msgid "Neuigkeiten"
 msgstr "Neuigkeiten"
 
-#: core/mpg_forms.py:86
+#: core/mpg_forms.py:93
 msgid "Nicht bestanden"
 msgstr "Nicht bestanden"
 
@@ -7731,7 +7901,7 @@ msgstr "Niederschlag"
 msgid "Noch etwas mitteilen"
 msgstr "Noch etwas mitteilen"
 
-#: templates/core/mpg_dashboard.html:136
+#: templates/core/mpg_dashboard.html:139
 msgid "Noch kein Check erfasst"
 msgstr "Noch kein Check erfasst"
 
@@ -7789,11 +7959,11 @@ msgstr "Noch keine Aushänge an der Pinnwand."
 msgid "Noch keine Buchungen."
 msgstr "Noch keine Buchungen."
 
-#: templates/core/fleet_vehicle_detail.html:311
+#: templates/core/fleet_vehicle_detail.html:335
 msgid "Noch keine Desinfektionen protokolliert."
 msgstr "Noch keine Desinfektionen protokolliert."
 
-#: templates/core/mpg_device_detail.html:240
+#: templates/core/mpg_device_detail.html:270
 msgid "Noch keine Einweisungen für dieses Gerät."
 msgstr "Noch keine Einweisungen für dieses Gerät."
 
@@ -7801,11 +7971,11 @@ msgstr "Noch keine Einweisungen für dieses Gerät."
 msgid "Noch keine Fahrzeuge oder Geräte angelegt."
 msgstr "Noch keine Fahrzeuge oder Geräte angelegt."
 
-#: templates/core/mpg_device_detail.html:223
+#: templates/core/mpg_device_detail.html:253
 msgid "Noch keine Funktionskontrollen."
 msgstr "Noch keine Funktionskontrollen."
 
-#: templates/core/mpg_dashboard.html:211
+#: templates/core/mpg_dashboard.html:214
 msgid "Noch keine Funktionskontrollen. Kontrolle über „Check“ in der Geräteliste erfassen."
 msgstr "Noch keine Funktionskontrollen. Kontrolle über „Check“ in der Geräteliste erfassen."
 
@@ -7833,15 +8003,15 @@ msgstr "Noch keine Mitgliedschaften."
 msgid "Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis."
 msgstr "Noch keine Nachrichten. Schreib den Kollegen einen kurzen Hinweis."
 
-#: templates/core/mpg_device_detail.html:195
+#: templates/core/mpg_device_detail.html:225
 msgid "Noch keine Prüfprotokolle."
 msgstr "Noch keine Prüfprotokolle."
 
-#: templates/core/sop_detail.html:128
+#: templates/core/sop_detail.html:133
 msgid "Noch keine Quittierungen protokolliert."
 msgstr "Noch keine Quittierungen protokolliert."
 
-#: templates/core/fleet_vehicle_detail.html:293
+#: templates/core/fleet_vehicle_detail.html:317
 msgid "Noch keine Schichtübernahmen dokumentiert."
 msgstr "Noch keine Schichtübernahmen dokumentiert."
 
@@ -7849,7 +8019,7 @@ msgstr "Noch keine Schichtübernahmen dokumentiert."
 msgid "Noch keine Schlüssel oder Poolgeräte angelegt."
 msgstr "Noch keine Schlüssel oder Poolgeräte angelegt."
 
-#: templates/core/mpg_dashboard.html:195
+#: templates/core/mpg_dashboard.html:198
 msgid "Noch keine Wartungen eingetragen."
 msgstr "Noch keine Wartungen eingetragen."
 
@@ -7895,11 +8065,11 @@ msgstr "Noch niemand hat diese Übergabe als gelesen quittiert."
 
 #: core/models.py:199
 #: core/wachalltag_models.py:50
-#: templates/core/mpg_device_detail.html:350
+#: templates/core/mpg_device_detail.html:381
 msgid "Normal"
 msgstr "Normal"
 
-#: templates/core/fleet_vehicle_detail.html:257
+#: templates/core/fleet_vehicle_detail.html:280
 msgid "Normal (bei nächster Wartung)"
 msgstr "Normal (bei nächster Wartung)"
 
@@ -7917,16 +8087,16 @@ msgstr "Notfall-Schnellwahl & Wichtige Kontakte"
 msgid "Notiz (optional)"
 msgstr "Notiz (optional)"
 
-#: templates/core/mpg_device_detail.html:454
+#: templates/core/mpg_device_detail.html:485
 msgid "Notiz / Zertifikat-Nr:"
 msgstr "Notiz / Zertifikat-Nr:"
 
-#: templates/core/mpg_device_detail.html:173
+#: templates/core/mpg_device_detail.html:203
 #: templates/core/warehouse_item_detail.html:198
 msgid "Notiz:"
 msgstr "Notiz:"
 
-#: core/fleet_models.py:259
+#: core/fleet_models.py:269
 msgid "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
 msgstr "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
 
@@ -7978,8 +8148,8 @@ msgstr "Nur nötig bei redaktionellen Inhalten (§ 18 Abs. 2 MStV)."
 msgid "Nur-Lese-ICS-Feed für Apple/Google/Outlook. Der Link ist geheim – bei Verlust widerrufen."
 msgstr "Nur-Lese-ICS-Feed für Apple/Google/Outlook. Der Link ist geheim – bei Verlust widerrufen."
 
-#: templates/core/mpg_device_detail.html:168
-#: templates/core/mpg_device_form.html:168
+#: templates/core/mpg_device_detail.html:198
+#: templates/core/mpg_device_form.html:176
 msgid "Nächste DGUV V3:"
 msgstr "Nächste DGUV V3:"
 
@@ -7987,7 +8157,7 @@ msgstr "Nächste DGUV V3:"
 msgid "Nächste Fälligkeit"
 msgstr "Nächste Fälligkeit"
 
-#: templates/core/mpg_device_detail.html:391
+#: templates/core/mpg_device_detail.html:422
 msgid "Nächste Fälligkeit:"
 msgstr "Nächste Fälligkeit:"
 
@@ -7995,13 +8165,13 @@ msgstr "Nächste Fälligkeit:"
 msgid "Nächste HU (§ 29 StVZO)*"
 msgstr "Nächste HU (§ 29 StVZO)*"
 
-#: templates/core/mpg_device_detail.html:167
-#: templates/core/mpg_device_form.html:155
+#: templates/core/mpg_device_detail.html:197
+#: templates/core/mpg_device_form.html:163
 msgid "Nächste MTK:"
 msgstr "Nächste MTK:"
 
-#: templates/core/mpg_device_detail.html:166
-#: templates/core/mpg_device_form.html:142
+#: templates/core/mpg_device_detail.html:196
+#: templates/core/mpg_device_form.html:150
 msgid "Nächste STK:"
 msgstr "Nächste STK:"
 
@@ -8025,7 +8195,7 @@ msgstr "Nächste fünf lokale Tage am Wachenstandort (Open-Meteo)"
 msgid "Nächster Tag"
 msgstr "Nächster Tag"
 
-#: templates/core/fleet_vehicle_detail.html:290
+#: templates/core/fleet_vehicle_detail.html:314
 msgid "OK"
 msgstr "OK"
 
@@ -8053,8 +8223,8 @@ msgstr "Obere Leiste"
 msgid "Objekt"
 msgstr "Objekt"
 
-#: templates/core/fleet_dashboard.html:228
-#: templates/core/fleet_dashboard.html:228
+#: templates/core/fleet_dashboard.html:231
+#: templates/core/fleet_dashboard.html:231
 msgid "Oder Fahrzeug-Slug / Kennzeichen eingeben..."
 msgstr "Oder Fahrzeug-Slug / Kennzeichen eingeben..."
 
@@ -8111,11 +8281,11 @@ msgstr "Offene Aufgaben mit Erledigungsquote und grafischem Fortschrittsbalken."
 msgid "Offene Einladungen"
 msgstr "Offene Einladungen"
 
-#: templates/core/fleet_dashboard.html:77
+#: templates/core/fleet_dashboard.html:80
 msgid "Offene Fahrzeug- & Werkstattmängel"
 msgstr "Offene Fahrzeug- & Werkstattmängel"
 
-#: templates/core/mpg_dashboard.html:80
+#: templates/core/mpg_dashboard.html:83
 msgid "Offene Gerätemängel (Wachalltag-Eskalation)"
 msgstr "Offene Gerätemängel (Wachalltag-Eskalation)"
 
@@ -8132,7 +8302,7 @@ msgstr "Offene Monate"
 msgid "Offene Mängel, fällige Prüfungen und Erledigungsquote als Übersicht und CSV."
 msgstr "Offene Mängel, fällige Prüfungen und Erledigungsquote als Übersicht und CSV."
 
-#: templates/core/mpg_device_detail.html:60
+#: templates/core/mpg_device_detail.html:88
 msgid "Offene Mängel:"
 msgstr "Offene Mängel:"
 
@@ -8189,7 +8359,7 @@ msgstr "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterd
 msgid "Open Source (AGPL-3.0)"
 msgstr "Open Source (AGPL-3.0)"
 
-#: templates/core/mpg_device_detail.html:281
+#: templates/core/mpg_device_detail.html:312
 msgid "Optional"
 msgstr "Optional"
 
@@ -8267,7 +8437,7 @@ msgstr "Ort der Wache für die Wetterabfrage."
 msgid "Ort des Anbieters"
 msgstr "Ort des Anbieters"
 
-#: core/fleet_forms.py:142
+#: core/fleet_forms.py:143
 #: templates/core/fleet_vehicle_form.html:126
 msgid "O₂ Druck (bar)"
 msgstr "O₂ Druck (bar)"
@@ -8284,7 +8454,7 @@ msgstr "PZN (Pharmazentralnummer):"
 msgid "Packungs- / Zähleinheit:"
 msgstr "Packungs- / Zähleinheit:"
 
-#: core/audit_labels.py:142
+#: core/audit_labels.py:148
 #: templates/registration/mfa_setup.html:44
 msgid "Passkey"
 msgstr "Passkey"
@@ -8302,7 +8472,7 @@ msgstr "Passkey erfolgreich geprüft. Bitte Freigabe absenden."
 msgid "Passkey hinzufügen"
 msgstr "Passkey hinzufügen"
 
-#: core/audit_labels.py:90
+#: core/audit_labels.py:95
 msgid "Passkey registriert"
 msgstr "Passkey registriert"
 
@@ -8420,11 +8590,11 @@ msgstr "Passwort ändern"
 msgid "Passwort, Profilbild, Zwei-Faktor und persönliche Einstellungen."
 msgstr "Passwort, Profilbild, Zwei-Faktor und persönliche Einstellungen."
 
-#: core/fleet_models.py:308
+#: core/fleet_models.py:318
 msgid "Patientenraum & Fahrerkabine einsatzklar/sauber"
 msgstr "Patientenraum & Fahrerkabine einsatzklar/sauber"
 
-#: core/fleet_models.py:314
+#: core/fleet_models.py:324
 msgid "Patientenraum oder Fahrerkabine nicht einsatzklar"
 msgstr "Patientenraum oder Fahrerkabine nicht einsatzklar"
 
@@ -8446,7 +8616,7 @@ msgstr "PayPal.me-Link"
 msgid "PayPal.me-Links müssen mit https:// beginnen."
 msgstr "PayPal.me-Links müssen mit https:// beginnen."
 
-#: core/audit_labels.py:171
+#: core/audit_labels.py:177
 #: core/coffee_views.py:684
 #: core/coffee_views.py:690
 #: core/forms.py:266
@@ -8509,15 +8679,15 @@ msgstr "Persönlicher Kopplungs-QR-Code"
 msgid "Persönlicher Zugang"
 msgstr "Persönlicher Zugang"
 
-#: templates/core/sop_detail.html:55
+#: templates/core/sop_detail.html:60
 msgid "Pflichtquittierung ausstehend"
 msgstr "Pflichtquittierung ausstehend"
 
-#: templates/core/sop_form.html:78
+#: templates/core/sop_form.html:79
 msgid "Pflichtquittierung für Wachpersonal aktivieren"
 msgstr "Pflichtquittierung für Wachpersonal aktivieren"
 
-#: core/audit_labels.py:178
+#: core/audit_labels.py:184
 #: core/navigation.py:19
 #: core/navigation.py:60
 #: templates/core/more.html:232
@@ -8537,7 +8707,7 @@ msgstr "Polizei"
 msgid "Pool-/Schlüsselobjekt anlegen"
 msgstr "Pool-/Schlüsselobjekt anlegen"
 
-#: core/audit_labels.py:119
+#: core/audit_labels.py:124
 msgid "Poolartikel"
 msgstr "Poolartikel"
 
@@ -8649,11 +8819,11 @@ msgstr "Profilbild"
 msgid "Profilbild entfernen"
 msgstr "Profilbild entfernen"
 
-#: core/audit_labels.py:97
+#: core/audit_labels.py:102
 msgid "Profilbild entfernt"
 msgstr "Profilbild entfernt"
 
-#: core/audit_labels.py:96
+#: core/audit_labels.py:101
 msgid "Profilbild geändert"
 msgstr "Profilbild geändert"
 
@@ -8673,15 +8843,15 @@ msgstr "Prozessor"
 msgid "Prozessor / Speicher"
 msgstr "Prozessor / Speicher"
 
-#: templates/core/mpg_device_detail.html:377
+#: templates/core/mpg_device_detail.html:408
 msgid "Prüfdatum:"
 msgstr "Prüfdatum:"
 
-#: templates/core/mpg_device_detail.html:382
+#: templates/core/mpg_device_detail.html:413
 msgid "Prüfer / Fachbetrieb:"
 msgstr "Prüfer / Fachbetrieb:"
 
-#: templates/core/fleet_dashboard.html:43
+#: templates/core/fleet_dashboard.html:46
 msgid "Prüffrist fällig (HU/UVV)"
 msgstr "Prüffrist fällig (HU/UVV)"
 
@@ -8689,7 +8859,7 @@ msgstr "Prüffrist fällig (HU/UVV)"
 msgid "Prüffrist fällig oder gesperrt"
 msgstr "Prüffrist fällig oder gesperrt"
 
-#: templates/core/mpg_device_detail.html:70
+#: templates/core/mpg_device_detail.html:98
 msgid "Prüffristen-Status"
 msgstr "Prüffristen-Status"
 
@@ -8700,27 +8870,27 @@ msgstr "Prüffristen-Status"
 msgid "Prüfintervalle"
 msgstr "Prüfintervalle"
 
-#: templates/core/mpg_device_detail.html:179
+#: templates/core/mpg_device_detail.html:209
 msgid "Prüfprotokolle (STK / MTK / DGUV)"
 msgstr "Prüfprotokolle (STK / MTK / DGUV)"
 
-#: templates/core/mpg_device_detail.html:368
+#: templates/core/mpg_device_detail.html:399
 msgid "Prüfung / STK dokumentieren"
 msgstr "Prüfung / STK dokumentieren"
 
-#: templates/core/mpg_device_detail.html:195
+#: templates/core/mpg_device_detail.html:225
 msgid "Prüfung eintragen"
 msgstr "Prüfung eintragen"
 
-#: core/mpg_views.py:409
+#: core/mpg_views.py:416
 msgid "Prüfung nicht gespeichert. Bitte die Angaben im Prüfungsformular prüfen."
 msgstr "Prüfung nicht gespeichert. Bitte die Angaben im Prüfungsformular prüfen."
 
-#: core/mpg_views.py:407
+#: core/mpg_views.py:414
 msgid "Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."
 msgstr "Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."
 
-#: templates/core/mpg_device_detail.html:373
+#: templates/core/mpg_device_detail.html:404
 msgid "Prüfungsart:"
 msgstr "Prüfungsart:"
 
@@ -8745,11 +8915,11 @@ msgstr "Push konnte nicht aktiviert werden."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push konnte nicht deaktiviert werden."
 
-#: core/audit_labels.py:152
+#: core/audit_labels.py:158
 msgid "Push-Benachrichtigung"
 msgstr "Push-Benachrichtigung"
 
-#: core/audit_labels.py:111
+#: core/audit_labels.py:116
 msgid "Push-Benachrichtigung nicht zustellbar"
 msgstr "Push-Benachrichtigung nicht zustellbar"
 
@@ -8767,7 +8937,7 @@ msgstr "Push-Benachrichtigungen deaktiviert."
 msgid "Push-Mitteilungen"
 msgstr "Push-Mitteilungen"
 
-#: templates/core/sop_detail.html:84
+#: templates/core/sop_detail.html:89
 msgid "QM-Prüfsumme (SHA-256)"
 msgstr "QM-Prüfsumme (SHA-256)"
 
@@ -8847,7 +9017,7 @@ msgstr "QR-Login konnte nicht gestartet werden."
 msgid "QR-Scanner"
 msgstr "QR-Scanner"
 
-#: templates/core/fleet_dashboard.html:171
+#: templates/core/fleet_dashboard.html:174
 msgid "QR-Sticker"
 msgstr "QR-Sticker"
 
@@ -8889,7 +9059,7 @@ msgid "Quelloffen, selbst gehostet"
 msgstr "Quelloffen, selbst gehostet"
 
 #: templates/core/orga_dashboard.html:119
-#: templates/core/sop_detail.html:125
+#: templates/core/sop_detail.html:130
 msgid "Quittiert"
 msgstr "Quittiert"
 
@@ -8897,7 +9067,7 @@ msgstr "Quittiert"
 msgid "Quittiert & Gültig"
 msgstr "Quittiert & Gültig"
 
-#: core/orga_views.py:341
+#: core/orga_views.py:353
 msgid "Quittiert am (Ortszeit)"
 msgstr "Quittiert am (Ortszeit)"
 
@@ -8917,16 +9087,16 @@ msgstr "Quittierungs-Audit (CSV)"
 msgid "Quote"
 msgstr "Quote"
 
-#: templates/core/fleet_dashboard.html:189
+#: templates/core/fleet_dashboard.html:192
 msgid "RKI-Desinfektionsbuch (Letzte Protokolle)"
 msgstr "RKI-Desinfektionsbuch (Letzte Protokolle)"
 
-#: templates/core/fleet_vehicle_detail.html:200
-#: templates/core/fleet_vehicle_detail.html:311
+#: templates/core/fleet_vehicle_detail.html:220
+#: templates/core/fleet_vehicle_detail.html:335
 msgid "RKI-Desinfektionsprotokoll"
 msgstr "RKI-Desinfektionsprotokoll"
 
-#: templates/core/fleet_vehicle_detail.html:308
+#: templates/core/fleet_vehicle_detail.html:332
 msgid "RKI-konform"
 msgstr "RKI-konform"
 
@@ -9013,7 +9183,7 @@ msgstr "Registrieren"
 msgid "Registrierte Terminals"
 msgstr "Registrierte Terminals"
 
-#: core/audit_labels.py:83
+#: core/audit_labels.py:88
 msgid "Registrierung angefragt"
 msgstr "Registrierung angefragt"
 
@@ -9021,11 +9191,11 @@ msgstr "Registrierung angefragt"
 msgid "Registrierung:"
 msgstr "Registrierung:"
 
-#: core/audit_labels.py:84
+#: core/audit_labels.py:89
 msgid "Registrierungsanfrage abgelehnt"
 msgstr "Registrierungsanfrage abgelehnt"
 
-#: core/fleet_forms.py:109
+#: core/fleet_forms.py:110
 msgid "Reserve"
 msgstr "Reserve"
 
@@ -9046,7 +9216,7 @@ msgstr "Rettungsdienst"
 msgid "Review bis"
 msgstr "Review bis"
 
-#: templates/core/sop_form.html:70
+#: templates/core/sop_form.html:71
 msgid "Review fällig am (QM)"
 msgstr "Review fällig am (QM)"
 
@@ -9074,7 +9244,7 @@ msgstr "Revisionen sind unveränderlich und werden nicht gelöscht."
 msgid "Revisions-Details & Inkrafttreten"
 msgstr "Revisions-Details & Inkrafttreten"
 
-#: templates/core/sop_detail.html:96
+#: templates/core/sop_detail.html:101
 msgid "Revisions-Historie & Freigaben"
 msgstr "Revisions-Historie & Freigaben"
 
@@ -9094,7 +9264,7 @@ msgstr "Revisionsprüfung fällig am"
 msgid "Risikoklasse gem. EU-MDR:"
 msgstr "Risikoklasse gem. EU-MDR:"
 
-#: core/audit_labels.py:167
+#: core/audit_labels.py:173
 #: core/forms.py:330
 #: core/forms.py:352
 #: core/forms.py:374
@@ -9106,7 +9276,7 @@ msgstr "Rolle"
 msgid "Rolle ansehen als"
 msgstr "Rolle ansehen als"
 
-#: core/audit_labels.py:63
+#: core/audit_labels.py:68
 msgid "Rolle oder Zugang geändert"
 msgstr "Rolle oder Zugang geändert"
 
@@ -9156,7 +9326,7 @@ msgstr "Rundgang: Schritt %(number)s von %(total)s geschafft. Als Nächstes: %(n
 msgid "Rückfahrkamera RTW 83-1 zeigt kein Bild"
 msgstr "Rückfahrkamera RTW 83-1 zeigt kein Bild"
 
-#: core/audit_labels.py:151
+#: core/audit_labels.py:157
 msgid "Rückmeldung"
 msgstr "Rückmeldung"
 
@@ -9164,7 +9334,7 @@ msgstr "Rückmeldung"
 msgid "Rückmeldung endgültig löschen?"
 msgstr "Rückmeldung endgültig löschen?"
 
-#: core/audit_labels.py:110
+#: core/audit_labels.py:115
 msgid "Rückmeldung gelöscht"
 msgstr "Rückmeldung gelöscht"
 
@@ -9189,7 +9359,7 @@ msgstr "Rückrufe, bald verfallendes Material und Artikel unter Mindestbestand (
 msgid "Rückrufsperre aktivieren"
 msgstr "Rückrufsperre aktivieren"
 
-#: core/orga_views.py:338
+#: core/orga_views.py:350
 msgid "SHA-256-Prüfsumme"
 msgstr "SHA-256-Prüfsumme"
 
@@ -9197,15 +9367,15 @@ msgstr "SHA-256-Prüfsumme"
 msgid "SOP Ansicht"
 msgstr "SOP Ansicht"
 
-#: core/orga_views.py:335
+#: core/orga_views.py:347
 msgid "SOP-Nummer"
 msgstr "SOP-Nummer"
 
-#: templates/core/mpg_device_form.html:137
+#: templates/core/mpg_device_form.html:145
 msgid "STK-Intervall (Monate):"
 msgstr "STK-Intervall (Monate):"
 
-#: templates/core/mpg_device_detail.html:165
+#: templates/core/mpg_device_detail.html:195
 msgid "STK-Intervall:"
 msgstr "STK-Intervall:"
 
@@ -9219,8 +9389,8 @@ msgstr "SameSite:"
 msgid "SameSite="
 msgstr "SameSite="
 
-#: templates/core/fleet_dashboard.html:137
-#: templates/core/fleet_vehicle_detail.html:97
+#: templates/core/fleet_dashboard.html:140
+#: templates/core/fleet_vehicle_detail.html:117
 msgid "Sauerstoff O₂"
 msgstr "Sauerstoff O₂"
 
@@ -9228,7 +9398,7 @@ msgstr "Sauerstoff O₂"
 msgid "Sauerstoff RTW 83-2 fast leer"
 msgstr "Sauerstoff RTW 83-2 fast leer"
 
-#: core/fleet_views.py:390
+#: core/fleet_views.py:394
 msgid "Sauerstoffvorrat niedrig (%(bar)s bar)."
 msgstr "Sauerstoffvorrat niedrig (%(bar)s bar)."
 
@@ -9260,26 +9430,26 @@ msgstr "Schichtübergabe"
 msgid "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
 msgstr "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
 
-#: templates/core/fleet_vehicle_detail.html:193
-#: templates/core/fleet_vehicle_detail.html:293
+#: templates/core/fleet_vehicle_detail.html:213
+#: templates/core/fleet_vehicle_detail.html:317
 msgid "Schichtübernahme bestätigen"
 msgstr "Schichtübernahme bestätigen"
 
-#: core/fleet_views.py:407
+#: core/fleet_views.py:411
 msgid "Schichtübernahme für %(vehicle)s bestätigt."
 msgstr "Schichtübernahme für %(vehicle)s bestätigt."
 
-#: core/fleet_views.py:405
+#: core/fleet_views.py:409
 msgid "Schichtübernahme gespeichert. Bitte beachten:"
 msgstr "Schichtübernahme gespeichert. Bitte beachten:"
 
-#: core/fleet_views.py:378
+#: core/fleet_views.py:382
 msgid "Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."
 msgstr "Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."
 
-#: templates/core/fleet_dashboard.html:233
-#: templates/core/mpg_dashboard.html:241
-#: templates/core/mpg_device_detail.html:308
+#: templates/core/fleet_dashboard.html:236
+#: templates/core/mpg_dashboard.html:244
+#: templates/core/mpg_device_detail.html:339
 #: templates/core/warehouse_dashboard.html:201
 msgid "Schließen"
 msgstr "Schließen"
@@ -9306,11 +9476,11 @@ msgstr "Schlüssel entsperren"
 msgid "Schlüssel entsperrt."
 msgstr "Schlüssel entsperrt."
 
-#: core/audit_labels.py:149
+#: core/audit_labels.py:155
 msgid "Schlüssel für verschlüsselte Nachrichten"
 msgstr "Schlüssel für verschlüsselte Nachrichten"
 
-#: core/audit_labels.py:104
+#: core/audit_labels.py:109
 msgid "Schlüssel für verschlüsselte Nachrichten hinterlegt"
 msgstr "Schlüssel für verschlüsselte Nachrichten hinterlegt"
 
@@ -9338,7 +9508,7 @@ msgstr "Schlüsselsetup fehlgeschlagen."
 msgid "Schnellanmeldung"
 msgstr "Schnellanmeldung"
 
-#: templates/core/fleet_vehicle_detail.html:149
+#: templates/core/fleet_vehicle_detail.html:169
 msgid "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung."
 msgstr "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung."
 
@@ -9359,7 +9529,7 @@ msgstr "Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchu
 msgid "Schritt-für-Schritt-Anleitung"
 msgstr "Schritt-für-Schritt-Anleitung"
 
-#: templates/core/mpg_device_detail.html:449
+#: templates/core/mpg_device_detail.html:480
 #: templates/core/mpg_geraetepass.html:29
 msgid "Schulungsdatum:"
 msgstr "Schulungsdatum:"
@@ -9433,20 +9603,20 @@ msgstr "Selbst eingetragene Zahlungen"
 msgid "Selbst hosten"
 msgstr "Selbst hosten"
 
-#: core/mpg_forms.py:136
-#: templates/core/mpg_device_detail.html:317
+#: core/mpg_forms.py:143
+#: templates/core/mpg_device_detail.html:348
 msgid "Selbsttest / Gerätestart fehlerfrei"
 msgstr "Selbsttest / Gerätestart fehlerfrei"
 
-#: core/fleet_models.py:313
+#: core/fleet_models.py:323
 msgid "Selbsttest eines Medizingeräts nicht in Ordnung"
 msgstr "Selbsttest eines Medizingeräts nicht in Ordnung"
 
-#: templates/core/mpg_device_detail.html:284
+#: templates/core/mpg_device_detail.html:315
 msgid "Selbsttest-Protokoll (optional):"
 msgstr "Selbsttest-Protokoll (optional):"
 
-#: core/fleet_models.py:307
+#: core/fleet_models.py:317
 msgid "Selbsttests der Medizingeräte in Ordnung"
 msgstr "Selbsttests der Medizingeräte in Ordnung"
 
@@ -9463,7 +9633,7 @@ msgstr "Senden fehlgeschlagen: %(error)s"
 msgid "Seriennummer (SN):"
 msgstr "Seriennummer (SN):"
 
-#: templates/core/mpg_device_detail.html:160
+#: templates/core/mpg_device_detail.html:190
 msgid "Seriennummer:"
 msgstr "Seriennummer:"
 
@@ -9518,8 +9688,8 @@ msgstr "Sichtbar für alle im Team. Mit IBAN zeigt Wachwerk einen Überweisungs-
 msgid "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 msgstr "Sichtbar sind nur freiwillig freigegebene Tage und Monate."
 
-#: core/mpg_forms.py:135
-#: templates/core/mpg_device_detail.html:316
+#: core/mpg_forms.py:142
+#: templates/core/mpg_device_detail.html:347
 msgid "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"
 msgstr "Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"
 
@@ -9579,7 +9749,7 @@ msgstr "Signal-Gruppe entfernt."
 msgid "Signal-Gruppe gespeichert."
 msgstr "Signal-Gruppe gespeichert."
 
-#: core/audit_labels.py:108
+#: core/audit_labels.py:113
 msgid "Signal-Gruppe geändert"
 msgstr "Signal-Gruppe geändert"
 
@@ -9591,15 +9761,15 @@ msgstr "Signal-Gruppe oder interner Chat"
 msgid "Signal-Gruppe öffnen"
 msgstr "Signal-Gruppe öffnen"
 
-#: core/audit_labels.py:150
+#: core/audit_labels.py:156
 msgid "Signal-Kontakt"
 msgstr "Signal-Kontakt"
 
-#: core/audit_labels.py:106
+#: core/audit_labels.py:111
 msgid "Signal-Kontakt bestätigt"
 msgstr "Signal-Kontakt bestätigt"
 
-#: core/audit_labels.py:107
+#: core/audit_labels.py:112
 msgid "Signal-Kontakt entfernt"
 msgstr "Signal-Kontakt entfernt"
 
@@ -9680,7 +9850,7 @@ msgstr "Speicher"
 #: templates/core/coffee_settings.html:19
 #: templates/core/defect_detail.html:27
 #: templates/core/legal_settings.html:46
-#: templates/core/mpg_device_detail.html:290
+#: templates/core/mpg_device_detail.html:321
 #: templates/core/pinboard_form.html:20
 #: templates/core/signal_admin.html:41
 #: templates/core/station_settings.html:28
@@ -9701,7 +9871,7 @@ msgstr "Sperrbildschirm mit Foto des Tages, Fahrzeugstatus und rundem Ziffernblo
 msgid "Sperre aufheben"
 msgstr "Sperre aufheben"
 
-#: core/audit_labels.py:72
+#: core/audit_labels.py:77
 msgid "Sperre eines Wachenterminals aufgehoben"
 msgstr "Sperre eines Wachenterminals aufgehoben"
 
@@ -9713,7 +9883,7 @@ msgstr "Sperren"
 msgid "Sperrt sich nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
 msgstr "Sperrt sich nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
 
-#: templates/core/fleet_vehicle_detail.html:221
+#: templates/core/fleet_vehicle_detail.html:244
 msgid "Sperrtimer aktivieren"
 msgstr "Sperrtimer aktivieren"
 
@@ -9774,7 +9944,7 @@ msgstr "Standort / Fahrzeug:"
 msgid "Start"
 msgstr "Start"
 
-#: templates/core/sop_form.html:89
+#: templates/core/sop_form.html:90
 msgid "Start-Versionsnummer"
 msgstr "Start-Versionsnummer"
 
@@ -9794,7 +9964,7 @@ msgstr "Stations-Telefonbuch"
 msgid "Stationsübersicht"
 msgstr "Stationsübersicht"
 
-#: core/audit_labels.py:158
+#: core/audit_labels.py:164
 #: templates/core/assets_inventory.html:20
 #: templates/core/defect_detail.html:14
 #: templates/core/defect_detail.html:25
@@ -9819,7 +9989,11 @@ msgstr "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Ei
 msgid "Status der Ausstattung geändert"
 msgstr "Status der Ausstattung geändert"
 
-#: core/audit_labels.py:109
+#: core/audit_labels.py:38
+msgid "Status einer Dienstanweisung geändert"
+msgstr "Status einer Dienstanweisung geändert"
+
+#: core/audit_labels.py:114
 msgid "Status einer Rückmeldung geändert"
 msgstr "Status einer Rückmeldung geändert"
 
@@ -9831,7 +10005,7 @@ msgstr "Status einer Übergabe geändert"
 msgid "Status eines Mangels geändert"
 msgstr "Status eines Mangels geändert"
 
-#: core/fleet_views.py:332
+#: core/fleet_views.py:334
 msgid "Status für %(vehicle)s auf „%(status)s“ gesetzt."
 msgstr "Status für %(vehicle)s auf „%(status)s“ gesetzt."
 
@@ -9863,7 +10037,7 @@ msgstr "Status wurde aktualisiert."
 msgid "Status-Bemerkung"
 msgstr "Status-Bemerkung"
 
-#: templates/core/mpg_device_form.html:121
+#: templates/core/mpg_device_form.html:129
 msgid "Statusbemerkung:"
 msgstr "Statusbemerkung:"
 
@@ -9910,12 +10084,12 @@ msgstr "Stände und Buchungen einzelner Personen sieht nur der Kassenwart. Wer K
 msgid "Suche nach Artikelname, PZN, GTIN, Lot-Nr..."
 msgstr "Suche nach Artikelname, PZN, GTIN, Lot-Nr..."
 
-#: templates/core/fleet_dashboard.html:62
-#: templates/core/fleet_dashboard.html:62
+#: templates/core/fleet_dashboard.html:65
+#: templates/core/fleet_dashboard.html:65
 msgid "Suche nach Funkrufname, Kennzeichen, Hersteller..."
 msgstr "Suche nach Funkrufname, Kennzeichen, Hersteller..."
 
-#: templates/core/mpg_dashboard.html:65
+#: templates/core/mpg_dashboard.html:68
 msgid "Suche nach Name, Typ, Serien-Nr, Standort, Inventar-Nr..."
 msgstr "Suche nach Name, Typ, Serien-Nr, Standort, Inventar-Nr..."
 
@@ -9935,7 +10109,7 @@ msgstr "Suchen"
 msgid "Supportbericht herunterladen"
 msgstr "Supportbericht herunterladen"
 
-#: templates/core/fleet_vehicle_detail.html:265
+#: templates/core/fleet_vehicle_detail.html:288
 msgid "Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit..."
 msgstr "Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit..."
 
@@ -10059,15 +10233,15 @@ msgstr "Technische und organisatorische Maßnahmen"
 msgid "Technischer Fahrzeugcheck"
 msgstr "Technischer Fahrzeugcheck"
 
-#: core/audit_labels.py:130
+#: core/audit_labels.py:136
 msgid "Teilnahme Kaffeekasse"
 msgstr "Teilnahme Kaffeekasse"
 
-#: core/audit_labels.py:52
+#: core/audit_labels.py:57
 msgid "Teilnahme an der Kaffeekasse begonnen"
 msgstr "Teilnahme an der Kaffeekasse begonnen"
 
-#: core/audit_labels.py:53
+#: core/audit_labels.py:58
 msgid "Teilnahme an der Kaffeekasse geändert"
 msgstr "Teilnahme an der Kaffeekasse geändert"
 
@@ -10101,11 +10275,11 @@ msgstr "Telefon des Anbieters (optional)"
 msgid "Telefonbucheinträge"
 msgstr "Telefonbucheinträge"
 
-#: core/audit_labels.py:124
+#: core/audit_labels.py:130
 msgid "Termin"
 msgstr "Termin"
 
-#: core/audit_labels.py:38
+#: core/audit_labels.py:43
 msgid "Termin angelegt"
 msgstr "Termin angelegt"
 
@@ -10156,11 +10330,11 @@ msgstr "Testnachricht senden"
 msgid "Text"
 msgstr "Text"
 
-#: templates/core/sop_form.html:96
+#: templates/core/sop_form.html:97
 msgid "Text / Handlungsanweisung (Markdown)"
 msgstr "Text / Handlungsanweisung (Markdown)"
 
-#: templates/core/mpg_device_detail.html:285
+#: templates/core/mpg_device_detail.html:316
 msgid "Text vom Geräteausdruck oder gescannter QR-Inhalt"
 msgstr "Text vom Geräteausdruck oder gescannter QR-Inhalt"
 
@@ -10176,8 +10350,8 @@ msgstr "Tiefenreinigung / Wochenabschluss"
 msgid "Tipps für gebrauchte Thin Clients und Mini-PCs"
 msgstr "Tipps für gebrauchte Thin Clients und Mini-PCs"
 
-#: core/audit_labels.py:161
-#: core/orga_views.py:336
+#: core/audit_labels.py:167
+#: core/orga_views.py:348
 #: core/wiki_forms.py:15
 #: core/wiki_models.py:38
 #: core/wiki_models.py:136
@@ -10191,7 +10365,7 @@ msgstr "Titel"
 msgid "Titel der Dienstanweisung*"
 msgstr "Titel der Dienstanweisung*"
 
-#: templates/core/mpg_device_detail.html:342
+#: templates/core/mpg_device_detail.html:373
 msgid "Titel des Mangels:"
 msgstr "Titel des Mangels:"
 
@@ -10225,7 +10399,7 @@ msgstr "Touch-Terminal der Wache"
 msgid "Touch-Terminal in der Fahrzeughalle"
 msgstr "Touch-Terminal in der Fahrzeughalle"
 
-#: templates/core/fleet_vehicle_detail.html:126
+#: templates/core/fleet_vehicle_detail.html:146
 #: templates/core/fleet_vehicle_form.html:155
 msgid "Tragentisch 10g (DIN EN 1789)"
 msgstr "Tragentisch 10g (DIN EN 1789)"
@@ -10279,11 +10453,11 @@ msgstr "Tägliche, wöchentliche oder monatliche Prüfungen mit nächster Fälli
 msgid "UDI-DI (GS1-GTIN):"
 msgstr "UDI-DI (GS1-GTIN):"
 
-#: templates/core/mpg_device_detail.html:162
+#: templates/core/mpg_device_detail.html:192
 msgid "UDI-DI (GTIN):"
 msgstr "UDI-DI (GTIN):"
 
-#: templates/core/fleet_vehicle_detail.html:125
+#: templates/core/fleet_vehicle_detail.html:145
 msgid "UVV-Prüfung (DGUV Vorschrift 70)"
 msgstr "UVV-Prüfung (DGUV Vorschrift 70)"
 
@@ -10376,7 +10550,7 @@ msgstr "User-Agent (Browsertyp, Betriebssystem) und Referrer-URL (sofern vom Bro
 msgid "Validierung"
 msgstr "Validierung"
 
-#: core/audit_labels.py:163
+#: core/audit_labels.py:169
 msgid "Verantwortlich"
 msgstr "Verantwortlich"
 
@@ -10466,15 +10640,15 @@ msgstr "Verschlüsselt senden"
 msgid "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
 msgstr "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
 
-#: core/audit_labels.py:102
+#: core/audit_labels.py:107
 msgid "Verschlüsselte Direktnachricht gesendet"
 msgstr "Verschlüsselte Direktnachricht gesendet"
 
-#: core/audit_labels.py:148
+#: core/audit_labels.py:154
 msgid "Verschlüsselte Nachricht"
 msgstr "Verschlüsselte Nachricht"
 
-#: core/audit_labels.py:103
+#: core/audit_labels.py:108
 msgid "Verschlüsselte Nachricht gesendet"
 msgstr "Verschlüsselte Nachricht gesendet"
 
@@ -10483,7 +10657,7 @@ msgstr "Verschlüsselte Nachricht gesendet"
 msgid "Verschlüsselung"
 msgstr "Verschlüsselung"
 
-#: core/orga_views.py:337
+#: core/orga_views.py:349
 #: templates/base.html:179
 #: templates/core/handover_detail.html:65
 #: templates/core/privacy.html:222
@@ -10555,7 +10729,7 @@ msgstr "Veröffentlichungsblocker: Technische Information unvollständig bis Bet
 msgid "Vier-Augen-Prinzip: eine zweite Person zählt mit."
 msgstr "Vier-Augen-Prinzip: eine zweite Person zählt mit."
 
-#: core/fleet_forms.py:109
+#: core/fleet_forms.py:110
 msgid "Voll"
 msgstr "Voll"
 
@@ -10605,7 +10779,7 @@ msgstr "Von diesem Anschluss wurden in der letzten Stunde schon viele Demos gest
 msgid "Von mir quittiert"
 msgstr "Von mir quittiert"
 
-#: templates/core/mpg_device_detail.html:102
+#: templates/core/mpg_device_detail.html:130
 msgid "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 msgstr "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 
@@ -10690,7 +10864,7 @@ msgstr "Vorschau öffnen"
 msgid "Vorschau: Am echten Terminal öffnet der vierstellige Wachen-Code jetzt den Alltagsmodus der Wache."
 msgstr "Vorschau: Am echten Terminal öffnet der vierstellige Wachen-Code jetzt den Alltagsmodus der Wache."
 
-#: templates/core/mpg_dashboard.html:58
+#: templates/core/mpg_dashboard.html:61
 msgid "Vorwarnung 31–60 Tage"
 msgstr "Vorwarnung 31–60 Tage"
 
@@ -10699,7 +10873,7 @@ msgstr "Vorwarnung 31–60 Tage"
 msgid "Vorwarnung 31–90 Tage"
 msgstr "Vorwarnung 31–90 Tage"
 
-#: templates/core/mpg_dashboard.html:42
+#: templates/core/mpg_dashboard.html:45
 msgid "Vorwarnung ≤ 60 Tage"
 msgstr "Vorwarnung ≤ 60 Tage"
 
@@ -10721,23 +10895,23 @@ msgstr "Wachalltag"
 msgid "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor."
 msgstr "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor."
 
-#: core/audit_labels.py:125
+#: core/audit_labels.py:131
 msgid "Wachaufgabe"
 msgstr "Wachaufgabe"
 
-#: core/audit_labels.py:39
+#: core/audit_labels.py:44
 msgid "Wachaufgabe angelegt"
 msgstr "Wachaufgabe angelegt"
 
-#: core/audit_labels.py:41
+#: core/audit_labels.py:46
 msgid "Wachaufgabe erledigt"
 msgstr "Wachaufgabe erledigt"
 
-#: core/audit_labels.py:40
+#: core/audit_labels.py:45
 msgid "Wachaufgabe geändert"
 msgstr "Wachaufgabe geändert"
 
-#: core/audit_labels.py:42
+#: core/audit_labels.py:47
 msgid "Wachaufgabe wieder geöffnet"
 msgstr "Wachaufgabe wieder geöffnet"
 
@@ -10769,7 +10943,7 @@ msgstr "Wachbuch-Vorführung"
 msgid "Wachdienst-Aufgaben"
 msgstr "Wachdienst-Aufgaben"
 
-#: core/audit_labels.py:115
+#: core/audit_labels.py:120
 #: core/models.py:192
 #: core/wiki_models.py:30
 #: templates/core/chat.html:11
@@ -10821,7 +10995,7 @@ msgstr "Wachen-Code (4 Ziffern)"
 msgid "Wachen-Code eingeben"
 msgstr "Wachen-Code eingeben"
 
-#: core/audit_labels.py:69
+#: core/audit_labels.py:74
 msgid "Wachen-Code geändert"
 msgstr "Wachen-Code geändert"
 
@@ -10893,7 +11067,7 @@ msgstr "Wachenkalender"
 msgid "Wachenorganisation"
 msgstr "Wachenorganisation"
 
-#: core/audit_labels.py:136
+#: core/audit_labels.py:142
 #: templates/base.html:81
 #: templates/core/setup_done.html:29
 #: templates/core/team.html:15
@@ -10910,7 +11084,7 @@ msgstr "Wachenterminal"
 msgid "Wachenterminal (Touch-Bildschirm)"
 msgstr "Wachenterminal (Touch-Bildschirm)"
 
-#: core/audit_labels.py:70
+#: core/audit_labels.py:75
 msgid "Wachenterminal angelegt"
 msgstr "Wachenterminal angelegt"
 
@@ -10918,11 +11092,11 @@ msgstr "Wachenterminal angelegt"
 msgid "Wachenterminal einrichten"
 msgstr "Wachenterminal einrichten"
 
-#: core/audit_labels.py:67
+#: core/audit_labels.py:72
 msgid "Wachenterminal mit Wachen-Code entsperrt"
 msgstr "Wachenterminal mit Wachen-Code entsperrt"
 
-#: core/audit_labels.py:71
+#: core/audit_labels.py:76
 msgid "Wachenterminal widerrufen"
 msgstr "Wachenterminal widerrufen"
 
@@ -11008,11 +11182,11 @@ msgstr "Warte auf Initialisierung..."
 msgid "Wartend"
 msgstr "Wartend"
 
-#: templates/core/mpg_device_detail.html:139
+#: templates/core/mpg_device_detail.html:168
 msgid "Wartung / STK eintragen"
 msgstr "Wartung / STK eintragen"
 
-#: templates/core/mpg_device_detail.html:401
+#: templates/core/mpg_device_detail.html:432
 msgid "Wartung buchen"
 msgstr "Wartung buchen"
 
@@ -11037,7 +11211,7 @@ msgstr "Was die Schicht wissen muss. Auf einen Blick."
 msgid "Was du im Feedback-Formular einträgst (Art der Rückmeldung, Nachricht, freiwillig Rolle, Bewertung, Name und E-Mail), wird mit dem Zeitpunkt gespeichert, damit der Betreiber die Rückmeldung lesen und auf Wunsch antworten kann (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Die IP-Adresse wird dabei nicht gespeichert; zum Schutz vor Missbrauch zählt der Server Absendungen je Anschluss nur kurzzeitig als gesalzenen Prüfwert im Zwischenspeicher. Die Einträge werden nach Bearbeitung, spätestens nach %(days)s Tagen gelöscht. Die Einwilligung kannst du jederzeit beim Betreiber widerrufen."
 msgstr "Was du im Feedback-Formular einträgst (Art der Rückmeldung, Nachricht, freiwillig Rolle, Bewertung, Name und E-Mail), wird mit dem Zeitpunkt gespeichert, damit der Betreiber die Rückmeldung lesen und auf Wunsch antworten kann (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Die IP-Adresse wird dabei nicht gespeichert; zum Schutz vor Missbrauch zählt der Server Absendungen je Anschluss nur kurzzeitig als gesalzenen Prüfwert im Zwischenspeicher. Die Einträge werden nach Bearbeitung, spätestens nach %(days)s Tagen gelöscht. Die Einwilligung kannst du jederzeit beim Betreiber widerrufen."
 
-#: templates/core/mpg_device_detail.html:355
+#: templates/core/mpg_device_detail.html:386
 msgid "Was genau ist defekt? Fehlermeldung auf Display?"
 msgstr "Was genau ist defekt? Fehlermeldung auf Display?"
 
@@ -11053,7 +11227,7 @@ msgstr "Was passiert, wenn der Rechner kaputtgeht?"
 msgid "Was verschickt wird"
 msgstr "Was verschickt wird"
 
-#: templates/core/mpg_device_detail.html:320
+#: templates/core/mpg_device_detail.html:351
 msgid "Was wurde behoben?"
 msgstr "Was wurde behoben?"
 
@@ -11146,19 +11320,19 @@ msgstr "Wer sich mit „Demo“ / „Demo“ anmeldet, bekommt eine eigene Demo-
 
 #: core/fleet_models.py:54
 #: core/fleet_models.py:121
-#: templates/core/fleet_vehicle_detail.html:73
+#: templates/core/fleet_vehicle_detail.html:93
 msgid "Werkstatt"
 msgstr "Werkstatt"
 
-#: templates/core/fleet_dashboard.html:56
+#: templates/core/fleet_dashboard.html:59
 msgid "Werkstatt / Ausfall"
 msgstr "Werkstatt / Ausfall"
 
-#: templates/core/fleet_dashboard.html:39
+#: templates/core/fleet_dashboard.html:42
 msgid "Werkstatt / außer Dienst"
 msgstr "Werkstatt / außer Dienst"
 
-#: templates/core/fleet_vehicle_detail.html:238
+#: templates/core/fleet_vehicle_detail.html:261
 msgid "Werkstattmangel melden"
 msgstr "Werkstattmangel melden"
 
@@ -11221,7 +11395,7 @@ msgstr "Wetter, Verkehr, Müllkalender, Signal, Push"
 msgid "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 msgstr "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 
-#: templates/core/mpg_device_detail.html:249
+#: templates/core/mpg_device_detail.html:279
 msgid "Wetterfester QR-Code für Geräteaufkleber"
 msgstr "Wetterfester QR-Code für Geräteaufkleber"
 
@@ -11243,11 +11417,11 @@ msgstr "Wettervorschau passt nicht zur eingegebenen Anschrift."
 
 #: core/models.py:200
 #: core/wachalltag_models.py:51
-#: templates/core/mpg_device_detail.html:349
+#: templates/core/mpg_device_detail.html:380
 msgid "Wichtig"
 msgstr "Wichtig"
 
-#: templates/core/fleet_vehicle_detail.html:258
+#: templates/core/fleet_vehicle_detail.html:281
 msgid "Wichtig (zeitnah instandsetzen)"
 msgstr "Wichtig (zeitnah instandsetzen)"
 
@@ -11293,6 +11467,15 @@ msgstr "Wie hast du bezahlt?"
 msgid "Wieder aufnehmen"
 msgstr "Wieder aufnehmen"
 
+#: core/evidence.py:220
+msgid "Wieder in Betrieb genommen. Vor dem Einsatz bitte prüfen und freigeben."
+msgstr "Wieder in Betrieb genommen. Vor dem Einsatz bitte prüfen und freigeben."
+
+#: templates/core/fleet_vehicle_detail.html:43
+#: templates/core/mpg_device_detail.html:59
+msgid "Wieder in Betrieb nehmen"
+msgstr "Wieder in Betrieb nehmen"
+
 #: templates/core/coffee.html:71
 msgid "Wieder per E-Mail erinnern"
 msgstr "Wieder per E-Mail erinnern"
@@ -11318,30 +11501,30 @@ msgstr "Wiederkehrende Kontrollen täglich, wöchentlich oder monatlich planen."
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 
-#: core/audit_labels.py:179
+#: core/audit_labels.py:185
 #: core/navigation.py:18
 msgid "Wiki"
 msgstr "Wiki"
 
-#: core/audit_labels.py:137
+#: core/audit_labels.py:143
 #: core/wiki_models.py:83
 #: core/wiki_models.py:84
 msgid "Wiki-Artikel"
 msgstr "Wiki-Artikel"
 
-#: core/audit_labels.py:74
+#: core/audit_labels.py:79
 msgid "Wiki-Artikel angelegt"
 msgstr "Wiki-Artikel angelegt"
 
-#: core/audit_labels.py:76
+#: core/audit_labels.py:81
 msgid "Wiki-Artikel archiviert"
 msgstr "Wiki-Artikel archiviert"
 
-#: core/audit_labels.py:75
+#: core/audit_labels.py:80
 msgid "Wiki-Artikel bearbeitet"
 msgstr "Wiki-Artikel bearbeitet"
 
-#: core/audit_labels.py:77
+#: core/audit_labels.py:82
 msgid "Wiki-Artikel wiederhergestellt"
 msgstr "Wiki-Artikel wiederhergestellt"
 
@@ -11365,7 +11548,7 @@ msgstr "Wiki-Revisionen dürfen nicht verändert werden."
 msgid "Wir haben dir per Signal einen Code geschickt."
 msgstr "Wir haben dir per Signal einen Code geschickt."
 
-#: templates/core/sop_form.html:100
+#: templates/core/sop_form.html:101
 msgid "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen."
 msgstr "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prüfsummen-Hash versehen."
 
@@ -11373,7 +11556,7 @@ msgstr "Wird beim Speichern automatisch mit einem kryptographischen SHA-256 Prü
 msgid "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 msgstr "Wird nur abgefragt, wenn kein QR-Code gescannt wurde."
 
-#: templates/core/mpg_device_detail.html:286
+#: templates/core/mpg_device_detail.html:317
 msgid "Wird nur als Notiz gespeichert und nicht ausgewertet."
 msgstr "Wird nur als Notiz gespeichert und nicht ausgewertet."
 
@@ -11381,7 +11564,7 @@ msgstr "Wird nur als Notiz gespeichert und nicht ausgewertet."
 msgid "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."
 msgstr "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."
 
-#: templates/core/fleet_vehicle_detail.html:201
+#: templates/core/fleet_vehicle_detail.html:221
 msgid "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer."
 msgstr "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer."
 
@@ -11446,11 +11629,11 @@ msgstr "Wünsche, Anregungen, Lob oder ein Fehler – jede Rückmeldung hilft, W
 msgid "Zahlung eintragen"
 msgstr "Zahlung eintragen"
 
-#: core/audit_labels.py:43
+#: core/audit_labels.py:48
 msgid "Zahlung in der Kaffeekasse gemeldet"
 msgstr "Zahlung in der Kaffeekasse gemeldet"
 
-#: core/audit_labels.py:105
+#: core/audit_labels.py:110
 msgid "Zahlungserinnerung der Kaffeekasse per E-Mail gesendet"
 msgstr "Zahlungserinnerung der Kaffeekasse per E-Mail gesendet"
 
@@ -11458,7 +11641,7 @@ msgstr "Zahlungserinnerung der Kaffeekasse per E-Mail gesendet"
 msgid "Zahlungshinweis"
 msgstr "Zahlungshinweis"
 
-#: core/audit_labels.py:170
+#: core/audit_labels.py:176
 #: core/forms.py:136
 msgid "Zahlungsweg"
 msgstr "Zahlungsweg"
@@ -11648,6 +11831,10 @@ msgstr "Zur Übersicht"
 msgid "Zurück"
 msgstr "Zurück"
 
+#: templates/core/mpg_device_form.html:123
+msgid "Zurück in den Betrieb nur über „Wieder in Betrieb nehmen“ auf der Geräteseite."
+msgstr "Zurück in den Betrieb nur über „Wieder in Betrieb nehmen“ auf der Geräteseite."
+
 #: templates/core/checklist_schedules.html:5
 msgid "Zurück zu Checklisten"
 msgstr "Zurück zu Checklisten"
@@ -11735,6 +11922,7 @@ msgstr "Zurück zum Team"
 msgid "Zurück zur Demo"
 msgstr "Zurück zur Demo"
 
+#: core/retire_views.py:76
 #: templates/core/fleet_vehicle_detail.html:7
 msgid "Zurück zur Fuhrpark-Übersicht"
 msgstr "Zurück zur Fuhrpark-Übersicht"
@@ -11763,6 +11951,7 @@ msgstr "Zurück zur Kasse"
 msgid "Zurück zur Lagerübersicht"
 msgstr "Zurück zur Lagerübersicht"
 
+#: core/retire_views.py:135
 #: templates/core/mpg_device_detail.html:7
 #: templates/core/mpg_geraetepass.html:7
 msgid "Zurück zur MPG-Übersicht"
@@ -11816,8 +12005,8 @@ msgid "Zurückgeben"
 msgstr "Zurückgeben"
 
 #: templates/core/diagnostics_events.html:26
-#: templates/core/fleet_dashboard.html:71
-#: templates/core/mpg_dashboard.html:74
+#: templates/core/fleet_dashboard.html:74
+#: templates/core/mpg_dashboard.html:77
 #: templates/core/orga_dashboard.html:90
 #: templates/core/warehouse_dashboard.html:77
 #: templates/core/wiki_index.html:26
@@ -11915,7 +12104,7 @@ msgstr "Zwei-Faktor-Anmeldung muss zuerst eingerichtet werden."
 msgid "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 msgstr "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 
-#: core/audit_labels.py:64
+#: core/audit_labels.py:69
 msgid "Zwei-Faktor-Anmeldung zurückgesetzt"
 msgstr "Zwei-Faktor-Anmeldung zurückgesetzt"
 
@@ -12119,7 +12308,7 @@ msgstr "immer oben"
 msgid "in der Kaffeekasse der %(station)s sind %(amount)s € offen."
 msgstr "in der Kaffeekasse der %(station)s sind %(amount)s € offen."
 
-#: core/audit_labels.py:219
+#: core/audit_labels.py:225
 #: templates/core/system_status.html:40
 msgid "ja"
 msgstr "ja"
@@ -12130,7 +12319,7 @@ msgstr "ja"
 msgid "keine"
 msgstr "keine"
 
-#: core/fleet_forms.py:136
+#: core/fleet_forms.py:137
 msgid "km-Stand"
 msgstr "km-Stand"
 
@@ -12159,7 +12348,7 @@ msgstr "mitgezählt"
 msgid "nach Fehlversuchen gesperrt bis"
 msgstr "nach Fehlversuchen gesperrt bis"
 
-#: core/audit_labels.py:221
+#: core/audit_labels.py:227
 #: templates/core/system_status.html:40
 msgid "nein"
 msgstr "nein"
@@ -12233,6 +12422,10 @@ msgstr "rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13
 #: templates/core/assets_inventory.html:45
 msgid "seit"
 msgstr "seit"
+
+#: templates/core/retired_list.html:26
+msgid "seit %(date)s"
+msgstr "seit %(date)s"
 
 #: templates/core/coffee_ledger.html:29
 msgid "selbst"
@@ -12331,7 +12524,7 @@ msgstr "z. B. Elternzeit"
 msgid "z. B. Google Authenticator, Microsoft Authenticator, Aegis (Android), 2FAS oder die Passwörter-App des iPhones. Alle kostenlos."
 msgstr "z. B. Google Authenticator, Microsoft Authenticator, Aegis (Android), 2FAS oder die Passwörter-App des iPhones. Alle kostenlos."
 
-#: templates/core/mpg_device_form.html:181
+#: templates/core/mpg_device_form.html:189
 msgid "z. B. Hersteller-Download-Link oder Intranet-PDF"
 msgstr "z. B. Hersteller-Download-Link oder Intranet-PDF"
 
@@ -12367,11 +12560,11 @@ msgstr "z. B. „für Januar bis März“"
 msgid "zuletzt"
 msgstr "zuletzt"
 
-#: core/fleet_forms.py:190
+#: core/fleet_forms.py:191
 msgid "zuletzt %(bar)s bar"
 msgstr "zuletzt %(bar)s bar"
 
-#: core/fleet_forms.py:186
+#: core/fleet_forms.py:187
 msgid "zuletzt %(km)s km"
 msgstr "zuletzt %(km)s km"
 
@@ -12387,7 +12580,7 @@ msgstr "§ 25 Abs. 2 Nr. 2 TDDDG"
 msgid "Änderung"
 msgstr "Änderung"
 
-#: core/fleet_views.py:206
+#: core/fleet_views.py:207
 msgid "Änderungen an %(vehicle)s gespeichert."
 msgstr "Änderungen an %(vehicle)s gespeichert."
 
@@ -12423,8 +12616,8 @@ msgstr "Öffentliches Formular ansehen"
 msgid "Öffne die Authenticator-App und gib den aktuellen Code ein."
 msgstr "Öffne die Authenticator-App und gib den aktuellen Code ein."
 
-#: templates/core/fleet_dashboard.html:229
-#: templates/core/mpg_dashboard.html:236
+#: templates/core/fleet_dashboard.html:232
+#: templates/core/mpg_dashboard.html:239
 #: templates/core/private_chat_home.html:27
 #: templates/core/secure_mail_inbox.html:29
 #: templates/core/secure_mail_inbox.html:41
@@ -12439,11 +12632,11 @@ msgstr "Öffnen & Lesen"
 msgid "Über https mit einem kostenlosen Let’s-Encrypt-Zertifikat."
 msgstr "Über https mit einem kostenlosen Let’s-Encrypt-Zertifikat."
 
-#: templates/core/mpg_dashboard.html:34
+#: templates/core/mpg_dashboard.html:37
 msgid "Überfällig / OOB"
 msgstr "Überfällig / OOB"
 
-#: core/audit_labels.py:116
+#: core/audit_labels.py:121
 msgid "Übergabe"
 msgstr "Übergabe"
 
@@ -12502,7 +12695,7 @@ msgstr "Übergabebuch"
 msgid "Übergabeliste"
 msgstr "Übergabeliste"
 
-#: core/audit_labels.py:172
+#: core/audit_labels.py:178
 #: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
@@ -12532,7 +12725,7 @@ msgstr "Übergaben von mir quittiert"
 msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 msgstr "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 
-#: core/fleet_views.py:397
+#: core/fleet_views.py:401
 msgid "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 msgstr "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 
@@ -12598,7 +12791,15 @@ msgstr "– Bitte auswählen –"
 msgid "– keine Einzahlung –"
 msgstr "– keine Einzahlung –"
 
-#: templates/core/mpg_dashboard.html:155
+#: core/retire_views.py:89
+msgid "„%(name)s“ ist außer Betrieb genommen. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
+msgstr "„%(name)s“ ist außer Betrieb genommen. Prüfungen, Kontrollen und Einweisungen bleiben als Nachweis erhalten."
+
+#: core/retire_views.py:105
+msgid "„%(name)s“ ist wieder in Betrieb und bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt."
+msgstr "„%(name)s“ ist wieder in Betrieb und bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt."
+
+#: templates/core/mpg_dashboard.html:158
 msgid "„%(name)s“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 msgstr "„%(name)s“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 

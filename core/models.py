@@ -226,7 +226,7 @@ class HandoverEntry(models.Model):
 
 
 class HandoverRevision(models.Model):
-    handover = models.ForeignKey(HandoverEntry, on_delete=models.CASCADE, related_name="revisions")
+    handover = models.ForeignKey(HandoverEntry, on_delete=models.PROTECT, related_name="revisions")
     version = models.PositiveIntegerField()
     snapshot = models.JSONField()
     changed_by = models.ForeignKey(User, on_delete=models.PROTECT)

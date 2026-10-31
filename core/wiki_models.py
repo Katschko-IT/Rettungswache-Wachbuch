@@ -124,7 +124,7 @@ class WikiRevision(models.Model):
 
     article = models.ForeignKey(
         WikiArticle,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="revisions",
         verbose_name=_("Artikel"),
     )

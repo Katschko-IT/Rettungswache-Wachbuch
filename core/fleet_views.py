@@ -15,6 +15,7 @@ from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
+from .evidence import vehicle_must_be_active
 from .fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
 from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
 from .models import Membership, Station
@@ -272,7 +273,7 @@ def vehicle_detail(request, slug: str):
     """Mobiles Fahrzeug-Cockpit (Schichtübernahme, Desinfektion, Fristen)."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
-    if vehicle.awaiting_crew_release:
+    if vehicle.is_active and vehicle.awaiting_crew_release:
         from .crew_notifications import notify_vehicle_ready
 
         notify_vehicle_ready(vehicle)
@@ -283,6 +284,7 @@ def vehicle_detail(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_POST
+@vehicle_must_be_active
 def vehicle_status_change(request, slug: str):
     """Verfügbarkeit setzen: einsatzbereit, außer Dienst oder Werkstatt.
 
@@ -338,6 +340,7 @@ def vehicle_status_change(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_POST
+@vehicle_must_be_active
 def vehicle_disinfection_create(request, slug: str):
     """Desinfektionsprotokoll erfassen und Sperrtimer starten."""
     station = request.membership.station
@@ -367,6 +370,7 @@ def vehicle_disinfection_create(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_POST
+@vehicle_must_be_active
 def vehicle_handover_create(request, slug: str):
     """Fahrzeugübernahme erfassen; jede Angabe ist aktiv gewählt."""
     station = request.membership.station
@@ -412,6 +416,7 @@ def vehicle_handover_create(request, slug: str):
 @membership_required(allowed_roles=CONTENT_ROLES)
 @station_module_required("fleet_enabled")
 @require_POST
+@vehicle_must_be_active
 def vehicle_defect_report(request, slug: str):
     """Fahrzeugmangel melden und Fahrzeug auf Werkstatt setzen."""
     station = request.membership.station
@@ -494,6 +499,7 @@ def export_fleet_csv(request):
         "Nächste UVV (DGUV 70)",
         "Tragentisch 10g",
         "Letzte Desinfektion",
+        "In Betrieb",
     ])
 
     for v in vehicles:
@@ -512,6 +518,7 @@ def export_fleet_csv(request):
             v.next_uvv_date.isoformat() if v.next_uvv_date else "",
             v.next_stretcher_service_date.isoformat() if v.next_stretcher_service_date else "",
             timezone.localtime(v.last_disinfection).strftime("%d.%m.%Y %H:%M") if v.last_disinfection else "",
+            "Ja" if v.is_active else "Nein",
         ])
 
     return response

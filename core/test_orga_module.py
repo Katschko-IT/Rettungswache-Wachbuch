@@ -46,6 +46,9 @@ class OrgaModuleTests(TestCase):
         )
 
     def test_dashboard_never_invents_sops_or_emergency_numbers(self):
+        # Versionen schützen ihre Dienstanweisung (PROTECT); QuerySet.delete
+        # umgeht den Zeilenschutz der Versionen, wie es nur Tests dürfen.
+        SOPRevision.objects.all().delete()
         SOPDocument.objects.all().delete()
         resp = self.client.get(reverse("orga_dashboard"))
         self.assertEqual(resp.status_code, 200)
@@ -177,3 +180,74 @@ class OrgaModuleTests(TestCase):
 
         resp = self.client.get(reverse("orga_dashboard"))
         self.assertEqual(resp.status_code, 404)
+
+
+class SopOutOfForceTests(TestCase):
+    """„Außer Kraft“ statt Löschen: Nachweise bleiben, neue Quittierungen gibt es nicht."""
+
+    def setUp(self):
+        self.station = Station.objects.create(name="RW Außer Kraft", slug="rw-ausser-kraft", orga_enabled=True)
+        self.lead = User.objects.create_user(username="ak-lead", password="testpassword123")
+        Membership.objects.create(user=self.lead, station=self.station, role=Membership.Role.SHIFT_LEAD)
+        self.member = User.objects.create_user(username="ak-member", password="testpassword123")
+        Membership.objects.create(user=self.member, station=self.station, role=Membership.Role.MEMBER)
+        self.sop = SOPDocument.objects.create(
+            station=self.station, slug="da-hyg-01", doc_number="DA-HYG-01", title="Händedesinfektion",
+            status=SOPDocument.Status.ACTIVE, requires_acknowledgment=True, created_by=self.lead,
+        )
+        SOPRevision.objects.create(sop=self.sop, version_label="1.0", content_markdown="Text", approved_by=self.lead)
+
+    def _edit(self, status):
+        return self.client.post(reverse("sop_edit", args=[self.sop.slug]), {
+            "doc_number": self.sop.doc_number, "title": self.sop.title, "category": self.sop.category,
+            "status": status, "valid_from": self.sop.valid_from.isoformat(),
+            "requires_acknowledgment": "on",
+        })
+
+    def test_archived_sop_cannot_be_acknowledged(self):
+        """NEGATIV: Eine außer Kraft gesetzte Dienstanweisung nimmt keine Quittierung an."""
+        SOPDocument.objects.filter(pk=self.sop.pk).update(status=SOPDocument.Status.ARCHIVED)
+        self.client.force_login(self.member)
+        detail = self.client.get(reverse("sop_detail", args=[self.sop.slug]))
+        self.assertContains(detail, "Diese Dienstanweisung ist außer Kraft.")
+        self.assertNotContains(detail, reverse("sop_acknowledge", args=[self.sop.slug]))
+        response = self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]), follow=True)
+        self.assertContains(response, "kann nicht mehr quittiert werden")
+        self.assertFalse(SOPReceipt.objects.filter(sop=self.sop).exists())
+
+    def test_status_change_is_audited_and_evidence_stays(self):
+        from core.models import AuditEvent
+
+        self.client.force_login(self.member)
+        self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]))
+        self.client.force_login(self.lead)
+        form = self.client.get(reverse("sop_edit", args=[self.sop.slug]))
+        self.assertContains(form, "Dienstanweisungen werden nicht gelöscht.")
+        response = self._edit(SOPDocument.Status.ARCHIVED)
+        self.assertEqual(response.status_code, 302)
+        event = AuditEvent.objects.get(action="orga.sop_status_changed")
+        self.assertEqual(event.metadata, {"fields": ["status"], "from": "active", "to": "archived"})
+        self.assertEqual(event.object_type, "SOPDocument")
+        self.assertEqual(SOPReceipt.objects.filter(sop=self.sop).count(), 1)
+        self.assertEqual(SOPRevision.objects.filter(sop=self.sop).count(), 1)
+        # Speichern ohne Statuswechsel schreibt keinen weiteren Eintrag.
+        self._edit(SOPDocument.Status.ARCHIVED)
+        self.assertEqual(AuditEvent.objects.filter(action="orga.sop_status_changed").count(), 1)
+
+    def test_member_cannot_change_status(self):
+        """NEGATIV: Mitglieder setzen keine Dienstanweisung außer Kraft."""
+        from core.models import AuditEvent
+
+        self.client.force_login(self.member)
+        self._edit(SOPDocument.Status.ARCHIVED)
+        self.sop.refresh_from_db()
+        self.assertEqual(self.sop.status, SOPDocument.Status.ACTIVE)
+        self.assertFalse(AuditEvent.objects.filter(action="orga.sop_status_changed").exists())
+
+    def test_sop_with_versions_cannot_be_deleted(self):
+        """NEGATIV: Versionen und Quittierungen schützen die Dienstanweisung."""
+        from django.db.models.deletion import ProtectedError
+
+        with self.assertRaises(ProtectedError):
+            self.sop.delete()
+        self.assertTrue(SOPDocument.objects.filter(pk=self.sop.pk).exists())
