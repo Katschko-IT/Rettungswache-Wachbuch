@@ -18,6 +18,7 @@
     {% if not demo_banner %}<a class="button secondary" href="{% url 'legal_settings' %}">{% translate "Impressum & Datenschutz" %}</a>{% endif %}
     <a class="button secondary" href="{% url 'signal_admin' %}">{% translate "Signal" %}</a>
     {% if can_read_feedback %}<a class="button secondary" href="{% url 'feedback_inbox' %}">{% translate "Rückmeldungen" %}</a>{% endif %}
+    <a class="button secondary" href="{% url 'paper_hub' %}">{% include "core/_icon.html" with name="print" %}{% translate "Papier-Rückfall" %}</a>
   </p>
   <p class="helptext">
     {% translate "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt." %}

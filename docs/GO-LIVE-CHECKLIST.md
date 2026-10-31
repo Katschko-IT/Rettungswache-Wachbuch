@@ -21,6 +21,9 @@ betriebliche Freigabe.
 - [ ] Rollen, Kalenderzweck und optionale Kassenregeln sind abgenommen
 - [ ] Hinweise zu externen Quellen sind fachlich geprüft
 - [ ] Aufbewahrungs- und Löschfristen sind je Datenart festgelegt
+- [ ] Papier-Rückfallebene ausgedruckt und an der Wache hinterlegt (Deckblatt,
+  Formulare je Fahrzeug und Gerätestandort, Telefonbuch); die Fristenliste wird
+  wöchentlich neu gedruckt (`/papier/`, siehe `docs/OFFLINE-BETRIEB.md` § 7)
 
 ## Datenschutz und Mitbestimmung
 

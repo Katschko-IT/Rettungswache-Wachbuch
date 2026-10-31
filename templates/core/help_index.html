@@ -40,6 +40,13 @@
   </ul>
 </section>
 
+{% if current_membership.role != 'auditor' and not terminal_open_mode %}
+<section aria-labelledby="help-paper-title" class="help-admin">
+  <h2 id="help-paper-title">{% translate "Papier-Rückfall" %}</h2>
+  <p><a href="{% url 'paper_hub' %}">{% translate "Formulare, Fristenliste und Telefonbuch zum Ausdrucken" %}</a></p>
+</section>
+{% endif %}
+
 {% if current_membership.role == 'admin' %}
 <section aria-labelledby="help-admin-title" class="help-admin">
   <h2 id="help-admin-title">{% translate "Administration" %}</h2>

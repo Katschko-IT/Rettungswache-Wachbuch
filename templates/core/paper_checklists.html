@@ -1,0 +1,43 @@
+{% extends "core/paper_base.html" %}
+{% load i18n %}
+{% block paper %}
+{% for checklist in checklists %}
+<section class="paper-sheet">
+  {% include "core/_paper_head.html" with sheet_title=checklist.title sheet_subtitle=checklist.description %}
+  <div class="paper-fields">
+    <div class="paper-field">{% translate "Datum" %}<span class="paper-line"></span></div>
+    <div class="paper-field">{% translate "Uhrzeit" %}<span class="paper-line"></span></div>
+    <div class="paper-field">{% translate "Fahrzeug oder Bereich" %}<span class="paper-line"></span></div>
+  </div>
+  {% if checklist.schedule %}<p>{% blocktranslate with interval=checklist.schedule.get_interval_display %}Rhythmus: {{ interval }}{% endblocktranslate %}</p>{% endif %}
+  <div class="paper-scroll">
+  <table class="paper-table paper-rows">
+    <thead>
+      <tr>
+        <th scope="col" class="paper-num">{% translate "Nr." %}</th>
+        <th scope="col">{% translate "Prüfpunkt" %}</th>
+        <th scope="col">{% translate "in Ordnung" %}</th>
+        <th scope="col">{% translate "nicht in Ordnung" %}</th>
+        <th scope="col">{% translate "Bemerkung" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in checklist.items.all %}
+        <tr class="paper-row">
+          <td class="paper-num">{{ forloop.counter }}</td>
+          <td>{{ item.text }}</td>
+          <td><span class="paper-box" aria-hidden="true"></span></td>
+          <td><span class="paper-box" aria-hidden="true"></span></td>
+          <td></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="paper-hint">{% translate "Bei „nicht in Ordnung“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft." %} {% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</p>
+  {% include "core/_paper_sign.html" %}
+</section>
+{% empty %}
+<p>{% translate "Es sind keine aktiven Checklisten hinterlegt." %}</p>
+{% endfor %}
+{% endblock %}
