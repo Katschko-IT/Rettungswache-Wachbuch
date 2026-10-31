@@ -69,6 +69,14 @@ Dieses Dokument ist keine Rechtsberatung.
 - lokaler HTTP-Zugriff nur über Loopback; sichere Cookies bei jedem TLS-Betrieb
 - persönliche lokale Konten, Login-Drosselung und keine gemeinsam genutzten Zugänge
 - optionales Profilbild nur als kleines JPEG in der Datenbank (kein allgemeiner Upload)
+- CSV-Stammdatenimport nur für Master-Admins: Datei höchstens 1 MB, nur im
+  Arbeitsspeicher gelesen und nie gespeichert (auch nicht in Sitzung oder
+  Backups; Zwischenpuffer des Proxys werden nach der Anfrage verworfen),
+  Trockenlauf in einer zurückgerollten Transaktion, Import in einer
+  Transaktion (alles oder nichts), signierte Vorschau (Wache, Person, Art,
+  SHA-256; 1 h); im Audit nur Anzahl und SHA-256; Werte mit `= + - @` am Anfang
+  werden abgelehnt; kein allgemeiner Upload
+  ([`STAMMDATEN-IMPORT.md`](STAMMDATEN-IMPORT.md))
 - Chat, Privat und Post werden clientseitig mit **AES-256-GCM** + ECDH P-256
   verschlüsselt gespeichert; Datenbank und Backups enthalten Ciphertext
 - der ausgelieferte Webclient und der Anwendungsserver bleiben bei der Web-PWA

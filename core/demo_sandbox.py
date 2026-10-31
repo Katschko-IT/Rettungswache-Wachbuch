@@ -73,6 +73,9 @@ BLOCKED_URL_NAMES = frozenset({
     "mobile_setup_qr",
     "terminal_pair",
     "terminal_pair_qr",
+    # Stammdatenimport: legt viele Zeilen auf einmal an (alle Methoden gesperrt,
+    # also auch die Spaltenbeschreibung je Art; Übersicht und Vorlagen bleiben).
+    "masterdata_import_run",
 })
 
 # Abmelden und Rollenwechsel bleiben auch nach dem Änderungslimit möglich.

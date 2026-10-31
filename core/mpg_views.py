@@ -254,6 +254,14 @@ def mpg_device_detail(request, slug: str):
     device_qr_url = request.build_absolute_uri(reverse("mpg_device_qr", args=[device.slug]))
     blocking_defects = release_blockers(device) if device.current_status == MedicalDevice.Status.OOB else []
     is_retired = is_device_retired(device)
+    # Altbestand aus dem CSV-Import: Kennzeichen je Prüfart, bis die erste
+    # bestandene Prüfung mit neuer Frist in Wachwerk eingetragen ist.
+    legacy_open = set()
+    if device.legacy_imported_at:
+        done = set(
+            device.maintenance_logs.filter(passed=True, next_due_date__isnull=False).values_list("kind", flat=True)
+        )
+        legacy_open = {kind for kind in ("stk", "mtk", "dguv") if kind not in done}
 
     return render(
         request,
@@ -273,6 +281,7 @@ def mpg_device_detail(request, slug: str):
             "training_form": training_form,
             "group_training_form": group_training_form,
             "device_qr_url": device_qr_url,
+            "legacy_open": legacy_open,
         },
     )
 
@@ -628,6 +637,12 @@ def mpg_export_bestandsverzeichnis(request):
         "Nächste DGUV V3",
         "Letzte Funktionskontrolle",
         "Außerbetriebnahme",
+        # Seit 0.27 (Stammdatenimport); angehängt, damit bisherige Spalten bleiben.
+        "Anlage 2 (MTK)",
+        "MTK-Intervall (M)",
+        "DGUV-Intervall (M)",
+        "Anschaffungsdatum",
+        "Aus Altbestand übernommen am",
     ])
 
     for d in devices:
@@ -652,6 +667,11 @@ def mpg_export_bestandsverzeichnis(request):
             timezone.localtime(d.last_routine_check).strftime("%d.%m.%Y %H:%M") if d.last_routine_check else "",
             # Altbestände ohne Datum: leer, Status zeigt „Außer Betrieb genommen“.
             d.decommissioned_at.isoformat() if d.decommissioned_at else "",
+            "Ja" if d.is_anlage_2 else "Nein",
+            d.mtk_interval_months or "",
+            d.dguv_interval_months,
+            d.acquired_at.isoformat() if d.acquired_at else "",
+            timezone.localtime(d.legacy_imported_at).strftime("%d.%m.%Y") if d.legacy_imported_at else "",
         ])
 
     return response

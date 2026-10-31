@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Stammdaten importieren" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <p class="context-line">{% translate "Master-Admin" %}</p>
+  <h1>{% translate "Stammdaten importieren" %}</h1>
+  <p class="lead">{% translate "Lagerorte, Artikel, Bestand und Medizingeräte aus einer Tabelle übernehmen. Erst prüfen, dann importieren. Vorhandenes wird nie überschrieben." %}</p>
+</header>
+
+<section class="section-block">
+  <h2>{% translate "So geht es" %}</h2>
+  <ol class="import-steps">
+    <li>
+      <strong>{% translate "Vorlage herunterladen und ausfüllen" %}</strong>
+      <span class="help-text">{% translate "In Excel: „Speichern unter“ → „CSV UTF-8 (durch Trennzeichen getrennt)“. PZN, GTIN und Inventarnummern am besten als Text formatieren." %}</span>
+    </li>
+    <li>
+      <strong>{% translate "Datei prüfen – nichts wird gespeichert" %}</strong>
+      <span class="help-text">{% translate "Die Vorschau zeigt jede Zeile als neu, vorhanden oder fehlerhaft." %}</span>
+    </li>
+    <li>
+      <strong>{% translate "Importieren – alle Zeilen oder keine" %}</strong>
+      <span class="help-text">{% translate "Enthält die Datei einen Fehler, wird nichts übernommen." %}</span>
+    </li>
+  </ol>
+  <p class="help-text">{% translate "Reihenfolge: zuerst Lagerorte, dann Artikel, dann Bestand, danach Medizingeräte. Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an." %}</p>
+</section>
+
+<section class="section-block">
+  <h2>{% translate "Was soll übernommen werden?" %}</h2>
+  {% if kinds %}
+    <div class="import-kind-grid">
+      {% for entry in kinds %}
+        <article class="import-kind-card">
+          <h3>{{ entry.kind.title }}</h3>
+          <p>{{ entry.kind.description }}</p>
+          <p class="help-text">{% blocktranslate with existing=entry.existing %}Vorhanden: {{ existing }}{% endblocktranslate %}</p>
+          <div class="form-actions">
+            <a class="button secondary" href="{% url 'masterdata_import_template' entry.kind.slug %}">
+              {% include "core/_icon.html" with name="download" %}{% translate "Vorlage herunterladen" %}
+            </a>
+            {% if not demo_banner %}
+              <a class="button primary" href="{% url 'masterdata_import_run' entry.kind.slug %}">{% translate "Datei prüfen" %}</a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">{% translate "Lager und Medizingeräte sind für diese Wache ausgeschaltet. Unter Wacheneinstellungen lassen sie sich einschalten." %}</p>
+  {% endif %}
+</section>
+
+<section class="section-block">
+  <h2>{% translate "Datenschutz und Grenzen" %}</h2>
+  <p>{% translate "Wachwerk speichert die Datei nicht. Sie wird nur im Arbeitsspeicher gelesen; Zwischenpuffer des Proxys werden nach der Anfrage verworfen. Im Audit-Log stehen nur Anzahl und Prüfsumme." %}</p>
+  <p class="help-text">{% blocktranslate with max_mb=max_mb %}Höchstens {{ max_mb }} MB und 2000 Zeilen je Datei. Status, Füllstände, Prüfprotokolle, Einweisungen und Notizen werden nie übernommen.{% endblocktranslate %}</p>
+</section>
+{% endblock %}

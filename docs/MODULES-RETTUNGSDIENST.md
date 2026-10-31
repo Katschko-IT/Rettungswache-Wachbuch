@@ -73,6 +73,11 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Direkte Buchung von Artikeln aus dem Zentrallager auf ein Zielfahrzeug per Scan der PZN, GTIN oder Lot-Nummer.
 - **BfArM-Rückruf-Filter**:
   - Sofortige Quarantäne und Sperrung betroffener Chargen im gesamten Bestand.
+- **Stammdaten-Import** (`/einstellungen/import/`, nur Master-Admin):
+  - Lagerorte, Artikel und Bestand aus CSV; nur Anlegen, nie Ändern
+    ([`STAMMDATEN-IMPORT.md`](STAMMDATEN-IMPORT.md)).
+  - Übernommener Bestand steht im Lagerjournal als Buchungsart
+    „Übernahme Altbestand“ (`legacy`).
 
 ### 🩺 MPG & Medizingeräte (`/mpg/`)
 - **Medizinproduktebuch (§ 13 MPBetreibV)**:
@@ -115,6 +120,19 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     Bestandsverzeichnis (CSV) hat die Spalte „Außerbetriebnahme“.
   - Ein gesperrtes oder außer Betrieb genommenes Gerät lässt sich unter „Geräte & Fahrzeuge“
     nicht freigeben (Web und API, HTTP 409); das geht nur im Medizinproduktebuch.
+- **Stammdaten-Import und Altbestand** (`/einstellungen/import/`, nur Master-Admin):
+  - Geräte aus dem bisherigen Bestandsverzeichnis per CSV; Risikoklasse und
+    Serien- oder Inventarnummer sind Pflicht. Gesperrte Geräte oder Geräte in
+    Wartung verhindern den Import, außer Betrieb genommene werden übersprungen;
+    der Status wird nie übernommen. Ein vorhandenes, außer Betrieb genommenes
+    Gerät bleibt es.
+  - Importierte Geräte tragen „Aus Altbestand übernommen am …“
+    (`legacy_imported_at`) und neben Nächste STK/MTK/DGUV V3 das Kennzeichen
+    „Altbestand“, bis eine bestandene Prüfung dieser Art eingetragen ist. Es
+    entstehen keine rückdatierten Prüfeinträge.
+  - Das Bestandsverzeichnis (CSV) hat zusätzlich die Spalten „Anlage 2 (MTK)“,
+    „MTK-Intervall (M)“, „DGUV-Intervall (M)“, „Anschaffungsdatum“ und
+    „Aus Altbestand übernommen am“ (am Ende angehängt).
 
 ### 🏢 Organisation & Desk (`/orga/`)
 - **QM-Dokumentenlenkung**:

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Vorschau" %} · {{ import_kind.title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-nav">
+  <a class="back-link" href="{% url 'masterdata_import_run' import_kind.slug %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Spaltenbeschreibung" %}</a>
+</nav>
+
+<header class="page-heading">
+  <p class="context-line">{% translate "Trockenlauf – noch nichts gespeichert" %}</p>
+  <h1>{% blocktranslate with title=import_kind.title %}Vorschau: {{ title }}{% endblocktranslate %}</h1>
+  {% if report.encoding %}
+    <p class="lead">{% blocktranslate with encoding=report.encoding_label delimiter=report.delimiter_label %}Erkannt: {{ encoding }}, Trennzeichen {{ delimiter }}.{% endblocktranslate %}
+      {% translate "Prüfsumme (SHA-256):" %} <code title="{{ report.digest }}">{{ report.digest|slice:":12" }}</code></p>
+  {% endif %}
+</header>
+
+{% if report.changed %}
+  <div class="alert warning" role="status"><p class="m-0">{% translate "Seit der Prüfung hat sich der Datenbestand geändert. Es wurde nichts importiert. Bitte die neue Vorschau prüfen und erneut bestätigen." %}</p></div>
+{% endif %}
+{% if report.file_errors %}
+  <div class="alert danger" role="alert">
+    <strong>{% translate "Die Datei lässt sich so nicht importieren." %}</strong>
+    <ul>{% for message in report.file_errors %}<li>{{ message }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+{% for hint in report.hints %}
+  <div class="alert warning" role="status"><p class="m-0">{{ hint }}</p></div>
+{% endfor %}
+
+{% if report.rows %}
+<div class="kpi-grid">
+  <div class="kpi-card"><span class="kpi-value">{{ counts.created }}</span><span class="kpi-label">{% translate "Neu" %}</span></div>
+  <div class="kpi-card"><span class="kpi-value">{{ counts.skipped }}</span><span class="kpi-label">{% translate "Übersprungen" %}</span></div>
+  <div class="kpi-card"><span class="kpi-value">{{ counts.warnings }}</span><span class="kpi-label">{% translate "Mit Hinweis" %}</span></div>
+  <div class="kpi-card{% if counts.errors %} border-danger{% endif %}"><span class="kpi-value">{{ counts.errors }}</span><span class="kpi-label">{% translate "Fehler" %}</span></div>
+</div>
+{% endif %}
+
+{% if report.ignored_headers %}
+  <section class="section-block">
+    <h2>{% translate "Nicht übernommene Spalten" %}</h2>
+    <ul>
+      {% for reason, headers in report.ignored_groups %}
+        <li>{% for header in headers %}<code>{{ header }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}: {{ reason }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+{% if report.rows_with_messages %}
+  <section class="section-block">
+    <h2>{% translate "Zeilen mit Fehlern oder Hinweisen" %}</h2>
+    {% include "core/_masterdata_import_rows.html" with rows=report.rows_with_messages %}
+  </section>
+{% endif %}
+
+{% if report.rows %}
+  <section class="section-block">
+    <details class="details-block">
+      <summary>{% blocktranslate with n=counts.rows %}Alle Zeilen anzeigen ({{ n }}){% endblocktranslate %}</summary>
+      {% include "core/_masterdata_import_rows.html" with rows=report.rows %}
+    </details>
+  </section>
+{% endif %}
+
+<section class="section-block">
+  {% if can_commit %}
+    <h2>{% translate "Importieren" %}</h2>
+    <p>{% translate "Alle Zeilen werden in einem Schritt übernommen. Vorhandenes bleibt unverändert." %}</p>
+    <form method="post" action="{% url 'masterdata_import_run' import_kind.slug %}" data-submit-once>
+      {% csrf_token %}
+      <input type="hidden" name="step" value="commit">
+      <input type="hidden" name="payload" value="{{ payload }}">
+      <input type="hidden" name="digest" value="{{ report.digest }}">
+      <input type="hidden" name="token" value="{{ token }}">
+      <div class="form-actions">
+        <button type="submit" class="button primary">{% blocktranslate with new=counts.created %}Jetzt importieren ({{ new }} neu){% endblocktranslate %}</button>
+        <a class="button secondary" href="{% url 'masterdata_import_run' import_kind.slug %}">{% translate "Andere Datei prüfen" %}</a>
+      </div>
+    </form>
+  {% elif report.has_errors %}
+    <h2>{% translate "Bitte die Datei korrigieren und erneut prüfen." %}</h2>
+    {% include "core/_masterdata_import_upload.html" %}
+  {% else %}
+    <h2>{% translate "Nichts Neues zu importieren" %}</h2>
+    <p>{% translate "Alle Zeilen sind bereits vorhanden oder werden übersprungen." %}</p>
+    {% include "core/_masterdata_import_upload.html" %}
+  {% endif %}
+</section>
+{% endblock %}

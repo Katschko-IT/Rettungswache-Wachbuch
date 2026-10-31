@@ -1,0 +1,12 @@
+{% load i18n %}
+<form method="post" enctype="multipart/form-data" action="{% url 'masterdata_import_run' import_kind.slug %}" class="form-card">
+  {% csrf_token %}
+  <input type="hidden" name="step" value="check">
+  <label for="import-file">{% translate "CSV-Datei" %}</label>
+  <input id="import-file" type="file" name="file" accept=".csv,text/csv" required>
+  {% for error in form.file.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+  <p class="help-text">{% blocktranslate with max_mb=max_mb %}Höchstens {{ max_mb }} MB. Die Datei wird nicht gespeichert.{% endblocktranslate %}</p>
+  <div class="form-actions">
+    <button type="submit" class="button primary">{% translate "Datei prüfen (Trockenlauf)" %}</button>
+  </div>
+</form>
