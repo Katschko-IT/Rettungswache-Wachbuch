@@ -107,7 +107,7 @@ class Migration(migrations.Migration):
                     ("ready", "Einsatzklar"),
                     ("limited", "Eingeschränkt"),
                     ("maintenance", "In Wartung / STK"),
-                    ("oob", "Außer Betrieb (Gesperrt)"),
+                    ("oob", "Gesperrt"),
                     ("decommissioned", "Außer Betrieb genommen"),
                 ],
                 default="ready",

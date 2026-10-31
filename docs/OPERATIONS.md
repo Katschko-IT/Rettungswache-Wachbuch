@@ -225,10 +225,15 @@ Admin gar kein Löschen an). Stattdessen:
 - Dienstanweisung: Status „Außer Kraft“; neue Quittierungen gibt es dann nicht.
 - Benutzerkonto: Mitgliedschaft beenden bzw. Konto deaktivieren.
 
-Löschen von Nachweisen bleibt nur mit den Rechten des Datenbank-Eigentümers
-möglich: Demo-Bereinigung (`purge_demo_sandboxes`, `load_demo_data --reset` im
-Dienst `migrate`) und künftige Aufbewahrungsfristen. Kinder zuerst löschen
-(z. B. Quittierungen vor Versionen, Ereignisse vor Mängeln).
+Für Prüfungen und Funktionskontrollen (wie für Audit, Kasse und Lager)
+verhindert zusätzlich die Datenbank das Ändern und Löschen (`REVOKE` für die
+Anwendungsrolle); löschen kann dort nur der Datenbank-Eigentümer, etwa bei der
+Demo-Bereinigung (`purge_demo_sandboxes`, `load_demo_data --reset` im Dienst
+`migrate`) und künftig bei Aufbewahrungsfristen. Für die übrigen Nachweise
+(Übernahmen, Desinfektionsprotokolle, Quittierungen, Dienstanweisungs-Versionen)
+schützen `PROTECT` und der Zeilenschutz im Code; das `REVOKE` dafür folgt nach
+dem Paket Fuhrpark/Desinfektion. Kinder zuerst löschen (z. B. Quittierungen vor
+Versionen, Ereignisse vor Mängeln).
 
 ### Tagesbackup
 

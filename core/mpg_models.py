@@ -43,7 +43,7 @@ class MedicalDevice(models.Model):
         READY = "ready", "Einsatzklar"
         LIMITED = "limited", "Eingeschränkt"
         MAINTENANCE = "maintenance", "In Wartung / STK"
-        OOB = "oob", "Außer Betrieb (Gesperrt)"
+        OOB = "oob", "Gesperrt"
         # Dauerhaft außer Betrieb genommen (core/evidence.py); Nachweise bleiben.
         DECOMMISSIONED = "decommissioned", "Außer Betrieb genommen"
 

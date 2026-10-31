@@ -226,7 +226,7 @@ def display_payload(station) -> dict:
                 if dev.current_status == MedicalDevice.Status.OOB:
                     mpg_alerts.append({
                         "name": dev.name[:45],
-                        "label": "Außer Betrieb (Gesperrt)",
+                        "label": "Gesperrt",
                         "level": "overdue",
                         "color": "rose",
                     })

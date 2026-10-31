@@ -76,7 +76,7 @@
       {% elif device.current_status == 'maintenance' %}
         <span class="status-label warning">{% translate "In Wartung / STK" %}</span>
       {% elif device.current_status == 'oob' %}
-        <span class="status-label danger">{% translate "Außer Betrieb (Gesperrt)" %}</span>
+        <span class="status-label danger">{% translate "Gesperrt" %}</span>
       {% elif device.current_status == 'decommissioned' %}
         <span class="status-label neutral">{% translate "Außer Betrieb genommen" %}</span>
       {% endif %}
@@ -365,7 +365,7 @@
   <div class="modal-panel">
     <h2 id="defect-modal-title">{% translate "Gerätemangel melden & Gerät sperren" %}</h2>
     <div class="alert danger">
-      {% translate "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist." %}
+      {% translate "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist." %}
     </div>
     <form method="post" action="{% url 'mpg_device_defect' device.slug %}">
       {% csrf_token %}

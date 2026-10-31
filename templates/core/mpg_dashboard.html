@@ -59,7 +59,7 @@
   <a href="?filter=all{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'all' %}aria-current="page"{% endif %}>{% translate "Alle Geräte" %}</a>
   <a href="?filter=urgent{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'urgent' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Akut fällig / Überfällig" %} <span class="count">{{ overdue_count|add:critical_count }}</span></a>
   <a href="?filter=warning{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'warning' %}aria-current="page"{% endif %}><span class="dot dot-warning" aria-hidden="true"></span>{% translate "Vorwarnung 31–60 Tage" %} <span class="count">{{ warning_count }}</span></a>
-  <a href="?filter=oob{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'oob' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Außer Betrieb" %} <span class="count">{{ oob_count }}</span></a>
+  <a href="?filter=oob{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'oob' %}aria-current="page"{% endif %}><span class="dot dot-danger" aria-hidden="true"></span>{% translate "Gesperrt" %} <span class="count">{{ oob_count }}</span></a>
   <a href="?filter=ok{% if category %}&category={{ category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" {% if filter_mode == 'ok' %}aria-current="page"{% endif %}><span class="dot dot-success" aria-hidden="true"></span>{% translate "Betriebsbereit" %} <span class="count">{{ ok_count }}</span></a>
 </nav>
 
@@ -150,7 +150,7 @@
           {% elif device.current_status == 'maintenance' %}
             <span class="status-label warning">{% translate "In Wartung" %}</span>
           {% elif device.current_status == 'oob' %}
-            <span class="status-label danger">{% translate "Außer Betrieb" %}</span>
+            <span class="status-label danger">{% translate "Gesperrt" %}</span>
           {% endif %}
 
           {# Schnellkontrolle: nur für einsatzklare Geräte und nach ausdrücklicher Bestätigung #}

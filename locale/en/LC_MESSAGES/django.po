@@ -1346,15 +1346,6 @@ msgstr "Motorways and federal roads"
 msgid "Automatischer Bestellschein"
 msgstr "Automatic order form"
 
-#: templates/core/mpg_dashboard.html:62
-#: templates/core/mpg_dashboard.html:153
-msgid "Außer Betrieb"
-msgstr "Out of service"
-
-#: templates/core/mpg_device_detail.html:79
-msgid "Außer Betrieb (Gesperrt)"
-msgstr "Out of service (locked)"
-
 #: templates/core/fleet_dashboard.html:25
 #: templates/core/mpg_dashboard.html:28
 #: templates/core/mpg_device_detail.html:81
@@ -4140,8 +4131,8 @@ msgid "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
 msgstr "Creates a personal QR code that is valid for 2 minutes."
 
 #: templates/core/mpg_device_detail.html:368
-msgid "Erzeugt sofort einen Mangel im Wachbuch und setzt dieses Gerät auf 'Außer Betrieb'. Freigegeben wird es erst, wenn der Mangel erledigt ist."
-msgstr "Immediately creates a defect in the logbook and sets this device to 'Out of service'. It can only be released once the defect is resolved."
+msgid "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
+msgstr "Immediately creates a defect in the log and locks this device. It is released only once the defect is closed."
 
 #: templates/core/coffee_book.html:20
 msgid "Es ist noch kein Monatsbeitrag festgelegt."
@@ -5119,6 +5110,9 @@ msgid "Gespeicherter Schlüsselumschlag ist beschädigt."
 msgstr "Saved key envelope is corrupted."
 
 #: templates/core/_display_surface.html:87
+#: templates/core/mpg_dashboard.html:62
+#: templates/core/mpg_dashboard.html:153
+#: templates/core/mpg_device_detail.html:79
 msgid "Gesperrt"
 msgstr "Closed"
 
