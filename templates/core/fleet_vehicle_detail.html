@@ -339,7 +339,7 @@
           <span class="row-content">
             <strong>{{ d.started_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
             {% if d.show_details %}
-              <small>{% if d.level %}{{ d.level.name }}{% else %}{% translate "Desinfektion" %}{% endif %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %} &middot; {% if d.lock_timer_applied %}{% blocktranslate with minutes=d.exposure_minutes %}Einwirkzeit {{ minutes }} Min.{% endblocktranslate %}{% else %}{% translate "ohne Sperre" %}{% endif %}</small>
+              <small>{% if d.level %}{{ d.level.name }}{% else %}{% translate "Desinfektion" %}{% endif %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %} &middot; {% blocktranslate with minutes=d.exposure_minutes %}Einwirkzeit {{ minutes }} Min.{% endblocktranslate %}{% if not d.lock_timer_applied %} &middot; {% translate "ohne Sperre" %}{% endif %}</small>
               {% if d.notes %}<span class="row-note">{{ d.notes }}</span>{% endif %}
             {% else %}
               <small>{% translate "Desinfektion" %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %}</small>

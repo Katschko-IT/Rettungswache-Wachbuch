@@ -12,7 +12,7 @@ Lesebestätigungen, alte Bemerkungen), erledigt der Befehl
   Freigaberegel, mit Bestätigung). Jede bestehende Wache erhält fünf Stufen,
   benannt nach Umfang bzw. Wirkbereich statt nach Erreger, unbestätigt und
   „Nach Einwirkzeit“ – das bisherige Verhalten bleibt also unverändert. Mittel
-  und Minuten kommen vom ersten Mittel der Wache (sonst leer).
+  und Minuten kommen vom ersten Mittel der Wache in Gebrauch (sonst leer).
 - Protokolle: Jede frühere Art bekommt ihre eigene Stufe (keine
   Zusammenlegung, kein Datenverlust): routine → Routine-Wischdesinfektion,
   mrsa → Schlussdesinfektion (begrenzt viruzid/bakterizid), noro →
@@ -20,7 +20,7 @@ Lesebestätigungen, alte Bemerkungen), erledigt der Befehl
   base → Grunddesinfektion; Unbekanntes → Routine. Danach entfällt die Spalte
   ``kind``.
 
-Rückweg (``migrate core 0067``): Die Spalte ``kind`` entsteht neu und wird über
+Rückweg (``migrate core 0068``): Die Spalte ``kind`` entsteht neu und wird über
 die Standardnamen der Stufen zurückgefüllt; umbenannte oder neue Stufen werden
 zu ``routine``. Fahrzeuge: ``ready``/``limited`` → „1“, ``out_of_service`` →
 „6“. Der vorgesehene Rückweg eines Updates bleibt das Backup vor dem Update
@@ -67,7 +67,7 @@ def forwards(apps, schema_editor):
         Vehicle.objects.filter(tactical_status=old).update(tactical_status=new)
 
     for station in Station.objects.only("pk").order_by("pk"):
-        agent = Agent.objects.filter(station=station).order_by("name", "pk").first()
+        agent = Agent.objects.filter(station=station, is_active=True).order_by("name", "pk").first()
         minutes = (agent.default_exposure_minutes or None) if agent else None
         levels = {}
         for kind, name in KIND_LEVELS:
@@ -96,7 +96,7 @@ def backwards(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0067_fleet_neutral_status"),
+        ("core", "0068_evidence_protection"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -215,5 +215,21 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="disinfectionprotocol",
             name="kind",
+        ),
+        # Nur die Bezeichnung: Übergabe-Kategorie „Fahrzeugzustand“ statt
+        # „Fahrzeugstatus“ (Glossar); der gespeicherte Wert bleibt ``vehicle``.
+        migrations.AlterField(
+            model_name="handoverentry",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("station", "Wache"),
+                    ("vehicle", "Fahrzeugzustand"),
+                    ("material", "Material"),
+                    ("task", "Offene Aufgabe"),
+                    ("safety", "Sicherheit/Mangel"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

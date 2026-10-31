@@ -222,6 +222,8 @@ Admin gar kein Löschen an). Stattdessen:
   `/mpg/ausser-betrieb/`.
 - Desinfektionsmittel: im Admin „In Gebrauch“ abwählen (mindestens ein Mittel
   der Wache bleibt in Gebrauch).
+- Stufe des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer
+  Stufe; eine Stufe wird nicht gelöscht, sondern „In Verwendung“ abgewählt.
 - Dienstanweisung: Status „Außer Kraft“; neue Quittierungen gibt es dann nicht.
 - Benutzerkonto: Mitgliedschaft beenden bzw. Konto deaktivieren.
 

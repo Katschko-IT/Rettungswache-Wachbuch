@@ -363,12 +363,12 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
         # Abends bleibt das Briefing von 19 Uhr unter „Heute“ stehen
         # (Sperrbildschirm, Wand-Display); das nächste folgt morgen früh.
         earlier = [(lead, briefing, 15, "Schichtwechsel-Briefing",
-                    "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugstatus, Besonderheiten.")]
+                    "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugzustand, Besonderheiten.")]
         briefing = local_time(today + timedelta(days=1), 7)
     workdays = next_workdays(station, today + timedelta(days=1), 8)
     events = earlier + [
         (lead, briefing, 15, "Schichtwechsel-Briefing",
-         "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugstatus, Besonderheiten."),
+         "Kurz im Aufenthaltsraum: offene Übergaben, Fahrzeugzustand, Besonderheiten."),
         (lead, local_time(workdays[0], 8), 60, "RTW 83-3 in die Werkstatt (Blaulicht)",
          "Fahrzeug um 8 Uhr zur Kfz-Werkstatt Rettungsdienst bringen, Ersatzschlüssel liegt in der Schlüsselbox."),
         (admin, local_time(workdays[1], 13, 30), 60, "Dienstbesprechung",
@@ -534,7 +534,7 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
     create_article(station=station, user=lead, title=label("Fahrzeugwäsche"), body=(
         "Die Waschhalle ist werktags von 7 bis 20 Uhr frei. Waschkarte liegt in der Schlüsselbox.\n\n"
         "- Patientenraum nie mit dem Hochdruckreiniger.\n"
-        "- Nach der Wäsche Status und Tankstand im Fuhrpark eintragen."
+        "- Nach der Wäsche Fahrzeugzustand und Tankstand im Fuhrpark eintragen."
     ))
 
     # --- Mängel mit Frist und Verlauf -------------------------------------

@@ -6,7 +6,8 @@ seinem Objekt. Ein Objekt mit Nachweisen wird deshalb nicht gelöscht, sondern
 
 - außer Betrieb genommen (Fahrzeug, Medizingerät; wieder in Betrieb nehmen
   ist möglich),
-- aus dem Gebrauch genommen (Desinfektionsmittel, Django-Admin) oder
+- aus dem Gebrauch genommen (Desinfektionsmittel, Django-Admin; Stufe des
+  Desinfektionsplans über „In Verwendung“) oder
 - außer Kraft gesetzt (Dienstanweisung).
 
 Die Nachweise bleiben sichtbar. Außer Betrieb genommene Objekte nehmen keine
@@ -70,6 +71,10 @@ EVIDENCE_MODELS = (
 # Nachweisähnliche Namen ohne Nachweischarakter, jeweils mit Grund.
 NOT_EVIDENCE = {
     "core.CalendarEvent": "Termin der Wache, kein Nachweis",
+    "core.DisinfectionLevel": (
+        "Stufe des Desinfektionsplans, kein Nachweis; Protokolle hängen per PROTECT daran, "
+        "deshalb „In Verwendung“ abwählen statt löschen"
+    ),
     "core.ErrorEvent": "technisches Fehlerereignis, löscht purge_error_events nach Frist",
     "core.NewsAcknowledgement": "Lesestatus einer Neuigkeit, kein Nachweis (Lesepflicht folgt mit 0.28)",
     "core.QrTotpUse": "Schutz gegen die Wiederverwendung eines Anmeldecodes",
@@ -164,17 +169,15 @@ def reactivate_vehicle(vehicle, *, actor) -> bool:
         if vehicle.is_active:
             return False
         previous = vehicle.tactical_status
-        if previous in Vehicle.LEGACY_STATUSES:
-            previous = Vehicle.TacticalStatus.STATUS_1
         vehicle.is_active = True
-        vehicle.tactical_status = Vehicle.TacticalStatus.STATUS_6
+        vehicle.tactical_status = Vehicle.TacticalStatus.OUT_OF_SERVICE
         vehicle.status_note = ""
         vehicle.save(update_fields=["is_active", "tactical_status", "status_note", "updated_at"])
         audit(actor, vehicle.station, "fleet.vehicle_reactivated", vehicle, {
             "fields": ["is_active", "tactical_status"],
             "changes": {
                 "is_active": {"from": False, "to": True},
-                "tactical_status": {"from": previous, "to": Vehicle.TacticalStatus.STATUS_6},
+                "tactical_status": {"from": previous, "to": Vehicle.TacticalStatus.OUT_OF_SERVICE},
             },
         })
     return True

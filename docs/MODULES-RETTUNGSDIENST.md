@@ -51,12 +51,14 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Außer Betrieb nehmen statt löschen** (seit 0.27, `core/evidence.py`):
   - Schichtleitung und Admin nehmen ein Fahrzeug auf der Fahrzeugseite außer Betrieb. Es
     verschwindet aus Übersicht, Display und Sperrbildschirm und nimmt keine Übernahme,
-    Desinfektion, Statusänderung oder Mangelmeldung mehr an; Übernahmen und Desinfektionen
+    Desinfektion, Zustandsänderung oder Mangelmeldung mehr an; Übernahmen und Desinfektionen
     bleiben sichtbar. „Wieder in Betrieb nehmen“ setzt es auf „Außer Dienst“, bis die
     Besatzung es einsatzbereit meldet. Liste: `/fuhrpark/ausser-betrieb/`; Audit
     `fleet.vehicle_retired` / `fleet.vehicle_reactivated`; CSV-Spalte „In Betrieb“.
   - Desinfektionsmittel werden im Django-Admin über „In Gebrauch“ aus dem Protokoll
     genommen, nicht gelöscht. Mindestens ein Mittel der Wache bleibt in Gebrauch.
+    Ebenso Stufen des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer
+    Stufe, die deshalb „In Verwendung“ abgewählt statt gelöscht wird.
 
 ### 📦 Lager & Material (`/lager/`)
 - **FEFO-Prinzip (First-Expired-First-Out)**: Chargen mit dem kürzesten Verfallsdatum werden automatisch priorisiert vorgeschlagen.

@@ -70,6 +70,20 @@ class DisinfectionVisibilityTests(TestCase):
 
     def test_performer_sees_level_minutes_and_note(self):
         self.assert_details("performer")
+        # Ohne Sperre bleibt die Einwirkzeit Teil des Nachweises: Die
+        # Berechtigten sehen sie weiterhin, dazu „ohne Sperre“.
+        DisinfectionProtocol.objects.create(
+            station=self.station, vehicle=self.vehicle, performed_by=self.users["performer"],
+            disinfectant=self.agent, level=self.level, exposure_minutes=20, lock_timer_applied=False,
+        )
+        for key in ("performer", "lead", "admin"):
+            with self.subTest(role=key):
+                self.assertIn("Einwirkzeit 20 Min. &middot; ohne Sperre", self.history(key))
+        for key in ("member", "cashier"):
+            with self.subTest(role=key):
+                history = self.history(key)
+                self.assertNotIn("20 Min.", history)
+                self.assertNotIn("ohne Sperre", history)
 
     def test_shift_lead_and_admin_see_level(self):
         self.assert_details("lead")

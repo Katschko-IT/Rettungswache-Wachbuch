@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.display import display_payload
-from core.fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from core.fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from core.models import ApiToken, AuditEvent, Membership, Station
 from core.mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
 from core.notification_models import UserNotification
@@ -318,6 +318,8 @@ class VehicleRetireTests(RetireFixture):
     def setUp(self):
         super().setUp()
         self.agent = DisinfectantMaster.objects.create(station=self.station, name="Wischtücher")
+        self.level = DisinfectionLevel.objects.create(station=self.station, name="Routine-Wischdesinfektion",
+                                                      disinfectant=self.agent)
         self.vehicle = Vehicle.objects.create(station=self.station, slug="rtw-1", call_sign="RTW 1/83-1",
                                               license_plate="MU-RD 1")
         self.twin = Vehicle.objects.create(station=self.other_station, slug="rtw-1", call_sign="RTW Nachbar",
@@ -412,7 +414,7 @@ class VehicleRetireTests(RetireFixture):
         posts = [
             ("fleet_vehicle_handover_create", {"mileage": 45100, "fuel_percent": "75", "adblue_percent": "50",
                                                "o2_pressure_bar": 190, **CHECKS_YES, "notes": ""}),
-            ("fleet_vehicle_disinfection_create", {"disinfectant": self.agent.pk, "kind": "routine",
+            ("fleet_vehicle_disinfection_create", {"disinfectant": self.agent.pk, "level": self.level.pk,
                                                    "exposure_minutes": 15, "lock_timer_applied": "on"}),
             ("fleet_vehicle_status_change", {"status": "workshop"}),
             ("fleet_vehicle_defect_report", {"title": "Blaulicht", "priority": "urgent"}),
@@ -422,7 +424,7 @@ class VehicleRetireTests(RetireFixture):
                 response = self.client.post(reverse(name, args=["rtw-1"]), data, follow=True)
                 self.assertContains(response, "Dieses Fahrzeug ist außer Betrieb genommen.")
         self.vehicle.refresh_from_db()
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_1)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.READY)
         self.assertEqual(self.vehicle.current_mileage, 45000)
         self.assertEqual(self.counts(*self.evidence), before)
         self.assertEqual(AuditEvent.objects.count(), audits)
@@ -434,10 +436,10 @@ class VehicleRetireTests(RetireFixture):
         self.assertRedirects(response, reverse("fleet_vehicle_detail", args=["rtw-1"]))
         self.vehicle.refresh_from_db()
         self.assertTrue(self.vehicle.is_active)
-        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.STATUS_6)
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.OUT_OF_SERVICE)
         self.assertEqual(self.vehicle.status_note, "")
         event = AuditEvent.objects.get(action="fleet.vehicle_reactivated")
-        self.assertEqual(event.metadata["changes"]["tactical_status"], {"from": "1", "to": "6"})
+        self.assertEqual(event.metadata["changes"]["tactical_status"], {"from": "ready", "to": "out_of_service"})
         self.assertIn(self.vehicle, self.client.get(reverse("fleet_dashboard")).context["vehicles"])
 
     def test_disinfectant_not_in_use_is_not_offered_and_rejected(self):
@@ -449,10 +451,14 @@ class VehicleRetireTests(RetireFixture):
         offered = list(detail.context["disinfection_form"].fields["disinfectant"].queryset)
         self.assertEqual([agent.name for agent in offered], ["Sprühdesinfektion"])
         before = DisinfectionProtocol.objects.count()
-        self.client.post(reverse("fleet_vehicle_disinfection_create", args=["rtw-1"]), {
-            "disinfectant": self.agent.pk, "kind": "routine", "exposure_minutes": 15, "lock_timer_applied": "on",
+        response = self.client.post(reverse("fleet_vehicle_disinfection_create", args=["rtw-1"]), {
+            "disinfectant": self.agent.pk, "level": self.level.pk, "exposure_minutes": 15, "lock_timer_applied": "on",
         })
         self.assertEqual(DisinfectionProtocol.objects.count(), before)
+        # Abgewiesen wegen des Mittels, nicht wegen der Stufe.
+        errors = response.context["disinfection_form"].errors
+        self.assertIn("disinfectant", errors)
+        self.assertNotIn("level", errors)
         # Das alte Protokoll behält sein Mittel.
         self.assertTrue(DisinfectionProtocol.objects.filter(disinfectant=self.agent).exists())
 
