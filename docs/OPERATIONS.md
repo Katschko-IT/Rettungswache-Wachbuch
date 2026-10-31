@@ -222,6 +222,8 @@ Admin gar kein Löschen an). Stattdessen:
   `/mpg/ausser-betrieb/`.
 - Desinfektionsmittel: im Admin „In Gebrauch“ abwählen (mindestens ein Mittel
   der Wache bleibt in Gebrauch).
+- Stufe des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer
+  Stufe; eine Stufe wird nicht gelöscht, sondern „In Verwendung“ abgewählt.
 - Dienstanweisung: Status „Außer Kraft“; neue Quittierungen gibt es dann nicht.
 - Benutzerkonto: Mitgliedschaft beenden bzw. Konto deaktivieren.
 
@@ -361,6 +363,57 @@ wieder.
   `docker compose exec -T housekeeping python manage.py housekeeping`.
 - Audit-Purge (`RETENTION_AUDIT_DAYS`) ist bewusst nicht dabei: Er braucht
   Owner-Rechte und eine Freigabe, dann von Hand mit `apply_retention`.
+
+## Einmalige Bereinigung der Altdaten (0.27)
+
+Vom Betreiber am 30.10.2026 entschieden (Roadmap, offene Entscheidung 1): die
+einzige Ausnahme von append-only. Ältere Versionen haben Daten gespeichert, die
+nicht ins Wachbuch gehören. Der Befehl `cleanup_legacy_data` entfernt sie
+einmalig und protokolliert das im Audit-Log.
+
+Was bereinigt wird:
+
+1. Audit-Einträge „Fahrzeugzustand geändert“ mit früheren Einsatzphasen
+   (Status 2, 3, 4): Diese Werte werden zu „1“ (Einsatzbereit). Sind danach
+   alter und neuer Wert gleich, hielt der Eintrag nur einen Wechsel der
+   Einsatzphase fest und wird gelöscht. Die Codes „1“ und „6“ bleiben als
+   Speicherwerte stehen; das Audit-Log zeigt sie als „Einsatzbereit“ und
+   „Außer Dienst“.
+2. Lesebestätigungen von Dienstanweisungen: IP-Adresse und Browser werden
+   geleert (seit 0.26.1 nicht mehr erfasst).
+3. Bemerkungen von Desinfektionsprotokollen, die vor dem Einspielen von
+   Migration 0067 (0.26.1) begonnen wurden: Das Feld hieß bis dahin
+   „Bemerkungen / Transportgrund“; die Bemerkungen werden geleert.
+
+Nicht dieser Befehl, sondern Migration 0069 stellt den Fahrzeugzustand der
+Fahrzeuge und die früheren Desinfektionsarten um (verlustfrei, je Art eine
+Stufe); das läuft mit jedem Update automatisch.
+
+Ablauf (mit Eigentümerrechten der Datenbank, wie der Dienst `migrate`):
+
+```bash
+# 1. Trockenlauf: zählt je Wache, ändert nichts
+docker compose run --rm migrate python manage.py cleanup_legacy_data
+
+# 2. Ausführen; BENUTZERNAME ist ein Superuser oder Master-Admin
+docker compose run --rm migrate python manage.py cleanup_legacy_data --apply --user BENUTZERNAME
+```
+
+- Die App-Rolle darf Audit-Einträge weder ändern noch löschen (REVOKE). Mit
+  `docker compose exec web …` bricht der Befehl deshalb vor jeder Änderung ab
+  und nennt den richtigen Aufruf.
+- Ein Superuser bereinigt alle Wachen, ein Master-Admin nur die Wachen, in
+  denen er Admin ist; die übrigen erscheinen als „übersprungen“. Mit
+  `--station KÜRZEL` nur eine Wache. Demo-Wachen je Besuch bleiben außen vor.
+- Alles läuft in einer Transaktion. Je Wache entsteht ein Audit-Eintrag
+  „Altdaten einmalig bereinigt“ mit der Zahl je Schritt, der ausführenden
+  Person und der Zeit. Ein zweiter Lauf ändert nichts und schreibt keinen
+  weiteren Eintrag.
+- **Backups behalten den alten Stand bis zu ihrem Ablauf:** der lokale Ring
+  (`BACKUP_RETENTION_DAYS`), die Kopien unter `./backups/` aus `wachbuch
+  update` und Offsite-Kopien. Wer ein älteres Backup zurückspielt, führt den
+  Befehl danach erneut aus; die Umstellung aus Migration 0069 läuft beim
+  Zurückspielen über `migrate` von selbst wieder.
 
 ## Datenbank-Passwortrotation
 

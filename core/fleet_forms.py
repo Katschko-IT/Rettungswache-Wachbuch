@@ -7,7 +7,8 @@ from django.utils.formats import number_format
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from .disinfection_plan import active_disinfectants, active_levels
+from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 
 
 class VehicleForm(forms.ModelForm):
@@ -51,8 +52,8 @@ class VehicleForm(forms.ModelForm):
             # könnte beides sonst umgehen.
             del self.fields["tactical_status"]
             return
-        # Nur Verfügbarkeitszustände; Einsatzphasen (frühere Status 2/3/4) gibt
-        # es nicht, „Desinfektion“ setzt nur das Protokoll.
+        # Einsatzbereit, Eingeschränkt, Werkstatt, Außer Dienst. Einsatzphasen
+        # gibt es nicht, „Desinfektion“ setzt nur das Protokoll.
         self.fields["tactical_status"].choices = [
             (value, label) for value, label in Vehicle.TacticalStatus.choices
             if value in Vehicle.SELECTABLE_STATUSES
@@ -75,11 +76,17 @@ class VehicleForm(forms.ModelForm):
 
 
 class DisinfectionProtocolForm(forms.ModelForm):
+    """Desinfektion erfassen: Stufe aus dem Plan der Wache, ohne Vorauswahl.
+
+    Bis der Desinfektionsplan bestätigt ist, bleiben Mittel, Einwirkzeit und
+    Sperre wie bisher im Formular.
+    """
+
     class Meta:
         model = DisinfectionProtocol
         fields = [
+            "level",
             "disinfectant",
-            "kind",
             "exposure_minutes",
             "lock_timer_applied",
             "notes",
@@ -92,15 +99,25 @@ class DisinfectionProtocolForm(forms.ModelForm):
 
     def __init__(self, *args, station=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if station:
-            # Nur Mittel in Gebrauch; alte Protokolle behalten ihr Mittel (PROTECT).
-            choices = DisinfectantMaster.objects.filter(station=station, is_active=True).order_by("name")
-            self.fields["disinfectant"].queryset = choices
-            # Gibt es nur ein Mittel, ist es vorausgewählt (ein Tipp weniger).
-            if not self.is_bound and choices.count() == 1:
-                only = choices.first()
-                self.initial.setdefault("disinfectant", only.pk)
-                self.initial.setdefault("exposure_minutes", only.default_exposure_minutes)
+        level = self.fields["level"]
+        level.required = True
+        level.empty_label = _("Bitte Stufe wählen")
+        level.error_messages["required"] = _("Bitte eine Stufe wählen.")
+        if station is None:
+            # Ohne Wache keine Auswahl (jede Abfrage ist an eine Wache gebunden).
+            level.queryset = DisinfectionLevel.objects.none()
+            self.fields["disinfectant"].queryset = DisinfectantMaster.objects.none()
+            return
+        level.queryset = active_levels(station)
+        # Nur Mittel in Gebrauch; alte Protokolle behalten ihr Mittel (PROTECT).
+        choices = active_disinfectants(station)
+        self.fields["disinfectant"].queryset = choices
+        # Gibt es nur ein Mittel, ist es vorausgewählt (ein Tipp weniger). Die
+        # Stufe bleibt immer ohne Vorauswahl.
+        if not self.is_bound and choices.count() == 1:
+            only = choices.first()
+            self.initial.setdefault("disinfectant", only.pk)
+            self.initial.setdefault("exposure_minutes", only.default_exposure_minutes)
 
 
 YES_NO_CHOICES = [("yes", _("Ja")), ("no", _("Nein"))]

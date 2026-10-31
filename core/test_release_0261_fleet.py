@@ -22,10 +22,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.api.views import hash_api_token
+from core.disinfection_plan import ensure_default_levels
 from core.display import display_payload
 from core.fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
 from core.fleet_models import (
     DisinfectantMaster,
+    DisinfectionLevel,
     DisinfectionProtocol,
     Vehicle,
     VehicleHandover,
@@ -33,7 +35,14 @@ from core.fleet_models import (
 from core.models import ApiToken, AuditEvent, Membership, Station
 from core.terminal_views import _lock_screen_data
 
-PATHOGENS = ("MRSA", "VRE", "MRGN", "Noro", "Rotavirus", "difficile", "Schlussdesinfektion")
+# Erreger und – seit 0.27 – die Namen der Standardstufen: Beides darf nur im
+# Protokollformular und in der Protokoll-Historie berechtigter Personen stehen.
+PATHOGENS = (
+    "MRSA", "VRE", "MRGN", "Noro", "Rotavirus", "difficile",
+    "Schlussdesinfektion", "Routine-Wischdesinfektion", "Grunddesinfektion",
+)
+# Frühere Art „MRSA“ heißt seit 0.27 so (Wirkbereich statt Erreger).
+FINAL_LEVEL = "Schlussdesinfektion (begrenzt viruzid/bakterizid)"
 CHECKS_YES = {"btm_seal_intact": "yes", "medical_devices_checked": "yes", "vehicle_clean": "yes"}
 
 
@@ -50,10 +59,12 @@ class FleetFixture(TestCase):
         self.disinfectant = DisinfectantMaster.objects.create(
             station=self.station, name="Wischdesinfektion", default_exposure_minutes=15,
         )
+        ensure_default_levels(self.station)
 
-    def disinfect(self, kind=DisinfectionProtocol.Kind.FINAL_MRSA):
+    def disinfect(self, level=None):
+        level = level or DisinfectionLevel.objects.get(station=self.station, name=FINAL_LEVEL)
         return self.client.post(reverse("fleet_vehicle_disinfection_create", args=[self.vehicle.slug]), {
-            "disinfectant": self.disinfectant.pk, "kind": kind, "exposure_minutes": 30,
+            "level": level.pk, "disinfectant": self.disinfectant.pk, "exposure_minutes": 30,
             "lock_timer_applied": "on", "notes": "",
         })
 
@@ -63,15 +74,18 @@ class FleetFixture(TestCase):
 
 
 class DisinfectionStaysNeutralTests(FleetFixture):
-    def test_status_note_is_neutral_for_every_kind(self):
-        for kind in DisinfectionProtocol.Kind.values:
-            with self.subTest(kind=kind):
-                self.disinfect(kind)
+    def test_status_note_is_neutral_for_every_level(self):
+        levels = list(DisinfectionLevel.objects.filter(station=self.station))
+        self.assertEqual(len(levels), 5)
+        for level in levels:
+            with self.subTest(level=level.name):
+                self.disinfect(level)
                 self.vehicle.refresh_from_db()
                 until = timezone.localtime(self.vehicle.disinfection_locked_until).strftime("%H:%M")
                 self.assertEqual(self.vehicle.status_note, f"Desinfektion bis {until} Uhr")
                 self.assert_no_pathogen(self.vehicle.status_note)
-                self.assertNotIn(DisinfectionProtocol(kind=kind).get_kind_display(), self.vehicle.status_note)
+                self.assertNotIn(level.name, self.vehicle.status_note)
+        self.assertEqual(DisinfectionProtocol.objects.filter(level__isnull=False).count(), 5)
 
     def test_outputs_outside_the_protocol_show_only_neutral_state(self):
         self.disinfect()
@@ -102,6 +116,7 @@ class DisinfectionStaysNeutralTests(FleetFixture):
         self.assertIn(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]) + "#fleet-disinfection-history",
                       section)
         self.assertNotIn("Art der Desinfektion", section)
+        self.assertNotIn("Einwirkzeit", section)
         self.assert_no_pathogen(html)
 
     def test_note_is_stored_in_station_language(self):
@@ -112,15 +127,17 @@ class DisinfectionStaysNeutralTests(FleetFixture):
         self.vehicle.refresh_from_db()
         self.assertTrue(self.vehicle.status_note.startswith("Desinfektion bis "), self.vehicle.status_note)
 
-    def test_vehicle_page_shows_kind_only_in_protocol_history(self):
+    def test_vehicle_page_shows_level_only_in_protocol_history(self):
         self.disinfect()
         page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug])).content.decode()
         rest, history = page.split("Desinfektionsbuch-Historie", 1)
-        # Protokollformular (Auswahl der Art) und Protokoll-Historie dürfen die Art nennen.
+        # Protokollformular (Auswahl der Stufe) und Protokoll-Historie dürfen die Stufe nennen.
         before, protocol_form = rest.split('id="fleet-disinfection"', 1)
         after_form = protocol_form.split('id="fleet-defect"', 1)[1]
         self.assert_no_pathogen(before + after_form)
-        self.assertIn("MRSA", history)  # Das Protokoll selbst bleibt vollständig.
+        # Das Protokoll selbst bleibt vollständig (hier: Schichtleitung).
+        self.assertIn(FINAL_LEVEL, history)
+        self.assertNotIn("MRSA", history)
 
 
 class NeutralStatusMigrationTests(FleetFixture):
@@ -184,14 +201,16 @@ class DisinfectionNoteLabelTests(FleetFixture):
 class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
     def test_forms_offer_only_neutral_states(self):
         form = VehicleForm(station=self.station)
-        self.assertEqual([value for value, _ in form.fields["tactical_status"].choices], ["1", "6", "workshop"])
-        for value, label in Vehicle.TacticalStatus.choices:
+        self.assertEqual(
+            [value for value, _ in form.fields["tactical_status"].choices],
+            ["ready", "limited", "workshop", "out_of_service"],
+        )
+        for _value, label in Vehicle.TacticalStatus.choices:
             self.assertIsNone(re.search(r"\d", str(label)), label)
-            if value not in Vehicle.LEGACY_STATUSES:
-                self.assertNotIn("Status", str(label))
+            self.assertNotIn("Status", str(label))
         page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug])).content.decode()
         values = set(re.findall(r'name="status" value="([^"]+)"', page))
-        self.assertEqual(values, {"1", "6", "workshop"})
+        self.assertEqual(values, {"ready", "limited", "workshop", "out_of_service"})
         for word in ("Anfahrt", "Einsatzort", "Funk", "BOS-Status", "Status 1"):
             self.assertNotIn(word, page)
         dashboard = self.client.get(reverse("fleet_dashboard")).content.decode()
@@ -201,7 +220,7 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
         data = {"call_sign": "RTW 0262", "license_plate": "RW-0262", "vehicle_type": "rtw",
                 "current_mileage": 45000, "fuel_level_percent": 90, "adblue_level_percent": 85,
                 "o2_pressure_bar": 180}
-        for value in ("2", "3", "4", "disinfection"):
+        for value in ("1", "2", "3", "4", "6", "disinfection"):
             with self.subTest(value=value):
                 form = VehicleForm({**data, "tactical_status": value}, station=self.station)
                 self.assertFalse(form.is_valid())
@@ -215,10 +234,10 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
         self.assertNotIn("tactical_status", form.fields)
         page = self.client.get(reverse("fleet_vehicle_edit", args=[self.vehicle.slug]))
         self.assertNotContains(page, 'name="tactical_status"')
-        self.assertContains(page, "Den Status ändert das Fahrzeug-Cockpit")
+        self.assertContains(page, "Den Zustand ändert das Fahrzeug-Cockpit")
         data = {"call_sign": "RTW 0261", "license_plate": "RW-0261", "vehicle_type": "rtw",
                 "current_mileage": 45000, "fuel_level_percent": 90, "adblue_level_percent": 85,
-                "o2_pressure_bar": 180, "tactical_status": "1", "status_note": ""}
+                "o2_pressure_bar": 180, "tactical_status": "ready", "status_note": ""}
         resp = self.client.post(reverse("fleet_vehicle_edit", args=[self.vehicle.slug]), data)
         self.assertRedirects(resp, reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
         self.vehicle.refresh_from_db()
@@ -228,37 +247,36 @@ class VehicleStatusWithoutMissionPhasesTests(FleetFixture):
     def test_status_change_during_lock_is_refused_with_translated_message(self):
         self.disinfect()
         resp = self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
-                                {"status": "1"}, follow=True)
+                                {"status": "ready"}, follow=True)
         self.assertContains(resp, "noch in der Einwirkzeit")
         self.assertNotContains(resp, "SPERRPFLICHT")
         self.vehicle.refresh_from_db()
         self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
 
     def test_mission_phases_and_manual_disinfection_are_rejected(self):
-        for value in ("2", "3", "4", "disinfection"):
+        for value in ("1", "2", "3", "4", "6", "disinfection"):
             with self.subTest(value=value):
                 resp = self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
                                         {"status": value}, follow=True)
                 self.assertEqual(resp.status_code, 200)
                 self.vehicle.refresh_from_db()
-                self.assertEqual(self.vehicle.tactical_status, "1")
+                self.assertEqual(self.vehicle.tactical_status, "ready")
         self.assertFalse(AuditEvent.objects.filter(action="fleet.status_changed").exists())
 
     def test_allowed_change_writes_no_mission_phase(self):
-        Vehicle.objects.filter(pk=self.vehicle.pk).update(tactical_status="4")
         resp = self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]),
                                 {"status": "workshop"}, follow=True)
         self.assertContains(resp, "„Werkstatt“")
         event = AuditEvent.objects.get(action="fleet.status_changed")
-        self.assertEqual((event.metadata["from"], event.metadata["to"]), ("1", "workshop"))
+        self.assertEqual((event.metadata["from"], event.metadata["to"]), ("ready", "workshop"))
 
     def test_display_and_lock_screen_without_status_numbers(self):
-        for value in ("1", "6", "workshop", "3"):
+        for value in ("ready", "limited", "disinfection", "workshop", "out_of_service"):
             Vehicle.objects.filter(pk=self.vehicle.pk).update(tactical_status=value)
             vehicle = display_payload(self.station)["fleet_vehicles"][0]
             short = _lock_screen_data(self.station)["fleet_vehicles"][0]["status_short"]
             with self.subTest(value=value):
-                self.assertNotIn(vehicle["status"], Vehicle.LEGACY_STATUSES)
+                self.assertEqual(vehicle["status"], value)
                 self.assertNotIn("Status", vehicle["status_label"] + short)
                 self.assertIsNone(re.search(r"\d", vehicle["status_label"] + short))
 

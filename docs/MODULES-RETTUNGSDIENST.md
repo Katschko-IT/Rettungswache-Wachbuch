@@ -32,7 +32,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 ## 2. Die fünf Fachmodule im Detail
 
 ### 🚑 Fuhrpark & Hygiene (`/fuhrpark/`)
-- **Fahrzeugstatus (nur Verfügbarkeit)**: Einsatzbereit, Außer Dienst / nicht einsatzklar und Werkstatt; „Desinfektion (gesperrt)“ setzt nur das Desinfektionsprotokoll. Einsatzphasen (frühere FMS-Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1); Altwerte wurden per Migration auf „Einsatzbereit“ gesetzt. Den Status eines vorhandenen Fahrzeugs ändert nur das Fahrzeug-Cockpit (mit Desinfektionssperre und Audit), nicht das Bearbeiten-Formular. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Art der Desinfektion steht ausschließlich im Protokoll.
+- **Fahrzeugzustand (fünf Zustände)**: Einsatzbereit, Eingeschränkt, Desinfektion, Werkstatt und Außer Dienst. „Eingeschränkt“ heißt: fahrbereit mit einer Einschränkung; der Grund wird als Mangel gemeldet (nach dem Setzen öffnet sich die Mangelmeldung), nicht als Freitext am Zustand. „Eingeschränkt“ zählt weder als „Einsatzbereit“ noch als „nicht einsatzbereit“, sondern hat eine eigene Kennzahl, einen eigenen Filter und eine eigene Karte in der Übersicht. Während der Einwirkzeit sind „Einsatzbereit“ und „Eingeschränkt“ gesperrt; „Desinfektion“ setzt nur das Desinfektionsprotokoll. Gespeichert werden seit 0.27 neutrale Werte (`ready`, `limited`, `disinfection`, `workshop`, `out_of_service`) – keine FMS-Codes; Migration 0069 hat die alten Codes umgestellt (1–4 → Einsatzbereit, 6 → Außer Dienst). Einsatzphasen (frühere Status 2/3/4) gibt es seit 0.26.1 nicht mehr (AGENTS.md § 1). Den Zustand eines vorhandenen Fahrzeugs ändert nur das Fahrzeug-Cockpit (mit Desinfektionssperre und Audit), nicht das Bearbeiten-Formular. Statusbemerkung, Display, Sperrbildschirm und App nennen während der Einwirkzeit nur „Desinfektion bis HH:MM Uhr“ – die Stufe steht ausschließlich im Protokoll.
 - **Fahrzeug-Telemetrie**:
   - `fuel_level_percent`: Kraftstoffstand in Prozent (Warnung < 50%, Kritisch < 30%).
   - `adblue_level_percent`: AdBlue-Füllstand in Prozent (Warnung < 25%).
@@ -41,6 +41,8 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Express-Schichtübernahme (3 Min.)**: Dokumentation von Füllständen, Sauberkeit, Gerätevollständigkeit und BtM-Siegelzustand – ohne Vorauswahl: Jeder Prüfpunkt wird aktiv mit Ja oder Nein beantwortet, der km-Stand startet leer („zuletzt … km“, nicht darunter und höchstens 2.000 km darüber; die erste Übernahme eines Fahrzeugs hat noch keine Grenze), Kraftstoff und AdBlue werden per Schnellwahl gewählt. Ein „Nein“ führt nach dem Speichern zur vorausgefüllten Mangelmeldung.
 - **VAH-Desinfektionsmanagement**:
   - Dokumentation nach VAH-Vorgaben mit Einwirkzeit in Minuten.
+  - **Stufen statt Erregerarten (seit 0.27)**: Jedes Protokoll nennt eine Stufe aus dem Desinfektionsplan der Wache (`DisinfectionLevel`: Stufe → Mittel → Freigaberegel „Nach Antrocknen“ oder „Nach Einwirkzeit“, mit Bestätigung). Standardstufen, benannt nach Umfang bzw. Wirkbereich: Routine-Wischdesinfektion, Schlussdesinfektion (begrenzt viruzid/bakterizid), Schlussdesinfektion (viruzid), Schlussdesinfektion (sporizid), Grunddesinfektion. Migration 0069 hat die früheren Arten verlustfrei zugeordnet (Routine, MRSA, Noro, C. diff, Grund – in dieser Reihenfolge). Stufennamen mit Erregernamen lehnt das Modell ab (kleine Sperrliste, keine vollständige Prüfung). Bis der Plan bestätigt ist (Paket C2), gilt das bisherige Verhalten: Mittel, Einwirkzeit und „Sperrtimer aktivieren“ stehen im Formular; die Freigaberegel der Stufe wirkt noch nicht. Die Stufe ist Pflicht und ohne Vorauswahl.
+  - **Wer sieht die Stufe?** Stufe, Einwirkzeit und Bemerkung eines Protokolls sehen nur die durchführende Person, Schichtleitung und Admin (bis zum Funktionsmodell 0.28). Alle anderen sehen „Desinfektion“ mit Datum, Mittel und Person. Die Übersichtstabelle im Fuhrpark zeigt für alle nur Datum, Fahrzeug, Mittel und Person; Display, Sperrbildschirm, Terminal, CSV und App-API nennen nie eine Stufe.
   - **Keine automatische Freigabe**: Nach Ablauf der Einwirkzeit bleibt das Fahrzeug auf „Desinfektion“. Die Besatzung (Schichtübernahme der letzten 24 h plus die desinfizierende Person) wird benachrichtigt – im Posteingang, per Web-Push und in der App – und setzt den Status nach Prüfung selbst (`core/crew_notifications.py`, Dienst `notify-worker`, Audit `fleet.status_changed`). Details: `docs/PUSH-RELAY.md`.
 - **Gesetzliche Fristen**:
   - Hauptuntersuchung gem. § 29 StVZO.
@@ -49,12 +51,14 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
 - **Außer Betrieb nehmen statt löschen** (seit 0.27, `core/evidence.py`):
   - Schichtleitung und Admin nehmen ein Fahrzeug auf der Fahrzeugseite außer Betrieb. Es
     verschwindet aus Übersicht, Display und Sperrbildschirm und nimmt keine Übernahme,
-    Desinfektion, Statusänderung oder Mangelmeldung mehr an; Übernahmen und Desinfektionen
+    Desinfektion, Zustandsänderung oder Mangelmeldung mehr an; Übernahmen und Desinfektionen
     bleiben sichtbar. „Wieder in Betrieb nehmen“ setzt es auf „Außer Dienst“, bis die
     Besatzung es einsatzbereit meldet. Liste: `/fuhrpark/ausser-betrieb/`; Audit
     `fleet.vehicle_retired` / `fleet.vehicle_reactivated`; CSV-Spalte „In Betrieb“.
   - Desinfektionsmittel werden im Django-Admin über „In Gebrauch“ aus dem Protokoll
     genommen, nicht gelöscht. Mindestens ein Mittel der Wache bleibt in Gebrauch.
+    Ebenso Stufen des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer
+    Stufe, die deshalb „In Verwendung“ abgewählt statt gelöscht wird.
 
 ### 📦 Lager & Material (`/lager/`)
 - **FEFO-Prinzip (First-Expired-First-Out)**: Chargen mit dem kürzesten Verfallsdatum werden automatisch priorisiert vorgeschlagen.
@@ -136,7 +140,7 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Vollbilddarstellung ohne Tastatur-/Mausinteraktion.
   - Live-Uhrzeit, Wachenname und aktuelles Wetter.
   - Heutige Wachentermine und offene Tagesaufgaben mit Fortschrittsbalken.
-  - Verfügbarkeit aller Fahrzeuge der Wache (einsatzbereit, Desinfektion, Werkstatt, außer Dienst) – ohne Einsatzphasen und ohne Art der Desinfektion.
+  - Fahrzeugzustand aller Fahrzeuge der Wache (einsatzbereit, eingeschränkt, Desinfektion, Werkstatt, außer Dienst) – ohne Einsatzphasen und ohne Stufe der Desinfektion.
   - MPG-Prüfungs- und Mängelwarnungen.
   - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
 
@@ -167,7 +171,8 @@ Die Seite `/mehr/` („Alle Bereiche“) zeigt alle für die Rolle erreichbaren 
   MPG-, Lager- und Fuhrpark-Übersicht erlaubt.
 - Die Orga-Seite legt **keine** Muster-SOPs oder Notrufnummern mehr an. Der
   Fuhrpark legt höchstens ein neutrales Desinfektionsmittel an (im Django-Admin
-  unter „Desinfektionsmittel“ pflegbar) und erfindet keine Kennzeichen.
+  unter „Desinfektionsmittel“ pflegbar), dazu die fünf Standardstufen
+  (unbestätigt, bisheriges Verhalten), und erfindet keine Kennzeichen.
 - Die Übersicht (`/uebersicht/`) zeigt den Handlungsbedarf der aktiven
   Fachmodule (`core/module_overview.py`) und persönliche Hinweise („Für dich“).
 - Fahrzeuge werden nach der Einwirkzeit **nicht** automatisch freigegeben; die

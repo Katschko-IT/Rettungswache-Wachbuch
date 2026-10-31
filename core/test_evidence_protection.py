@@ -24,7 +24,7 @@ from django.utils import timezone
 
 from core.coffee_models import CoffeeCashMovement
 from core.evidence import EVIDENCE_MODELS, EVIDENCE_NAME_SUFFIXES, NOT_EVIDENCE
-from core.fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from core.fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from core.models import (
     AuditEvent,
     Checklist,
@@ -114,6 +114,13 @@ class EvidenceRegistryTests(SimpleTestCase):
         ]
         self.assertEqual(unclassified, [])
 
+    def test_disinfection_level_is_classified_and_protected(self):
+        """Die Stufe ist kein Nachweis, aber Protokolle hängen per PROTECT an ihr."""
+        self.assertIn("core.DisinfectionLevel", NOT_EVIDENCE)
+        field = DisinfectionProtocol._meta.get_field("level")
+        self.assertIs(field.remote_field.model, DisinfectionLevel)
+        self.assertIs(field.remote_field.on_delete, models.PROTECT)
+
     def test_mpg_and_fleet_evidence_is_listed(self):
         for label in ("core.MaintenanceLog", "core.DeviceRoutineCheck", "core.DeviceTrainingRecord",
                       "core.VehicleHandover", "core.DisinfectionProtocol", "core.SOPRevision", "core.SOPReceipt",
@@ -152,6 +159,7 @@ class EvidenceRows:
         target = StorageLocation.objects.create(station=s, slug="rtw", name="RTW")
         vehicle = Vehicle.objects.create(station=s, slug="rtw-1", call_sign="RTW 1", license_plate="MU-RD 1")
         agent = DisinfectantMaster.objects.create(station=s, name="Wischtücher")
+        level = DisinfectionLevel.objects.create(station=s, name="Routine-Wischdesinfektion", disinfectant=agent)
         device = MedicalDevice.objects.create(station=s, slug="defi-1", name="Defi")
         sop = SOPDocument.objects.create(station=s, slug="da-1", doc_number="DA-1", title="Dienstanweisung", created_by=u)
         coffee = CoffeeEntry.objects.create(station=s, member=u, amount_cents=100, reason="Einzahlung", created_by=u)
@@ -190,7 +198,7 @@ class EvidenceRows:
             "core.VehicleHandover": VehicleHandover.objects.create(
                 station=s, vehicle=vehicle, crew_member=u, mileage=10000),
             "core.DisinfectionProtocol": DisinfectionProtocol.objects.create(
-                station=s, vehicle=vehicle, performed_by=u, disinfectant=agent),
+                station=s, vehicle=vehicle, performed_by=u, disinfectant=agent, level=level),
             "core.MaintenanceLog": MaintenanceLog.objects.create(
                 device=device, station=s, kind=MaintenanceLog.Kind.STK, performed_by="Service", created_by=u),
             "core.DeviceRoutineCheck": DeviceRoutineCheck.objects.create(station=s, device=device, performed_by=u),
@@ -231,7 +239,7 @@ class ObjectDeletionNegativeTests(EvidenceRows, TestCase):
 
     def test_instance_delete_of_objects_is_blocked(self):
         for label in ("core.Vehicle", "core.MedicalDevice", "core.SOPDocument", "core.DisinfectantMaster",
-                      "core.HandoverEntry", "core.WikiArticle"):
+                      "core.DisinfectionLevel", "core.HandoverEntry", "core.WikiArticle"):
             model = apps.get_model(label)
             obj = model.objects.get(station=self.station)
             with self.subTest(model=label), self.assertRaises(ProtectedError):
@@ -275,14 +283,18 @@ class DemoPurgeStillRemovesEvidenceTests(TestCase):
         vehicle = Vehicle.objects.filter(station=station).first()
         agent = DisinfectantMaster.objects.filter(station=station).first()
         sop = SOPDocument.objects.filter(station=station).first()
+        level = DisinfectionLevel.objects.filter(station=station).first()
+        self.assertIsNotNone(level)
         created = [
+            level,
             DeviceRoutineCheck.objects.create(station=station, device=device, performed_by=admin),
             MaintenanceLog.objects.create(device=device, station=station, kind=MaintenanceLog.Kind.DGUV,
                                           performed_by="Service", created_by=admin),
             DeviceTrainingRecord.objects.create(station=station, device=device, trainee=admin, instructor="Nora"),
             Defect.objects.create(station=station, title="Gerätemangel", created_by=admin, medical_device=device),
             VehicleHandover.objects.create(station=station, vehicle=vehicle, crew_member=admin, mileage=99999),
-            DisinfectionProtocol.objects.create(station=station, vehicle=vehicle, performed_by=admin, disinfectant=agent),
+            DisinfectionProtocol.objects.create(station=station, vehicle=vehicle, performed_by=admin, disinfectant=agent,
+                                                level=level),
         ]
         revision = SOPRevision.objects.create(sop=sop, version_label="9.9", content_markdown="Neu", approved_by=admin)
         created += [revision, SOPReceipt.objects.create(station=station, sop=sop, revision=revision, user=admin)]

@@ -16,6 +16,23 @@ Dieses Dokument ist keine Rechtsberatung.
 - Nur technisch notwendige Cookies (`rwsth_session`, `rwsth_csrf`); Transparenz
   unter `/datenschutz/`.
 - Produkt ohne eingebettetes KI-System; kein Social Scoring über Auditdaten.
+- Fahrzeugzustand mit fünf neutralen Zuständen (Einsatzbereit, Eingeschränkt,
+  Desinfektion, Werkstatt, Außer Dienst), ohne Einsatzphasen und ohne
+  FMS-Codes in Datenbank, Display-JSON, CSS-Klassen oder Formularwerten (0.27).
+- Desinfektion nach Stufen, benannt nach Umfang oder Wirkbereich statt nach
+  Erregern; Erregernamen lehnt das Modell als Stufennamen ab. Stufe,
+  Einwirkzeit und Bemerkung eines Protokolls sehen bis zum Funktionsmodell
+  (0.28) nur die durchführende Person, Schichtleitung und Admin; alle anderen
+  sehen „Desinfektion“ mit Datum, Mittel und Person. Bekannter Restbezug: Die
+  laufende Sperre („Desinfektion bis HH:MM“), ihre Dauer und die
+  Benachrichtigung der Besatzung bleiben für den Betrieb sichtbar und lassen
+  erkennen, dass eine Stufe mit Einwirkzeit gewählt wurde.
+- Einzige Ausnahme von append-only: die einmalige Bereinigung der Altdaten
+  nach Betreiberentscheid vom 30.10.2026 (`cleanup_legacy_data`, frühere
+  Einsatzphasen im Audit, IP/Browser alter Lesebestätigungen, Bemerkungen aus
+  der Zeit des Felds „Transportgrund“). Sie braucht Eigentümerrechte, schreibt
+  je Wache einen Audit-Eintrag mit Zahl, Person und Zeit; Backups behalten den
+  alten Stand bis zu ihrem Ablauf (docs/OPERATIONS.md).
 
 ## Nachweise
 

@@ -67,7 +67,8 @@ Ein gelbes Banner „Demo-Modus“ ist überall sichtbar.
   Kassensturz
 - Neuigkeiten mit Lesebestätigung, Pinnwand-Aushänge, Wiki-Artikel, Mängel
   mit Frist und Verlauf
-- Fuhrpark (RTW, NEF, KTW) mit laufender Desinfektion, Medizinprodukte mit
+- Fuhrpark (RTW, NEF, KTW) mit laufender Desinfektion und einem eingeschränkt
+  einsatzbereiten KTW (Grund als Mangel), Medizinprodukte mit
   stimmigen STK/MTK/DGUV-Nachweisen, Lager mit Chargen und einem Rückruf,
   Schlüssel und Poolgeräte
 - Erledigte Tagesaufgaben und Checklisten von heute

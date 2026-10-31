@@ -51,29 +51,31 @@
 <div class="alert warning" role="status">
   <h3>{% translate "Desinfektions-Einwirkzeit läuft" %}</h3>
   <p>
-    {% blocktranslate with until=vehicle.disinfection_locked_until|date:"H:i" %}Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>{{ until }} Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden.{% endblocktranslate %}
+    {% blocktranslate with until=vehicle.disinfection_locked_until|date:"H:i" %}Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>{{ until }} Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es weder einsatzbereit noch eingeschränkt gemeldet werden.{% endblocktranslate %}
   </p>
 </div>
 {% elif vehicle.awaiting_crew_release %}
 <div class="alert success" role="status">
   <h3>{% translate "Einwirkzeit abgelaufen – Freigabe durch die Besatzung" %}</h3>
-  <p>{% translate "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei." %}</p>
+  <p>{% translate "Bitte Fahrzeug prüfen und den Zustand selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei." %}</p>
   <form method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
     {% csrf_token %}
-    <button type="submit" name="status" value="1" class="button primary">{% include "core/_icon.html" with name="check" %}{% translate "Geprüft – einsatzbereit melden" %}</button>
+    <button type="submit" name="status" value="ready" class="button primary">{% include "core/_icon.html" with name="check" %}{% translate "Geprüft – einsatzbereit melden" %}</button>
   </form>
 </div>
 {% endif %}
 
-{# Fahrzeugstatus: nur Verfügbarkeit, keine Einsatzphasen (AGENTS.md § 1) #}
+{# Fahrzeugzustand: fünf Zustände, keine Einsatzphasen (AGENTS.md § 1) #}
 <section class="section-block">
-  <h2>{% translate "Fahrzeugstatus" %}</h2>
+  <h2>{% translate "Fahrzeugzustand" %}</h2>
   <div>
     {% if vehicle.tactical_status == 'disinfection' or vehicle.is_disinfection_locked %}
       <span class="state warning large">{{ vehicle.get_tactical_status_display }}</span>
+    {% elif vehicle.tactical_status == 'limited' %}
+      <span class="state warning large">{{ vehicle.get_tactical_status_display }}</span>
     {% elif vehicle.tactical_status == 'workshop' %}
       <span class="state danger large">{{ vehicle.get_tactical_status_display }}</span>
-    {% elif vehicle.tactical_status == '6' %}
+    {% elif vehicle.tactical_status == 'out_of_service' %}
       <span class="state muted large">{{ vehicle.get_tactical_status_display }}</span>
     {% else %}
       <span class="state success large">{{ vehicle.get_tactical_status_display }}</span>
@@ -83,16 +85,20 @@
     <div class="note-box">{{ vehicle.status_note }}</div>
   {% endif %}
 
-  {# Status-Schnellwahl; „Desinfektion“ setzt nur das Desinfektionsprotokoll #}
+  {# Schnellwahl; „Desinfektion“ setzt nur das Desinfektionsprotokoll. „Eingeschränkt“
+     führt zur Mangelmeldung: Der Grund steht im Mangel, nicht am Zustand. #}
   <form class="cluster fleet-status-buttons" method="post" action="{% url 'fleet_vehicle_status_change' vehicle.slug %}">
     {% csrf_token %}
-    <button type="submit" name="status" value="1" class="button secondary" {% if vehicle.tactical_status == '1' or vehicle.is_disinfection_locked %}disabled{% endif %}>
+    <button type="submit" name="status" value="ready" class="button secondary" {% if vehicle.tactical_status == 'ready' or vehicle.is_disinfection_locked %}disabled{% endif %}>
       <span class="dot dot-success" aria-hidden="true"></span>{% translate "Einsatzbereit" %}
+    </button>
+    <button type="submit" name="status" value="limited" class="button secondary" {% if vehicle.tactical_status == 'limited' or vehicle.is_disinfection_locked %}disabled{% endif %}>
+      <span class="dot dot-warning" aria-hidden="true"></span>{% translate "Eingeschränkt" %}
     </button>
     <button type="submit" name="status" value="workshop" class="button secondary" {% if vehicle.tactical_status == 'workshop' %}disabled{% endif %}>
       <span class="dot dot-danger" aria-hidden="true"></span>{% translate "Werkstatt" %}
     </button>
-    <button type="submit" name="status" value="6" class="button secondary" {% if vehicle.tactical_status == '6' %}disabled{% endif %}>
+    <button type="submit" name="status" value="out_of_service" class="button secondary" {% if vehicle.tactical_status == 'out_of_service' %}disabled{% endif %}>
       <span class="dot" aria-hidden="true"></span>{% translate "Außer Dienst" %}
     </button>
   </form>
@@ -218,26 +224,31 @@
   {# RKI Desinfektionsprotokoll & Sperrtimer #}
   <section id="fleet-disinfection" class="section-block">
     <h2>{% translate "RKI-Desinfektionsprotokoll" %}</h2>
-    <p class="muted">{% translate "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer." %}</p>
+    <p class="muted">{% translate "Desinfektion nach den Stufen der Wache, mit Einwirkzeit-Sperre." %}</p>
 
+    {# Stufe ohne Vorauswahl. Bis der Desinfektionsplan bestätigt ist, bleiben Mittel, Einwirkzeit und Sperre wie bisher. #}
     <form method="post" action="{% url 'fleet_vehicle_disinfection_create' vehicle.slug %}">
       {% csrf_token %}
+      {% include "core/form_errors.html" with form=disinfection_form %}
+      <div class="field">
+        <label for="{{ disinfection_form.level.id_for_label }}">{% translate "Stufe" %}</label>
+        {{ disinfection_form.level }}
+        {% if disinfection_form.level.errors %}<p class="field-error" id="{{ disinfection_form.level.auto_id }}_error">{{ disinfection_form.level.errors|join:" " }}</p>{% endif %}
+      </div>
+
       <div class="field">
         <label for="{{ disinfection_form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel (VAH-gelistet)" %}</label>
         {{ disinfection_form.disinfectant }}
         {% if not disinfection_form.fields.disinfectant.queryset.exists %}
           <p class="field-hint">{% translate "Kein Desinfektionsmittel in Gebrauch. Bitte im Admin-Bereich unter „Desinfektionsmittel“ ein Mittel auf „In Gebrauch“ setzen." %}</p>
         {% endif %}
-      </div>
-
-      <div class="field">
-        <label for="{{ disinfection_form.kind.id_for_label }}">{% translate "Art der Desinfektion" %}</label>
-        {{ disinfection_form.kind }}
+        {% if disinfection_form.disinfectant.errors %}<p class="field-error" id="{{ disinfection_form.disinfectant.auto_id }}_error">{{ disinfection_form.disinfectant.errors|join:" " }}</p>{% endif %}
       </div>
 
       <div class="field">
         <label for="{{ disinfection_form.exposure_minutes.id_for_label }}">{% translate "Einwirkzeit (Min)" %}</label>
         {{ disinfection_form.exposure_minutes }}
+        {% if disinfection_form.exposure_minutes.errors %}<p class="field-error" id="{{ disinfection_form.exposure_minutes.auto_id }}_error">{{ disinfection_form.exposure_minutes.errors|join:" " }}</p>{% endif %}
       </div>
 
       <div class="check-list">
@@ -251,7 +262,7 @@
       </div>
 
       <button type="submit" class="button secondary block">
-        {% include "core/_icon.html" with name="lock" %}{% translate "Desinfektion starten & Fahrzeug sperren" %}
+        {% include "core/_icon.html" with name="check" %}{% translate "Desinfektion erfassen" %}
       </button>
     </form>
   </section>
@@ -324,10 +335,15 @@
     <div class="item-list">
       {% for d in disinfections %}
         <div class="list-row">
+          {# Stufe, Einwirkzeit und Bemerkung nur für die durchführende Person, Schichtleitung und Admin #}
           <span class="row-content">
             <strong>{{ d.started_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
-            <small>{{ d.get_kind_display }} &middot; Mittel: {{ d.disinfectant.name }} ({{ d.exposure_minutes }} Min)</small>
-            {% if d.notes %}<span class="row-note">{{ d.notes }}</span>{% endif %}
+            {% if d.show_details %}
+              <small>{% if d.level %}{{ d.level.name }}{% else %}{% translate "Desinfektion" %}{% endif %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %} &middot; {% blocktranslate with minutes=d.exposure_minutes %}Einwirkzeit {{ minutes }} Min.{% endblocktranslate %}{% if not d.lock_timer_applied %} &middot; {% translate "ohne Sperre" %}{% endif %}</small>
+              {% if d.notes %}<span class="row-note">{{ d.notes }}</span>{% endif %}
+            {% else %}
+              <small>{% translate "Desinfektion" %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %}</small>
+            {% endif %}
           </span>
           <span class="badge badge-info">{% translate "RKI-konform" %}</span>
         </div>

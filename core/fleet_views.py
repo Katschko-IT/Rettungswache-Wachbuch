@@ -15,6 +15,7 @@ from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
+from .disinfection_plan import ensure_default_levels
 from .evidence import vehicle_must_be_active
 from .fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
 from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
@@ -49,12 +50,18 @@ def fleet_dashboard(request):
     station = request.membership.station
 
     ensure_default_disinfectant(station)
+    ensure_default_levels(station)
 
     # Fahrzeuge aus dem älteren Geräte-Modul übernehmen. Nur vorhandene Angaben
     # werden übertragen; ein Kennzeichen wird nicht erfunden.
     from django.utils.text import slugify
 
     from .wachalltag_models import StationAsset
+    asset_to_vehicle = {
+        StationAsset.Status.READY: Vehicle.TacticalStatus.READY,
+        StationAsset.Status.LIMITED: Vehicle.TacticalStatus.LIMITED,
+        StationAsset.Status.WORKSHOP: Vehicle.TacticalStatus.WORKSHOP,
+    }
     for legacy in StationAsset.objects.filter(station=station, kind=StationAsset.Kind.VEHICLE):
         slug = slugify(legacy.asset_id)[:64] or f"fahrzeug-{legacy.pk}"
         if not Vehicle.objects.filter(station=station, slug=slug).exists():
@@ -63,7 +70,7 @@ def fleet_dashboard(request):
                 slug=slug,
                 call_sign=legacy.label,
                 license_plate="",
-                tactical_status=Vehicle.TacticalStatus.STATUS_1 if legacy.status == StationAsset.Status.READY else Vehicle.TacticalStatus.STATUS_6,
+                tactical_status=asset_to_vehicle.get(legacy.status, Vehicle.TacticalStatus.OUT_OF_SERVICE),
             )
 
     vehicles_qs = Vehicle.objects.filter(station=station, is_active=True)
@@ -93,10 +100,11 @@ def fleet_dashboard(request):
     filter_mode = request.GET.get("filter", "all").strip()
 
     ready_count = 0
+    limited_count = 0
     disinfection_count = 0
     workshop_count = 0
     urgent_inspections_count = 0
-    out_of_service = (Vehicle.TacticalStatus.WORKSHOP, Vehicle.TacticalStatus.STATUS_6)
+    out_of_service = (Vehicle.TacticalStatus.WORKSHOP, Vehicle.TacticalStatus.OUT_OF_SERVICE)
 
     for v in vehicles_list:
         st = v.tactical_status
@@ -104,6 +112,8 @@ def fleet_dashboard(request):
             disinfection_count += 1
         elif st in Vehicle.READY_STATUSES:
             ready_count += 1
+        elif st == Vehicle.TacticalStatus.LIMITED:
+            limited_count += 1
         elif st in out_of_service:
             workshop_count += 1
 
@@ -114,6 +124,11 @@ def fleet_dashboard(request):
     if filter_mode == "ready":
         vehicles_list = [
             v for v in vehicles_list if v.tactical_status in Vehicle.READY_STATUSES and not v.is_disinfection_locked
+        ]
+    elif filter_mode == "limited":
+        vehicles_list = [
+            v for v in vehicles_list
+            if v.tactical_status == Vehicle.TacticalStatus.LIMITED and not v.is_disinfection_locked
         ]
     elif filter_mode == "disinfection":
         vehicles_list = [v for v in vehicles_list if v.tactical_status == Vehicle.TacticalStatus.DISINFECTION or v.is_disinfection_locked]
@@ -137,6 +152,7 @@ def fleet_dashboard(request):
     kpis = {
         "total": len(vehicles_list),
         "ready": ready_count,
+        "limited": limited_count,
         "disinfection": disinfection_count,
         "workshop": workshop_count,
         "urgent_inspections": urgent_inspections_count,
@@ -233,10 +249,16 @@ def _defect_suggestion(request, vehicle):
     }
 
 
-def _detail_context(request, vehicle, handover_form=None) -> dict:
+def _detail_context(request, vehicle, handover_form=None, disinfection_form=None) -> dict:
     station = request.membership.station
     handovers = vehicle.handovers.select_related("crew_member").order_by("-performed_at")[:10]
-    disinfections = vehicle.disinfections.select_related("performed_by", "disinfectant").order_by("-started_at")[:10]
+    disinfections = list(
+        vehicle.disinfections.select_related("performed_by", "disinfectant", "level").order_by("-started_at")[:10]
+    )
+    # Stufe, Einwirkzeit und Bemerkung nur für die durchführende Person,
+    # Schichtleitung und Admin; alle anderen sehen „Desinfektion“.
+    for protocol in disinfections:
+        protocol.show_details = protocol.details_visible_to(request.membership)
     defects = Defect.objects.filter(
         station=station,
         category=Defect.Category.VEHICLE,
@@ -249,7 +271,9 @@ def _detail_context(request, vehicle, handover_form=None) -> dict:
     if handover_form is None:
         handover_form = VehicleHandoverForm(auto_id="handover_%s", vehicle=vehicle)
     ensure_default_disinfectant(station)
-    disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
+    ensure_default_levels(station)
+    if disinfection_form is None:
+        disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
 
     vehicle_qr_url = request.build_absolute_uri(reverse("fleet_vehicle_qr", args=[vehicle.slug]))
 
@@ -286,9 +310,9 @@ def vehicle_detail(request, slug: str):
 @require_POST
 @vehicle_must_be_active
 def vehicle_status_change(request, slug: str):
-    """Verfügbarkeit setzen: einsatzbereit, außer Dienst oder Werkstatt.
+    """Fahrzeugzustand setzen: einsatzbereit, eingeschränkt, Werkstatt, außer Dienst.
 
-    Einsatzphasen (frühere Status 2/3/4) werden nicht angenommen, damit keine
+    Einsatzphasen und frühere Statuscodes werden nicht angenommen, damit keine
     Zeitreihe von Einsätzen im Audit entsteht. „Desinfektion“ setzt nur das
     Desinfektionsprotokoll.
     """
@@ -300,11 +324,12 @@ def vehicle_status_change(request, slug: str):
         messages.error(request, _("Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."))
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
     if new_status not in Vehicle.SELECTABLE_STATUSES:
-        messages.error(request, _("Dieser Fahrzeugstatus kann nicht gewählt werden."))
+        messages.error(request, _("Dieser Zustand kann nicht gewählt werden."))
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
-    # Desinfektions-Sperre: Während der Einwirkzeit nicht einsatzbereit melden.
-    if vehicle.is_disinfection_locked and new_status == Vehicle.TacticalStatus.STATUS_1:
+    # Desinfektions-Sperre: Während der Einwirkzeit weder einsatzbereit noch
+    # eingeschränkt melden; Werkstatt und außer Dienst bleiben möglich.
+    if vehicle.is_disinfection_locked and new_status in Vehicle.AVAILABLE_STATUSES:
         mins = max(1, int(vehicle.disinfection_remaining_seconds / 60))
         messages.error(
             request,
@@ -314,10 +339,8 @@ def vehicle_status_change(request, slug: str):
         return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
     previous = vehicle.tactical_status
-    if previous in Vehicle.LEGACY_STATUSES:
-        previous = Vehicle.TacticalStatus.STATUS_1
     vehicle.tactical_status = new_status
-    if new_status == Vehicle.TacticalStatus.STATUS_1 or previous == Vehicle.TacticalStatus.DISINFECTION:
+    if new_status == Vehicle.TacticalStatus.READY or previous == Vehicle.TacticalStatus.DISINFECTION:
         # Die Desinfektionsbemerkung gilt nach Verlassen der Desinfektion nicht mehr.
         vehicle.status_note = ""
     vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
@@ -331,9 +354,13 @@ def vehicle_status_change(request, slug: str):
 
         mark_vehicle_notifications_read(vehicle)
 
-    messages.success(request, _("Status für %(vehicle)s auf „%(status)s“ gesetzt.") % {
+    messages.success(request, _("%(vehicle)s steht jetzt auf „%(status)s“.") % {
         "vehicle": vehicle.call_sign, "status": vehicle.get_tactical_status_display(),
     })
+    if new_status == Vehicle.TacticalStatus.LIMITED:
+        # Den Grund hält der Mangel fest, nicht eine Freitext-Bemerkung am Zustand.
+        messages.info(request, _("Bitte den Grund der Einschränkung als Mangel melden."))
+        return redirect(reverse("fleet_vehicle_detail", args=[vehicle.slug]) + "#fleet-defect")
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
 
@@ -342,27 +369,32 @@ def vehicle_status_change(request, slug: str):
 @require_POST
 @vehicle_must_be_active
 def vehicle_disinfection_create(request, slug: str):
-    """Desinfektionsprotokoll erfassen und Sperrtimer starten."""
+    """Desinfektionsprotokoll mit Stufe erfassen und ggf. Sperrtimer starten."""
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
-    form = DisinfectionProtocolForm(request.POST, station=station)
-    if form.is_valid():
-        protocol = form.save(commit=False)
-        protocol.station = station
-        protocol.vehicle = vehicle
-        protocol.performed_by = request.user
-        protocol.save()
+    ensure_default_levels(station)
+    form = DisinfectionProtocolForm(request.POST, station=station, auto_id="disinfection_%s")
+    if not form.is_valid():
+        # Eingaben bleiben erhalten; Fehler stehen am jeweiligen Feld.
+        messages.error(request, _("Desinfektionsprotokoll nicht gespeichert. Bitte die markierten Angaben prüfen."))
+        return render(
+            request, "core/fleet_vehicle_detail.html", _detail_context(request, vehicle, disinfection_form=form),
+        )
 
-        if protocol.lock_timer_applied and protocol.exposure_minutes > 0:
-            messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
-                "vehicle": vehicle.call_sign,
-                "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
-            })
-        else:
-            messages.success(request, _("Desinfektion für %(vehicle)s erfasst.") % {"vehicle": vehicle.call_sign})
+    protocol = form.save(commit=False)
+    protocol.station = station
+    protocol.vehicle = vehicle
+    protocol.performed_by = request.user
+    protocol.save()
+
+    if protocol.lock_timer_applied and protocol.exposure_minutes > 0:
+        messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
+            "vehicle": vehicle.call_sign,
+            "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
+        })
     else:
-        messages.error(request, _("Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."))
+        messages.success(request, _("Desinfektion für %(vehicle)s erfasst.") % {"vehicle": vehicle.call_sign})
 
     return redirect("fleet_vehicle_detail", slug=vehicle.slug)
 
@@ -490,7 +522,7 @@ def export_fleet_csv(request):
         "Typ",
         "Fahrgestell",
         "Kofferaufbau",
-        "Status",
+        "Fahrzeugzustand",
         "Kilometerstand",
         "Tank (%)",
         "AdBlue (%)",

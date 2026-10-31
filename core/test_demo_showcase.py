@@ -258,8 +258,8 @@ class AuditLogLabelTests(TestCase):
         )
         AuditEvent.objects.create(actor=self.user, station=self.station, action="test.unbekannt", object_type="Test")
         page = self.client.get(reverse("audit_log"))
-        self.assertContains(page, "Fahrzeugstatus geändert")
-        self.assertContains(page, "Einsatzbereit → Desinfektion (gesperrt)")
+        self.assertContains(page, "Fahrzeugzustand geändert")
+        self.assertContains(page, "Einsatzbereit → Desinfektion")
         self.assertContains(page, "IBAN: geändert")
         self.assertContains(page, "test.unbekannt")
 

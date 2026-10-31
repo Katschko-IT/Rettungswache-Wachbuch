@@ -383,10 +383,10 @@ AVAILABLE_MODULES = [
     },
     {
         "id": "fleet",
-        "name": _("Fahrzeugstatus"),
+        "name": _("Fahrzeugzustand"),
         "icon": "🚑",
         "default_pos": "middle_center",
-        "desc": _("Status je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."),
+        "desc": _("Zustand je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."),
     },
     {
         "id": "mpg_alerts",

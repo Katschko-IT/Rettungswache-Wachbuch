@@ -6,6 +6,7 @@ revisionssicherem Desinfektionsprotokoll und automatischem Einwirkzeit-Sperrtime
 """
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -15,7 +16,7 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.translation import gettext, gettext_lazy as _
 
-from .models import Station
+from .models import Membership, Station
 
 
 def _require_same_station(parent, station_id: int | None, label: str) -> None:
@@ -37,27 +38,27 @@ class Vehicle(models.Model):
         OTHER = "other", "Sonstiges Fahrzeug"
 
     class TacticalStatus(models.TextChoices):
-        """Verfügbarkeit des Fahrzeugs – bewusst ohne Einsatzphasen.
+        """Fahrzeugzustand – fünf Zustände, ohne Einsatzphasen oder FMS-Status.
 
-        Gespeichert bleiben die bisherigen Werte („1“, „6“ …). Einsatzphasen
-        (früher 2/3/4) gehören nicht ins Wachbuch (AGENTS.md § 1): Sie sind nur
-        noch als Altwerte lesbar, werden nie angeboten und per Migration auf
-        „Einsatzbereit“ gesetzt.
+        Gespeichert werden seit 0.27 neutrale Werte (Migration 0069). Die
+        früheren Codes („1“ … „6“) stehen nur noch in alten Audit-Einträgen;
+        die Audit-Ansicht benennt sie neutral (``core.audit_labels``).
         """
 
-        STATUS_1 = "1", _("Einsatzbereit")
-        LEGACY_2 = "2", _("Einsatzbereit (alter Status)")
-        LEGACY_3 = "3", _("Einsatzbereit (alter Status)")
-        LEGACY_4 = "4", _("Einsatzbereit (alter Status)")
-        STATUS_6 = "6", _("Außer Dienst / nicht einsatzklar")
-        DISINFECTION = "disinfection", _("Desinfektion (gesperrt)")
+        READY = "ready", _("Einsatzbereit")
+        LIMITED = "limited", _("Eingeschränkt")
+        DISINFECTION = "disinfection", _("Desinfektion")
         WORKSHOP = "workshop", _("Werkstatt")
+        OUT_OF_SERVICE = "out_of_service", _("Außer Dienst")
 
     # Von Hand wählbar. „Desinfektion“ setzt nur das Desinfektionsprotokoll.
-    SELECTABLE_STATUSES = (TacticalStatus.STATUS_1, TacticalStatus.STATUS_6, TacticalStatus.WORKSHOP)
-    LEGACY_STATUSES = (TacticalStatus.LEGACY_2, TacticalStatus.LEGACY_3, TacticalStatus.LEGACY_4)
-    # Altwerte zählen wie „Einsatzbereit“ (so setzt sie auch die Migration).
-    READY_STATUSES = (TacticalStatus.STATUS_1, *LEGACY_STATUSES)
+    SELECTABLE_STATUSES = (
+        TacticalStatus.READY, TacticalStatus.LIMITED, TacticalStatus.WORKSHOP, TacticalStatus.OUT_OF_SERVICE,
+    )
+    # Fahrbereit (auch mit Einschränkung): während der Einwirkzeit nicht wählbar.
+    AVAILABLE_STATUSES = (TacticalStatus.READY, TacticalStatus.LIMITED)
+    # Zählt als „Einsatzbereit“ (Kennzahl und Filter); „Eingeschränkt“ zählt eigens.
+    READY_STATUSES = (TacticalStatus.READY,)
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="vehicles")
     slug = models.SlugField(max_length=64, help_text="Slug für QR-Code-URL z. B. rtw-01-83-01")
@@ -70,8 +71,11 @@ class Vehicle(models.Model):
     body_manufacturer = models.CharField(max_length=120, blank=True, default="Fahrtec Systeme", verbose_name="Kofferaufbau")
     year_of_manufacture = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Baujahr")
 
-    # Taktischer Status & Füllstände
-    tactical_status = models.CharField(max_length=20, choices=TacticalStatus.choices, default=TacticalStatus.STATUS_1)
+    # Fahrzeugzustand & Füllstände (Feldname aus historischen Gründen)
+    tactical_status = models.CharField(
+        max_length=20, choices=TacticalStatus.choices, default=TacticalStatus.READY,
+        verbose_name=_("Fahrzeugzustand"),
+    )
     status_note = models.CharField(max_length=255, blank=True, default="", verbose_name="Status-Bemerkung")
     current_mileage = models.PositiveIntegerField(default=10000, verbose_name="Kilometerstand (km)")
     fuel_level_percent = models.PositiveSmallIntegerField(default=100, verbose_name="Kraftstoff (%)")
@@ -114,13 +118,8 @@ class Vehicle(models.Model):
 
     @property
     def status_short(self) -> str:
-        """Kurzform für Sperrbildschirm und Chips (ohne Statusnummern)."""
-        short = {
-            self.TacticalStatus.STATUS_6: _("Außer Dienst"),
-            self.TacticalStatus.DISINFECTION: _("Desinfektion"),
-            self.TacticalStatus.WORKSHOP: _("Werkstatt"),
-        }
-        return str(short.get(self.tactical_status, _("Einsatzbereit")))
+        """Kurzform für Sperrbildschirm und Chips (die fünf Zustände sind kurz)."""
+        return str(self.get_tactical_status_display())
 
     @property
     def is_disinfection_locked(self) -> bool:
@@ -203,6 +202,42 @@ class Vehicle(models.Model):
         }
 
 
+# Erregernamen gehören nicht in Stufen-Namen (Produktgrenze, AGENTS.md § 1).
+# Bewusst eine kleine Sperrliste mit Wortgrenzen, keine vollständige Prüfung:
+# Kurze oder mehrdeutige Kürzel (VRE, Rota, HIV, TBC, SARS) nur als ganzes
+# Wort, eindeutige Wortstämme (Noro…, Clostridi…) auch in Zusammensetzungen.
+PATHOGEN_PATTERN = re.compile(
+    r"\b(?:"
+    r"\d?mrsa\w*|vre|\d?mrgn\w*|esbl\w*|"
+    r"noro\w*|rota|rota(?:virus|viren)\w*|"
+    r"c\.?\s?diff\w*|clostridi\w*|difficile\w*|"
+    r"corona\w*|covid\w*|sars(?:-cov\S*)?|"
+    r"influenza\w*|grippe\w*|tuberkulose\w*|tbc|masern\w*|hepatitis\w*|hiv|"
+    r"meningokokk\w*|ebola\w*|skabies\w*|krätze\w*"
+    r")(?!\w)",
+    re.IGNORECASE,
+)
+PATHOGEN_MESSAGE = _("Bitte die Stufe nach Umfang oder Wirkbereich benennen, nicht nach Erregern.")
+
+# Stufen nach Umfang bzw. Wirkbereich (Betreiberentscheid 0.27). Migration 0069
+# legt dieselben Namen für bestehende Wachen an und ordnet die früheren Arten
+# verlustfrei zu (je Art eine Stufe). Die Wache kann sie umbenennen.
+DEFAULT_LEVEL_NAMES = (
+    _("Routine-Wischdesinfektion"),
+    _("Schlussdesinfektion (begrenzt viruzid/bakterizid)"),
+    _("Schlussdesinfektion (viruzid)"),
+    _("Schlussdesinfektion (sporizid)"),
+    _("Grunddesinfektion"),
+)
+
+# Bis zum Funktionsmodell (0.28) stehen Schichtleitung und Admin für „Hygiene“.
+DISINFECTION_DETAIL_ROLES = frozenset({Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN})
+
+
+def contains_pathogen_term(text) -> bool:
+    return bool(text) and PATHOGEN_PATTERN.search(str(text)) is not None
+
+
 def neutral_disinfection_note(lock_until) -> str:
     """Statusbemerkung während der Einwirkzeit, ohne Art oder Erreger.
 
@@ -243,21 +278,111 @@ class DisinfectantMaster(models.Model):
         return f"{self.name} ({self.default_exposure_minutes} Min)"
 
 
-class DisinfectionProtocol(models.Model):
-    """Revisionssicherer Nachweis über Wisch-, Schluss- und Grunddesinfektionen."""
+class DisinfectionLevel(models.Model):
+    """Stufe aus dem Desinfektionsplan der Wache: Stufe → Mittel → Freigaberegel.
 
-    class Kind(models.TextChoices):
-        ROUTINE = "routine", "Routine-Wischdesinfektion (Nach Transport)"
-        FINAL_MRSA = "mrsa", "Gezielte Schlussdesinfektion: MRSA / VRE / 3MRGN"
-        FINAL_NORO = "noro", "Gezielte Schlussdesinfektion: Norovirus / Rotavirus"
-        FINAL_C_DIFF = "c_diff", "Gezielte Schlussdesinfektion: Clostridioides difficile (sporentötend)"
-        BASE_MONTHLY = "base", "Monatliche Grunddesinfektion & Aufbereitung"
+    Namen benennen Umfang oder Wirkbereich, nie einen Erreger. Freigaberegel und
+    Bestätigung wirken erst mit dem bestätigten Desinfektionsplan; bis dahin
+    gilt das bisherige Verhalten (Mittel, Einwirkzeit und Sperre wählt das
+    Protokollformular). Bezeichnungen pflegt jede Wache selbst.
+    """
+
+    class ReleaseRule(models.TextChoices):
+        AFTER_DRYING = "dry", _("Nach Antrocknen")
+        AFTER_EXPOSURE = "exposure", _("Nach Einwirkzeit")
+
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="disinfection_levels")
+    name = models.CharField(max_length=80, verbose_name=_("Stufe"))
+    disinfectant = models.ForeignKey(
+        DisinfectantMaster, on_delete=models.PROTECT, null=True, blank=True, related_name="levels",
+        verbose_name=_("Desinfektionsmittel"),
+    )
+    release_rule = models.CharField(
+        max_length=12, choices=ReleaseRule.choices, default=ReleaseRule.AFTER_EXPOSURE, verbose_name=_("Freigabe"),
+    )
+    exposure_minutes = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("Einwirkzeit (Minuten)"))
+    is_active = models.BooleanField(default=True, verbose_name=_("In Verwendung"))
+    rule_confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Bestätigt am"))
+    rule_confirmed_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, null=True, blank=True, related_name="+", verbose_name=_("Bestätigt von"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(fields=["station", "name"], name="unique_station_disinfection_level"),
+            models.CheckConstraint(
+                condition=models.Q(exposure_minutes__isnull=True) | models.Q(exposure_minutes__gte=1),
+                name="disinf_level_minutes_positive",
+            ),
+            # Eine bestätigte Regel ist vollständig: Mittel und, bei „Nach
+            # Einwirkzeit“, die Minuten.
+            models.CheckConstraint(
+                condition=models.Q(rule_confirmed_at__isnull=True) | (
+                    models.Q(disinfectant__isnull=False)
+                    & (models.Q(release_rule="dry") | models.Q(exposure_minutes__isnull=False))
+                ),
+                name="disinf_level_confirmed_complete",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+    @property
+    def is_confirmed(self) -> bool:
+        return self.rule_confirmed_at is not None
+
+    @property
+    def is_complete(self) -> bool:
+        if not self.disinfectant_id:
+            return False
+        return self.release_rule == self.ReleaseRule.AFTER_DRYING or bool(self.exposure_minutes)
+
+    @property
+    def applied_minutes(self) -> int:
+        if self.exposure_minutes:
+            return self.exposure_minutes
+        return self.disinfectant.default_exposure_minutes if self.disinfectant_id else 0
+
+    def clean(self):
+        super().clean()
+        errors = {}
+        if contains_pathogen_term(self.name):
+            errors["name"] = PATHOGEN_MESSAGE
+        if self.disinfectant_id and self.station_id and self.disinfectant.station_id != self.station_id:
+            errors["disinfectant"] = _("Das Desinfektionsmittel gehört zu einer anderen Wache.")
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        # Auch außerhalb von Formularen (Shell, Import): kein Erregername.
+        if contains_pathogen_term(self.name):
+            raise ValidationError({"name": PATHOGEN_MESSAGE})
+        _require_same_station(self.disinfectant, self.station_id, "Desinfektionsstufe (Mittel)")
+        super().save(*args, **kwargs)
+
+
+class DisinfectionProtocol(models.Model):
+    """Revisionssicherer Nachweis einer Fahrzeugdesinfektion nach Stufe des Plans.
+
+    Stufe, Einwirkzeit und Bemerkung sehen nur die durchführende Person,
+    Schichtleitung und Admin (``details_visible_to``); alle anderen sehen
+    „Desinfektion“ mit Datum, Mittel und Person.
+    """
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="disinfection_protocols")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="disinfections")
     performed_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="disinfections")
     disinfectant = models.ForeignKey(DisinfectantMaster, on_delete=models.PROTECT, related_name="protocols")
-    kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.ROUTINE)
+    # Leer nur bei programmatisch angelegten Protokollen: Das Formular verlangt
+    # eine Stufe, Migration 0069 hat allen Altprotokollen eine zugeordnet.
+    level = models.ForeignKey(
+        DisinfectionLevel, on_delete=models.PROTECT, null=True, blank=True, related_name="protocols",
+        verbose_name=_("Stufe"),
+    )
     started_at = models.DateTimeField(default=timezone.now, verbose_name="Beginn Desinfektion")
     exposure_minutes = models.PositiveSmallIntegerField(default=15, verbose_name="Einwirkzeit (Minuten)")
     lock_timer_applied = models.BooleanField(default=True, verbose_name="Einwirkzeit-Sperre angewendet")
@@ -277,8 +402,16 @@ class DisinfectionProtocol(models.Model):
             models.Index(fields=["station", "-started_at"], name="disinf_station_time_idx"),
         ]
 
+    def details_visible_to(self, membership) -> bool:
+        """Stufe, Einwirkzeit und Bemerkung: nur durchführende Person, Schichtleitung, Admin."""
+        if membership is None or membership.station_id != self.station_id:
+            return False
+        return membership.user_id == self.performed_by_id or membership.role in DISINFECTION_DETAIL_ROLES
+
     def save(self, *args, **kwargs):
         _require_same_station(self.vehicle, self.station_id, "Desinfektionsprotokoll (Fahrzeug)")
+        _require_same_station(self.disinfectant, self.station_id, "Desinfektionsprotokoll (Mittel)")
+        _require_same_station(self.level, self.station_id, "Desinfektionsprotokoll (Stufe)")
         super().save(*args, **kwargs)
 
         # Fahrzeug aktualisieren
@@ -287,8 +420,8 @@ class DisinfectionProtocol(models.Model):
             lock_until = self.started_at + timedelta(minutes=self.exposure_minutes)
             self.vehicle.disinfection_locked_until = lock_until
             self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-            # Neutral: Die Art der Desinfektion (Erreger) steht nur im Protokoll,
-            # nie im Fahrzeugstatus, auf Display, Sperrbildschirm oder in der App.
+            # Neutral: Die Stufe steht nur im Protokoll, nie im Fahrzeugzustand,
+            # auf Display, Sperrbildschirm oder in der App.
             self.vehicle.status_note = neutral_disinfection_note(lock_until)
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
 

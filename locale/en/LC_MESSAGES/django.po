@@ -32,11 +32,11 @@ msgstr "%(count)s items need attention"
 msgid "%(done)s von %(total)s erledigt"
 msgstr "%(done)s of %(total)s done"
 
-#: core/module_overview.py:41
+#: core/module_overview.py:43
 msgid "%(due)s Fristen fällig"
 msgstr "%(due)s deadlines due"
 
-#: core/module_overview.py:88
+#: core/module_overview.py:100
 msgid "%(expiring)s Chargen verfallen bald"
 msgstr "%(expiring)s batches expire soon"
 
@@ -100,6 +100,10 @@ msgstr "%(vehicle)s has been decommissioned. Takeovers and disinfections remain 
 msgid "%(vehicle)s ist wieder in Betrieb und steht auf „Außer Dienst“, bis die Besatzung es einsatzbereit meldet."
 msgstr "%(vehicle)s is back in service and stays “Out of service” until the crew reports it ready."
 
+#: core/fleet_views.py:357
+msgid "%(vehicle)s steht jetzt auf „%(status)s“."
+msgstr "%(vehicle)s is now set to “%(status)s”."
+
 #: core/coffee_views.py:664
 msgid "%(what)s über %(amount)s wird durch eine Gegenbuchung ausgeglichen; das Original bleibt sichtbar."
 msgstr "%(what)s of %(amount)s is offset by a counter-entry; the original remains visible."
@@ -149,7 +153,7 @@ msgstr "0 = no monthly fee; the fund then only keeps payments and entries."
 msgid "0 = kein Monatsbeitrag. Änderungen gelten ab dem nächsten neu gebuchten Monat."
 msgstr "0 = no monthly fee. Changes apply from the next newly booked month."
 
-#: core/module_overview.py:41
+#: core/module_overview.py:43
 msgid "1 Frist fällig"
 msgstr "1 deadline due"
 
@@ -213,7 +217,7 @@ msgstr "2. What real data is generated during a visit"
 msgid "2. Welcher Rechner?"
 msgstr "2. Which computer?"
 
-#: templates/core/fleet_vehicle_detail.html:168
+#: templates/core/fleet_vehicle_detail.html:174
 msgid "3-Minuten Schichtübernahme"
 msgstr "3-minute shift takeover"
 
@@ -430,10 +434,10 @@ msgstr "Turn off and delete number"
 msgid "Absenden"
 msgstr "Submit"
 
-#: core/fleet_forms.py:150
-#: templates/core/fleet_dashboard.html:149
-#: templates/core/fleet_vehicle_detail.html:126
-#: templates/core/fleet_vehicle_detail.html:309
+#: core/fleet_forms.py:167
+#: templates/core/fleet_dashboard.html:156
+#: templates/core/fleet_vehicle_detail.html:132
+#: templates/core/fleet_vehicle_detail.html:320
 msgid "AdBlue"
 msgstr "AdBlue"
 
@@ -479,7 +483,7 @@ msgstr "Action"
 msgid "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte."
 msgstr "Actions and structured before/after values, without operational free text."
 
-#: core/audit_labels.py:174
+#: core/audit_labels.py:175
 #: templates/core/defects.html:15
 #: templates/core/display_token_config.html:23
 #: templates/core/display_tokens.html:41
@@ -516,7 +520,7 @@ msgstr "Activation link was already used or revoked."
 msgid "Aktivierungslink wurde widerrufen."
 msgstr "Activation link was revoked."
 
-#: core/fleet_views.py:219
+#: core/fleet_views.py:235
 msgid "Aktualisieren"
 msgstr "Update"
 
@@ -614,13 +618,13 @@ msgstr "All work instructions"
 msgid "Alle Dienstübergaben"
 msgstr "All shift handovers"
 
-#: templates/core/fleet_dashboard.html:56
-#: templates/core/fleet_dashboard.html:184
+#: templates/core/fleet_dashboard.html:60
+#: templates/core/fleet_dashboard.html:191
 msgid "Alle Fahrzeuge"
 msgstr "All vehicles"
 
-#: templates/core/fleet_dashboard.html:66
-#: templates/core/fleet_dashboard.html:67
+#: templates/core/fleet_dashboard.html:71
+#: templates/core/fleet_dashboard.html:72
 msgid "Alle Fahrzeugtypen"
 msgstr "All vehicle types"
 
@@ -751,6 +755,10 @@ msgstr "Acknowledged as read."
 #: templates/core/feedback_inbox.html:36
 msgid "Als „%(label)s“ markieren"
 msgstr "Mark as “%(label)s”"
+
+#: core/audit_labels.py:117
+msgid "Altdaten einmalig bereinigt"
+msgstr "Legacy data cleaned once"
 
 #: templates/registration/mfa_setup.html:45
 msgid "Alternativ oder zusätzlich einen Passkey dieses Geräts registrieren."
@@ -922,7 +930,7 @@ msgstr "Sign-in could not be completed."
 msgid "Anmeldung mit manuellem Code"
 msgstr "Login with manual code"
 
-#: core/audit_labels.py:149
+#: core/audit_labels.py:150
 msgid "Anmeldung per QR-Code"
 msgstr "QR code sign-in"
 
@@ -1033,7 +1041,7 @@ msgstr "App tokens"
 msgid "App-Tokens / API"
 msgstr "App tokens / API"
 
-#: core/audit_labels.py:147
+#: core/audit_labels.py:148
 msgid "App-Zugang"
 msgstr "App access"
 
@@ -1084,11 +1092,7 @@ msgstr "Archived"
 msgid "Art"
 msgstr "Type"
 
-#: templates/core/fleet_vehicle_detail.html:234
-msgid "Art der Desinfektion"
-msgstr "Type of disinfection"
-
-#: core/module_overview.py:90
+#: core/module_overview.py:102
 #: core/wiki_models.py:129
 msgid "Artikel"
 msgstr "Article"
@@ -1131,6 +1135,14 @@ msgstr "Even a demonstration with fictional operational content processes real c
 #: templates/core/audit_log.html:5
 msgid "Audit"
 msgstr "Audit"
+
+#: core/audit_labels.py:190
+msgid "Audit-Einträge mit früheren Einsatzphasen (neutralisiert)"
+msgstr "Audit entries with former mission phases (neutralised)"
+
+#: core/audit_labels.py:191
+msgid "Audit-Einträge nur mit Wechsel der Einsatzphase (gelöscht)"
+msgstr "Audit entries with only a mission phase change (deleted)"
 
 #: templates/core/audit_log.html:6
 msgid "Audit-Ereignisse, horizontal scrollbar auf kleinen Bildschirmen"
@@ -1252,7 +1264,7 @@ msgstr "Issue"
 msgid "Ausgegeben"
 msgstr "Issued"
 
-#: core/audit_labels.py:138
+#: core/audit_labels.py:139
 msgid "Aushang"
 msgstr "Notice"
 
@@ -1297,7 +1309,7 @@ msgstr "Notices"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Descriptive title of the entry (max. 160 characters)."
 
-#: core/audit_labels.py:123
+#: core/audit_labels.py:124
 #: core/views.py:566
 msgid "Ausstattung"
 msgstr "Equipment"
@@ -1376,14 +1388,11 @@ msgstr "Decommissioned medical devices"
 msgid "Außer Betrieb nehmen"
 msgstr "Decommission"
 
-#: core/fleet_models.py:119
-#: templates/core/fleet_vehicle_detail.html:96
+#: core/audit_labels.py:205
+#: core/fleet_models.py:52
+#: templates/core/fleet_vehicle_detail.html:102
 msgid "Außer Dienst"
 msgstr "Out of service"
-
-#: core/fleet_models.py:52
-msgid "Außer Dienst / nicht einsatzklar"
-msgstr "Out of service / not operational"
 
 #: templates/core/sop_detail.html:46
 msgid "Außer Kraft"
@@ -1411,11 +1420,11 @@ msgstr "BIC must have 8 or 11 alphanumeric characters."
 msgid "BIC:"
 msgstr "BIC:"
 
-#: core/fleet_models.py:322
+#: core/fleet_models.py:455
 msgid "BTM-Plombe nicht unversehrt"
 msgstr "Narcotics seal not intact"
 
-#: core/fleet_models.py:316
+#: core/fleet_models.py:449
 msgid "BTM-Plombe unversehrt & geprüft"
 msgstr "Narcotics seal intact & checked"
 
@@ -1478,7 +1487,7 @@ msgstr "Roadworks further away are hidden (1–200 km)."
 msgid "Beantworte jeden Prüfpunkt selbst mit Ja oder Nein. Ein „Nein“ gilt als nicht bestanden: Das Gerät wird gesperrt und ein Mangel angelegt."
 msgstr "Answer every check item yourself with Yes or No. A “No” counts as failed: the device is locked and a defect is created."
 
-#: templates/core/fleet_dashboard.html:178
+#: templates/core/fleet_dashboard.html:185
 #: templates/core/mpg_device_detail.html:30
 #: templates/core/orga_dashboard.html:129
 #: templates/core/pinboard.html:29
@@ -1512,7 +1521,7 @@ msgstr "Waived"
 msgid "Befreiung %(month)s: %(reason)s"
 msgstr "Waiver %(month)s: %(reason)s"
 
-#: templates/core/fleet_vehicle_detail.html:314
+#: templates/core/fleet_vehicle_detail.html:325
 msgid "Befund"
 msgstr "Finding"
 
@@ -1536,7 +1545,7 @@ msgstr "For associations and companies: board or management."
 msgid "Bei der Einrichtung hier auswählen, ob die Oberfläche für Rettungsdienst, Feuerwehr, Polizei oder eine allgemeine Organisationseinheit angepasst werden soll."
 msgstr "During setup, select here whether the interface should be adapted for emergency medical services, fire department, police, or a general organizational unit."
 
-#: templates/core/fleet_vehicle_detail.html:265
+#: templates/core/fleet_vehicle_detail.html:276
 msgid "Bei der Übernahme mit „Nein“ beantwortet:"
 msgstr "Answered “No” during the handover:"
 
@@ -1560,7 +1569,7 @@ msgstr "At every sign-in Wachwerk additionally asks for a six-digit code from an
 msgid "Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."
 msgstr "When a fee is outstanding, to the email address in the account – with transfer QR code (GiroCode), IBAN and amount."
 
-#: templates/core/fleet_vehicle_detail.html:205
+#: templates/core/fleet_vehicle_detail.html:211
 msgid "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für diesen Punkt."
 msgstr "If you answer “No”, the defect report for this item opens after saving."
 
@@ -1621,11 +1630,11 @@ msgstr "Fee from month"
 msgid "Beitrag bis Monat"
 msgstr "Fee until month"
 
-#: templates/core/fleet_vehicle_detail.html:208
+#: templates/core/fleet_vehicle_detail.html:214
 msgid "Bemerkung"
 msgstr "Remark"
 
-#: core/fleet_models.py:268
+#: core/fleet_models.py:393
 msgid "Bemerkung (keine Patienten- oder Einsatzangaben)"
 msgstr "Note (no patient or mission details)"
 
@@ -1721,7 +1730,7 @@ msgstr "Crew notified about disinfection"
 msgid "Beschreibung"
 msgstr "Description"
 
-#: core/module_overview.py:95
+#: core/module_overview.py:107
 msgid "Bestand ausreichend"
 msgstr "stock sufficient"
 
@@ -1782,11 +1791,19 @@ msgstr "Stock with batches and expiry dates. Anything that drops below minimum s
 msgid "Bestätigen"
 msgstr "Confirm"
 
+#: core/fleet_models.py:305
+msgid "Bestätigt am"
+msgstr "Confirmed on"
+
+#: core/fleet_models.py:307
+msgid "Bestätigt von"
+msgstr "Confirmed by"
+
 #: templates/registration/mfa_verify.html:3
 msgid "Bestätigungscode"
 msgstr "Confirmation code"
 
-#: core/audit_labels.py:175
+#: core/audit_labels.py:176
 #: templates/core/coffee.html:103
 #: templates/core/coffee.html:146
 #: templates/core/coffee.html:152
@@ -1814,7 +1831,7 @@ msgstr "Amount in EUR"
 msgid "Betreff"
 msgstr "Subject"
 
-#: templates/core/fleet_vehicle_detail.html:273
+#: templates/core/fleet_vehicle_detail.html:284
 msgid "Betreff des Mangels"
 msgstr "Subject of the defect"
 
@@ -1948,10 +1965,10 @@ msgid "Bitte Eingaben prüfen"
 msgstr "Please check your input"
 
 #: templates/core/fleet_vehicle_detail.html:60
-msgid "Bitte Fahrzeug prüfen und den Status selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei."
-msgstr "Please check the vehicle and set the status yourself. The crew has been notified; the station log never releases vehicles automatically."
+msgid "Bitte Fahrzeug prüfen und den Zustand selbst setzen. Die Besatzung wurde benachrichtigt; das Wachbuch gibt Fahrzeuge nicht automatisch frei."
+msgstr "Please check the vehicle and set its condition yourself. The crew has been notified; the station log never releases vehicles automatically."
 
-#: core/fleet_forms.py:119
+#: core/fleet_forms.py:136
 #: core/mpg_forms.py:136
 msgid "Bitte Ja oder Nein wählen."
 msgstr "Please choose Yes or No."
@@ -1964,6 +1981,10 @@ msgstr "Please enter the name and email of the data protection officer."
 #: core/templatetags/js_i18n.py:68
 msgid "Bitte Passphrase eingeben."
 msgstr "Please enter a passphrase."
+
+#: core/fleet_forms.py:104
+msgid "Bitte Stufe wählen"
+msgstr "Please choose a level"
 
 #: core/forms.py:93
 msgid "Bitte Tag und Monat angeben oder die Anzeige deaktivieren."
@@ -1981,17 +2002,25 @@ msgstr "Please select a station"
 msgid "Bitte das Ergebnis wählen."
 msgstr "Please choose the result."
 
-#: core/fleet_forms.py:129
+#: core/fleet_forms.py:146
 msgid "Bitte den Füllstand wählen."
 msgstr "Please choose the fill level."
 
-#: core/fleet_forms.py:147
+#: core/fleet_views.py:362
+msgid "Bitte den Grund der Einschränkung als Mangel melden."
+msgstr "Please report the reason for the restriction as a defect."
+
+#: core/fleet_forms.py:164
 msgid "Bitte den Sauerstoffdruck eintragen."
 msgstr "Please enter the oxygen pressure."
 
-#: core/fleet_forms.py:140
+#: core/fleet_forms.py:157
 msgid "Bitte den km-Stand eintragen."
 msgstr "Please enter the odometer reading."
+
+#: core/fleet_models.py:220
+msgid "Bitte die Stufe nach Umfang oder Wirkbereich benennen, nicht nach Erregern."
+msgstr "Please name the level by scope or spectrum of activity, not by pathogen."
 
 #: core/forms.py:753
 msgid "Bitte ein Bild wählen oder Entfernen markieren."
@@ -2001,6 +2030,10 @@ msgstr "Please select an image or check Remove."
 #: core/views.py:764
 msgid "Bitte eine Datei auswählen."
 msgstr "Please choose a file."
+
+#: core/fleet_forms.py:105
+msgid "Bitte eine Stufe wählen."
+msgstr "Please choose a level."
 
 #: core/forms.py:693
 msgid "Bitte eine Wache auswählen."
@@ -2051,7 +2084,7 @@ msgstr "Please no patient, incident or other confidential data."
 msgid "Bitte keine echten Namen oder Daten eingeben."
 msgstr "Please do not enter real names or data."
 
-#: templates/core/fleet_vehicle_detail.html:266
+#: templates/core/fleet_vehicle_detail.html:277
 msgid "Bitte kurz beschreiben und den Mangel erfassen."
 msgstr "Please describe it briefly and record the defect."
 
@@ -2178,7 +2211,7 @@ msgstr "Celeron J4105 or Pentium J5005; up to 8 GB; M.2 SATA SSD"
 msgid "Celeron J4105, 4 Kerne; 1 RAM-Steckplatz (8 GB laut Datenblatt); M.2-SATA-SSD"
 msgstr "Celeron J4105, 4 cores; 1 RAM slot (8 GB according to the datasheet); M.2 SATA SSD"
 
-#: core/module_overview.py:94
+#: core/module_overview.py:106
 msgid "Charge"
 msgstr "batch"
 
@@ -2186,7 +2219,7 @@ msgstr "batch"
 msgid "Charge sofort sperren & Quarantäne verhängen"
 msgstr "Lock batch immediately & impose quarantine"
 
-#: core/module_overview.py:94
+#: core/module_overview.py:106
 msgid "Chargen"
 msgstr "batches"
 
@@ -2206,7 +2239,7 @@ msgstr "Batches and expiry by FEFO, minimum stock and a ready-made reorder propo
 msgid "Chargennummer (Lot):"
 msgstr "Batch number (lot):"
 
-#: core/audit_labels.py:182
+#: core/audit_labels.py:183
 msgid "Chat"
 msgstr "Chat"
 
@@ -2232,7 +2265,7 @@ msgstr "Chat key (E2EE)"
 msgid "Chat-Schlüssel einrichten"
 msgstr "Set up chat key"
 
-#: core/audit_labels.py:151
+#: core/audit_labels.py:152
 msgid "Chatgruppe"
 msgstr "Chat group"
 
@@ -2240,7 +2273,7 @@ msgstr "Chat group"
 msgid "Chatgruppe angelegt"
 msgstr "Chat group created"
 
-#: core/audit_labels.py:137
+#: core/audit_labels.py:138
 msgid "Chatnachricht"
 msgstr "Chat message"
 
@@ -2252,7 +2285,7 @@ msgstr "Chat message hidden"
 msgid "Chatnachricht gesendet"
 msgstr "Chat message sent"
 
-#: core/audit_labels.py:129
+#: core/audit_labels.py:130
 #: core/views.py:577
 msgid "Checkliste"
 msgstr "checklist"
@@ -2265,7 +2298,7 @@ msgstr "Checklist completed"
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
-#: core/audit_labels.py:181
+#: core/audit_labels.py:182
 #: core/navigation.py:31
 #: core/navigation.py:58
 #: core/views.py:577
@@ -2277,11 +2310,11 @@ msgstr "Checklist was marked as completed."
 msgid "Checklisten"
 msgstr "Checklists"
 
-#: core/audit_labels.py:128
+#: core/audit_labels.py:129
 msgid "Checklisten-Abschluss"
 msgstr "Checklist completion"
 
-#: core/audit_labels.py:144
+#: core/audit_labels.py:145
 msgid "Checklisten-Rhythmus"
 msgstr "Checklist schedule"
 
@@ -2301,7 +2334,7 @@ msgstr "Stored client-side encrypted"
 msgid "Clientseitige Verschlüsselung"
 msgstr "Client-side encryption"
 
-#: templates/core/fleet_dashboard.html:171
+#: templates/core/fleet_dashboard.html:178
 msgid "Cockpit & Schichtübernahme"
 msgstr "Cockpit & shift takeover"
 
@@ -2415,11 +2448,15 @@ msgstr "Save layout"
 msgid "Darstellung: Reihenfolge der Bereiche"
 msgstr "Layout: order of sections"
 
-#: templates/core/fleet_vehicle_detail.html:54
-msgid "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es nicht einsatzbereit gemeldet werden."
-msgstr "Per RKI/VAH guidance the vehicle is locked until <strong>%(until)s</strong>. It cannot be reported ready for service before the contact time has elapsed."
+#: core/fleet_models.py:356
+msgid "Das Desinfektionsmittel gehört zu einer anderen Wache."
+msgstr "The disinfectant belongs to another station."
 
-#: core/fleet_views.py:311
+#: templates/core/fleet_vehicle_detail.html:54
+msgid "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es weder einsatzbereit noch eingeschränkt gemeldet werden."
+msgstr "Per RKI/VAH guidance the vehicle is locked until <strong>%(until)s</strong>. It cannot be reported ready for service or restricted before the contact time has elapsed."
+
+#: core/fleet_views.py:336
 msgid "Das Fahrzeug ist noch in der Einwirkzeit der Desinfektion. Freigabe in %(mins)s Min. möglich."
 msgstr "The vehicle is still within the disinfection contact time. Release possible in %(mins)s min."
 
@@ -2584,7 +2621,7 @@ msgstr "Privacy-compliant birthday display for team members (only with consent).
 msgid "Datum"
 msgstr "Date"
 
-#: templates/core/fleet_dashboard.html:197
+#: templates/core/fleet_dashboard.html:204
 msgid "Datum / Uhrzeit"
 msgstr "Date / time"
 
@@ -2725,8 +2762,8 @@ msgid "Den Sperrbildschirm mit Wachen-Code zeigt nur ein Gerät, das ein Admin f
 msgstr "Only a device approved by an admin shows the lock screen with the station code. There are two ways:"
 
 #: templates/core/fleet_vehicle_form.html:94
-msgid "Den Status ändert das Fahrzeug-Cockpit, damit Desinfektionssperre und Protokoll gelten."
-msgstr "The status is changed in the vehicle cockpit so that the disinfection lock and the log apply."
+msgid "Den Zustand ändert das Fahrzeug-Cockpit, damit Desinfektionssperre und Protokoll gelten."
+msgstr "The condition is changed in the vehicle cockpit so that the disinfection lock and the log apply."
 
 #: templates/registration/mfa_setup.html:30
 msgid "Den sechsstelligen Code aus der App hier eingeben:"
@@ -2885,7 +2922,7 @@ msgstr "The station chat runs in a Signal group of your station. Messages and hi
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 msgstr "The cache resides in the process. It is empty after a restart and is not permanent storage."
 
-#: core/fleet_forms.py:200
+#: core/fleet_forms.py:217
 msgid "Der km-Stand darf nicht unter dem letzten Stand (%(km)s km) liegen."
 msgstr "The odometer reading must not be below the last reading (%(km)s km)."
 
@@ -2901,16 +2938,14 @@ msgstr "The complete source code is licensed under the AGPL-3.0. There is no cen
 msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
 msgstr "The complete source code is licensed under AGPL-3.0. Every station can review, run and improve it."
 
-#: core/fleet_models.py:120
+#: core/fleet_models.py:50
+#: templates/core/fleet_dashboard.html:42
+#: templates/core/fleet_vehicle_detail.html:342
+#: templates/core/fleet_vehicle_detail.html:345
 msgid "Desinfektion"
 msgstr "Disinfection"
 
-#: templates/core/fleet_dashboard.html:38
-msgid "Desinfektion (Gesperrt)"
-msgstr "Disinfection (locked)"
-
-#: core/fleet_models.py:53
-#: templates/core/fleet_dashboard.html:113
+#: templates/core/fleet_dashboard.html:118
 msgid "Desinfektion (gesperrt)"
 msgstr "Disinfection (locked)"
 
@@ -2918,31 +2953,44 @@ msgstr "Disinfection (locked)"
 msgid "Desinfektion bis"
 msgstr "Disinfection until"
 
-#: core/fleet_models.py:213
+#: core/fleet_models.py:248
 msgid "Desinfektion bis %(time)s Uhr"
 msgstr "Disinfection until %(time)s"
 
-#: core/fleet_views.py:358
+#: templates/core/fleet_vehicle_detail.html:265
+msgid "Desinfektion erfassen"
+msgstr "Record disinfection"
+
+#: core/fleet_views.py:392
 msgid "Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit)."
 msgstr "Disinfection recorded: %(vehicle)s is locked until %(time)s (contact time)."
 
-#: core/fleet_views.py:363
+#: core/fleet_views.py:397
 msgid "Desinfektion für %(vehicle)s erfasst."
 msgstr "Disinfection recorded for %(vehicle)s."
 
-#: templates/core/fleet_vehicle_detail.html:254
-msgid "Desinfektion starten & Fahrzeug sperren"
-msgstr "Start disinfection & lock vehicle"
+#: templates/core/fleet_vehicle_detail.html:227
+msgid "Desinfektion nach den Stufen der Wache, mit Einwirkzeit-Sperre."
+msgstr "Disinfection by the station's levels, with contact time lock."
 
 #: templates/core/fleet_vehicle_detail.html:52
 msgid "Desinfektions-Einwirkzeit läuft"
 msgstr "Disinfection contact time running"
 
-#: templates/core/fleet_vehicle_detail.html:323
+#: core/audit_labels.py:193
+msgid "Desinfektionsbemerkungen aus der Zeit vor 0.26.1"
+msgstr "Disinfection notes from before 0.26.1"
+
+#: templates/core/fleet_vehicle_detail.html:334
 msgid "Desinfektionsbuch-Historie"
 msgstr "Disinfection log history"
 
-#: templates/core/fleet_vehicle_detail.html:226
+#: core/fleet_models.py:298
+#: templates/core/fleet_dashboard.html:206
+msgid "Desinfektionsmittel"
+msgstr "Disinfectant"
+
+#: templates/core/fleet_vehicle_detail.html:240
 msgid "Desinfektionsmittel (VAH-gelistet)"
 msgstr "Disinfectant (VAH-listed)"
 
@@ -2950,15 +2998,20 @@ msgstr "Disinfectant (VAH-listed)"
 msgid "Desinfektionsmittel auffüllen"
 msgstr "Refill disinfectant"
 
-#: core/fleet_views.py:365
-msgid "Desinfektionsprotokoll nicht gespeichert. Bitte die Angaben prüfen."
-msgstr "Disinfection record not saved. Please check the entries."
+#: templates/core/fleet_vehicle_detail.html:342
+#: templates/core/fleet_vehicle_detail.html:345
+msgid "Desinfektionsmittel: %(name)s"
+msgstr "Disinfectant: %(name)s"
 
-#: templates/core/fleet_dashboard.html:201
+#: core/fleet_views.py:380
+msgid "Desinfektionsprotokoll nicht gespeichert. Bitte die markierten Angaben prüfen."
+msgstr "Disinfection record not saved. Please check the highlighted entries."
+
+#: templates/core/fleet_dashboard.html:207
 msgid "Desinfektor / Personal"
 msgstr "Disinfector / staff"
 
-#: core/audit_labels.py:168
+#: core/audit_labels.py:169
 #: templates/core/mpg_dashboard.html:168
 #: templates/core/warehouse_reorder.html:67
 msgid "Details"
@@ -3109,8 +3162,8 @@ msgstr "The technical protection concept includes the following measures; their 
 msgid "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
 msgstr "The overview shows what needs attention first: urgent handovers, due deadlines, locked devices, low stock. Everything unremarkable sits in one quiet line."
 
-#: core/audit_labels.py:127
-#: core/module_overview.py:108
+#: core/audit_labels.py:128
+#: core/module_overview.py:120
 msgid "Dienstanweisung"
 msgstr "Work instruction"
 
@@ -3118,7 +3171,7 @@ msgstr "Work instruction"
 msgid "Dienstanweisung mit Versionsstand und Freigabevermerk (z. B. ÄLRD, MPBetreibV, DIN EN ISO 9001)."
 msgstr "Work instruction with version status and approval note (e.g. ÄLRD, MPBetreibV, DIN EN ISO 9001)."
 
-#: core/module_overview.py:108
+#: core/module_overview.py:120
 msgid "Dienstanweisungen"
 msgstr "Work instructions"
 
@@ -3301,10 +3354,6 @@ msgstr "This area is locked in the demo because it affects more than your own de
 msgid "Dieser Browser ist bereits das Terminal „%(label)s“."
 msgstr "This browser is already the terminal “%(label)s”."
 
-#: core/fleet_views.py:303
-msgid "Dieser Fahrzeugstatus kann nicht gewählt werden."
-msgstr "This vehicle status cannot be selected."
-
 #: templates/core/wiki_detail.html:16
 msgid "Dieser Hinweis ist archiviert und für reguläre Mitglieder nicht sichtbar."
 msgstr "This note is archived and not visible to regular members."
@@ -3325,7 +3374,11 @@ msgstr "This month is already waived."
 msgid "Dieser QR-Code führt direkt zu diesem mobilen Geräte-Cockpit. Drucke ihn aus und klebe ihn witterungsfest auf das Gerät."
 msgstr "This QR code leads directly to this mobile device cockpit. Print it and stick it on the device in a weatherproof way."
 
-#: core/evidence.py:91
+#: core/fleet_views.py:327
+msgid "Dieser Zustand kann nicht gewählt werden."
+msgstr "This condition cannot be selected."
+
+#: core/evidence.py:96
 msgid "Dieses Fahrzeug ist außer Betrieb genommen. Es nimmt keine neuen Einträge an."
 msgstr "This vehicle has been decommissioned. It accepts no new entries."
 
@@ -3349,7 +3402,7 @@ msgstr "Set up this device as station terminal"
 msgid "Dieses Gerät ist als Terminal eingerichtet."
 msgstr "This device is set up as terminal."
 
-#: core/evidence.py:92
+#: core/evidence.py:97
 msgid "Dieses Gerät ist außer Betrieb genommen. Kontrollen, Prüfungen, Einweisungen und Mängel können nicht mehr erfasst werden."
 msgstr "This device has been decommissioned. Checks, inspections, instructions and defects can no longer be recorded."
 
@@ -3394,7 +3447,7 @@ msgstr "Right here on the screen"
 msgid "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgstr "Direct team coordination and optional Signal group integration."
 
-#: core/audit_labels.py:153
+#: core/audit_labels.py:154
 msgid "Direktnachricht"
 msgstr "Direct message"
 
@@ -3436,7 +3489,7 @@ msgstr "Urgent"
 msgid "Dringend (Sofort außer Betrieb)"
 msgstr "Urgent (out of service immediately)"
 
-#: templates/core/fleet_vehicle_detail.html:282
+#: templates/core/fleet_vehicle_detail.html:293
 msgid "Dringend / Akuter Ausfall (Fahrzeug sofort in Werkstatt)"
 msgstr "Urgent / acute failure (vehicle to workshop immediately)"
 
@@ -3450,12 +3503,12 @@ msgstr "Urgent handover"
 msgid "Dringende Übergaben"
 msgstr "Urgent handovers"
 
-#: core/fleet_views.py:444
+#: core/fleet_views.py:476
 msgid "Dringender Mangel #%(id)s: %(title)s"
 msgstr "Urgent defect #%(id)s: %(title)s"
 
-#: core/audit_labels.py:165
-#: templates/core/fleet_vehicle_detail.html:278
+#: core/audit_labels.py:166
+#: templates/core/fleet_vehicle_detail.html:289
 msgid "Dringlichkeit"
 msgstr "Urgency"
 
@@ -3641,7 +3694,7 @@ msgstr "A second device is requesting approval for a login to this station."
 msgid "Einbuchen"
 msgstr "Book in"
 
-#: core/fleet_views.py:300
+#: core/fleet_views.py:324
 msgid "Eine Desinfektion wird über das Desinfektionsprotokoll erfasst."
 msgstr "A disinfection is recorded via the disinfection log."
 
@@ -3669,6 +3722,10 @@ msgstr "A monitor with HDMI or DisplayPort and USB touch, 15 to 22 inches"
 msgid "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird"
 msgstr "A USB stick or second disk that is kept in a safe place"
 
+#: core/fleet_models.py:49
+#: templates/core/fleet_dashboard.html:38
+#: templates/core/fleet_dashboard.html:62
+#: templates/core/fleet_vehicle_detail.html:96
 #: templates/core/mpg_dashboard.html:149
 #: templates/core/mpg_device_detail.html:75
 msgid "Eingeschränkt"
@@ -3707,7 +3764,7 @@ msgstr "Purchase recorded. Please put the receipt in the cash box."
 msgid "Einkauf eintragen"
 msgstr "Record purchase"
 
-#: core/audit_labels.py:146
+#: core/audit_labels.py:147
 msgid "Einladung"
 msgstr "Invitation"
 
@@ -3765,20 +3822,17 @@ msgstr "Setup code"
 msgid "Einrichtungscode eingeben"
 msgstr "Enter setup code"
 
+#: core/audit_labels.py:201
+#: core/audit_labels.py:202
+#: core/audit_labels.py:203
+#: core/audit_labels.py:204
 #: core/fleet_models.py:48
-#: core/fleet_models.py:123
 #: templates/core/fleet_dashboard.html:34
-#: templates/core/fleet_dashboard.html:57
-#: templates/core/fleet_dashboard.html:119
-#: templates/core/fleet_vehicle_detail.html:90
+#: templates/core/fleet_dashboard.html:61
+#: templates/core/fleet_dashboard.html:126
+#: templates/core/fleet_vehicle_detail.html:93
 msgid "Einsatzbereit"
 msgstr "Ready for service"
-
-#: core/fleet_models.py:49
-#: core/fleet_models.py:50
-#: core/fleet_models.py:51
-msgid "Einsatzbereit (alter Status)"
-msgstr "Ready for service (legacy status)"
 
 #: templates/core/vorfuehrung.html:52
 msgid "Einsatzbereitschaft, Füllstände und HU/UVV-Fristen je Fahrzeug. Medizingeräte mit STK- und MTK-Fristen; ein Gerät mit offenem Mangel bleibt gesperrt, bis die Schichtleitung es freigibt."
@@ -3868,17 +3922,25 @@ msgstr "Save instruction"
 msgid "Einweisungen nach § 11 MPBetreibV"
 msgstr "Instructions per § 11 MPBetreibV"
 
-#: templates/core/fleet_dashboard.html:200
-msgid "Einwirkzeit"
-msgstr "Contact time"
+#: templates/core/fleet_vehicle_detail.html:342
+msgid "Einwirkzeit %(minutes)s Min."
+msgstr "Contact time %(minutes)s min"
 
-#: templates/core/fleet_vehicle_detail.html:239
+#: templates/core/fleet_vehicle_detail.html:249
 msgid "Einwirkzeit (Min)"
 msgstr "Contact time (min)"
+
+#: core/fleet_models.py:303
+msgid "Einwirkzeit (Minuten)"
+msgstr "Contact time (minutes)"
 
 #: templates/core/fleet_vehicle_detail.html:59
 msgid "Einwirkzeit abgelaufen – Freigabe durch die Besatzung"
 msgstr "Contact time elapsed – release by the crew"
+
+#: templates/core/fleet_dashboard.html:130
+msgid "Einwirkzeit läuft bis %(time)s Uhr"
+msgstr "Contact time running until %(time)s"
 
 #: templates/core/coffee.html:82
 msgid "Einzahlen an die Gemeinschaftskasse"
@@ -4009,7 +4071,7 @@ msgstr "Reminders via Signal"
 msgid "Erinnerungen und Hinweise per Signal"
 msgstr "Reminders and notices via Signal"
 
-#: templates/core/fleet_dashboard.html:222
+#: templates/core/fleet_dashboard.html:227
 #: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Erkannt: "
@@ -4035,7 +4097,7 @@ msgstr "Only JPEG, PNG, WebP and PDF are allowed."
 msgid "Erledigt"
 msgstr "Done"
 
-#: core/audit_labels.py:132
+#: core/audit_labels.py:133
 msgid "Erledigte Wachaufgabe"
 msgstr "Completed station task"
 
@@ -4067,7 +4129,7 @@ msgstr "Just try it out"
 msgid "Erst ohne Anmeldung ansehen: zur Vorführung"
 msgstr "Look around without logging in first: open the presentation"
 
-#: core/fleet_forms.py:193
+#: core/fleet_forms.py:210
 msgid "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
 msgstr "First handover: please enter the mileage from the odometer."
 
@@ -4158,7 +4220,7 @@ msgstr "Esc closes the display"
 msgid "Escape zum Zurücksetzen"
 msgstr "Escape to reset"
 
-#: templates/core/fleet_vehicle_detail.html:262
+#: templates/core/fleet_vehicle_detail.html:273
 msgid "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt."
 msgstr "Escalates immediately to the station defect board and notifies the workshop if urgent."
 
@@ -4215,14 +4277,15 @@ msgstr "Specialist modules: vehicles, medical devices with inspection deadlines,
 msgid "Fahrgestell-Hersteller"
 msgstr "Chassis manufacturer"
 
-#: core/audit_labels.py:126
-#: core/module_overview.py:44
+#: core/audit_labels.py:127
+#: core/module_overview.py:50
+#: core/module_overview.py:56
 #: core/wachalltag_models.py:61
-#: templates/core/fleet_dashboard.html:198
+#: templates/core/fleet_dashboard.html:205
 msgid "Fahrzeug"
 msgstr "Vehicle"
 
-#: core/fleet_views.py:179
+#: core/fleet_views.py:195
 msgid "Fahrzeug %(vehicle)s angelegt."
 msgstr "Vehicle %(vehicle)s created."
 
@@ -4238,11 +4301,11 @@ msgstr "Decommission this vehicle? It disappears from the overview, the display 
 msgid "Fahrzeug bearbeiten"
 msgstr "Edit vehicle"
 
-#: core/fleet_views.py:218
+#: core/fleet_views.py:234
 msgid "Fahrzeug bearbeiten: %(vehicle)s"
 msgstr "Edit vehicle: %(vehicle)s"
 
-#: core/fleet_views.py:187
+#: core/fleet_views.py:203
 msgid "Fahrzeug speichern"
 msgstr "Save vehicle"
 
@@ -4258,11 +4321,11 @@ msgstr "Return this vehicle to service? It then stays “Out of service” until
 msgid "Fahrzeug-/Gerätestatus sowie Schlüssel- und Poolausgabe auf einen Blick."
 msgstr "Vehicle/device status as well as key and pool issuance at a glance."
 
-#: templates/core/fleet_dashboard.html:98
+#: templates/core/fleet_dashboard.html:103
 msgid "Fahrzeug-Matrix"
 msgstr "Vehicle matrix"
 
-#: templates/core/fleet_dashboard.html:224
+#: templates/core/fleet_dashboard.html:229
 msgid "Fahrzeug-QR scannen"
 msgstr "Scan vehicle QR"
 
@@ -4282,11 +4345,12 @@ msgstr "Vehicle file / special features"
 msgid "Fahrzeugcheck"
 msgstr "Vehicle check"
 
-#: core/fleet_views.py:200
+#: core/fleet_views.py:216
 msgid "Fahrzeugdaten bearbeiten Schichtleitung und Admin."
 msgstr "Vehicle data is edited by shift leads and admins."
 
-#: core/module_overview.py:44
+#: core/module_overview.py:50
+#: core/module_overview.py:56
 #: templates/core/_display_surface.html:46
 #: templates/core/terminal_home.html:67
 msgid "Fahrzeuge"
@@ -4300,11 +4364,11 @@ msgstr "Vehicles & devices"
 msgid "Fahrzeuge & Hygiene"
 msgstr "Vehicles & hygiene"
 
-#: templates/core/fleet_dashboard.html:50
+#: templates/core/fleet_dashboard.html:54
 msgid "Fahrzeuge gesamt"
 msgstr "Total vehicles"
 
-#: core/fleet_views.py:170
+#: core/fleet_views.py:186
 msgid "Fahrzeuge legen Schichtleitung und Admin an."
 msgstr "Vehicles are created by shift leads and admins."
 
@@ -4333,11 +4397,11 @@ msgstr "Vehicles/equipment"
 msgid "Fahrzeugfreigabe mit Desinfektionssperre"
 msgstr "Vehicle release with disinfection lock"
 
-#: core/module_overview.py:50
+#: core/module_overview.py:62
 msgid "Fahrzeugfrist"
 msgstr "vehicle deadline"
 
-#: core/module_overview.py:50
+#: core/module_overview.py:62
 msgid "Fahrzeugfristen"
 msgstr "vehicle deadlines"
 
@@ -4345,30 +4409,31 @@ msgstr "vehicle deadlines"
 msgid "Fahrzeugstammdaten & Kennzeichnung"
 msgstr "Vehicle master data & identification"
 
-#: core/audit_labels.py:171
+#: templates/core/fleet_vehicle_form.html:49
+msgid "Fahrzeugtyp"
+msgstr "Vehicle type"
+
+#: core/audit_labels.py:172
 #: core/display_views.py:386
+#: core/fleet_models.py:77
 #: core/models.py:193
 #: templates/core/fleet_vehicle_detail.html:70
 #: templates/core/fleet_vehicle_form.html:85
 #: templates/core/fleet_vehicle_form.html:92
-msgid "Fahrzeugstatus"
-msgstr "Vehicle status"
+msgid "Fahrzeugzustand"
+msgstr "Vehicle condition"
 
 #: core/audit_labels.py:35
-msgid "Fahrzeugstatus geändert"
-msgstr "Vehicle status changed"
+msgid "Fahrzeugzustand geändert"
+msgstr "Vehicle condition changed"
 
 #: templates/core/landing.html:79
-msgid "Fahrzeugstatus, fällige Gerätefristen, Materialwarnungen, Termine und dringende Übergaben – aktualisiert sich von selbst."
-msgstr "Vehicle status, due device deadlines, supply alerts, appointments and urgent handovers – updates itself."
+msgid "Fahrzeugzustand, fällige Gerätefristen, Materialwarnungen, Termine und dringende Übergaben – aktualisiert sich von selbst."
+msgstr "Vehicle condition, due device deadlines, supply alerts, appointments and urgent handovers – updates itself."
 
 #: templates/core/more.html:77
-msgid "Fahrzeugstatus, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen."
-msgstr "Vehicle status, check at shift start, disinfection and inspection deadlines."
-
-#: templates/core/fleet_vehicle_form.html:49
-msgid "Fahrzeugtyp"
-msgstr "Vehicle type"
+msgid "Fahrzeugzustand, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen."
+msgstr "Vehicle condition, check at shift start, disinfection and inspection deadlines."
 
 #: templates/core/landing.html:108
 msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
@@ -4460,7 +4525,7 @@ msgid "Filter"
 msgstr "Filter"
 
 #: templates/core/diagnostics_events.html:25
-#: templates/core/fleet_dashboard.html:72
+#: templates/core/fleet_dashboard.html:77
 #: templates/core/mpg_dashboard.html:75
 #: templates/core/orga_dashboard.html:88
 #: templates/core/warehouse_dashboard.html:75
@@ -4502,6 +4567,10 @@ msgstr "Privacy questions"
 #: core/task_board.py:44
 msgid "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten."
 msgstr "Freely usable for one-time station tasks without patient data."
+
+#: core/fleet_models.py:301
+msgid "Freigabe"
+msgstr "Release"
 
 #: templates/core/_display_surface.html:47
 msgid "Freigabe durch die Besatzung offen"
@@ -4560,7 +4629,7 @@ msgstr "Voluntary display"
 msgid "Freiwillige Teamfunktion"
 msgstr "Voluntary team feature"
 
-#: core/audit_labels.py:170
+#: core/audit_labels.py:171
 #: templates/core/defect_detail.html:17
 #: templates/core/task_row.html:14
 msgid "Frist"
@@ -4570,11 +4639,11 @@ msgstr "Deadline"
 msgid "Frist (optional)"
 msgstr "Deadline (optional)"
 
-#: templates/core/fleet_dashboard.html:157
+#: templates/core/fleet_dashboard.html:164
 msgid "Fristen & Prüfungen"
 msgstr "Deadlines & inspections"
 
-#: templates/core/fleet_dashboard.html:60
+#: templates/core/fleet_dashboard.html:65
 msgid "Fristen fällig"
 msgstr "Deadlines due"
 
@@ -4598,7 +4667,7 @@ msgstr "Fleet & vehicles"
 msgid "Fuhrpark & Hygiene"
 msgstr "Fleet & hygiene"
 
-#: templates/core/fleet_dashboard.html:55
+#: templates/core/fleet_dashboard.html:59
 msgid "Fuhrpark Ansicht"
 msgstr "Fleet view"
 
@@ -4672,7 +4741,7 @@ msgstr "Due ≤ 30 days"
 msgid "Fälligkeitsdatum:"
 msgstr "Due date:"
 
-#: templates/core/fleet_vehicle_detail.html:104
+#: templates/core/fleet_vehicle_detail.html:110
 msgid "Füllstände & Telemetrie"
 msgstr "Fill levels & telemetry"
 
@@ -4866,7 +4935,7 @@ msgstr "Set birthday"
 msgid "Geburtstage"
 msgstr "Birthdays"
 
-#: core/audit_labels.py:141
+#: core/audit_labels.py:142
 msgid "Geburtstagsanzeige"
 msgstr "Birthday display"
 
@@ -4942,7 +5011,7 @@ msgstr "Community fund"
 msgid "Gemieteter Cloud-Server mit 2 GB RAM in einem deutschen Rechenzentrum und eine eigene (Sub-)Domain."
 msgstr "A rented cloud server with 2 GB of RAM in a German data centre and your own (sub)domain."
 
-#: templates/core/fleet_vehicle_detail.html:287
+#: templates/core/fleet_vehicle_detail.html:298
 msgid "Genaue Beschreibung"
 msgstr "Detailed description"
 
@@ -5052,7 +5121,7 @@ msgstr "Device passport & training"
 msgid "Gerätestammdaten & Identifikation"
 msgstr "Device master data & identification"
 
-#: core/audit_labels.py:172
+#: core/audit_labels.py:173
 msgid "Gerätestatus"
 msgstr "Device status"
 
@@ -5064,7 +5133,7 @@ msgstr "Total station stock:"
 msgid "Gesamten Kalender als ICS"
 msgstr "Entire calendar as ICS"
 
-#: templates/core/fleet_vehicle_detail.html:149
+#: templates/core/fleet_vehicle_detail.html:155
 msgid "Gesamtstatus Fristenampel"
 msgstr "Overall deadline traffic light status"
 
@@ -5085,7 +5154,7 @@ msgstr "Sent"
 msgid "Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."
 msgstr "\\\"Display statutory public holidays of the selected federal state in calendar.\\\""
 
-#: templates/core/fleet_vehicle_detail.html:142
+#: templates/core/fleet_vehicle_detail.html:148
 msgid "Gesetzliche Fristen & Prüfungen"
 msgstr "Statutory deadlines & inspections"
 
@@ -5191,6 +5260,10 @@ msgstr "Reason"
 msgid "Grund:"
 msgstr "Reason:"
 
+#: core/fleet_models.py:230
+msgid "Grunddesinfektion"
+msgstr "Deep disinfection"
+
 #: templates/core/mpg_device_detail.html:463
 msgid "Gruppe einweisen"
 msgstr "Instruct group"
@@ -5199,7 +5272,7 @@ msgstr "Instruct group"
 msgid "Gruppe für Kaffeekasse und Hinweise"
 msgstr "Group for coffee fund and notices"
 
-#: core/audit_labels.py:152
+#: core/audit_labels.py:153
 msgid "Gruppennachricht"
 msgstr "Group message"
 
@@ -5267,7 +5340,7 @@ msgstr "HTTP status code of the server response"
 msgid "HTTPS und Zertifikat"
 msgstr "HTTPS and certificate"
 
-#: core/module_overview.py:51
+#: core/module_overview.py:63
 msgid "HU oder UVV fällig"
 msgstr "inspection due"
 
@@ -5332,7 +5405,7 @@ msgstr "Main navigation"
 msgid "Hauptrufnummer*"
 msgstr "Main phone number*"
 
-#: templates/core/fleet_vehicle_detail.html:144
+#: templates/core/fleet_vehicle_detail.html:150
 msgid "Hauptuntersuchung (§ 29 StVZO)"
 msgstr "Main inspection (§ 29 StVZO)"
 
@@ -5610,7 +5683,7 @@ msgstr "Legal notice (provider)"
 msgid "Impressum ansehen"
 msgstr "View legal notice"
 
-#: core/audit_labels.py:150
+#: core/audit_labels.py:151
 msgid "Impressum und Datenschutz"
 msgstr "Legal notice and privacy"
 
@@ -5639,11 +5712,11 @@ msgstr "In progress"
 msgid "In Bearbeitung"
 msgstr "In progress"
 
-#: templates/core/fleet_dashboard.html:58
+#: templates/core/fleet_dashboard.html:63
 msgid "In Desinfektion"
 msgstr "In disinfection"
 
-#: core/fleet_models.py:229
+#: core/fleet_models.py:264
 msgid "In Gebrauch"
 msgstr "In use"
 
@@ -5672,6 +5745,10 @@ msgstr "In bar"
 #: templates/core/orga_dashboard.html:245
 msgid "In Notfall-Schnellwahlleiste anzeigen"
 msgstr "Show in emergency speed-dial bar"
+
+#: core/fleet_models.py:304
+msgid "In Verwendung"
+msgstr "In use"
 
 #: templates/core/mpg_dashboard.html:151
 msgid "In Wartung"
@@ -5861,7 +5938,7 @@ msgstr "JPEG, PNG, WebP or PDF, at most %(max_upload_mb)s MB per file."
 msgid "JPEG, PNG, WebP oder PDF, maximal %(max_upload_mb)s MB."
 msgstr "JPEG, PNG, WebP or PDF, at most %(max_upload_mb)s MB."
 
-#: core/fleet_forms.py:106
+#: core/fleet_forms.py:123
 #: core/mpg_forms.py:120
 msgid "Ja"
 msgstr "Yes"
@@ -5901,9 +5978,9 @@ msgstr "Sign in now"
 msgid "KW %(week)s"
 msgstr "CW %(week)s"
 
-#: core/audit_labels.py:133
-#: core/audit_labels.py:135
-#: core/audit_labels.py:180
+#: core/audit_labels.py:134
+#: core/audit_labels.py:136
+#: core/audit_labels.py:181
 #: core/coffee_models.py:52
 #: core/navigation.py:28
 #: core/navigation.py:56
@@ -5967,7 +6044,7 @@ msgstr "Coffee fund: fees and payments of the participants."
 msgid "Kaffeekassen"
 msgstr "Coffee funds"
 
-#: core/audit_labels.py:179
+#: core/audit_labels.py:180
 #: core/navigation.py:15
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
@@ -5996,7 +6073,7 @@ msgstr "Select calendar week"
 msgid "Kamera aktiv - Barcode fokussieren"
 msgstr "Camera active - focus on barcode"
 
-#: templates/core/fleet_dashboard.html:222
+#: templates/core/fleet_dashboard.html:227
 msgid "Kamera aktiv - Fahrzeug-QR fokussieren"
 msgstr "Camera active - focus on vehicle QR"
 
@@ -6004,19 +6081,19 @@ msgstr "Camera active - focus on vehicle QR"
 msgid "Kamera aktiv - QR-Code fokussieren"
 msgstr "Camera active - focus on QR code"
 
-#: templates/core/fleet_dashboard.html:222
+#: templates/core/fleet_dashboard.html:227
 #: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Kamera nicht verfügbar. Bitte manuell eingeben."
 msgstr "Camera not available. Please enter manually."
 
-#: templates/core/fleet_dashboard.html:227
+#: templates/core/fleet_dashboard.html:232
 #: templates/core/mpg_dashboard.html:231
 #: templates/core/warehouse_dashboard.html:188
 msgid "Kamera wird initialisiert..."
 msgstr "Initializing camera..."
 
-#: templates/core/fleet_dashboard.html:222
+#: templates/core/fleet_dashboard.html:227
 #: templates/core/mpg_dashboard.html:221
 #: templates/core/warehouse_dashboard.html:178
 msgid "Kamerazugriff nicht verfügbar oder verweigert."
@@ -6040,7 +6117,7 @@ msgstr "Cash box was correct."
 msgid "Kasse verwalten"
 msgstr "Manage fund"
 
-#: core/audit_labels.py:134
+#: core/audit_labels.py:135
 msgid "Kassenbewegung"
 msgstr "Cash movement"
 
@@ -6120,7 +6197,7 @@ msgstr "Cash count result to the Signal group"
 msgid "Kassenwart"
 msgstr "Cashier"
 
-#: core/audit_labels.py:166
+#: core/audit_labels.py:167
 #: templates/core/defect_form.html:17
 #: templates/core/handover_form.html:10
 #: templates/core/mpg_dashboard.html:69
@@ -6143,7 +6220,7 @@ msgstr "No stock / no batch"
 msgid "Kein Cloud-Dienst"
 msgstr "No cloud service"
 
-#: templates/core/fleet_vehicle_detail.html:229
+#: templates/core/fleet_vehicle_detail.html:243
 msgid "Kein Desinfektionsmittel in Gebrauch. Bitte im Admin-Bereich unter „Desinfektionsmittel“ ein Mittel auf „In Gebrauch“ setzen."
 msgstr "No disinfectant is in use. Please set a disinfectant to “In use” in the admin area under “Disinfectants”."
 
@@ -6248,7 +6325,7 @@ msgstr "No instruction documented"
 msgid "Keine Fahrzeuge außer Betrieb genommen."
 msgstr "No vehicles decommissioned."
 
-#: templates/core/fleet_dashboard.html:184
+#: templates/core/fleet_dashboard.html:191
 msgid "Keine Fahrzeuge für diesen Filter gefunden."
 msgstr "No vehicles found for this filter."
 
@@ -6420,7 +6497,7 @@ msgstr "Acknowledgement confirmed"
 msgid "Kernmodule"
 msgstr "Core modules"
 
-#: templates/core/fleet_vehicle_detail.html:134
+#: templates/core/fleet_vehicle_detail.html:140
 #: templates/core/fleet_vehicle_form.html:108
 msgid "Kilometerstand"
 msgstr "Mileage"
@@ -6528,7 +6605,7 @@ msgstr "Create and approve accounts and assign roles."
 msgid "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild."
 msgstr "Accounts: name, username, role per station, optionally a small profile picture."
 
-#: core/audit_labels.py:145
+#: core/audit_labels.py:146
 #: core/coffee_models.py:97
 #: templates/core/signal_account.html:7
 #: templates/registration/mfa_manage.html:6
@@ -6612,15 +6689,15 @@ msgstr "Correct"
 msgid "Kosten"
 msgstr "Costs"
 
-#: core/fleet_forms.py:149
+#: core/fleet_forms.py:166
 #: templates/core/_display_surface.html:47
-#: templates/core/fleet_dashboard.html:131
-#: templates/core/fleet_vehicle_detail.html:108
-#: templates/core/fleet_vehicle_detail.html:309
+#: templates/core/fleet_dashboard.html:138
+#: templates/core/fleet_vehicle_detail.html:114
+#: templates/core/fleet_vehicle_detail.html:320
 msgid "Kraftstoff"
 msgstr "Fuel"
 
-#: core/fleet_views.py:396
+#: core/fleet_views.py:428
 msgid "Kraftstoffstand niedrig (%(percent)s %%)."
 msgstr "Fuel level low (%(percent)s %%)."
 
@@ -6752,6 +6829,10 @@ msgstr "Dispatch center & dispatching"
 msgid "Lenovo ThinkCentre M720q / M920q Tiny, gebraucht (Mini-PC)"
 msgstr "Lenovo ThinkCentre M720q / M920q Tiny, used (mini PC)"
 
+#: core/audit_labels.py:192
+msgid "Lesebestätigungen mit IP-Adresse oder Browser"
+msgstr "Read confirmations with IP address or browser"
+
 #: templates/core/_demo_stats_card.html:15
 msgid "Letzte 14 Tage"
 msgstr "Last 14 days"
@@ -6760,7 +6841,7 @@ msgstr "Last 14 days"
 msgid "Letzte Audit-Ereignisse"
 msgstr "Recent audit events"
 
-#: templates/core/fleet_vehicle_detail.html:147
+#: templates/core/fleet_vehicle_detail.html:153
 msgid "Letzte Desinfektion"
 msgstr "Last disinfection"
 
@@ -6772,7 +6853,7 @@ msgstr "Latest function checks"
 msgid "Letzte Materialbewegungen (Audit-Journal)"
 msgstr "Latest material movements (audit journal)"
 
-#: templates/core/fleet_vehicle_detail.html:302
+#: templates/core/fleet_vehicle_detail.html:313
 msgid "Letzte Schichtübernahmen"
 msgstr "Latest shift takeovers"
 
@@ -6913,22 +6994,22 @@ msgstr "MTK interval (months):"
 msgid "Mail nicht entschlüsselbar."
 msgstr "Email cannot be decrypted."
 
-#: core/audit_labels.py:122
+#: core/audit_labels.py:123
 #: core/views.py:569
 #: templates/core/defect_detail.html:7
 msgid "Mangel"
 msgstr "Defect"
 
-#: core/fleet_views.py:450
+#: core/fleet_views.py:482
 msgid "Mangel #%(id)s erfasst."
 msgstr "Defect #%(id)s recorded."
 
-#: core/fleet_views.py:446
+#: core/fleet_views.py:478
 msgid "Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“."
 msgstr "Defect #%(id)s recorded. %(vehicle)s is now set to “Workshop”."
 
-#: core/fleet_views.py:425
-#: templates/core/fleet_vehicle_detail.html:274
+#: core/fleet_views.py:457
+#: templates/core/fleet_vehicle_detail.html:285
 msgid "Mangel an %(vehicle)s"
 msgstr "Defect on %(vehicle)s"
 
@@ -6942,7 +7023,7 @@ msgstr "Create defect"
 msgid "Mangel bearbeitet"
 msgstr "Defect edited"
 
-#: templates/core/fleet_vehicle_detail.html:292
+#: templates/core/fleet_vehicle_detail.html:303
 msgid "Mangel erfassen"
 msgstr "Record defect"
 
@@ -7048,8 +7129,8 @@ msgstr "Max."
 msgid "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 msgstr "Max. days unrefrigerated at room temperature (e.g. on the RTW):"
 
-#: core/audit_labels.py:125
-#: core/module_overview.py:68
+#: core/audit_labels.py:126
+#: core/module_overview.py:80
 msgid "Medizingerät"
 msgstr "Medical device"
 
@@ -7073,7 +7154,7 @@ msgstr "Check a medical device"
 msgid "Medizingerät wieder in Betrieb genommen"
 msgstr "Medical device returned to service"
 
-#: core/module_overview.py:68
+#: core/module_overview.py:80
 #: templates/core/landing.html:109
 msgid "Medizingeräte"
 msgstr "Medical devices"
@@ -7123,7 +7204,7 @@ msgstr "More"
 msgid "Mehr Anhänge sind nicht möglich."
 msgstr "No more attachments are possible."
 
-#: core/fleet_forms.py:208
+#: core/fleet_forms.py:225
 msgid "Mehr als %(step)s km seit dem letzten Stand (%(km)s km) – bitte den km-Stand prüfen. Stimmt er, trägt die Wachleitung ihn in den Fahrzeugdaten ein."
 msgstr "More than %(step)s km since the last reading (%(km)s km) – please check the mileage. If it is correct, station management enters it in the vehicle data."
 
@@ -7312,7 +7393,7 @@ msgstr "Edit member"
 msgid "Mitglieder einer Chatgruppe geändert"
 msgstr "Chat group members changed"
 
-#: core/audit_labels.py:140
+#: core/audit_labels.py:141
 msgid "Mitgliedschaft"
 msgstr "Membership"
 
@@ -7344,11 +7425,7 @@ msgstr "Middle right"
 msgid "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich."
 msgstr "Station notices. With “Read” you acknowledge them personally."
 
-#: templates/core/fleet_dashboard.html:199
-msgid "Mittel"
-msgstr "Medium"
-
-#: core/fleet_models.py:230
+#: core/fleet_models.py:265
 msgid "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. Bestehende Nachweise bleiben erhalten."
 msgstr "Disinfectants that are no longer in use are not offered in the disinfection record. Existing records remain."
 
@@ -7396,7 +7473,7 @@ msgstr "Modular components & screen zones"
 msgid "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen."
 msgstr "Modular full-screen display for wall monitors and mission displays based on the MagicMirror² architecture. All components, zones and content can be freely combined."
 
-#: core/audit_labels.py:187
+#: core/audit_labels.py:188
 msgid "Module"
 msgstr "Modules"
 
@@ -7490,7 +7567,7 @@ msgstr "Music"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
-#: core/audit_labels.py:186
+#: core/audit_labels.py:187
 #: core/navigation.py:20
 #: core/navigation.py:50
 #: core/views.py:569
@@ -7575,6 +7652,14 @@ msgstr "Waste calendar URLs must start with https://."
 msgid "Müllkalender: Entweder eine HTTPS-ICS-Adresse eintragen oder eine ICS-Datei hochladen. Die Datei wird beim Speichern eingelesen und ersetzt die bisherigen Abfuhrtermine."
 msgstr "Waste calendar: either enter an HTTPS ICS address or upload an ICS file. The file is read on save and replaces the previous collection dates."
 
+#: core/fleet_models.py:291
+msgid "Nach Antrocknen"
+msgstr "After drying"
+
+#: core/fleet_models.py:292
+msgid "Nach Einwirkzeit"
+msgstr "After contact time"
+
 #: templates/core/warehouse_item_detail.html:189
 msgid "Nach Lagerort (z. B. RTW):"
 msgstr "By storage location (e.g. RTW):"
@@ -7590,10 +7675,6 @@ msgstr "After registration, a station admin approves access. Do not enter patien
 #: templates/core/setup_done.html:16
 msgid "Nach der Anmeldung zeigt Wachwerk einen QR-Code. Mit einer Authenticator-App scannen (Google Authenticator, Microsoft Authenticator, Aegis, 2FAS oder die Passwörter-App des iPhones) und den sechsstelligen Code eingeben."
 msgstr "After signing in Wachwerk shows a QR code. Scan it with an authenticator app (Google Authenticator, Microsoft Authenticator, Aegis, 2FAS or the iPhone Passwords app) and enter the six-digit code."
-
-#: templates/core/landing.html:80
-msgid "Nach der Desinfektion bleibt das Fahrzeug gesperrt, bis die Einwirkzeit vorbei ist und die Besatzung es freigibt."
-msgstr "After disinfection the vehicle stays locked until the contact time is over and the crew releases it."
 
 #: templates/core/presentation.html:31
 msgid "Nach oben"
@@ -7705,9 +7786,9 @@ msgstr "Set name, organization profile, and visible modules of this organization
 msgid "Name:"
 msgstr "Name:"
 
-#: core/fleet_forms.py:106
+#: core/fleet_forms.py:123
 #: core/mpg_forms.py:120
-#: templates/core/fleet_vehicle_detail.html:311
+#: templates/core/fleet_vehicle_detail.html:322
 msgid "Nein"
 msgstr "No"
 
@@ -7815,9 +7896,9 @@ msgstr "New terminal link"
 msgid "Neuer Wachen-Code"
 msgstr "New station code"
 
-#: core/fleet_views.py:187
+#: core/fleet_views.py:203
 #: templates/core/fleet_dashboard.html:15
-#: templates/core/fleet_dashboard.html:184
+#: templates/core/fleet_dashboard.html:191
 msgid "Neues Fahrzeug anlegen"
 msgstr "Create new vehicle"
 
@@ -7841,7 +7922,7 @@ msgstr "New password"
 msgid "Neues Token (nur einmal sichtbar):"
 msgstr "New token (visible only once):"
 
-#: core/audit_labels.py:139
+#: core/audit_labels.py:140
 msgid "Neuigkeit"
 msgstr "News item"
 
@@ -7859,7 +7940,7 @@ msgstr "News item published"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
-#: core/audit_labels.py:183
+#: core/audit_labels.py:184
 #: core/navigation.py:17
 #: core/navigation.py:61
 #: templates/core/more.html:285
@@ -7959,7 +8040,7 @@ msgstr "No notices on the pinboard yet."
 msgid "Noch keine Buchungen."
 msgstr "No transactions yet."
 
-#: templates/core/fleet_vehicle_detail.html:335
+#: templates/core/fleet_vehicle_detail.html:351
 msgid "Noch keine Desinfektionen protokolliert."
 msgstr "No disinfections logged yet."
 
@@ -8011,7 +8092,7 @@ msgstr "No inspection reports yet."
 msgid "Noch keine Quittierungen protokolliert."
 msgstr "No acknowledgements logged yet."
 
-#: templates/core/fleet_vehicle_detail.html:317
+#: templates/core/fleet_vehicle_detail.html:328
 msgid "Noch keine Schichtübernahmen dokumentiert."
 msgstr "No shift takeovers documented yet."
 
@@ -8069,7 +8150,7 @@ msgstr "Nobody has acknowledged this handover as read yet."
 msgid "Normal"
 msgstr "Normal"
 
-#: templates/core/fleet_vehicle_detail.html:280
+#: templates/core/fleet_vehicle_detail.html:291
 msgid "Normal (bei nächster Wartung)"
 msgstr "Normal (at next maintenance)"
 
@@ -8096,7 +8177,7 @@ msgstr "Note / certificate no.:"
 msgid "Notiz:"
 msgstr "Note:"
 
-#: core/fleet_models.py:269
+#: core/fleet_models.py:394
 msgid "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
 msgstr "Only details about the disinfection. Do not enter names, diagnoses, transport destinations or mission data."
 
@@ -8195,7 +8276,7 @@ msgstr "Next five local days at station location (Open-Meteo)"
 msgid "Nächster Tag"
 msgstr "Next day"
 
-#: templates/core/fleet_vehicle_detail.html:314
+#: templates/core/fleet_vehicle_detail.html:325
 msgid "OK"
 msgstr "OK"
 
@@ -8223,8 +8304,8 @@ msgstr "Top bar"
 msgid "Objekt"
 msgstr "Object"
 
-#: templates/core/fleet_dashboard.html:231
-#: templates/core/fleet_dashboard.html:231
+#: templates/core/fleet_dashboard.html:236
+#: templates/core/fleet_dashboard.html:236
 msgid "Oder Fahrzeug-Slug / Kennzeichen eingeben..."
 msgstr "Or enter vehicle slug / license plate..."
 
@@ -8281,7 +8362,7 @@ msgstr "Open tasks with completion rate and graphical progress bar."
 msgid "Offene Einladungen"
 msgstr "Open invitations"
 
-#: templates/core/fleet_dashboard.html:80
+#: templates/core/fleet_dashboard.html:85
 msgid "Offene Fahrzeug- & Werkstattmängel"
 msgstr "Open vehicle & workshop defects"
 
@@ -8437,7 +8518,7 @@ msgstr "\\\"Station city for weather lookup.\\\""
 msgid "Ort des Anbieters"
 msgstr "Provider city"
 
-#: core/fleet_forms.py:143
+#: core/fleet_forms.py:160
 #: templates/core/fleet_vehicle_form.html:126
 msgid "O₂ Druck (bar)"
 msgstr "O₂ pressure (bar)"
@@ -8454,7 +8535,7 @@ msgstr "PZN (German pharmaceutical number):"
 msgid "Packungs- / Zähleinheit:"
 msgstr "Pack / counting unit:"
 
-#: core/audit_labels.py:148
+#: core/audit_labels.py:149
 #: templates/registration/mfa_setup.html:44
 msgid "Passkey"
 msgstr "Passkey"
@@ -8590,11 +8671,11 @@ msgstr "Change password"
 msgid "Passwort, Profilbild, Zwei-Faktor und persönliche Einstellungen."
 msgstr "Password, profile picture, two-factor and personal settings."
 
-#: core/fleet_models.py:318
+#: core/fleet_models.py:451
 msgid "Patientenraum & Fahrerkabine einsatzklar/sauber"
 msgstr "Patient compartment & driver's cab ready for duty/clean"
 
-#: core/fleet_models.py:324
+#: core/fleet_models.py:457
 msgid "Patientenraum oder Fahrerkabine nicht einsatzklar"
 msgstr "Patient compartment or cab not ready for service"
 
@@ -8616,7 +8697,7 @@ msgstr "\\\"PayPal.me link\\\""
 msgid "PayPal.me-Links müssen mit https:// beginnen."
 msgstr "PayPal.me links must start with https://."
 
-#: core/audit_labels.py:177
+#: core/audit_labels.py:178
 #: core/coffee_views.py:684
 #: core/coffee_views.py:690
 #: core/forms.py:266
@@ -8687,7 +8768,7 @@ msgstr "Mandatory acknowledgement pending"
 msgid "Pflichtquittierung für Wachpersonal aktivieren"
 msgstr "Enable mandatory acknowledgement for station staff"
 
-#: core/audit_labels.py:184
+#: core/audit_labels.py:185
 #: core/navigation.py:19
 #: core/navigation.py:60
 #: templates/core/more.html:232
@@ -8707,7 +8788,7 @@ msgstr "Police"
 msgid "Pool-/Schlüsselobjekt anlegen"
 msgstr "Create pool/key object"
 
-#: core/audit_labels.py:124
+#: core/audit_labels.py:125
 msgid "Poolartikel"
 msgstr "Pool item"
 
@@ -8851,11 +8932,11 @@ msgstr "Inspection date:"
 msgid "Prüfer / Fachbetrieb:"
 msgstr "Inspector / specialist company:"
 
-#: templates/core/fleet_dashboard.html:46
+#: templates/core/fleet_dashboard.html:50
 msgid "Prüffrist fällig (HU/UVV)"
 msgstr "Inspection due (HU/UVV)"
 
-#: core/module_overview.py:69
+#: core/module_overview.py:81
 msgid "Prüffrist fällig oder gesperrt"
 msgstr "inspection due or locked"
 
@@ -8915,7 +8996,7 @@ msgstr "Push could not be activated."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
-#: core/audit_labels.py:158
+#: core/audit_labels.py:159
 msgid "Push-Benachrichtigung"
 msgstr "Push notification"
 
@@ -9017,7 +9098,7 @@ msgstr "QR login could not be started."
 msgid "QR-Scanner"
 msgstr "QR scanner"
 
-#: templates/core/fleet_dashboard.html:174
+#: templates/core/fleet_dashboard.html:181
 msgid "QR-Sticker"
 msgstr "QR sticker"
 
@@ -9087,16 +9168,16 @@ msgstr "Acknowledgement audit (CSV)"
 msgid "Quote"
 msgstr "Rate"
 
-#: templates/core/fleet_dashboard.html:192
+#: templates/core/fleet_dashboard.html:199
 msgid "RKI-Desinfektionsbuch (Letzte Protokolle)"
 msgstr "RKI disinfection log (latest records)"
 
-#: templates/core/fleet_vehicle_detail.html:220
-#: templates/core/fleet_vehicle_detail.html:335
+#: templates/core/fleet_vehicle_detail.html:226
+#: templates/core/fleet_vehicle_detail.html:351
 msgid "RKI-Desinfektionsprotokoll"
 msgstr "RKI disinfection record"
 
-#: templates/core/fleet_vehicle_detail.html:332
+#: templates/core/fleet_vehicle_detail.html:348
 msgid "RKI-konform"
 msgstr "RKI-compliant"
 
@@ -9195,7 +9276,7 @@ msgstr "Registration:"
 msgid "Registrierungsanfrage abgelehnt"
 msgstr "Registration request rejected"
 
-#: core/fleet_forms.py:110
+#: core/fleet_forms.py:127
 msgid "Reserve"
 msgstr "Reserve"
 
@@ -9264,7 +9345,7 @@ msgstr "Revision review due on"
 msgid "Risikoklasse gem. EU-MDR:"
 msgstr "Risk class per EU MDR:"
 
-#: core/audit_labels.py:173
+#: core/audit_labels.py:174
 #: core/forms.py:330
 #: core/forms.py:352
 #: core/forms.py:374
@@ -9291,6 +9372,10 @@ msgstr "Roles per station, audit log"
 #: core/diagnostics_models.py:77
 msgid "Routenname muss dem Muster ^[A-Za-z0-9_.:-]{1,120}$ entsprechen."
 msgstr "Route name must match the pattern ^[A-Za-z0-9_.:-]{1,120}$."
+
+#: core/fleet_models.py:226
+msgid "Routine-Wischdesinfektion"
+msgstr "Routine wipe disinfection"
 
 #: templates/base.html:144
 msgid "Rundgang %(done)s/%(total)s"
@@ -9326,7 +9411,7 @@ msgstr "Tour: step %(number)s of %(total)s done. Next: %(next)s – continue in 
 msgid "Rückfahrkamera RTW 83-1 zeigt kein Bild"
 msgstr "Reversing camera RTW 83-1 shows no picture"
 
-#: core/audit_labels.py:157
+#: core/audit_labels.py:158
 msgid "Rückmeldung"
 msgstr "Feedback"
 
@@ -9389,8 +9474,8 @@ msgstr "SameSite:"
 msgid "SameSite="
 msgstr "SameSite="
 
-#: templates/core/fleet_dashboard.html:140
-#: templates/core/fleet_vehicle_detail.html:117
+#: templates/core/fleet_dashboard.html:147
+#: templates/core/fleet_vehicle_detail.html:123
 msgid "Sauerstoff O₂"
 msgstr "Oxygen O₂"
 
@@ -9398,7 +9483,7 @@ msgstr "Oxygen O₂"
 msgid "Sauerstoff RTW 83-2 fast leer"
 msgstr "Oxygen RTW 83-2 almost empty"
 
-#: core/fleet_views.py:394
+#: core/fleet_views.py:426
 msgid "Sauerstoffvorrat niedrig (%(bar)s bar)."
 msgstr "Oxygen supply low (%(bar)s bar)."
 
@@ -9430,29 +9515,41 @@ msgstr "Shift handover"
 msgid "Schichtübergaben mit Priorität und Quittierung, digitale Aufgabentafel und wiederkehrende Checklisten."
 msgstr "Shift handovers with priority and acknowledgement, digital task board and recurring checklists."
 
-#: templates/core/fleet_vehicle_detail.html:213
-#: templates/core/fleet_vehicle_detail.html:317
+#: templates/core/fleet_vehicle_detail.html:219
+#: templates/core/fleet_vehicle_detail.html:328
 msgid "Schichtübernahme bestätigen"
 msgstr "Confirm shift takeover"
 
-#: core/fleet_views.py:411
+#: core/fleet_views.py:443
 msgid "Schichtübernahme für %(vehicle)s bestätigt."
 msgstr "Shift handover for %(vehicle)s confirmed."
 
-#: core/fleet_views.py:409
+#: core/fleet_views.py:441
 msgid "Schichtübernahme gespeichert. Bitte beachten:"
 msgstr "Shift handover saved. Please note:"
 
-#: core/fleet_views.py:382
+#: core/fleet_views.py:414
 msgid "Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."
 msgstr "Shift handover not saved. Please check the highlighted entries."
 
-#: templates/core/fleet_dashboard.html:236
+#: templates/core/fleet_dashboard.html:241
 #: templates/core/mpg_dashboard.html:244
 #: templates/core/mpg_device_detail.html:339
 #: templates/core/warehouse_dashboard.html:201
 msgid "Schließen"
 msgstr "Close"
+
+#: core/fleet_models.py:227
+msgid "Schlussdesinfektion (begrenzt viruzid/bakterizid)"
+msgstr "Terminal disinfection (limited virucidal/bactericidal)"
+
+#: core/fleet_models.py:229
+msgid "Schlussdesinfektion (sporizid)"
+msgstr "Terminal disinfection (sporicidal)"
+
+#: core/fleet_models.py:228
+msgid "Schlussdesinfektion (viruzid)"
+msgstr "Terminal disinfection (virucidal)"
 
 #: core/wachalltag_models.py:65
 msgid "Schlüssel"
@@ -9476,7 +9573,7 @@ msgstr "Unlock key"
 msgid "Schlüssel entsperrt."
 msgstr "Keys unlocked."
 
-#: core/audit_labels.py:155
+#: core/audit_labels.py:156
 msgid "Schlüssel für verschlüsselte Nachrichten"
 msgstr "Keys for encrypted messages"
 
@@ -9508,7 +9605,7 @@ msgstr "Key setup failed."
 msgid "Schnellanmeldung"
 msgstr "Quick login"
 
-#: templates/core/fleet_vehicle_detail.html:169
+#: templates/core/fleet_vehicle_detail.html:175
 msgid "Schneller Express-Check zu Dienstbeginn mit Füllstandsaktualisierung."
 msgstr "Quick express check at start of shift with fill level update."
 
@@ -9608,7 +9705,7 @@ msgstr "Self-host"
 msgid "Selbsttest / Gerätestart fehlerfrei"
 msgstr "Self-test / device start without errors"
 
-#: core/fleet_models.py:323
+#: core/fleet_models.py:456
 msgid "Selbsttest eines Medizingeräts nicht in Ordnung"
 msgstr "Self-test of a medical device not OK"
 
@@ -9616,7 +9713,7 @@ msgstr "Self-test of a medical device not OK"
 msgid "Selbsttest-Protokoll (optional):"
 msgstr "Self-test record (optional):"
 
-#: core/fleet_models.py:317
+#: core/fleet_models.py:450
 msgid "Selbsttests der Medizingeräte in Ordnung"
 msgstr "Medical device self-tests fine"
 
@@ -9697,6 +9794,10 @@ msgstr "Visual inspection & completeness (cables, sensors)"
 msgid "Sie kommen häufig mit sehr kleinem Flash-Speicher (8–32 GB) und 4 GB RAM. Eine M.2-SSD (SATA oder NVMe – je nach Gerät) und gegebenenfalls einen RAM-Riegel einplanen."
 msgstr "They often come with very small flash storage (8–32 GB) and 4 GB of RAM. Budget for an M.2 SSD (SATA or NVMe – depending on the device) and possibly a RAM module."
 
+#: templates/core/landing.html:80
+msgid "Sieht die Desinfektion eine Einwirkzeit vor, bleibt das Fahrzeug bis zu ihrem Ende gesperrt; danach gibt die Besatzung es frei."
+msgstr "If the disinfection requires a contact time, the vehicle stays locked until it ends; the crew then releases it."
+
 #: templates/core/signal_admin.html:3
 #: templates/core/signal_admin.html:8
 #: templates/core/station_settings.html:19
@@ -9761,7 +9862,7 @@ msgstr "Signal group or internal chat"
 msgid "Signal-Gruppe öffnen"
 msgstr "Open Signal group"
 
-#: core/audit_labels.py:156
+#: core/audit_labels.py:157
 msgid "Signal-Kontakt"
 msgstr "Signal contact"
 
@@ -9860,12 +9961,12 @@ msgid "Speichern"
 msgstr "Save"
 
 #: templates/core/landing.html:74
-msgid "Sperrbildschirm des Touch-Terminals: Uhrzeit, Übergaben, Tagesaufgaben und Fahrzeugstatus auf Glas-Karten über einem Foto des Tages."
-msgstr "Lock screen of the touch terminal: time, handovers, daily tasks and vehicle status on glass cards over the photo of the day."
+msgid "Sperrbildschirm des Touch-Terminals: Uhrzeit, Übergaben, Tagesaufgaben und Fahrzeugzustand auf Glas-Karten über einem Foto des Tages."
+msgstr "Lock screen of the touch terminal: time, handovers, daily tasks and vehicle condition on glass cards over the photo of the day."
 
 #: templates/core/more.html:119
-msgid "Sperrbildschirm mit Foto des Tages, Fahrzeugstatus und rundem Ziffernblock – wie am Touch-Terminal in der Fahrzeughalle."
-msgstr "Lock screen with photo of the day, vehicle status and round keypad – just like the touch terminal in the vehicle bay."
+msgid "Sperrbildschirm mit Foto des Tages, Fahrzeugzustand und rundem Ziffernblock – wie am Touch-Terminal in der Fahrzeughalle."
+msgstr "Lock screen with photo of the day, vehicle condition and round keypad – just like the touch terminal in the vehicle bay."
 
 #: templates/core/terminal_admin.html:74
 msgid "Sperre aufheben"
@@ -9883,7 +9984,7 @@ msgstr "Lock"
 msgid "Sperrt sich nach Inaktivität in <strong data-idle-countdown>%(seconds)s</strong> s"
 msgstr "Locks after inactivity in <strong data-idle-countdown>%(seconds)s</strong> s"
 
-#: templates/core/fleet_vehicle_detail.html:244
+#: templates/core/fleet_vehicle_detail.html:255
 msgid "Sperrtimer aktivieren"
 msgstr "Activate lock timer"
 
@@ -9964,7 +10065,7 @@ msgstr "Station phone book"
 msgid "Stationsübersicht"
 msgstr "Station overview"
 
-#: core/audit_labels.py:164
+#: core/audit_labels.py:165
 #: templates/core/assets_inventory.html:20
 #: templates/core/defect_detail.html:14
 #: templates/core/defect_detail.html:25
@@ -9973,17 +10074,9 @@ msgstr "Station overview"
 msgid "Status"
 msgstr "Status"
 
-#: templates/core/fleet_vehicle_form.html:79
-msgid "Status & Füllstände"
-msgstr "Status & levels"
-
 #: templates/core/handover_detail.html:16
 msgid "Status aktualisieren"
 msgstr "Update status"
-
-#: templates/core/fleet_dashboard.html:10
-msgid "Status aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV."
-msgstr "Status of all vehicles, check at shift start, disinfection with contact time and deadlines for MOT and UVV."
 
 #: core/audit_labels.py:26
 msgid "Status der Ausstattung geändert"
@@ -10005,17 +10098,9 @@ msgstr "Handover status changed"
 msgid "Status eines Mangels geändert"
 msgstr "Defect status changed"
 
-#: core/fleet_views.py:334
-msgid "Status für %(vehicle)s auf „%(status)s“ gesetzt."
-msgstr "Status for %(vehicle)s set to “%(status)s”."
-
 #: templates/core/privacy.html:55
 msgid "Status für diese Demonstration:"
 msgstr "Status for this demonstration:"
-
-#: core/display_views.py:389
-msgid "Status je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."
-msgstr "Status per vehicle with fuel, oxygen and disinfection lock (fleet module only)."
 
 #: core/views.py:837
 msgid "Status konnte nicht aktualisiert werden."
@@ -10071,6 +10156,12 @@ msgstr "Idle power (approximate)"
 msgid "Strukturierte Prüflisten für Schichtübernahmen und Wachenrundgänge."
 msgstr "Structured checklists for shift takeovers and station rounds."
 
+#: core/fleet_models.py:295
+#: core/fleet_models.py:384
+#: templates/core/fleet_vehicle_detail.html:234
+msgid "Stufe"
+msgstr "Level"
+
 #: templates/core/privacy.html:129
 msgid "Stunden"
 msgstr "Hours"
@@ -10084,8 +10175,8 @@ msgstr "Only the treasurer sees balances and entries of individual people. You c
 msgid "Suche nach Artikelname, PZN, GTIN, Lot-Nr..."
 msgstr "Search by item name, PZN, GTIN, lot no..."
 
-#: templates/core/fleet_dashboard.html:65
-#: templates/core/fleet_dashboard.html:65
+#: templates/core/fleet_dashboard.html:70
+#: templates/core/fleet_dashboard.html:70
 msgid "Suche nach Funkrufname, Kennzeichen, Hersteller..."
 msgstr "Search by radio call sign, license plate, manufacturer..."
 
@@ -10109,7 +10200,7 @@ msgstr "Search"
 msgid "Supportbericht herunterladen"
 msgstr "Download support report"
 
-#: templates/core/fleet_vehicle_detail.html:288
+#: templates/core/fleet_vehicle_detail.html:299
 msgid "Symptome, betroffene Baugruppe, Fehlermeldungen im Cockpit..."
 msgstr "Symptoms, affected assembly, error messages in the cockpit..."
 
@@ -10233,7 +10324,7 @@ msgstr "Technical and organisational measures"
 msgid "Technischer Fahrzeugcheck"
 msgstr "Technical vehicle check"
 
-#: core/audit_labels.py:136
+#: core/audit_labels.py:137
 msgid "Teilnahme Kaffeekasse"
 msgstr "Coffee fund membership"
 
@@ -10275,7 +10366,7 @@ msgstr "Provider phone (optional)"
 msgid "Telefonbucheinträge"
 msgstr "Phone book entries"
 
-#: core/audit_labels.py:130
+#: core/audit_labels.py:131
 msgid "Termin"
 msgstr "Appointment"
 
@@ -10350,7 +10441,7 @@ msgstr "Deep cleaning / weekly closing"
 msgid "Tipps für gebrauchte Thin Clients und Mini-PCs"
 msgstr "Tips for used thin clients and mini PCs"
 
-#: core/audit_labels.py:167
+#: core/audit_labels.py:168
 #: core/orga_views.py:348
 #: core/wiki_forms.py:15
 #: core/wiki_models.py:38
@@ -10399,7 +10490,7 @@ msgstr "The station's touch terminal"
 msgid "Touch-Terminal in der Fahrzeughalle"
 msgstr "Touch terminal in the vehicle bay"
 
-#: templates/core/fleet_vehicle_detail.html:146
+#: templates/core/fleet_vehicle_detail.html:152
 #: templates/core/fleet_vehicle_form.html:155
 msgid "Tragentisch 10g (DIN EN 1789)"
 msgstr "Stretcher table 10g (DIN EN 1789)"
@@ -10457,7 +10548,7 @@ msgstr "UDI-DI (GS1 GTIN):"
 msgid "UDI-DI (GTIN):"
 msgstr "UDI-DI (GTIN):"
 
-#: templates/core/fleet_vehicle_detail.html:145
+#: templates/core/fleet_vehicle_detail.html:151
 msgid "UVV-Prüfung (DGUV Vorschrift 70)"
 msgstr "UVV inspection (DGUV Vorschrift 70)"
 
@@ -10466,8 +10557,8 @@ msgid "Uhr mit Pufferbatterie (bei PCs eingebaut, beim Pi als Modul), „Nach St
 msgstr "Clock with backup battery (built into PCs, a module for the Pi), “power on after power loss” in the BIOS, a small UPS"
 
 #: templates/core/landing.html:78
-msgid "Uhr, Übergaben, Aufgaben und Fahrzeugstatus auf einen Blick. Der vierstellige Wachen-Code öffnet den Alltagsmodus – persönliche Konten bleiben auf dem eigenen Handy."
-msgstr "Clock, handovers, tasks and vehicle status at a glance. The four-digit station code opens everyday mode – personal accounts stay on your own phone."
+msgid "Uhr, Übergaben, Aufgaben und Fahrzeugzustand auf einen Blick. Der vierstellige Wachen-Code öffnet den Alltagsmodus – persönliche Konten bleiben auf dem eigenen Handy."
+msgstr "Clock, handovers, tasks and vehicle condition at a glance. The four-digit station code opens everyday mode – personal accounts stay on your own phone."
 
 #: core/display_views.py:351
 msgid "Uhrzeit & Datum"
@@ -10550,7 +10641,7 @@ msgstr "User-Agent (browser type, operating system) and Referrer-URL (if transmi
 msgid "Validierung"
 msgstr "Validation"
 
-#: core/audit_labels.py:169
+#: core/audit_labels.py:170
 msgid "Verantwortlich"
 msgstr "Responsible"
 
@@ -10644,7 +10735,7 @@ msgstr "Encrypted – cannot be decrypted (missing keys)."
 msgid "Verschlüsselte Direktnachricht gesendet"
 msgstr "Encrypted direct message sent"
 
-#: core/audit_labels.py:154
+#: core/audit_labels.py:155
 msgid "Verschlüsselte Nachricht"
 msgstr "Encrypted message"
 
@@ -10729,7 +10820,7 @@ msgstr "Release blocker: technical information incomplete pending operator appro
 msgid "Vier-Augen-Prinzip: eine zweite Person zählt mit."
 msgstr "Four-eyes principle: a second person counts as well."
 
-#: core/fleet_forms.py:110
+#: core/fleet_forms.py:127
 msgid "Voll"
 msgstr "Full"
 
@@ -10738,8 +10829,8 @@ msgid "Vollbild starten"
 msgstr "Start full screen"
 
 #: templates/core/more.html:105
-msgid "Vollbild-Monitor für die Fahrzeughalle: Fahrzeugstatus, Wetter, Hinweise und Fristen."
-msgstr "Full-screen monitor for the vehicle bay: vehicle status, weather, notes and deadlines."
+msgid "Vollbild-Monitor für die Fahrzeughalle: Fahrzeugzustand, Wetter, Hinweise und Fristen."
+msgstr "Full-screen monitor for the vehicle bay: vehicle condition, weather, notes and deadlines."
 
 #: templates/core/landing.html:101
 msgid "Vollbildanzeige für Monitor oder Fernseher: Termine, Fristen, Wetter und dringende Hinweise."
@@ -10895,7 +10986,7 @@ msgstr "Daily watch routine"
 msgid "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor."
 msgstr "Everyday station work: handovers, defects, tasks, checklists and appointments with timestamp and author."
 
-#: core/audit_labels.py:131
+#: core/audit_labels.py:132
 msgid "Wachaufgabe"
 msgstr "Station task"
 
@@ -10943,7 +11034,7 @@ msgstr "Watch log demonstration"
 msgid "Wachdienst-Aufgaben"
 msgstr "Watch duty tasks"
 
-#: core/audit_labels.py:120
+#: core/audit_labels.py:121
 #: core/models.py:192
 #: core/wiki_models.py:30
 #: templates/core/chat.html:11
@@ -11067,7 +11158,7 @@ msgstr "Station calendar"
 msgid "Wachenorganisation"
 msgstr "Station organization"
 
-#: core/audit_labels.py:142
+#: core/audit_labels.py:143
 #: templates/base.html:81
 #: templates/core/setup_done.html:29
 #: templates/core/team.html:15
@@ -11318,21 +11409,20 @@ msgstr "Everyone listed here pays the monthly fee of €%(fee)s. Anyone not taki
 msgid "Wer sich mit „Demo“ / „Demo“ anmeldet, bekommt eine eigene Demo-Wache mit fiktiven Musterdaten. Andere Besucher sehen sie nicht. Beim Abmelden, nach %(idle)s Minuten ohne Aktivität oder spätestens nach %(max)s Minuten werden die Demo-Wache, ihre Demo-Konten und alle Eingaben gelöscht. Für die Anmeldung wird nur ein technisch notwendiges Sitzungs-Cookie gesetzt, das mit dem Schließen des Browsers endet."
 msgstr "Anyone who signs in with “Demo” / “Demo” gets their own demo station with fictitious sample data. Other visitors cannot see it. When you sign out, after %(idle)s minutes without activity or after %(max)s minutes at the latest, the demo station, its demo accounts and everything entered are deleted. Signing in only sets a technically necessary session cookie that ends when the browser is closed."
 
-#: core/fleet_models.py:54
-#: core/fleet_models.py:121
-#: templates/core/fleet_vehicle_detail.html:93
+#: core/fleet_models.py:51
+#: templates/core/fleet_vehicle_detail.html:99
 msgid "Werkstatt"
 msgstr "Workshop"
 
-#: templates/core/fleet_dashboard.html:59
+#: templates/core/fleet_dashboard.html:64
 msgid "Werkstatt / Ausfall"
 msgstr "Workshop / failure"
 
-#: templates/core/fleet_dashboard.html:42
+#: templates/core/fleet_dashboard.html:46
 msgid "Werkstatt / außer Dienst"
 msgstr "Workshop / out of service"
 
-#: templates/core/fleet_vehicle_detail.html:261
+#: templates/core/fleet_vehicle_detail.html:272
 msgid "Werkstattmangel melden"
 msgstr "Report workshop defect"
 
@@ -11421,7 +11511,7 @@ msgstr "The weather preview does not match the address entered."
 msgid "Wichtig"
 msgstr "Important"
 
-#: templates/core/fleet_vehicle_detail.html:281
+#: templates/core/fleet_vehicle_detail.html:292
 msgid "Wichtig (zeitnah instandsetzen)"
 msgstr "Important (repair promptly)"
 
@@ -11467,7 +11557,7 @@ msgstr "How did you pay?"
 msgid "Wieder aufnehmen"
 msgstr "Resume"
 
-#: core/evidence.py:220
+#: core/evidence.py:223
 msgid "Wieder in Betrieb genommen. Vor dem Einsatz bitte prüfen und freigeben."
 msgstr "Returned to service. Please check and release before use."
 
@@ -11501,12 +11591,12 @@ msgstr "Schedule recurring checks daily, weekly or monthly."
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Process and document recurring checks in station operations."
 
-#: core/audit_labels.py:185
+#: core/audit_labels.py:186
 #: core/navigation.py:18
 msgid "Wiki"
 msgstr "Wiki"
 
-#: core/audit_labels.py:143
+#: core/audit_labels.py:144
 #: core/wiki_models.py:83
 #: core/wiki_models.py:84
 msgid "Wiki-Artikel"
@@ -11563,10 +11653,6 @@ msgstr "Stored as a note only, not evaluated."
 #: core/forms.py:970
 msgid "Wird vom Betreiber außerhalb der Anwendung gesetzt (SETUP_BOOTSTRAP_TOKEN)."
 msgstr "Set by the operator outside the application (SETUP_BOOTSTRAP_TOKEN)."
-
-#: templates/core/fleet_vehicle_detail.html:221
-msgid "Wisch- & Schlussdesinfektion mit automatischem Einwirkzeit-Sperrtimer."
-msgstr "Wipe & final disinfection with automatic contact time lock timer."
 
 #: core/forms.py:1042
 msgid "Wo läuft der Server?"
@@ -11641,7 +11727,7 @@ msgstr "Coffee fund payment reminder sent by email"
 msgid "Zahlungshinweis"
 msgstr "\\\"Payment note\\\""
 
-#: core/audit_labels.py:176
+#: core/audit_labels.py:177
 #: core/forms.py:136
 msgid "Zahlungsweg"
 msgstr "Payment method"
@@ -12005,13 +12091,25 @@ msgid "Zurückgeben"
 msgstr "Return"
 
 #: templates/core/diagnostics_events.html:26
-#: templates/core/fleet_dashboard.html:74
+#: templates/core/fleet_dashboard.html:79
 #: templates/core/mpg_dashboard.html:77
 #: templates/core/orga_dashboard.html:90
 #: templates/core/warehouse_dashboard.html:77
 #: templates/core/wiki_index.html:26
 msgid "Zurücksetzen"
 msgstr "Reset"
+
+#: templates/core/fleet_vehicle_form.html:79
+msgid "Zustand & Füllstände"
+msgstr "Condition & levels"
+
+#: templates/core/fleet_dashboard.html:10
+msgid "Zustand aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV."
+msgstr "Condition of all vehicles, check at shift start, disinfection with contact time and deadlines for MOT and UVV."
+
+#: core/display_views.py:389
+msgid "Zustand je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."
+msgstr "Condition per vehicle with fuel, oxygen and disinfection lock (fleet module only)."
 
 #: templates/core/defect_detail.html:16
 msgid "Zuständig"
@@ -12153,7 +12251,7 @@ msgstr "active batch(es)"
 msgid "aktive Geräte"
 msgstr "active devices"
 
-#: core/module_overview.py:51
+#: core/module_overview.py:63
 msgid "alle einsatzbereit"
 msgstr "all ready"
 
@@ -12250,6 +12348,10 @@ msgstr "an exception to the consent requirement applies. The operator must re-ev
 msgid "eingerichtet"
 msgstr "set up"
 
+#: core/module_overview.py:57
+msgid "eingeschränkt einsatzbereit"
+msgstr "usable with restrictions"
+
 #: templates/base.html:126
 msgid "endet spätestens %(time)s Uhr"
 msgstr "ends at %(time)s at the latest"
@@ -12308,7 +12410,7 @@ msgstr "always in the bar"
 msgid "in der Kaffeekasse der %(station)s sind %(amount)s € offen."
 msgstr "€%(amount)s is outstanding in the coffee fund of %(station)s."
 
-#: core/audit_labels.py:225
+#: core/audit_labels.py:247
 #: templates/core/system_status.html:40
 msgid "ja"
 msgstr "yes"
@@ -12319,7 +12421,7 @@ msgstr "yes"
 msgid "keine"
 msgstr "none"
 
-#: core/fleet_forms.py:137
+#: core/fleet_forms.py:154
 msgid "km-Stand"
 msgstr "mileage"
 
@@ -12348,7 +12450,7 @@ msgstr "counted with"
 msgid "nach Fehlversuchen gesperrt bis"
 msgstr "locked after failed attempts until"
 
-#: core/audit_labels.py:227
+#: core/audit_labels.py:249
 #: templates/core/system_status.html:40
 msgid "nein"
 msgstr "no"
@@ -12357,7 +12459,7 @@ msgstr "no"
 msgid "nicht bereit"
 msgstr "not ready"
 
-#: core/module_overview.py:39
+#: core/module_overview.py:51
 msgid "nicht einsatzbereit"
 msgstr "not ready"
 
@@ -12407,6 +12509,10 @@ msgstr "€%(amount)s open"
 msgid "offene Mängel"
 msgstr "open defects"
 
+#: templates/core/fleet_vehicle_detail.html:342
+msgid "ohne Sperre"
+msgstr "without lock"
+
 #: templates/core/api_tokens.html:29
 msgid "openapi.yaml"
 msgstr "openapi.yaml"
@@ -12448,11 +12554,11 @@ msgstr "and without"
 msgid "unter 15 Watt im Leerlauf, am besten lüfterlos"
 msgstr "under 15 watts at idle, ideally fanless"
 
-#: core/module_overview.py:86
+#: core/module_overview.py:98
 msgid "unter Mindestbestand"
 msgstr "below minimum stock"
 
-#: core/module_overview.py:95
+#: core/module_overview.py:107
 msgid "verfallen in 30 Tagen"
 msgstr "expire within 30 days"
 
@@ -12469,7 +12575,7 @@ msgstr "plenty of headroom, also for several stations"
 msgid "von"
 msgstr "from"
 
-#: core/module_overview.py:109
+#: core/module_overview.py:121
 msgid "von dir noch nicht quittiert"
 msgstr "not yet acknowledged by you"
 
@@ -12536,7 +12642,7 @@ msgstr "e.g. RTW 01/83-01, NEF or medical storage"
 msgid "z. B. Rocuronium 10 mg/ml (5x5ml) oder Endotrachealtubus Ch. 7.5"
 msgstr "e.g. rocuronium 10 mg/ml (5x5ml) or endotracheal tube Ch. 7.5"
 
-#: core/fleet_forms.py:90
+#: core/fleet_forms.py:97
 msgid "z. B. Trage und Griffe zusätzlich gewischt"
 msgstr "e.g. stretcher and handles wiped additionally"
 
@@ -12560,11 +12666,11 @@ msgstr "e.g. “for January to March”"
 msgid "zuletzt"
 msgstr "last"
 
-#: core/fleet_forms.py:191
+#: core/fleet_forms.py:208
 msgid "zuletzt %(bar)s bar"
 msgstr "last %(bar)s bar"
 
-#: core/fleet_forms.py:187
+#: core/fleet_forms.py:204
 msgid "zuletzt %(km)s km"
 msgstr "last %(km)s km"
 
@@ -12580,7 +12686,7 @@ msgstr "Section 25 (2) no. 2 TDDDG"
 msgid "Änderung"
 msgstr "Change"
 
-#: core/fleet_views.py:207
+#: core/fleet_views.py:223
 msgid "Änderungen an %(vehicle)s gespeichert."
 msgstr "Changes to %(vehicle)s saved."
 
@@ -12616,7 +12722,7 @@ msgstr "View public form"
 msgid "Öffne die Authenticator-App und gib den aktuellen Code ein."
 msgstr "Open the authenticator app and enter the current code."
 
-#: templates/core/fleet_dashboard.html:232
+#: templates/core/fleet_dashboard.html:237
 #: templates/core/mpg_dashboard.html:239
 #: templates/core/private_chat_home.html:27
 #: templates/core/secure_mail_inbox.html:29
@@ -12636,7 +12742,7 @@ msgstr "Via https with a free Let’s Encrypt certificate."
 msgid "Überfällig / OOB"
 msgstr "Overdue / OOB"
 
-#: core/audit_labels.py:121
+#: core/audit_labels.py:122
 msgid "Übergabe"
 msgstr "Handover"
 
@@ -12695,7 +12801,7 @@ msgstr "Handover log"
 msgid "Übergabeliste"
 msgstr "Handover list"
 
-#: core/audit_labels.py:178
+#: core/audit_labels.py:179
 #: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
@@ -12725,7 +12831,7 @@ msgstr "Handovers acknowledged by me"
 msgid "Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Dienstanweisungen an einem Ort – im Browser, als App und auf dem Monitor in der Fahrzeughalle."
 msgstr "Handovers, defects, vehicles, medical devices, supplies and work instructions in one place – in the browser, as an app and on the monitor in the vehicle bay."
 
-#: core/fleet_views.py:401
+#: core/fleet_views.py:433
 msgid "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 msgstr "Handover saved. Answered “No”: %(points)s. Please report the defect now."
 

@@ -190,7 +190,7 @@ class Membership(models.Model):
 class HandoverEntry(models.Model):
     class Category(models.TextChoices):
         STATION = "station", gettext_lazy("Wache")
-        VEHICLE = "vehicle", gettext_lazy("Fahrzeugstatus")
+        VEHICLE = "vehicle", gettext_lazy("Fahrzeugzustand")
         MATERIAL = "material", gettext_lazy("Material")
         TASK = "task", gettext_lazy("Offene Aufgabe")
         SAFETY = "safety", gettext_lazy("Sicherheit/Mangel")

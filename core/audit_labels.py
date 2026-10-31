@@ -32,7 +32,7 @@ ACTION_LABELS = {
     "mpg.device_released": _("Medizingerät freigegeben"),
     "mpg.device_retired": _("Medizingerät außer Betrieb genommen"),
     "mpg.device_reactivated": _("Medizingerät wieder in Betrieb genommen"),
-    "fleet.status_changed": _("Fahrzeugstatus geändert"),
+    "fleet.status_changed": _("Fahrzeugzustand geändert"),
     "fleet.vehicle_retired": _("Fahrzeug außer Betrieb genommen"),
     "fleet.vehicle_reactivated": _("Fahrzeug wieder in Betrieb genommen"),
     "orga.sop_status_changed": _("Status einer Dienstanweisung geändert"),
@@ -114,6 +114,7 @@ ACTION_LABELS = {
     "feedback.status": _("Status einer Rückmeldung geändert"),
     "feedback.deleted": _("Rückmeldung gelöscht"),
     "push.outbox_failed": _("Push-Benachrichtigung nicht zustellbar"),
+    "system.legacy_cleanup": _("Altdaten einmalig bereinigt"),
 }
 
 OBJECT_LABELS = {
@@ -168,7 +169,7 @@ FIELD_LABELS = {
     "details": _("Details"),
     "owner": _("Verantwortlich"),
     "due_at": _("Frist"),
-    "tactical_status": _("Fahrzeugstatus"),
+    "tactical_status": _("Fahrzeugzustand"),
     "current_status": _("Gerätestatus"),
     "role": _("Rolle"),
     "is_active": _("Aktiv"),
@@ -185,6 +186,24 @@ FIELD_LABELS = {
     "wiki": _("Wiki"),
     "defects": _("Mängel"),
     "modules": _("Module"),
+    # Einmalige Bereinigung der Altdaten (cleanup_legacy_data, 0.27)
+    "legacy_vehicle_status": _("Audit-Einträge mit früheren Einsatzphasen (neutralisiert)"),
+    "legacy_mission_phases": _("Audit-Einträge nur mit Wechsel der Einsatzphase (gelöscht)"),
+    "legacy_sop_receipts": _("Lesebestätigungen mit IP-Adresse oder Browser"),
+    "legacy_disinfection_notes": _("Desinfektionsbemerkungen aus der Zeit vor 0.26.1"),
+}
+
+# Gespeicherte Altwerte ohne heutige Auswahl: Audit-Einträge vor 0.27 tragen
+# die früheren Codes des Fahrzeugzustands. Angezeigt wird nur der neutrale
+# Zustand, nie eine Ziffer (frühere Einsatzphasen 2–4 gelten als einsatzbereit).
+LEGACY_VALUE_LABELS = {
+    "tactical_status": {
+        "1": _("Einsatzbereit"),
+        "2": _("Einsatzbereit"),
+        "3": _("Einsatzbereit"),
+        "4": _("Einsatzbereit"),
+        "6": _("Außer Dienst"),
+    },
 }
 
 
@@ -221,6 +240,9 @@ def value_label(model, name: str, value) -> str:
         choices = {str(key): label for key, label in field.flatchoices}
         if str(value) in choices:
             return str(choices[str(value)])
+    legacy = LEGACY_VALUE_LABELS.get(name, {})
+    if not isinstance(value, (list, dict)) and str(value) in legacy:
+        return str(legacy[str(value)])
     if value is True:
         return str(_("ja"))
     if value is False:

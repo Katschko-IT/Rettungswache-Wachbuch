@@ -245,17 +245,16 @@ def display_payload(station) -> dict:
         try:
             from .fleet_models import Vehicle
 
-            # Nur der neutrale Zustand: keine Statusbemerkung (Freitext), keine
-            # Art der Desinfektion, keine Einsatzphasen. Altwerte gelten als
-            # einsatzbereit.
+            # Nur der neutrale Fahrzeugzustand (einer von fünf): keine
+            # Statusbemerkung (Freitext), keine Stufe, Einwirkzeit oder
+            # Bemerkung der Desinfektion, keine Einsatzphasen oder FMS-Codes.
             for v in Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign"):
-                status = Vehicle.TacticalStatus.STATUS_1 if v.tactical_status in Vehicle.LEGACY_STATUSES else v.tactical_status
                 fleet_vehicles.append({
                     "call_sign": v.call_sign[:30],
                     "license_plate": v.license_plate[:20],
-                    "status": status,
+                    "status": v.tactical_status,
                     "awaiting_release": v.awaiting_crew_release,
-                    "status_label": str(Vehicle.TacticalStatus(status).label),
+                    "status_label": str(v.get_tactical_status_display()),
                     "status_short": v.status_short,
                     "is_locked": v.is_disinfection_locked,
                     "locked_until": timezone.localtime(v.disinfection_locked_until, tz).strftime("%H:%M") if v.disinfection_locked_until else None,

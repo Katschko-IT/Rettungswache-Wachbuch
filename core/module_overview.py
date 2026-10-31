@@ -28,21 +28,33 @@ def module_attention_cards(station, user) -> list[dict]:
     if station.fleet_enabled:
         from .fleet_models import Vehicle
 
-        ready = set(Vehicle.READY_STATUSES)
+        available = set(Vehicle.AVAILABLE_STATUSES)
         vehicles = list(Vehicle.objects.filter(station=station, is_active=True))
         if vehicles:
-            not_ready = sum(1 for v in vehicles if v.tactical_status not in ready or v.is_disinfection_locked)
+            # „Eingeschränkt“ ist fahrbereit: eigene Karte, kein „nicht einsatzbereit“.
+            not_ready = sum(1 for v in vehicles if v.tactical_status not in available or v.is_disinfection_locked)
+            limited = sum(
+                1 for v in vehicles
+                if v.tactical_status == Vehicle.TacticalStatus.LIMITED and not v.is_disinfection_locked
+            )
             due = sum(1 for v in vehicles if v.urgency["level"] in ATTENTION_LEVELS)
+            due_text = ""
+            if due:
+                due_text = " · " + (_("1 Frist fällig") if due == 1 else _("%(due)s Fristen fällig") % {"due": due})
             # Die Zahl nennt den eigentlichen Grund: nicht einsatzbereite
-            # Fahrzeuge zuerst, sonst fällige HU/UVV-Fristen. Nullen bleiben weg.
+            # Fahrzeuge zuerst, dann eingeschränkte, sonst fällige HU/UVV-Fristen.
+            # Nullen bleiben weg.
             if not_ready:
-                subtitle = _("nicht einsatzbereit")
-                if due:
-                    subtitle += " · " + (_("1 Frist fällig") if due == 1 else _("%(due)s Fristen fällig") % {"due": due})
                 cards.append(_card(
                     "fleet", "fleet_dashboard", "",
                     _("Fahrzeug") if not_ready == 1 else _("Fahrzeuge"),
-                    subtitle, not_ready, tone="danger",
+                    _("nicht einsatzbereit") + due_text, not_ready, tone="danger",
+                ))
+            elif limited:
+                cards.append(_card(
+                    "fleet", "fleet_dashboard", "filter=limited",
+                    _("Fahrzeug") if limited == 1 else _("Fahrzeuge"),
+                    _("eingeschränkt einsatzbereit") + due_text, limited,
                 ))
             else:
                 cards.append(_card(
