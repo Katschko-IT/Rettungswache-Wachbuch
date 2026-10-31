@@ -44,6 +44,10 @@ msgstr "%(expiring)s Chargen verfallen bald"
 msgid "%(fee)s € bar von %(person)s erhalten"
 msgstr "%(fee)s € bar von %(person)s erhalten"
 
+#: templates/core/_system_operations.html:40
+msgid "%(hours)s h alt"
+msgstr "%(hours)s h alt"
+
 #: core/coffee_views.py:385
 msgid "%(month)s ist befreit."
 msgstr "%(month)s ist befreit."
@@ -72,6 +76,10 @@ msgstr "%(paid)s von %(total)s bezahlt"
 msgid "%(paid)s von %(total)s haben schon bezahlt."
 msgstr "%(paid)s von %(total)s haben schon bezahlt."
 
+#: core/host_health.py:93
+msgid "%(param)s Serverfehler in den letzten 15 Minuten."
+msgstr "%(param)s Serverfehler in den letzten 15 Minuten."
+
 #: core/coffee_views.py:311
 msgid "%(person)s hat heute schon eine Erinnerung bekommen."
 msgstr "%(person)s hat heute schon eine Erinnerung bekommen."
@@ -96,6 +104,11 @@ msgstr "%(read)s von %(total)s gelesen"
 msgid "%(read)s von %(total)s haben gelesen."
 msgstr "%(read)s von %(total)s haben gelesen."
 
+#: templates/core/_system_operations.html:66
+#: templates/core/_system_operations.html:80
+msgid "%(tables)s Tabellen, %(migrations)s Migrationen"
+msgstr "%(tables)s Tabellen, %(migrations)s Migrationen"
+
 #: core/retire_views.py:33
 msgid "%(vehicle)s ist außer Betrieb genommen. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
 msgstr "%(vehicle)s ist außer Betrieb genommen. Übernahmen und Desinfektionen bleiben als Nachweis erhalten."
@@ -115,6 +128,11 @@ msgstr "%(what)s über %(amount)s wird durch eine Gegenbuchung ausgeglichen; das
 #: templates/core/coffee_book.html:35
 msgid "%(y)s bezahlt"
 msgstr "%(y)s bezahlt"
+
+#: core/host_health.py:505
+#: templates/core/_host_health_banner.html:10
+msgid "(+%(count)s weitere)"
+msgstr "(+%(count)s weitere)"
 
 #: templates/core/privacy.html:143
 msgid "(Name:"
@@ -353,7 +371,7 @@ msgstr "Ab diesem Tag des Monats erinnert Wachwerk an einen offenen Beitrag. 0 =
 msgid "Ab nächstem Monat keinen Beitrag mehr berechnen?"
 msgstr "Ab nächstem Monat keinen Beitrag mehr berechnen?"
 
-#: templates/base.html:190
+#: templates/base.html:191
 #: templates/core/birthday_settings.html:7
 #: templates/core/calendar_form.html:7
 #: templates/core/coffee_correction.html:4
@@ -1810,7 +1828,7 @@ msgstr "Bereich"
 msgid "Bereinigte technische 5xx-Ereignisse dieser Wache. Keine Fehlermeldungen, Roh-URLs oder Inhalte."
 msgstr "Bereinigte technische 5xx-Ereignisse dieser Wache. Keine Fehlermeldungen, Roh-URLs oder Inhalte."
 
-#: templates/core/system_status.html:49
+#: templates/core/system_status.html:51
 msgid "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache."
 msgstr "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache."
 
@@ -1980,6 +1998,10 @@ msgstr "Betreiberangaben"
 msgid "Betrieb"
 msgstr "Betrieb"
 
+#: templates/core/_system_operations.html:3
+msgid "Betrieb und Datensicherung"
+msgstr "Betrieb und Datensicherung"
+
 #: templates/core/it_privacy.html:112
 msgid "Betrieb, Löschung und Verträge"
 msgstr "Betrieb, Löschung und Verträge"
@@ -2096,7 +2118,7 @@ msgstr "Bilder oder PDFs, maximal 5 MB je Datei."
 msgid "Bildschirm-Zone"
 msgstr "Bildschirm-Zone"
 
-#: templates/base.html:202
+#: templates/base.html:203
 msgid "Bildschirmtastatur"
 msgstr "Bildschirmtastatur"
 
@@ -2314,7 +2336,7 @@ msgstr "Browser als Web-App, quelloffene Apps für iOS und Android"
 msgid "Browser · App · Terminal · Monitor"
 msgstr "Browser · App · Terminal · Monitor"
 
-#: templates/base.html:206
+#: templates/base.html:207
 msgid "Buchstaben"
 msgstr "Buchstaben"
 
@@ -2699,6 +2721,14 @@ msgstr "Das Konto wird ohne Passwort angelegt. Die Person setzt ihr Passwort sel
 msgid "Das Passwort wird ausschließlich von dir gesetzt. Der Link ist einmalig gültig und läuft am %(date)s ab."
 msgstr "Das Passwort wird ausschließlich von dir gesetzt. Der Link ist einmalig gültig und läuft am %(date)s ab."
 
+#: core/host_health.py:78
+msgid "Das TLS-Zertifikat ist nicht lesbar."
+msgstr "Das TLS-Zertifikat ist nicht lesbar."
+
+#: core/host_health.py:79
+msgid "Das TLS-Zertifikat läuft in %(param)s Tagen ab."
+msgstr "Das TLS-Zertifikat läuft in %(param)s Tagen ab."
+
 #: core/masterdata_import.py:341
 msgid "Das Trennzeichen in der Zeile „sep=…“ wird nicht unterstützt. Bitte ; oder , verwenden."
 msgstr "Das Trennzeichen in der Zeile „sep=…“ wird nicht unterstützt. Bitte ; oder , verwenden."
@@ -2719,6 +2749,18 @@ msgstr "Das Wachbuch organisiert den Wachalltag. Patienten-, Einsatz-, Alarmieru
 msgid "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung."
 msgstr "Das Wachbuch unterstützt die interne Organisation einer Wache, insbesondere Übergaben, Termine, Aufgaben, Checklisten, Mängel, Geräte-/Fahrzeugstatus, Inventar, Teamrollen und Audit. Patienten-, Einsatz-, Alarmierungs-, ePCR- und vergleichbare medizinische Fachdaten gehören ausdrücklich nicht in diese Anwendung."
 
+#: core/host_health.py:69
+msgid "Das automatische Update hängt oder wurde unterbrochen."
+msgstr "Das automatische Update hängt oder wurde unterbrochen."
+
+#: core/host_health.py:70
+msgid "Das automatische Update lief noch nie."
+msgstr "Das automatische Update lief noch nie."
+
+#: core/host_health.py:72
+msgid "Das automatische Update lief zuletzt vor %(param)s Stunden."
+msgstr "Das automatische Update lief zuletzt vor %(param)s Stunden."
+
 #: templates/core/landing.html:4
 msgid "Das digitale Wachbuch"
 msgstr "Das digitale Wachbuch"
@@ -2734,6 +2776,14 @@ msgstr "Das gemeinsame Terminal öffnet mit dem Wachen-Code nur den Alltagsmodus
 #: core/masterdata_import.py:266
 msgid "Das ist eine Excel-Datei. Bitte in Excel „Speichern unter“ → „CSV UTF-8 (durch Trennzeichen getrennt)“ wählen."
 msgstr "Das ist eine Excel-Datei. Bitte in Excel „Speichern unter“ → „CSV UTF-8 (durch Trennzeichen getrennt)“ wählen."
+
+#: core/host_health.py:71
+msgid "Das letzte automatische Update ist fehlgeschlagen."
+msgstr "Das letzte automatische Update ist fehlgeschlagen."
+
+#: core/host_health.py:96
+msgid "Das neueste Backup ist %(param)s Stunden alt."
+msgstr "Das neueste Backup ist %(param)s Stunden alt."
 
 #: core/masterdata_import.py:1371
 msgid "Das vorhandene Gerät ist außer Betrieb genommen und bleibt es."
@@ -2785,7 +2835,7 @@ msgstr "Datenbank"
 msgid "Datenschutz"
 msgstr "Datenschutz"
 
-#: templates/base.html:177
+#: templates/base.html:178
 #: templates/core/vorfuehrung.html:150
 msgid "Datenschutz & Cookies"
 msgstr "Datenschutz & Cookies"
@@ -3023,6 +3073,10 @@ msgstr "Der Artikel ist nicht kühlpflichtig; das Datum wird nicht übernommen."
 msgid "Der Assistent legt mit dem Einrichtungscode Wache und erstes Admin-Konto an."
 msgstr "Der Assistent legt mit dem Einrichtungscode Wache und erstes Admin-Konto an."
 
+#: core/host_health.py:104
+msgid "Der Backup-Stick außer Haus ist %(param)s Tage alt. Bitte Stick tauschen."
+msgstr "Der Backup-Stick außer Haus ist %(param)s Tage alt. Bitte Stick tauschen."
+
 #: templates/core/privacy.html:74
 msgid "Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen."
 msgstr "Der Betreiber muss die gegebenenfalls erforderlichen Kontaktdaten des Datenschutzbeauftragten im Administrationsbereich pflegen und seine vollständige Betroffeneninformation bereitstellen."
@@ -3128,6 +3182,10 @@ msgstr "Der Signal-Dienst konnte keinen Kopplungscode erzeugen. Hat der Containe
 msgid "Der Speicher dieser Demo ist voll (höchstens %(mb)s MB Dateien). Starte eine neue Demo, um weitere Dateien hochzuladen."
 msgstr "Der Speicher dieser Demo ist voll (höchstens %(mb)s MB Dateien). Starte eine neue Demo, um weitere Dateien hochzuladen."
 
+#: core/host_health.py:94
+msgid "Der Speicherort der Backups fehlt."
+msgstr "Der Speicherort der Backups fehlt."
+
 #: templates/core/landing.html:75
 msgid "Der Sperrbildschirm des Touch-Terminals mit Foto des Tages. In der Demo unter „Mehr“ live ansehen."
 msgstr "Der Sperrbildschirm des Touch-Terminals mit Foto des Tages. In der Demo unter „Mehr“ live ansehen."
@@ -3176,6 +3234,10 @@ msgstr "Der Wert darf nicht mit =, +, -, @ oder einem Tabulator beginnen."
 msgid "Der Wert ist länger als %(max)s Zeichen."
 msgstr "Der Wert ist länger als %(max)s Zeichen."
 
+#: core/host_health.py:92
+msgid "Der Zustand der Dienste ist nicht lesbar."
+msgstr "Der Zustand der Dienste ist nicht lesbar."
+
 #: templates/core/system_status.html:43
 msgid "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
 msgstr "Der Zwischenspeicher liegt im Prozess. Er ist nach einem Neustart leer und kein dauerhafter Speicher."
@@ -3195,6 +3257,10 @@ msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Es gibt keine zent
 #: templates/core/landing.html:202
 msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
 msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
+
+#: core/host_health.py:74
+msgid "Der Überwachung fehlt die Adresse, die sie prüfen soll."
+msgstr "Der Überwachung fehlt die Adresse, die sie prüfen soll."
 
 #: core/fleet_models.py:50
 #: core/paper_views.py:112
@@ -3274,10 +3340,15 @@ msgid "Desinfektor / Personal"
 msgstr "Desinfektor / Personal"
 
 #: core/audit_labels.py:174
+#: templates/core/_host_health_banner.html:12
 #: templates/core/mpg_dashboard.html:168
 #: templates/core/warehouse_reorder.html:67
 msgid "Details"
 msgstr "Details"
+
+#: core/host_health.py:506
+msgid "Details unter System."
+msgstr "Details unter System."
 
 #: core/forms.py:511
 msgid "Deutsche IBAN (DE + 20 Ziffern), nur für die Anzeige."
@@ -3291,7 +3362,7 @@ msgstr "Dezimalgrad, z. B. 52.0200. Wird bei aktivierter Wettervorhersage aus de
 msgid "Dezimalgrad, z. B. 8.4200."
 msgstr "Dezimalgrad, z. B. 8.4200."
 
-#: templates/core/system_status.html:48
+#: templates/core/system_status.html:50
 msgid "Diagnose"
 msgstr "Diagnose"
 
@@ -3417,9 +3488,17 @@ msgstr "Die Installation selbst dauert etwa fünf Minuten. Mit Einrichtung, Team
 msgid "Die Kasse"
 msgstr "Die Kasse"
 
+#: core/host_health.py:97
+msgid "Die Kopie außer Haus ist noch nie gelungen."
+msgstr "Die Kopie außer Haus ist noch nie gelungen."
+
 #: core/forms.py:1051
 msgid "Die Landesdatenschutzbehörde am Sitz des Anbieters."
 msgstr "Die Landesdatenschutzbehörde am Sitz des Anbieters."
+
+#: core/host_health.py:75
+msgid "Die Liste der zu prüfenden Dienste ist ungültig; geprüft wird die Grundliste."
+msgstr "Die Liste der zu prüfenden Dienste ist ungültig; geprüft wird die Grundliste."
 
 #: templates/core/signal_account.html:44
 msgid "Die Nummer sieht niemand im Team. Sie wird nur für deine eigenen Benachrichtigungen verwendet und beim Abschalten gelöscht. Nachrichten laufen Ende-zu-Ende-verschlüsselt über Signal."
@@ -3455,6 +3534,10 @@ msgstr "Die Schnellkontrolle gibt es nur für einsatzklare Geräte. Bitte die Ko
 #: core/masterdata_import.py:415
 msgid "Die Spalte „%(header)s“ kommt doppelt vor (auch als „%(other)s“)."
 msgstr "Die Spalte „%(header)s“ kommt doppelt vor (auch als „%(other)s“)."
+
+#: core/host_health.py:109
+msgid "Die Systemplatte ist zu %(param)s Prozent belegt."
+msgstr "Die Systemplatte ist zu %(param)s Prozent belegt."
 
 #: core/masterdata_import_views.py:143
 msgid "Die Vorschau ist abgelaufen oder die Datei wurde verändert. Bitte erneut prüfen."
@@ -3492,6 +3575,22 @@ msgstr "Die angezeigte Adresse im Browser öffnen, den Einrichtungscode eingeben
 msgid "Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt."
 msgstr "Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt."
 
+#: core/host_health.py:98
+msgid "Die letzte Kopie außer Haus liegt %(param)s Stunden zurück."
+msgstr "Die letzte Kopie außer Haus liegt %(param)s Stunden zurück."
+
+#: core/host_health.py:108
+msgid "Die letzte Wiederherstellungsprobe ist fehlgeschlagen."
+msgstr "Die letzte Wiederherstellungsprobe ist fehlgeschlagen."
+
+#: core/host_health.py:107
+msgid "Die letzte Wiederherstellungsprobe liegt %(param)s Tage zurück."
+msgstr "Die letzte Wiederherstellungsprobe liegt %(param)s Tage zurück."
+
+#: core/host_health.py:100
+msgid "Die neueste verschlüsselte Kopie ist %(param)s Stunden alt."
+msgstr "Die neueste verschlüsselte Kopie ist %(param)s Stunden alt."
+
 #: templates/core/privacy.html:175
 msgid "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:"
 msgstr "Die technische Schutzkonzeption umfasst folgende Maßnahmen; ihre wirksame Konfiguration im konkreten Betrieb ist gesondert zu prüfen:"
@@ -3503,6 +3602,42 @@ msgstr "Die Überschriften sind fest und bleiben deutsch. Spalten mit * sind Pfl
 #: templates/core/vorfuehrung.html:25
 msgid "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
 msgstr "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Übergaben, fällige Fristen, gesperrte Geräte, knappes Material. Alles Unauffällige steht in einer ruhigen Zeile."
+
+#: templates/core/_system_operations.html:5
+msgid "Die Überwachung des Servers ist nicht eingerichtet oder hat noch nichts gemeldet."
+msgstr "Die Überwachung des Servers ist nicht eingerichtet oder hat noch nichts gemeldet."
+
+#: core/host_health.py:597
+msgid "Die Überwachung meldet seit %(time)s Uhr wieder alles in Ordnung."
+msgstr "Die Überwachung meldet seit %(time)s Uhr wieder alles in Ordnung."
+
+#: core/host_health.py:88
+msgid "Dienst „%(param)s“ fehlt."
+msgstr "Dienst „%(param)s“ fehlt."
+
+#: core/host_health.py:89
+msgid "Dienst „%(param)s“ läuft nicht."
+msgstr "Dienst „%(param)s“ läuft nicht."
+
+#: core/host_health.py:81
+msgid "Dienst „%(param)s“ reagiert auch nach drei Neustarts in einer Stunde nicht richtig."
+msgstr "Dienst „%(param)s“ reagiert auch nach drei Neustarts in einer Stunde nicht richtig."
+
+#: core/host_health.py:80
+msgid "Dienst „%(param)s“ reagiert nicht richtig."
+msgstr "Dienst „%(param)s“ reagiert nicht richtig."
+
+#: core/host_health.py:85
+msgid "Dienst „%(param)s“ reagiert nicht richtig; der Neustart ist fehlgeschlagen."
+msgstr "Dienst „%(param)s“ reagiert nicht richtig; der Neustart ist fehlgeschlagen."
+
+#: core/host_health.py:84
+msgid "Dienst „%(param)s“ reagierte nicht und wurde neu gestartet."
+msgstr "Dienst „%(param)s“ reagierte nicht und wurde neu gestartet."
+
+#: core/host_health.py:90
+msgid "Dienst „%(param)s“ startet ständig neu."
+msgstr "Dienst „%(param)s“ startet ständig neu."
 
 #: core/audit_labels.py:133
 #: core/module_overview.py:120
@@ -3620,6 +3755,10 @@ msgstr "Diese Instanz ist mit fiktiven Musterdaten befüllt. Ein Klick genügt �
 #: templates/core/privacy.html:102
 msgid "Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden."
 msgstr "Diese Instanz ist nicht im Demo-Modus konfiguriert. Daraus folgt weder, dass die Inhalte fiktiv sind, noch eine Freigabe für dienstliche Nutzung. Für eine Vorführung muss ein getrennter, geprüfter synthetischer Datenbestand eingerichtet werden."
+
+#: core/host_health.py:557
+msgid "Diese Nachricht geht an die Master-Admins dieser Wachwerk-Installation. Sie enthält keine Inhalte aus Wachwerk, nur den technischen Zustand des Servers."
+msgstr "Diese Nachricht geht an die Master-Admins dieser Wachwerk-Installation. Sie enthält keine Inhalte aus Wachwerk, nur den technischen Zustand des Servers."
 
 #: core/qr_login_views.py:273
 msgid "Diese QR-Anmeldung ist abgelaufen."
@@ -3826,6 +3965,10 @@ msgstr "Display-Tokens"
 #: templates/core/vorfuehrung.html:144
 msgid "Docker Compose, Images für amd64 und arm64"
 msgstr "Docker Compose, Images für amd64 und arm64"
+
+#: core/host_health.py:110
+msgid "Docker fehlt auf dem Server."
+msgstr "Docker fehlt auf dem Server."
 
 #: templates/core/install_guide.html:126
 msgid "Docker installieren (Anleitung auf docs.docker.com). Für den Internet-Weg vorher beim Domain-Anbieter einen A-Eintrag auf die IP-Adresse des Servers anlegen, z. B. wache.example.org."
@@ -4192,6 +4335,10 @@ msgstr "Einmalig verwendbar und widerrufbar"
 msgid "Einmalige Gerätekennung aus dem 2D-DataMatrix-Code"
 msgstr "Einmalige Gerätekennung aus dem 2D-DataMatrix-Code"
 
+#: templates/core/_system_operations.html:6
+msgid "Einrichten: im Wachen-Netz und auf dem Raspberry Pi mit deploy/lan/setup-monitoring.sh, auf einem Server im Internet mit deploy/hetzner/harden-host.sh und WACHWERK_HEALTH_DIR. Anleitung: docs/BETRIEB-PI-LAN.md."
+msgstr "Einrichten: im Wachen-Netz und auf dem Raspberry Pi mit deploy/lan/setup-monitoring.sh, auf einem Server im Internet mit deploy/hetzner/harden-host.sh und WACHWERK_HEALTH_DIR. Anleitung: docs/BETRIEB-PI-LAN.md."
+
 #: templates/core/setup_done.html:3
 msgid "Einrichtung abgeschlossen"
 msgstr "Einrichtung abgeschlossen"
@@ -4399,7 +4546,7 @@ msgid "Entschlüsseln fehlgeschlagen."
 msgstr "Entschlüsseln fehlgeschlagen."
 
 #: core/templatetags/js_i18n.py:67
-#: templates/base.html:191
+#: templates/base.html:192
 msgid "Entsperren"
 msgstr "Entsperren"
 
@@ -4613,9 +4760,21 @@ msgstr "Erzeugt einen persönlichen QR-Code, der 2 Minuten gültig ist."
 msgid "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 msgstr "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 
+#: core/host_health.py:99
+msgid "Es gibt keine verschlüsselte Kopie für außer Haus."
+msgstr "Es gibt keine verschlüsselte Kopie für außer Haus."
+
+#: core/host_health.py:95
+msgid "Es gibt noch kein Backup."
+msgstr "Es gibt noch kein Backup."
+
 #: templates/core/coffee_book.html:20
 msgid "Es ist noch kein Monatsbeitrag festgelegt."
 msgstr "Es ist noch kein Monatsbeitrag festgelegt."
+
+#: core/host_health.py:91
+msgid "Es laufen keine Dienste von Wachwerk."
+msgstr "Es laufen keine Dienste von Wachwerk."
 
 #: templates/core/install_guide.html:59
 msgid "Es muss kein Raspberry Pi sein. Jeder sparsame 64-Bit-Rechner, der rund um die Uhr laufen darf, eignet sich – gebrauchte Thin Clients und Mini-PCs aus Büros sind oft die günstigste und robusteste Wahl."
@@ -4915,7 +5074,7 @@ msgstr "False (Übertragung nicht auf HTTPS beschränkt)"
 msgid "Farblegende"
 msgstr "Farblegende"
 
-#: templates/base.html:173
+#: templates/base.html:174
 #: templates/core/feedback.html:4
 #: templates/core/feedback.html:10
 msgid "Feedback"
@@ -4952,7 +5111,7 @@ msgstr "Fehlerbeschreibung:"
 #: templates/core/diagnostics_events.html:4
 #: templates/core/diagnostics_events.html:10
 #: templates/core/diagnostics_events.html:29
-#: templates/core/system_status.html:51
+#: templates/core/system_status.html:53
 msgid "Fehlerereignisse"
 msgstr "Fehlerereignisse"
 
@@ -5740,7 +5899,7 @@ msgstr "Gezähltes Bargeld in EUR"
 msgid "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 msgstr "Gib die Chargennummer (Lot) aus der Behördenwarnung ein. Das System sperrt die Charge sekundenschnell für alle Fahrzeuge."
 
-#: templates/base.html:185
+#: templates/base.html:186
 msgid "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 msgstr "Gib die Passphrase für deinen Ende-zu-Ende-Schlüssel ein. Die Eingabe bleibt nur in diesem Browser."
 
@@ -5978,6 +6137,10 @@ msgstr "Hersteller-MHD:"
 msgid "Hersteller:"
 msgstr "Hersteller:"
 
+#: core/host_health.py:118
+msgid "Hetzner Storage Box"
+msgstr "Hetzner Storage Box"
+
 #: templates/core/_display_surface.html:21
 #: templates/core/tasks_today.html:25
 #: templates/core/terminal_home.html:48
@@ -6006,7 +6169,7 @@ msgid "Heutige Termine"
 msgstr "Heutige Termine"
 
 #: core/navigation.py:35
-#: templates/base.html:178
+#: templates/base.html:179
 #: templates/core/help_article.html:3
 #: templates/core/help_article.html:6
 #: templates/core/help_index.html:3
@@ -6165,7 +6328,7 @@ msgstr "ID"
 msgid "IP-Adresse des anfragenden Geräts"
 msgstr "IP-Adresse des anfragenden Geräts"
 
-#: templates/base.html:175
+#: templates/base.html:176
 msgid "IT & Datenschutz"
 msgstr "IT & Datenschutz"
 
@@ -6256,7 +6419,7 @@ msgstr "Importieren"
 msgid "Importieren – alle Zeilen oder keine"
 msgstr "Importieren – alle Zeilen oder keine"
 
-#: templates/base.html:176
+#: templates/base.html:177
 #: templates/core/impressum.html:3
 #: templates/core/impressum.html:6
 msgid "Impressum"
@@ -7301,6 +7464,14 @@ msgstr "Kontrolle mit Details"
 msgid "Kontrollierte Korrektur"
 msgstr "Kontrollierte Korrektur"
 
+#: templates/core/_system_operations.html:46
+msgid "Kopie außer Haus"
+msgstr "Kopie außer Haus"
+
+#: templates/core/_system_operations.html:53
+msgid "Kopie außer Haus, Alter in Tagen: %(days)s"
+msgstr "Kopie außer Haus, Alter in Tagen: %(days)s"
+
 #: templates/core/coffee.html:92
 msgid "Kopieren"
 msgstr "Kopieren"
@@ -7525,7 +7696,7 @@ msgstr "Leer: Wache."
 msgid "Leere Formulare"
 msgstr "Leere Formulare"
 
-#: templates/base.html:206
+#: templates/base.html:207
 msgid "Leertaste"
 msgstr "Leertaste"
 
@@ -7568,6 +7739,18 @@ msgstr "Letzte Funktionskontrollen"
 #: templates/core/warehouse_dashboard.html:155
 msgid "Letzte Materialbewegungen (Audit-Journal)"
 msgstr "Letzte Materialbewegungen (Audit-Journal)"
+
+#: templates/core/_system_operations.html:9
+msgid "Letzte Prüfung"
+msgstr "Letzte Prüfung"
+
+#: core/host_health.py:604
+msgid "Letzte Prüfung um %(time)s Uhr. Bitte den Server prüfen (sudo wachwerk-health --verbose)."
+msgstr "Letzte Prüfung um %(time)s Uhr. Bitte den Server prüfen (sudo wachwerk-health --verbose)."
+
+#: templates/core/_host_health_banner.html:6
+msgid "Letzte Prüfung: %(time)s Uhr."
+msgstr "Letzte Prüfung: %(time)s Uhr."
 
 #: templates/core/fleet_vehicle_detail.html:313
 msgid "Letzte Schichtübernahmen"
@@ -7669,7 +7852,7 @@ msgstr "Läuft das Wachbuch wieder: nur den aktuellen Stand erfassen (je Fahrzeu
 msgid "Lösch- und Aufbewahrungskonzept"
 msgstr "Lösch- und Aufbewahrungskonzept"
 
-#: templates/base.html:204
+#: templates/base.html:205
 #: templates/core/feedback_inbox.html:41
 #: templates/core/orga_dashboard.html:160
 msgid "Löschen"
@@ -8011,6 +8194,14 @@ msgstr "Meldungen & Verkehr"
 #: templates/core/more.html:310
 msgid "Meldungen &amp; Verkehr"
 msgstr "Meldungen &amp; Verkehr"
+
+#: templates/core/_system_operations.html:19
+msgid "Meldungen: %(count)s"
+msgstr "Meldungen: %(count)s"
+
+#: templates/core/_system_operations.html:17
+msgid "Meldungen: %(count)s, seit %(time)s Uhr"
+msgstr "Meldungen: %(count)s, seit %(time)s Uhr"
 
 #: core/masterdata_import.py:1492
 msgid "Menge an diesem Lagerort. 0 wird übersprungen."
@@ -8586,6 +8777,10 @@ msgstr "Name:"
 msgid "Nein"
 msgstr "Nein"
 
+#: core/host_health.py:116
+msgid "Netzlaufwerk (NAS)"
+msgstr "Netzlaufwerk (NAS)"
+
 #: templates/core/install_guide.html:70
 msgid "Netzwerk"
 msgstr "Netzwerk"
@@ -8721,6 +8916,14 @@ msgstr "Neues Passwort"
 #: templates/core/api_tokens.html:21
 msgid "Neues Token (nur einmal sichtbar):"
 msgstr "Neues Token (nur einmal sichtbar):"
+
+#: templates/core/_system_operations.html:51
+msgid "Neueste verschlüsselte Kopie:"
+msgstr "Neueste verschlüsselte Kopie:"
+
+#: templates/core/_system_operations.html:37
+msgid "Neuestes Backup"
+msgstr "Neuestes Backup"
 
 #: core/audit_labels.py:145
 msgid "Neuigkeit"
@@ -9470,7 +9673,7 @@ msgstr "Passkeys"
 msgid "Passkeys sind hier nicht verfügbar."
 msgstr "Passkeys sind hier nicht verfügbar."
 
-#: templates/base.html:186
+#: templates/base.html:187
 #: templates/core/crypto_setup.html:23
 msgid "Passphrase"
 msgstr "Passphrase"
@@ -9732,6 +9935,10 @@ msgstr "Private Chats"
 msgid "Private Nachricht …"
 msgstr "Private Nachricht …"
 
+#: templates/core/_system_operations.html:74
+msgid "Probe mit Kopie außer Haus"
+msgstr "Probe mit Kopie außer Haus"
+
 #: templates/core/vorfuehrung.html:91
 msgid "Produktgrenze"
 msgstr "Produktgrenze"
@@ -9987,7 +10194,7 @@ msgstr "QR-Sticker"
 msgid "QR-Sticker drucken"
 msgstr "QR-Sticker drucken"
 
-#: templates/base.html:171
+#: templates/base.html:172
 #: templates/core/vorfuehrung.html:136
 msgid "Quellcode (AGPL-3.0)"
 msgstr "Quellcode (AGPL-3.0)"
@@ -10475,7 +10682,7 @@ msgstr "Schlüssel & Pools"
 msgid "Schlüssel einrichten"
 msgstr "Schlüssel einrichten"
 
-#: templates/base.html:184
+#: templates/base.html:185
 msgid "Schlüssel entsperren"
 msgstr "Schlüssel entsperren"
 
@@ -10566,6 +10773,14 @@ msgstr "Scopes:"
 msgid "Secure:"
 msgstr "Secure:"
 
+#: core/host_health.py:103
+msgid "Seit %(param)s Stunden wurde kein Backup-Stick beschrieben."
+msgstr "Seit %(param)s Stunden wurde kein Backup-Stick beschrieben."
+
+#: core/host_health.py:502
+msgid "Seit %(time)s Uhr: %(problems)s"
+msgstr "Seit %(time)s Uhr: %(problems)s"
+
 #: templates/core/masterdata_import_preview.html:19
 msgid "Seit der Prüfung hat sich der Datenbestand geändert. Es wurde nichts importiert. Bitte die neue Vorschau prüfen und erneut bestätigen."
 msgstr "Seit der Prüfung hat sich der Datenbestand geändert. Es wurde nichts importiert. Bitte die neue Vorschau prüfen und erneut bestätigen."
@@ -10600,7 +10815,11 @@ msgstr "Seitennavigation"
 msgid "Sekunden"
 msgstr "Sekunden"
 
-#: templates/base.html:174
+#: templates/core/_system_operations.html:30
+msgid "Selbst behoben:"
+msgstr "Selbst behoben:"
+
+#: templates/base.html:175
 #: templates/core/install_guide.html:4
 msgid "Selbst betreiben"
 msgstr "Selbst betreiben"
@@ -10668,6 +10887,10 @@ msgstr "Seriennummer:"
 #: core/diagnostics_models.py:32
 msgid "Server"
 msgstr "Server"
+
+#: core/host_health.py:117
+msgid "Server per SSH"
+msgstr "Server per SSH"
 
 #: core/errors.py:64
 msgid "Serverfehler."
@@ -10976,6 +11199,10 @@ msgstr "Stand"
 msgid "Stand der Angaben"
 msgstr "Stand der Angaben"
 
+#: templates/core/_system_operations.html:79
+msgid "Stand der Kopie: %(time)s"
+msgstr "Stand der Kopie: %(time)s"
+
 #: templates/core/privacy.html:223
 msgid "Stand dieser technischen Dokumentation:"
 msgstr "Stand dieser technischen Dokumentation:"
@@ -11097,6 +11324,10 @@ msgstr "Statusbemerkung:"
 msgid "Steht der Server in der Wache, laufen Anmeldung, Zwei-Faktor-Anmeldung und der Wachalltag im WLAN der Wache weiter, auch wenn die Leitung nach draußen ausfällt."
 msgstr "Steht der Server in der Wache, laufen Anmeldung, Zwei-Faktor-Anmeldung und der Wachalltag im WLAN der Wache weiter, auch wenn die Leitung nach draußen ausfällt."
 
+#: templates/core/_system_operations.html:54
+msgid "Stick „%(name)s“"
+msgstr "Stick „%(name)s“"
+
 #: core/forms.py:481
 #: core/forms.py:977
 #: core/site_profile.py:31
@@ -11163,7 +11394,7 @@ msgid "Suchen"
 msgstr "Suchen"
 
 #: templates/core/diagnostics_events.html:13
-#: templates/core/system_status.html:52
+#: templates/core/system_status.html:54
 msgid "Supportbericht herunterladen"
 msgstr "Supportbericht herunterladen"
 
@@ -11232,11 +11463,11 @@ msgstr "Tagesaufgaben & Fortschritt"
 msgid "Tank (%)"
 msgstr "Tank (%)"
 
-#: templates/base.html:203
+#: templates/base.html:204
 msgid "Tastatur ausblenden"
 msgstr "Tastatur ausblenden"
 
-#: templates/base.html:203
+#: templates/base.html:204
 msgid "Tastatur einblenden"
 msgstr "Tastatur einblenden"
 
@@ -11277,6 +11508,10 @@ msgstr "Teammitglied"
 #: templates/core/privacy.html:8
 msgid "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen."
 msgstr "Technische Produktinformation für Betreiber und Nutzer. Der konkrete Betreiber muss diese Angaben um seine vollständige Betroffeneninformation nach Art. 13/14 DSGVO ergänzen."
+
+#: templates/core/_host_health_banner.html:8
+msgid "Technische Störung."
+msgstr "Technische Störung."
 
 #: core/navigation.py:73
 #: templates/core/more.html:483
@@ -11383,6 +11618,10 @@ msgstr "Test-E-Mail an %(email)s gesendet."
 #: templates/core/coffee_settings.html:29
 msgid "Test-E-Mail an mich"
 msgstr "Test-E-Mail an mich"
+
+#: core/host_health.py:111
+msgid "Testmeldung der Überwachung."
+msgstr "Testmeldung der Überwachung."
 
 #: core/signal_views.py:99
 msgid "Testnachricht gesendet."
@@ -11530,6 +11769,10 @@ msgstr "UDI-DI (GS1-GTIN):"
 msgid "UDI-DI (GTIN):"
 msgstr "UDI-DI (GTIN):"
 
+#: core/host_health.py:115
+msgid "USB-Sticks im Wechsel"
+msgstr "USB-Sticks im Wechsel"
+
 #: core/masterdata_import.py:74
 msgid "UTF-8 mit BOM"
 msgstr "UTF-8 mit BOM"
@@ -11585,7 +11828,7 @@ msgstr "Umsatzsteuer-ID"
 msgid "Umsatzsteuer-Identifikationsnummer"
 msgstr "Umsatzsteuer-Identifikationsnummer"
 
-#: templates/base.html:205
+#: templates/base.html:206
 msgid "Umschalttaste"
 msgstr "Umschalttaste"
 
@@ -11757,7 +12000,7 @@ msgid "Verschlüsselung"
 msgstr "Verschlüsselung"
 
 #: core/orga_views.py:349
-#: templates/base.html:179
+#: templates/base.html:180
 #: templates/core/handover_detail.html:65
 #: templates/core/privacy.html:222
 #: templates/core/system_status.html:12
@@ -11890,7 +12133,7 @@ msgstr "Vor Nutzung Einweisung durch Gerätebeauftragten einholen!"
 msgid "Vor dem Kauf prüfen: 64 Bit, welcher M.2-Typ und welche Länge passt, wie viele RAM-Steckplätze, Netzteil dabei."
 msgstr "Vor dem Kauf prüfen: 64 Bit, welcher M.2-Typ und welche Länge passt, wie viele RAM-Steckplätze, Netzteil dabei."
 
-#: templates/base.html:172
+#: templates/base.html:173
 #: templates/core/vorfuehrung.html:4
 msgid "Vorführung"
 msgstr "Vorführung"
@@ -12284,6 +12527,10 @@ msgstr "Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlic
 msgid "Wachwerk ist öffentlich im Internet erreichbar (eigene Domain)"
 msgstr "Wachwerk ist öffentlich im Internet erreichbar (eigene Domain)"
 
+#: core/host_health.py:73
+msgid "Wachwerk ist über die Adresse der Wache nicht erreichbar."
+msgstr "Wachwerk ist über die Adresse der Wache nicht erreichbar."
+
 #: templates/core/_demo_tour.html:33
 #: templates/core/landing.html:11
 msgid "Wachwerk selbst betreiben"
@@ -12301,9 +12548,21 @@ msgstr "Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, b
 msgid "Wachwerk verschickt Erinnerungen und Hinweise über ein Signal-Konto der Wache – in die Wachengruppe (ohne Namen) und an Personen, die ihre Nummer selbst bestätigt haben."
 msgstr "Wachwerk verschickt Erinnerungen und Hinweise über ein Signal-Konto der Wache – in die Wachengruppe (ohne Namen) und an Personen, die ihre Nummer selbst bestätigt haben."
 
+#: core/host_health.py:600
+msgid "Wachwerk: Störung behoben"
+msgstr "Wachwerk: Störung behoben"
+
 #: core/signal_views.py:95
 msgid "Wachwerk: Testnachricht – die Signal-Benachrichtigungen funktionieren."
 msgstr "Wachwerk: Testnachricht – die Signal-Benachrichtigungen funktionieren."
+
+#: core/host_health.py:589
+msgid "Wachwerk: technische Störung"
+msgstr "Wachwerk: technische Störung"
+
+#: core/host_health.py:607
+msgid "Wachwerk: Überwachung meldet sich nicht"
+msgstr "Wachwerk: Überwachung meldet sich nicht"
 
 #: templates/core/_demo_tour.html:41
 msgid "Wand-Display"
@@ -12407,7 +12666,7 @@ msgstr "Web und Apps"
 msgid "Wechseln"
 msgstr "Wechseln"
 
-#: templates/base.html:204
+#: templates/base.html:205
 #: templates/core/diagnostics_events.html:55
 #: templates/core/feedback_inbox.html:51
 #: templates/core/pagination.html:6
@@ -12442,6 +12701,10 @@ msgstr "Weitere Fragen oder ein Fehler? Ausführliche Anleitung:"
 #: templates/core/coffee_book.html:97
 msgid "Weitere Konten mit Stand"
 msgstr "Weitere Konten mit Stand"
+
+#: core/host_health.py:63
+msgid "Weitere Meldung der Überwachung."
+msgstr "Weitere Meldung der Überwachung."
 
 #: templates/core/landing.html:187
 msgid "Weitere Rollen zum Ausprobieren:"
@@ -12660,6 +12923,10 @@ msgstr "Wieder öffnen"
 msgid "Wiederherstellen"
 msgstr "Wiederherstellen"
 
+#: templates/core/_system_operations.html:61
+msgid "Wiederherstellungsprobe"
+msgstr "Wiederherstellungsprobe"
+
 #: templates/core/crypto_setup.html:30
 #: templates/core/crypto_setup.html:37
 msgid "Wiederholen"
@@ -12859,7 +13126,7 @@ msgstr "Zeitzone"
 msgid "Zielkonto"
 msgstr "Zielkonto"
 
-#: templates/base.html:205
+#: templates/base.html:206
 msgid "Ziffern und Sonderzeichen"
 msgstr "Ziffern und Sonderzeichen"
 
@@ -12957,6 +13224,10 @@ msgstr "Zuletzt gezählt am %(date)s"
 #: templates/core/terminal_admin.html:31
 msgid "Zuletzt geändert am %(date)s."
 msgstr "Zuletzt geändert am %(date)s."
+
+#: templates/core/_system_operations.html:52
+msgid "Zuletzt übertragen vor %(hours)s h"
+msgstr "Zuletzt übertragen vor %(hours)s h"
 
 #: templates/core/it_privacy.html:134
 msgid "Zum Anpassen an eure Wache – sie ersetzen keine Prüfung durch eure Datenschutzbeauftragten."
@@ -13231,6 +13502,10 @@ msgstr "Zurückgeben"
 msgid "Zurücksetzen"
 msgstr "Zurücksetzen"
 
+#: templates/core/_system_operations.html:12
+msgid "Zustand"
+msgstr "Zustand"
+
 #: templates/core/fleet_vehicle_form.html:79
 msgid "Zustand & Füllstände"
 msgstr "Zustand & Füllstände"
@@ -13238,6 +13513,10 @@ msgstr "Zustand & Füllstände"
 #: templates/core/fleet_dashboard.html:10
 msgid "Zustand aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV."
 msgstr "Zustand aller Fahrzeuge, Übernahme zu Schichtbeginn, Desinfektion mit Einwirkzeit und Fristen für HU und UVV."
+
+#: templates/core/_host_health_banner.html:2
+msgid "Zustand des Servers"
+msgstr "Zustand des Servers"
 
 #: core/display_views.py:389
 msgid "Zustand je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."
@@ -13391,6 +13670,10 @@ msgstr "aktive Geräte"
 msgid "alle einsatzbereit"
 msgstr "alle einsatzbereit"
 
+#: templates/core/_system_operations.html:27
+msgid "alles in Ordnung"
+msgstr "alles in Ordnung"
+
 #: templates/core/team_invite.html:11
 msgid "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
 msgstr "angezeigt. Der Server speichert nur einen Hash des Tokens. Rolle:"
@@ -13471,6 +13754,10 @@ msgstr "ca. 5–12 W (Baureihe)"
 msgid "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock"
 msgstr "der Sperrbildschirm am Raspberry Pi mit Uhr, Übergaben und Ziffernblock"
 
+#: templates/core/_system_operations.html:10
+msgid "die Überwachung meldet sich nicht"
+msgstr "die Überwachung meldet sich nicht"
+
 #: templates/core/terminal_home.html:33
 #: templates/core/terminal_menu.html:23
 msgid "dringend"
@@ -13496,6 +13783,11 @@ msgstr "eingeschränkt einsatzbereit"
 msgid "endet spätestens %(time)s Uhr"
 msgstr "endet spätestens %(time)s Uhr"
 
+#: templates/core/_system_operations.html:65
+#: templates/core/_system_operations.html:78
+msgid "erfolgreich"
+msgstr "erfolgreich"
+
 #: templates/core/_demo_tour.html:14
 #: templates/core/tasks_today.html:11
 #: templates/core/tasks_week.html:37
@@ -13506,6 +13798,11 @@ msgstr "erledigt"
 #: templates/core/system_status.html:27
 msgid "erreichbar"
 msgstr "erreichbar"
+
+#: templates/core/_system_operations.html:65
+#: templates/core/_system_operations.html:78
+msgid "fehlgeschlagen"
+msgstr "fehlgeschlagen"
 
 #: core/masterdata_import.py:1331
 msgid "fehlt, obwohl das Gerät unter Anlage 1 fällt."
@@ -13571,11 +13868,16 @@ msgstr "ist angegeben, aber Anlage 2 (MTK) steht auf Nein."
 msgid "ja"
 msgstr "ja"
 
+#: templates/core/_system_operations.html:51
 #: templates/core/privacy.html:20
 #: templates/core/privacy.html:208
 #: templates/core/system_status.html:31
 msgid "keine"
 msgstr "keine"
+
+#: templates/core/_system_operations.html:42
+msgid "keines gefunden"
+msgstr "keines gefunden"
 
 #: core/fleet_forms.py:154
 #: templates/core/paper_vehicle_handover.html:18
@@ -13636,6 +13938,10 @@ msgstr "nein"
 msgid "nicht bereit"
 msgstr "nicht bereit"
 
+#: templates/core/_system_operations.html:57
+msgid "nicht eingerichtet"
+msgstr "nicht eingerichtet"
+
 #: core/module_overview.py:51
 msgid "nicht einsatzbereit"
 msgstr "nicht einsatzbereit"
@@ -13661,13 +13967,29 @@ msgstr "nicht in Ordnung"
 msgid "niedrig, lüfterlos"
 msgstr "niedrig, lüfterlos"
 
+#: templates/core/_system_operations.html:68
+msgid "noch keine (automatisch sonntags)"
+msgstr "noch keine (automatisch sonntags)"
+
 #: templates/core/paper_disinfection.html:9
 msgid "noch keine Mittel hinterlegt"
 msgstr "noch keine Mittel hinterlegt"
 
+#: templates/core/_system_operations.html:54
+msgid "noch nicht beschrieben"
+msgstr "noch nicht beschrieben"
+
 #: templates/core/terminal_admin.html:65
 msgid "noch nicht eingerichtet"
 msgstr "noch nicht eingerichtet"
+
+#: templates/core/_system_operations.html:22
+msgid "noch nicht gemeldet: erst wenn der Fehler bei der nächsten Prüfung noch besteht"
+msgstr "noch nicht gemeldet: erst wenn der Fehler bei der nächsten Prüfung noch besteht"
+
+#: templates/core/_system_operations.html:82
+msgid "noch nie – vierteljährlich empfohlen"
+msgstr "noch nie – vierteljährlich empfohlen"
 
 #: templates/core/team_invite.html:11
 msgid "nur jetzt"
@@ -13888,6 +14210,10 @@ msgstr "zuletzt %(km)s km"
 msgid "zuletzt aktiv"
 msgstr "zuletzt aktiv"
 
+#: templates/core/_system_operations.html:54
+msgid "zuletzt beschrieben %(time)s"
+msgstr "zuletzt beschrieben %(time)s"
+
 #: templates/core/privacy.html:114
 msgid "§ 25 Abs. 2 Nr. 2 TDDDG"
 msgstr "§ 25 Abs. 2 Nr. 2 TDDDG"
@@ -14091,6 +14417,10 @@ msgstr "Übersprungen"
 #: templates/core/privacy.html:87
 msgid "Übertragene Datenmenge"
 msgstr "Übertragene Datenmenge"
+
+#: templates/core/_host_health_banner.html:5
+msgid "Überwachung meldet sich nicht."
+msgstr "Überwachung meldet sich nicht."
 
 #: templates/emails/coffee_reminder.html:14
 #: templates/emails/coffee_reminder.txt:9

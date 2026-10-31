@@ -43,6 +43,8 @@ with open(state_path, encoding="utf-8") as handle:
 args = sys.argv[1:]
 with open(state_path + ".docker", "a", encoding="utf-8") as log:
     log.write(json.dumps(args) + "\n")
+with open(state_path + ".order", "a", encoding="utf-8") as log:
+    log.write("docker " + " ".join(args[:2]) + "\n")
 command = args[0] if args else ""
 if state.get("hang") == command:
     time.sleep(3600)
@@ -73,6 +75,8 @@ args = sys.argv[1:]
 body = sys.stdin.read() if "@-" in args else ""
 with open(state_path + ".curl", "a", encoding="utf-8") as log:
     log.write(json.dumps({"url": args[-1], "body": body, "args": args}) + "\n")
+with open(state_path + ".order", "a", encoding="utf-8") as log:
+    log.write("curl " + args[-1] + "\n")
 if "/healthz/" in args[-1]:
     sys.exit(state.get("healthz_rc", 0))
 '''
@@ -203,7 +207,7 @@ class HealthSandbox:
         return [call for call in self.calls("curl") if "/healthz/" not in call["url"]]
 
     def reset_calls(self) -> None:
-        for suffix in ("curl", "docker", "openssl"):
+        for suffix in ("curl", "docker", "openssl", "order"):
             Path(f"{self.state_path}.{suffix}").unlink(missing_ok=True)
 
 
@@ -661,6 +665,32 @@ class HealthAppDeliveryTests(SimpleTestCase):
     def test_healthy_notify_worker_needs_no_app_delivery(self):
         self.assertEqual(self.box.run("--test").returncode, 1)
         self.assertEqual(self.deliveries(), [])
+
+    def test_hanging_app_delivery_comes_after_the_fail_ping_and_is_bounded(self):
+        # Hängt die Datenbank, hängt auch der eigene Lauf. Der Ping nach außen
+        # ist dann der einzige Weg und geht deshalb vorher hinaus.
+        self.box.state["hang"] = "compose"
+        self.box.container("notify-worker").update(status="exited", health="-")
+        started = time.monotonic()
+        result = self.box.run(env={"HEALTH_DELIVERY_TIMEOUT": "2"}, timeout=60)
+        self.assertLess(time.monotonic() - started, 30)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        fails = [p for p in self.box.pings() if p["url"] == PING + "/fail"]
+        self.assertEqual(len(fails), 1, self.box.pings())
+        self.assertIn("notify-worker", fails[0]["body"])
+        self.assertEqual(self.deliveries(), [NOTIFY_RUN])
+        self.assertIn("Meldung in Wachwerk nicht zugestellt", result.stderr)
+        # Reihenfolge der Aufrufe: erst der Ping, dann der eigene Lauf.
+        order = Path(f"{self.box.state_path}.order").read_text(encoding="utf-8").splitlines()
+        self.assertLess(order.index(f"curl {PING}/fail"), order.index("docker compose run"), order)
+
+    def test_default_delivery_timeout_keeps_the_run_below_the_unit_limit(self):
+        # Prüfungen (~105 s, wenn die Datenbank hängt) + Ping (~45 s) + 120 s < 5 Minuten.
+        self.assertIn("TimeoutStartSec=5min", HARDEN.read_text(encoding="utf-8"))
+        text = HEALTH.read_text(encoding="utf-8")
+        self.assertIn('DELIVERY_TIMEOUT="${HEALTH_DELIVERY_TIMEOUT:-120}"', text)
+        self.assertIn('timeout "$DELIVERY_TIMEOUT" docker compose run', text)
+        self.assertLess(text.index('send_ping "$PING_URL/fail"'), text.rindex("|| deliver_via_app"))
 
 
 @linux_only

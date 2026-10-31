@@ -5,8 +5,15 @@ und auf einem Thin Client oder PC im Wachen-Netz (`install.sh --mode lan` oder
 `--mode local`). Für einen Server im Internet gilt [`HETZNER.md`](HETZNER.md);
 dort läuft dieselbe Prüfung.
 
-Ziel (Roadmap 0.27, R-016): Ein Ausfall auf dem Pi wird in **unter 15 Minuten**
-gemeldet – auch ohne Internet, im Browser im Wachen-Netz.
+Ziel (Roadmap 0.27, R-016): Fällt auf dem Pi ein Dienst im Hintergrund aus oder
+stimmt etwas mit der Datensicherung nicht, wird das in **unter 15 Minuten**
+gemeldet – auch ohne Internet, im Browser im Wachen-Netz. Das gilt für den
+Backup-Dienst, die Worker und `housekeeping` (den notify-worker vertritt dabei
+ein eigener Lauf der Prüfung), für Backupalter, Kopie außer Haus,
+Wiederherstellungsprobe, automatisches Update, Serverfehler und Plattenplatz.
+Voraussetzung ist, dass `web`, `proxy` und die Datenbank laufen. Ob auch deren
+Ausfall ohne Internet gemeldet werden muss, haben die Betreiber noch nicht
+entschieden (siehe [Offene Fragen](#offene-fragen)).
 
 ## 1. Überblick
 
@@ -41,10 +48,11 @@ Wachenterminal und das Wachen-Display zeigen nichts davon.
 | Web-Push | ja (Push-Dienst des Browsers) | nur mit `WEB_PUSH_ENABLED` und laufendem push-worker (auf dem Pi aus) |
 | `PING_URL` (z. B. healthchecks.io) | ja | meldet auch, wenn das Gerät ganz aus ist oder kein Netz hat |
 
-Die App 1.1 zeigt nur Meldungsarten, die sie kennt; technische Hinweise zum
-Server erscheinen dort noch nicht. Für den Pilot ohne Internet gelten Banner und
-Posteingang im Browser im Wachen-Netz als „gemeldet“ (Betreiberentscheidung
-0.27). E-Mail, Signal und `PING_URL` sind optional.
+Die App zeigt in ihrem Posteingang nur Meldungsarten, die sie kennt;
+technische Hinweise zum Server erscheinen dort bis einschließlich App 1.1.x
+nicht. Für den Pilot ohne Internet gelten Banner und Posteingang im Browser im
+Wachen-Netz als „gemeldet“ (Betreiberentscheidung 0.27). E-Mail, Signal und
+`PING_URL` sind optional.
 
 **Was übertragen wird:** Die Prüfung schreibt `/var/lib/wachwerk-health/status.json`.
 Die Datei enthält nur Codes, Zeiten und Zahlen – keine Texte, Hostnamen, Pfade
@@ -68,7 +76,9 @@ Läuft die Datenbank noch, verschickt der notify-worker E-Mail und Signal (mit
 Internet); die Nachricht im Posteingang ist sichtbar, sobald `web` wieder läuft.
 Ohne Internet bemerkt die Wache einen Ausfall von `web` nur am Gerät selbst
 (Fehlerseite am Terminal) – dann gilt die Papier-Rückfallebene. Wer das
-vermeiden will, richtet `PING_URL` mit Internet ein.
+vermeiden will, richtet `PING_URL` mit Internet ein. Ein Ausfall von `web`,
+`proxy` oder Datenbank ohne Internet gehört deshalb nicht zum 15-Minuten-Ziel;
+ob er dazugehören muss, ist offen (siehe [Offene Fragen](#offene-fragen)).
 
 ## 2. Einrichten
 
@@ -194,3 +204,16 @@ Die Überwachung meldet auch eine fehlende oder veraltete Kopie außer Haus, sob
 eine eingerichtet ist (`/etc/wachwerk/offsite.env`). Für den Pi steht der Weg
 dafür bis auf Weiteres in [`PI-WACHENTERMINAL.md`](PI-WACHENTERMINAL.md),
 Abschnitt „Betrieb“; die Wiederherstellung in [`OPERATIONS.md`](OPERATIONS.md).
+
+## Offene Fragen
+
+- **Ausfall von `web`, `proxy` oder Datenbank ohne Internet (Entscheidung der
+  Betreiber, offen):** Das Ziel „gemeldet in unter 15 Minuten“ deckt heute nur
+  die Dienste im Hintergrund und die Datensicherung ab (Abschnitt 1). Fallen
+  `web`, `proxy` oder die Datenbank aus, kann Wachwerk ohne Internet weder
+  Banner noch Nachricht zeigen; nur `PING_URL` meldet das, und das braucht
+  Internet. Zu entscheiden ist, ob das für den Pilot genügt (Papier-Rückfallebene)
+  oder ob ein lokaler Weg nötig ist. Möglicher Weg: eine eigene Fehlerseite im
+  `proxy` (nginx), die bei ausgefallenem `web` oder ausgefallener Datenbank am
+  Terminal und im Browser auf die Störung und die Papier-Rückfallebene hinweist.
+  Sie hilft nicht, wenn der `proxy` selbst oder das ganze Gerät ausfällt.

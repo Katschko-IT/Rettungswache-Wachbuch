@@ -18,13 +18,14 @@ from unittest import mock
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.management import call_command
-from django.db import connection
+from django.db import IntegrityError, connection, transaction
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone, translation
 
 from core import host_health
+from core.api.views import hash_api_token
 from core.demo_models import DemoSandbox
 from core.host_health import (
     MAX_PROBLEMS,
@@ -34,7 +35,7 @@ from core.host_health import (
     parse_status,
     read_host_health,
 )
-from core.models import Membership, Station
+from core.models import ApiToken, Membership, Station
 from core.notification_models import SignalContact, SignalOutbox, UserNotification
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -514,6 +515,60 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.assertFalse(self.notes(user=user, station=older).exists())
         self.client.force_login(user)
         self.assertContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+
+    def allow_second_active_membership(self, user, station):
+        """Zweite aktive Mitgliedschaft trotz ``unique_active_membership``.
+
+        Die Datenbank erlaubt je Person nur eine aktive Mitgliedschaft.
+        admin_recipients() legt die Nachricht trotzdem nur einmal an, falls es
+        je mehrere gäbe. Dafür fällt der Index nur in diesem Test weg; das
+        Zurückrollen am Testende stellt ihn auf SQLite und PostgreSQL wieder her.
+        """
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Membership.objects.create(user=user, station=station, role=Membership.Role.ADMIN)
+        with connection.cursor() as cursor:
+            cursor.execute(f"DROP INDEX {connection.ops.quote_name('unique_active_membership')}")
+        Membership.objects.create(user=user, station=station, role=Membership.Role.ADMIN)
+
+    def test_admin_of_two_active_stations_gets_one_notification(self):
+        Membership.objects.filter(user=self.admin).update(is_active=False)
+        station_a = Station.objects.create(name="RW A", slug="rw-a")
+        station_b = Station.objects.create(name="RW B", slug="rw-b")
+        self.assertLess(station_a.pk, station_b.pk)
+        user = User.objects.create_user("doppelt", password="pw-123456789")
+        # Erst B, dann A: die Reihenfolge der Mitgliedschaften entscheidet nicht.
+        Membership.objects.create(user=user, station=station_b, role=Membership.Role.ADMIN)
+        self.allow_second_active_membership(user, station_a)
+        self.assertEqual(Membership.objects.filter(user=user, is_active=True, role=Membership.Role.ADMIN).count(), 2)
+        raw = "wb_test_health_token_1234567890"
+        ApiToken.objects.create(
+            user=user, label="t", token_prefix=raw[:11], token_hash=hash_api_token(raw),
+            scopes=["read:me"], expires_at=timezone.now() + timedelta(days=1),
+        )
+        auth = {"HTTP_AUTHORIZATION": f"Token {raw}"}
+        self.write(alerting())
+
+        self.assertEqual(self.notify(), 1)
+        row = self.notes().get()
+        self.assertEqual((row.user, row.station), (user, station_a))
+        self.assertEqual(self.notify(), 0)
+
+        def inbox_ids():
+            data = self.client.get("/api/v1/benachrichtigungen/", **auth).json()
+            return [item["id"] for item in data["results"] if item["kind"] == "system_health"]
+
+        # Wache A: Übersicht und API zeigen die Nachricht.
+        self.client.force_login(user)
+        self.assertContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+        self.assertEqual(inbox_ids(), [row.pk])
+        # Wache B (A ruht): weder Übersicht noch API zeigen sie.
+        Membership.objects.filter(user=user, station=station_a).update(is_active=False)
+        self.assertNotContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+        self.assertEqual(inbox_ids(), [])
+        # Wieder Wache A: die API zeigt sie wieder.
+        Membership.objects.filter(user=user, station=station_b).update(is_active=False)
+        Membership.objects.filter(user=user, station=station_a).update(is_active=True)
+        self.assertEqual(inbox_ids(), [row.pk])
 
     @override_settings(EMAIL_HOST="smtp.example.org", SITE_URL="https://wache.example")
     def test_email_only_with_email_host_and_address(self):

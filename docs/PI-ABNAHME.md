@@ -93,9 +93,16 @@ Je ein **iPhone** und ein **Android-Handy**, mobile Daten zunächst **aus**.
 - [ ] 8.3 Dump auf USB-Stick kopieren (siehe `docs/PI-WACHENTERMINAL.md`, Abschnitt Betrieb)
 - [ ] 8.4 Wiederherstellung prüfen: `wb run --rm restore-test` endet ohne Fehler
 
-## 8a. Überwachung (Ziel: Ausfall in unter 15 Minuten gemeldet)
+## 8a. Überwachung (Ziel: Ausfall eines Dienstes im Hintergrund in unter 15 Minuten gemeldet)
 
-Anleitung und Grenzen: `docs/BETRIEB-PI-LAN.md`.
+Anleitung und Grenzen: `docs/BETRIEB-PI-LAN.md`. Das Ziel gilt ohne Internet für
+Backup-Dienst, Worker und `housekeeping` (notify-worker über den eigenen Lauf
+der Prüfung), Backupalter, Kopie außer Haus, Wiederherstellungsprobe,
+automatisches Update, Serverfehler und Plattenplatz, solange `web`, `proxy` und
+Datenbank laufen. Ob auch ein Ausfall von `web`, `proxy` oder Datenbank ohne
+Internet gemeldet werden muss, ist eine offene Entscheidung der Betreiber
+(Alternative: eine eigene Fehlerseite im `proxy`; `docs/BETRIEB-PI-LAN.md`,
+„Offene Fragen“). 8a.7 hält diese Grenze fest.
 
 - [ ] 8a.1 `sudo wachwerk-health --verbose` zeigt nur `OK`-Zeilen (direkt nach der
       Einrichtung kann „noch kein Backup“ stehen – dann am nächsten Tag wiederholen)
@@ -113,7 +120,9 @@ Anleitung und Grenzen: `docs/BETRIEB-PI-LAN.md`.
       ___ Minuten; danach wieder starten
 - [ ] 8a.7 Grenze notieren: `sudo docker stop rettungswache-wachbuch-web-1` – ohne
       Internet zeigt nur das Terminal die Fehlerseite (kein Banner; die Nachricht im
-      Posteingang ist erst sichtbar, wenn `web` wieder läuft); danach wieder starten
+      Posteingang ist erst sichtbar, wenn `web` wieder läuft); danach wieder starten.
+      Nicht Teil des 15-Minuten-Ziels, solange die Betreiber das nicht anders
+      entscheiden
 
 ## 9. Diagnose (bei Problemen mitschicken)
 

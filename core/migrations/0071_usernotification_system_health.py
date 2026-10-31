@@ -10,7 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0067_fleet_neutral_status"),
+        ("core", "0070_masterdata_import_altbestand"),
     ]
 
     operations = [

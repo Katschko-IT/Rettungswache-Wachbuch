@@ -457,8 +457,9 @@ def admin_recipients() -> list:
     """Aktive Master-Admins aktiver, echter Wachen; je Person eine Mitgliedschaft.
 
     Gespeichert wird die Nachricht bei der Wache dieser Mitgliedschaft (die
-    niedrigste Wachen-ID, falls es je mehrere gäbe); dort sehen Posteingang,
-    App und Push sie.
+    niedrigste Wachen-ID, falls es je mehrere gäbe; die Datenbank erlaubt heute
+    nur eine aktive). Dort sehen Posteingang und Push sie; die App zeigt nur
+    Arten, die sie kennt (system_health bis einschließlich App 1.1.x nicht).
     """
     from .models import Membership
 

@@ -92,8 +92,12 @@ AUTO_UPDATE_MAX_MINUTES=60
 AUTO_UPDATE_MAX_AGE_HOURS=50
 # Kein Aufruf darf die Prüfung anhalten (systemd begrenzt den Lauf zusätzlich).
 CMD_TIMEOUT="${HEALTH_CMD_TIMEOUT:-30}"
+# Eigener Lauf des notify-workers (deliver_via_app). Mit den übrigen Prüfungen
+# und dem Ping bleibt der Lauf so unter TimeoutStartSec=5min der Unit.
+DELIVERY_TIMEOUT="${HEALTH_DELIVERY_TIMEOUT:-120}"
 case "$FAILS_BEFORE_ALERT" in ''|*[!0-9]*) FAILS_BEFORE_ALERT=2 ;; 0) FAILS_BEFORE_ALERT=1 ;; esac
 case "$ERRORS_MAX_15MIN" in ''|*[!0-9]*) ERRORS_MAX_15MIN=5 ;; esac
+case "$DELIVERY_TIMEOUT" in ''|*[!0-9]*|0) DELIVERY_TIMEOUT=120 ;; esac
 
 VERBOSE=0
 TEST=0
@@ -249,7 +253,9 @@ check_reachability() {
 check_certificate() {
     [ -z "$HEALTH_CA_FILE" ] || return 0
     [ "$(env_get WACHBUCH_MODE)" != lan ] || return 0
-    [ -n "$HOST" ] && [ "$HOST" != "localhost" ] && command -v openssl >/dev/null 2>&1 || return 0
+    if [ -z "$HOST" ] || [ "$HOST" = "localhost" ] || ! command -v openssl >/dev/null 2>&1; then
+        return 0
+    fi
     end=$(t openssl s_client -connect "127.0.0.1:$HTTPS_PORT" -servername "$HOST" </dev/null 2>/dev/null \
         | openssl x509 -noout -enddate 2>/dev/null | sed 's/^notAfter=//')
     if [ -z "$end" ]; then
@@ -629,7 +635,8 @@ write_status() {  # $1 Zustand ok|problem
 # stellt ein eigener Lauf des Befehls die neue Störung einmal zu: derselbe
 # Code und dieselbe Datenbankrolle wie der Dienst, kein SQL vom Host. Nur, wenn
 # Wachwerk den Zustand überhaupt einbindet (WACHWERK_HEALTH_DIR in .env) und
-# kein Update läuft. Ist die Datenbank aus, bleibt nur PING_URL.
+# kein Update läuft. Ist die Datenbank aus, bleibt nur PING_URL; deshalb geht
+# der Ping vorher hinaus (hängt der Lauf, wartet er höchstens DELIVERY_TIMEOUT).
 deliver_via_app() {
     if [ "$INSTALLED" -ne 1 ] || [ "$UPDATE_RUNNING" -ne 0 ]; then
         return 0
@@ -640,7 +647,7 @@ deliver_via_app() {
         return 0
     fi
     echo "Hinweis: notify-worker läuft nicht – die Meldung wird einmal über einen eigenen Lauf zugestellt."
-    if (cd "$WACHWERK_DIR" && timeout 180 docker compose run --rm --no-deps -T notify-worker \
+    if (cd "$WACHWERK_DIR" && timeout "$DELIVERY_TIMEOUT" docker compose run --rm --no-deps -T notify-worker \
         python manage.py notify_crew) >/dev/null 2>&1; then
         echo "Meldung an die Master-Admins in Wachwerk zugestellt."
     else
@@ -702,12 +709,13 @@ else
     fi
 fi
 [ "$INSTALLED" -eq 0 ] || write_status problem
-[ "$NEW_ALERT" -eq 0 ] || deliver_via_app
 
 if [ "$fails" -lt "$FAILS_BEFORE_ALERT" ]; then
     echo "Noch keine Meldung: Fehler im $fails. Lauf in Folge, gemeldet wird ab dem $FAILS_BEFORE_ALERT. (FAILS_BEFORE_ALERT)."
     exit 1
 fi
+# Erst nach außen melden, dann der eigene Lauf in Wachwerk: Hängt die
+# Datenbank, kommt der Ping sonst erst nach DELIVERY_TIMEOUT.
 if [ -z "$PING_URL" ]; then
     [ "$VERBOSE" -eq 0 ] || echo "Hinweis: PING_URL ist nicht gesetzt ($CONF_DIR/health.env) – keine Meldung nach außen." >&2
 elif send_ping "$PING_URL/fail" "$(printf 'Wachwerk auf %s:\n%s%s' "$host_label" "$PROBLEMS" "$NOTES")"; then
@@ -715,4 +723,5 @@ elif send_ping "$PING_URL/fail" "$(printf 'Wachwerk auf %s:\n%s%s' "$host_label"
 else
     echo "Meldung an $PING_URL/fail konnte nicht gesendet werden." >&2
 fi
+[ "$NEW_ALERT" -eq 0 ] || deliver_via_app
 exit 1
