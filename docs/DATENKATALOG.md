@@ -18,26 +18,26 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Sitzungen und Anmeldeschutz](#modul-anmeldeschutz) | immer aktiv | ja | 0 | Sitzung, Sperrzähler, Anmeldeprotokoll, Rate-Limit-Zähler |
 | [Wache, Betreiber und Datenschutzkontakt](#modul-wache) | immer aktiv | ja | 0 | Einstellung, Technische Tabelle |
 | [Audit, Fehler und Verwaltungsprotokoll](#modul-audit) | immer aktiv | ja | 1 | Audit, Fehlerereignis, Lücke, Technische Tabelle |
-| [Übergaben](#modul-uebergaben) | immer aktiv | ja | 2 | Organisationsdaten, Nachweis, Anhang |
-| [Neuigkeiten mit Lesebestätigung](#modul-neuigkeiten) | immer aktiv | ja | 0 | Organisationsdaten, Nachweis, Anhang |
-| [Wachen-Wiki](#modul-wiki) | immer aktiv | ja | 0 | Organisationsdaten, Nachweis |
-| [Mängel](#modul-maengel) | immer aktiv | ja | 1 | Organisationsdaten, Nachweis, Anhang |
+| [Übergaben](#modul-uebergaben) | immer aktiv | ja | 2 | Nachweis, Anhang |
+| [Neuigkeiten mit Lesebestätigung](#modul-neuigkeiten) | immer aktiv | ja | 0 | Organisationsdaten, Anhang |
+| [Wachen-Wiki](#modul-wiki) | immer aktiv | ja | 1 | Organisationsdaten, Nachweis |
+| [Mängel](#modul-maengel) | immer aktiv | ja | 5 | Nachweis, Anhang |
 | [Geräte, Status und Ausgabe](#modul-geraete) | immer aktiv | ja | 2 | Organisationsdaten, Nachweis |
 | [Kalender](#modul-kalender) | `Station.calendar_enabled` | ja | 0 | Lücke, Zugangsschlüssel |
 | [Müllkalender](#modul-muellkalender) | `Station.waste_calendar_enabled` | Freitext möglich | 0 | Abholtermine |
 | [Geburtstage (freiwillig)](#modul-geburtstage) | `Station.birthdays_enabled` | ja | 1 | Freiwillige Angabe |
-| [Kaffeekasse (freiwillig)](#modul-kaffeekasse) | `Station.coffee_enabled` | ja | 4 | Nachweis, Organisationsdaten |
-| [Tagesaufgaben](#modul-aufgaben) | `Station.tasks_enabled` | ja | 2 | Organisationsdaten, Nachweis |
-| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 1 | Organisationsdaten, Nachweis |
+| [Kaffeekasse (freiwillig)](#modul-kaffeekasse) | `Station.coffee_enabled` | ja | 5 | Nachweis, Organisationsdaten |
+| [Tagesaufgaben](#modul-aufgaben) | `Station.tasks_enabled` | ja | 2 | Organisationsdaten, Erledigt-Vermerk |
+| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 2 | Organisationsdaten, Nachweis |
 | [Meldungen, Verkehr und Wetter](#modul-lage) | `Station.feeds_enabled` | Freitext möglich | 0 | Einstellung, Meldungen |
 | [Pinnwand](#modul-pinnwand) | `Station.pinboard_enabled` | ja | 0 | Lücke, Anhang |
 | [Wachenchat, Privatnachrichten und Post (E2EE)](#modul-chat) | `Station.chat_enabled` | ja | 0 | Konto, Lücke |
 | [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange |
 | [Signal-Benachrichtigungen](#modul-signal) | Einstellung SIGNAL_API_URL und SIGNAL_NUMBER | ja | 0 | Freiwillige Angabe, Signal-Warteschlange |
-| [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Nachweis |
+| [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Organisationsdaten, Nachweis, Einweisung |
 | [Lager und Material](#modul-lager) | `Station.warehouse_enabled` | ja | 2 | Organisationsdaten, Nachweis |
-| [Fuhrpark](#modul-fuhrpark) | `Station.fleet_enabled` | ja | 2 | Nachweis, Einstellung |
-| [Dienstanweisungen und Telefonbuch](#modul-orga) | `Station.orga_enabled` | ja | 2 | Nachweis, Organisationsdaten |
+| [Fuhrpark](#modul-fuhrpark) | `Station.fleet_enabled` | ja | 2 | Organisationsdaten, Einstellung, Nachweis |
+| [Dienstanweisungen und Telefonbuch](#modul-orga) | `Station.orga_enabled` | ja | 2 | Organisationsdaten, Nachweis |
 | [Wachen-Display](#modul-display) | `Station.display_enabled` | ja | 0 | Zugangsschlüssel |
 | [Wachenterminal](#modul-terminal) | Einstellung TERMINAL_ENABLED | ja | 0 | Zugangsschlüssel, Einstellung, Kopplungscode |
 | [Öffentliche Demo](#modul-demo) | Einstellung DEMO_SANDBOX | nein | 0 | Demo-Besuch, Technische Tabelle |
@@ -78,6 +78,10 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 ## Arten von Feldern
 
 Die Art leitet sich aus dem Datenmodell ab. „Person (Konto)“ ist ein Verweis auf ein Benutzerkonto; „Kontakt/Name“ sind Namen, Telefonnummern, Bankverbindungen oder E-Mail-Adressen als Text; „persönliche Angabe“ sind weitere freiwillige Angaben zu einer Person; „Freitext“ kann alles enthalten, was Menschen eintippen; „Netzwerk/Gerät“ sind IP-Adressen, Browserkennungen oder Geräteadressen; „Geheimnis/Prüfwert“ sind Hashes und Schlüssel, die niemand im Klartext liest. Auswahlfelder werden ohne ihre Werte aufgeführt. Die Spalte Bezeichnung zeigt nur ausdrücklich gesetzte Bezeichnungen.
+
+## Nachweis und Löschschutz
+
+„Nachweis: ja“ heißt: Die Tabelle belegt, wer wann was getan, geprüft oder quittiert hat. Wie lange sie bleibt und ob Wachwerk selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Wachwerk verweigert jede Änderung und jedes Löschen einer Zeile, Korrekturen sind neue Einträge. „und Datenbankrechte“: zusätzlich darf die Datenbankrolle der App die Tabelle weder ändern noch löschen (PostgreSQL nach `grant_database_access`). „Löschschutz“ sagt, was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird, etwa ein Gerät im Django-Admin.
 
 <a id="modul-konto"></a>
 
@@ -729,7 +733,8 @@ Audit: wer hat wann was an welchem Objekt geändert
 - Lesen: Auditor, Master-Admin, Superuser (Django-Admin)
 - Schreiben: System
 - Zugriffswege: Web, Django-Admin (lesen)
-- Nachweis: ja, append-only (Datenbankrechte)
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: unbegrenzt, solange RETENTION_AUDIT_DAYS = 0 (Standard); sonst löscht `apply_retention` mit den Rechten des Datenbank-Eigentümers
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Append-only. Enthält Feldnamen und Statuswerte, keine fachlichen Freitexte.
@@ -780,7 +785,7 @@ Informationen von Schicht zu Schicht mit Quittierung.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Lesebestätigungen einer Übergabe mit Namen und Zeit | `handover_detail` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** | für alle Inhaltsrollen und am Wachenterminal sichtbar |
+| Lesebestätigungen und Änderungsverlauf einer Übergabe mit Namen und Zeit | `handover_detail` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** | für alle Inhaltsrollen und am Wachenterminal sichtbar |
 | Lesebestätigungen mit Namen und Zeit (App) | `api_v1_handover_acks` | Inhaltsrollen | **ja** |  |
 
 ### core.HandoverAck
@@ -790,8 +795,9 @@ Lesebestätigung: Person und Zeit
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web, App (API), Wachenterminal
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -809,7 +815,8 @@ Anhänge (Bild oder PDF)
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal
-- Nachweis: nein
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Löschung zusammen mit dem Vorgang laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -832,10 +839,11 @@ Anhänge (Bild oder PDF)
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto), Wachen-Display
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal, Display, Django-Admin (lesen)
-- Nachweis: nein
-- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
+- Nachweis: ja
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin.
+- Hinweis: Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -859,8 +867,9 @@ Versionen einer Übergabe (Schnappschuss, Person)
 - Lesen: Inhaltsrollen
 - Schreiben: System
 - Zugriffswege: Web, Django-Admin (lesen)
-- Nachweis: ja, append-only (Datenbankrechte)
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `handover` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -894,10 +903,10 @@ Quittierung: Person und Zeit
 - Lesen: die Person selbst
 - Schreiben: die Person selbst
 - Zugriffswege: Web
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren.
+- Hinweis: Lesestatus, kein Nachweis. Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -913,7 +922,8 @@ Anhänge (Bild oder PDF)
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web, Wachenterminal
-- Nachweis: nein
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Löschung zusammen mit dem Vorgang laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -959,6 +969,12 @@ Wissen der Wache mit Versionsverlauf.
 - Schalter: immer aktiv
 - Bereiche: `/wiki/`
 
+**Auswertungen und Personenlisten**
+
+| Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
+| --- | --- | --- | --- | --- |
+| Versionsverlauf eines Artikels mit Vorname der bearbeitenden Person | `wiki_detail` | Inhaltsrollen | **ja** |  |
+
 ### core.WikiArticle
 
 Artikel: Titel, Text, Autor
@@ -990,8 +1006,9 @@ Versionen mit bearbeitender Person
 - Lesen: Inhaltsrollen
 - Schreiben: System
 - Zugriffswege: Web
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `article` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -1018,7 +1035,11 @@ Mängel an Fahrzeugen, Geräten und Gebäude mit Frist und Verlauf.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Verlauf eines Mangels mit Namen | `defect_detail_web` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
+| Mängelliste mit Vorname der zuständigen Person | `defects_web` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
+| Verlauf und Anhänge eines Mangels mit Vorname der handelnden Person | `defect_detail_web` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
+| Mängelliste mit Benutzername der zuständigen Person (App) | `api_v1_defects` | Inhaltsrollen | **ja** |  |
+| Mangel mit Verlauf und Anhängen, jeweils mit Benutzername (App) | `api_v1_defect_detail` | Inhaltsrollen | **ja** |  |
+| Anhänge eines Mangels mit Benutzername der hochladenden Person (App) | `api_v1_defect_attachments` | Inhaltsrollen | **ja** |  |
 
 ### core.Defect
 
@@ -1027,9 +1048,11 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal
-- Nachweis: nein
-- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
+- Nachweis: ja
+- Löschschutz: die Verknüpfung `medical_device` wird gelöst, wenn der verknüpfte Eintrag gelöscht wird
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1056,7 +1079,8 @@ Fotos zum Mangel (Metadaten entfernt)
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal
-- Nachweis: nein
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Löschung zusammen mit dem Vorgang laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -1079,8 +1103,9 @@ Verlauf: Statuswechsel mit Person
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: System
 - Zugriffswege: Web, App (API), Wachenterminal
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -1120,8 +1145,9 @@ Statusverlauf mit Person
 - Lesen: Inhaltsrollen
 - Schreiben: System
 - Zugriffswege: Web
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -1142,8 +1168,9 @@ Ausgabe und Rückgabe mit Person
 - Lesen: Inhaltsrollen
 - Schreiben: System
 - Zugriffswege: Web
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -1161,11 +1188,12 @@ Ausgabe und Rückgabe mit Person
 Ausgabegegenstand mit aktueller Inhaberin oder aktuellem Inhaber
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web, App (API)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Anlegen: Schichtleitung und Master-Admin. Ausgabe und Rückgabe (Inhaberin oder Inhaber) tragen alle Inhaltsrollen ein.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1186,11 +1214,12 @@ Ausgabegegenstand mit aktueller Inhaberin oder aktuellem Inhaber
 Gerät mit Status und Notiz
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin, System
 - Zugriffswege: Web, App (API)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Wachwerk den Status aus dem Modul Medizinprodukte.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1350,6 +1379,7 @@ Gemeinschaftskasse mit Monatsbeiträgen und Kassenbuch (docs/KAFFEEKASSE.md).
 | Buchungen aller Teilnehmenden | `coffee_ledger` | Kassenwart | **ja** |  |
 | Teilnehmendenliste | `coffee_participants` | Kassenwart, Master-Admin | **ja** |  |
 | Export aller Buchungen als CSV | `coffee_export` | Kassenwart | **ja** |  |
+| Buchungen aller Teilnehmenden mit vollem Namen (App) | `api_v1_kaffeekasse` | Kassenwart | **ja** | andere Inhaltsrollen erhalten nur ihre eigenen Buchungen |
 
 ### core.CoffeeCashMovement
 
@@ -1358,8 +1388,9 @@ Kassenbewegung und Kassensturz mit Person
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web, Export/Datei
-- Nachweis: ja, append-only (Datenbankrechte)
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Append-only. Einkäufe können alle Inhaltsrollen erfassen.
 
@@ -1385,8 +1416,9 @@ Buchung: Person, Betrag, Art, Monat, erfasst von
 - Lesen: die Person selbst, Kassenwart
 - Schreiben: Kassenwart, die Person selbst
 - Zugriffswege: Web, App (API), Export/Datei, Django-Admin (lesen)
-- Nachweis: ja, append-only (Datenbankrechte)
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Append-only. Jede Person sieht ihre eigenen Buchungen, der Kassenwart alle.
 
@@ -1504,10 +1536,10 @@ Erledigt-Vermerk: Person, Tag, Uhrzeit, Notiz
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto), Wachen-Display
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, Wachenterminal, Display, Django-Admin (lesen)
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; „Wieder öffnen“ löscht den Vermerk (Audit station_task.reopened)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Display: nur Zählwerte. Am Wachenterminal erledigte Aufgaben tragen das Dienstkonto, keine Person.
+- Hinweis: Kein Nachweis. Display: nur Zählwerte. Am Wachenterminal erledigte Aufgaben tragen das Dienstkonto, keine Person.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1533,17 +1565,19 @@ Checklisten mit Abschluss und Fälligkeit.
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
 | Letzter Abschluss je Checkliste mit Vorname und Zeit | `checklists` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
+| Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App) | `api_v1_checklisten` | Inhaltsrollen | **ja** |  |
 
 ### core.Checklist
 
 Checkliste mit Beschreibung
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
-- Schreiben: Schichtleitung, Master-Admin, Superuser (Django-Admin)
+- Schreiben: Superuser (Django-Admin)
 - Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen, anlegen, ändern, löschen)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1561,8 +1595,9 @@ Abschluss: Person, Zeit, Notiz
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen)
-- Nachweis: ja, append-only (Datenbankrechte)
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Append-only.
 
@@ -1580,11 +1615,12 @@ Abschluss: Person, Zeit, Notiz
 Punkte einer Checkliste
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
-- Schreiben: Schichtleitung, Master-Admin, Superuser (Django-Admin)
+- Schreiben: Superuser (Django-Admin)
 - Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen, anlegen, ändern, löschen)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Anlegen und Bearbeiten nur im Django-Admin.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1688,7 +1724,8 @@ Anhänge (Bild oder PDF)
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, Wachenterminal
-- Nachweis: nein
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Löschung zusammen mit dem Vorgang laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -1737,7 +1774,7 @@ Nachrichten unter Kolleginnen und Kollegen, Ende-zu-Ende-verschlüsselt (docs/SE
 
 - Schalter: `Station.chat_enabled`
 - Bereiche: `/chat/`, `/post/`, `/konto/crypto/`
-- Hinweis: Der Server speichert verschlüsselte Inhalte; der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells.
+- Hinweis: Der Server speichert verschlüsselte Inhalte; der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells. Für die Empfängerauswahl sehen alle Inhaltsrollen die Mitglieder der Wache mit Namen.
 
 ### core.ChatGroup
 
@@ -2117,7 +2154,8 @@ Funktionskontrolle mit Person und Ergebnis
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2138,10 +2176,11 @@ Funktionskontrolle mit Person und Ergebnis
 Einweisung: Person, einweisende Person, Datum
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` oder `trainee` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; eine neue Einweisung derselben Person am selben Gerät ersetzt die vorige (Einzeleinweisung löscht sie, Gruppenschulung überschreibt sie); Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2160,10 +2199,11 @@ Einweisung: Person, einweisende Person, Datum
 STK/MTK/DGUV-Prüfung mit prüfender Stelle
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2185,11 +2225,12 @@ STK/MTK/DGUV-Prüfung mit prüfender Stelle
 Medizingerät mit Fristen und Status
 
 - Lesen: Inhaltsrollen, Wachen-Display
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin, System
 - Zugriffswege: Web, Display, Export/Datei
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin. Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2250,9 +2291,10 @@ Charge mit Verfall und Rückruf
 - Lesen: Inhaltsrollen, Wachen-Display
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web, Display, Export/Datei
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Stammdaten der Charge; Rückruf und Entnahme aus der Kühlung ändern sie. Die Bewegungen stehen in core.StockMovement.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2272,7 +2314,7 @@ Charge mit Verfall und Rückruf
 Artikel mit Mindestbestand
 
 - Lesen: Inhaltsrollen, Wachen-Display
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web, Display
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
@@ -2325,8 +2367,9 @@ Bewegung: Menge, Art, Person
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
-- Nachweis: ja, append-only (Datenbankrechte)
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Append-only. Nur Bestand, kein Verbrauch je Einsatz.
 
@@ -2349,11 +2392,12 @@ Bewegung: Menge, Art, Person
 Lagerort
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: System
 - Zugriffswege: Web
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; eine Oberfläche für weitere Lagerorte gibt es nicht.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2389,11 +2433,12 @@ Fahrzeuge, Fristen, Übernahme und Desinfektion.
 Desinfektionsmittel
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen, Superuser (Django-Admin)
+- Schreiben: System, Superuser (Django-Admin)
 - Zugriffswege: Web, Django-Admin (lesen, anlegen, ändern, löschen)
 - Nachweis: nein
 - Frist technisch: solange die Installation besteht; Änderung durch Master-Admin
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2413,7 +2458,8 @@ Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `vehicle` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2434,11 +2480,12 @@ Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit
 Fahrzeug mit Zustand, Füllständen und Fristen
 
 - Lesen: Inhaltsrollen, Wachen-Display
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web, App (API), Display, Export/Datei
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen und Bearbeiten: Schichtleitung und Master-Admin. Status, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Statuswechsel, Übernahme, Desinfektion und Mängelmeldung.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2476,7 +2523,8 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `vehicle` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2516,11 +2564,12 @@ Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.
 Dienstanweisung: Nummer, Titel, Status, Fristen
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
-- Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2547,7 +2596,8 @@ Lesequittung: Person, Version, Zeit
 - Schreiben: die Person selbst
 - Zugriffswege: Web, Export/Datei
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `sop` oder `revision` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Mitglieder sehen nur ihren eigenen Stand.
 
@@ -2567,10 +2617,11 @@ Lesequittung: Person, Version, Zeit
 Version mit Text, Prüfsumme und Freigabe
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
 - Nachweis: ja
-- Frist technisch: keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept
+- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `sop` gelöscht wird (CASCADE)
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2590,7 +2641,7 @@ Version mit Text, Prüfsumme und Freigabe
 Telefonbuch: Einrichtung, Ansprechperson, Nummern
 
 - Lesen: Inhaltsrollen
-- Schreiben: Inhaltsrollen
+- Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht

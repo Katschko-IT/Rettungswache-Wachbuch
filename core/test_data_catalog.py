@@ -9,9 +9,12 @@ und ``python manage.py data_catalog --write`` gelaufen ist.
 """
 from __future__ import annotations
 
+import importlib.util
 import io
 import re
 import tempfile
+import logging
+from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 from unittest import mock
@@ -24,14 +27,32 @@ from django.core.management import CommandError, call_command
 from django.db import connection, models
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
-from django.urls import get_resolver, reverse
+from django.urls import NoReverseMatch, get_resolver, reverse
 from django.utils import timezone
 
 from core import data_catalog as dc
 from core.admin import ReadOnlyAdmin
 from core.api.views import DEFAULT_MOBILE_SCOPES, hash_api_token
-from core.models import ApiToken, Membership, Station
+from core.fleet_models import Vehicle
+from core.models import (
+    ApiToken,
+    AuditEvent,
+    CalendarEvent,
+    Checklist,
+    ChecklistCompletion,
+    CoffeeEntry,
+    HandoverEntry,
+    Membership,
+    PinboardNote,
+    Station,
+    StationTask,
+    StationTaskCompletion,
+)
+from core.mpg_models import DeviceTrainingRecord, MedicalDevice
+from core.orga_models import SOPDocument
 from core.terminal import OPEN_MODE_BLOCKED, OPEN_MODE_PATHS
+from core.wachalltag_models import Defect, DefectAttachment, DefectEvent, HandoverAck, InventoryItem, StationAsset
+from core.warehouse_models import MedicalItem
 
 ADD_HINT = "im Datenkatalog (core/data_catalog.py) eintragen, dann python manage.py data_catalog --write"
 
@@ -51,6 +72,41 @@ ALL_MODULE_FLAGS = {
     "orga_enabled": True,
     "waste_calendar_enabled": True,
 }
+
+
+# Verzeichnis der Nachweise aus Paket B1 (core/evidence.py). Solange B1 nicht
+# integriert ist, vergleicht der Test mit dieser Kopie, danach mit dem Original.
+B1_EVIDENCE_MODELS = (
+    "core.AuditEvent", "core.HandoverEntry", "core.HandoverRevision", "core.HandoverAck", "core.HandoverAttachment",
+    "core.NewsAttachment", "core.PinboardAttachment", "core.ChecklistCompletion", "core.CoffeeEntry",
+    "core.CoffeeCashMovement", "core.Defect", "core.DefectEvent", "core.DefectAttachment", "core.AssetEvent",
+    "core.InventoryEvent", "core.StockMovement", "core.WikiRevision", "core.VehicleHandover",
+    "core.DisinfectionProtocol", "core.MaintenanceLog", "core.DeviceRoutineCheck", "core.DeviceTrainingRecord",
+    "core.SOPRevision", "core.SOPReceipt",
+)
+B1_NOT_EVIDENCE = (
+    "core.CalendarEvent", "core.ErrorEvent", "core.NewsAcknowledgement", "core.QrTotpUse", "core.StationTaskCompletion",
+)
+
+
+def _evidence_registry():
+    if importlib.util.find_spec("core.evidence") is None:
+        return set(B1_EVIDENCE_MODELS), set(B1_NOT_EVIDENCE)
+    from core import evidence
+
+    return set(evidence.EVIDENCE_MODELS), set(evidence.NOT_EVIDENCE)
+
+
+def _code_strings(function) -> list[str]:
+    return [c for c in getattr(getattr(function, "__code__", None), "co_consts", ()) if isinstance(c, str)]
+
+
+def _row_guarded(model) -> bool:
+    """Eigene save()/delete() verweigern Ändern und Löschen (wie core/test_append_only_guards.py)."""
+    save, delete = vars(model).get("save"), vars(model).get("delete")
+    return any("nicht gelöscht" in text for text in _code_strings(delete)) and any(
+        "nicht verändert" in text for text in _code_strings(save)
+    )
 
 
 def _registry_labels():
@@ -219,6 +275,46 @@ class DataCatalogCoverageTests(SimpleTestCase):
         for label in dc.DB_APPEND_ONLY:
             _module_spec, spec = dc.spec_for_label(label)
             self.assertTrue(spec.evidence, label)
+
+    def test_evidence_flags_match_evidence_registry(self):
+        evidence_models, not_evidence = _evidence_registry()
+        flagged = {spec.label for _module, spec in dc.iter_model_specs() if spec.evidence}
+        self.assertEqual(sorted(flagged - evidence_models), [], "Katalog nennt Nachweise, die das Nachweisverzeichnis (B1) nicht führt")
+        self.assertEqual(sorted(evidence_models - flagged), [], f"Nachweise aus dem Nachweisverzeichnis (B1) mit evidence=True eintragen – {ADD_HINT}")
+        self.assertEqual(sorted(flagged & not_evidence), [])
+        # Stammdaten sind keine Nachweise: Sie werden bearbeitet, die Nachweise hängen an ihnen.
+        for label in ("core.Vehicle", "core.MedicalDevice", "core.SOPDocument", "core.ItemBatch"):
+            self.assertFalse(dc.spec_for_label(label)[1].evidence, label)
+
+    def test_append_only_claims_match_model_guards(self):
+        guarded = {model._meta.label for model in dc.catalog_models() if _row_guarded(model)}
+        self.assertIn("core.StockMovement", guarded)
+        self.assertEqual(sorted(guarded ^ set(dc.ROW_APPEND_ONLY)), [], "ROW_APPEND_ONLY an den Zeilenschutz der Modelle anpassen")
+        self.assertTrue(set(dc.DB_APPEND_ONLY) <= set(dc.ROW_APPEND_ONLY))
+        text = dc.reference_markdown()
+        for _module, spec in dc.iter_model_specs():
+            with self.subTest(label=spec.label):
+                section = text.split(f"\n### {spec.label}\n", 1)[1].split("\n### ", 1)[0]
+                nachweis = next(line for line in section.splitlines() if line.startswith("- Nachweis: "))
+                self.assertEqual("append-only" in nachweis, spec.label in dc.ROW_APPEND_ONLY)
+                self.assertEqual("Datenbankrechte" in nachweis, spec.label in dc.DB_APPEND_ONLY)
+                if spec.label in dc.ROW_APPEND_ONLY:
+                    self.assertTrue(spec.evidence)
+                self.assertEqual("- Löschschutz: " in section, spec.evidence)
+        for rule in dc.RETENTION_RULES.values():
+            self.assertNotIn("Korrektur nur als neuer Eintrag", rule.default_text)
+
+    def test_deletion_guard_follows_on_delete(self):
+        for _module, spec in dc.iter_model_specs():
+            if not spec.evidence:
+                continue
+            model = apps.get_model(spec.label)
+            with self.subTest(label=spec.label):
+                cascades = [f.name for f in model._meta.concrete_fields if f.is_relation and f.remote_field.on_delete is models.CASCADE]
+                guard = dc.deletion_guard_text(model)
+                self.assertEqual("mitgelöscht" in guard, bool(cascades))
+                for name in cascades:
+                    self.assertIn(f"`{name}`", guard)
 
     def test_every_evaluation_url_is_catalogued(self):
         names = _url_names()
@@ -454,3 +550,217 @@ class DataCatalogCommandTests(TestCase):
             target = Path(tmp) / "katalog.md"
             call_command("data_catalog", "--station", "wache-datei", "--output", str(target), stdout=io.StringIO())
             self.assertIn("# Datenkatalog – Wache Datei", target.read_text(encoding="utf-8"))
+
+
+class _ReachedForm(Exception):
+    """Die Ansicht hat die Rollenprüfung passiert und baut das Formular."""
+
+
+@contextmanager
+def _quiet_error_logs():
+    """Ein erreichtes Formular endet als Fehler 500; dessen Protokoll gehört nicht in die Testausgabe."""
+    loggers = [logging.getLogger(name) for name in ("django.request", "wachbuch.errors")]
+    previous = [logger.disabled for logger in loggers]
+    for logger in loggers:
+        logger.disabled = True
+    try:
+        yield
+    finally:
+        for logger, disabled in zip(loggers, previous):
+            logger.disabled = disabled
+
+
+# Schreibende Ansichten und ihr Formular. Die Rollen im Katalog („Schreiben“)
+# müssen mit den Prüfungen in der Ansicht übereinstimmen, nicht nur mit dem
+# äußeren Decorator.
+WRITE_VIEWS = (
+    ("core.MedicalDevice", "mpg_device_create", None, "core.mpg_views.MedicalDeviceForm"),
+    ("core.MaintenanceLog", "mpg_maintenance_create", "device", "core.mpg_views.MaintenanceLogForm"),
+    ("core.DeviceTrainingRecord", "mpg_training_create", "device", "core.mpg_views.DeviceTrainingRecordForm"),
+    ("core.DeviceRoutineCheck", "mpg_routine_check", "device", "core.mpg_views.DeviceRoutineCheckForm"),
+    ("core.SOPDocument", "sop_create", None, "core.orga_views.SOPDocumentForm"),
+    ("core.SOPRevision", "sop_revision_create", "sop", "core.orga_views.SOPRevisionForm"),
+    ("core.StationContact", "contact_create", None, "core.orga_views.StationContactForm"),
+    ("core.MedicalItem", "warehouse_item_create", None, "core.warehouse_views.MedicalItemForm"),
+    ("core.ItemBatch", "warehouse_batch_create", "item", "core.warehouse_views.ItemBatchForm"),
+    ("core.Vehicle", "fleet_vehicle_create", None, "core.fleet_views.VehicleForm"),
+    ("core.DisinfectionProtocol", "fleet_vehicle_disinfection_create", "vehicle", "core.fleet_views.DisinfectionProtocolForm"),
+    ("core.VehicleHandover", "fleet_vehicle_handover_create", "vehicle", "core.fleet_views.VehicleHandoverForm"),
+)
+
+
+@override_settings(MFA_REQUIRED=False)
+class CatalogMatchesBehaviourTests(TestCase):
+    """Was der Katalog über Schreibrechte und Löschen sagt, tut der Code auch."""
+
+    def setUp(self):
+        self.station = Station.objects.create(name="Wache Verhalten", slug="wache-verhalten", **ALL_MODULE_FLAGS)
+        self.users = {}
+        for role in (Membership.Role.MEMBER, Membership.Role.SHIFT_LEAD):
+            user = User.objects.create_user(username=f"verhalten-{role}", password="verhalten-passwort-123")
+            self.users[role] = Membership.objects.create(user=user, station=self.station, role=role)
+        self.device = MedicalDevice.objects.create(station=self.station, slug="defi", name="Defi")
+        self.targets = {
+            "device": self.device,
+            "sop": SOPDocument.objects.create(
+                station=self.station, slug="sop-1", doc_number="SOP-1", title="Dienstanweisung",
+                created_by=self.users[Membership.Role.SHIFT_LEAD].user,
+            ),
+            "item": MedicalItem.objects.create(station=self.station, slug="kanuele", name="Venenkanüle"),
+            "vehicle": Vehicle.objects.create(station=self.station, slug="rtw-1", call_sign="RTW 1", license_plate="RW-1"),
+        }
+
+    def test_write_roles_match_role_checks_in_views(self):
+        for label, url_name, target, form_path in WRITE_VIEWS:
+            spec = dc.spec_for_label(label)[1]
+            args = [self.targets[target].slug] if target else []
+            for role, membership in self.users.items():
+                allowed = role in spec.write
+                with self.subTest(model=label, role=role):
+                    self.client.force_login(membership.user)
+                    with mock.patch(form_path, side_effect=_ReachedForm), _quiet_error_logs():
+                        try:
+                            self.client.post(reverse(url_name, args=args), {})
+                        except _ReachedForm:
+                            reached = True
+                        else:
+                            reached = False
+                    self.assertEqual(reached, allowed, f"Schreibrollen von {label} im Katalog anpassen – {ADD_HINT}")
+
+    def test_reopening_a_task_deletes_the_completion(self):
+        from core.task_board import toggle_task_completion
+
+        task = StationTask.objects.create(station=self.station, title="Wache fegen", band=StationTask.Band.DAILY)
+        member = self.users[Membership.Role.MEMBER]
+        today = timezone.localdate()
+        toggle_task_completion(task=task, membership=member, work_date=today, mark_done=True)
+        self.assertTrue(StationTaskCompletion.objects.filter(task=task).exists())
+        toggle_task_completion(task=task, membership=member, work_date=today, mark_done=False)
+        self.assertFalse(StationTaskCompletion.objects.filter(task=task).exists())
+        self.assertTrue(AuditEvent.objects.filter(action="station_task.reopened").exists())
+        spec = dc.spec_for_label("core.StationTaskCompletion")[1]
+        self.assertFalse(spec.evidence)
+        self.assertIn("löscht den Vermerk", dc.RETENTION_RULES[spec.retention].text())
+
+    def test_new_training_replaces_the_previous_one(self):
+        trainee = self.users[Membership.Role.MEMBER].user
+        self.client.force_login(self.users[Membership.Role.SHIFT_LEAD].user)
+        url = reverse("mpg_training_create", args=[self.device.slug])
+        for days_ago in (30, 0):
+            self.client.post(url, {
+                "trainee": trainee.pk,
+                "instructor": "Herstellerschulung",
+                "trained_at": (timezone.localdate() - timedelta(days=days_ago)).isoformat(),
+                "notes": "",
+            })
+        records = DeviceTrainingRecord.objects.filter(device=self.device, trainee=trainee)
+        self.assertEqual(records.count(), 1, "Einweisungen werden nicht mehr ersetzt: Frist für core.DeviceTrainingRecord im Katalog anpassen")
+        self.assertEqual(records.get().trained_at, timezone.localdate())
+        spec = dc.spec_for_label("core.DeviceTrainingRecord")[1]
+        self.assertEqual(spec.retention, "training_replace")
+        self.assertNotIn("append-only", dc.evidence_text(spec))
+
+
+# App-Schnittstellen mit Pfadparametern, die der folgende Test nicht aufruft.
+API_NOT_CALLED = {
+    "api_v1_attachment_download": "liefert die Datei selbst",
+    "api_v1_chat_private_thread": "eigene Unterhaltung, Inhalt verschlüsselt",
+    "api_v1_post_detail": "eigene Post, Inhalt verschlüsselt",
+    "api_v1_chat_group_detail": "eigene Gruppe, Inhalt verschlüsselt",
+    "api_v1_chat_group_members": "Mitglieder einer eigenen Gruppe",
+}
+
+
+@override_settings(MFA_REQUIRED=False)
+class ApiPersonListTests(TestCase):
+    """Jede App-Schnittstelle, die andere Personen namentlich zeigt, steht im Katalog."""
+
+    NAMES = ("erika.zeugin", "Erika", "Zeugin")
+
+    def setUp(self):
+        station = Station.objects.create(name="Wache App", slug="wache-app", **ALL_MODULE_FLAGS)
+        viewer = User.objects.create_user(username="kasse.app", first_name="Karl", last_name="Kasse")
+        Membership.objects.create(user=viewer, station=station, role=Membership.Role.CASHIER)
+        erika = User.objects.create_user(username="erika.zeugin", first_name="Erika", last_name="Zeugin")
+        Membership.objects.create(user=erika, station=station, role=Membership.Role.MEMBER)
+        now = timezone.now()
+        handover = HandoverEntry.objects.create(station=station, category="info", title="Übergabe", details="Text", author=erika)
+        HandoverAck.objects.create(station=station, handover=handover, user=erika)
+        defect = Defect.objects.create(station=station, title="Mangel", created_by=erika, owner=erika)
+        DefectEvent.objects.create(defect=defect, station=station, kind=DefectEvent.Kind.CREATED, actor=erika)
+        png = _png_bytes()
+        DefectAttachment.objects.create(
+            station=station, defect=defect, filename="bild.png", content_type="image/png", data=png, size=len(png),
+            uploaded_by=erika,
+        )
+        InventoryItem.objects.create(station=station, item_id="funk-1", label="Funkgerät", holder=erika, checked_out_at=now)
+        StationAsset.objects.create(station=station, asset_id="geraet-1", label="Gerät", updated_by=erika)
+        CoffeeEntry.objects.create(station=station, member=erika, amount_cents=500, reason="Einzahlung", created_by=erika)
+        checklist = Checklist.objects.create(station=station, title="Fahrzeugcheck")
+        ChecklistCompletion.objects.create(station=station, checklist=checklist, completed_by=erika)
+        PinboardNote.objects.create(station=station, title="Aushang", body="Text", author=erika)
+        CalendarEvent.objects.create(
+            station=station, title="Termin", starts_at=now + timedelta(days=1), ends_at=now + timedelta(days=1, hours=1),
+            created_by=erika,
+        )
+        raw = "wb_test_catalog_person_token_1234567890"
+        ApiToken.objects.create(
+            user=viewer, label="Katalog", token_prefix=raw[:11], token_hash=hash_api_token(raw),
+            scopes=list(DEFAULT_MOBILE_SCOPES), expires_at=now + timedelta(days=1),
+        )
+        self.auth = {"HTTP_AUTHORIZATION": f"Token {raw}"}
+        self.args = {
+            "api_v1_handover_detail": [handover.pk],
+            "api_v1_uebergabe_detail": [handover.pk],
+            "api_v1_handover_acks": [handover.pk],
+            "api_v1_defect_detail": [defect.pk],
+            "api_v1_defect_attachments": [defect.pk],
+            "api_v1_checkliste_schedule": [checklist.pk],
+        }
+
+    def _shows_other_person(self, name) -> bool | None:
+        try:
+            path = reverse(name, args=self.args.get(name, []))
+        except NoReverseMatch:
+            return None
+        response = self.client.get(path, **self.auth)
+        if response.status_code != 200:
+            return False
+        body = response.content.decode("utf-8", "replace")
+        return any(value in body for value in self.NAMES)
+
+    def test_api_person_lists_are_catalogued(self):
+        names = sorted(name for name in _url_names() if name.startswith("api_v1_"))
+        shown, not_called = set(), set()
+        for name in names:
+            if name in API_NOT_CALLED:
+                continue
+            result = self._shows_other_person(name)
+            if result is None:
+                not_called.add(name)
+            elif result:
+                shown.add(name)
+        # Nicht aufrufbar sind nur Schreib-Endpunkte (ohne GET) mit Pfadparametern.
+        for name in sorted(not_called):
+            with self.subTest(not_called=name):
+                self.assertRegex(name, r"_(status|ack|checkout|checkin|erledigt|abschluss|read)$",
+                                 "neuer lesender App-Endpunkt mit Parametern: in ApiPersonListTests.args oder API_NOT_CALLED eintragen")
+        unlisted = sorted(shown - set(dc.PERSON_LIST_VIEWS) - set(dc.API_NAMES_WITHOUT_EVALUATION))
+        self.assertEqual(unlisted, [], f"App-Schnittstellen zeigen andere Personen namentlich: als Auswertung mit Personenbezug – {ADD_HINT}")
+        for name in dc.PERSON_LIST_VIEWS:
+            if name.startswith("api_v1_"):
+                self.assertIn(name, shown, f"{name} zeigt im Test keine andere Person")
+        for name, reason in dc.API_NAMES_WITHOUT_EVALUATION.items():
+            with self.subTest(without_evaluation=name):
+                self.assertTrue(reason)
+                self.assertIn(name, shown)
+                self.assertNotIn(name, dc.PERSON_LIST_VIEWS)
+        self.assertGreaterEqual(len(shown), 9)
+
+
+def _png_bytes() -> bytes:
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (4, 4), "white").save(buffer, format="PNG")
+    return buffer.getvalue()

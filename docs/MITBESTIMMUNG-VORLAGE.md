@@ -64,11 +64,11 @@ Zu regeln:
 Wachwerk-Fakten (Spalte „Auswertungen mit Personenbezug“ im Datenkatalog):
 
 - Lesebestätigungen von Übergaben zeigen **Name und Uhrzeit**; sichtbar für alle Inhaltsrollen und am Wachenterminal.
-- Erledigte Tagesaufgaben und Checklisten zeigen den **Vornamen** und die Uhrzeit; sichtbar für alle Inhaltsrollen und am Wachenterminal.
+- Erledigte Tagesaufgaben und Checklisten zeigen im Web den **Vornamen** und die Uhrzeit; sichtbar für alle Inhaltsrollen und am Wachenterminal. Die App zeigt beim letzten Abschluss einer Checkliste den **vollen Namen**.
 - Die Einweisungsmatrix (Gerätepass) zeigt für jedes Mitglied, für welche Geräte eine Einweisung vorliegt, und eine **Quote je Person**; sichtbar für alle Inhaltsrollen.
-- Verläufe in Mängeln, Geräteausgabe, Medizinprodukten, Lager und Fuhrpark nennen die handelnde Person.
+- Verläufe in Mängeln, Geräteausgabe, Medizinprodukten, Lager, Fuhrpark und Wiki nennen die handelnde Person; die Mängelliste nennt die zuständige Person. Die App zeigt bei Mängeln den Benutzernamen.
 - Lesequittungen von Dienstanweisungen mit Namen sehen nur Schichtleitung und Master-Admin (auch als CSV).
-- Stände und Buchungen der Kaffeekasse aller Teilnehmenden sieht nur der Kassenwart.
+- Stände und Buchungen der Kaffeekasse aller Teilnehmenden sieht nur der Kassenwart (Web und App, in der App mit vollem Namen).
 - Das Audit-Protokoll (Person, Zeit, Aktion, geänderte Felder) sehen Auditor und Master-Admin; es enthält keine fachlichen Freitexte.
 - Neuigkeiten zeigen den Lesestand nur als Zahl („3 von 8 haben gelesen“).
 - Fast jeder Eintrag hat einen Zeitstempel.
@@ -103,7 +103,8 @@ Zu regeln:
 Wachwerk-Fakten:
 
 - Technisch umgesetzte Fristen stehen im Datenkatalog; der Vorschlag für den Pilot in `LOESCHKONZEPT.md` (Anlage 3).
-- Nachweise (Quittungen, Abschlüsse, Prüfungen) sind append-only und werden nicht automatisch gelöscht.
+- Nachweise (Quittierungen, Abschlüsse, Prüfungen, Buchungen) löscht Wachwerk nicht automatisch. Welche Tabelle ein Nachweis ist, ob sie append-only ist (Ändern und Löschen gesperrt) und ob Wachwerk selbst etwas ersetzt, steht im Datenkatalog je Tabelle („Nachweis“, „Löschschutz“, „Frist technisch“).
+- Kein Nachweis sind der Lesestatus von Neuigkeiten und der Erledigt-Vermerk von Tagesaufgaben: „Wieder öffnen“ löscht den Vermerk, das Audit-Protokoll hält das fest.
 - Für einige Daten gibt es heute keine Löschautomatik (Lücken im Löschkonzept).
 
 Zu regeln:

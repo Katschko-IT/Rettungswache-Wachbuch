@@ -8,9 +8,12 @@ Grundlage für Datenschutz (VVT, DSFA, Art.-13-Information) und Mitbestimmung
 - Die Felder kommen aus den Django-Metadaten (``_meta``). Eine Heuristik
   ordnet jedes Feld einer Art zu (Person, Name/Kontakt, Freitext …);
   ``FIELD_OVERRIDES`` korrigiert sie, wo sie irrt.
-- Abgeleitet statt behauptet: Django-Admin-Zugriff (``admin.site``),
-  Display-Modelle und Terminal-Zugang prüfen die Tests gegen den Code
-  (``core/test_data_catalog.py``).
+- Abgeleitet statt behauptet: Django-Admin-Zugriff (``admin.site``) und
+  Löschschutz (``on_delete``) kommen aus dem Code. Display-Modelle,
+  Terminal-Zugang, Schreibrollen (Rollenprüfung in der Ansicht, nicht nur der
+  Decorator), Nachweise (Nachweisverzeichnis aus Paket B1), append-only
+  (Zeilenschutz und Datenbankrechte) und Namen in App-Schnittstellen prüfen
+  die Tests gegen den Code (``core/test_data_catalog.py``).
 
 Die Texte hier sind Betreiber-Dokumentation (``docs/DATENKATALOG.md`` und
 Ausgabe von ``manage.py data_catalog``) und deshalb nicht übersetzt – wie
@@ -247,7 +250,16 @@ RETENTION_RULES = {
         ),
         RetentionRule(
             "evidence", "Nachweis",
-            "keine Löschung vorgesehen (Nachweis, Korrektur nur als neuer Eintrag); Aufbewahrung laut Löschkonzept",
+            "keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept",
+        ),
+        RetentionRule(
+            "training_replace", "Einweisung",
+            "keine automatische Löschung; eine neue Einweisung derselben Person am selben Gerät ersetzt die vorige "
+            "(Einzeleinweisung löscht sie, Gruppenschulung überschreibt sie); Aufbewahrung laut Löschkonzept",
+        ),
+        RetentionRule(
+            "task_reopen", "Erledigt-Vermerk",
+            "keine automatische Löschung; „Wieder öffnen“ löscht den Vermerk (Audit station_task.reopened)",
         ),
         RetentionRule(
             "organisational", "Organisationsdaten",
@@ -428,15 +440,17 @@ MODULES = (
         "Informationen von Schicht zu Schicht mit Quittierung.",
         web_prefixes=("/uebergaben/",), entry_url="handover_list",
         evaluations=(
-            EvaluationSpec("handover_detail", "Lesebestätigungen einer Übergabe mit Namen und Zeit", C + ("terminal",), True,
+            EvaluationSpec("handover_detail", "Lesebestätigungen und Änderungsverlauf einer Übergabe mit Namen und Zeit", C + ("terminal",), True,
                            "für alle Inhaltsrollen und am Wachenterminal sichtbar"),
             EvaluationSpec("api_v1_handover_acks", "Lesebestätigungen mit Namen und Zeit (App)", C, True),
         ),
         models=(
             ModelSpec("core.HandoverEntry", "Übergabe: Titel, Text, Kategorie, Priorität, Status, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"),
-                      note="Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin."),
+                      "evidence", evidence=True,
+                      note="Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; "
+                           "jede Änderung bleibt als Version in core.HandoverRevision erhalten."),
             ModelSpec("core.HandoverRevision", "Versionen einer Übergabe (Schnappschuss, Person)", C, ("system",), ("web",), "evidence", evidence=True),
-            ModelSpec("core.HandoverAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment"),
+            ModelSpec("core.HandoverAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
             ModelSpec("core.HandoverAck", "Lesebestätigung: Person und Zeit", C + ("terminal",), C, ("web", "app", "terminal"), "evidence", evidence=True),
         ),
     ),
@@ -450,15 +464,18 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.NewsPost", "Neuigkeit: Titel, Text, Autor", C + ("terminal", "display"), CS, ("web", "terminal", "display")),
-            ModelSpec("core.NewsAcknowledgement", "Quittierung: Person und Zeit", ("self",), ("self",), ("web",), "evidence", evidence=True,
-                      note="Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren."),
-            ModelSpec("core.NewsAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment"),
+            ModelSpec("core.NewsAcknowledgement", "Quittierung: Person und Zeit", ("self",), ("self",), ("web",),
+                      note="Lesestatus, kein Nachweis. Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren."),
+            ModelSpec("core.NewsAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
         "wiki", "Wachen-Wiki",
         "Wissen der Wache mit Versionsverlauf.",
         web_prefixes=("/wiki/",), entry_url="wiki_index",
+        evaluations=(
+            EvaluationSpec("wiki_detail", "Versionsverlauf eines Artikels mit Vorname der bearbeitenden Person", C, True),
+        ),
         models=(
             ModelSpec("core.WikiArticle", "Artikel: Titel, Text, Autor", C, ("admin",), ("web",)),
             ModelSpec("core.WikiRevision", "Versionen mit bearbeitender Person", C, ("system",), ("web",), "evidence", evidence=True),
@@ -469,12 +486,17 @@ MODULES = (
         "Mängel an Fahrzeugen, Geräten und Gebäude mit Frist und Verlauf.",
         web_prefixes=("/maengel/",), entry_url="defects_web",
         evaluations=(
-            EvaluationSpec("defect_detail_web", "Verlauf eines Mangels mit Namen", C + ("terminal",), True),
+            EvaluationSpec("defects_web", "Mängelliste mit Vorname der zuständigen Person", C + ("terminal",), True),
+            EvaluationSpec("defect_detail_web", "Verlauf und Anhänge eines Mangels mit Vorname der handelnden Person", C + ("terminal",), True),
+            EvaluationSpec("api_v1_defects", "Mängelliste mit Benutzername der zuständigen Person (App)", C, True),
+            EvaluationSpec("api_v1_defect_detail", "Mangel mit Verlauf und Anhängen, jeweils mit Benutzername (App)", C, True),
+            EvaluationSpec("api_v1_defect_attachments", "Anhänge eines Mangels mit Benutzername der hochladenden Person (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal")),
+            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
+                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent."),
             ModelSpec("core.DefectEvent", "Verlauf: Statuswechsel mit Person", C + ("terminal",), ("system",), ("web", "app", "terminal"), "evidence", evidence=True),
-            ModelSpec("core.DefectAttachment", "Fotos zum Mangel (Metadaten entfernt)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment"),
+            ModelSpec("core.DefectAttachment", "Fotos zum Mangel (Metadaten entfernt)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
@@ -488,9 +510,11 @@ MODULES = (
             EvaluationSpec("api_v1_reports", "Kennzahlen der Wache (App)", C, False),
         ),
         models=(
-            ModelSpec("core.StationAsset", "Gerät mit Status und Notiz", C, C, ("web", "app")),
+            ModelSpec("core.StationAsset", "Gerät mit Status und Notiz", C, CS + ("system",), ("web", "app"),
+                      note="Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Wachwerk den Status aus dem Modul Medizinprodukte."),
             ModelSpec("core.AssetEvent", "Statusverlauf mit Person", C, ("system",), ("web",), "evidence", evidence=True),
-            ModelSpec("core.InventoryItem", "Ausgabegegenstand mit aktueller Inhaberin oder aktuellem Inhaber", C, C, ("web", "app")),
+            ModelSpec("core.InventoryItem", "Ausgabegegenstand mit aktueller Inhaberin oder aktuellem Inhaber", C, CS, ("web", "app"),
+                      note="Anlegen: Schichtleitung und Master-Admin. Ausgabe und Rückgabe (Inhaberin oder Inhaber) tragen alle Inhaltsrollen ein."),
             ModelSpec("core.InventoryEvent", "Ausgabe und Rückgabe mit Person", C, ("system",), ("web",), "evidence", evidence=True),
         ),
     ),
@@ -538,6 +562,8 @@ MODULES = (
             EvaluationSpec("coffee_ledger", "Buchungen aller Teilnehmenden", ("cashier",), True),
             EvaluationSpec("coffee_participants", "Teilnehmendenliste", ("cashier", "admin"), True),
             EvaluationSpec("coffee_export", "Export aller Buchungen als CSV", ("cashier",), True),
+            EvaluationSpec("api_v1_kaffeekasse", "Buchungen aller Teilnehmenden mit vollem Namen (App)", ("cashier",), True,
+                           "andere Inhaltsrollen erhalten nur ihre eigenen Buchungen"),
         ),
         models=(
             ModelSpec("core.CoffeeEntry", "Buchung: Person, Betrag, Art, Monat, erfasst von", ("self", "cashier"), ("cashier", "self"), ("web", "app", "export"), "evidence", evidence=True,
@@ -558,8 +584,8 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.StationTask", "Aufgabe mit Wiederholung", C + ("terminal", "display"), CS, ("web", "terminal", "display")),
-            ModelSpec("core.StationTaskCompletion", "Erledigt-Vermerk: Person, Tag, Uhrzeit, Notiz", C + ("terminal", "display"), C + ("terminal",), ("web", "terminal", "display"), "evidence", evidence=True,
-                      note="Display: nur Zählwerte. Am Wachenterminal erledigte Aufgaben tragen das Dienstkonto, keine Person."),
+            ModelSpec("core.StationTaskCompletion", "Erledigt-Vermerk: Person, Tag, Uhrzeit, Notiz", C + ("terminal", "display"), C + ("terminal",), ("web", "terminal", "display"), "task_reopen",
+                      note="Kein Nachweis. Display: nur Zählwerte. Am Wachenterminal erledigte Aufgaben tragen das Dienstkonto, keine Person."),
         ),
     ),
     ModuleSpec(
@@ -568,10 +594,13 @@ MODULES = (
         flag="checklists_enabled", web_prefixes=("/checklisten/",), entry_url="checklists",
         evaluations=(
             EvaluationSpec("checklists", "Letzter Abschluss je Checkliste mit Vorname und Zeit", C + ("terminal",), True),
+            EvaluationSpec("api_v1_checklisten", "Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Checklist", "Checkliste mit Beschreibung", C + ("terminal",), CS + ("superuser",), ("web", "app", "terminal")),
-            ModelSpec("core.ChecklistItem", "Punkte einer Checkliste", C + ("terminal",), CS + ("superuser",), ("web", "app", "terminal")),
+            ModelSpec("core.Checklist", "Checkliste mit Beschreibung", C + ("terminal",), ("superuser",), ("web", "app", "terminal"),
+                      note="Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an."),
+            ModelSpec("core.ChecklistItem", "Punkte einer Checkliste", C + ("terminal",), ("superuser",), ("web", "app", "terminal"),
+                      note="Anlegen und Bearbeiten nur im Django-Admin."),
             ModelSpec("core.ChecklistCompletion", "Abschluss: Person, Zeit, Notiz", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "evidence", evidence=True,
                       note="Append-only."),
             ModelSpec("core.ChecklistSchedule", "Prüfintervall und nächste Fälligkeit", C + ("terminal",), CS, ("web", "app", "terminal"),
@@ -594,14 +623,15 @@ MODULES = (
         models=(
             ModelSpec("core.PinboardNote", "Aushang: Titel, Text, Kategorie, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"), "gap",
                       note="Anpinnen: Schichtleitung und Master-Admin. Archivierte Aushänge bleiben gespeichert. Display: nur Titel angepinnter Aushänge."),
-            ModelSpec("core.PinboardAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment"),
+            ModelSpec("core.PinboardAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
         "chat", "Wachenchat, Privatnachrichten und Post (E2EE)",
         "Nachrichten unter Kolleginnen und Kollegen, Ende-zu-Ende-verschlüsselt (docs/SECURITY-PRIVACY.md).",
         flag="chat_enabled", web_prefixes=("/chat/", "/post/", "/konto/crypto/"), entry_url="chat",
-        note="Der Server speichert verschlüsselte Inhalte; der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells.",
+        note="Der Server speichert verschlüsselte Inhalte; der ausgelieferte Webclient und der Server bleiben Teil des Vertrauensmodells. "
+             "Für die Empfängerauswahl sehen alle Inhaltsrollen die Mitglieder der Wache mit Namen.",
         models=(
             ModelSpec("core.UserCryptoIdentity", "Schlüsselpaar (privater Schlüssel nur verschlüsselt)", ("self",) + C, ("self",), ("web", "app"), "account",
                       note="Den öffentlichen Schlüssel sehen Inhaltsrollen derselben Wache."),
@@ -648,9 +678,11 @@ MODULES = (
             EvaluationSpec("mpg_export_bestandsverzeichnis", "Bestandsverzeichnis als CSV (ohne Personen)", C, False),
         ),
         models=(
-            ModelSpec("core.MedicalDevice", "Medizingerät mit Fristen und Status", C + ("display",), C, ("web", "display", "export"), "evidence", evidence=True),
-            ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, C, ("web",), "evidence", evidence=True),
-            ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, C, ("web",), "evidence", evidence=True),
+            ModelSpec("core.MedicalDevice", "Medizingerät mit Fristen und Status", C + ("display",), CS + ("system",), ("web", "display", "export"),
+                      note="Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin. "
+                           "Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu."),
+            ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, CS, ("web",), "evidence", evidence=True),
+            ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, CS, ("web",), "training_replace", evidence=True),
             ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True),
         ),
     ),
@@ -665,9 +697,11 @@ MODULES = (
             EvaluationSpec("warehouse_reorder_proposal", "Nachbestellvorschlag (ohne Personen)", C, False),
         ),
         models=(
-            ModelSpec("core.StorageLocation", "Lagerort", C, C, ("web",)),
-            ModelSpec("core.MedicalItem", "Artikel mit Mindestbestand", C + ("display",), C, ("web", "display")),
-            ModelSpec("core.ItemBatch", "Charge mit Verfall und Rückruf", C + ("display",), C, ("web", "display", "export"), "evidence", evidence=True),
+            ModelSpec("core.StorageLocation", "Lagerort", C, ("system",), ("web",),
+                      note="Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; eine Oberfläche für weitere Lagerorte gibt es nicht."),
+            ModelSpec("core.MedicalItem", "Artikel mit Mindestbestand", C + ("display",), CS, ("web", "display")),
+            ModelSpec("core.ItemBatch", "Charge mit Verfall und Rückruf", C + ("display",), C, ("web", "display", "export"),
+                      note="Stammdaten der Charge; Rückruf und Entnahme aus der Kühlung ändern sie. Die Bewegungen stehen in core.StockMovement."),
             ModelSpec("core.StockItem", "Bestand je Lagerort", C + ("display",), C, ("web", "display"),
                       note="Display: nur Summe für den Mindestbestand."),
             ModelSpec("core.StockMovement", "Bewegung: Menge, Art, Person", C, C, ("web",), "evidence", evidence=True,
@@ -684,8 +718,11 @@ MODULES = (
             EvaluationSpec("fleet_export_csv", "Fahrzeugliste als CSV (ohne Personen)", C, False),
         ),
         models=(
-            ModelSpec("core.Vehicle", "Fahrzeug mit Zustand, Füllständen und Fristen", C + ("display",), C, ("web", "app", "display", "export"), "evidence", evidence=True),
-            ModelSpec("core.DisinfectantMaster", "Desinfektionsmittel", C, C + ("superuser",), ("web",), "config"),
+            ModelSpec("core.Vehicle", "Fahrzeug mit Zustand, Füllständen und Fristen", C + ("display",), CS, ("web", "app", "display", "export"),
+                      note="Stammdaten, Bearbeitung möglich. Anlegen und Bearbeiten: Schichtleitung und Master-Admin. "
+                           "Status, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Statuswechsel, Übernahme, Desinfektion und Mängelmeldung."),
+            ModelSpec("core.DisinfectantMaster", "Desinfektionsmittel", C, ("system", "superuser"), ("web",), "config",
+                      note="Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin."),
             ModelSpec("core.DisinfectionProtocol", "Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit", C, C, ("web",), "evidence", evidence=True),
             ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True),
         ),
@@ -699,11 +736,12 @@ MODULES = (
             EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True),
         ),
         models=(
-            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, C, ("web",), "evidence", evidence=True),
-            ModelSpec("core.SOPRevision", "Version mit Text, Prüfsumme und Freigabe", C, C, ("web",), "evidence", evidence=True),
+            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, CS, ("web",),
+                      note="Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision."),
+            ModelSpec("core.SOPRevision", "Version mit Text, Prüfsumme und Freigabe", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "export"), "evidence", evidence=True,
                       note="Mitglieder sehen nur ihren eigenen Stand."),
-            ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, C, ("web",)),
+            ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, CS, ("web",)),
         ),
     ),
     ModuleSpec(
@@ -876,6 +914,27 @@ STATION_FLAGS_WITHOUT_OWN_DATA = ("holidays_enabled", "weather_enabled", "traffi
 # Daten, die die Display-Ansicht selbst liest (Name der Wache in der Kopfzeile).
 DISPLAY_VIEW_MODELS = ("core.Station",)
 
+# Tabellen mit Zeilenschutz: save() verweigert Änderungen, delete() das Löschen
+# („dürfen nicht verändert/gelöscht werden“). Korrektur nur als neuer Eintrag.
+# Prüft core/test_data_catalog.py gegen die Modelle.
+ROW_APPEND_ONLY = (
+    "core.AssetEvent",
+    "core.AuditEvent",
+    "core.ChecklistCompletion",
+    "core.CoffeeCashMovement",
+    "core.CoffeeEntry",
+    "core.DefectAttachment",
+    "core.DefectEvent",
+    "core.HandoverAck",
+    "core.HandoverAttachment",
+    "core.HandoverRevision",
+    "core.InventoryEvent",
+    "core.NewsAttachment",
+    "core.PinboardAttachment",
+    "core.StockMovement",
+    "core.WikiRevision",
+)
+
 # Tabellen, die die Datenbankrolle der App nicht ändern oder löschen darf
 # (REVOKE UPDATE, DELETE in core/management/commands/grant_database_access.py).
 DB_APPEND_ONLY = (
@@ -905,12 +964,27 @@ NOT_EVALUATIONS = {
 # Auswertung mit Personenbezug stehen.
 PERSON_LIST_VIEWS = (
     "handover_detail", "api_v1_handover_acks", "sop_detail", "sop_export_audit",
-    "coffee_book", "coffee_ledger", "coffee_participants", "coffee_export",
-    "tasks_today", "tasks_week", "checklists", "birthdays", "team", "team_invites", "audit_log",
-    "assets_inventory_web", "api_v1_inventory", "defect_detail_web",
+    "coffee_book", "coffee_ledger", "coffee_participants", "coffee_export", "api_v1_kaffeekasse",
+    "tasks_today", "tasks_week", "checklists", "api_v1_checklisten", "birthdays", "team", "team_invites", "audit_log",
+    "assets_inventory_web", "api_v1_inventory", "wiki_detail",
+    "defects_web", "defect_detail_web", "api_v1_defects", "api_v1_defect_detail", "api_v1_defect_attachments",
     "mpg_dashboard", "mpg_device_detail", "mpg_geraetepass",
     "warehouse_dashboard", "warehouse_item_detail", "fleet_dashboard", "fleet_vehicle_detail",
 )
+
+# App-Schnittstellen, die andere Personen nennen, ohne Auswertung zu sein:
+# Autorin oder Autor eines Eintrags wie in den Weblisten (siehe auth.User) und
+# die Empfängerauswahl im Chat (Modulhinweis). Jede andere App-Schnittstelle
+# mit Namen anderer Personen gehört in PERSON_LIST_VIEWS;
+# core/test_data_catalog.py ruft dafür alle lesenden Schnittstellen auf.
+API_NAMES_WITHOUT_EVALUATION = {
+    "api_v1_handover_detail": "Autorin oder Autor der Übergabe, wie die Übergabe im Web",
+    "api_v1_uebergabe_detail": "Autorin oder Autor der Übergabe, wie die Übergabe im Web",
+    "api_v1_pinnwand": "Autorin oder Autor je Aushang, wie die Pinnwand im Web",
+    "api_v1_chat_keys": "Empfängerauswahl im Chat: Mitglieder der Wache mit Namen und öffentlichem Schlüssel",
+    "api_v1_chat_private": "Empfängerauswahl für Privatnachrichten: Mitglieder der Wache mit Namen",
+    "api_v1_post": "Empfängerauswahl und Absender der eigenen Post",
+}
 
 
 # ---- Abfragen ---------------------------------------------------------------
@@ -1059,6 +1133,39 @@ def _switch_state(module, station) -> str:
     return f"{_switch(module)}: {state}" if (module.flag or module.gate) else "immer aktiv"
 
 
+def evidence_text(spec) -> str:
+    if not spec.evidence:
+        return "nein"
+    if spec.label in DB_APPEND_ONLY:
+        return "ja, append-only (Anwendung und Datenbankrechte)"
+    if spec.label in ROW_APPEND_ONLY:
+        return "ja, append-only (Anwendung)"
+    return "ja"
+
+
+def deletion_guard_text(model) -> str:
+    """Was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird (aus ``on_delete``)."""
+    from django.db import models
+
+    relations = [f for f in model._meta.concrete_fields if f.is_relation]
+    if not relations:
+        return "keine Verknüpfungen"
+    cascade, released = [], []
+    for f in relations:
+        on_delete = f.remote_field.on_delete
+        if on_delete in (models.PROTECT, models.RESTRICT):
+            continue
+        (cascade if on_delete is models.CASCADE else released).append(f"`{f.name}`")
+    if not cascade and not released:
+        return "verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)"
+    parts = []
+    if cascade:
+        parts.append(f"wird mitgelöscht, wenn der verknüpfte Eintrag in {' oder '.join(cascade)} gelöscht wird (CASCADE)")
+    if released:
+        parts.append(f"die Verknüpfung {' und '.join(released)} wird gelöst, wenn der verknüpfte Eintrag gelöscht wird")
+    return "; ".join(parts)
+
+
 def _retention_text(spec, live: bool) -> str:
     rule = RETENTION_RULES[spec.retention]
     return rule.text(live=live)
@@ -1106,10 +1213,9 @@ def _module_section(module, *, live: bool) -> list[str]:
         lines.append(f"- Lesen: {_roles(spec.read)}")
         lines.append(f"- Schreiben: {_roles(spec.write)}")
         lines.append(f"- Zugriffswege: {_channels(model, spec)}")
-        evidence = "ja"
-        if spec.label in DB_APPEND_ONLY:
-            evidence = "ja, append-only (Datenbankrechte)"
-        lines.append(f"- Nachweis: {evidence if spec.evidence else 'nein'}")
+        lines.append(f"- Nachweis: {evidence_text(spec)}")
+        if spec.evidence:
+            lines.append(f"- Löschschutz: {deletion_guard_text(model)}")
         lines.append(f"- Frist technisch: {_retention_text(spec, live)}")
         if spec.retention != "technical":
             lines.append(f"- Frist festgelegt: {PERIOD_DECISION_TEXT}")
@@ -1187,6 +1293,15 @@ def _legend() -> list[str]:
         "„Geheimnis/Prüfwert“ sind Hashes und Schlüssel, die niemand im Klartext liest. "
         "Auswahlfelder werden ohne ihre Werte aufgeführt. Die Spalte Bezeichnung zeigt nur ausdrücklich gesetzte "
         "Bezeichnungen.",
+        "",
+        "## Nachweis und Löschschutz",
+        "",
+        "„Nachweis: ja“ heißt: Die Tabelle belegt, wer wann was getan, geprüft oder quittiert hat. Wie lange sie bleibt "
+        "und ob Wachwerk selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Wachwerk verweigert "
+        "jede Änderung und jedes Löschen einer Zeile, Korrekturen sind neue Einträge. „und Datenbankrechte“: zusätzlich "
+        "darf die Datenbankrolle der App die Tabelle weder ändern noch löschen (PostgreSQL nach `grant_database_access`). "
+        "„Löschschutz“ sagt, was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird, etwa ein Gerät "
+        "im Django-Admin.",
         "",
     ]
     return lines

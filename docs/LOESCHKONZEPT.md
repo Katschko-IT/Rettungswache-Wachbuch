@@ -57,7 +57,7 @@ Welche Tabelle zu welcher Datenklasse gehört und welche Frist heute technisch g
 Grundsätze des Vorschlags:
 
 1. **Automatische Fristen bleiben**, wie sie heute technisch umgesetzt sind (Spalte „heute technisch“).
-2. **Keine Löschung von Nachweis- und Organisationsdaten während der 12 Pilotwochen.** Nachweistabellen bleiben append-only; Korrekturen sind neue Einträge.
+2. **Keine Löschung von Nachweis- und Organisationsdaten während der 12 Pilotwochen.** Wo eine Tabelle append-only ist (Datenkatalog, Zeile „Nachweis“), sind Korrekturen neue Einträge. Was Wachwerk heute selbst ersetzt oder löscht, steht in der Tabelle unten.
 3. **Ausstieg:** Spätestens 3 Monate nach Pilotende entscheidet der Betreiber: Weiterbetrieb (dann gilt das Löschkonzept 1.0) oder Löschung aller Pilotdaten. Bei Löschung laufen Sicherungen mit ihrer eigenen Frist aus (`BACKUP_RETENTION_DAYS`, Offsite laut Zielsystem).
 4. **Ausscheiden:** Konten ausgeschiedener Personen werden innerhalb von 7 Tagen deaktiviert (Checkliste unten). Ihre Nachweise bleiben.
 5. **Freiwillige Angaben** (Geburtstag, Signal-Nummer, Kaffeekasse-Erinnerung per E-Mail) werden beim Widerruf sofort entfernt; das ist heute umgesetzt.
@@ -77,7 +77,8 @@ Grundsätze des Vorschlags:
 | Audit | `AuditEvent` | `RETENTION_AUDIT_DAYS` = 0 (unbegrenzt), `apply_retention` nur mit Owner-Rechten | keine Löschung | 365 Tage | Standard unbegrenzt |
 | Konten und Rollen | `auth.User`, `UserProfile`, `Membership`, `TotpDevice`, `WebAuthnCredential` | keine Automatik; Deaktivieren durch Master-Admin | deaktivieren ≤ 7 Tage nach Ausscheiden | Löschung bzw. Anonymisierung nach Ablauf der Nachweisfristen | keine Löschautomatik |
 | Übergaben | `HandoverEntry`, `HandoverAttachment` | keine Automatik | keine Löschung | `[festlegen]` | – |
-| Nachweise | `HandoverRevision`, `HandoverAck`, `StationTaskCompletion`, `ChecklistCompletion`, `DefectEvent`, `AssetEvent`, `InventoryEvent`, `NewsAcknowledgement`, `WikiRevision`, `CoffeeEntry`, `CoffeeCashMovement`, `StockMovement`, MPG-, Fuhrpark- und Dienstanweisungs-Nachweise | keine Löschautomatik; append-only per Datenbankrechten für Audit, Kaffeekasse, Checklisten-Abschlüsse, Übergaberevisionen und Lagerbewegungen, weitere Nachweise teils in der Anwendung geschützt | keine Löschung | laut Fach- und Nachweispflicht, `[festlegen]` | – |
+| Nachweise | `HandoverRevision`, `HandoverAck`, `ChecklistCompletion`, `DefectEvent`, `AssetEvent`, `InventoryEvent`, `WikiRevision`, `CoffeeEntry`, `CoffeeCashMovement`, `StockMovement`, `MaintenanceLog`, `DeviceRoutineCheck`, `DeviceTrainingRecord`, `VehicleHandover`, `DisinfectionProtocol`, `SOPRevision`, `SOPReceipt` | keine Löschautomatik; Web und App bieten kein Löschen an. Append-only sind nur die im Datenkatalog so markierten Tabellen (in der Anwendung, einige zusätzlich per Datenbankrechten). Ausnahme: Eine neue Einweisung ersetzt die vorige derselben Person am selben Gerät (`DeviceTrainingRecord`) | keine Löschung | laut Fach- und Nachweispflicht, `[festlegen]` | – |
+| Erledigt-Vermerke, Lesestatus (kein Nachweis) | `StationTaskCompletion`, `NewsAcknowledgement` | keine Löschautomatik; „Wieder öffnen“ löscht einen Erledigt-Vermerk (Audit `station_task.reopened`) | wie heute | `[festlegen]` | keine Löschautomatik |
 | Mängel | `Defect` | keine Automatik | keine Löschung | `[festlegen]` | – |
 | Mängelfotos | `DefectAttachment` | keine Automatik | keine Löschung | 90 Tage nach Abschluss des Mangels | keine Löschautomatik |
 | Anhänge Neuigkeiten/Pinnwand | `NewsAttachment`, `PinboardAttachment` | keine Automatik | keine Löschung | mit dem Aushang | keine Löschautomatik |
@@ -97,9 +98,9 @@ Grundsätze des Vorschlags:
 
 Hinweise:
 
-- **Nachweistabellen bleiben append-only.** Eine Löschfrist für Nachweise setzt eine eigene Entscheidung und einen eigenen Löschweg mit Owner-Rechten voraus.
+- **Nachweise löscht Wachwerk nicht automatisch.** Gegen Ändern und Löschen gesperrt (append-only) sind nur die im Datenkatalog so markierten Tabellen; Stammdaten wie Fahrzeuge, Medizingeräte, Chargen und Dienstanweisungen werden bearbeitet, ihre Nachweise hängen an ihnen. Eine Löschfrist für Nachweise setzt eine eigene Entscheidung und einen eigenen Löschweg mit Owner-Rechten voraus.
 - **Einmalige Altdaten-Bereinigung** (Entscheidung D1, Befehl aus Paket C): Sie neutralisiert alte Fahrzeugstatus im Audit und entfernt IP-Adresse und Browser aus alten Lesequittungen. Sicherungen behalten den alten Stand, bis sie nach `BACKUP_RETENTION_DAYS` bzw. der Offsite-Frist auslaufen.
-- **Sichtbarkeit von Namen:** Lesebestätigungen von Übergaben (Name und Zeit) sehen alle Inhaltsrollen; erledigte Tagesaufgaben und Checklisten zeigen den Vornamen. Das bleibt im Pilot so und ist in der Vorlage für die Vereinbarung (`MITBESTIMMUNG-VORLAGE.md`) aufgeführt.
+- **Sichtbarkeit von Namen:** Lesebestätigungen von Übergaben (Name und Zeit) sehen alle Inhaltsrollen; erledigte Tagesaufgaben und Checklisten zeigen im Web den Vornamen, die App beim letzten Abschluss einer Checkliste den vollen Namen. Das bleibt im Pilot so und ist in der Vorlage für die Vereinbarung (`MITBESTIMMUNG-VORLAGE.md`) aufgeführt.
 
 Freigabe Pilot-Fristen (Entscheidung #4):
 
