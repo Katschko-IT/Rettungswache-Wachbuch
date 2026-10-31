@@ -128,7 +128,7 @@ def avoided_terms(rows: list[list[str]]) -> list[str]:
 
 def matcher(term: str) -> re.Pattern:
     """Findet den Begriff als eigenes Wort, mit Endung und in Bindestrich-Wörtern."""
-    return re.compile(r"(?<!\w)" + re.escape(term) + r"(?:s|e|en|n)?(?!\w)")
+    return re.compile(r"(?<!\w)" + re.escape(term) + r"(?:es|en|s|e|n)?(?!\w)")
 
 
 def term_hits(found: dict, term: str) -> list[tuple[tuple, list[str]]]:
@@ -274,6 +274,7 @@ class GlossaryGuardTests(SimpleTestCase):
             ("Cockpit", "Neues Cockpit"),
             ("Cockpit", "Fahrzeug-Cockpit öffnen"),
             ("Cockpit", "Alle Cockpits"),
+            ("Logbuch", "des Logbuches"),
             ("SOP", "Heilkunde-SOPs"),
             ("SOP", "SOP-Nummer"),
             ("Display-Token", "Display-Tokens"),

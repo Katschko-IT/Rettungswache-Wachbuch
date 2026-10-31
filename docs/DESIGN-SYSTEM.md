@@ -129,11 +129,11 @@ So wird das Glossar geprüft:
 | Füllstände | fill levels | Telemetrie | Kraftstoff, AdBlue und Sauerstoff am Fahrzeug. „Telemetrie“ nur im Datenschutzsinn („keine Telemetrie“). |
 | Medizingerät | medical device | `Asset` | Gerät nach MPBetreibV mit Gerätebuch, Prüffristen und Einweisungen. |
 | Funktionskontrolle | function check | – | Kontrolle vor dem Gebrauch. Die Schaltfläche heißt „Funktion geprüft“. |
-| Stornieren | cancel | – | Die eigene Funktionskontrolle innerhalb von 5 Minuten zurücknehmen. Das Storno ist ein neuer Datensatz, die Kontrolle bleibt erhalten (Paket B). |
+| Stornieren | void | – | Die eigene Funktionskontrolle innerhalb von 5 Minuten zurücknehmen. Das Storno ist ein neuer Datensatz, die Kontrolle bleibt erhalten (Paket B). |
 | Einweisung | instruction | – | Einweisung einer Person in ein Medizingerät nach MPBetreibV. Einträge werden nur ergänzt, nie geändert (Paket B). |
 | Gültige Einweisung | valid instruction | – | Die aktuell geltende Einweisung einer Person in ein Gerät (Paket B). |
-| Einweisungspflicht | instruction requirement | – | Je Wache einschaltbar, nur durch den Master-Admin. Ohne gültige Einweisung ist „Funktion geprüft“ für diese Person gesperrt; ein Befund „Nein“ und eine Mangelmeldung werden trotzdem gespeichert. |
-| Gesperrt | locked | – | Medizingerät vorübergehend nicht nutzbar, etwa nach nicht bestandener Funktionskontrolle oder bei offenem Mangel. Aufgehoben nur über die Freigabe. Als Zustand nur für Medizingeräte. Heute teils „Außer Betrieb (Gesperrt)“ (B4). |
+| Einweisungspflicht | instruction requirement | – | Je Wache einschaltbar, nur durch den Master-Admin. Ohne gültige Einweisung sind „Funktion geprüft“ und die Freigabe des Geräts für diese Person gesperrt; ein Befund „Nein“ und eine Mangelmeldung werden trotzdem gespeichert. |
+| Gesperrt | locked | – | Medizingerät vorübergehend nicht nutzbar, etwa nach nicht bestandener Funktionskontrolle oder bei offenem Mangel. Aufgehoben nur über die Freigabe. Bei Geräten und Fahrzeugen als Zustand nur für Medizingeräte (Fahrzeuge: „Desinfektion“, „Werkstatt“, „Außer Dienst“). Weitere feste Bedeutungen: Charge nach Rückruf gesperrt (Lager), Wachenterminal gesperrt (Sperrbildschirm), Konto gesperrt. Heute teils „Außer Betrieb (Gesperrt)“ (B4). |
 | Außer Betrieb nehmen | decommission | – | Dauerhaft; alle Nachweise bleiben erhalten (Paket B). Oberbegriff für Fahrzeuge, Geräte, Mittel und Dienstanweisungen. Am Objekt heißt es „Ausmustern“ (Fahrzeug, Medizingerät) oder „Außer Kraft“ (Dienstanweisung). Nie für eine vorübergehende Sperre. |
 | Ausmustern | retire | – | Fahrzeug oder Medizingerät dauerhaft außer Betrieb nehmen. Danach im Zustand „Ausgemustert“ (Paket B). |
 | Wachenterminal | station terminal | – | Touch-Gerät in der Wache mit eigenem Dienstkonto, kein persönliches Konto. Nur Alltagsbereiche; keine Lesebestätigung, keine Medizingeräte, keine Fahrzeugübernahme (AGENTS.md § 4). |
@@ -170,7 +170,7 @@ Leiste wählbar.
 | `mpg` | Medizingeräte | Medizingeräte | Kachel, h1 und Titel „MPG & Medizingeräte“, Leiste „MPG & Geräte“ (mehrdeutig neben „Geräte“) |
 | `assets` | Geräte & Schlüssel | Geräte & Schlüssel | Kachel „Geräte & Poolbestand“, h1 und Titel „Geräte & Status“, Leiste „Geräte“ |
 | `orga` | Dienstanweisungen & Telefonbuch | Dienstanweisungen | Kachel und Titel „Organisation & Desk“, h1 „Organisation & Dienstanweisungen“, Leiste „Organisation“ |
-| `defects` | Mängel | Mängel | Kachel „Mängel & Werkstatt“ |
+| `defects` | Mängel | Mängel (Vorschlag, Entscheidung offen, B4) | Kachel „Mängel & Werkstatt“ |
 | `tasks` | Tagesaufgaben | Aufgaben | – |
 | `calendar` | Kalender | Kalender | Kachel „Wachenkalender“ |
 | `reports` | Auswertung | Auswertung | Kachel „Auswertung & Kennzahlen“ |
