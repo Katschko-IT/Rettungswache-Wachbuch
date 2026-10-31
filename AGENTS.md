@@ -136,6 +136,15 @@ Templates enthalten keine Inline-Skripte, keine `on…=`-Handler und keine
 `core/test_csp_templates.py`). Verhalten über `data-*`-Attribute in
 `core/static/core/ui.js`, Gestaltung über `app.css`/`modules.css`.
 
+Übersetzbare Texte folgen dem Glossar in `docs/DESIGN-SYSTEM.md` (Abschnitt
+„Glossar“). In neuen Texten gesperrt sind `Cockpit`, `Desk`, `Asset`,
+`Poolbestand`, `Logbuch`, `SOP`, `Display-Token`, `Push-Mitteilung`,
+`Fahrzeugstatus` und `Lesequittierung`, auch mit Endung und in
+Bindestrich-Wörtern. Stattdessen gilt der Begriff aus der ersten Spalte, etwa
+„Fahrzeugzustand“ statt „Fahrzeugstatus“. Alte Vorkommen sind je Begriff als
+Ausgangsstand eingefroren; für neue Texte wird er nicht erhöht (geprüft durch
+`core/test_glossary.py`).
+
 Vor Produktion bleiben Browser-, Screenreader-, Last-, Restore- und externe
 Sicherheitstests gemaess Roadmap und Go-live-Checkliste erforderlich.
 

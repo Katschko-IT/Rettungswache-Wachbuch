@@ -92,7 +92,8 @@ So wird das Glossar geprüft:
   Vorkommen entfernt, muss nichts nachtragen. Den Ausgangsstand erhöht nur,
   wer ein altes Vorkommen mit Begründung behalten muss. Ein neues Wort in
   Backticks gilt sofort; seine vorhandenen Vorkommen kommen mit ihrer Anzahl
-  in den Ausgangsstand.
+  in den Ausgangsstand. Die Sperrliste steht auch in `AGENTS.md` (§ 6),
+  damit jedes Paket sie vor dem ersten Text kennt; der Test hält beide gleich.
 - Wörter ohne Backticks sind Hinweise ohne Prüfung. Sie sind in anderer
   Bedeutung richtig („Telemetrie“ im Sinne von „keine Telemetrie“), oder
   andere Tests decken sie ab (FMS-Status und Einsatzphasen prüfen die Tests

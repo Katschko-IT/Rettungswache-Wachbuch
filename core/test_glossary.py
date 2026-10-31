@@ -31,6 +31,7 @@ from scripts.i18n_catalog import collect
 ROOT = Path(settings.BASE_DIR)
 DESIGN_SYSTEM = ROOT / "docs" / "DESIGN-SYSTEM.md"
 MORE_TEMPLATE = ROOT / "templates" / "core" / "more.html"
+AGENTS = ROOT / "AGENTS.md"
 
 GLOSSARY_MARKERS = ("<!-- glossar:begin -->", "<!-- glossar:end -->")
 GLOSSARY_HEADER = ["Begriff", "Englisch", "Nicht verwenden", "Bedeutung"]
@@ -215,6 +216,16 @@ class GlossaryDocumentTests(SimpleTestCase):
         # Ausgangsstand streichen; sonst wäre der Eintrag wirkungslos.
         terms = set(avoided_terms(glossary_rows()))
         self.assertEqual(sorted(set(BASELINE) - terms), [])
+
+    def test_agents_md_names_the_guarded_terms(self):
+        # Pakete, die parallel entstehen, lesen zuerst AGENTS.md. Die
+        # Sperrliste steht deshalb auch dort (§ 6) und muss zum Glossar passen.
+        paragraphs = AGENTS.read_text(encoding="utf-8").split("\n\n")
+        rule = [text for text in paragraphs if "`core/test_glossary.py`" in text]
+        self.assertEqual(len(rule), 1, "Glossar-Regel in AGENTS.md § 6 fehlt")
+        self.assertIn("`docs/DESIGN-SYSTEM.md`", rule[0])
+        named = [term for term in re.findall(r"`([^`]+)`", rule[0]) if "/" not in term]
+        self.assertEqual(sorted(named), sorted(avoided_terms(glossary_rows())))
 
     def test_module_names_match_more_page_and_nav(self):
         text = _document()
