@@ -22,6 +22,7 @@ def current_membership(request):
             .exclude(status=HandoverEntry.Status.DONE)
             .count()
         )
+    from .host_health import banner_for
     from .navigation import CATALOG, more_config, nav_config
 
     station = membership.station if membership else None
@@ -40,6 +41,9 @@ def current_membership(request):
         "more_active": _more_tab_is_active(request, nav_keys),
         "more_order": more_config(station),
         "display_station": station,
+        # Host-Überwachung: nur Master-Admins echter Wachen, ohne Abfrage
+        # (base.html blendet es am Wachenterminal aus).
+        "host_health_banner": banner_for(membership) if membership else None,
     }
 
 

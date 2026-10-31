@@ -179,6 +179,10 @@ der Bereich am Terminal gesperrt.
   `BACKUP_OFF_TARGET=file:///offsite` setzen (Ordner vorher anlegen; er muss UID 70
   gehören oder `backup-init` setzt den Besitzer). Wiederherstellung prüfen:
   `sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
+- **Überwachung**: `setup-pi.sh` richtet `wachwerk-health` ein (alle 5 Minuten).
+  Störungen sehen die Master-Admins als Banner und im Posteingang „Für dich“;
+  Zustand und Backups unter System → „Betrieb und Datensicherung“. Anleitung,
+  Probemeldung und Grenzen: [`BETRIEB-PI-LAN.md`](BETRIEB-PI-LAN.md).
 - **Zeit**: RTC-Modul einbauen oder LAN mit NTP anschließen. Die Uhrzeit auf dem
   Ruhebildschirm regelmäßig prüfen.
 - **Strom**: USV oder zumindest ein sauberes Herunterfahren (`sudo poweroff`) vor dem Ausstecken.

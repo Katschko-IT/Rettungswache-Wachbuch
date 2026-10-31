@@ -257,7 +257,7 @@ Erst wenn diese Tabelle abgehakt ist, ist der Betrieb erprobt.
 | # | Test | So geht's | Erwartet |
 | --- | --- | --- | --- |
 | 1 | Zustand | `sudo wachwerk-health --verbose` | alle Zeilen `OK` |
-| 2 | Alarm | `sudo wachwerk-health --test` | Ausgabe „Meldung an …/fail gesendet“, E-Mail von healthchecks.io in wenigen Minuten |
+| 2 | Alarm | `sudo wachwerk-health --test` | Ausgabe „Meldung an …/fail gesendet“, E-Mail von healthchecks.io in wenigen Minuten; mit `WACHWERK_HEALTH_DIR` (Schritt 8) zusätzlich Banner und Nachricht „Wachwerk: technische Störung“ für die Master-Admins, nach der nächsten Prüfung „Störung behoben“ |
 | 3 | Ausfall | `sudo /opt/wachbuch/wachbuch stop`, 15 Minuten warten, dann `… start` | E-Mail „down“, danach „up“ |
 | 4 | Offene Ports | von deinem Rechner: `nmap -Pn demo.rwsth.de` | nur 22, 80, 443 |
 | 5 | TLS | [SSL Labs](https://www.ssllabs.com/ssltest/) mit `demo.rwsth.de` | Note A oder A+ |
@@ -311,6 +311,18 @@ Einstellungen in `/etc/wachwerk/health.env`):
   Läuft das Update länger als zwei Tage gar nicht, kommt ebenfalls ein Alarm.
 - **Gescheiterte Wiederherstellungsprobe:** bleibt gemeldet bis zur nächsten
   gelungenen; neu anstoßen mit `sudo systemctl start wachwerk-restore-test`.
+- **Zustand für Wachwerk (optional):** Jede Prüfung schreibt
+  `/var/lib/wachwerk-health/status.json` – nur Codes, Zeiten und Zahlen, keine
+  Texte, Adressen oder Geheimnisse. Mit `WACHWERK_HEALTH_DIR=/var/lib/wachwerk-health`
+  in `/opt/wachbuch/.env` und `sudo /opt/wachbuch/wachbuch start` zeigt Wachwerk
+  den Master-Admins ein Banner und unter System „Betrieb und Datensicherung“ und
+  legt je Störung eine Nachricht im Posteingang an (dazu E-Mail mit `EMAIL_HOST`,
+  zusätzlich an `HEALTH_ALERT_EMAIL`). Läuft der notify-worker nicht, stellt die
+  Prüfung die Nachricht einmal selbst zu. Demo-Wachen und die gemeinsame
+  Vorführ-Demo sehen davon nie etwas. Auf einem Server mit mehreren Wachen
+  erhalten die Master-Admins **aller** Wachen die Meldungen; wer das nicht will,
+  lässt den Wert leer. Seit 0.27 genauer getaktet (`AccuracySec=5s`):
+  `harden-host.sh` dafür erneut starten. Details: [`BETRIEB-PI-LAN.md`](BETRIEB-PI-LAN.md).
 
 Nützliche Befehle:
 

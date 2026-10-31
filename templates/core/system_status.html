@@ -44,6 +44,8 @@
   {% endif %}
 </section>
 
+{% if host_health %}{% include "core/_system_operations.html" %}{% endif %}
+
 <section aria-labelledby="system-diagnostics-title">
   <h2 id="system-diagnostics-title">{% translate "Diagnose" %}</h2>
   <p>{% translate "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache." %}</p>

@@ -404,6 +404,12 @@ if not EMAIL_HOST or DEMO_SANDBOX:
     EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
 if EMAIL_USE_SSL and EMAIL_USE_TLS:
     raise ImproperlyConfigured("EMAIL_USE_SSL und EMAIL_USE_TLS schließen sich aus.")
+# Zusätzliche Empfänger für Störungsmeldungen der Host-Überwachung
+# (core/host_health.py), unabhängig von Konten; mehrere durch Komma.
+HEALTH_ALERT_EMAIL = [
+    address.strip() for address in os.getenv("HEALTH_ALERT_EMAIL", "").split(",")
+    if "@" in address.strip()
+][:5]
 # Optional: Benachrichtigungen per Signal über einen signal-cli-rest-api-
 # Container im internen Netz (docs/SIGNAL.md). Leer = Signal aus.
 SIGNAL_API_URL = os.getenv("SIGNAL_API_URL", "").strip().rstrip("/")

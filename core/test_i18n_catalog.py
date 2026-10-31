@@ -225,6 +225,7 @@ class RepositoryCatalogTests(SimpleTestCase):
             "Signal": "Produktname (Messenger)",
             "PayPal": "Produktname",
             "Wero": "Produktname",
+            "Hetzner Storage Box": "Produktname (Speicherdienst)",
             "Export (CSV)": "im Englischen identisch",
             "BIC (optional)": "Bankbegriff, im Englischen identisch",
             "openapi.yaml": "Dateiname",

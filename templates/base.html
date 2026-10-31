@@ -157,6 +157,7 @@
       </div>
     </aside>
   {% endif %}
+  {% if host_health_banner and not terminal_session %}{% include "core/_host_health_banner.html" %}{% endif %}
   <main id="inhalt" class="page-shell">
     {% if messages %}
       <div class="messages" aria-live="polite">

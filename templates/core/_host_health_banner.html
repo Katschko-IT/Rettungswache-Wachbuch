@@ -1,0 +1,14 @@
+{% load i18n %}{# Host-Überwachung: nur Master-Admins echter Wachen (core/host_health.py, banner_for) #}
+<aside class="health-bar" role="status" aria-label="{% translate 'Zustand des Servers' %}" data-host-health>
+  <p class="health-bar-text">
+    {% if host_health_banner.stale %}
+      <strong>{% translate "Überwachung meldet sich nicht." %}</strong>
+      {% blocktranslate with time=host_health_banner.checked_at|date:"d.m. H:i" %}Letzte Prüfung: {{ time }} Uhr.{% endblocktranslate %}
+    {% else %}
+      <strong>{% translate "Technische Störung." %}</strong>
+      {{ host_health_banner.first_problem }}
+      {% if host_health_banner.more %}{% blocktranslate with count=host_health_banner.more %}(+{{ count }} weitere){% endblocktranslate %}{% endif %}
+    {% endif %}
+    <a href="{% url 'system_status' %}#betrieb">{% translate "Details" %}</a>
+  </p>
+</aside>

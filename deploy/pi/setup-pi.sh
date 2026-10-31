@@ -39,7 +39,9 @@ die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
 
 [[ $EUID -eq 0 ]] || die "Bitte mit sudo ausführen."
 [[ "$(uname -m)" == "aarch64" ]] || die "64-Bit-System (aarch64) erforderlich."
-[[ -n "$KIOSK_USER" ]] && id "$KIOSK_USER" >/dev/null 2>&1 || die "KIOSK_USER fehlt oder existiert nicht."
+if [[ -z "$KIOSK_USER" ]] || ! id "$KIOSK_USER" >/dev/null 2>&1; then
+  die "KIOSK_USER fehlt oder existiert nicht."
+fi
 mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
 (( mem_kb > 3500000 )) || echo "Warnung: weniger als 4 GB RAM – der Betrieb kann knapp werden."
 if findmnt -no SOURCE / | grep -q mmcblk; then
@@ -56,6 +58,7 @@ if ! command -v docker >/dev/null 2>&1; then
   gpg --show-keys --with-colons /tmp/docker.gpg | grep -q '^fpr:::::::::9DC858229FC7DD38854AE2D88D81803C0EBFCD88:' \
     || die "Docker-Schlüssel hat einen unerwarteten Fingerabdruck."
   gpg --dearmor -o /etc/apt/keyrings/docker.gpg < /tmp/docker.gpg
+  # shellcheck source=/dev/null
   . /etc/os-release
   echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian ${VERSION_CODENAME} stable" \
     > /etc/apt/sources.list.d/docker.list
@@ -150,6 +153,12 @@ set_env TERMINAL_WIFI_PASSWORD "'$WLAN_PSK'"
 set_env WEBAUTHN_ENABLED false
 set_env PI_SERVER_NAMES "\"$LAN_NAME localhost $AP_ADDRESS\""
 set_env PI_TLS_DIR "$TLS_DIR"
+# Compose-Dateien für alle Befehle im Repository-Ordner (docker compose run …
+# für Wiederherstellungsprobe und Überwachung nutzt sonst Images aus dem
+# Internet) und Zustand der Überwachung für Wachwerk (docs/BETRIEB-PI-LAN.md).
+set_env COMPOSE_FILE "docker-compose.yml:compose.build.yml:deploy/pi/docker-compose.pi.yml"
+set_env WACHWERK_HEALTH_DIR /var/lib/wachwerk-health
+install -d -m 0755 /var/lib/wachwerk-health
 if grep -Eq '^SETUP_BOOTSTRAP_TOKEN=$' "$ENV_FILE" && [[ ! -f "$STATE_DIR/setup-done" ]]; then
   # Einrichtungscode zum Abtippen am Touch-Bildschirm: 24 Zeichen (rund 119 Bit) ohne
   # verwechselbare Zeichen (0/O, 1/I/L), in Vierergruppen.
@@ -162,6 +171,10 @@ SETUP_CODE=$(grep -E '^SETUP_BOOTSTRAP_TOKEN=' "$ENV_FILE" | cut -d= -f2-)
 
 say "Wachbuch bauen und starten (beim ersten Mal 10–20 Minuten)"
 "${COMPOSE[@]}" up -d --build
+
+say "Überwachung einrichten (wachwerk-health, alle 5 Minuten)"
+sh "$REPO_DIR/deploy/lan/setup-monitoring.sh" --dir "$REPO_DIR" --yes \
+  || echo "Warnung: Überwachung nicht eingerichtet – später: sudo sh deploy/lan/setup-monitoring.sh"
 
 say "Kiosk-Browser für den Touch-Bildschirm"
 KIOSK_HOME=$(getent passwd "$KIOSK_USER" | cut -d: -f6)
@@ -226,6 +239,7 @@ if [[ -f "$WAYFIRE" ]] && ! grep -q wachbuch-kiosk "$WAYFIRE"; then
   printf '\n[autostart]\nwachbuch = /usr/local/bin/wachbuch-kiosk\n' >> "$WAYFIRE"
 fi
 
+# shellcheck disable=SC1111 # typografische Anführungszeichen im Text
 cat <<DONE
 
 Fertig.
@@ -245,4 +259,6 @@ Nächste Schritte:
   Bildschirmtastatur: eingebaut – sie erscheint beim Antippen eines Eingabefelds,
   solange keine Tastatur oder Maus benutzt wird.
   Lief die Einrichtung über Laptop/Handy: sudo deploy/pi/register-terminal.sh
+  Überwachung: sudo wachwerk-health --verbose (Meldungen an die Master-Admins in
+  Wachwerk; Anleitung docs/BETRIEB-PI-LAN.md)
 DONE

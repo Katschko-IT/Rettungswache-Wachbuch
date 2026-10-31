@@ -6,8 +6,11 @@ Sprache. Die Artikel stammen ausschliesslich aus dem kuratierten Manifest
 
 System: nur Wachenadministration. Es werden ausschliesslich minimale,
 serverseitige Read-only-Pruefungen angezeigt (DB-Ping, Migrationssummary,
-Cachetyp). Keine Shell-, Git- oder Dockeraufrufe, keine externen HTTP-Aufrufe,
-keine Umgebungsvariablen, Pfade oder Rohlogs.
+Cachetyp), dazu der Zustand der Host-Ueberwachung aus einer schreibgeschuetzt
+eingebundenen Statusdatei (core/host_health.py; nur Zeiten, Zahlen und
+uebersetzte Codes, nicht in Demo-Wachen). Keine Shell-, Git- oder
+Dockeraufrufe, keine externen HTTP-Aufrufe, keine Umgebungsvariablen, Pfade
+oder Rohlogs.
 """
 
 from __future__ import annotations
@@ -126,7 +129,12 @@ def help_article(request: HttpRequest, slug: str) -> HttpResponse:
 @never_cache
 @membership_required({Membership.Role.ADMIN})
 def system_status(request: HttpRequest) -> HttpResponse:
+    from .host_health import host_health_visible, read_host_health
+
+    host_health = read_host_health() if host_health_visible(request.membership) else None
     return render(request, "core/system_status.html", {
+        "host_health": host_health,
+        "host_health_stale": bool(host_health and host_health.is_stale()),
         "app_version": settings.APP_VERSION,
         "build_commit": build_commit(),
         "database": _database_status(),

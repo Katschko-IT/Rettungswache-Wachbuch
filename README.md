@@ -86,6 +86,10 @@ Eigener Server im Internet (z. B. Hetzner Cloud) mit Härtung, Überwachung,
 verschlüsselten Backups außer Haus und Betriebstest:
 [`docs/HETZNER.md`](docs/HETZNER.md).
 
+Überwachung im Wachen-Netz und auf dem Raspberry Pi (Banner und Posteingang
+für die Master-Admins, auch ohne Internet):
+[`docs/BETRIEB-PI-LAN.md`](docs/BETRIEB-PI-LAN.md).
+
 ## Funktionen
 
 Jede Wache schaltet nur die Module ein, die sie nutzt. Die **Übersicht** zeigt

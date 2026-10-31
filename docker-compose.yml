@@ -240,6 +240,10 @@ services:
       - app-db
       - web-ingress
       - signal-api
+    volumes:
+      # Zustand der Host-Überwachung (wachwerk-health), nur lesend; ohne
+      # WACHWERK_HEALTH_DIR ein leeres Volume (docs/BETRIEB-PI-LAN.md).
+      - ${WACHWERK_HEALTH_DIR:-health-status}:/run/wachwerk-health:ro
     tmpfs:
       - /tmp
     read_only: true
@@ -330,6 +334,8 @@ services:
       # Öffentliche Demo: dann verschickt der Dienst weder E-Mails noch Signal.
       DEMO_MODE: ${DEMO_MODE:-false}
       DEMO_SANDBOX: ${DEMO_SANDBOX:-false}
+      # Zusätzliche Adresse für Störungsmeldungen der Host-Überwachung.
+      HEALTH_ALERT_EMAIL: ${HEALTH_ALERT_EMAIL:-}
     depends_on:
       web:
         condition: service_healthy
@@ -340,6 +346,9 @@ services:
       - signal-api
       # Ausgehend nur für SMTP (E-Mail-Erinnerungen), falls EMAIL_HOST gesetzt ist.
       - egress
+    volumes:
+      # Zustand der Host-Überwachung: Meldungen an die Master-Admins.
+      - ${WACHWERK_HEALTH_DIR:-health-status}:/run/wachwerk-health:ro
     tmpfs:
       - /tmp
     read_only: true
@@ -679,6 +688,8 @@ volumes:
   # Platzhalter, solange BACKUP_OFFSITE_DIR / BACKUP_GPG_KEY_DIR leer sind.
   backups-offsite:
   backups-gpg-keys:
+  # Platzhalter, solange WACHWERK_HEALTH_DIR leer ist (keine Host-Überwachung).
+  health-status:
   # TLS-Proxy (Profil https)
   caddy-data:
   caddy-config:

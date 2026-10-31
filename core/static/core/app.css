@@ -196,6 +196,26 @@ button, a { -webkit-tap-highlight-color: transparent; }
   text-align: center;
   font-weight: 700;
 }
+/* Host-Überwachung (nur Master-Admins): Farben wie die Verbindungsanzeige,
+   aber nicht klebend, damit es keinen Fokus verdeckt. */
+.health-bar {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning-accent) 45%, transparent);
+}
+.health-bar-text {
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: .65rem 1rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.health-bar-text a {
+  margin-left: .35rem;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
 .demo-banner {
   display: none !important;
 }
