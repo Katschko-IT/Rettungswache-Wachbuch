@@ -9,7 +9,6 @@ und ``python manage.py data_catalog --write`` gelaufen ist.
 """
 from __future__ import annotations
 
-import importlib.util
 import io
 import re
 import tempfile
@@ -23,6 +22,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.management import CommandError, call_command
 from django.db import connection, models
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -31,8 +31,10 @@ from django.urls import NoReverseMatch, get_resolver, reverse
 from django.utils import timezone
 
 from core import data_catalog as dc
+from core import evidence
 from core.admin import ReadOnlyAdmin
 from core.api.views import DEFAULT_MOBILE_SCOPES, hash_api_token
+from core.coffee_models import CoffeeParticipant
 from core.fleet_models import Vehicle
 from core.models import (
     ApiToken,
@@ -74,27 +76,29 @@ ALL_MODULE_FLAGS = {
 }
 
 
-# Verzeichnis der Nachweise aus Paket B1 (core/evidence.py). Solange B1 nicht
-# integriert ist, vergleicht der Test mit dieser Kopie, danach mit dem Original.
-B1_EVIDENCE_MODELS = (
-    "core.AuditEvent", "core.HandoverEntry", "core.HandoverRevision", "core.HandoverAck", "core.HandoverAttachment",
-    "core.NewsAttachment", "core.PinboardAttachment", "core.ChecklistCompletion", "core.CoffeeEntry",
-    "core.CoffeeCashMovement", "core.Defect", "core.DefectEvent", "core.DefectAttachment", "core.AssetEvent",
-    "core.InventoryEvent", "core.StockMovement", "core.WikiRevision", "core.VehicleHandover",
-    "core.DisinfectionProtocol", "core.MaintenanceLog", "core.DeviceRoutineCheck", "core.DeviceTrainingRecord",
-    "core.SOPRevision", "core.SOPReceipt",
-)
-B1_NOT_EVIDENCE = (
-    "core.CalendarEvent", "core.ErrorEvent", "core.NewsAcknowledgement", "core.QrTotpUse", "core.StationTaskCompletion",
-)
-
-
 def _evidence_registry():
-    if importlib.util.find_spec("core.evidence") is None:
-        return set(B1_EVIDENCE_MODELS), set(B1_NOT_EVIDENCE)
-    from core import evidence
-
+    """Nachweisverzeichnis (core/evidence.py): Nachweise und nachweisähnliche Namen ohne Nachweischarakter."""
     return set(evidence.EVIDENCE_MODELS), set(evidence.NOT_EVIDENCE)
+
+
+def _show_details_branches(template: str) -> tuple[str, str]:
+    """Inhalt von ``{% if d.show_details %}`` (Details) und seinem ``{% else %}``, verschachtelte ifs mitgezählt."""
+    start = template.index("{% if d.show_details %}") + len("{% if d.show_details %}")
+    depth, split = 0, None
+    for match in re.finditer(r"{%\s*(if|elif|else|endif)\b[^%]*%}", template[start:]):
+        tag = match.group(1)
+        if tag == "if":
+            depth += 1
+        elif tag == "endif" and depth:
+            depth -= 1
+        elif tag == "else" and depth == 0:
+            split = match
+        elif tag == "endif":
+            end = start + match.start()
+            if split is None:
+                return template[start:end], ""
+            return template[start:start + split.start()], template[start + split.end():end]
+    raise AssertionError("{% if d.show_details %} ohne {% endif %}")
 
 
 def _code_strings(function) -> list[str]:
@@ -199,13 +203,47 @@ class DataCatalogCoverageTests(SimpleTestCase):
 
     def test_catalog_renders_no_choice_labels(self):
         text = dc.reference_markdown()
+        from core.fleet_models import DEFAULT_LEVEL_NAMES, DisinfectionLevel, DisinfectionProtocol
+
+        for model in (DisinfectionProtocol, DisinfectionLevel):
+            for f in model._meta.concrete_fields:
+                for _value, label in f.choices or ():
+                    with self.subTest(field=f"{model.__name__}.{f.name}", label=str(label)):
+                        self.assertNotIn(str(label), text)
+        # Auch die Standardstufen sind Inhalte der Wache, keine Metadaten.
+        for name in DEFAULT_LEVEL_NAMES:
+            self.assertNotIn(str(name), text)
+        self.assertNotIn("MRSA", text)
+
+    def test_d2_visibility_is_documented_for_disinfection(self):
+        """Entscheidung D2 (Paket C1) steht im Katalog: an den Feldern, an beiden Modellen und an den Auswertungen."""
         from core.fleet_models import DisinfectionProtocol
 
-        for f in DisinfectionProtocol._meta.concrete_fields:
-            for _value, label in f.choices or ():
-                with self.subTest(field=f.name, label=str(label)):
-                    self.assertNotIn(str(label), text)
-        self.assertNotIn("MRSA", text)
+        self.assertTrue(callable(getattr(DisinfectionProtocol, "details_visible_to", None)))
+        self.assertIn("core.DisinfectionLevel", [model._meta.label for model in dc.catalog_models()])
+        # Die Felder, die die Fahrzeugseite nur mit show_details zeigt, sind genau die D2-Felder im Katalog.
+        template = (Path(settings.BASE_DIR) / "templates" / "core" / "fleet_vehicle_detail.html").read_text(encoding="utf-8")
+        details, others = _show_details_branches(template)
+        hidden = set(re.findall(r"\bd\.([a-z_]+)", details)) - set(re.findall(r"\bd\.([a-z_]+)", others))
+        self.assertIn("level", hidden)
+        self.assertEqual(
+            {label.rsplit(".", 1)[1] for label in dc.D2_FIELDS}, hidden,
+            "D2_FIELDS in core/data_catalog.py an die Felder hinter show_details anpassen",
+        )
+        text = dc.reference_markdown()
+        section = text.split("\n### core.DisinfectionProtocol\n", 1)[1].split("\n### ", 1)[0]
+        for label in dc.D2_FIELDS:
+            with self.subTest(field=label):
+                self.assertIn("Entscheidung D2", dc.FIELD_OVERRIDES[label][1])
+                name = label.rsplit(".", 1)[1]
+                row = next(line for line in section.splitlines() if line.startswith(f"| `{name}` |"))
+                self.assertIn("Entscheidung D2", row)
+        for label in dc.D2_MODELS:
+            with self.subTest(model=label):
+                self.assertIn("Entscheidung D2", dc.spec_for_label(label)[1].note)
+        evaluations = {evaluation.url_name: evaluation for _module, evaluation in dc.all_evaluations()}
+        for name in ("fleet_dashboard", "fleet_vehicle_detail", "paper_disinfection"):
+            self.assertIn("Entscheidung D2", evaluations[name].note, name)
 
     def test_product_boundary_field_names(self):
         for word in ("patient_name", "einsatz_nr", "pathogen", "mission_id", "triage", "erreger_typ"):
@@ -243,7 +281,7 @@ class DataCatalogCoverageTests(SimpleTestCase):
             with self.subTest(module=module.key):
                 expected = any(_terminal_reachable(prefix) for prefix in module.web_prefixes)
                 self.assertEqual("terminal" in dc.module_channels(module), expected)
-        for key in ("mpg", "lager", "fuhrpark", "orga", "kaffeekasse", "audit", "geraete", "chat"):
+        for key in ("mpg", "lager", "fuhrpark", "orga", "kaffeekasse", "audit", "geraete", "chat", "papier"):
             self.assertNotIn("terminal", dc.module_channels(_module(key)), key)
         # /konto/avatar/ ist am Terminal offen: Profilbilder sind dort sichtbar.
         self.assertIn("terminal", dc.module_channels(_module("konto")))
@@ -279,9 +317,10 @@ class DataCatalogCoverageTests(SimpleTestCase):
     def test_evidence_flags_match_evidence_registry(self):
         evidence_models, not_evidence = _evidence_registry()
         flagged = {spec.label for _module, spec in dc.iter_model_specs() if spec.evidence}
-        self.assertEqual(sorted(flagged - evidence_models), [], "Katalog nennt Nachweise, die das Nachweisverzeichnis (B1) nicht führt")
-        self.assertEqual(sorted(evidence_models - flagged), [], f"Nachweise aus dem Nachweisverzeichnis (B1) mit evidence=True eintragen – {ADD_HINT}")
+        self.assertEqual(sorted(flagged - evidence_models), [], "Katalog nennt Nachweise, die das Nachweisverzeichnis (core/evidence.py) nicht führt")
+        self.assertEqual(sorted(evidence_models - flagged), [], f"Nachweise aus dem Nachweisverzeichnis (core/evidence.py) mit evidence=True eintragen – {ADD_HINT}")
         self.assertEqual(sorted(flagged & not_evidence), [])
+        self.assertIn("core.DisinfectionLevel", not_evidence)
         # Stammdaten sind keine Nachweise: Sie werden bearbeitet, die Nachweise hängen an ihnen.
         for label in ("core.Vehicle", "core.MedicalDevice", "core.SOPDocument", "core.ItemBatch"):
             self.assertFalse(dc.spec_for_label(label)[1].evidence, label)
@@ -394,7 +433,8 @@ class AuditorAccessTests(TestCase):
         refused = [module for module in dc.MODULES if module.entry_url and "auditor" not in dc.module_read_roles(module)]
         keys = {module.key for module in refused}
         for key in ("uebergaben", "kalender", "aufgaben", "neuigkeiten", "wiki", "pinnwand", "maengel", "geraete",
-                    "mpg", "lager", "fuhrpark", "orga", "kaffeekasse", "geburtstage", "lage", "checklisten", "chat"):
+                    "mpg", "lager", "fuhrpark", "orga", "kaffeekasse", "geburtstage", "lage", "checklisten", "chat",
+                    "papier"):
             self.assertIn(key, keys)
         with self.assertLogs("django.request", "WARNING"):
             for module in refused:
@@ -641,6 +681,32 @@ class CatalogMatchesBehaviourTests(TestCase):
         spec = dc.spec_for_label("core.StationTaskCompletion")[1]
         self.assertFalse(spec.evidence)
         self.assertIn("löscht den Vermerk", dc.RETENTION_RULES[spec.retention].text())
+
+    def test_leaving_the_coffee_fund_keeps_the_bookings(self):
+        """Austritt beendet nur die Teilnahme; die Buchungen bleiben (append-only), wie Katalog und Vorlage sagen."""
+        cashier = User.objects.create_user(username="verhalten-kasse", password="verhalten-passwort-123")
+        Membership.objects.create(user=cashier, station=self.station, role=Membership.Role.CASHIER)
+        member = self.users[Membership.Role.MEMBER].user
+        participant = CoffeeParticipant.objects.create(
+            station=self.station, user=member, since=timezone.localdate().replace(day=1), created_by=cashier,
+        )
+        entry = CoffeeEntry.objects.create(station=self.station, member=member, amount_cents=500, reason="Einzahlung",
+                                           created_by=cashier)
+        self.client.force_login(cashier)
+        response = self.client.post(reverse("coffee_participants"), {"action": "end", "participant": participant.pk})
+        self.assertEqual(response.status_code, 302)
+        participant.refresh_from_db()
+        self.assertIsNotNone(participant.until)
+        self.assertTrue(CoffeeEntry.objects.filter(pk=entry.pk).exists())
+        with self.assertRaises(ValidationError):
+            entry.delete()
+        spec = dc.spec_for_label("core.CoffeeParticipant")[1]
+        self.assertNotEqual(spec.retention, "withdrawal")
+        self.assertIn("Buchungen", spec.note)
+        self.assertIn("bleiben", spec.note)
+        template = (Path(settings.BASE_DIR) / "docs" / "MITBESTIMMUNG-VORLAGE.md").read_text(encoding="utf-8")
+        self.assertNotIn("Ein Widerruf entfernt die Angabe sofort.", template)
+        self.assertIn("Kassennachweis", template)
 
     def test_new_training_replaces_the_previous_one(self):
         trainee = self.users[Membership.Role.MEMBER].user

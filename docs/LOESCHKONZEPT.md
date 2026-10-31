@@ -99,7 +99,7 @@ Grundsätze des Vorschlags:
 Hinweise:
 
 - **Nachweise löscht Wachwerk nicht automatisch.** Gegen Ändern und Löschen gesperrt (append-only) sind nur die im Datenkatalog so markierten Tabellen; Stammdaten wie Fahrzeuge, Medizingeräte, Chargen und Dienstanweisungen werden bearbeitet, ihre Nachweise hängen an ihnen. Eine Löschfrist für Nachweise setzt eine eigene Entscheidung und einen eigenen Löschweg mit Owner-Rechten voraus.
-- **Einmalige Altdaten-Bereinigung** (Entscheidung D1, Befehl aus Paket C): Sie neutralisiert alte Fahrzeugstatus im Audit und entfernt IP-Adresse und Browser aus alten Lesequittungen. Sicherungen behalten den alten Stand, bis sie nach `BACKUP_RETENTION_DAYS` bzw. der Offsite-Frist auslaufen.
+- **Einmalige Altdaten-Bereinigung** (Entscheidung D1, `cleanup_legacy_data` aus Paket C1, nur mit Owner-Rechten): Sie ersetzt frühere Einsatzphasen in Audit-Einträgen zum Fahrzeugzustand durch „Einsatzbereit“ (Einträge, die nur einen Wechsel der Einsatzphase festhielten, entfallen), entfernt IP-Adresse und Browser aus alten Lesequittungen und leert Bemerkungen alter Desinfektionsprotokolle aus der Zeit des Felds „Transportgrund“. Je Wache entsteht ein Audit-Eintrag mit den Zahlen. Sicherungen behalten den alten Stand, bis sie nach `BACKUP_RETENTION_DAYS` bzw. der Offsite-Frist auslaufen.
 - **Sichtbarkeit von Namen:** Lesebestätigungen von Übergaben (Name und Zeit) sehen alle Inhaltsrollen; erledigte Tagesaufgaben und Checklisten zeigen im Web den Vornamen, die App beim letzten Abschluss einer Checkliste den vollen Namen. Das bleibt im Pilot so und ist in der Vorlage für die Vereinbarung (`MITBESTIMMUNG-VORLAGE.md`) aufgeführt.
 
 Freigabe Pilot-Fristen (Entscheidung #4):

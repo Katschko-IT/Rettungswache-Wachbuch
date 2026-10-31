@@ -68,6 +68,7 @@ Wachwerk-Fakten (Spalte „Auswertungen mit Personenbezug“ im Datenkatalog):
 - Die Einweisungsmatrix (Gerätepass) zeigt für jedes Mitglied, für welche Geräte eine Einweisung vorliegt, und eine **Quote je Person**; sichtbar für alle Inhaltsrollen.
 - Verläufe in Mängeln, Geräteausgabe, Medizinprodukten, Lager, Fuhrpark und Wiki nennen die handelnde Person; die Mängelliste nennt die zuständige Person. Die App zeigt bei Mängeln den Benutzernamen.
 - Lesequittungen von Dienstanweisungen mit Namen sehen nur Schichtleitung und Master-Admin (auch als CSV).
+- Desinfektionen zeigen allen Inhaltsrollen Datum, Mittel und die durchführende Person; Stufe, Einwirkzeit und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2).
 - Stände und Buchungen der Kaffeekasse aller Teilnehmenden sieht nur der Kassenwart (Web und App, in der App mit vollem Namen).
 - Das Audit-Protokoll (Person, Zeit, Aktion, geänderte Felder) sehen Auditor und Master-Admin; es enthält keine fachlichen Freitexte.
 - Neuigkeiten zeigen den Lesestand nur als Zahl („3 von 8 haben gelesen“).
@@ -148,7 +149,7 @@ Zu regeln:
 
 Wachwerk-Fakten:
 
-- Freiwillig sind Geburtstag (nur Tag und Monat), Profilbild, Signal-Nummer und die Teilnahme an der Kaffeekasse. Ein Widerruf entfernt die Angabe sofort.
+- Freiwillig sind Geburtstag (nur Tag und Monat), Profilbild, Signal-Nummer und die Teilnahme an der Kaffeekasse. Geburtstag, Profilbild und Signal-Nummer entfernt ein Widerruf sofort. Wer die Kaffeekasse verlässt, zahlt ab dem Folgemonat keinen Beitrag mehr; die bisherigen Buchungen bleiben als Kassennachweis erhalten (append-only, auch der Kassenwart kann sie nicht löschen).
 - Persönliche Hinweise sieht nur die Person selbst.
 
 Zu regeln:
@@ -171,7 +172,7 @@ Zu regeln:
 
 Wachwerk-Fakten:
 
-- Exporte gibt es für Kaffeekasse, Bestandsverzeichnis, Verfallsliste, Fahrzeugliste, Quittierungsnachweise und Kalender (Datenkatalog).
+- Exporte gibt es für Kaffeekasse, Bestandsverzeichnis, Verfallsliste, Fahrzeugliste, Quittierungsnachweise und Kalender, dazu Druckansichten der Papier-Rückfallebene (leere Formulare, Fristenliste, Telefonbuch); Einzelheiten im Datenkatalog.
 - Sicherungen laufen nach ihrer Frist aus (Standard 7 Tage, Offsite laut Ziel).
 
 Zu regeln:

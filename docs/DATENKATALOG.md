@@ -38,6 +38,7 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Lager und Material](#modul-lager) | `Station.warehouse_enabled` | ja | 2 | Organisationsdaten, Nachweis |
 | [Fuhrpark](#modul-fuhrpark) | `Station.fleet_enabled` | ja | 2 | Organisationsdaten, Einstellung, Nachweis |
 | [Dienstanweisungen und Telefonbuch](#modul-orga) | `Station.orga_enabled` | ja | 2 | Organisationsdaten, Nachweis |
+| [Papier-Rückfallebene](#modul-papier) | immer aktiv | keine eigenen Tabellen | 1 | – |
 | [Wachen-Display](#modul-display) | `Station.display_enabled` | ja | 0 | Zugangsschlüssel |
 | [Wachenterminal](#modul-terminal) | Einstellung TERMINAL_ENABLED | ja | 0 | Zugangsschlüssel, Einstellung, Kopplungscode |
 | [Öffentliche Demo](#modul-demo) | Einstellung DEMO_SANDBOX | nein | 0 | Demo-Besuch, Technische Tabelle |
@@ -501,6 +502,7 @@ Stammdaten der Wache, Impressum und Datenschutzinformation, Modulschalter.
 
 - Schalter: immer aktiv
 - Bereiche: `/einstellungen/`, `/datenschutz/`, `/impressum/`, `/setup/`
+- Hinweis: Stammdaten-Import (`/einstellungen/import/`, nur Master-Admin): Die CSV-Datei wird nur im Arbeitsspeicher gelesen und nie gespeichert; im Audit stehen nur Art, Anzahl, Kodierung, Trennzeichen und Prüfsumme der Datei (docs/STAMMDATEN-IMPORT.md).
 
 ### core.AppVersion
 
@@ -737,7 +739,7 @@ Audit: wer hat wann was an welchem Objekt geändert
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: unbegrenzt, solange RETENTION_AUDIT_DAYS = 0 (Standard); sonst löscht `apply_retention` mit den Rechten des Datenbank-Eigentümers
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Append-only. Enthält Feldnamen und Statuswerte, keine fachlichen Freitexte.
+- Hinweis: Append-only. Enthält Feldnamen und Statuswerte, keine fachlichen Freitexte. Einzige Ausnahme: die einmalige Altdaten-Bereinigung `cleanup_legacy_data` (0.27, Eigentümerrechte) schreibt frühere Einsatzphasen in Einträgen zum Fahrzeugzustand um und hält das je Wache im Audit fest.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -868,7 +870,7 @@ Versionen einer Übergabe (Schnappschuss, Person)
 - Schreiben: System
 - Zugriffswege: Web, Django-Admin (lesen)
 - Nachweis: ja, append-only (Anwendung und Datenbankrechte)
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `handover` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -1007,7 +1009,7 @@ Versionen mit bearbeitender Person
 - Schreiben: System
 - Zugriffswege: Web
 - Nachweis: ja, append-only (Anwendung)
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `article` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -1049,7 +1051,7 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Zugriffswege: Web, App (API), Wachenterminal
 - Nachweis: ja
-- Löschschutz: die Verknüpfung `medical_device` wird gelöst, wenn der verknüpfte Eintrag gelöscht wird
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent.
@@ -1469,6 +1471,7 @@ Teilnahme mit Zeitraum und E-Mail-Wunsch
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Austritt setzt nur das Ende der Teilnahme: ab dem Folgemonat kein Beitrag mehr. Die bisherigen Buchungen (core.CoffeeEntry, core.CoffeeCashMovement) bleiben als Kassennachweis erhalten (append-only).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1573,7 +1576,7 @@ Checkliste mit Beschreibung
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Superuser (Django-Admin)
-- Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen, anlegen, ändern, löschen)
+- Zugriffswege: Web, App (API), Wachenterminal, Export/Datei, Django-Admin (lesen, anlegen, ändern, löschen)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -1616,7 +1619,7 @@ Punkte einer Checkliste
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Superuser (Django-Admin)
-- Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen, anlegen, ändern, löschen)
+- Zugriffswege: Web, App (API), Wachenterminal, Export/Datei, Django-Admin (lesen, anlegen, ändern, löschen)
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2055,10 +2058,11 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 
 - Lesen: die Person selbst
 - Schreiben: System
-- Zugriffswege: Web, App (API), Push
+- Zugriffswege: Web, App (API), Push, Signal, E-Mail
 - Nachweis: nein
 - Frist technisch: keine technische Löschung (siehe docs/LOESCHKONZEPT.md, Lücken)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2153,8 +2157,8 @@ Funktionskontrolle mit Person und Ergebnis
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
-- Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` gelöscht wird (CASCADE)
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -2179,7 +2183,7 @@ Einweisung: Person, einweisende Person, Datum
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
 - Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` oder `trainee` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; eine neue Einweisung derselben Person am selben Gerät ersetzt die vorige (Einzeleinweisung löscht sie, Gruppenschulung überschreibt sie); Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -2201,8 +2205,8 @@ STK/MTK/DGUV-Prüfung mit prüfender Stelle
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
-- Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `device` gelöscht wird (CASCADE)
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -2230,7 +2234,7 @@ Medizingerät mit Fristen und Status
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin. Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu.
+- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin; Anlegen auch über den Stammdaten-Import (Master-Admin, setzt „Aus Altbestand übernommen am“). Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu. Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und Master-Admin); die Nachweise bleiben.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2248,7 +2252,8 @@ Medizingerät mit Fristen und Status
 | `ce_notified_body` | CE-Kennnummer (z. B. 0123) | Wert |  |
 | `year_of_manufacture` | Baujahr | Wert |  |
 | `acquired_at` | Anschaffungsdatum | Zeitpunkt |  |
-| `decommissioned_at` | Außerbetriebnahme | Zeitpunkt |  |
+| `decommissioned_at` | Außerbetriebnahme | Zeitpunkt | Datum der Außerbetriebnahme; das Gerät bleibt mit seinen Nachweisen erhalten |
+| `legacy_imported_at` | Aus Altbestand übernommen am | Zeitpunkt | nur beim Stammdaten-Import gesetzt; frühere Prüfungen liegen auf Papier |
 | `location` | Standort / Fahrzeug | Freitext |  |
 | `current_status` | Betriebsstatus | Auswahl |  |
 | `status_note` | Status-Bemerkung | Freitext |  |
@@ -2315,10 +2320,11 @@ Artikel mit Mindestbestand
 
 - Lesen: Inhaltsrollen, Wachen-Display
 - Schreiben: Schichtleitung, Master-Admin
-- Zugriffswege: Web, Display
+- Zugriffswege: Web, Display, Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Anlegen: Schichtleitung und Master-Admin, auch über den Stammdaten-Import (Master-Admin).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2344,7 +2350,7 @@ Bestand je Lagerort
 
 - Lesen: Inhaltsrollen, Wachen-Display
 - Schreiben: Inhaltsrollen
-- Zugriffswege: Web, Display
+- Zugriffswege: Web, Display, Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2371,7 +2377,7 @@ Bewegung: Menge, Art, Person
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Append-only. Nur Bestand, kein Verbrauch je Einsatz.
+- Hinweis: Append-only. Nur Bestand, kein Verbrauch je Einsatz. Der Stammdaten-Import bucht den Anfangsbestand als „Übernahme Altbestand“ mit der importierenden Person.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2392,12 +2398,12 @@ Bewegung: Menge, Art, Person
 Lagerort
 
 - Lesen: Inhaltsrollen
-- Schreiben: System
-- Zugriffswege: Web
+- Schreiben: System, Master-Admin
+- Zugriffswege: Web, Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; eine Oberfläche für weitere Lagerorte gibt es nicht.
+- Hinweis: Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den Stammdaten-Import (Master-Admin). Eine Oberfläche zum Bearbeiten gibt es nicht.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2424,8 +2430,8 @@ Fahrzeuge, Fristen, Übernahme und Desinfektion.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Letzte Desinfektionen mit Namen | `fleet_dashboard` | Inhaltsrollen | **ja** |  |
-| Übernahmen und Desinfektionen eines Fahrzeugs mit Namen | `fleet_vehicle_detail` | Inhaltsrollen | **ja** |  |
+| Letzte Desinfektionen mit Namen | `fleet_dashboard` | Inhaltsrollen | **ja** | ohne Stufe, Einwirkzeit und Bemerkung, für alle Rollen (Entscheidung D2) |
+| Übernahmen und Desinfektionen eines Fahrzeugs mit Namen | `fleet_vehicle_detail` | Inhaltsrollen | **ja** | Stufe, Einwirkzeit und Bemerkung einer Desinfektion nur für die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2) |
 | Fahrzeugliste als CSV (ohne Personen) | `fleet_export_csv` | Inhaltsrollen | nein |  |
 
 ### core.DisinfectantMaster
@@ -2434,11 +2440,11 @@ Desinfektionsmittel
 
 - Lesen: Inhaltsrollen
 - Schreiben: System, Superuser (Django-Admin)
-- Zugriffswege: Web, Django-Admin (lesen, anlegen, ändern, löschen)
+- Zugriffswege: Web, Export/Datei, Django-Admin (lesen, anlegen, ändern)
 - Nachweis: nein
 - Frist technisch: solange die Installation besteht; Änderung durch Master-Admin
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin.
+- Hinweis: Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. Nicht löschen, sondern „In Gebrauch“ abwählen; ein Mittel bleibt immer in Gebrauch.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2449,18 +2455,46 @@ Desinfektionsmittel
 | `spectrum` | Wirkspektrum | Freitext |  |
 | `default_exposure_minutes` | Standard-Einwirkzeit (Minuten) | Wert |  |
 | `is_vah_listed` | VAH-gelistet | Wert |  |
+| `is_active` | In Gebrauch | Wert | nicht löschen, sondern aus dem Gebrauch nehmen |
+
+### core.DisinfectionLevel
+
+Stufe des Desinfektionsplans: Name, Mittel, Freigaberegel, Einwirkzeit, Bestätigung
+
+- Lesen: Inhaltsrollen
+- Schreiben: System
+- Zugriffswege: Web
+- Nachweis: nein
+- Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
+- Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Kein Nachweis. Die Standardstufen legt Wachwerk an (Migration und erster Aufruf des Fuhrparks); eine Oberfläche zum Bearbeiten des Plans gibt es noch nicht. Die Namen der Stufen sehen alle Inhaltsrollen in der Auswahl des Protokolls; welche Stufe eine Desinfektion hatte, sehen nur die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2). Nicht löschen, sondern „In Verwendung“ abwählen.
+
+| Feld | Bezeichnung | Art | Hinweis |
+| --- | --- | --- | --- |
+| `id` |  | Wert |  |
+| `station` |  | Verweis |  |
+| `name` | Stufe | Wert | Umfang oder Wirkbereich, nie ein Erreger (Prüfung beim Speichern) |
+| `disinfectant` | Desinfektionsmittel | Verweis |  |
+| `release_rule` | Freigabe | Auswahl |  |
+| `exposure_minutes` | Einwirkzeit (Minuten) | Wert |  |
+| `is_active` | In Verwendung | Wert |  |
+| `rule_confirmed_at` | Bestätigt am | Zeitpunkt |  |
+| `rule_confirmed_by` | Bestätigt von | Person (Konto) | bestätigt den Plan; eine Oberfläche dafür gibt es noch nicht |
+| `created_at` |  | Zeitpunkt |  |
+| `updated_at` |  | Zeitpunkt |  |
 
 ### core.DisinfectionProtocol
 
-Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit
+Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit
 
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
 - Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `vehicle` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2469,15 +2503,15 @@ Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit
 | `vehicle` |  | Verweis |  |
 | `performed_by` |  | Person (Konto) |  |
 | `disinfectant` |  | Verweis |  |
-| `kind` |  | Auswahl |  |
+| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `started_at` | Beginn Desinfektion | Zeitpunkt |  |
-| `exposure_minutes` | Einwirkzeit (Minuten) | Wert |  |
-| `lock_timer_applied` | Einwirkzeit-Sperre angewendet | Wert |  |
-| `notes` | Bemerkung (keine Patienten- oder Einsatzangaben) | Freitext |  |
+| `exposure_minutes` | Einwirkzeit (Minuten) | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
+| `lock_timer_applied` | Einwirkzeit-Sperre angewendet | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
+| `notes` | Bemerkung (keine Patienten- oder Einsatzangaben) | Freitext | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data` |
 
 ### core.Vehicle
 
-Fahrzeug mit Zustand, Füllständen und Fristen
+Fahrzeug mit Fahrzeugzustand, Füllständen und Fristen
 
 - Lesen: Inhaltsrollen, Wachen-Display
 - Schreiben: Schichtleitung, Master-Admin
@@ -2485,7 +2519,7 @@ Fahrzeug mit Zustand, Füllständen und Fristen
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen und Bearbeiten: Schichtleitung und Master-Admin. Status, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Statuswechsel, Übernahme, Desinfektion und Mängelmeldung.
+- Hinweis: Stammdaten, Bearbeitung möglich. Anlegen und Bearbeiten: Schichtleitung und Master-Admin. Fahrzeugzustand, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Zustandswechsel, Übernahme, Desinfektion und Mängelmeldung. Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und Master-Admin); Übernahmen und Desinfektionen bleiben.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2498,7 +2532,7 @@ Fahrzeug mit Zustand, Füllständen und Fristen
 | `chassis_manufacturer` | Fahrgestell | Freitext |  |
 | `body_manufacturer` | Kofferaufbau | Freitext |  |
 | `year_of_manufacture` | Baujahr | Wert |  |
-| `tactical_status` |  | Auswahl |  |
+| `tactical_status` | Fahrzeugzustand | Auswahl |  |
 | `status_note` | Status-Bemerkung | Freitext |  |
 | `current_mileage` | Kilometerstand (km) | Wert |  |
 | `fuel_level_percent` | Kraftstoff (%) | Wert |  |
@@ -2510,7 +2544,7 @@ Fahrzeug mit Zustand, Füllständen und Fristen
 | `next_stretcher_service_date` | Tragentisch-Wartung (10g / DIN EN 1789) | Zeitpunkt |  |
 | `last_disinfection` | Letzte Desinfektion | Zeitpunkt |  |
 | `disinfection_locked_until` | Desinfektions-Sperre aktiv bis | Zeitpunkt |  |
-| `is_active` | Im aktiven Wachdienst | Wert |  |
+| `is_active` | Im aktiven Wachdienst | Wert | aus: außer Betrieb genommen; Übernahmen und Desinfektionen bleiben erhalten |
 | `notes` | Fahrzeugakte / Besonderheiten | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
@@ -2523,7 +2557,7 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
 - Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `vehicle` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -2565,11 +2599,11 @@ Dienstanweisung: Nummer, Titel, Status, Fristen
 
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
-- Zugriffswege: Web
+- Zugriffswege: Web, Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision.
+- Hinweis: Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision. Nicht löschen, sondern außer Kraft setzen; Versionen und Quittierungen bleiben.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2596,7 +2630,7 @@ Lesequittung: Person, Version, Zeit
 - Schreiben: die Person selbst
 - Zugriffswege: Web, Export/Datei
 - Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `sop` oder `revision` gelöscht wird (CASCADE)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 - Hinweis: Mitglieder sehen nur ihren eigenen Stand.
@@ -2609,8 +2643,8 @@ Lesequittung: Person, Version, Zeit
 | `revision` |  | Verweis |  |
 | `user` |  | Person (Konto) |  |
 | `acknowledged_at` | Quittiert am | Zeitpunkt |  |
-| `ip_address` | IP-Adresse | Netzwerk/Gerät | seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Bereinigungsbefehl (Paket C, D1); Sicherungen behalten sie bis zum Ablauf |
-| `user_agent` | Browser / Gerät | Netzwerk/Gerät | seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Bereinigungsbefehl (Paket C, D1); Sicherungen behalten sie bis zum Ablauf |
+| `ip_address` | IP-Adresse | Netzwerk/Gerät | seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Befehl `cleanup_legacy_data`; Sicherungen behalten sie bis zum Ablauf |
+| `user_agent` | Browser / Gerät | Netzwerk/Gerät | seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Befehl `cleanup_legacy_data`; Sicherungen behalten sie bis zum Ablauf |
 
 ### core.SOPRevision
 
@@ -2619,8 +2653,8 @@ Version mit Text, Prüfsumme und Freigabe
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
-- Nachweis: ja
-- Löschschutz: wird mitgelöscht, wenn der verknüpfte Eintrag in `sop` gelöscht wird (CASCADE)
+- Nachweis: ja, append-only (Anwendung)
+- Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
@@ -2642,7 +2676,7 @@ Telefonbuch: Einrichtung, Ansprechperson, Nummern
 
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
-- Zugriffswege: Web
+- Zugriffswege: Web, Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2659,6 +2693,27 @@ Telefonbuch: Einrichtung, Ansprechperson, Nummern
 | `notes` | Zuständigkeit / Erreichbarkeit | Freitext |  |
 | `is_speed_dial` | In Schnellwahlleiste anzeigen | Wert |  |
 | `order_rank` | Sortierung | Wert |  |
+
+<a id="modul-papier"></a>
+
+## Papier-Rückfallebene
+
+Druckansichten für den Ausfall des Wachbuchs: leere Formulare, Fristenliste und Telefonbuch (docs/OFFLINE-BETRIEB.md).
+
+- Schalter: immer aktiv
+- Bereiche: `/papier/`
+- Hinweis: Keine eigenen Tabellen; liest nur Daten der Module Fuhrpark, Medizinprodukte, Lager, Dienstanweisungen und Checklisten (Zugriffsweg Export/Datei). Kein Zugang für Auditoren und nicht am Wachenterminal. Ausgefüllte Blätter sind Nachweise auf Papier und bleiben bei der Wachleitung.
+
+**Auswertungen und Personenlisten**
+
+| Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
+| --- | --- | --- | --- | --- |
+| Fristen der Woche: Fahrzeuge, Medizingeräte, Dienstanweisungen, Material (ohne Personen) | `paper_deadlines` | Inhaltsrollen | nein |  |
+| Telefonbuch zum Ausdrucken mit Ansprechpersonen und Rufnummern | `paper_phonebook` | Inhaltsrollen | **ja** | Kontakte wie im Telefonbuch der Wache; keine Konten |
+| Leere Checklisten zum Abhaken | `paper_checklists` | Inhaltsrollen | nein |  |
+| Leeres Blatt Fahrzeugübernahme je Fahrzeug | `paper_vehicle_handover` | Inhaltsrollen | nein |  |
+| Leeres Desinfektionsblatt je Fahrzeug, ohne Spalten für Stufe, Einwirkzeit und Bemerkung | `paper_disinfection` | Inhaltsrollen | nein | Entscheidung D2; das Blatt liegt offen im Fahrzeug |
+| Leere Funktionskontrolle der Medizingeräte je Standort | `paper_device_checks` | Inhaltsrollen | nein |  |
 
 <a id="modul-display"></a>
 
@@ -2871,5 +2926,7 @@ Rückmeldung mit Text, Bewertung, freiwillig Name und E-Mail
 | Docker-Protokolle | Ausgaben der Dienste, darunter das Zugriffsprotokoll von Gunicorn mit Absenderadresse, Pfad und Browserkennung; Aktivierungslinks geschwärzt (core/gunicorn_logging.py) | nur Größe: 3 × 10 MB je Dienst (docker-compose.yml), keine Zeitgrenze |
 | Proxy-Protokolle (Caddy oder eigener Proxy) | Zugriffe mit IP-Adresse | laut Betreiber |
 | Offsite-Kopie | verschlüsselte Sicherung | laut Betreiber (docs/OPERATIONS.md) |
+| Statusdatei der Host-Überwachung (`/var/lib/wachwerk-health/status.json`, nur lesend in web und notify-worker) | nur Codes, Zeiten und Zahlen der letzten Prüfung, ohne Personen, Texte, Hostnamen oder Geheimnisse | bei jedem Lauf überschrieben (alle 5 Minuten) |
+| Ausgedruckte Blätter der Papier-Rückfallebene | ausgefüllt: Namenskürzel, Zeiten und Ergebnisse | laut Betreiber (docs/OFFLINE-BETRIEB.md) |
 
 Externe Dienste und Datenflüsse an Dritte: docs/DATENFLUESSE.md.

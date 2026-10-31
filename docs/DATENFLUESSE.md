@@ -160,9 +160,9 @@ Abschnitt mit `<!-- flow: KEY -->`.
 <!-- flow: email -->
 
 - **Empfänger und Rolle:** der SMTP-Anbieter des Betreibers (`EMAIL_HOST`). Auftragsverarbeiter **[prüfen]**.
-- **Daten:** E-Mail-Adresse und Name der Person, offener Betrag und Zahlungsangaben der Kaffeekasse (Kontoinhaber, IBAN, Verwendungszweck, Überweisungs-QR), Name der Wache.
+- **Daten:** E-Mail-Adresse und Name der Person, offener Betrag und Zahlungsangaben der Kaffeekasse (Kontoinhaber, IBAN, Verwendungszweck, Überweisungs-QR), Name der Wache. Technische Hinweise der Host-Überwachung enthalten nur den Zustand des Servers (übersetzte Codes, Uhrzeit, Link auf `/system/`), keine Inhalte aus Wachwerk.
 - **Personenbezug:** ja.
-- **Auslöser:** Erinnerung der Kaffeekasse an Teilnehmende, die E-Mails gewählt haben, oder Test-E-Mail durch Kassenwart bzw. Master-Admin.
+- **Auslöser:** Erinnerung der Kaffeekasse an Teilnehmende, die E-Mails gewählt haben, oder Test-E-Mail durch Kassenwart bzw. Master-Admin; technische Hinweise zum Server an die Master-Admins und an `HEALTH_ALERT_EMAIL` (`docs/BETRIEB-PI-LAN.md`).
 - **Schalter und Standard:** `EMAIL_HOST`, Standard leer; in der öffentlichen Demo immer aus.
 - **Drittland:** je nach Anbieter **[prüfen]**.
 - **Empfehlung Pilot:** nur mit einem Anbieter mit AV-Vertrag.
@@ -186,10 +186,10 @@ nicht selbst; sie stehen deshalb nur hier.
 
 <!-- flow: health_ping -->
 
-- **Empfänger:** der Dienst hinter `PING_URL` (z. B. healthchecks.io) aus `deploy/hetzner/wachwerk-health.sh`.
+- **Empfänger:** der Dienst hinter `PING_URL` (z. B. healthchecks.io) aus `deploy/hetzner/wachwerk-health.sh`; auf dem Pi und im Wachen-Netz installiert `deploy/lan/setup-monitoring.sh` dieselbe Prüfung.
 - **Daten:** Aufruf der Adresse; bei Fehlern Hostname und Fehlerbeschreibung (z. B. „Sicherung zu alt“).
 - **Personenbezug:** gering.
-- **Empfehlung Pilot:** aus; Meldungen über Banner und Posteingang (Paket D).
+- **Empfehlung Pilot:** aus; Meldungen über Banner und Posteingang (Paket D1). Die Statusdatei für Banner und Posteingang bleibt auf dem Server (nur Codes, Zeiten und Zahlen; Datenkatalog, „Außerhalb der Datenbank“).
 
 ### Offsite-Sicherung
 

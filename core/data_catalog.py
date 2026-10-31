@@ -11,7 +11,7 @@ Grundlage für Datenschutz (VVT, DSFA, Art.-13-Information) und Mitbestimmung
 - Abgeleitet statt behauptet: Django-Admin-Zugriff (``admin.site``) und
   Löschschutz (``on_delete``) kommen aus dem Code. Display-Modelle,
   Terminal-Zugang, Schreibrollen (Rollenprüfung in der Ansicht, nicht nur der
-  Decorator), Nachweise (Nachweisverzeichnis aus Paket B1), append-only
+  Decorator), Nachweise (Nachweisverzeichnis ``core/evidence.py``), append-only
   (Zeilenschutz und Datenbankrechte) und Namen in App-Schnittstellen prüfen
   die Tests gegen den Code (``core/test_data_catalog.py``).
 
@@ -406,6 +406,9 @@ MODULES = (
         "Stammdaten der Wache, Impressum und Datenschutzinformation, Modulschalter.",
         web_prefixes=("/einstellungen/", "/datenschutz/", "/impressum/", "/setup/"),
         entry_url="station_settings",
+        note="Stammdaten-Import (`/einstellungen/import/`, nur Master-Admin): Die CSV-Datei wird nur im Arbeitsspeicher "
+             "gelesen und nie gespeichert; im Audit stehen nur Art, Anzahl, Kodierung, Trennzeichen und Prüfsumme der Datei "
+             "(docs/STAMMDATEN-IMPORT.md).",
         models=(
             ModelSpec("core.Station", "Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse", C + ("superuser",), ("admin", "superuser"), ("web", "app", "display"), "config",
                       note="Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse."),
@@ -429,7 +432,9 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.AuditEvent", "Audit: wer hat wann was an welchem Objekt geändert", ("auditor", "admin", "superuser"), ("system",), ("web",), "audit", evidence=True,
-                      note="Append-only. Enthält Feldnamen und Statuswerte, keine fachlichen Freitexte."),
+                      note="Append-only. Enthält Feldnamen und Statuswerte, keine fachlichen Freitexte. Einzige Ausnahme: die einmalige "
+                           "Altdaten-Bereinigung `cleanup_legacy_data` (0.27, Eigentümerrechte) schreibt frühere Einsatzphasen in "
+                           "Einträgen zum Fahrzeugzustand um und hält das je Wache im Audit fest."),
             ModelSpec("core.ErrorEvent", "Fehlerereignisse (Route, Kategorie, Status, Version)", ("admin",), ("system",), ("web", "export"), "error_events"),
             ModelSpec("admin.LogEntry", "Änderungsprotokoll des Django-Admin", ("superuser",), ("superuser",), (), "gap"),
             ModelSpec("contenttypes.ContentType", "Technische Liste der Datentypen", ("system",), ("system",), (), "technical"),
@@ -569,7 +574,9 @@ MODULES = (
             ModelSpec("core.CoffeeEntry", "Buchung: Person, Betrag, Art, Monat, erfasst von", ("self", "cashier"), ("cashier", "self"), ("web", "app", "export"), "evidence", evidence=True,
                       note="Append-only. Jede Person sieht ihre eigenen Buchungen, der Kassenwart alle."),
             ModelSpec("core.CoffeeFund", "Einstellungen der Kasse (Beitrag, Kontoinhaber, Erinnerungen)", C, ("cashier", "admin"), ("web", "app")),
-            ModelSpec("core.CoffeeParticipant", "Teilnahme mit Zeitraum und E-Mail-Wunsch", ("self", "cashier", "admin"), ("cashier", "admin", "self"), ("web", "email")),
+            ModelSpec("core.CoffeeParticipant", "Teilnahme mit Zeitraum und E-Mail-Wunsch", ("self", "cashier", "admin"), ("cashier", "admin", "self"), ("web", "email"),
+                      note="Austritt setzt nur das Ende der Teilnahme: ab dem Folgemonat kein Beitrag mehr. Die bisherigen Buchungen "
+                           "(core.CoffeeEntry, core.CoffeeCashMovement) bleiben als Kassennachweis erhalten (append-only)."),
             ModelSpec("core.CoffeeCashMovement", "Kassenbewegung und Kassensturz mit Person", C, ("cashier",) + C, ("web", "export"), "evidence", evidence=True,
                       note="Append-only. Einkäufe können alle Inhaltsrollen erfassen."),
         ),
@@ -597,9 +604,9 @@ MODULES = (
             EvaluationSpec("api_v1_checklisten", "Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Checklist", "Checkliste mit Beschreibung", C + ("terminal",), ("superuser",), ("web", "app", "terminal"),
+            ModelSpec("core.Checklist", "Checkliste mit Beschreibung", C + ("terminal",), ("superuser",), ("web", "app", "terminal", "export"),
                       note="Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an."),
-            ModelSpec("core.ChecklistItem", "Punkte einer Checkliste", C + ("terminal",), ("superuser",), ("web", "app", "terminal"),
+            ModelSpec("core.ChecklistItem", "Punkte einer Checkliste", C + ("terminal",), ("superuser",), ("web", "app", "terminal", "export"),
                       note="Anlegen und Bearbeiten nur im Django-Admin."),
             ModelSpec("core.ChecklistCompletion", "Abschluss: Person, Zeit, Notiz", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "evidence", evidence=True,
                       note="Append-only."),
@@ -651,7 +658,11 @@ MODULES = (
         "Hinweise im Posteingang, Push an Browser und App.",
         web_prefixes=("/benachrichtigungen/", "/hinweise/"), entry_url="push_settings",
         models=(
-            ModelSpec("core.UserNotification", "Persönlicher Hinweis: Titel, Text, Link, gelesen", ("self",), ("system",), ("web", "app", "push"), "gap"),
+            ModelSpec("core.UserNotification", "Persönlicher Hinweis: Titel, Text, Link, gelesen", ("self",), ("system",), ("web", "app", "push", "signal", "email"), "gap",
+                      note="Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
+                           "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an "
+                           "bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an "
+                           "HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md)."),
             ModelSpec("core.MobilePushDevice", "App-Gerät für Push (Plattform, Geräte-Token, App-Version)", ("self",), ("self",), ("app",), "device_unregister"),
             ModelSpec("core.PushSubscription", "Browser-Push-Abo (Adresse beim Browserhersteller, Schlüssel, Browser)", ("self",), ("self",), ("web",), "device_unregister"),
             ModelSpec("core.PushOutbox", "Warteschlange für Push-Nachrichten", ("system",), ("system",), ("push",), "push_outbox"),
@@ -679,8 +690,10 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.MedicalDevice", "Medizingerät mit Fristen und Status", C + ("display",), CS + ("system",), ("web", "display", "export"),
-                      note="Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin. "
-                           "Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu."),
+                      note="Stammdaten, Bearbeitung möglich. Anlegen, Bearbeiten und Freigabe: Schichtleitung und Master-Admin; Anlegen auch "
+                           "über den Stammdaten-Import (Master-Admin, setzt „Aus Altbestand übernommen am“). "
+                           "Den Status ändern alle Inhaltsrollen über Funktionskontrollen und Mängelmeldungen; Prüfungen setzen die Fristen neu. "
+                           "Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und Master-Admin); die Nachweise bleiben."),
             ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, CS, ("web",), "training_replace", evidence=True),
             ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True),
@@ -697,15 +710,18 @@ MODULES = (
             EvaluationSpec("warehouse_reorder_proposal", "Nachbestellvorschlag (ohne Personen)", C, False),
         ),
         models=(
-            ModelSpec("core.StorageLocation", "Lagerort", C, ("system",), ("web",),
-                      note="Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; eine Oberfläche für weitere Lagerorte gibt es nicht."),
-            ModelSpec("core.MedicalItem", "Artikel mit Mindestbestand", C + ("display",), CS, ("web", "display")),
+            ModelSpec("core.StorageLocation", "Lagerort", C, ("system", "admin"), ("web", "export"),
+                      note="Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den "
+                           "Stammdaten-Import (Master-Admin). Eine Oberfläche zum Bearbeiten gibt es nicht."),
+            ModelSpec("core.MedicalItem", "Artikel mit Mindestbestand", C + ("display",), CS, ("web", "display", "export"),
+                      note="Anlegen: Schichtleitung und Master-Admin, auch über den Stammdaten-Import (Master-Admin)."),
             ModelSpec("core.ItemBatch", "Charge mit Verfall und Rückruf", C + ("display",), C, ("web", "display", "export"),
                       note="Stammdaten der Charge; Rückruf und Entnahme aus der Kühlung ändern sie. Die Bewegungen stehen in core.StockMovement."),
-            ModelSpec("core.StockItem", "Bestand je Lagerort", C + ("display",), C, ("web", "display"),
+            ModelSpec("core.StockItem", "Bestand je Lagerort", C + ("display",), C, ("web", "display", "export"),
                       note="Display: nur Summe für den Mindestbestand."),
             ModelSpec("core.StockMovement", "Bewegung: Menge, Art, Person", C, C, ("web",), "evidence", evidence=True,
-                      note="Append-only. Nur Bestand, kein Verbrauch je Einsatz."),
+                      note="Append-only. Nur Bestand, kein Verbrauch je Einsatz. Der Stammdaten-Import bucht den Anfangsbestand "
+                           "als „Übernahme Altbestand“ mit der importierenden Person."),
         ),
     ),
     ModuleSpec(
@@ -713,17 +729,32 @@ MODULES = (
         "Fahrzeuge, Fristen, Übernahme und Desinfektion.",
         flag="fleet_enabled", web_prefixes=("/fuhrpark/",), entry_url="fleet_dashboard",
         evaluations=(
-            EvaluationSpec("fleet_dashboard", "Letzte Desinfektionen mit Namen", C, True),
-            EvaluationSpec("fleet_vehicle_detail", "Übernahmen und Desinfektionen eines Fahrzeugs mit Namen", C, True),
+            EvaluationSpec("fleet_dashboard", "Letzte Desinfektionen mit Namen", C, True,
+                           "ohne Stufe, Einwirkzeit und Bemerkung, für alle Rollen (Entscheidung D2)"),
+            EvaluationSpec("fleet_vehicle_detail", "Übernahmen und Desinfektionen eines Fahrzeugs mit Namen", C, True,
+                           "Stufe, Einwirkzeit und Bemerkung einer Desinfektion nur für die durchführende Person, Schichtleitung "
+                           "und Master-Admin (Entscheidung D2)"),
             EvaluationSpec("fleet_export_csv", "Fahrzeugliste als CSV (ohne Personen)", C, False),
         ),
         models=(
-            ModelSpec("core.Vehicle", "Fahrzeug mit Zustand, Füllständen und Fristen", C + ("display",), CS, ("web", "app", "display", "export"),
+            ModelSpec("core.Vehicle", "Fahrzeug mit Fahrzeugzustand, Füllständen und Fristen", C + ("display",), CS, ("web", "app", "display", "export"),
                       note="Stammdaten, Bearbeitung möglich. Anlegen und Bearbeiten: Schichtleitung und Master-Admin. "
-                           "Status, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Statuswechsel, Übernahme, Desinfektion und Mängelmeldung."),
-            ModelSpec("core.DisinfectantMaster", "Desinfektionsmittel", C, ("system", "superuser"), ("web",), "config",
-                      note="Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin."),
-            ModelSpec("core.DisinfectionProtocol", "Desinfektion: Fahrzeug, Mittel, Person, Beginn, Einwirkzeit", C, C, ("web",), "evidence", evidence=True),
+                           "Fahrzeugzustand, Kilometerstand und Füllstände ändern alle Inhaltsrollen über Zustandswechsel, Übernahme, "
+                           "Desinfektion und Mängelmeldung. Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und "
+                           "Master-Admin); Übernahmen und Desinfektionen bleiben."),
+            ModelSpec("core.DisinfectantMaster", "Desinfektionsmittel", C, ("system", "superuser"), ("web", "export"), "config",
+                      note="Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. "
+                           "Nicht löschen, sondern „In Gebrauch“ abwählen; ein Mittel bleibt immer in Gebrauch."),
+            ModelSpec("core.DisinfectionLevel", "Stufe des Desinfektionsplans: Name, Mittel, Freigaberegel, Einwirkzeit, Bestätigung",
+                      C, ("system",), ("web",),
+                      note="Kein Nachweis. Die Standardstufen legt Wachwerk an (Migration und erster Aufruf des Fuhrparks); eine "
+                           "Oberfläche zum Bearbeiten des Plans gibt es noch nicht. Die Namen der Stufen sehen alle Inhaltsrollen in "
+                           "der Auswahl des Protokolls; welche Stufe eine Desinfektion hatte, sehen nur die durchführende Person, "
+                           "Schichtleitung und Master-Admin (Entscheidung D2). Nicht löschen, sondern „In Verwendung“ abwählen."),
+            ModelSpec("core.DisinfectionProtocol", "Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit", C, C, ("web",), "evidence", evidence=True,
+                      note="Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, "
+                           "Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und "
+                           "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe."),
             ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True),
         ),
     ),
@@ -736,13 +767,33 @@ MODULES = (
             EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True),
         ),
         models=(
-            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, CS, ("web",),
-                      note="Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision."),
+            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, CS, ("web", "export"),
+                      note="Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision. Nicht löschen, "
+                           "sondern außer Kraft setzen; Versionen und Quittierungen bleiben."),
             ModelSpec("core.SOPRevision", "Version mit Text, Prüfsumme und Freigabe", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "export"), "evidence", evidence=True,
                       note="Mitglieder sehen nur ihren eigenen Stand."),
-            ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, CS, ("web",)),
+            ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, CS, ("web", "export")),
         ),
+    ),
+    ModuleSpec(
+        "papier", "Papier-Rückfallebene",
+        "Druckansichten für den Ausfall des Wachbuchs: leere Formulare, Fristenliste und Telefonbuch (docs/OFFLINE-BETRIEB.md).",
+        web_prefixes=("/papier/",), entry_url="paper_hub",
+        note="Keine eigenen Tabellen; liest nur Daten der Module Fuhrpark, Medizinprodukte, Lager, Dienstanweisungen und "
+             "Checklisten (Zugriffsweg Export/Datei). Kein Zugang für Auditoren und nicht am Wachenterminal. Ausgefüllte "
+             "Blätter sind Nachweise auf Papier und bleiben bei der Wachleitung.",
+        evaluations=(
+            EvaluationSpec("paper_deadlines", "Fristen der Woche: Fahrzeuge, Medizingeräte, Dienstanweisungen, Material (ohne Personen)", C, False),
+            EvaluationSpec("paper_phonebook", "Telefonbuch zum Ausdrucken mit Ansprechpersonen und Rufnummern", C, True,
+                           "Kontakte wie im Telefonbuch der Wache; keine Konten"),
+            EvaluationSpec("paper_checklists", "Leere Checklisten zum Abhaken", C, False),
+            EvaluationSpec("paper_vehicle_handover", "Leeres Blatt Fahrzeugübernahme je Fahrzeug", C, False),
+            EvaluationSpec("paper_disinfection", "Leeres Desinfektionsblatt je Fahrzeug, ohne Spalten für Stufe, Einwirkzeit und Bemerkung", C, False,
+                           "Entscheidung D2; das Blatt liegt offen im Fahrzeug"),
+            EvaluationSpec("paper_device_checks", "Leere Funktionskontrolle der Medizingeräte je Standort", C, False),
+        ),
+        models=(),
     ),
     ModuleSpec(
         "display", "Wachen-Display",
@@ -784,6 +835,19 @@ MODULES = (
 
 # ---- Feldebene --------------------------------------------------------------
 
+# Entscheidung D2 (0.27): Stufe, Einwirkzeit, Sperre und Bemerkung einer
+# Desinfektion sehen nur die durchführende Person, Schichtleitung und Admin
+# (``DisinfectionProtocol.details_visible_to``). core/test_data_catalog.py
+# verlangt den Hinweis an jedem dieser Felder und an beiden Modellen.
+D2_NOTE = "nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2)"
+D2_FIELDS = (
+    "core.DisinfectionProtocol.level",
+    "core.DisinfectionProtocol.exposure_minutes",
+    "core.DisinfectionProtocol.lock_timer_applied",
+    "core.DisinfectionProtocol.notes",
+)
+D2_MODELS = ("core.DisinfectionProtocol", "core.DisinfectionLevel")
+
 FIELD_OVERRIDES = {
     "core.MaintenanceLog.performed_by": ("Kontakt/Name", "Name der prüfenden Person oder Firma als Text"),
     "core.DeviceTrainingRecord.instructor": ("Kontakt/Name", "Name der einweisenden Person als Text"),
@@ -795,8 +859,8 @@ FIELD_OVERRIDES = {
     "core.SiteProfile.content_responsible": ("Kontakt/Name", "öffentlich im Impressum"),
     "core.SignalContact.number": ("Kontakt/Name", "Telefonnummer, erst nach Bestätigung genutzt"),
     "core.SignalOutbox.recipient": ("Kontakt/Name", "Telefonnummer oder Gruppen-ID"),
-    "core.SOPReceipt.ip_address": (None, "seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Bereinigungsbefehl (Paket C, D1); Sicherungen behalten sie bis zum Ablauf"),
-    "core.SOPReceipt.user_agent": (None, "seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Bereinigungsbefehl (Paket C, D1); Sicherungen behalten sie bis zum Ablauf"),
+    "core.SOPReceipt.ip_address": (None, "seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Befehl `cleanup_legacy_data`; Sicherungen behalten sie bis zum Ablauf"),
+    "core.SOPReceipt.user_agent": (None, "seit 0.26.1 nicht mehr befüllt; Altwerte entfernt der einmalige Befehl `cleanup_legacy_data`; Sicherungen behalten sie bis zum Ablauf"),
     "core.AuditEvent.metadata": ("strukturierte Angaben", "Feldnamen, Statuswerte, vereinzelt Benutzernamen; keine fachlichen Freitexte"),
     "core.SOPRevision.content_hash": ("Wert", "SHA-256 des Dokumenttexts, kein Geheimnis"),
     "core.WebAuthnCredential.credential_id": ("Kennung", "Kennung des Passkeys, kein Geheimnis"),
@@ -824,6 +888,16 @@ FIELD_OVERRIDES = {
     "axes.AccessLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
     "axes.AccessFailureLog.http_accept": ("Netzwerk/Gerät", ""),
     "axes.AccessFailureLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
+    "core.DisinfectionProtocol.level": (None, D2_NOTE),
+    "core.DisinfectionProtocol.exposure_minutes": (None, D2_NOTE),
+    "core.DisinfectionProtocol.lock_timer_applied": (None, D2_NOTE),
+    "core.DisinfectionProtocol.notes": (None, f"{D2_NOTE}; Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data`"),
+    "core.DisinfectionLevel.name": ("Wert", "Umfang oder Wirkbereich, nie ein Erreger (Prüfung beim Speichern)"),
+    "core.DisinfectionLevel.rule_confirmed_by": (None, "bestätigt den Plan; eine Oberfläche dafür gibt es noch nicht"),
+    "core.DisinfectantMaster.is_active": (None, "nicht löschen, sondern aus dem Gebrauch nehmen"),
+    "core.MedicalDevice.legacy_imported_at": (None, "nur beim Stammdaten-Import gesetzt; frühere Prüfungen liegen auf Papier"),
+    "core.MedicalDevice.decommissioned_at": (None, "Datum der Außerbetriebnahme; das Gerät bleibt mit seinen Nachweisen erhalten"),
+    "core.Vehicle.is_active": (None, "aus: außer Betrieb genommen; Übernahmen und Desinfektionen bleiben erhalten"),
     "admin.LogEntry.object_repr": ("Freitext", "Bezeichnung des geänderten Objekts"),
     "admin.LogEntry.change_message": ("Freitext", "Beschreibung der Änderung im Django-Admin"),
 }
@@ -925,12 +999,15 @@ ROW_APPEND_ONLY = (
     "core.CoffeeEntry",
     "core.DefectAttachment",
     "core.DefectEvent",
+    "core.DeviceRoutineCheck",
     "core.HandoverAck",
     "core.HandoverAttachment",
     "core.HandoverRevision",
     "core.InventoryEvent",
+    "core.MaintenanceLog",
     "core.NewsAttachment",
     "core.PinboardAttachment",
+    "core.SOPRevision",
     "core.StockMovement",
     "core.WikiRevision",
 )
@@ -942,7 +1019,9 @@ DB_APPEND_ONLY = (
     "core.ChecklistCompletion",
     "core.CoffeeCashMovement",
     "core.CoffeeEntry",
+    "core.DeviceRoutineCheck",
     "core.HandoverRevision",
+    "core.MaintenanceLog",
     "core.StockMovement",
 )
 
@@ -953,11 +1032,12 @@ _FORBIDDEN_TOKENS = (
 )
 FORBIDDEN_FIELD_NAME_RE = re.compile(r"(?:^|_)(?:" + "|".join(_FORBIDDEN_TOKENS) + r")(?:_|$)")
 
-EVALUATION_URL_RE = re.compile(r"export|csv|report|auswertung|geraetepass|audit_log|_ics$|druck|print")
+EVALUATION_URL_RE = re.compile(r"export|csv|report|auswertung|geraetepass|audit_log|_ics$|druck|print|paper")
 
 # Treffer von EVALUATION_URL_RE, die keine Auswertung sind.
 NOT_EVALUATIONS = {
     "fleet_vehicle_defect_report": "Formular zum Melden eines Mangels am Fahrzeug, keine Auswertung",
+    "paper_hub": "Übersicht der Druckansichten mit Anzahl der Fahrzeuge, Geräte und Checklisten, keine Auswertung",
 }
 
 # Seiten, die andere Personen namentlich auflisten. Jede muss im Katalog als
@@ -1106,6 +1186,8 @@ def _channels(model, spec) -> str:
 def _person_marker(module) -> str:
     from django.apps import apps
 
+    if not module.models:
+        return "keine eigenen Tabellen"
     kinds = set()
     for spec in module.models:
         model = apps.get_model(spec.label)
@@ -1177,7 +1259,7 @@ def _module_retentions(module) -> str:
         title = RETENTION_RULES[spec.retention].title
         if title not in seen:
             seen.append(title)
-    return ", ".join(seen)
+    return ", ".join(seen) or "–"
 
 
 def _anchor(module) -> str:
@@ -1271,6 +1353,11 @@ def _outside_section() -> list[str]:
         "| Docker-Protokolle | Ausgaben der Dienste, darunter das Zugriffsprotokoll von Gunicorn mit Absenderadresse, Pfad und Browserkennung; Aktivierungslinks geschwärzt (core/gunicorn_logging.py) | nur Größe: 3 × 10 MB je Dienst (docker-compose.yml), keine Zeitgrenze |",
         "| Proxy-Protokolle (Caddy oder eigener Proxy) | Zugriffe mit IP-Adresse | laut Betreiber |",
         "| Offsite-Kopie | verschlüsselte Sicherung | laut Betreiber (docs/OPERATIONS.md) |",
+        "| Statusdatei der Host-Überwachung (`/var/lib/wachwerk-health/status.json`, nur lesend in web und notify-worker) | "
+        "nur Codes, Zeiten und Zahlen der letzten Prüfung, ohne Personen, Texte, Hostnamen oder Geheimnisse | "
+        "bei jedem Lauf überschrieben (alle 5 Minuten) |",
+        "| Ausgedruckte Blätter der Papier-Rückfallebene | ausgefüllt: Namenskürzel, Zeiten und Ergebnisse | "
+        "laut Betreiber (docs/OFFLINE-BETRIEB.md) |",
         "",
         "Externe Dienste und Datenflüsse an Dritte: docs/DATENFLUESSE.md.",
         "",
