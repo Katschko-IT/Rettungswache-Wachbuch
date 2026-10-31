@@ -36,13 +36,16 @@ Dieses Dokument ist keine Rechtsberatung.
 - Druckansichten der Papier-Rückfallebene (`/papier/`): Leere Formulare und
   Fristenliste enthalten nur Konfiguration und Fristen, keine Namen und keine
   früheren Ergebnisse. Das Desinfektionsblatt liegt offen im Fahrzeug und hat
-  nur Spalten für Datum, Beginn, Mittel, „Frei ab“ und Kürzel; Art, Stufe,
+  nur Spalten für Datum, Beginn, Mittel, „Frei ab“ und Kürzel; Stufe,
   Einwirkzeit je Durchgang und Bemerkung fehlen (Entscheidung D2). Beginn und
   „Frei ab“ zeigen wie die Sperre in der App, wie lange das Fahrzeug gesperrt
   war (bewusst belassener Rückschluss). Das Telefonbuch enthält die Kontakte
   wie in der App, also auch Ansprechpersonen und Rufnummern. Kein Zugang für
-  Auditoren und nicht am Wachenterminal; Ausdrucke bleiben intern im Ordner
-  der Wache.
+  Auditoren und nicht am Wachenterminal. Ausdrucke bleiben intern im Ordner
+  der Wache und, je ein Blatt Übernahme und Desinfektion, im Fahrzeug. Beim
+  Neudruck werden nur leere Blätter vernichtet; ausgefüllte Blätter sind
+  Nachweise und bleiben als Original bei der Wachleitung (Aufbewahrung offen,
+  docs/OFFLINE-BETRIEB.md § 7).
 
 ## Nachweise
 

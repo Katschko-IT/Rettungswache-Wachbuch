@@ -6,8 +6,13 @@ nie frühere Ergebnisse, Namen oder Freitexte aus Nachweisen. Die Fristenliste
 nennt keine Personen. Das Telefonbuch zeigt die Kontakte so, wie sie in der App
 stehen (auch Ansprechpersonen und Rufnummern).
 
-Welche Objekte „aktiv“ sind, steht nur in den ``active_*``-Funktionen; führt ein
-anderes Paket „außer Betrieb nehmen“ ein, wird nur hier nachgezogen.
+Welche Objekte „aktiv“ sind, steht nur in den ``active_*``-Funktionen. Nicht
+gedruckt werden Fahrzeuge und Medizingeräte, die außer Betrieb genommen sind
+(``core/evidence.py``), Desinfektionsmittel, die nicht mehr in Gebrauch sind
+(``core/disinfection_plan.py``), Dienstanweisungen, die außer Kraft gesetzt
+sind, und inaktive Checklisten. Der Fahrzeugzustand (auch „Außer Dienst“ oder
+„Werkstatt“) ändert daran nichts: Das Fahrzeug bleibt im Bestand und bekommt
+seine Blätter. Stufen des Desinfektionsplans stehen auf keinem Blatt.
 """
 from __future__ import annotations
 
@@ -72,12 +77,14 @@ def selected_week(raw: str | None, today: date) -> date:
 
 
 def active_vehicles(station):
+    """Fahrzeuge, die nicht außer Betrieb genommen sind (``evidence.is_vehicle_retired``)."""
     from .fleet_models import Vehicle
 
     return Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign")
 
 
 def active_devices(station):
+    """Medizingeräte, die nicht außer Betrieb genommen sind (``evidence.is_device_retired``)."""
     from .mpg_models import MedicalDevice
 
     return MedicalDevice.objects.filter(station=station).exclude(
@@ -86,9 +93,10 @@ def active_devices(station):
 
 
 def active_disinfectants(station):
-    from .fleet_models import DisinfectantMaster
+    """Mittel in Gebrauch, dieselbe Auswahl wie im Desinfektionsprotokoll."""
+    from .disinfection_plan import active_disinfectants as in_use
 
-    return DisinfectantMaster.objects.filter(station=station).order_by("name")
+    return in_use(station)
 
 
 def active_checklists(station):

@@ -127,6 +127,12 @@ Hilfe (alle Rollen außer Auditor).
 | Desinfektion | `/papier/desinfektion/` | ein Blatt je aktivem Fahrzeug, 14 Zeilen mit Datum, Beginn, Mittel, „Frei ab“ und Kürzeln; darüber die Mittel der Wache mit ihrer hinterlegten Standard-Einwirkzeit |
 | Funktionskontrolle | `/papier/funktionskontrolle/` | ein Blatt je Gerätestandort, Prüfpunkte wie im Formular; gesperrte Geräte ohne Ankreuzfelder |
 
+- **Welche Objekte:** „aktiv“ heißt nicht außer Betrieb genommen (Fahrzeuge,
+  Medizingeräte; `core/evidence.py`), in Gebrauch (Desinfektionsmittel), in
+  Kraft (Dienstanweisungen) oder aktiv (Checklisten). Außer Betrieb genommene
+  Objekte fehlen auf den leeren Formularen und in der Fristenliste. Der
+  Fahrzeugzustand ändert daran nichts: Auch ein Fahrzeug in der Werkstatt oder
+  außer Dienst bekommt seine Blätter; der Zustand selbst steht auf keinem Blatt.
 - **Wer druckt:** alle Rollen mit fachlichem Zugriff (Mitglied, Schichtleitung,
   Kassenwart, Master-Admin), jeweils nur für die eigene Wache. Auditoren
   erhalten 403. Das Wachenterminal erreicht die Ansichten nicht: `/papier/`
@@ -151,9 +157,10 @@ Hilfe (alle Rollen außer Auditor).
     auch Ansprechpersonen und Rufnummern, zum Beispiel der Wachleitung.
   - Das Desinfektionsblatt liegt offen im Fahrzeug; was darauf steht, kann
     jeder lesen. Es hat deshalb nur Spalten für das, was nach Entscheidung D2
-    alle sehen: Datum, Beginn, Mittel, „Frei ab“ und Kürzel. Es fehlen Art und
-    Stufe, die Einwirkzeit je Durchgang und eine Bemerkung, denn Minuten und
-    Bemerkung können die Stufe verraten. Erreger nennt das Blatt nicht. Der
+    alle sehen: Datum, Beginn, Mittel, „Frei ab“ und Kürzel. Es fehlen die
+    Stufe des Desinfektionsplans, die Einwirkzeit je Durchgang und eine
+    Bemerkung, denn Minuten und Bemerkung können die Stufe verraten. Erreger
+    nennt das Blatt nicht; Stufen tragen ohnehin keine Erregernamen. Der
     Hinweis unten auf dem Blatt bittet, Stufe und Einwirkzeit nicht von Hand
     nachzutragen.
   - Was bleibt: Beginn und „Frei ab“ zeigen zusammen, wie lange das Fahrzeug
@@ -163,8 +170,11 @@ Hilfe (alle Rollen außer Auditor).
     Zeile „Mittel der Wache“ sind die hinterlegte Standard-Einwirkzeit des
     Mittels, keine Angabe zu einer einzelnen Desinfektion.
   - Keine Patienten- oder Einsatzangaben auf den Blättern.
-  - Ausdrucke sind intern: Sie bleiben im Ordner der Wache. Beim Neudruck
-    werden die alten Blätter vernichtet.
+  - Ausdrucke sind intern: Sie bleiben im Ordner der Wache; je ein Blatt
+    Fahrzeugübernahme und Desinfektion liegt im Fahrzeug. Beim Neudruck werden
+    nur alte, leere Blätter vernichtet, auch die in den Fahrzeugen. Ausgefüllte
+    Blätter sind Nachweise: Sie gehen an die Wachleitung und bleiben dort als
+    Original (siehe „Nach dem Ausfall“ und „Offen“).
 - **Nach dem Ausfall:** Version 0.27 übernimmt nichts von Papier ins System.
   Die heutigen Formulare stempeln die Zeit der Eingabe: Eine nachträglich
   erfasste Desinfektion würde das Fahrzeug ab jetzt sperren, eine

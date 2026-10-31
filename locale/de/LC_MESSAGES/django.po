@@ -52,6 +52,10 @@ msgstr "%(month)s ist befreit."
 msgid "%(n)s Monat(e)"
 msgstr "%(n)s Monat(e)"
 
+#: templates/core/paper_disinfection.html:9
+msgid "%(name)s (%(minutes)s Min)"
+msgstr "%(name)s (%(minutes)s Min)"
+
 #: templates/core/impressum.html:39
 msgid "%(name)s ist freie Software (AGPL-3.0). Für diese Installation und ihre Inhalte ist der oben genannte Anbieter verantwortlich."
 msgstr "%(name)s ist freie Software (AGPL-3.0). Für diese Installation und ihre Inhalte ist der oben genannte Anbieter verantwortlich."
@@ -438,6 +442,7 @@ msgstr "Absenden"
 #: templates/core/fleet_dashboard.html:156
 #: templates/core/fleet_vehicle_detail.html:132
 #: templates/core/fleet_vehicle_detail.html:320
+#: templates/core/paper_vehicle_handover.html:21
 msgid "AdBlue"
 msgstr "AdBlue"
 
@@ -449,7 +454,7 @@ msgstr "AdBlue (%)"
 msgid "Admin-Konto"
 msgstr "Admin-Konto"
 
-#: templates/core/help_index.html:45
+#: templates/core/help_index.html:52
 #: templates/core/legal_settings.html:7
 #: templates/core/station_settings.html:7
 msgid "Administration"
@@ -1024,6 +1029,10 @@ msgstr "Ansicht"
 msgid "Ansprechpartner"
 msgstr "Ansprechpartner"
 
+#: templates/core/paper_hub.html:40
+msgid "Ansprechperson Technik"
+msgstr "Ansprechperson Technik"
+
 #: core/display_views.py:375
 msgid "Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."
 msgstr "Anstehende kommunale Entleerungen (Restmüll, Papier, Bio, Wertstoff)."
@@ -1160,7 +1169,7 @@ msgstr "Artikelbezeichnung*"
 msgid "Artikelstamm für Medikamente und Material: PZN, GTIN, Einheit, Mindest- und Sollbestand."
 msgstr "Artikelstamm für Medikamente und Material: PZN, GTIN, Einheit, Mindest- und Sollbestand."
 
-#: templates/core/help_index.html:50
+#: templates/core/help_index.html:57
 msgid "Artikelstand %(help_revision)s · Produktversion %(app_version)s"
 msgstr "Artikelstand %(help_revision)s · Produktversion %(app_version)s"
 
@@ -1310,6 +1319,10 @@ msgstr "Aus dem öffentlichen Feedback-Formular. Einträge werden nach %(days)s 
 #: templates/core/chat.html:39
 msgid "Ausblenden"
 msgstr "Ausblenden"
+
+#: templates/core/paper_hub.html:25
+msgid "Ausdrucke sind intern. Sie bleiben im Ordner der Wache; je ein Blatt Fahrzeugübernahme und Desinfektion liegt im Fahrzeug. Beim Neudruck nur alte, leere Blätter vernichten, auch in den Fahrzeugen. Ausgefüllte Blätter gehen an die Wachleitung (Deckblatt, Schritt 5)."
+msgstr "Ausdrucke sind intern. Sie bleiben im Ordner der Wache; je ein Blatt Fahrzeugübernahme und Desinfektion liegt im Fahrzeug. Beim Neudruck nur alte, leere Blätter vernichten, auch in den Fahrzeugen. Ausgefüllte Blätter gehen an die Wachleitung (Deckblatt, Schritt 5)."
 
 #: templates/core/install_guide.html:114
 msgid "Ausführlich mit Quellen:"
@@ -1600,6 +1613,10 @@ msgstr "Befund / Bemerkungen:"
 msgid "Befähigung im digitalen Gerätepass gültig"
 msgstr "Befähigung im digitalen Gerätepass gültig"
 
+#: templates/core/paper_disinfection.html:16
+msgid "Beginn (Uhrzeit)"
+msgstr "Beginn (Uhrzeit)"
+
 #: templates/core/feeds.html:6
 msgid "Behördenmeldungen"
 msgstr "Behördenmeldungen"
@@ -1640,6 +1657,18 @@ msgstr "Bei jeder Anmeldung fragt Wachwerk zusätzlich nach einem sechsstelligen
 msgid "Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."
 msgstr "Bei offenem Beitrag an die E-Mail-Adresse im Konto – mit Überweisungs-QR (GiroCode), IBAN und Betrag."
 
+#: templates/core/paper_device_checks.html:41
+msgid "Bei „Nein“ das Gerät nicht verwenden, kennzeichnen und die Schichtleitung informieren."
+msgstr "Bei „Nein“ das Gerät nicht verwenden, kennzeichnen und die Schichtleitung informieren."
+
+#: templates/core/paper_vehicle_handover.html:39
+msgid "Bei „Nein“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft."
+msgstr "Bei „Nein“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft."
+
+#: templates/core/paper_hub.html:36
+msgid "Bei „Nein“ oder „nicht in Ordnung“ die Schichtleitung informieren. Ein Gerät, das die Funktionskontrolle nicht besteht, nicht verwenden."
+msgstr "Bei „Nein“ oder „nicht in Ordnung“ die Schichtleitung informieren. Ein Gerät, das die Funktionskontrolle nicht besteht, nicht verwenden."
+
 #: templates/core/fleet_vehicle_detail.html:211
 msgid "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für diesen Punkt."
 msgstr "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für diesen Punkt."
@@ -1647,6 +1676,10 @@ msgstr "Bei „Nein“ öffnet sich nach dem Speichern die Mangelmeldung für di
 #: core/forms.py:298
 msgid "Bei „aufs Konto eingezahlt“ immer die Kasse."
 msgstr "Bei „aufs Konto eingezahlt“ immer die Kasse."
+
+#: templates/core/paper_checklists.html:37
+msgid "Bei „nicht in Ordnung“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft."
+msgstr "Bei „nicht in Ordnung“ die Schichtleitung informieren und den Mangel im Wachbuch melden, sobald es wieder läuft."
 
 #: templates/core/privacy.html:158
 msgid "Beim Abmelden (Logout) werden die Sitzungsdaten serverseitig invalidiert. Für ein vollständiges Bereinigen lokaler temporärer Daten empfiehlt sich das Leeren des Browser-Caches."
@@ -1659,6 +1692,10 @@ msgstr "Beim Abmelden wird deine Demo-Wache mit allen Eingaben gelöscht – ebe
 #: templates/core/birthday_settings.html:7
 msgid "Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt."
 msgstr "Beim Abschalten werden Tag, Monat und der frühere Einwilligungszeitpunkt entfernt."
+
+#: templates/core/paper_device_checks.html:29
+msgid "Beim Ausdruck: %(status)s"
+msgstr "Beim Ausdruck: %(status)s"
 
 #: templates/core/it_privacy.html:115
 msgid "Beim Ausscheiden wird das Konto gesperrt; freiwillige Angaben lassen sich jederzeit zurücknehmen. Aufbewahrungsfristen für Audit, externe Meldungen und Rückmeldungen sind einstellbar."
@@ -1706,10 +1743,13 @@ msgid "Beitrag bis Monat"
 msgstr "Beitrag bis Monat"
 
 #: templates/core/fleet_vehicle_detail.html:214
+#: templates/core/paper_checklists.html:21
+#: templates/core/paper_device_checks.html:23
 msgid "Bemerkung"
 msgstr "Bemerkung"
 
 #: core/fleet_models.py:393
+#: templates/core/paper_vehicle_handover.html:37
 msgid "Bemerkung (keine Patienten- oder Einsatzangaben)"
 msgstr "Bemerkung (keine Patienten- oder Einsatzangaben)"
 
@@ -1762,6 +1802,7 @@ msgid "Berechtigung"
 msgstr "Berechtigung"
 
 #: core/coffee_views.py:685
+#: templates/core/_paper_deadline_table.html:8
 msgid "Bereich"
 msgstr "Bereich"
 
@@ -1954,6 +1995,10 @@ msgstr "Betriebsbereit"
 #: templates/core/mpg_dashboard.html:49
 msgid "Betriebsbereit & STK OK"
 msgstr "Betriebsbereit & STK OK"
+
+#: templates/core/_paper_deadline_table.html:10
+msgid "Betrifft"
+msgstr "Betrifft"
 
 #: templates/core/privacy.html:193
 msgid "Betroffene Personen haben bei Vorliegen der gesetzlichen Voraussetzungen nach Art. 15–22 DSGVO folgende Rechte gegenüber dem Verantwortlichen:"
@@ -2347,6 +2392,10 @@ msgstr "Celeron J4105, 4 Kerne; 1 RAM-Steckplatz (8 GB laut Datenblatt); M.2-SAT
 msgid "Charge"
 msgstr "Charge"
 
+#: core/paper.py:231
+msgid "Charge %(lot)s · %(places)s"
+msgstr "Charge %(lot)s · %(places)s"
+
 #: templates/core/warehouse_recall.html:41
 msgid "Charge sofort sperren & Quarantäne verhängen"
 msgstr "Charge sofort sperren & Quarantäne verhängen"
@@ -2437,11 +2486,13 @@ msgstr "Checkliste wurde als erledigt vermerkt."
 #: core/audit_labels.py:187
 #: core/navigation.py:31
 #: core/navigation.py:58
+#: core/paper_views.py:89
 #: core/views.py:577
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
 #: templates/core/more.html:194
+#: templates/core/paper_hub.html:16
 #: templates/core/terminal_menu.html:30
 msgid "Checklisten"
 msgstr "Checklisten"
@@ -2461,6 +2512,10 @@ msgstr "Checklisten-Rhythmus entfernt"
 #: core/audit_labels.py:41
 msgid "Checklisten-Rhythmus geändert"
 msgstr "Checklisten-Rhythmus geändert"
+
+#: templates/core/paper_hub.html:16
+msgid "Checklisten: %(checklist_count)s"
+msgstr "Checklisten: %(checklist_count)s"
 
 #: templates/core/secure_mail_detail.html:20
 msgid "Clientseitig verschlüsselt gespeichert"
@@ -2513,6 +2568,10 @@ msgstr "Core i3/i5 der 8./9. Generation; bis 32 GB; NVMe- und SATA-SSD"
 #: core/diagnostics_models.py:73
 msgid "Correlation-ID muss dem Muster ^[A-Za-z0-9_-]{1,128}$ entsprechen."
 msgstr "Correlation-ID muss dem Muster ^[A-Za-z0-9_-]{1,128}$ entsprechen."
+
+#: core/paper.py:195
+msgid "DGUV V3 (elektrische Prüfung)"
+msgstr "DGUV V3 (elektrische Prüfung)"
 
 #: templates/core/mpg_device_form.html:171
 msgid "DGUV V3 Intervall (M):"
@@ -2790,6 +2849,10 @@ msgstr "Datenschutzkonforme Geburtstagsanzeige von Teammitgliedern (nur mit Einw
 #: templates/core/coffee_cash.html:37
 #: templates/core/coffee_ledger.html:21
 #: templates/core/coffee_ledger.html:25
+#: templates/core/paper_checklists.html:8
+#: templates/core/paper_device_checks.html:10
+#: templates/core/paper_disinfection.html:15
+#: templates/core/paper_vehicle_handover.html:16
 #: templates/core/setup_wizard.html:35
 msgid "Datum"
 msgstr "Datum"
@@ -3134,9 +3197,12 @@ msgid "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn
 msgstr "Der vollständige Quellcode steht unter der AGPL-3.0. Jede Wache kann ihn prüfen, selbst betreiben und verbessern."
 
 #: core/fleet_models.py:50
+#: core/paper_views.py:112
 #: templates/core/fleet_dashboard.html:42
 #: templates/core/fleet_vehicle_detail.html:342
 #: templates/core/fleet_vehicle_detail.html:345
+#: templates/core/paper_disinfection.html:4
+#: templates/core/paper_hub.html:10
 msgid "Desinfektion"
 msgstr "Desinfektion"
 
@@ -3182,6 +3248,7 @@ msgstr "Desinfektionsbuch-Historie"
 
 #: core/fleet_models.py:298
 #: templates/core/fleet_dashboard.html:206
+#: templates/core/paper_disinfection.html:17
 msgid "Desinfektionsmittel"
 msgstr "Desinfektionsmittel"
 
@@ -3439,6 +3506,7 @@ msgstr "Die Übersicht zeigt zuerst, was Aufmerksamkeit braucht: dringende Über
 
 #: core/audit_labels.py:133
 #: core/module_overview.py:120
+#: core/paper.py:204
 msgid "Dienstanweisung"
 msgstr "Dienstanweisung"
 
@@ -3577,6 +3645,7 @@ msgstr "Diese Version enthält keine automatische Update-Funktion. Aktualisierun
 msgid "Diese Wache ist noch nicht eingerichtet."
 msgstr "Diese Wache ist noch nicht eingerichtet."
 
+#: templates/core/paper_deadlines.html:7
 #: templates/core/terminal_menu.html:99
 msgid "Diese Woche"
 msgstr "Diese Woche"
@@ -3742,6 +3811,10 @@ msgstr "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgid "Direktnachricht"
 msgstr "Direktnachricht"
 
+#: templates/core/_paper_contact_table.html:9
+msgid "Direktwahl"
+msgstr "Direktwahl"
+
 #: templates/core/display_token_config.html:12
 msgid "Display-Konfiguration: %(label)s"
 msgstr "Display-Konfiguration: %(label)s"
@@ -3807,6 +3880,10 @@ msgstr "Dringlichkeit"
 msgid "Dringlichkeit:"
 msgstr "Dringlichkeit:"
 
+#: templates/core/paper_base.html:13
+msgid "Drucken"
+msgstr "Drucken"
+
 #: core/coffee_views.py:353
 msgid "Du bekommst die Erinnerung wieder per E-Mail."
 msgstr "Du bekommst die Erinnerung wieder per E-Mail."
@@ -3842,6 +3919,10 @@ msgstr "Du hast diese Übergabe bereits quittiert."
 #: templates/errors/403.html:9
 msgid "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an."
 msgstr "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an."
+
+#: templates/core/paper_disinfection.html:19
+msgid "Durchgeführt (Kürzel)"
+msgstr "Durchgeführt (Kürzel)"
 
 #: core/site_profile.py:35
 #: templates/core/coffee_book.html:68
@@ -4425,6 +4506,14 @@ msgstr "Erlaubte Werte"
 msgid "Erledigt"
 msgstr "Erledigt"
 
+#: templates/core/_paper_deadline_table.html:11
+msgid "Erledigt am, Kürzel"
+msgstr "Erledigt am, Kürzel"
+
+#: templates/core/paper_deadlines.html:26
+msgid "Erledigte Prüfungen im Wachbuch eintragen. Erst dann verschiebt sich die nächste Frist."
+msgstr "Erledigte Prüfungen im Wachbuch eintragen. Erst dann verschiebt sich die nächste Frist."
+
 #: core/audit_labels.py:138
 msgid "Erledigte Wachaufgabe"
 msgstr "Erledigte Wachaufgabe"
@@ -4532,9 +4621,26 @@ msgstr "Es ist noch kein Monatsbeitrag festgelegt."
 msgid "Es muss kein Raspberry Pi sein. Jeder sparsame 64-Bit-Rechner, der rund um die Uhr laufen darf, eignet sich – gebrauchte Thin Clients und Mini-PCs aus Büros sind oft die günstigste und robusteste Wahl."
 msgstr "Es muss kein Raspberry Pi sein. Jeder sparsame 64-Bit-Rechner, der rund um die Uhr laufen darf, eignet sich – gebrauchte Thin Clients und Mini-PCs aus Büros sind oft die günstigste und robusteste Wahl."
 
+#: templates/core/paper_checklists.html:41
+msgid "Es sind keine aktiven Checklisten hinterlegt."
+msgstr "Es sind keine aktiven Checklisten hinterlegt."
+
 #: templates/core/checklists.html:12
 msgid "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an."
 msgstr "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an."
+
+#: templates/core/paper_disinfection.html:31
+#: templates/core/paper_vehicle_handover.html:42
+msgid "Es sind noch keine Fahrzeuge angelegt."
+msgstr "Es sind noch keine Fahrzeuge angelegt."
+
+#: templates/core/paper_phonebook.html:8
+msgid "Es sind noch keine Kontakte eingetragen. Kontakte pflegt die Wache unter Organisation."
+msgstr "Es sind noch keine Kontakte eingetragen. Kontakte pflegt die Wache unter Organisation."
+
+#: templates/core/paper_device_checks.html:45
+msgid "Es sind noch keine Medizingeräte angelegt."
+msgstr "Es sind noch keine Medizingeräte angelegt."
 
 #: templates/core/privacy.html:169
 msgid "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Atkinson Hyperlegible Next) und Stylesheets werden lokal vom selben Server ausgeliefert."
@@ -4608,6 +4714,7 @@ msgstr "Fahrgestell-Hersteller"
 #: core/audit_labels.py:132
 #: core/module_overview.py:50
 #: core/module_overview.py:56
+#: core/paper.py:182
 #: core/wachalltag_models.py:61
 #: templates/core/fleet_dashboard.html:205
 msgid "Fahrzeug"
@@ -4632,6 +4739,14 @@ msgstr "Fahrzeug bearbeiten"
 #: core/fleet_views.py:234
 msgid "Fahrzeug bearbeiten: %(vehicle)s"
 msgstr "Fahrzeug bearbeiten: %(vehicle)s"
+
+#: templates/core/paper_disinfection.html:28
+msgid "Fahrzeug erst freigeben, wenn der Hygieneplan es erlaubt. Nur Datum, Uhrzeiten, Mittel und Kürzel eintragen, keine Stufe und keine Einwirkzeit: Das Blatt liegt offen im Fahrzeug."
+msgstr "Fahrzeug erst freigeben, wenn der Hygieneplan es erlaubt. Nur Datum, Uhrzeiten, Mittel und Kürzel eintragen, keine Stufe und keine Einwirkzeit: Das Blatt liegt offen im Fahrzeug."
+
+#: templates/core/paper_checklists.html:10
+msgid "Fahrzeug oder Bereich"
+msgstr "Fahrzeug oder Bereich"
 
 #: core/fleet_views.py:203
 msgid "Fahrzeug speichern"
@@ -4721,6 +4836,10 @@ msgstr "Fahrzeuge, Medizingeräte, Aufgaben und Müllabfuhr-Termine anlegen; Mod
 msgid "Fahrzeuge/Geräte"
 msgstr "Fahrzeuge/Geräte"
 
+#: templates/core/paper_hub.html:9
+msgid "Fahrzeuge: %(vehicle_count)s"
+msgstr "Fahrzeuge: %(vehicle_count)s"
+
 #: templates/core/landing.html:80
 msgid "Fahrzeugfreigabe mit Desinfektionssperre"
 msgstr "Fahrzeugfreigabe mit Desinfektionssperre"
@@ -4762,6 +4881,16 @@ msgstr "Fahrzeugzustand, fällige Gerätefristen, Materialwarnungen, Termine und
 #: templates/core/more.html:77
 msgid "Fahrzeugzustand, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen."
 msgstr "Fahrzeugzustand, Übernahme zu Schichtbeginn, Desinfektion und Prüffristen."
+
+#: core/paper_views.py:100
+#: templates/core/paper_hub.html:9
+#: templates/core/paper_vehicle_handover.html:4
+msgid "Fahrzeugübernahme"
+msgstr "Fahrzeugübernahme"
+
+#: templates/core/paper_hub.html:34
+msgid "Fahrzeugübernahme, Desinfektion, Funktionskontrolle und Checklisten auf den Formularen in diesem Ordner eintragen."
+msgstr "Fahrzeugübernahme, Desinfektion, Funktionskontrolle und Checklisten auf den Formularen in diesem Ordner eintragen."
 
 #: templates/core/landing.html:108
 msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
@@ -4866,6 +4995,10 @@ msgstr "Filtern"
 msgid "Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:"
 msgstr "Folgende Kontakte wurden durch die jeweiligen Betreiber im Administrationsbereich zur Veröffentlichung hinterlegt:"
 
+#: templates/core/help_index.html:46
+msgid "Formulare, Fristenliste und Telefonbuch zum Ausdrucken"
+msgstr "Formulare, Fristenliste und Telefonbuch zum Ausdrucken"
+
 #: templates/core/_display_surface.html:37
 msgid "Fortschritt der Tagesaufgaben"
 msgstr "Fortschritt der Tagesaufgaben"
@@ -4894,6 +5027,10 @@ msgstr "Fragen des Installers beantworten"
 msgid "Fragen zum Datenschutz"
 msgstr "Fragen zum Datenschutz"
 
+#: templates/core/paper_disinfection.html:18
+msgid "Frei ab (Uhrzeit)"
+msgstr "Frei ab (Uhrzeit)"
+
 #: core/task_board.py:44
 msgid "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten."
 msgstr "Frei nutzbar für einmalige Wachenaufgaben ohne Patientendaten."
@@ -4918,6 +5055,10 @@ msgstr "Freigabe erst möglich, wenn alle Mängel erledigt sind:"
 #: templates/core/team.html:31
 msgid "Freigeben"
 msgstr "Freigeben"
+
+#: templates/core/paper_disinfection.html:20
+msgid "Freigegeben (Uhrzeit, Kürzel)"
+msgstr "Freigegeben (Uhrzeit, Kürzel)"
 
 #: templates/core/sop_detail.html:92
 msgid "Freigegeben durch"
@@ -4977,6 +5118,12 @@ msgstr "Frist (optional)"
 msgid "Fristen & Prüfungen"
 msgstr "Fristen & Prüfungen"
 
+#: core/paper_views.py:74
+#: templates/core/paper_deadlines.html:12
+#: templates/core/paper_hub.html:21
+msgid "Fristen der Woche"
+msgstr "Fristen der Woche"
+
 #: templates/core/fleet_dashboard.html:65
 msgid "Fristen fällig"
 msgstr "Fristen fällig"
@@ -5034,6 +5181,12 @@ msgstr "Fundorte im System:"
 msgid "Funkrufname (OPTA)*"
 msgstr "Funkrufname (OPTA)*"
 
+#: core/paper_views.py:127
+#: templates/core/paper_device_checks.html:4
+#: templates/core/paper_hub.html:13
+msgid "Funktionskontrolle Medizingeräte"
+msgstr "Funktionskontrolle Medizingeräte"
+
 #: templates/core/mpg_device_detail.html:303
 msgid "Funktionskontrolle dokumentieren"
 msgstr "Funktionskontrolle dokumentieren"
@@ -5067,6 +5220,7 @@ msgstr "Funktionskontrollen werden nicht übernommen."
 msgid "Fußzeile / Ticker"
 msgstr "Fußzeile / Ticker"
 
+#: templates/core/_paper_deadline_table.html:7
 #: templates/core/task_row.html:7
 #: templates/core/task_row.html:12
 msgid "Fällig am"
@@ -5079,6 +5233,10 @@ msgstr "Fällig ≤ 30 Tage"
 #: templates/core/mpg_device_detail.html:110
 msgid "Fälligkeitsdatum:"
 msgstr "Fälligkeitsdatum:"
+
+#: templates/core/paper_hub.html:4
+msgid "Fällt das Wachbuch aus, arbeitet die Wache mit Papier weiter. Drucke die leeren Formulare und das Telefonbuch vor dem Start aus, die Fristenliste jede Woche neu. Die Formulare zeigen den Stand beim Ausdruck: Kommen Fahrzeuge, Geräte oder Checklisten dazu, bitte neu drucken."
+msgstr "Fällt das Wachbuch aus, arbeitet die Wache mit Papier weiter. Drucke die leeren Formulare und das Telefonbuch vor dem Start aus, die Fristenliste jede Woche neu. Die Formulare zeigen den Stand beim Ausdruck: Kommen Fahrzeuge, Geräte oder Checklisten dazu, bitte neu drucken."
 
 #: templates/core/fleet_vehicle_detail.html:110
 msgid "Füllstände & Telemetrie"
@@ -5203,6 +5361,10 @@ msgstr "Für diese Wache ist die Zwei-Faktor-Anmeldung verpflichtend. Bitte jetz
 #: templates/core/chat_signal.html:34
 msgid "Für diese Wache ist noch keine Signal-Gruppe hinterlegt. Der Admin trägt den Einladungslink in den Einstellungen ein."
 msgstr "Für diese Wache ist noch keine Signal-Gruppe hinterlegt. Der Admin trägt den Einladungslink in den Einstellungen ein."
+
+#: templates/core/paper_deadlines.html:16
+msgid "Für diese Woche sind keine Fristen eingetragen."
+msgstr "Für diese Woche sind keine Fristen eingetragen."
 
 #: templates/core/defects.html:32
 msgid "Für diesen Filter gibt es keine Mängel."
@@ -5388,6 +5550,7 @@ msgstr "Gerade laufen sehr viele Demos. Bitte in ein paar Minuten erneut versuch
 
 #: core/wachalltag_models.py:66
 #: templates/core/install_guide.html:81
+#: templates/core/paper_device_checks.html:21
 #: templates/core/push_settings.html:6
 msgid "Gerät"
 msgstr "Gerät"
@@ -5446,6 +5609,10 @@ msgstr "Geräte-QR-Code scannen"
 #: core/views.py:513
 msgid "Geräte/Fahrzeuge"
 msgstr "Geräte/Fahrzeuge"
+
+#: templates/core/paper_hub.html:13
+msgid "Geräte: %(device_count)s"
+msgstr "Geräte: %(device_count)s"
 
 #: templates/core/mpg_device_form.html:29
 msgid "Gerätebezeichnung*"
@@ -5539,6 +5706,10 @@ msgstr "Gespeicherter Schlüsselumschlag ist beschädigt."
 #: templates/core/mpg_device_detail.html:79
 msgid "Gesperrt"
 msgstr "Gesperrt"
+
+#: templates/core/paper_device_checks.html:31
+msgid "Gesperrt – erst nach Freigabe verwenden."
+msgstr "Gesperrt – erst nach Freigabe verwenden."
 
 #: core/mpg_forms.py:67
 msgid "Gesperrt. Freigabe über „Gerät freigeben“; dauerhaft außer Betrieb nehmen über „Außer Betrieb nehmen“ auf der Geräteseite."
@@ -5716,6 +5887,10 @@ msgstr "HTTP-Statuscode der Serverantwort"
 msgid "HTTPS und Zertifikat"
 msgstr "HTTPS und Zertifikat"
 
+#: core/paper.py:170
+msgid "HU (Hauptuntersuchung)"
+msgstr "HU (Hauptuntersuchung)"
+
 #: core/module_overview.py:63
 msgid "HU oder UVV fällig"
 msgstr "HU oder UVV fällig"
@@ -5891,6 +6066,10 @@ msgstr "Hinweis wurde wiederhergestellt."
 msgid "Hinweis zum Bezahlen"
 msgstr "Hinweis zum Bezahlen"
 
+#: templates/core/paper_phonebook.html:20
+msgid "Hinweis zum Kontakt"
+msgstr "Hinweis zum Kontakt"
+
 #: templates/core/_masterdata_import_rows.html:9
 #: templates/core/wiki_index.html:43
 msgid "Hinweise"
@@ -6043,6 +6222,10 @@ msgstr "Im BIOS „Nach Stromausfall einschalten“ (AC Power Recovery) aktivier
 #: templates/core/landing.html:173
 msgid "Im Demo-Banner wechselst du die Rolle: Master-Admin, Schichtleitung, Kassenwart, Mitglied oder Auditor."
 msgstr "Im Demo-Banner wechselst du die Rolle: Master-Admin, Schichtleitung, Kassenwart, Mitglied oder Auditor."
+
+#: templates/core/paper_base.html:15
+msgid "Im Druckdialog A4 wählen und Kopf- und Fußzeilen des Browsers ausschalten."
+msgstr "Im Druckdialog A4 wählen und Kopf- und Fußzeilen des Browsers ausschalten."
 
 #: templates/core/coffee_book.html:92
 msgid "Im Jahr %(y)s zahlt niemand einen Monatsbeitrag."
@@ -6205,6 +6388,10 @@ msgstr "In der Wache (Insellösung)"
 msgid "In dieser Ansicht gibt es keine Übergaben."
 msgstr "In dieser Ansicht gibt es keine Übergaben."
 
+#: templates/core/paper_deadlines.html:23
+msgid "In dieser Woche fällig"
+msgstr "In dieser Woche fällig"
+
 #: templates/core/landing.html:152
 msgid "In drei Schritten startklar"
 msgstr "In drei Schritten startklar"
@@ -6355,6 +6542,7 @@ msgstr "JPEG, PNG, WebP oder PDF, maximal %(max_upload_mb)s MB."
 
 #: core/fleet_forms.py:123
 #: core/mpg_forms.py:120
+#: templates/core/_paper_choice.html:1
 #: templates/core/masterdata_import_kind.html:51
 msgid "Ja"
 msgstr "Ja"
@@ -6405,6 +6593,10 @@ msgstr "Jetzt importieren (%(new)s neu)"
 #: core/task_board.py:89
 msgid "KW %(week)s"
 msgstr "KW %(week)s"
+
+#: templates/core/paper_deadlines.html:13
+msgid "KW %(week)s · %(start)s bis %(end)s"
+msgstr "KW %(week)s · %(start)s bis %(end)s"
 
 #: core/audit_labels.py:139
 #: core/audit_labels.py:141
@@ -6817,6 +7009,13 @@ msgstr "Keine Meldungen vorhanden."
 msgid "Keine Namen, Diagnosen, Einsatznummern, Adressen oder Krankheitsgründe eintragen."
 msgstr "Keine Namen, Diagnosen, Einsatznummern, Adressen oder Krankheitsgründe eintragen."
 
+#: templates/core/paper_checklists.html:37
+#: templates/core/paper_device_checks.html:41
+#: templates/core/paper_disinfection.html:28
+#: templates/core/paper_hub.html:35
+msgid "Keine Patienten- oder Einsatzangaben eintragen."
+msgstr "Keine Patienten- oder Einsatzangaben eintragen."
+
 #: templates/core/it_privacy.html:82
 msgid "Keine Patienten-, Einsatz-, Alarmierungs- oder Diagnosedaten – das Übergabeformular weist ausdrücklich darauf hin."
 msgstr "Keine Patienten-, Einsatz-, Alarmierungs- oder Diagnosedaten – das Übergabeformular weist ausdrücklich darauf hin."
@@ -7142,8 +7341,13 @@ msgstr "Kosten"
 #: templates/core/fleet_dashboard.html:138
 #: templates/core/fleet_vehicle_detail.html:114
 #: templates/core/fleet_vehicle_detail.html:320
+#: templates/core/paper_vehicle_handover.html:20
 msgid "Kraftstoff"
 msgstr "Kraftstoff"
+
+#: templates/core/paper_vehicle_handover.html:11
+msgid "Kraftstoff und AdBlue: %(fill_levels)s"
+msgstr "Kraftstoff und AdBlue: %(fill_levels)s"
 
 #: core/fleet_views.py:428
 msgid "Kraftstoffstand niedrig (%(percent)s %%)."
@@ -7201,6 +7405,10 @@ msgstr "Kühlpflichtiger Artikel außerhalb der Kühlung ohne Out-of-Fridge-Datu
 #: templates/core/warehouse_item_form.html:85
 msgid "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)"
 msgstr "Kühlpflichtiges Arzneimittel (2–8 °C im Kühlschrank)"
+
+#: templates/core/paper_vehicle_handover.html:23
+msgid "Kürzel"
+msgstr "Kürzel"
 
 #: templates/core/install_guide.html:70
 msgid "LAN-Anschluss"
@@ -7313,6 +7521,10 @@ msgstr "Leer: Stück. Auch „Stk“, „Amp“ oder „Pck“."
 msgid "Leer: Wache."
 msgstr "Leer: Wache."
 
+#: templates/core/paper_hub.html:6
+msgid "Leere Formulare"
+msgstr "Leere Formulare"
+
 #: templates/base.html:206
 msgid "Leertaste"
 msgstr "Leertaste"
@@ -7401,6 +7613,10 @@ msgstr "Link zur Online-Gebrauchsanweisung:"
 msgid "Liste der Übergaben auf dem Handy, nach Priorität sortiert: dringend, wichtig, normal."
 msgstr "Liste der Übergaben auf dem Handy, nach Priorität sortiert: dringend, wichtig, normal."
 
+#: templates/core/paper_hub.html:19
+msgid "Listen"
+msgstr "Listen"
+
 #: templates/core/vorfuehrung.html:143
 msgid "Lizenz"
 msgstr "Lizenz"
@@ -7444,6 +7660,10 @@ msgstr "Läuft alles?"
 #: templates/core/landing.html:83
 msgid "Läuft auch, wenn das Internet weg ist"
 msgstr "Läuft auch, wenn das Internet weg ist"
+
+#: templates/core/paper_hub.html:37
+msgid "Läuft das Wachbuch wieder: nur den aktuellen Stand erfassen (je Fahrzeug eine neue Fahrzeugübernahme, offene Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und bleiben bei der Wachleitung, bis Nachträge mit Ereigniszeit möglich sind."
+msgstr "Läuft das Wachbuch wieder: nur den aktuellen Stand erfassen (je Fahrzeug eine neue Fahrzeugübernahme, offene Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und bleiben bei der Wachleitung, bis Nachträge mit Ereigniszeit möglich sind."
 
 #: templates/core/it_privacy.html:139
 msgid "Lösch- und Aufbewahrungskonzept"
@@ -7489,6 +7709,10 @@ msgstr "MPG Ansicht"
 #: templates/core/mpg_device_detail.html:3
 msgid "MPG Gerätebuch"
 msgstr "MPG Gerätebuch"
+
+#: core/paper.py:194
+msgid "MTK (messtechnische Kontrolle)"
+msgstr "MTK (messtechnische Kontrolle)"
 
 #: templates/core/mpg_device_form.html:158
 msgid "MTK-Intervall (Monate):"
@@ -7600,6 +7824,7 @@ msgid "Master-Admin, Schichtleitung, Kassenwart, Mitglied und Auditor – jeweil
 msgstr "Master-Admin, Schichtleitung, Kassenwart, Mitglied und Auditor – jeweils pro Wache. Jede Abfrage ist an die eigene Wache gebunden; Auditoren sehen keine Freitexte."
 
 #: core/models.py:194
+#: core/paper.py:232
 #: core/wachalltag_models.py:62
 #: templates/core/_display_surface.html:76
 #: templates/core/warehouse_dashboard.html:8
@@ -7640,6 +7865,7 @@ msgstr "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 
 #: core/audit_labels.py:131
 #: core/module_overview.py:80
+#: core/paper.py:199
 msgid "Medizingerät"
 msgstr "Medizingerät"
 
@@ -7955,6 +8181,10 @@ msgstr "Mitte rechts"
 msgid "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich."
 msgstr "Mitteilungen der Wache. Mit „Gelesen“ quittierst du sie persönlich."
 
+#: templates/core/paper_disinfection.html:8
+msgid "Mittel der Wache:"
+msgstr "Mittel der Wache:"
+
 #: core/fleet_models.py:265
 msgid "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. Bestehende Nachweise bleiben erhalten."
 msgstr "Mittel, die nicht mehr in Gebrauch sind, stehen im Desinfektionsprotokoll nicht mehr zur Wahl. Bestehende Nachweise bleiben erhalten."
@@ -8190,7 +8420,7 @@ msgstr "Müllkalender-URLs dürfen nur HTTPS-Port 443 verwenden."
 msgid "Müllkalender-URLs müssen mit https:// beginnen."
 msgstr "Müllkalender-URLs müssen mit https:// beginnen."
 
-#: templates/core/station_settings.html:26
+#: templates/core/station_settings.html:27
 msgid "Müllkalender: Entweder eine HTTPS-ICS-Adresse eintragen oder eine ICS-Datei hochladen. Die Datei wird beim Speichern eingelesen und ersetzt die bisherigen Abfuhrtermine."
 msgstr "Müllkalender: Entweder eine HTTPS-ICS-Adresse eintragen oder eine ICS-Datei hochladen. Die Datei wird beim Speichern eingelesen und ersetzt die bisherigen Abfuhrtermine."
 
@@ -8262,6 +8492,10 @@ msgstr "Nachrichten werden im Browser verschlüsselt; die Datenbank speichert nu
 msgid "Nachrichtenbereiche"
 msgstr "Nachrichtenbereiche"
 
+#: templates/core/paper_phonebook.html:19
+msgid "Nachträge von Hand"
+msgstr "Nachträge von Hand"
+
 #: templates/core/vorfuehrung.html:79
 msgid "Nachts dunkle Flächen und gedämpfte Signale, damit der Bildschirm nicht blendet; tagsüber hell für Sonnenlicht. Die Ansicht folgt dem Gerät oder einem Schalter."
 msgstr "Nachts dunkle Flächen und gedämpfte Signale, damit der Bildschirm nicht blendet; tagsüber hell für Sonnenlicht. Die Ansicht folgt dem Gerät oder einem Schalter."
@@ -8312,6 +8546,15 @@ msgstr "Name der Wache und Betriebsart: „local“ (nur dieser Rechner), „lan
 msgid "Name für den Überweisungs-QR (GiroCode). Am besten ein eigenes Konto der Kasse."
 msgstr "Name für den Überweisungs-QR (GiroCode). Am besten ein eigenes Konto der Kasse."
 
+#: templates/core/_paper_contact_table.html:7
+#: templates/core/paper_phonebook.html:20
+msgid "Name oder Einrichtung"
+msgstr "Name oder Einrichtung"
+
+#: templates/core/_paper_sign.html:3
+msgid "Name oder Kürzel"
+msgstr "Name oder Kürzel"
+
 #: core/masterdata_import.py:1411
 msgid "Name oder Pfad eines vorhandenen Lagerorts oder einer Zeile dieser Datei, z. B. „RTW 1 → Schrank links“. Leer: oberste Ebene."
 msgstr "Name oder Pfad eines vorhandenen Lagerorts oder einer Zeile dieser Datei, z. B. „RTW 1 → Schrank links“. Leer: oberste Ebene."
@@ -8338,6 +8581,7 @@ msgstr "Name:"
 
 #: core/fleet_forms.py:123
 #: core/mpg_forms.py:120
+#: templates/core/_paper_choice.html:1
 #: templates/core/fleet_vehicle_detail.html:322
 msgid "Nein"
 msgstr "Nein"
@@ -8722,6 +8966,10 @@ msgstr "Normal (bei nächster Wartung)"
 msgid "Notarztdienst / LNA / OrgL"
 msgstr "Notarztdienst / LNA / OrgL"
 
+#: templates/core/paper_phonebook.html:11
+msgid "Notfall-Schnellwahl"
+msgstr "Notfall-Schnellwahl"
+
 #: templates/core/orga_dashboard.html:26
 msgid "Notfall-Schnellwahl & Wichtige Kontakte"
 msgstr "Notfall-Schnellwahl & Wichtige Kontakte"
@@ -8740,6 +8988,10 @@ msgstr "Notiz / Zertifikat-Nr:"
 #: templates/core/warehouse_item_detail.html:198
 msgid "Notiz:"
 msgstr "Notiz:"
+
+#: templates/core/paper_checklists.html:17
+msgid "Nr."
+msgstr "Nr."
 
 #: core/fleet_models.py:394
 msgid "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
@@ -8797,6 +9049,10 @@ msgstr "Nur für dringende Übergaben dieser Wache. Kein Tracking, keine Werbung
 msgid "Nur nötig bei redaktionellen Inhalten (§ 18 Abs. 2 MStV)."
 msgstr "Nur nötig bei redaktionellen Inhalten (§ 18 Abs. 2 MStV)."
 
+#: templates/core/paper_device_checks.html:13
+msgid "Nur prüfen und verwenden, wer in das Gerät eingewiesen ist."
+msgstr "Nur prüfen und verwenden, wer in das Gerät eingewiesen ist."
+
 #: core/masterdata_import.py:1494
 msgid "Nur zum Abgleich mit dem Artikel."
 msgstr "Nur zum Abgleich mit dem Artikel."
@@ -8840,6 +9096,7 @@ msgstr "Nächste Termine"
 msgid "Nächste UVV (DGUV V70)"
 msgstr "Nächste UVV (DGUV V70)"
 
+#: templates/core/paper_deadlines.html:5
 #: templates/core/tasks_week.html:22
 msgid "Nächste Woche"
 msgstr "Nächste Woche"
@@ -9008,6 +9265,10 @@ msgstr "Ohne JavaScript erscheinen alle Folien untereinander. Musik steht nur mi
 msgid "Ohne Namen: „Der Beitrag für November ist fällig – 5 von 12 haben schon bezahlt.“"
 msgstr "Ohne Namen: „Der Beitrag für November ist fällig – 5 von 12 haben schon bezahlt.“"
 
+#: core/paper.py:131
+msgid "Ohne Standort"
+msgstr "Ohne Standort"
+
 #: core/setup_views.py:332
 msgid "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterdienst übermittelt. Die Wachendaten werden ausschließlich lokal gespeichert."
 msgstr "Ohne ausdrückliche Einwilligung wird die Anschrift nicht an den Wetterdienst übermittelt. Die Wachendaten werden ausschließlich lokal gespeichert."
@@ -9096,6 +9357,7 @@ msgstr "Ort des Anbieters"
 
 #: core/fleet_forms.py:160
 #: templates/core/fleet_vehicle_form.html:126
+#: templates/core/paper_vehicle_handover.html:19
 msgid "O₂ Druck (bar)"
 msgstr "O₂ Druck (bar)"
 
@@ -9114,6 +9376,12 @@ msgstr "PZN eines vorhandenen Artikels; hat Vorrang vor der Bezeichnung."
 #: templates/core/warehouse_item_form.html:42
 msgid "Packungs- / Zähleinheit:"
 msgstr "Packungs- / Zähleinheit:"
+
+#: core/paper_views.py:59
+#: templates/core/help_index.html:45
+#: templates/core/station_settings.html:21
+msgid "Papier-Rückfall"
+msgstr "Papier-Rückfall"
 
 #: core/audit_labels.py:154
 #: templates/registration/mfa_setup.html:44
@@ -9556,6 +9824,10 @@ msgstr "Prüfintervalle"
 msgid "Prüfprotokolle (STK / MTK / DGUV)"
 msgstr "Prüfprotokolle (STK / MTK / DGUV)"
 
+#: templates/core/paper_checklists.html:18
+msgid "Prüfpunkt"
+msgstr "Prüfpunkt"
+
 #: templates/core/masterdata_import_preview.html:14
 msgid "Prüfsumme (SHA-256):"
 msgstr "Prüfsumme (SHA-256):"
@@ -9575,6 +9847,10 @@ msgstr "Prüfung nicht gespeichert. Bitte die Angaben im Prüfungsformular prüf
 #: core/mpg_views.py:423
 msgid "Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."
 msgstr "Prüfung nicht gespeichert: Bitte das Ergebnis wählen (bestanden oder nicht bestanden)."
+
+#: templates/core/_paper_deadline_table.html:9
+msgid "Prüfung oder Frist"
+msgstr "Prüfung oder Frist"
 
 #: templates/core/mpg_device_detail.html:407
 msgid "Prüfungsart:"
@@ -9950,6 +10226,10 @@ msgstr "Revisionsnummer"
 msgid "Revisionsprüfung fällig am"
 msgstr "Revisionsprüfung fällig am"
 
+#: templates/core/paper_checklists.html:12
+msgid "Rhythmus: %(interval)s"
+msgstr "Rhythmus: %(interval)s"
+
 #: templates/core/mpg_device_form.html:42
 msgid "Risikoklasse gem. EU-MDR:"
 msgstr "Risikoklasse gem. EU-MDR:"
@@ -9985,6 +10265,11 @@ msgstr "Routenname muss dem Muster ^[A-Za-z0-9_.:-]{1,120}$ entsprechen."
 #: core/fleet_models.py:226
 msgid "Routine-Wischdesinfektion"
 msgstr "Routine-Wischdesinfektion"
+
+#: templates/core/_paper_contact_table.html:8
+#: templates/core/paper_phonebook.html:20
+msgid "Rufnummer"
+msgstr "Rufnummer"
 
 #: templates/base.html:144
 msgid "Rundgang %(done)s/%(total)s"
@@ -10065,6 +10350,14 @@ msgstr "SOP Ansicht"
 msgid "SOP-Nummer"
 msgstr "SOP-Nummer"
 
+#: core/paper.py:171
+msgid "SP (Sicherheitsprüfung)"
+msgstr "SP (Sicherheitsprüfung)"
+
+#: core/paper.py:193
+msgid "STK (sicherheitstechnische Kontrolle)"
+msgstr "STK (sicherheitstechnische Kontrolle)"
+
 #: templates/core/mpg_device_form.html:145
 msgid "STK-Intervall (Monate):"
 msgstr "STK-Intervall (Monate):"
@@ -10119,6 +10412,10 @@ msgstr "Schema:"
 #: core/models.py:164
 msgid "Schichtleitung"
 msgstr "Schichtleitung"
+
+#: templates/core/paper_hub.html:33
+msgid "Schichtleitung informieren."
+msgstr "Schichtleitung informieren."
 
 #: templates/core/vorfuehrung.html:37
 msgid "Schichtübergabe"
@@ -10229,6 +10526,10 @@ msgstr "Schnellwahl"
 #: templates/core/terminal_menu.html:21
 msgid "Schnellzugriff"
 msgstr "Schnellzugriff"
+
+#: templates/core/paper_deadlines.html:19
+msgid "Schon vor dieser Woche fällig"
+msgstr "Schon vor dieser Woche fällig"
 
 #: templates/core/offline.html:9
 msgid "Schreibvorgänge wie neue Übergaben, Statusänderungen oder Kassenbuchungen sind offline nicht möglich."
@@ -10520,6 +10821,10 @@ msgstr "Sitzungsgebundener Feed (Browser)"
 msgid "Slug"
 msgstr "Slug"
 
+#: templates/core/paper_hub.html:30
+msgid "So arbeitet ihr ohne Wachbuch"
+msgstr "So arbeitet ihr ohne Wachbuch"
+
 #: templates/core/masterdata_import.html:12
 msgid "So geht es"
 msgstr "So geht es"
@@ -10600,7 +10905,7 @@ msgstr "Speicher"
 #: templates/core/mpg_device_detail.html:324
 #: templates/core/pinboard_form.html:20
 #: templates/core/signal_admin.html:41
-#: templates/core/station_settings.html:28
+#: templates/core/station_settings.html:29
 #: templates/core/task_form.html:23
 #: templates/core/wiki_form.html:30
 msgid "Speichern"
@@ -10679,6 +10984,10 @@ msgstr "Stand dieser technischen Dokumentation:"
 msgid "Stand heute"
 msgstr "Stand heute"
 
+#: templates/core/_paper_head.html:8
+msgid "Stand: %(when)s Uhr"
+msgstr "Stand: %(when)s Uhr"
+
 #: templates/core/display_token_config.html:49
 msgid "Standard"
 msgstr "Standard"
@@ -10694,6 +11003,10 @@ msgstr "Standort & Betriebsstatus"
 #: templates/core/mpg_device_form.html:107
 msgid "Standort / Fahrzeug:"
 msgstr "Standort / Fahrzeug:"
+
+#: templates/core/paper_device_checks.html:7
+msgid "Standort: %(location)s"
+msgstr "Standort: %(location)s"
 
 #: templates/base.html:82
 msgid "Start"
@@ -11008,6 +11321,7 @@ msgstr "Teilnehmende eintragen"
 
 #: core/site_profile.py:36
 #: templates/core/impressum.html:22
+#: templates/core/paper_hub.html:41
 #: templates/core/privacy.html:51
 msgid "Telefon"
 msgstr "Telefon"
@@ -11019,6 +11333,12 @@ msgstr "Telefon der/des Datenschutzbeauftragten"
 #: core/forms.py:1034
 msgid "Telefon des Anbieters (optional)"
 msgstr "Telefon des Anbieters (optional)"
+
+#: core/paper_views.py:80
+#: templates/core/paper_hub.html:22
+#: templates/core/paper_phonebook.html:5
+msgid "Telefonbuch"
+msgstr "Telefonbuch"
 
 #: templates/core/orga_dashboard.html:67
 msgid "Telefonbucheinträge"
@@ -11214,6 +11534,10 @@ msgstr "UDI-DI (GTIN):"
 msgid "UTF-8 mit BOM"
 msgstr "UTF-8 mit BOM"
 
+#: core/paper.py:172
+msgid "UVV-Prüfung"
+msgstr "UVV-Prüfung"
+
 #: templates/core/fleet_vehicle_detail.html:151
 msgid "UVV-Prüfung (DGUV Vorschrift 70)"
 msgstr "UVV-Prüfung (DGUV Vorschrift 70)"
@@ -11225,6 +11549,12 @@ msgstr "Uhr mit Pufferbatterie (bei PCs eingebaut, beim Pi als Modul), „Nach S
 #: templates/core/landing.html:78
 msgid "Uhr, Übergaben, Aufgaben und Fahrzeugzustand auf einen Blick. Der vierstellige Wachen-Code öffnet den Alltagsmodus – persönliche Konten bleiben auf dem eigenen Handy."
 msgstr "Uhr, Übergaben, Aufgaben und Fahrzeugzustand auf einen Blick. Der vierstellige Wachen-Code öffnet den Alltagsmodus – persönliche Konten bleiben auf dem eigenen Handy."
+
+#: templates/core/paper_checklists.html:9
+#: templates/core/paper_device_checks.html:11
+#: templates/core/paper_vehicle_handover.html:17
+msgid "Uhrzeit"
+msgstr "Uhrzeit"
 
 #: core/display_views.py:351
 msgid "Uhrzeit & Datum"
@@ -11275,6 +11605,10 @@ msgstr "Unten links"
 msgid "Unten rechts"
 msgstr "Unten rechts"
 
+#: templates/core/paper_hub.html:26
+msgid "Unten steht das Deckblatt für den Ordner. „Drucken“ druckt nur das Deckblatt."
+msgstr "Unten steht das Deckblatt für den Ordner. „Drucken“ druckt nur das Deckblatt."
+
 #: templates/core/warehouse_dashboard.html:53
 msgid "Unter Mindestbestand"
 msgstr "Unter Mindestbestand"
@@ -11290,6 +11624,10 @@ msgstr "Unter Team → Wachenterminal den Touch-Bildschirm einrichten."
 #: templates/core/private_chat_home.html:19
 msgid "Unterhaltungen"
 msgstr "Unterhaltungen"
+
+#: templates/core/_paper_sign.html:4
+msgid "Unterschrift"
+msgstr "Unterschrift"
 
 #: templates/core/vorfuehrung.html:116
 msgid "Updates laufen lassen"
@@ -11338,6 +11676,10 @@ msgstr "Verbrauch"
 #: templates/core/display_tokens.html:83
 msgid "Verbundene Monitore & Bildschirm-Links"
 msgstr "Verbundene Monitore & Bildschirm-Links"
+
+#: core/paper.py:232
+msgid "Verfall"
+msgstr "Verfall"
 
 #: templates/core/warehouse_item_detail.html:243
 msgid "Verfall / Beschädigung (Ausscheidung)"
@@ -11428,7 +11770,7 @@ msgid "Version %(version)s"
 msgstr "Version %(version)s"
 
 #: templates/core/diagnostics_events.html:9
-#: templates/core/help_index.html:46
+#: templates/core/help_index.html:53
 #: templates/core/system_status.html:3
 #: templates/core/system_status.html:7
 msgid "Version und Systemstatus"
@@ -11992,6 +12334,10 @@ msgstr "Wartend"
 msgid "Wartung / STK eintragen"
 msgstr "Wartung / STK eintragen"
 
+#: core/paper.py:173
+msgid "Wartung Tragentisch"
+msgstr "Wartung Tragentisch"
+
 #: templates/core/mpg_device_detail.html:435
 msgid "Wartung buchen"
 msgstr "Wartung buchen"
@@ -12209,7 +12555,7 @@ msgstr "Wetter prüfen (optional)"
 msgid "Wetter, Verkehr, Müllkalender, Signal, Push"
 msgstr "Wetter, Verkehr, Müllkalender, Signal, Push"
 
-#: templates/core/station_settings.html:23
+#: templates/core/station_settings.html:24
 msgid "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 msgstr "Wetter: Bei aktivierter Wettervorhersage wird die Adresse automatisch per OpenStreetMap und Open-Meteo geocodiert und auf dem Wachen-Display angezeigt."
 
@@ -12771,6 +13117,10 @@ msgstr "Zurück zum Kalender"
 msgid "Zurück zum Konto"
 msgstr "Zurück zum Konto"
 
+#: templates/core/paper_base.html:9
+msgid "Zurück zum Papier-Rückfall"
+msgstr "Zurück zum Papier-Rückfall"
+
 #: templates/base.html:140
 msgid "Zurück zum Rundgang"
 msgstr "Zurück zum Rundgang"
@@ -12912,6 +13262,10 @@ msgstr "Zuständige Datenschutz-Aufsichtsbehörde (optional)"
 #: templates/core/orga_dashboard.html:240
 msgid "Zuständigkeit / Notiz"
 msgstr "Zuständigkeit / Notiz"
+
+#: templates/core/_paper_contact_table.html:10
+msgid "Zuständigkeit, Erreichbarkeit"
+msgstr "Zuständigkeit, Erreichbarkeit"
 
 #: templates/core/tasks_today.html:32
 #: templates/core/tasks_week.html:28
@@ -13199,6 +13553,10 @@ msgstr "hier die Zahlungsangaben der Kaffeekasse der %(station)s (Monatsbeitrag 
 msgid "immer oben"
 msgstr "immer oben"
 
+#: templates/core/paper_checklists.html:19
+msgid "in Ordnung"
+msgstr "in Ordnung"
+
 #: templates/emails/coffee_reminder.html:7
 #: templates/emails/coffee_reminder.txt:3
 msgid "in der Kaffeekasse der %(station)s sind %(amount)s € offen."
@@ -13220,6 +13578,7 @@ msgid "keine"
 msgstr "keine"
 
 #: core/fleet_forms.py:154
+#: templates/core/paper_vehicle_handover.html:18
 msgid "km-Stand"
 msgstr "km-Stand"
 
@@ -13294,9 +13653,17 @@ msgstr "nicht erreichbar"
 msgid "nicht hinterlegt"
 msgstr "nicht hinterlegt"
 
+#: templates/core/paper_checklists.html:20
+msgid "nicht in Ordnung"
+msgstr "nicht in Ordnung"
+
 #: templates/core/install_guide.html:87
 msgid "niedrig, lüfterlos"
 msgstr "niedrig, lüfterlos"
+
+#: templates/core/paper_disinfection.html:9
+msgid "noch keine Mittel hinterlegt"
+msgstr "noch keine Mittel hinterlegt"
 
 #: templates/core/terminal_admin.html:65
 msgid "noch nicht eingerichtet"
@@ -13681,6 +14048,10 @@ msgstr "Übernahme Altbestand"
 #: core/fleet_views.py:433
 msgid "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
 msgstr "Übernahme gespeichert. Mit „Nein“ beantwortet: %(points)s. Bitte jetzt den Mangel melden."
+
+#: core/paper.py:204
+msgid "Überprüfung"
+msgstr "Überprüfung"
 
 #: core/navigation.py:13
 #: templates/core/dashboard.html:3

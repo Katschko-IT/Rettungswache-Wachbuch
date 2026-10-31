@@ -22,7 +22,7 @@
     {% if current_membership.station.orga_enabled %}<li><a href="{% url 'paper_phonebook' %}">{% include "core/_icon.html" with name="phonebook" %}{% translate "Telefonbuch" %}</a></li>{% endif %}
   </ul>
 </section>
-<p>{% translate "Ausdrucke sind intern und bleiben im Ordner der Wache. Beim Neudruck die alten Blätter vernichten." %}</p>
+<p>{% translate "Ausdrucke sind intern. Sie bleiben im Ordner der Wache; je ein Blatt Fahrzeugübernahme und Desinfektion liegt im Fahrzeug. Beim Neudruck nur alte, leere Blätter vernichten, auch in den Fahrzeugen. Ausgefüllte Blätter gehen an die Wachleitung (Deckblatt, Schritt 5)." %}</p>
 <p>{% translate "Unten steht das Deckblatt für den Ordner. „Drucken“ druckt nur das Deckblatt." %}</p>
 {% endblock %}
 {% block paper %}

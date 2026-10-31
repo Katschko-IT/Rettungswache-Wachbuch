@@ -1,8 +1,9 @@
 """Papier-Rückfallebene (Roadmap 0.27, Baustein 8): Druckansichten.
 
 Prüft Rollen, Stationsbindung, Modulschalter, das Wachenterminal, leere
-Formulare ohne frühere Ergebnisse, Produktgrenze (keine Art/Stufe der
-Desinfektion, keine Erreger, keine Namen) und die Fristenliste der Woche.
+Formulare ohne frühere Ergebnisse, Produktgrenze (keine Stufe der
+Desinfektion, keine Erreger, keine Namen), außer Betrieb genommene Objekte
+(Paket B1), den Fahrzeugzustand (Paket C1) und die Fristenliste der Woche.
 """
 from __future__ import annotations
 
@@ -20,7 +21,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core import paper, paper_views
-from core.fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from core.disinfection_plan import ensure_default_levels
+from core.evidence import reactivate_device, reactivate_vehicle, retire_device, retire_vehicle
+from core.fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from core.models import Checklist, ChecklistCompletion, ChecklistItem, Membership, Station
 from core.mpg_forms import DeviceRoutineCheckForm
 from core.mpg_models import DeviceRoutineCheck, MedicalDevice
@@ -87,18 +90,21 @@ class PaperBase(TestCase):
         StockItem.objects.create(station=station, item=item, batch=batch, location=location, quantity=quantity)
         return batch
 
-    def seed_final_disinfection(self, vehicle, agent, performer):
-        """Legt eine Schlussdesinfektion an und gibt die Namen zurück, die fehlen müssen.
+    def seed_level_disinfection(self, vehicle, agent, performer):
+        """Legt den Desinfektionsplan und ein Protokoll mit Stufe an (Paket C1).
 
-        Einzige Stelle mit ``DisinfectionProtocol.Kind``: Ersetzt Paket C die Art
-        durch Stufen aus dem Hygieneplan, wird nur hier eine Stufe angelegt und
-        deren Name zurückgegeben.
+        Gibt die Namen aller Stufen zurück: Keiner davon darf auf einem Blatt
+        stehen, auch nicht die Standardstufen „Schlussdesinfektion (…)“.
         """
+        ensure_default_levels(vehicle.station)
+        level = DisinfectionLevel.objects.create(
+            station=vehicle.station, name="Flächenstufe-QQ7", disinfectant=agent, exposure_minutes=47,
+        )
         DisinfectionProtocol.objects.create(
             station=vehicle.station, vehicle=vehicle, performed_by=performer, disinfectant=agent,
-            kind=DisinfectionProtocol.Kind.FINAL_NORO, notes="Wischprobe-QQ",
+            level=level, exposure_minutes=47, notes="Wischprobe-QQ",
         )
-        return [str(label) for _value, label in DisinfectionProtocol.Kind.choices]
+        return list(DisinfectionLevel.objects.filter(station=vehicle.station).values_list("name", flat=True))
 
     def get(self, name, user=None, **params):
         self.client.force_login(user or self.member)
@@ -237,6 +243,12 @@ class PaperFormTests(PaperBase):
         self.assertContains(response, "Keine Patienten- oder Einsatzangaben eintragen.")
         self.assertNotContains(response, "Einträge nachtragen")
 
+    def test_reprint_destroys_only_blank_sheets(self):
+        response = self.get("paper_hub")
+        self.assertContains(response, "Beim Neudruck nur alte, leere Blätter vernichten, auch in den Fahrzeugen.")
+        self.assertContains(response, "Ausgefüllte Blätter gehen an die Wachleitung")
+        self.assertNotContains(response, "die alten Blätter vernichten")
+
     def test_handover_sheet_is_empty_and_uses_the_form_checkpoints(self):
         vehicle = self.vehicle()
         self.vehicle(call_sign="RTW alt", plate="PA-RW 9", is_active=False)
@@ -260,13 +272,16 @@ class PaperFormTests(PaperBase):
             self.assertNotIn(leaked, html)
         self.assertContains(response, "Bemerkung (keine Patienten- oder Einsatzangaben)")
 
-    def test_disinfection_sheet_shows_agents_but_no_kind_or_pathogen(self):
+    def test_disinfection_sheet_shows_agents_but_no_level_or_pathogen(self):
         vehicle = self.vehicle()
         self.vehicle(call_sign="RTW alt", plate="PA-RW 9", is_active=False)
         self.vehicle(station=self.other, call_sign="Fremd-RTW", plate="X-1")
         agent = DisinfectantMaster.objects.create(station=self.station, name="Wischmittel A", default_exposure_minutes=30)
         DisinfectantMaster.objects.create(station=self.other, name="Fremdmittel")
-        hidden_names = self.seed_final_disinfection(vehicle, agent, self.zora)
+        # Aus dem Gebrauch genommen (B1): steht auch auf Papier nicht mehr zur Wahl.
+        DisinfectantMaster.objects.create(station=self.station, name="Altmittel-ZZ", is_active=False)
+        hidden_names = self.seed_level_disinfection(vehicle, agent, self.zora)
+        self.assertGreaterEqual(len(hidden_names), 6)
         # Das Blatt liegt offen im Fahrzeug: gleiche Zurückhaltung, egal wer druckt.
         for user in (self.member, self.lead, self.admin):
             response = self.get("paper_disinfection", user)
@@ -276,8 +291,11 @@ class PaperFormTests(PaperBase):
             self.assertEqual(html.count('class="paper-row"'), paper.DISINFECTION_ROWS, user.username)
             for name in hidden_names:
                 self.assertNotIn(name, html, user.username)
-            for word in BOUNDARY_WORDS + ("Wischprobe-QQ", "Zora", "Transport", "Fremdmittel", "RTW alt", "Fremd-RTW"):
+            for word in BOUNDARY_WORDS + ("Wischprobe-QQ", "Zora", "Transport", "Fremdmittel", "RTW alt", "Fremd-RTW",
+                                          "Altmittel-ZZ", "47 Min"):
                 self.assertNotIn(word, html, f"{user.username}: {word}")
+            # Die laufende Sperre steht im Fahrzeug, nicht auf dem Blatt.
+            self.assertNotIn("Desinfektion bis", html, user.username)
             # D2: Einwirkzeit je Durchgang verrät die Stufe, also keine Spalte dafür.
             thead = html.split("<thead>", 1)[1].split("</thead>", 1)[0]
             self.assertNotIn("Einwirkzeit", thead, user.username)
@@ -316,7 +334,7 @@ class PaperFormTests(PaperBase):
         self.assertEqual(len(rows), 3)
         locked = next(row for row in rows if "Beatmung Delta" in row)
         ready = next(row for row in rows if "Defi Alpha" in row)
-        self.assertIn("Beim Ausdruck: Außer Betrieb (Gesperrt)", locked)
+        self.assertIn("Beim Ausdruck: Gesperrt", locked)
         self.assertIn("Gesperrt – erst nach Freigabe verwenden.", locked)
         self.assertNotIn("paper-box", locked)
         self.assertEqual(ready.count("paper-box"), 2 * len(DeviceRoutineCheckForm.CHECK_POINTS))
@@ -364,7 +382,7 @@ class PaperFormTests(PaperBase):
     def test_no_view_crosses_the_product_boundary(self):
         vehicle = self.vehicle(next_hu_date=self.monday)
         agent = DisinfectantMaster.objects.create(station=self.station, name="Wischmittel A", default_exposure_minutes=30)
-        self.seed_final_disinfection(vehicle, agent, self.zora)
+        self.seed_level_disinfection(vehicle, agent, self.zora)
         self.device("Defi Alpha", location="RTW 1", current_status=MedicalDevice.Status.OOB, next_dguv_date=self.monday)
         checklist = Checklist.objects.create(station=self.station, title="Wachenrundgang")
         ChecklistItem.objects.create(checklist=checklist, text="Fluchtwege frei")
@@ -384,6 +402,60 @@ class PaperFormTests(PaperBase):
         response = self.client.get(reverse("paper_hub"))
         self.assertContains(response, "Paper fallback")
         self.assertContains(response, "Do not enter patient or mission details.")
+
+
+class PaperRetiredAndStateTests(PaperBase):
+    """Außer Betrieb genommene Objekte (B1) und Fahrzeugzustand (C1) auf Papier."""
+
+    def test_retired_objects_are_left_out_of_forms_and_deadlines(self):
+        in_week = self.monday + timedelta(days=2)
+        self.vehicle(next_hu_date=in_week)
+        gone = self.vehicle(call_sign="RTW Ruhe-B1", plate="PA-RU 1", next_hu_date=in_week)
+        self.assertTrue(retire_vehicle(gone, actor=self.lead))
+        self.device("Defi Alpha", location="RTW 1", next_stk_date=in_week)
+        old_device = self.device("Defi Ruhe-B1", location="RTW 1", next_stk_date=in_week)
+        self.assertTrue(retire_device(old_device, actor=self.lead))
+
+        for name in ("paper_vehicle_handover", "paper_disinfection", "paper_device_checks", "paper_deadlines"):
+            html = main_html(self.get(name))
+            self.assertNotIn("Ruhe-B1", html, name)
+        self.assertIn("RTW 1", main_html(self.get("paper_vehicle_handover")))
+        self.assertIn("Defi Alpha", main_html(self.get("paper_device_checks")))
+        subjects = {row.subject for row in paper.week_deadlines(self.station, self.monday)["this_week"]}
+        self.assertEqual(subjects, {"RTW 1", "Defi Alpha"})
+        hub = self.get("paper_hub")
+        self.assertContains(hub, "Fahrzeuge: 1")
+        self.assertContains(hub, "Geräte: 1")
+
+    def test_reactivated_objects_are_printed_again_device_as_locked(self):
+        vehicle = self.vehicle(call_sign="RTW Zurueck", plate="PA-ZU 1")
+        device = self.device("Defi Zurueck", location="RTW 1")
+        retire_vehicle(vehicle, actor=self.lead)
+        retire_device(device, actor=self.lead)
+        self.assertNotIn("RTW Zurueck", main_html(self.get("paper_vehicle_handover")))
+        reactivate_vehicle(vehicle, actor=self.lead)
+        reactivate_device(device, actor=self.lead)
+        self.assertIn("RTW Zurueck", main_html(self.get("paper_vehicle_handover")))
+        row = next(row for row in ROW_RE.findall(main_html(self.get("paper_device_checks"))) if "Defi Zurueck" in row)
+        # Wieder in Betrieb genommen heißt gesperrt bis zur Freigabe (B1).
+        self.assertIn("Beim Ausdruck: Gesperrt", row)
+        self.assertIn("Gesperrt – erst nach Freigabe verwenden.", row)
+        self.assertNotIn("paper-box", row)
+
+    def test_every_vehicle_state_gets_sheets_but_no_state_is_printed(self):
+        for index, state in enumerate(Vehicle.TacticalStatus.values):
+            self.vehicle(call_sign=f"RTW Z{index}", plate=f"PA-Z {index}", tactical_status=state,
+                         status_note="Notiz-Zustand-9")
+        state_labels = [str(label) for value, label in Vehicle.TacticalStatus.choices
+                        if value != Vehicle.TacticalStatus.DISINFECTION]
+        for name in ("paper_vehicle_handover", "paper_disinfection"):
+            html = main_html(self.get(name))
+            self.assertEqual(html.count('class="paper-sheet"'), len(Vehicle.TacticalStatus.values), name)
+            for label in state_labels:
+                self.assertNotIn(label, html, f"{name}: {label}")
+            self.assertNotIn("Notiz-Zustand-9", html, name)
+            # Keine früheren FMS-Codes oder Einsatzphasen.
+            self.assertEqual(set(re.findall(r"Einsatz\w*", html)) - {"Einsatzangaben"}, set(), name)
 
 
 class PaperDeadlineTests(PaperBase):
