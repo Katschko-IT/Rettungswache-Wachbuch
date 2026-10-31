@@ -128,6 +128,10 @@ Noch offen/zu vertiefen:
 4. CodeQL/SAST und Secret Scan
 5. Server-SBOM + Build-Provenance
 6. Browser-Smoke-Test, CSP-Konsole und Axe-Core
+7. Django-Suite gegen PostgreSQL in Version und Konfiguration des db-Images
+   (Job `django-postgres`) mit Update vom letzten Release mit Musterdaten –
+   umgesetzt in 0.27. Die Migration von null mit den Rollenrechten prüft
+   weiterhin der Docker-Job über den Dienst `migrate`.
 
 Actions und Images weiterhin auf unveränderliche SHAs/Digests pinnen.
 

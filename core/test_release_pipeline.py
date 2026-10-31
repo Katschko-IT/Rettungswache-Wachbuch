@@ -1,5 +1,6 @@
 """Release-Pipeline: Reihenfolge Images → GitHub-Release, wöchentlicher Neubau
-der zwei neuesten Minor-Versionen und die gosu-Ausnahme im Sicherheitsscan.
+der zwei neuesten Minor-Versionen, die gosu-Ausnahme im Sicherheitsscan und
+der CI-Job gegen PostgreSQL mit Update-Probe vom letzten Release.
 
 Die Workflows selbst laufen nur auf GitHub; geprüft werden hier die Hilfe
 .github/scripts/release.py und die Verträge in den YAML-Dateien (als Text,
@@ -30,6 +31,16 @@ def jobs(workflow):
     text = (WORKFLOWS / workflow).read_text(encoding="utf-8").split("\njobs:\n", 1)[1]
     parts = re.split(r"^  ([A-Za-z][\w-]*):\n", text, flags=re.MULTILINE)
     return dict(zip(parts[1::2], parts[2::2], strict=True))
+
+
+def steps_of(job):
+    """{Schrittname: Textblock} der benannten Schritte eines Jobs."""
+    parts = re.split(r"^      - (?:name: (.+)|uses: .+)\n", job, flags=re.MULTILINE)
+    return {name: body for name, body in zip(parts[1::2], parts[2::2], strict=True) if name}
+
+
+def run_helper(*args):
+    return subprocess.run([sys.executable, str(HELPER), *args], capture_output=True, text=True)
 
 
 class RefreshTargetTests(unittest.TestCase):
@@ -87,6 +98,35 @@ class NewestReleaseTests(unittest.TestCase):
         self.assertFalse(release.is_newest("v0.25.1", self.RELEASES))
         self.assertFalse(release.is_newest("v0.27.0-rc.1", self.RELEASES))
         self.assertFalse(release.is_newest("latest", self.RELEASES))
+
+
+class PreviousReleaseTests(unittest.TestCase):
+    """Ausgangspunkt der Update-Probe im CI-Job django-postgres."""
+
+    def tags_file(self, text):
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as handle:
+            handle.write(text)
+        self.addCleanup(Path(handle.name).unlink)
+        return handle.name
+
+    def test_newest_final_release_by_number(self):
+        tags = ["v0.25.3", "v0.25.10", "v0.26.0", "v0.26.1", "v0.27.0-rc.1", "nightly", "v1"]
+        self.assertEqual(release.previous_release(tags), "v0.26.1")
+        self.assertEqual(release.previous_release(["v0.25.3", "v0.25.10"]), "v0.25.10")
+        self.assertEqual(release.previous_release([" v0.26.0 \n", ""]), "v0.26.0")
+
+    def test_no_release_means_none_and_cli_fails(self):
+        self.assertIsNone(release.previous_release([]))
+        self.assertIsNone(release.previous_release(["v0.27.0-rc.1", "nightly", "latest"]))
+        result = run_helper("previous-release", self.tags_file("v0.27.0-rc.1\nnightly\n"))
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("Kein früheres Release-Tag", result.stderr)
+
+    def test_cli_prints_tag(self):
+        result = run_helper("previous-release", self.tags_file("v0.25.0\nv0.26.0\n"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "v0.26.0\n")
 
 
 class TagCheckTests(unittest.TestCase):
@@ -185,6 +225,84 @@ class RefreshWorkflowContractTests(unittest.TestCase):
         entries = re.findall(r"- target: (\w+)\n((?:            .*\n)+)", refresh)
         skips = {target: "trivy-skip-files: usr/local/bin/gosu" in body for target, body in entries}
         self.assertEqual(skips, {"runtime": False, "backup": True, "db": True})
+
+
+class CiPostgresContractTests(unittest.TestCase):
+    """Job django-postgres: Pflicht für jede Migration (ROADMAP 0.27 Nr. 1)."""
+
+    START = "Start PostgreSQL like the db image (version and config from Dockerfile.backup)"
+    UPDATE = "Update from the previous release with demo data"
+    SUITE = "Run the full test suite against PostgreSQL"
+    # Job-weites if: (vier Leerzeichen) vor den Schritten.
+    JOB_LEVEL_IF = re.compile(r"(?m)^    if:")
+
+    def setUp(self):
+        self.text = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")
+        self.jobs = jobs("ci.yml")
+        self.job = self.jobs["django-postgres"]
+        self.steps = steps_of(self.job)
+
+    def test_db_version_and_config_come_from_the_db_image(self):
+        dockerfile = (ROOT / "Dockerfile.backup").read_text(encoding="utf-8")
+        bases = re.findall(r"^FROM (postgres:\S+) AS pgbase$", dockerfile, flags=re.MULTILINE)
+        # Sonst fände das sed-Muster im Job still nichts (oder das falsche).
+        self.assertEqual(len(bases), 1, bases)
+        self.assertRegex(bases[0], r"^postgres:\d+\.\d+-alpine@sha256:[0-9a-f]{64}$")
+        start = self.steps[self.START]
+        self.assertIn("id: postgres", start)
+        self.assertIn(r"sed -n 's/^FROM \(postgres:[^ ]*\) AS pgbase$/\1/p' Dockerfile.backup", start)
+        self.assertIn('"$PWD/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro"', start)
+        self.assertIn("postgres -c config_file=/etc/postgresql/postgresql.conf", start)
+        self.assertIn("test \"$(q 'SHOW statement_timeout')\" = \"1min\"", start)
+        self.assertIn("docker logs wachwerk-ci-db\n", start)
+        self.assertNotIn("services:", self.job)
+
+    def test_update_from_previous_release_with_demo_data(self):
+        self.assertIn("fetch-depth: 0", self.job)
+        update = self.steps[self.UPDATE]
+        self.assertIn("git tag --merged HEAD --no-contains HEAD --list 'v*'", update)
+        self.assertIn("release.py previous-release", update)
+        self.assertIn('"$RUNNER_TEMP/previous/Dockerfile"', update)
+        self.assertIn('--python "$python_version"', update)
+        self.assertIn('-r "$RUNNER_TEMP/previous/requirements.lock"', update)
+        old = update.index("DEMO_MODE=true sh scripts/migrate.sh)")
+        head = update.index("\n          sh scripts/migrate.sh\n")
+        self.assertLess(old, head)
+        self.assertLess(head, update.index("python manage.py migrate --check"))
+        self.assertIn("DATABASE_URL: postgres://", update)
+
+    def test_from_zero_with_roles_stays_in_the_docker_job(self):
+        # Der Job django-postgres verlässt sich darauf (kein eigener Schritt).
+        compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+        migrate = compose.split("\n  migrate:\n", 1)[1].split("\n  web:\n", 1)[0]
+        self.assertIn('command: ["/app/scripts/migrate.sh"]', migrate)
+        migrate_script = (ROOT / "scripts" / "migrate.sh").read_text(encoding="utf-8")
+        self.assertIn("python manage.py grant_database_access", migrate_script)
+        docker = self.jobs["docker"]
+        self.assertIn("docker compose up --detach --wait", docker)
+        self.assertIn("has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')", docker)
+
+    def test_full_suite_runs_against_postgresql(self):
+        suite = self.steps[self.SUITE]
+        self.assertIn("DATABASE_URL: postgres://", suite)
+        # Ganze Suite ohne Testlabels; übersprungen werden nur Tests, die
+        # selbst eine bestimmte Umgebung verlangen.
+        self.assertRegex(suite, r"\n        run: python manage\.py test --settings=config\.test_settings --noinput\n")
+        # Eine gescheiterte Update-Probe verdeckt das Ergebnis der Suite nicht.
+        self.assertIn("if: ${{ !cancelled() && steps.postgres.outcome == 'success' }}", suite)
+
+    def test_job_is_mandatory(self):
+        self.assertTrue(self.JOB_LEVEL_IF.search("    runs-on: ubuntu-latest\n    if: false\n"))
+        for name in ("django", "django-postgres", "docker"):
+            head = self.jobs[name].split("\n    steps:\n", 1)[0]
+            self.assertNotRegex(head, self.JOB_LEVEL_IF, name)
+        self.assertNotIn("continue-on-error", self.text)
+        on_block = self.text.split("\njobs:\n", 1)[0]
+        self.assertNotIn("paths", on_block)
+        self.assertNotIn("branches-ignore", on_block)
+        publish = jobs("publish-image.yml")
+        self.assertIn("uses: ./.github/workflows/ci.yml", publish["verify"])
+        self.assertIn("needs: [prepare, verify]", publish["publish"])
 
 
 class BackupImageTests(unittest.TestCase):

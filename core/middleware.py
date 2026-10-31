@@ -173,8 +173,22 @@ def rate_limit_ip(request) -> str:
 
 
 def axes_client_ip(request, *args, **kwargs):
-    """Callable für ``AXES_CLIENT_IP_CALLABLE`` mit derselben Proxy-Logik."""
-    return client_ip_from_request(request)
+    """Callable für ``AXES_CLIENT_IP_CALLABLE`` mit derselben Proxy-Logik.
+
+    django-axes speichert die Adresse in einem ``GenericIPAddressField``
+    (PostgreSQL: Spaltentyp ``inet``). Der Platzhalter „unknown“ aus
+    ``client_ip_from_request`` (keine REMOTE_ADDR, z. B. Unix-Socket,
+    ``Client.force_login`` oder ein Proxy, der „unknown“ meldet) brach dort
+    jede Anmeldung mit einem Fehler 500 ab. Deshalb nur gültige Adressen,
+    sonst None: axes erlaubt NULL, die Sperre zählt dann je Benutzername ohne
+    Adresse weiter. Rate-Limits behalten ihren Schlüssel „unknown“.
+    """
+    ip = client_ip_from_request(request)
+    try:
+        # Den Zonen-Index (fe80::1%eth0) nimmt der Spaltentyp inet nicht an.
+        return str(ipaddress.ip_address(ip.split("%", 1)[0]))
+    except ValueError:
+        return None
 
 
 class MfaEnforcementMiddleware:

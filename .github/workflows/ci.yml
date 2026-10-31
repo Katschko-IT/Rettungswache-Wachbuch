@@ -73,6 +73,103 @@ jobs:
           DJANGO_DEBUG: "false"
         run: python manage.py test --settings=config.test_settings
 
+  django-postgres:
+    # Produktion läuft auf PostgreSQL, der Job „django“ testet mit SQLite.
+    # Pflicht für jede Migration (ROADMAP 0.27 Nr. 1): Version und
+    # Konfiguration des db-Images, Update vom letzten Release mit Musterdaten,
+    # dann die ganze Testsuite (ihre Testdatenbank entsteht per Migration von
+    # null). Migration von null mit Rollen und Rechten über den Dienst
+    # „migrate“ prüft der Job „docker“. Seriell, weil --parallel mit dem
+    # gemeinsamen MEDIA_ROOT und Modulzustand noch nicht erprobt ist.
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      REDIS_URL: ""
+      REDIS_HOST: ""
+      DJANGO_SECRET_KEY: ci-only-secret
+      DJANGO_DEBUG: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Alle Tags: Ausgangspunkt der Update-Probe ist das letzte Release.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - name: Isolated Python environment
+        run: |
+          uv venv --seed --managed-python --python 3.14 "$RUNNER_TEMP/wachbuch-venv"
+          echo "$RUNNER_TEMP/wachbuch-venv/bin" >> "$GITHUB_PATH"
+      - name: Install locked dependencies with hash verification
+        run: pip install --require-hashes -r requirements.lock
+      - name: Start PostgreSQL like the db image (version and config from Dockerfile.backup)
+        id: postgres
+        env:
+          POSTGRES_USER: rwsth_owner
+          POSTGRES_PASSWORD: ci-only-db-password
+        run: |
+          image=$(sed -n 's/^FROM \(postgres:[^ ]*\) AS pgbase$/\1/p' Dockerfile.backup)
+          test -n "$image" || { echo "::error::Kein postgres-Image in Dockerfile.backup"; exit 1; }
+          echo "PostgreSQL-Image: $image"
+          # -h 127.0.0.1: Der Init-Server des Entrypoints hört nur auf dem
+          # Unix-Socket; erst der endgültige Server gilt als bereit.
+          docker run --detach --name wachwerk-ci-db --publish 127.0.0.1:5432:5432 \
+            --env POSTGRES_USER --env POSTGRES_PASSWORD --env POSTGRES_DB=rwsth \
+            --volume "$PWD/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro" \
+            --health-cmd "pg_isready -h 127.0.0.1 -U $POSTGRES_USER -d rwsth" \
+            --health-interval 2s --health-timeout 5s --health-retries 60 \
+            "$image" postgres -c config_file=/etc/postgresql/postgresql.conf
+          health() { docker inspect -f '{{.State.Health.Status}}' wachwerk-ci-db; }
+          for _ in $(seq 90); do
+            test "$(health)" = healthy && break
+            sleep 2
+          done
+          if [ "$(health)" != healthy ]; then
+            docker logs wachwerk-ci-db
+            echo "::error::PostgreSQL ist nicht bereit ($(health))"
+            exit 1
+          fi
+          q() { docker exec wachwerk-ci-db psql -U "$POSTGRES_USER" -d rwsth -tAc "$1"; }
+          test "$(q 'SHOW config_file')" = "/etc/postgresql/postgresql.conf"
+          test "$(q 'SHOW statement_timeout')" = "1min"
+          # Hauptversion aus dem Image-Tag: ein Wechsel auf PG 18 braucht hier
+          # keine Änderung.
+          version=${image#postgres:}
+          q 'SHOW server_version' | grep -q "^${version%%.*}\\."
+      - name: Update from the previous release with demo data
+        env:
+          POSTGRES_USER: rwsth_owner
+          POSTGRES_DB: rwsth_update
+          APP_DB_USER: rwsth_app
+          FEED_DB_USER: rwsth_feed
+          BACKUP_DB_USER: rwsth_backup
+          PUSH_DB_USER: rwsth_push
+          DATABASE_URL: postgres://rwsth_owner:ci-only-db-password@127.0.0.1:5432/rwsth_update
+        run: |
+          git tag --merged HEAD --no-contains HEAD --list 'v*' > "$RUNNER_TEMP/release-tags.txt"
+          previous=$(python .github/scripts/release.py previous-release "$RUNNER_TEMP/release-tags.txt")
+          echo "Update-Probe von $previous auf $(git rev-parse --short HEAD)"
+          git worktree add --detach "$RUNNER_TEMP/previous" "$previous"
+          # Die gesperrten Wheels des alten Releases passen zu seiner
+          # Python-Version, nicht unbedingt zu der dieses Jobs.
+          python_version=$(sed -n 's/^FROM python:\([0-9]*\.[0-9]*\)\..*/\1/p' "$RUNNER_TEMP/previous/Dockerfile" | head -n 1)
+          test -n "$python_version" || { echo "::error::Keine Python-Version im Dockerfile von $previous"; exit 1; }
+          uv venv --seed --managed-python --python "$python_version" "$RUNNER_TEMP/previous-venv"
+          "$RUNNER_TEMP/previous-venv/bin/pip" install --require-hashes -r "$RUNNER_TEMP/previous/requirements.lock"
+          docker exec wachwerk-ci-db createdb -U "$POSTGRES_USER" "$POSTGRES_DB"
+          (cd "$RUNNER_TEMP/previous" && PATH="$RUNNER_TEMP/previous-venv/bin:$PATH" DEMO_MODE=true sh scripts/migrate.sh)
+          sh scripts/migrate.sh
+          python manage.py migrate --check
+      - name: Run the full test suite against PostgreSQL
+        # Auch nach einer gescheiterten Update-Probe, damit beide Ergebnisse
+        # sichtbar sind. Es gelten die Grenzen aus config/postgresql.conf
+        # (statement_timeout 60 s, idle_in_transaction_session_timeout 10 s).
+        if: ${{ !cancelled() && steps.postgres.outcome == 'success' }}
+        env:
+          DATABASE_URL: postgres://rwsth_owner:ci-only-db-password@127.0.0.1:5432/rwsth
+        run: python manage.py test --settings=config.test_settings --noinput
+      - name: Database log after failure
+        if: failure()
+        run: docker logs wachwerk-ci-db || true
+
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 45
