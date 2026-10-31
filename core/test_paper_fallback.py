@@ -278,6 +278,19 @@ class PaperFormTests(PaperBase):
                 self.assertNotIn(name, html, user.username)
             for word in BOUNDARY_WORDS + ("Wischprobe-QQ", "Zora", "Transport", "Fremdmittel", "RTW alt", "Fremd-RTW"):
                 self.assertNotIn(word, html, f"{user.username}: {word}")
+            # D2: Einwirkzeit je Durchgang verrät die Stufe, also keine Spalte dafür.
+            thead = html.split("<thead>", 1)[1].split("</thead>", 1)[0]
+            self.assertNotIn("Einwirkzeit", thead, user.username)
+            self.assertNotIn("Stufe", thead, user.username)
+            self.assertNotIn("Bemerkung", thead, user.username)
+            headers = [re.sub(r"<[^>]+>", "", cell).strip() for cell in re.findall(r"<th[^>]*>(.*?)</th>", thead, re.DOTALL)]
+            self.assertEqual(headers, [
+                "Datum", "Beginn (Uhrzeit)", "Desinfektionsmittel", "Frei ab (Uhrzeit)",
+                "Durchgeführt (Kürzel)", "Freigegeben (Uhrzeit, Kürzel)",
+            ], user.username)
+            for row in ROW_RE.findall(html):
+                self.assertEqual(row.count("<td"), len(headers), user.username)
+            self.assertContains(response, "keine Stufe und keine Einwirkzeit")
 
     def test_device_sheet_groups_by_location_without_results(self):
         defi = self.device("Defi Alpha", location="RTW 1", inventory_number="INV-7")

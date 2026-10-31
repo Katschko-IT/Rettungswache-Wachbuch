@@ -34,11 +34,15 @@ Dieses Dokument ist keine Rechtsberatung.
   je Wache einen Audit-Eintrag mit Zahl, Person und Zeit; Backups behalten den
   alten Stand bis zu ihrem Ablauf (docs/OPERATIONS.md).
 - Druckansichten der Papier-Rückfallebene (`/papier/`): Leere Formulare und
-  Fristenliste enthalten nur Konfiguration und Fristen, keine Namen, keine
-  früheren Ergebnisse und weder Art noch Stufe einer Desinfektion. Das
-  Telefonbuch enthält die Kontakte wie in der App, also auch Ansprechpersonen
-  und Rufnummern. Kein Zugang für Auditoren und nicht am Wachenterminal;
-  Ausdrucke bleiben intern im Ordner der Wache.
+  Fristenliste enthalten nur Konfiguration und Fristen, keine Namen und keine
+  früheren Ergebnisse. Das Desinfektionsblatt liegt offen im Fahrzeug und hat
+  nur Spalten für Datum, Beginn, Mittel, „Frei ab“ und Kürzel; Art, Stufe,
+  Einwirkzeit je Durchgang und Bemerkung fehlen (Entscheidung D2). Beginn und
+  „Frei ab“ zeigen wie die Sperre in der App, wie lange das Fahrzeug gesperrt
+  war (bewusst belassener Rückschluss). Das Telefonbuch enthält die Kontakte
+  wie in der App, also auch Ansprechpersonen und Rufnummern. Kein Zugang für
+  Auditoren und nicht am Wachenterminal; Ausdrucke bleiben intern im Ordner
+  der Wache.
 
 ## Nachweise
 

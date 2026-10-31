@@ -124,7 +124,7 @@ Hilfe (alle Rollen außer Auditor).
 | Telefonbuch | `/papier/telefonbuch/` | Notfall-Schnellwahl, Kontakte nach Kategorie, leere Zeilen für Nachträge von Hand |
 | Checklisten | `/papier/checklisten/` | ein Blatt je aktiver Checkliste |
 | Fahrzeugübernahme | `/papier/fahrzeuguebernahme/` | ein Blatt je aktivem Fahrzeug, 12 Zeilen, Prüfpunkte wie im Formular |
-| Desinfektion | `/papier/desinfektion/` | ein Blatt je aktivem Fahrzeug, 14 Zeilen, Mittel der Wache mit Einwirkzeit |
+| Desinfektion | `/papier/desinfektion/` | ein Blatt je aktivem Fahrzeug, 14 Zeilen mit Datum, Beginn, Mittel, „Frei ab“ und Kürzeln; darüber die Mittel der Wache mit ihrer hinterlegten Standard-Einwirkzeit |
 | Funktionskontrolle | `/papier/funktionskontrolle/` | ein Blatt je Gerätestandort, Prüfpunkte wie im Formular; gesperrte Geräte ohne Ankreuzfelder |
 
 - **Wer druckt:** alle Rollen mit fachlichem Zugriff (Mitglied, Schichtleitung,
@@ -149,9 +149,19 @@ Hilfe (alle Rollen außer Auditor).
     keine Namen, keine früheren Ergebnisse, keine Freitexte aus Nachweisen.
   - Das Telefonbuch enthält die Kontakte so, wie sie in der App stehen, also
     auch Ansprechpersonen und Rufnummern, zum Beispiel der Wachleitung.
-  - Das Desinfektionsblatt nennt weder Art noch Stufe der Desinfektion und
-    keine Erreger. Es liegt offen im Fahrzeug und folgt deshalb der engsten
-    Sichtbarkeit (Entscheidung D2).
+  - Das Desinfektionsblatt liegt offen im Fahrzeug; was darauf steht, kann
+    jeder lesen. Es hat deshalb nur Spalten für das, was nach Entscheidung D2
+    alle sehen: Datum, Beginn, Mittel, „Frei ab“ und Kürzel. Es fehlen Art und
+    Stufe, die Einwirkzeit je Durchgang und eine Bemerkung, denn Minuten und
+    Bemerkung können die Stufe verraten. Erreger nennt das Blatt nicht. Der
+    Hinweis unten auf dem Blatt bittet, Stufe und Einwirkzeit nicht von Hand
+    nachzutragen.
+  - Was bleibt: Beginn und „Frei ab“ zeigen zusammen, wie lange das Fahrzeug
+    gesperrt war, so wie die Sperre „Desinfektion bis …“ in der App. Daraus
+    lässt sich wie dort ablesen, dass nach einer Einwirkzeit freigegeben wurde.
+    Das ist für den Betrieb nötig und bewusst so belassen. Die Minuten in der
+    Zeile „Mittel der Wache“ sind die hinterlegte Standard-Einwirkzeit des
+    Mittels, keine Angabe zu einer einzelnen Desinfektion.
   - Keine Patienten- oder Einsatzangaben auf den Blättern.
   - Ausdrucke sind intern: Sie bleiben im Ordner der Wache. Beim Neudruck
     werden die alten Blätter vernichtet.

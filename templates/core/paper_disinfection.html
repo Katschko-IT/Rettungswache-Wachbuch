@@ -15,18 +15,17 @@
         <th scope="col">{% translate "Datum" %}</th>
         <th scope="col">{% translate "Beginn (Uhrzeit)" %}</th>
         <th scope="col">{% translate "Desinfektionsmittel" %}</th>
-        <th scope="col">{% translate "Einwirkzeit (Min)" %}</th>
         <th scope="col">{% translate "Frei ab (Uhrzeit)" %}</th>
         <th scope="col">{% translate "Durchgeführt (Kürzel)" %}</th>
         <th scope="col">{% translate "Freigegeben (Uhrzeit, Kürzel)" %}</th>
       </tr>
     </thead>
     <tbody>
-      {% for row in rows %}<tr class="paper-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+      {% for row in rows %}<tr class="paper-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
     </tbody>
   </table>
   </div>
-  <p class="paper-hint">{% translate "Fahrzeug erst freigeben, wenn der Hygieneplan es erlaubt. Nur Datum, Zeiten, Mittel und Kürzel eintragen." %} {% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</p>
+  <p class="paper-hint">{% translate "Fahrzeug erst freigeben, wenn der Hygieneplan es erlaubt. Nur Datum, Uhrzeiten, Mittel und Kürzel eintragen, keine Stufe und keine Einwirkzeit: Das Blatt liegt offen im Fahrzeug." %} {% translate "Keine Patienten- oder Einsatzangaben eintragen." %}</p>
 </section>
 {% empty %}
 <p>{% translate "Es sind noch keine Fahrzeuge angelegt." %}</p>
