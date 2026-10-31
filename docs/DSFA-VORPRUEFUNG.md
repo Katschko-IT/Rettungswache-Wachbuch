@@ -8,12 +8,12 @@ Diese Vorprüfung entscheidet **nicht automatisch**, ob eine DSFA nach Art. 35 D
 
 - Betreiber: `[ausfüllen]`
 - Wache(n)/Organisationseinheiten: `[ausfüllen]`
-- aktivierte Wachbuch-Module: `[ausfüllen]`
+- aktivierte Wachbuch-Module: `[ausfüllen]` – Datenkatalog der Wache beifügen (`docker compose exec -T web python manage.py data_catalog --station auto > datenkatalog.md`)
 - betroffene Personengruppen: `[ausfüllen]`
-- Datenkategorien: `[ausfüllen]`
+- Datenkategorien: `[ausfüllen]` – laut Datenkatalog (Spalten „Art“ und „Personenbezug“)
 - Datenmengen/Nutzerzahl: `[ausfüllen]`
-- Aufbewahrungsfristen: `[ausfüllen]`
-- externe Empfänger/Dienstleister: `[ausfüllen]`
+- Aufbewahrungsfristen: `[ausfüllen]` – laut [`LOESCHKONZEPT.md`](LOESCHKONZEPT.md)
+- externe Empfänger/Dienstleister: `[ausfüllen]` – laut [`DATENFLUESSE.md`](DATENFLUESSE.md)
 
 ## 2. Produktgrenze bestätigen
 
@@ -42,6 +42,13 @@ Für jedes Kriterium `ja/nein` plus Begründung dokumentieren:
 | besonders schutzbedürftige Betroffene / Abhängigkeitsverhältnis Beschäftigung | `[ ]` | `[ ]` |
 | innovative Technik mit unklaren Folgen | `[ ]` | `[ ]` |
 | Verarbeitung erschwert Rechte/Freiheiten wesentlich | `[ ]` | `[ ]` |
+
+Für „systematische Überwachung“ und „Abhängigkeitsverhältnis Beschäftigung“ die
+Auswertungen mit Personenbezug aus dem Datenkatalog heranziehen (je Modul
+„Auswertungen und Personenlisten“, Spalte „Personenbezug“), z. B. Lesebestätigungen
+mit Namen, erledigte Aufgaben mit Vornamen und die Einweisungsmatrix mit Quote je
+Person. Regelungen dazu: [`MITBESTIMMUNG-VORLAGE.md`](MITBESTIMMUNG-VORLAGE.md),
+Baustein 2.3.
 
 ## 4. Wachbuch-spezifische Risiken
 

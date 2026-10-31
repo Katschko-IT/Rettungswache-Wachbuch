@@ -27,8 +27,12 @@ betriebliche Freigabe.
 
 ## Datenschutz und Mitbestimmung
 
-- [ ] anwendbares Datenschutz- und Mitbestimmungsrecht ist bestimmt
+- [ ] anwendbares Datenschutz- und Mitbestimmungsrecht ist bestimmt (bei kirchlichen Trägern KDG bzw. DSG-EKD, `COMPLIANCE.md`)
 - [ ] Datenschutz, Informationssicherheit und Interessenvertretung sind beteiligt
+- [ ] Vereinbarung mit der Interessenvertretung ist unterschrieben (Bausteine: `MITBESTIMMUNG-VORLAGE.md`)
+- [ ] Datenkatalog der Wache ist erzeugt und als Anlage beigefügt (`data_catalog --station auto`, Referenz `DATENKATALOG.md`)
+- [ ] Datenflüsse an Dritte sind dokumentiert oder abgeschaltet (`DATENFLUESSE.md`)
+- [ ] Löschfristen für die Daten des Pilots sind freigegeben (`LOESCHKONZEPT.md`, Vorschlag für den Pilot)
 - [ ] VVT, DSFA-Vorpruefung und Betroffeneninformation sind freigegeben
 - [ ] Cookie-/TDDDG-Hinweis unter `/datenschutz/` ist an die Stelle angepasst
 - [ ] AI-Act-Prüfung dokumentiert (Produkt ohne KI-System / kein Scoring)

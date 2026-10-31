@@ -129,6 +129,8 @@ Für jeden externen Dienst prüfen und dokumentieren:
 - Drittlandtransfer und Transfermechanismus, falls einschlägig
 - Lösch-/Rückgaberegeln bei Vertragsende
 
+Alle externen Dienste mit Daten, Schalter und Standard: [`DATENFLUESSE.md`](DATENFLUESSE.md).
+
 ## 10. Schwachstellen- und Patchmanagement
 
 - Security-Meldungen über privaten Kanal gemäß `SECURITY.md`

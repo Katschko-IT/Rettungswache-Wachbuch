@@ -79,14 +79,14 @@ Je nach Modul können verarbeitet werden:
 - Backup-/Monitoring-/Mail-/Push-Dienstleister: `[ausfüllen]`
 - sonstige Empfänger: `[ausfüllen]`
 
-Für Auftragsverarbeiter Art.-28-Vertrag und Unterauftragsverarbeiter dokumentieren.
+Für Auftragsverarbeiter Art.-28-Vertrag und Unterauftragsverarbeiter dokumentieren. Welche externen Dienste es gibt und welche Daten sie erhalten: [`DATENFLUESSE.md`](DATENFLUESSE.md); nur die eingeschalteten Dienste nennen.
 
 ## 7. Drittlandübermittlungen
 
 - [ ] keine Drittlandübermittlung vorgesehen
 - [ ] Drittlandübermittlung vorhanden: `[Empfänger/Land/Transfermechanismus/zusätzliche Maßnahmen]`
 
-Externe Push-, Hosting-, Monitoring- oder Supportdienste sind in diese Bewertung einzubeziehen.
+Externe Push-, Hosting-, Monitoring- oder Supportdienste sind in diese Bewertung einzubeziehen. Drittlandbezug haben je nach Einstellung insbesondere Signal (USA), Push-Relay (Apple, Google) und Web-Push; siehe [`DATENFLUESSE.md`](DATENFLUESSE.md).
 
 ## 8. Speicherdauer
 
@@ -105,12 +105,21 @@ Betroffene Personen haben nach Maßgabe der DSGVO insbesondere Rechte auf Auskun
 
 **Kontakt für Betroffenenanfragen:** `[Prozess/E-Mail/Adresse]`
 
+**Kirchliche Träger:** Gilt nach Art. 91 DSGVO kirchliches Datenschutzrecht (KDG oder DSG-EKD), richten sich die Rechte nach diesem Gesetz. Die Rechte (Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch) nach dem kirchlichen Gesetz benennen und die Paragraphen am amtlichen Text prüfen [prüfen].
+
 ## 10. Beschwerderecht / Aufsichtsbehörde
 
 **Zuständige Aufsichtsbehörde:** `[Name]`  
 **Anschrift/Website:** `[ausfüllen]`
 
 Die Zuständigkeit richtet sich nach der verantwortlichen Stelle; sie darf nicht pauschal aus dem Softwarestand abgeleitet werden.
+
+- DSGVO und BDSG (private Träger): Datenschutzaufsicht des Landes am Sitz des Trägers.
+- DSGVO und Landesdatenschutzgesetz (Kommune, Kreis, Zweckverband): Landesbeauftragte/r für den Datenschutz.
+- KDG (katholische Träger): Datenschutzaufsicht des Bistums, z. B. ein Katholisches Datenschutzzentrum; die Beschwerde richtet sich an diese kirchliche Aufsicht.
+- DSG-EKD (evangelische Träger): in der Regel der Beauftragte für den Datenschutz der EKD (BfD EKD); einige Landeskirchen haben eine eigene Aufsicht.
+
+Bei kirchlichen Trägern entfällt der Verweis auf Art. 77 DSGVO; an seine Stelle tritt das Beschwerderecht nach dem kirchlichen Gesetz [prüfen].
 
 ## 11. Pflicht zur Bereitstellung
 

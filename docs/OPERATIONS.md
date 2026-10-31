@@ -363,6 +363,28 @@ wieder.
   `docker compose exec -T housekeeping python manage.py housekeeping`.
 - Audit-Purge (`RETENTION_AUDIT_DAYS`) ist bewusst nicht dabei: Er braucht
   Owner-Rechte und eine Freigabe, dann von Hand mit `apply_retention`.
+- Welche Frist für welche Tabelle gilt und wo es keine Löschautomatik gibt:
+  Datenkatalog (unten) und [`LOESCHKONZEPT.md`](LOESCHKONZEPT.md).
+
+## Datenkatalog für die Wache erzeugen
+
+Der Datenkatalog listet die Module dieser Wache mit Feldern, Rollen,
+Zugriffswegen, Auswertungen und den eingestellten Fristen. Er ist Anlage 1 der
+Vereinbarung mit der Interessenvertretung (`MITBESTIMMUNG-VORLAGE.md`). Der
+Befehl liest nur Metadaten und Einstellungen, keine Inhalte, und schreibt
+nichts in die Datenbank:
+
+```bash
+docker compose exec -T web python manage.py data_catalog --station auto > datenkatalog.md
+```
+
+`auto` wählt die einzige aktive Wache; bei mehreren den Kurznamen angeben
+(`--station wache-nord`). Nach jedem Update neu erzeugen und mit der vorigen
+Fassung vergleichen (`diff alt.md datenkatalog.md`): Neue Tabellen, Felder und
+Auswertungen sind dann sichtbar und gehören in die Unterrichtung der
+Interessenvertretung. Den Referenzkatalog aller Module im Repository erzeugt
+`python manage.py data_catalog --write` (`docs/DATENKATALOG.md`; die Tests
+prüfen, dass er aktuell ist).
 
 ## Einmalige Bereinigung der Altdaten (0.27)
 

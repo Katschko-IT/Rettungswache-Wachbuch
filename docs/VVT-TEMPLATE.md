@@ -4,6 +4,13 @@ Stand: 10. August 2026
 
 Vorlage für die Dokumentation nach Art. 30 DSGVO. Betreiber müssen sie an ihre tatsächlichen Zwecke, Rechtsgrundlagen, Empfänger und Fristen anpassen.
 
+Grundlagen zum Ausfüllen:
+
+- Datenkategorien, Rollen und technische Fristen der eingeschalteten Module: Datenkatalog der Wache (`docker compose exec -T web python manage.py data_catalog --station auto > datenkatalog.md`; Referenz [`DATENKATALOG.md`](DATENKATALOG.md)).
+- Empfänger und Drittländer: [`DATENFLUESSE.md`](DATENFLUESSE.md).
+- Fristen: [`LOESCHKONZEPT.md`](LOESCHKONZEPT.md).
+- Kirchliche Träger führen das Verzeichnis nach KDG bzw. DSG-EKD [prüfen]; Aufbau und Inhalte entsprechen weitgehend Art. 30 DSGVO. Hinweise: [`COMPLIANCE.md`](COMPLIANCE.md), Abschnitt „Kirchliche Träger“.
+
 ## Verarbeitungstätigkeit: Wachbuch – interne Wach-/Stationsorganisation
 
 ### Verantwortlicher
@@ -34,6 +41,8 @@ Nicht vorgesehen: Patienten-, Einsatz-, Alarmierungs-, ePCR- oder medizinische B
 
 ### Kategorien personenbezogener Daten
 
+Je Modul im Datenkatalog der Wache (Spalten „Art“ und „Personenbezug“). Zusammengefasst:
+
 - Konten-/Identifikationsdaten
 - Rollen-/Stationszuordnung
 - organisatorische Freitexte und Zeitstempel
@@ -49,14 +58,17 @@ Nicht vorgesehen: Patienten-, Einsatz-, Alarmierungs-, ePCR- oder medizinische B
 - IT-Administration/Betrieb
 - Auftragsverarbeiter: `[Hosting/Backup/Monitoring/etc.]`
 - sonstige Empfänger: `[ausfüllen]`
+- eingeschaltete externe Dienste laut [`DATENFLUESSE.md`](DATENFLUESSE.md): `[Liste]`
 
 ### Drittlandübermittlungen
 
 `[keine / konkret beschreiben inkl. Land, Empfänger, Garantie/Transfermechanismus]`
 
+Drittlandbezug haben je nach Einstellung insbesondere Signal, Push-Relay (Apple/Google) und Web-Push; siehe [`DATENFLUESSE.md`](DATENFLUESSE.md).
+
 ### Löschfristen
 
-Siehe freigegebenes `LOESCHKONZEPT.md`; wesentliche Fristen hier zusammenfassen:
+Siehe freigegebenes `LOESCHKONZEPT.md` (im Pilot: Abschnitt „Vorschlag für den Pilot“ nach Freigabe); technisch umgesetzte Fristen stehen im Datenkatalog der Wache. Wesentliche Fristen hier zusammenfassen:
 
 `[ausfüllen]`
 
