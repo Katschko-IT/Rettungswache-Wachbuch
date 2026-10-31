@@ -107,6 +107,15 @@ Dieses Dokument ist keine Rechtsberatung.
   `^[AB]\d{1,3}$` begrenzt. Übermittelt wird nur die Serveranfrage, keine
   Personen- oder Wachendaten; Koordinaten und Warngebiete bleiben auf dem Server.
 - separate Datenbank ohne veröffentlichten Port
+- Host-Überwachung (`wachwerk-health`) meldet über eine Statusdatei, die nur
+  `web` und `notify-worker` lesend einbinden: nur Codes, Zeiten und Zahlen
+  (keine Texte, Hostnamen, Pfade oder Geheimnisse), streng geprüft, nie
+  Auslöser einer Aktion. Anzeige und Meldungen nur an Master-Admins echter
+  Wachen, nicht in der Demo, am Terminal oder auf dem Display; `/healthz/`
+  bleibt öffentlich und unverändert. Die Meldungen enthalten keine Inhalte der
+  Wache, nur den technischen Zustand des Servers. E-Mail, Signal und
+  `PING_URL` sind Datenflüsse an Dritte und nur aktiv, wenn eingerichtet
+  ([`BETRIEB-PI-LAN.md`](BETRIEB-PI-LAN.md)).
 - Abhängigkeits-, Container- und Anwendungsscan vor Go-live
 - Versionskennung in Footer und `/healthz/`
 - Sicherheitsabnahme gegen OWASP ASVS 5.0 Level 2 als Ziel; interne Matrix in

@@ -318,6 +318,8 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 | `BACKUP_OFFSITE_DIR` / `BACKUP_OFF_TARGET` | leer | Offsite-Kopie (Host-Ordner als `/offsite`) |
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | leer, 587 | SMTP für E-Mails (Kaffeekassen-Erinnerung mit GiroCode); 587 = STARTTLS, 465 = SSL; leer = keine E-Mails |
 | `SIGNAL_API_URL` / `SIGNAL_NUMBER` | leer | Signal-Benachrichtigungen (Profil `signal`, `docs/SIGNAL.md`) |
+| `WACHWERK_HEALTH_DIR` | leer | Zustand der Host-Überwachung (`wachwerk-health`) in Wachwerk anzeigen und melden; `deploy/lan/setup-monitoring.sh` bzw. `setup-pi.sh` setzen `/var/lib/wachwerk-health` ([BETRIEB-PI-LAN.md](BETRIEB-PI-LAN.md)) |
+| `HEALTH_ALERT_EMAIL` | leer | zusätzliche Adresse(n) für Störungsmeldungen per E-Mail, unabhängig von Konten; braucht `EMAIL_HOST` |
 | `MFA_REQUIRED` | `false` | Zweitfaktor erzwingen (alternativ im Assistenten bzw. unter Einstellungen → Impressum & Datenschutz) |
 | `FEED_ALLOWED_HOSTS` | leer | erlaubte HTTPS-Feedquellen |
 
@@ -332,6 +334,9 @@ in [OPERATIONS.md](OPERATIONS.md). Häufig angepasst:
 - [ ] Firewall: nur 80/443 (bzw. nichts bei `local`); Port 8090 bleibt auf Loopback
 - [ ] Backups geprüft: `wachbuch backup`, `docker compose run --rm restore-test`,
       Offsite-Kopie eingerichtet
+- [ ] Überwachung eingerichtet und mit `sudo wachwerk-health --test` geprüft:
+      im Wachen-Netz und auf dem Pi `deploy/lan/setup-monitoring.sh`
+      ([BETRIEB-PI-LAN.md](BETRIEB-PI-LAN.md)), im Internet `deploy/hetzner/harden-host.sh`
 - [ ] Updates eingeplant: `wachbuch auto-update an` (oder regelmäßig `wachbuch update`), Host-Updates (`apt upgrade`)
 - [ ] Zugriff von außen nur über VPN oder bewusst über `domain`
 

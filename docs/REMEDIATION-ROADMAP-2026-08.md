@@ -281,9 +281,11 @@ Images auf GHCR, Abnahme auf echter Hardware (Pi, Handy im Wachen-WLAN).
 
 Schwerpunkte: Rollen-/Stationsisolation, Auth/MFA/Passkeys, API-Tokens, SSRF, PWA-/Mobile-Cache, Upload, E2EE-Schnittstellen, CSP und Admin-Grenzen.
 
-### [ ] R-016 Monitoring und Incident-Probe
+### [~] R-016 Monitoring und Incident-Probe
 
 Health, Fehlerquote, Queue/Worker, DB, Backupalter, Zertifikate, Speicher und ungewöhnliche Auth-Fehler alarmieren. Incident-Runbook praktisch üben.
+
+Stand 0.27 (Paket D1): `wachwerk-health` prüft im Internet, im Wachen-Netz und auf dem Pi Erreichbarkeit, Dienste (inkl. notify-worker), Fehlerquote, Backupalter, Offsite-Kopie, Wiederherstellungsprobe, Platte und Updates. Meldung über Banner, Posteingang der Master-Admins, E-Mail, Signal und optional `PING_URL`; Statusdatei nur lesend in `web`/`notify-worker` (`core/host_health.py`, `docs/BETRIEB-PI-LAN.md`). Belegt durch `core.test_hetzner_scripts`, `core.test_lan_scripts`, `core.test_host_health`. Offen: ungewöhnliche Auth-Fehler, geübtes Incident-Runbook, Ausfallprobe auf echter Pi-Hardware (`docs/PI-ABNAHME.md` §8a); `web`/`proxy`/`db` ohne Internet nur lokal sichtbar.
 
 ### [ ] R-017 Verschlüsseltes Offsite-Backup und Restore-Nachweis
 

@@ -4,11 +4,13 @@ Zum Abhaken beim ersten echten Aufbau (Raspberry Pi 4, Touch-Monitor, eigenes WL
 Was nicht klappt: Punkt-Nummer notieren, Foto vom Bildschirm oder die Ausgabe der
 Diagnose-Befehle (Abschnitt 9) mitschicken. Anleitung: `docs/PI-WACHENTERMINAL.md`.
 
-Befehle laufen im Repository-Ordner auf dem Pi. Abkürzung für die Compose-Befehle:
+Befehle laufen im Repository-Ordner auf dem Pi. Abkürzung für die Compose-Befehle
+(`setup-pi.sh` trägt die Compose-Dateien als `COMPOSE_FILE` in `.env` ein, damit
+alle Befehle die lokal gebauten Images nutzen):
 
 ```bash
 cd ~/Rettungswache-Wachbuch
-alias wb='sudo docker compose -f docker-compose.yml -f deploy/pi/docker-compose.pi.yml'
+alias wb='sudo docker compose'
 ```
 
 ## 1. Hardware und System
@@ -90,6 +92,28 @@ Je ein **iPhone** und ein **Android-Handy**, mobile Daten zunächst **aus**.
       ```
 - [ ] 8.3 Dump auf USB-Stick kopieren (siehe `docs/PI-WACHENTERMINAL.md`, Abschnitt Betrieb)
 - [ ] 8.4 Wiederherstellung prüfen: `wb run --rm restore-test` endet ohne Fehler
+
+## 8a. Überwachung (Ziel: Ausfall in unter 15 Minuten gemeldet)
+
+Anleitung und Grenzen: `docs/BETRIEB-PI-LAN.md`.
+
+- [ ] 8a.1 `sudo wachwerk-health --verbose` zeigt nur `OK`-Zeilen (direkt nach der
+      Einrichtung kann „noch kein Backup“ stehen – dann am nächsten Tag wiederholen)
+- [ ] 8a.2 `systemctl list-timers 'wachwerk-*'` zeigt `wachwerk-health.timer` (alle
+      5 Minuten) und `wachwerk-restore-test.timer` (sonntags)
+- [ ] 8a.3 `sudo wachwerk-health --test`: als Master-Admin erscheinen nach dem Neuladen
+      der Übersicht das Banner „Technische Störung“ und die Nachricht
+      „Wachwerk: technische Störung“; spätestens 6 Minuten später „Störung behoben“
+- [ ] 8a.4 Mitglied, Schichtleitung und das Wachenterminal sehen kein Banner
+- [ ] 8a.5 Ausfallprobe: `date; sudo docker stop rettungswache-wachbuch-backup-1`, Zeit
+      bis Banner bzw. Nachricht messen (unter 15 Minuten): ___ Minuten; danach
+      `sudo docker start rettungswache-wachbuch-backup-1` → „Störung behoben“
+- [ ] 8a.6 Wie 8a.5 mit `rettungswache-wachbuch-notify-worker-1`: die Nachricht kommt
+      trotzdem (Journal: „Meldung an die Master-Admins in Wachwerk zugestellt“):
+      ___ Minuten; danach wieder starten
+- [ ] 8a.7 Grenze notieren: `sudo docker stop rettungswache-wachbuch-web-1` – ohne
+      Internet zeigt nur das Terminal die Fehlerseite (kein Banner; die Nachricht im
+      Posteingang ist erst sichtbar, wenn `web` wieder läuft); danach wieder starten
 
 ## 9. Diagnose (bei Problemen mitschicken)
 

@@ -110,3 +110,43 @@ class ComposeNetworkContractTests(unittest.TestCase):
         for name in clients:
             with self.subTest(service=name):
                 self.assertTrue(self.networks(services[name]) & db_networks, f"{name} erreicht db nicht")
+
+
+class HealthStatusMountTests(unittest.TestCase):
+    """Zustand der Host-Überwachung: nur web und notify-worker, nur lesend."""
+
+    MOUNT = "${WACHWERK_HEALTH_DIR:-health-status}:/run/wachwerk-health:ro"
+
+    def test_only_web_and_notify_worker_mount_health_status_read_only(self):
+        source = (ROOT / "docker-compose.yml").read_text()
+        services = ComposeNetworkContractTests.services(source)
+        mounting = {name for name, block in services.items() if "wachwerk-health" in block}
+        self.assertEqual(mounting, {"web", "notify-worker"})
+        for name in mounting:
+            with self.subTest(service=name):
+                self.assertIn(f"      - {self.MOUNT}\n", services[name])
+        for name in ("housekeeping", "push-worker", "feed-worker", "demo-cleaner", "backup", "restore-test"):
+            self.assertIn(name, services)
+        volumes = source.split("\nvolumes:\n", 1)[1]
+        self.assertIn("\n  health-status:\n", "\n" + volumes)
+
+    def test_rendered_mount_is_read_only_with_and_without_host_dir(self):
+        contract = ReleaseComposeContractTests()
+        for extra, kind, source in (
+            ({"WACHWERK_HEALTH_DIR": "/var/lib/wachwerk-health"}, "bind", "/var/lib/wachwerk-health"),
+            ({}, "volume", "health-status"),
+        ):
+            with self.subTest(kind=kind):
+                if compose_command() is None:
+                    self.skipTest("Compose CLI unavailable; static mapping contract still runs")
+                services = contract.render(extra)
+                for name in ("web", "notify-worker"):
+                    mounts = [m for m in services[name].get("volumes", []) if m["target"] == "/run/wachwerk-health"]
+                    self.assertEqual(len(mounts), 1, name)
+                    self.assertEqual(mounts[0]["type"], kind)
+                    self.assertTrue(mounts[0]["source"].endswith(source), mounts[0])
+                    self.assertTrue(mounts[0].get("read_only"), mounts[0])
+                for name, config in services.items():
+                    if name not in ("web", "notify-worker"):
+                        targets = [m.get("target") for m in config.get("volumes", [])]
+                        self.assertNotIn("/run/wachwerk-health", targets, name)

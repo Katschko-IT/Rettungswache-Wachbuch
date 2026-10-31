@@ -103,6 +103,9 @@ Description=Wachwerk-Überwachung alle 5 Minuten
 OnBootSec=3min
 OnUnitActiveSec=5min
 RandomizedDelaySec=30
+# Ohne Angabe darf systemd den Lauf um bis zu eine Minute verschieben; die
+# Meldung eines Ausfalls soll in unter 15 Minuten ankommen.
+AccuracySec=5s
 
 [Install]
 WantedBy=timers.target

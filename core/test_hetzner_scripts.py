@@ -1,4 +1,4 @@
-"""Host-Skripte für den Internetbetrieb (deploy/hetzner, scripts/backup-loop.sh).
+"""Host-Skripte für den Betrieb (deploy/hetzner, deploy/lan, deploy/pi, scripts).
 
 Die Skripte laufen gegen Attrappen (docker, curl, openssl, ssh, rsync, sshd,
 sudo, passwd, pg_dump) in einem Temp-Ordner; das System bleibt unberührt.
@@ -26,6 +26,9 @@ HEALTH = HETZNER / "wachwerk-health.sh"
 HARDEN = HETZNER / "harden-host.sh"
 OFFSITE_SYNC = HETZNER / "wachwerk-offsite-sync.sh"
 BACKUP_LOOP = ROOT / "scripts" / "backup-loop.sh"
+RESTORE_TEST = ROOT / "scripts" / "restore-test.sh"
+LAN = ROOT / "deploy" / "lan"
+PI = ROOT / "deploy" / "pi"
 WACHBUCH = ROOT / "scripts" / "wachbuch"
 PING = "https://hc-ping.example/uuid"
 # Die Skripte zielen auf Debian/Ubuntu (GNU date/find/stat, coreutils timeout).
@@ -69,13 +72,15 @@ with open(state_path, encoding="utf-8") as handle:
 args = sys.argv[1:]
 body = sys.stdin.read() if "@-" in args else ""
 with open(state_path + ".curl", "a", encoding="utf-8") as log:
-    log.write(json.dumps({"url": args[-1], "body": body}) + "\n")
+    log.write(json.dumps({"url": args[-1], "body": body, "args": args}) + "\n")
 if "/healthz/" in args[-1]:
     sys.exit(state.get("healthz_rc", 0))
 '''
 
 FAKE_OPENSSL = r'''
-import datetime, sys
+import datetime, json, os, sys
+with open(os.environ["FAKE_STATE"] + ".openssl", "a", encoding="utf-8") as log:
+    log.write(json.dumps(sys.argv[1:]) + "\n")
 if sys.argv[1:2] == ["x509"]:
     sys.stdin.read()
     end = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=60)
@@ -125,6 +130,7 @@ class HealthSandbox:
         self.bin = self.root / "bin"
         self.conf = self.root / "etc"
         self.state_dir = self.root / "state"
+        self.status_dir = self.root / "status"
         self.dir = self.root / "opt" / "wachbuch"
         self.backups = self.root / "backups"
         for path in (self.bin, self.conf, self.dir / "logs", self.backups):
@@ -160,20 +166,32 @@ class HealthSandbox:
     def write_update_log(self, *lines: str) -> None:
         (self.dir / "logs" / "auto-update.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    def run(self, *args: str, env: dict | None = None, timeout: int = 60):
+    def run(self, *args: str, env: dict | None = None, timeout: int = 60, write_settings: bool = True):
         self.state_path.write_text(json.dumps(self.state), encoding="utf-8")
-        (self.conf / "health.env").write_text(
-            "".join(f"{key}={value}\n" for key, value in self.settings.items()), encoding="utf-8"
-        )
-        # Wie nach sudo: keine PING_URL & Co. in der Umgebung.
+        if write_settings:
+            (self.conf / "health.env").write_text(
+                "".join(f"{key}={value}\n" for key, value in self.settings.items()), encoding="utf-8"
+            )
+        # Wie nach sudo: keine PING_URL & Co. in der Umgebung. Der Arbeitsordner
+        # enthält Dateien, damit eine Dateinamen-Expansion im Skript auffiele.
         base = {
             "PATH": f"{self.bin}:/usr/bin:/bin", "HOME": str(self.root), "LC_ALL": "C.UTF-8",
             "WACHWERK_CONF_DIR": str(self.conf), "WACHWERK_STATE_DIR": str(self.state_dir),
-            "FAKE_STATE": str(self.state_path),
+            "WACHWERK_HEALTH_STATUS_DIR": str(self.status_dir), "FAKE_STATE": str(self.state_path),
         }
         base.update(env or {})
         return subprocess.run(["sh", str(HEALTH), *args], env=base, capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout, cwd=self.root)
+
+    def status(self) -> dict:
+        return json.loads((self.status_dir / "status.json").read_text(encoding="utf-8"))
+
+    def append_env(self, text: str) -> None:
+        with (self.dir / ".env").open("a", encoding="utf-8") as handle:
+            handle.write(text)
+
+    def set_services(self, services: str) -> None:
+        self.settings["HEALTH_SERVICES"] = f"'{services}'"
 
     def calls(self, suffix: str) -> list:
         path = Path(f"{self.state_path}.{suffix}")
@@ -185,7 +203,7 @@ class HealthSandbox:
         return [call for call in self.calls("curl") if "/healthz/" not in call["url"]]
 
     def reset_calls(self) -> None:
-        for suffix in ("curl", "docker"):
+        for suffix in ("curl", "docker", "openssl"):
             Path(f"{self.state_path}.{suffix}").unlink(missing_ok=True)
 
 
@@ -373,6 +391,278 @@ class HealthCheckTests(SimpleTestCase):
         self.assert_alert(self.box.run(), "letzte Wiederherstellungsprobe vor 9 Tagen")
 
 
+ISO = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
+ALERT_ID = r"^\d{8}T\d{6}Z$"
+NOTIFY_RUN = ["compose", "run", "--rm", "--no-deps", "-T", "notify-worker", "python", "manage.py", "notify_crew"]
+PI_SERVICES = "db redis web notify-worker housekeeping backup proxy"
+
+
+@linux_only
+class HealthStatusFileTests(SimpleTestCase):
+    """Zustand für Wachwerk (status.json): nur Codes, Zeiten und Zahlen."""
+
+    def setUp(self):
+        self.box = HealthSandbox(self)
+
+    def problems(self) -> list:
+        return self.box.status()["problems"]
+
+    def test_healthy_run_writes_readable_status_without_free_text(self):
+        result = self.box.run()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        path = self.box.status_dir / "status.json"
+        self.assertEqual(path.stat().st_mode & 0o777, 0o644)
+        raw = path.read_text(encoding="utf-8")
+        status = json.loads(raw)
+        self.assertEqual(status["schema"], 1)
+        self.assertEqual(status["state"], "ok")
+        self.assertEqual(status["problems"], [])
+        self.assertEqual(status["alert"], "")
+        self.assertIsNone(status["failing_since"])
+        self.assertRegex(status["checked_at"], ISO)
+        self.assertRegex(status["backup"]["newest_at"], ISO)
+        self.assertIsInstance(status["backup"]["age_hours"], int)
+        self.assertIsNone(status["offsite"])
+        # Keine deutschen Texte: ohne Zeitangaben bleiben nur Kleinbuchstaben.
+        bare = re.sub(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|\d{8}T\d{6}Z", "", raw)
+        self.assertIsNone(re.search(r"[A-ZÄÖÜäöüß]", bare), raw)
+        self.assertTrue(raw.isascii())
+        self.assertEqual([p.name for p in self.box.status_dir.iterdir()], ["status.json"])
+
+    def test_status_lists_codes_for_each_problem(self):
+        self.box.container("feed-worker").update(status="exited", health="-")
+        self.box.state["containers"] = [c for c in self.box.state["containers"] if c["service"] != "redis"]
+        self.assertEqual(self.box.run().returncode, 1)
+        status = self.box.status()
+        self.assertEqual(status["state"], "problem")
+        self.assertIn({"area": "service", "issue": "stopped", "param": "feed-worker"}, status["problems"])
+        self.assertIn({"area": "service", "issue": "missing", "param": "redis"}, status["problems"])
+
+    def test_status_values_are_sanitized(self):
+        (self.box.root / "geheim.txt").write_text("x")
+        self.box.state["containers"] += [
+            {"id": "id-evil", "service": 'web","x":"<b>', "status": "restarting"},
+            {"id": "id-star", "service": "*", "status": "restarting"},
+        ]
+        self.box.run()
+        raw = (self.box.status_dir / "status.json").read_text(encoding="utf-8")
+        status = json.loads(raw)
+        restarting = [p for p in status["problems"] if p["issue"] == "restarting"]
+        self.assertEqual(len(restarting), 2, status["problems"])
+        for item in status["problems"]:
+            self.assertRegex(item["param"], r"^[a-z0-9-]*$")
+        self.assertNotIn("<", raw)
+        self.assertNotIn('\\"', raw)
+        self.assertNotIn("geheim", raw, "der Dienstname * darf nicht zu Dateinamen werden")
+
+    def test_status_never_contains_settings_or_secrets(self):
+        self.box.append_env("POSTGRES_PASSWORD=sentinel-geheim-4711\n")
+        self.box.state["healthz_rc"] = 22
+        self.box.run()
+        raw = (self.box.status_dir / "status.json").read_text(encoding="utf-8")
+        for secret in (PING, "hc-ping", "sentinel-geheim-4711", "demo.example.org", str(self.box.root)):
+            self.assertNotIn(secret, raw)
+        self.assertIn({"area": "web", "issue": "unreachable", "param": ""}, self.problems())
+
+    def test_alert_id_only_after_threshold_and_kept_as_last_alert(self):
+        self.box.settings["FAILS_BEFORE_ALERT"] = "2"
+        self.box.state["healthz_rc"] = 22
+        self.box.run()
+        first = self.box.status()
+        self.assertEqual(first["state"], "problem")
+        self.assertEqual(first["alert"], "", "ein einzelner Fehlschlag ist noch keine Meldung")
+        self.assertRegex(first["failing_since"], ISO)
+        self.box.run()
+        second = self.box.status()
+        self.assertRegex(second["alert"], ALERT_ID)
+        self.assertEqual(second["last_alert"], second["alert"])
+        self.assertEqual(second["failing_since"], first["failing_since"])
+        self.box.run()
+        self.assertEqual(self.box.status()["alert"], second["alert"])
+        self.box.state["healthz_rc"] = 0
+        self.assertEqual(self.box.run().returncode, 0)
+        recovered = self.box.status()
+        self.assertEqual((recovered["state"], recovered["alert"]), ("ok", ""))
+        self.assertEqual(recovered["last_alert"], second["alert"])
+        self.assertIsNone(recovered["failing_since"])
+
+    def test_not_installed_writes_no_status(self):
+        (self.box.dir / ".env").unlink()
+        self.box.run()
+        self.box.run("--test")
+        self.assertFalse(self.box.status_dir.exists())
+        self.assertEqual(self.box.calls("docker"), [])
+
+    def test_unwritable_status_dir_keeps_exit_code_and_ping(self):
+        self.box.status_dir.write_text("kein Ordner")
+        result = self.box.run()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Zustand für Wachwerk nicht geschrieben", result.stderr)
+        self.assertEqual([p["url"] for p in self.box.pings()], [PING])
+        self.box.reset_calls()
+        result = self.box.run("--test")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual([p["url"] for p in self.box.pings()], [PING + "/fail"])
+
+    def test_test_flag_creates_fresh_alert(self):
+        self.box.run("--test")
+        status = self.box.status()
+        self.assertRegex(status["alert"], ALERT_ID)
+        self.assertEqual(status["last_alert"], status["alert"])
+        self.assertIn({"area": "test", "issue": "alert", "param": ""}, status["problems"])
+        # Zähler und laufende Störung bleiben unberührt.
+        self.assertFalse((self.box.state_dir / "health.alert").exists())
+        self.assertFalse((self.box.state_dir / "health.fails").exists())
+        self.assertEqual(self.box.run().returncode, 0)
+        after = self.box.status()
+        self.assertEqual((after["state"], after["alert"], after["last_alert"]), ("ok", "", status["alert"]))
+
+    def test_self_healing_is_listed_as_note(self):
+        self.box.container("notify-worker")["health"] = "unhealthy"
+        self.assertEqual(self.box.run().returncode, 0)
+        status = self.box.status()
+        self.assertEqual(status["state"], "ok")
+        self.assertEqual(status["notes"], [{"area": "service", "issue": "restarted", "param": "notify-worker"}])
+
+    def test_backup_offsite_and_restore_values_reach_the_status(self):
+        offsite = self.box.root / "offsite"
+        offsite.mkdir()
+        (offsite / "rwsth-20261029T000000Z.dump.gpg").write_bytes(b"x")
+        (self.box.conf / "offsite.env").write_text(
+            f"OFFSITE_DIR={offsite}\nOFFSITE_TARGET=u1@u1.your-storagebox.de:wachwerk/\n", encoding="utf-8")
+        self.box.state_dir.mkdir()
+        (self.box.state_dir / "offsite-sync.ok").touch()
+        (self.box.state_dir / "restore-test.status").write_text("ok\n", encoding="utf-8")
+        self.assertEqual(self.box.run().returncode, 0)
+        status = self.box.status()
+        self.assertEqual(status["offsite"]["kind"], "storagebox")
+        self.assertRegex(status["offsite"]["newest_at"], ISO)
+        self.assertEqual(status["offsite"]["sync_age_hours"], 0)
+        self.assertEqual(status["offsite"]["media"], [])
+        self.assertTrue(status["restore_test"]["ok"])
+        self.assertRegex(status["restore_test"]["at"], ISO)
+        self.assertIsNone(status["restore_probe"])
+
+    def test_configured_services_replace_default_list(self):
+        # Raspberry Pi: kein feed-/push-worker, kein caddy, dafür nginx als proxy.
+        (self.box.dir / ".env").write_text("PI_TLS_DIR=/etc/wachbuch/tls\nCOMPOSE_PROFILES=\n", encoding="utf-8")
+        self.box.settings["HEALTH_URL"] = "https://localhost/healthz/"
+        self.box.set_services(PI_SERVICES)
+        self.box.state["containers"] = [
+            c for c in self.box.state["containers"]
+            if c["service"] not in ("feed-worker", "push-worker", "caddy", "demo-cleaner")
+        ] + [{"id": "id-proxy", "service": "proxy"}]
+        result = self.box.run("--verbose")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("Dienst proxy läuft", result.stdout)
+        self.assertNotIn("feed-worker", result.stdout + result.stderr)
+        self.box.reset_calls()
+        self.box.state["containers"] = [c for c in self.box.state["containers"] if c["service"] != "proxy"]
+        result = self.box.run()
+        self.assertIn("Dienst proxy fehlt", result.stderr)
+        self.assertIn({"area": "service", "issue": "missing", "param": "proxy"}, self.problems())
+
+    def test_profiles_still_add_their_services_to_a_configured_list(self):
+        (self.box.dir / ".env").write_text("PI_TLS_DIR=/etc/wachbuch/tls\nCOMPOSE_PROFILES=signal\n",
+                                           encoding="utf-8")
+        self.box.settings["HEALTH_URL"] = "https://localhost/healthz/"
+        self.box.set_services(PI_SERVICES)
+        self.box.state["containers"].append({"id": "id-proxy", "service": "proxy"})
+        result = self.box.run()
+        self.assertIn("Dienst signal fehlt", result.stderr)
+
+    def test_invalid_service_list_is_reported(self):
+        self.box.set_services("web;rm -rf")
+        result = self.box.run("--verbose")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("HEALTH_SERVICES", result.stderr)
+        self.assertIn("geprüft wird die Grundliste", result.stderr)
+        self.assertIn("Dienst feed-worker läuft", result.stdout)
+        self.assertEqual(self.problems(), [{"area": "config", "issue": "services", "param": ""}])
+
+    def test_ca_file_is_passed_and_certificate_age_check_skipped(self):
+        ca = self.box.root / "wachbuch.crt"
+        ca.write_text("x")
+        self.box.settings.update(HEALTH_URL="https://localhost/healthz/", HEALTH_CA_FILE=str(ca))
+        result = self.box.run("--verbose")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        health = [c for c in self.box.calls("curl") if "/healthz/" in c["url"]]
+        self.assertEqual(len(health), 1)
+        args = health[0]["args"]
+        self.assertEqual(args[args.index("--cacert") + 1], str(ca))
+        self.assertEqual(self.box.calls("openssl"), [], "kein Ablaufdatum bei lokaler CA")
+
+    def test_lan_mode_keeps_resolve_and_trusts_local_ca(self):
+        ca = self.box.root / "lan-ca.crt"
+        ca.write_text("x")
+        self.box.append_env("WACHBUCH_MODE=lan\n")
+        self.box.settings["HEALTH_CA_FILE"] = str(ca)
+        self.assertEqual(self.box.run().returncode, 0)
+        args = next(c["args"] for c in self.box.calls("curl") if "/healthz/" in c["url"])
+        self.assertEqual(args[args.index("--resolve") + 1], "demo.example.org:443:127.0.0.1")
+        self.assertEqual(args[args.index("--cacert") + 1], str(ca))
+
+    def test_lan_mode_skips_certificate_age_check(self):
+        self.box.append_env("WACHBUCH_MODE=lan\n")
+        self.assertEqual(self.box.run().returncode, 0)
+        self.assertEqual(self.box.calls("openssl"), [])
+        args = next(c["args"] for c in self.box.calls("curl") if "/healthz/" in c["url"])
+        self.assertNotIn("--cacert", args)
+
+    def test_internet_server_still_checks_the_certificate(self):
+        self.assertEqual(self.box.run().returncode, 0)
+        self.assertTrue(self.box.calls("openssl"))
+
+
+@linux_only
+class HealthAppDeliveryTests(SimpleTestCase):
+    """Fällt der notify-worker aus, stellt ein eigener Lauf die Meldung einmal zu."""
+
+    def setUp(self):
+        self.box = HealthSandbox(self)
+        self.box.append_env("WACHWERK_HEALTH_DIR=/var/lib/wachwerk-health\n")
+
+    def deliveries(self) -> list:
+        return [c for c in self.box.calls("docker") if c[:2] == ["compose", "run"]]
+
+    def test_stopped_notify_worker_triggers_one_app_delivery_per_incident(self):
+        self.box.settings["FAILS_BEFORE_ALERT"] = "2"
+        self.box.container("notify-worker").update(status="exited", health="-")
+        for _ in range(3):
+            self.assertEqual(self.box.run().returncode, 1)
+        self.assertEqual(self.deliveries(), [NOTIFY_RUN])
+        # Neue Störung nach dem Beheben: wieder genau ein Lauf.
+        self.box.container("notify-worker").update(status="running", health="healthy")
+        self.assertEqual(self.box.run().returncode, 0)
+        self.box.reset_calls()
+        self.box.container("notify-worker").update(status="exited", health="-")
+        self.box.run()
+        self.box.run()
+        self.assertEqual(self.deliveries(), [NOTIFY_RUN])
+
+    def test_no_app_delivery_without_health_dir_in_env(self):
+        env = self.box.dir / ".env"
+        env.write_text(env.read_text().replace("WACHWERK_HEALTH_DIR=/var/lib/wachwerk-health\n", ""))
+        self.box.container("notify-worker").update(status="exited", health="-")
+        self.assertEqual(self.box.run().returncode, 1)
+        self.assertEqual(self.deliveries(), [])
+
+    def test_running_update_never_triggers_app_delivery(self):
+        (self.box.dir / "logs" / "auto-update.lock").mkdir()
+        self.box.write_update_log(f"{log_stamp()} Neustart mit Version 0.26.0")
+        for dump in self.box.backups.iterdir():
+            dump.unlink()
+        self.box.container("notify-worker").update(status="exited", health="-")
+        result = self.box.run()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("noch kein Backup", result.stderr)
+        self.assertEqual(self.deliveries(), [])
+
+    def test_healthy_notify_worker_needs_no_app_delivery(self):
+        self.assertEqual(self.box.run("--test").returncode, 1)
+        self.assertEqual(self.deliveries(), [])
+
+
 @linux_only
 class HardenHostTests(SimpleTestCase):
     """Die Aussperr-Schutzfunktionen von harden-host.sh einzeln (Bibliotheksmodus)."""
@@ -466,6 +756,15 @@ class HardenHostTests(SimpleTestCase):
         self.assertEqual(env_file.stat().st_mode & 0o777, 0o600)
         self.assertIn(f"PING_URL={PING}\n", env_file.read_text())
         self.assertIn("TimeoutStartSec=", (units / "wachwerk-health.service").read_text())
+
+    def test_health_timer_is_precise(self):
+        """Ohne AccuracySec verschiebt systemd den Lauf um bis zu eine Minute (Ziel: Meldung < 15 min)."""
+        units = self.root / "units"
+        units.mkdir()
+        self.assertEqual(self.call(f'write_units "{units}"').returncode, 0)
+        timer = (units / "wachwerk-health.timer").read_text()
+        self.assertIn("OnUnitActiveSec=5min\n", timer)
+        self.assertIn("AccuracySec=5s\n", timer)
 
     def test_docker_packages_match_unattended_upgrades_pattern(self):
         """Origins-Pattern wie unattended-upgrades auswerten (match_whitelist_string)."""
@@ -665,6 +964,8 @@ class ComposeNoNewPrivilegesTests(SimpleTestCase):
 @unittest.skipUnless(shutil.which("shellcheck"), "shellcheck nicht installiert")
 class HostScriptLintTests(SimpleTestCase):
     def test_shellcheck(self):
-        scripts = sorted(HETZNER.glob("*.sh")) + [BACKUP_LOOP]
+        scripts = (sorted(HETZNER.glob("*.sh")) + sorted(LAN.glob("*.sh")) + sorted(PI.glob("*.sh"))
+                   + [BACKUP_LOOP, RESTORE_TEST])
+        self.assertIn(LAN / "setup-monitoring.sh", scripts)
         result = subprocess.run(["shellcheck", *map(str, scripts)], capture_output=True, text=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

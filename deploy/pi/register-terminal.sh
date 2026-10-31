@@ -21,5 +21,6 @@ install -d -m 0700 -o "$KIOSK_USER" -g "$KIOSK_USER" "$KIOSK_HOME/.config/wachbu
 umask 077
 printf '%s' "$START_PATH" > "$KIOSK_HOME/.config/wachbuch/terminal-start"
 chown "$KIOSK_USER:$KIOSK_USER" "$KIOSK_HOME/.config/wachbuch/terminal-start"
+# shellcheck disable=SC1111 # typografische Anführungszeichen im Text
 echo "Terminal „$LABEL“ registriert. Beim nächsten Start des Kiosk-Browsers wird es eingerichtet (sudo reboot)."
 echo "Widerrufen: Team → Wachenterminals & PINs."

@@ -1,0 +1,89 @@
+{% load i18n %}{# Zustand der Host-Überwachung (core/host_health.py): nur Zeiten, Zahlen und übersetzte Codes #}
+<section id="betrieb" aria-labelledby="system-operations-title">
+  <h2 id="system-operations-title">{% translate "Betrieb und Datensicherung" %}</h2>
+  {% if not host_health.available %}
+    <p>{% translate "Die Überwachung des Servers ist nicht eingerichtet oder hat noch nichts gemeldet." %}</p>
+    <p class="muted">{% translate "Einrichten: im Wachen-Netz und auf dem Raspberry Pi mit deploy/lan/setup-monitoring.sh, auf einem Server im Internet mit deploy/hetzner/harden-host.sh und WACHWERK_HEALTH_DIR. Anleitung: docs/BETRIEB-PI-LAN.md." %}</p>
+  {% else %}
+    <dl class="system-facts">
+      <dt>{% translate "Letzte Prüfung" %}</dt>
+      <dd>{{ host_health.checked_at|date:"d.m.Y H:i" }}{% if host_health_stale %} – {% translate "die Überwachung meldet sich nicht" %}{% endif %}</dd>
+
+      <dt>{% translate "Zustand" %}</dt>
+      <dd>
+        {% if host_health.problems %}
+          {% with total=host_health.problems|length %}
+            {% if host_health.failing_since %}
+              {% blocktranslate with count=total time=host_health.failing_since|date:"d.m. H:i" %}Meldungen: {{ count }}, seit {{ time }} Uhr{% endblocktranslate %}
+            {% else %}
+              {% blocktranslate with count=total %}Meldungen: {{ count }}{% endblocktranslate %}
+            {% endif %}
+          {% endwith %}
+          {% if not host_health.alert %}<span class="muted">({% translate "noch nicht gemeldet: erst wenn der Fehler bei der nächsten Prüfung noch besteht" %})</span>{% endif %}
+          <ul class="health-problems">
+            {% for problem in host_health.problems %}<li>{{ problem.text }}</li>{% endfor %}
+          </ul>
+        {% else %}
+          {% translate "alles in Ordnung" %}
+        {% endif %}
+        {% if host_health.notes %}
+          <p class="muted">{% translate "Selbst behoben:" %}</p>
+          <ul class="health-problems">
+            {% for note in host_health.notes %}<li>{{ note.text }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </dd>
+
+      <dt>{% translate "Neuestes Backup" %}</dt>
+      <dd>
+        {% if host_health.backup_newest_at %}
+          {{ host_health.backup_newest_at|date:"d.m.Y H:i" }}{% if host_health.backup_age_hours is not None %} · {% blocktranslate with hours=host_health.backup_age_hours %}{{ hours }} h alt{% endblocktranslate %}{% endif %}
+        {% else %}
+          {% translate "keines gefunden" %}
+        {% endif %}
+      </dd>
+
+      <dt>{% translate "Kopie außer Haus" %}</dt>
+      <dd>
+        {% if host_health.offsite_kind %}
+          {{ host_health.offsite_kind_label }}
+          <ul class="health-problems">
+            <li>{% translate "Neueste verschlüsselte Kopie:" %} {% if host_health.offsite_newest_at %}{{ host_health.offsite_newest_at|date:"d.m.Y H:i" }}{% else %}{% translate "keine" %}{% endif %}</li>
+            {% if host_health.offsite_sync_age_hours is not None %}<li>{% blocktranslate with hours=host_health.offsite_sync_age_hours %}Zuletzt übertragen vor {{ hours }} h{% endblocktranslate %}</li>{% endif %}
+            {% if host_health.offsite_away_age_days is not None %}<li>{% blocktranslate with days=host_health.offsite_away_age_days %}Kopie außer Haus, Alter in Tagen: {{ days }}{% endblocktranslate %}</li>{% endif %}
+            {% for medium in host_health.media %}<li>{% blocktranslate with name=medium.name %}Stick „{{ name }}“{% endblocktranslate %}: {% if medium.last_write %}{% blocktranslate with time=medium.last_write|date:"d.m.Y H:i" %}zuletzt beschrieben {{ time }}{% endblocktranslate %}{% else %}{% translate "noch nicht beschrieben" %}{% endif %}</li>{% endfor %}
+          </ul>
+        {% else %}
+          {% translate "nicht eingerichtet" %}
+        {% endif %}
+      </dd>
+
+      <dt>{% translate "Wiederherstellungsprobe" %}</dt>
+      <dd>
+        {% with probe=host_health.restore_test %}
+          {% if probe %}
+            {{ probe.at|date:"d.m.Y H:i" }} · {% if probe.ok %}{% translate "erfolgreich" %}{% else %}{% translate "fehlgeschlagen" %}{% endif %}
+            {% if probe.tables is not None and probe.migrations is not None %}<br><span class="muted">{% blocktranslate with tables=probe.tables migrations=probe.migrations %}{{ tables }} Tabellen, {{ migrations }} Migrationen{% endblocktranslate %}</span>{% endif %}
+          {% else %}
+            {% translate "noch keine (automatisch sonntags)" %}
+          {% endif %}
+        {% endwith %}
+      </dd>
+
+      {% if host_health.restore_probe or host_health.offsite_kind %}
+        <dt>{% translate "Probe mit Kopie außer Haus" %}</dt>
+        <dd>
+          {% with probe=host_health.restore_probe %}
+            {% if probe %}
+              {{ probe.at|date:"d.m.Y H:i" }} · {% if probe.ok %}{% translate "erfolgreich" %}{% else %}{% translate "fehlgeschlagen" %}{% endif %}
+              {% if probe.dump_at %}<br><span class="muted">{% blocktranslate with time=probe.dump_at|date:"d.m.Y H:i" %}Stand der Kopie: {{ time }}{% endblocktranslate %}</span>{% endif %}
+              {% if probe.tables is not None and probe.migrations is not None %}<br><span class="muted">{% blocktranslate with tables=probe.tables migrations=probe.migrations %}{{ tables }} Tabellen, {{ migrations }} Migrationen{% endblocktranslate %}</span>{% endif %}
+            {% else %}
+              {% translate "noch nie – vierteljährlich empfohlen" %}
+            {% endif %}
+          {% endwith %}
+        </dd>
+      {% endif %}
+    </dl>
+  {% endif %}
+</section>

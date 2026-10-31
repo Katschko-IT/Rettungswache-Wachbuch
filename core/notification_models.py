@@ -4,6 +4,8 @@
 lesen ihn, Web-Push und (künftig) nativer Push sind nur zusätzliche Kanäle.
 Dadurch geht keine Nachricht verloren, wenn ein Gerät gerade nicht erreichbar
 ist. Inhalte bleiben organisatorisch – keine Patienten- oder Einsatzdaten.
+Technische Hinweise zum Server (Art ``system_health``) erhalten nur
+Master-Admins; sie nennen nur Codes der Host-Überwachung in Textform.
 
 ``MobilePushDevice`` speichert Push-Tokens der iOS-/Android-App. Versendet wird
 darüber erst, wenn ein Push-Relay konfiguriert ist (``PUSH_RELAY_URL``).
@@ -22,6 +24,8 @@ class UserNotification(models.Model):
     class Kind(models.TextChoices):
         VEHICLE_READY = "vehicle_ready", "Fahrzeug kann freigegeben werden"
         COFFEE_DUE = "coffee_due", "Kaffeekasse: Beitrag offen"
+        # Host-Überwachung (core/host_health.py), nur an Master-Admins.
+        SYSTEM_HEALTH = "system_health", "Technischer Hinweis zum Server"
 
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="user_notifications")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")

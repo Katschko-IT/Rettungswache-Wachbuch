@@ -137,6 +137,20 @@ graph TD
 - **Retention**: 7 Tage (konfigurierbar)
 - **Sicherheit**: Optionale GPG-Verschlüsselung
 
+#### **Host-Überwachung (`wachwerk-health`)**
+- **Aufgabe**: Prüft alle 5 Minuten auf dem Host (root, systemd-Timer)
+  Erreichbarkeit, Dienste, Fehlerquote, Backupalter, Offsite-Kopie,
+  Wiederherstellungsprobe, Updates und Plattenplatz
+- **Kanal zu Wachwerk**: schreibt `status.json` (Schema 1) nach
+  `WACHWERK_HEALTH_DIR`; Compose bindet den Ordner **nur lesend** in `web` und
+  `notify-worker` ein (`/run/wachwerk-health`). Ohne den Wert ist es ein leeres
+  Volume, Wachwerk zeigt dann nichts.
+- **Anzeige und Meldung**: Banner und Abschnitt „Betrieb und Datensicherung“
+  auf `/system/` nur für Master-Admins echter Wachen; der notify-worker legt je
+  Master-Admin und Störung eine Nachricht im Posteingang an (dazu Web-Push,
+  Signal, E-Mail, falls eingerichtet) – `core/host_health.py`,
+  [`BETRIEB-PI-LAN.md`](BETRIEB-PI-LAN.md)
+
 ---
 
 ## 🔄 **Datenfluss**
@@ -257,6 +271,26 @@ geprüft, verarbeitet und verworfen.
 │  └─────────────┘  └─────────────┘  └───────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Host → Container (Host-Überwachung):** Der einzige Kanal vom Host in die
+Anwendung ist die Statusdatei von `wachwerk-health`. Sie ist eine
+Vertrauensgrenze in eine Richtung:
+
+- Der Host (root) schreibt, die Container lesen nur (`:ro`, nur `web` und
+  `notify-worker`); ein kompromittierter Container kann nichts zurückschreiben.
+  Der Host bekommt keine Datenbankrechte und führt kein SQL aus. Fällt der
+  notify-worker aus, startet der Host einmal je Störung denselben Befehl
+  (`docker compose run notify-worker python manage.py notify_crew`) mit der
+  Datenbankrolle der Anwendung.
+- Inhalt nur Codes (`bereich:art:wert`), Zeiten und Zahlen – keine Texte,
+  Hostnamen, Adressen, Pfade oder Geheimnisse. Werte werden schon im Skript
+  auf `[a-z_]` bzw. `[a-z0-9-]` gefiltert.
+- Wachwerk liest streng (`O_NOFOLLOW`, höchstens 64 KiB, jedes Feld einzeln
+  geprüft) und übersetzt die Codes selbst; unbekannte Codes erscheinen nur als
+  allgemeiner Text. Die Datei löst nie eine Aktion aus.
+- Sichtbar nur für Master-Admins echter Wachen; nie in der öffentlichen Demo,
+  am Wachenterminal oder auf dem Wachen-Display. `/healthz/` bleibt unverändert.
+- Abschaltbar (opt-in): ohne `WACHWERK_HEALTH_DIR` sieht Wachwerk nichts.
 
 ### **2. Sicherheitsprinzipien**
 

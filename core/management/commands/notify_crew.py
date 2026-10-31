@@ -4,6 +4,14 @@ Läuft als eigener Dienst (``notify-worker``) mit der App-Datenbankrolle. Der
 Push-Worker behält seine eingeschränkten Rechte und versendet nur die hier
 geschriebenen Outbox-Zeilen.
 
+Im selben Durchlauf: Erinnerungen der Kaffeekasse, Meldungen der
+Host-Überwachung an die Master-Admins (``core.host_health``; Störung, behoben,
+Überwachung schweigt) und der Signal-Postausgang. Ein Fehler bei der
+Host-Überwachung hält die übrigen Meldungen nie auf und zählt nicht als
+Fehlversuch des Dienstes. Ohne ``--watch`` (einmaliger Lauf, z. B. als
+Ersatzweg von ``wachwerk-health``) gibt es nie die Meldung „Überwachung meldet
+sich nicht“.
+
 Betrieb im Container:
 
 - Nach jedem erfolgreichen Durchlauf schreibt der Befehl einen Zeitstempel in
@@ -27,6 +35,7 @@ from django.utils import timezone
 
 from core.coffee import remind_open_fees
 from core.crew_notifications import notify_ready_vehicles
+from core.host_health import STALE_AFTER, notify_host_health
 from core.signal_messenger import deliver_outbox as deliver_signal
 
 logger = logging.getLogger(__name__)
@@ -81,6 +90,10 @@ class Command(BaseCommand):
 
         signal.signal(signal.SIGINT, _handle_signal)
         signal.signal(signal.SIGTERM, _handle_signal)
+        # „Überwachung meldet sich nicht“ erst, wenn der Dienst selbst so lange
+        # läuft: Nach einem Neustart des Servers ist die Statusdatei noch alt,
+        # bis der Timer wieder lief.
+        loop_started_at = time.monotonic()
 
         while True:
             # Verbindungen, die die Datenbank inzwischen getrennt hat, nicht
@@ -91,6 +104,12 @@ class Command(BaseCommand):
                 if time.monotonic() >= coffee_due_at:
                     count += remind_open_fees()
                     coffee_due_at = time.monotonic() + 15 * 60
+                try:
+                    count += notify_host_health(
+                        allow_stale_alert=time.monotonic() - loop_started_at >= STALE_AFTER.total_seconds(),
+                    )
+                except Exception:
+                    logger.exception("notify_crew: Meldung der Host-Überwachung fehlgeschlagen")
                 # Signal-Postausgang (nur wenn SIGNAL_API_URL gesetzt ist).
                 deliver_signal()
             except Exception as exc:
