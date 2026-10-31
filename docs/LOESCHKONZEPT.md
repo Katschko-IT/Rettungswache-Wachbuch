@@ -1,8 +1,10 @@
 # Lösch- und Aufbewahrungskonzept – Betreiber-Vorlage
 
-Stand: 10. August 2026
+Stand: 31. Oktober 2026 (Vorschlag für den Pilot ergänzt)
 
 Dieses Dokument legt **keine pauschalen gesetzlichen Fristen** fest. Der Betreiber muss für jede Datenklasse Zweck, Rechtsgrundlage, erforderliche Aufbewahrung, Löschtrigger und technische Umsetzung festlegen und durch Datenschutz/Verantwortliche freigeben.
+
+Welche Tabelle zu welcher Datenklasse gehört und welche Frist heute technisch greift, steht im Datenkatalog: [`DATENKATALOG.md`](DATENKATALOG.md) (alle Module) bzw. `python manage.py data_catalog --station auto` (nur die Module einer Wache). Den Vorschlag für den Pilot enthält der Abschnitt [Vorschlag für den Pilot](#vorschlag-für-den-pilot-entscheidung-4--nicht-freigegeben).
 
 ## Grundprinzipien
 
@@ -43,6 +45,67 @@ Dieses Dokument legt **keine pauschalen gesetzlichen Fristen** fest. Der Betreib
 - Restore-Test-Retention/Testkopien: `[Wert]`
 
 `0 = unbegrenzt` darf bei personenbezogenen Daten nur mit dokumentierter und freigegebener Begründung verwendet werden.
+
+## Vorschlag für den Pilot (Entscheidung #4 – nicht freigegeben)
+
+> **Vorschlag – Entscheidung #4 durch Betreiber/DSB offen.** Diese Tabelle ist
+> eine Diskussionsgrundlage für die Pilotwache. Sie wird erst verbindlich, wenn
+> Betreiber und Datenschutzbeauftragte sie unten freigeben. Ohne Freigabe ist
+> die Startbedingung „Löschfristen für die Daten des Pilots verbindlich“
+> (`ROADMAP.md`, Startkriterien) nicht erfüllt.
+
+Grundsätze des Vorschlags:
+
+1. **Automatische Fristen bleiben**, wie sie heute technisch umgesetzt sind (Spalte „heute technisch“).
+2. **Keine Löschung von Nachweis- und Organisationsdaten während der 12 Pilotwochen.** Nachweistabellen bleiben append-only; Korrekturen sind neue Einträge.
+3. **Ausstieg:** Spätestens 3 Monate nach Pilotende entscheidet der Betreiber: Weiterbetrieb (dann gilt das Löschkonzept 1.0) oder Löschung aller Pilotdaten. Bei Löschung laufen Sicherungen mit ihrer eigenen Frist aus (`BACKUP_RETENTION_DAYS`, Offsite laut Zielsystem).
+4. **Ausscheiden:** Konten ausgeschiedener Personen werden innerhalb von 7 Tagen deaktiviert (Checkliste unten). Ihre Nachweise bleiben.
+5. **Freiwillige Angaben** (Geburtstag, Signal-Nummer, Kaffeekasse-Erinnerung per E-Mail) werden beim Widerruf sofort entfernt; das ist heute umgesetzt.
+6. **Keine neue Löschautomatik in 0.27.** Für die Lücken unten folgt nach der Entscheidung ein eigener PR.
+
+| Datenklasse | Tabellen | heute technisch (Einstellung/Befehl, Standard) | Vorschlag Pilot | Ziel 1.0 (Diskussionsgrundlage) | Lücke |
+| --- | --- | --- | --- | --- | --- |
+| Sitzungen | `sessions.Session` | `housekeeping`, Ablauf nach 12 h | wie heute | wie heute | – |
+| Anmeldeprotokolle | `axes.AccessLog`, `axes.AccessFailureLog` | `housekeeping`, `LOGIN_LOG_RETENTION_DAYS` = 30 | wie heute | 30 Tage | – |
+| Sperrzähler | `axes.AccessAttempt` | django-axes, nach Sperrzeit (1 h) bzw. Erfolg | wie heute | wie heute | – |
+| QR-Anmeldung | `QrLoginRequest`, `QrTotpUse` | `housekeeping`, 24 h | wie heute | wie heute | – |
+| Fehlerereignisse | `ErrorEvent` | `housekeeping`, `ERROR_EVENT_RETENTION_DAYS` = 30 | wie heute | 30 Tage | – |
+| Push-/Signal-Warteschlange | `PushOutbox`, `SignalOutbox` | 30 Tage nach Versand | wie heute | wie heute | – |
+| Meldungen (Feeds) | `FeedItem` | `RETENTION_FEED_DAYS` = 90 | wie heute | 90 Tage | – |
+| Rückmeldungen | `Feedback` | `FEEDBACK_RETENTION_DAYS` = 365 | wie heute | 365 Tage | – |
+| Rate-Limit-Zähler | `RateLimit` | `housekeeping`, stündlich | wie heute | wie heute | – |
+| Audit | `AuditEvent` | `RETENTION_AUDIT_DAYS` = 0 (unbegrenzt), `apply_retention` nur mit Owner-Rechten | keine Löschung | 365 Tage | Standard unbegrenzt |
+| Konten und Rollen | `auth.User`, `UserProfile`, `Membership`, `TotpDevice`, `WebAuthnCredential` | keine Automatik; Deaktivieren durch Master-Admin | deaktivieren ≤ 7 Tage nach Ausscheiden | Löschung bzw. Anonymisierung nach Ablauf der Nachweisfristen | keine Löschautomatik |
+| Übergaben | `HandoverEntry`, `HandoverAttachment` | keine Automatik | keine Löschung | `[festlegen]` | – |
+| Nachweise | `HandoverRevision`, `HandoverAck`, `StationTaskCompletion`, `ChecklistCompletion`, `DefectEvent`, `AssetEvent`, `InventoryEvent`, `NewsAcknowledgement`, `WikiRevision`, `CoffeeEntry`, `CoffeeCashMovement`, `StockMovement`, MPG-, Fuhrpark- und Dienstanweisungs-Nachweise | keine Löschautomatik; append-only per Datenbankrechten für Audit, Kaffeekasse, Checklisten-Abschlüsse, Übergaberevisionen und Lagerbewegungen, weitere Nachweise teils in der Anwendung geschützt | keine Löschung | laut Fach- und Nachweispflicht, `[festlegen]` | – |
+| Mängel | `Defect` | keine Automatik | keine Löschung | `[festlegen]` | – |
+| Mängelfotos | `DefectAttachment` | keine Automatik | keine Löschung | 90 Tage nach Abschluss des Mangels | keine Löschautomatik |
+| Anhänge Neuigkeiten/Pinnwand | `NewsAttachment`, `PinboardAttachment` | keine Automatik | keine Löschung | mit dem Aushang | keine Löschautomatik |
+| Persönliche Hinweise | `UserNotification` | keine Automatik | keine Löschung | 30 Tage nach dem Lesen, 90 Tage ungelesen | **Lücke** |
+| Django-Admin-Protokoll | `admin.LogEntry` | keine Automatik | keine Löschung | 365 Tage | **Lücke** |
+| Einladungen | `EmployeeActivation` | keine Automatik | keine Löschung | 90 Tage nach Nutzung oder Ablauf | **Lücke** |
+| Registrierungsanfragen | `RegistrationRequest` | keine Automatik | keine Löschung | `[festlegen]` nach Entscheidung | **Lücke** |
+| App-Zugänge | `ApiToken` | widerrufene/abgelaufene Einträge bleiben (nur Hash) | keine Löschung | `[festlegen]` | **Lücke** |
+| Kalender | `CalendarEvent` | keine Automatik | keine Löschung | `[festlegen]` für vergangene Termine | **Lücke** |
+| Pinnwand | `PinboardNote` (auch archivierte) | keine Automatik | keine Löschung | `[festlegen]` für archivierte Aushänge | **Lücke** |
+| Chat, Privat, Post | `ChatMessage`, `PrivateMessage`, `GroupMessage`, `SecureMail` und Zuordnungen | keine Automatik (Inhalt verschlüsselt) | im Pilot ausgeschaltet (Startkriterium) | `[festlegen]` | **Lücke** |
+| Geburtstag, Signal-Nummer | `BirthdayPreference`, `SignalContact` | beim Widerruf sofort | wie heute | wie heute | – |
+| Gerätebindungen | `PushSubscription`, `MobilePushDevice` | beim Abmelden des Geräts oder bei ungültiger Adresse | wie heute | wie heute | – |
+| Docker-Protokolle | – | nur Größe: 3 × 10 MB je Dienst, keine Zeitgrenze | wie heute | `[festlegen]` (Zeitgrenze) | **Lücke** |
+| Sicherungen | Backup-Volume, `./backups`, Offsite | `BACKUP_RETENTION_DAYS` = 7; Offsite laut Zielsystem | wie heute | `[festlegen]` | – |
+| Papier-Rückfallebene | ausgefüllte Ausdrucke | – (nicht im System) | `[festlegen]`: Aufbewahrung und Vernichtung der Blätter | `[festlegen]` | offen |
+
+Hinweise:
+
+- **Nachweistabellen bleiben append-only.** Eine Löschfrist für Nachweise setzt eine eigene Entscheidung und einen eigenen Löschweg mit Owner-Rechten voraus.
+- **Einmalige Altdaten-Bereinigung** (Entscheidung D1, Befehl aus Paket C): Sie neutralisiert alte Fahrzeugstatus im Audit und entfernt IP-Adresse und Browser aus alten Lesequittungen. Sicherungen behalten den alten Stand, bis sie nach `BACKUP_RETENTION_DAYS` bzw. der Offsite-Frist auslaufen.
+- **Sichtbarkeit von Namen:** Lesebestätigungen von Übergaben (Name und Zeit) sehen alle Inhaltsrollen; erledigte Tagesaufgaben und Checklisten zeigen den Vornamen. Das bleibt im Pilot so und ist in der Vorlage für die Vereinbarung (`MITBESTIMMUNG-VORLAGE.md`) aufgeführt.
+
+Freigabe Pilot-Fristen (Entscheidung #4):
+
+- Betreiber: `[Name/Datum]`
+- Datenschutzbeauftragte/r: `[Name/Datum]`
+- Interessenvertretung zur Kenntnis: `[Name/Datum]`
 
 ## Ausscheiden eines Benutzers
 

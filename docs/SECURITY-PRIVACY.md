@@ -12,9 +12,14 @@ Dieses Dokument ist keine Rechtsberatung.
 - Audit speichert Feldnamen und Ereignisse, nicht die fachlichen Freitexte.
   Zahlungsangaben (`iban`, `bic`, `payment_note`, Zahlungslinks) erscheinen im
   Audit nur als `changed`, ohne Werte.
-- Keine Rankings, Lesestatistiken oder personenbezogene Leistungskennzahlen.
-- Nur technisch notwendige Cookies (`rwsth_session`, `rwsth_csrf`); Transparenz
-  unter `/datenschutz/`.
+- Keine Rankings und keine Leistungskennzahlen je Person; Lesestände von
+  Neuigkeiten nur als Anzahl. Offen zur Entscheidung: Die Einweisungsmatrix
+  (Gerätepass) zeigt allen Inhaltsrollen je Person eine Quote der Einweisungen.
+  Alle Ausgaben mit Personenbezug stehen im Datenkatalog.
+- Nur technisch notwendige oder ausdrücklich gewählte Cookies (Sitzung, CSRF,
+  Sprache, Darstellung; auf Terminal und Display je ein Gerätecookie);
+  vollständige Liste im Datenkatalog, Abschnitt „Daten auf Endgeräten“;
+  Transparenz unter `/datenschutz/`.
 - Produkt ohne eingebettetes KI-System; kein Social Scoring über Auditdaten.
 - Fahrzeugzustand mit fünf neutralen Zuständen (Einsatzbereit, Eingeschränkt,
   Desinfektion, Werkstatt, Außer Dienst), ohne Einsatzphasen und ohne
@@ -75,6 +80,18 @@ Dieses Dokument ist keine Rechtsberatung.
 - Betroffeneninformationen und Verfahren für Auskunft, Berichtigung, Löschung
   sowie Datenschutzverletzungen
 - Cookie-/TDDDG- und AI-Act-Dokumentation an die konkrete Stelle anpassen
+
+Unterlagen dafür:
+
+- [`DATENKATALOG.md`](DATENKATALOG.md): Module, Felder, Rollen, Zugriffswege,
+  Auswertungen mit Personenbezug und technische Fristen; für eine Wache mit
+  `python manage.py data_catalog --station auto`
+- [`DATENFLUESSE.md`](DATENFLUESSE.md): alle Datenflüsse an Dritte mit Schalter
+  und Empfehlung für den Pilot
+- [`MITBESTIMMUNG-VORLAGE.md`](MITBESTIMMUNG-VORLAGE.md): Bausteine für die
+  Vereinbarung mit Betriebsrat, Personalrat oder Mitarbeitervertretung
+- [`LOESCHKONZEPT.md`](LOESCHKONZEPT.md), Abschnitt „Vorschlag für den Pilot“:
+  Fristen für die Daten des Pilots (Entscheidung #4)
 
 ## Technische Baseline
 

@@ -90,6 +90,9 @@ In externen Unterlagen bevorzugte Formulierung:
 - `DATENSCHUTZ-INFORMATION-ART13.md`
 - `LOESCHKONZEPT.md`
 - `VVT-TEMPLATE.md`
+- `DATENKATALOG.md` (erzeugt mit `python manage.py data_catalog --write`)
+- `DATENFLUESSE.md`
+- `MITBESTIMMUNG-VORLAGE.md`
 - `DSFA-VORPRUEFUNG.md`
 - `MOBILE-DEVICE-BETRIEB.md`
 - `OPERATIONS.md`
