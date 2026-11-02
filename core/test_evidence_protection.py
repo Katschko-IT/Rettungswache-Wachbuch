@@ -168,6 +168,7 @@ class EvidenceRows:
         )
         defect = Defect.objects.create(station=s, title="Mangel", created_by=u, owner=o, medical_device=device)
         revision = SOPRevision.objects.create(sop=sop, version_label="1.0", content_markdown="Text", approved_by=u)
+        routine_check_original = DeviceRoutineCheck.objects.create(station=s, device=device, performed_by=u)
         return {
             "core.AuditEvent": AuditEvent.objects.create(actor=u, station=s, action="test.done", object_type="Station"),
             "core.HandoverEntry": handover,
@@ -201,7 +202,8 @@ class EvidenceRows:
                 station=s, vehicle=vehicle, performed_by=u, disinfectant=agent, level=level),
             "core.MaintenanceLog": MaintenanceLog.objects.create(
                 device=device, station=s, kind=MaintenanceLog.Kind.STK, performed_by="Service", created_by=u),
-            "core.DeviceRoutineCheck": DeviceRoutineCheck.objects.create(station=s, device=device, performed_by=u),
+            "core.DeviceRoutineCheck": DeviceRoutineCheck.objects.create(
+                station=s, device=device, performed_by=u, cancels_check=routine_check_original, is_cancellation=True),
             "core.DeviceTrainingRecord": DeviceTrainingRecord.objects.create(
                 station=s, device=device, trainee=o, instructor="Nora"),
             "core.SOPRevision": revision,

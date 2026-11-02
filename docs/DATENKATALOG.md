@@ -34,7 +34,7 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Wachenchat, Privatnachrichten und Post (E2EE)](#modul-chat) | `Station.chat_enabled` | ja | 0 | Konto, Lücke |
 | [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange |
 | [Signal-Benachrichtigungen](#modul-signal) | Einstellung SIGNAL_API_URL und SIGNAL_NUMBER | ja | 0 | Freiwillige Angabe, Signal-Warteschlange |
-| [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Organisationsdaten, Nachweis, Einweisung |
+| [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Organisationsdaten, Nachweis |
 | [Lager und Material](#modul-lager) | `Station.warehouse_enabled` | ja | 2 | Organisationsdaten, Nachweis |
 | [Fuhrpark](#modul-fuhrpark) | `Station.fleet_enabled` | ja | 2 | Organisationsdaten, Einstellung, Nachweis |
 | [Dienstanweisungen und Telefonbuch](#modul-orga) | `Station.orga_enabled` | ja | 2 | Organisationsdaten, Nachweis |
@@ -227,6 +227,7 @@ Rolle einer Person in einer Wache
 | `user` |  | Person (Konto) |  |
 | `station` |  | Verweis |  |
 | `role` |  | Auswahl |  |
+| `is_mpg_lead` | MPG-Beauftragte/r (§ 13 MPBetreibV) | Wert |  |
 | `is_active` |  | Wert |  |
 | `created_at` |  | Zeitpunkt |  |
 
@@ -644,6 +645,7 @@ Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse
 | `holiday_state` | Bundesland für Feiertage | Auswahl |  |
 | `checklists_enabled` | Checklisten aktiviert | Wert |  |
 | `mpg_enabled` | MPG & Medizingeräte aktiviert | Wert |  |
+| `mpg_training_required` | Einweisungspflicht bei Medizingeräten prüfen | Wert |  |
 | `warehouse_enabled` | Lager & Materialwirtschaft aktiviert | Wert |  |
 | `fleet_enabled` | Fuhrpark & Fahrzeuge aktiviert | Wert |  |
 | `display_enabled` | Wachen-Display aktiviert | Wert |  |
@@ -2174,6 +2176,8 @@ Funktionskontrolle mit Person und Ergebnis
 | `visual_ok` | Sichtprüfung / Zubehör vollständig | Wert |  |
 | `function_ok` | Selbsttest / Funktionsprüfung OK | Wert |  |
 | `notes` | Feststellungen / Notiz | Freitext |  |
+| `is_cancellation` | Storno-Eintrag | Wert |  |
+| `cancels_check` | Stornierte Funktionskontrolle | Verweis |  |
 
 ### core.DeviceTrainingRecord
 
@@ -2182,9 +2186,9 @@ Einweisung: Person, einweisende Person, Datum
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
-- Nachweis: ja
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
-- Frist technisch: keine automatische Löschung; eine neue Einweisung derselben Person am selben Gerät ersetzt die vorige (Einzeleinweisung löscht sie, Gruppenschulung überschreibt sie); Aufbewahrung laut Löschkonzept
+- Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
 
 | Feld | Bezeichnung | Art | Hinweis |
@@ -2195,6 +2199,7 @@ Einweisung: Person, einweisende Person, Datum
 | `trainee` |  | Person (Konto) |  |
 | `instructor` | Einweiser / Gerätebeauftragter (§ 11 MPBetreibV) | Kontakt/Name | Name der einweisenden Person als Text |
 | `trained_at` | Schulungsdatum | Zeitpunkt |  |
+| `valid_until` | Gültig bis | Zeitpunkt |  |
 | `notes` | Bemerkung | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
 
@@ -2257,6 +2262,7 @@ Medizingerät mit Fristen und Status
 | `location` | Standort / Fahrzeug | Freitext |  |
 | `current_status` | Betriebsstatus | Auswahl |  |
 | `status_note` | Status-Bemerkung | Freitext |  |
+| `requires_training` | Einweisungspflichtig gem. § 11 MPBetreibV | Wert |  |
 | `is_anlage_1` | Anlage 1 MPBetreibV (STK-Pflicht) | Wert |  |
 | `is_anlage_2` | Anlage 2 MPBetreibV (MTK-Pflicht) | Wert |  |
 | `stk_interval_months` | STK-Intervall (Monate) | Wert |  |

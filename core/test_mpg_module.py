@@ -1,13 +1,16 @@
 from datetime import timedelta
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from core.display import display_payload
-from core.models import Membership, Station
+from core.models import AuditEvent, Membership, Station
 from core.mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
-from core.wachalltag_models import Defect
+from core.notification_models import UserNotification
+from core.wachalltag_models import Defect, DefectEvent
 
 
 class MPGModuleTests(TestCase):
@@ -374,3 +377,318 @@ class MPGDeviceLockTests(TestCase):
         )
         self.device.refresh_from_db()
         self.assertEqual(self.device.current_status, MedicalDevice.Status.MAINTENANCE)
+
+
+class MPGTrainingAppendOnlyTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(name="Wache Schulung", slug="wache-schulung", mpg_enabled=True)
+        self.user = User.objects.create_user(username="retter", password="pw-123456789")
+        self.lead = User.objects.create_user(username="mpg-lead", password="pw-123456789")
+        Membership.objects.create(user=self.user, station=self.station, role=Membership.Role.MEMBER)
+        Membership.objects.create(user=self.lead, station=self.station, role=Membership.Role.SHIFT_LEAD)
+        self.device = MedicalDevice.objects.create(station=self.station, slug="medumat-1", name="MEDUMAT Standard")
+        self.client.force_login(self.lead)
+
+    def test_training_record_cannot_be_updated_or_deleted(self):
+        record = DeviceTrainingRecord.objects.create(
+            station=self.station,
+            device=self.device,
+            trainee=self.user,
+            instructor="Gerätebeauftragter",
+            notes="Erstunterweisung",
+        )
+        record.notes = "Korrekturversuch"
+        with self.assertRaisesMessage(ValidationError, "Einweisungsnachweise dürfen nicht verändert werden."):
+            record.save()
+
+        with self.assertRaisesMessage(ValidationError, "Einweisungsnachweise dürfen nicht gelöscht werden."):
+            record.delete()
+
+    def test_multiple_trainings_can_be_appended_for_same_user_and_device(self):
+        # 1. Manuell angelegt
+        DeviceTrainingRecord.objects.create(
+            station=self.station,
+            device=self.device,
+            trainee=self.user,
+            instructor="Erstschulung",
+            trained_at=timezone.localdate() - timedelta(days=365),
+        )
+        # 2. Einzelschulung per Formular
+        resp = self.client.post(
+            reverse("mpg_training_create", args=[self.device.slug]),
+            data={
+                "trainee": self.user.id,
+                "instructor": "Auffrischung",
+                "trained_at": (timezone.localdate() - timedelta(days=30)).isoformat(),
+                "notes": "Re-Zertifizierung",
+            },
+        )
+        self.assertEqual(resp.status_code, 302)
+
+        # 3. Gruppenschulung per Formular
+        resp = self.client.post(
+            reverse("mpg_training_create", args=[self.device.slug]),
+            data={
+                "trainees": [self.user.id],
+                "instructor": "Jahresunterweisung",
+                "trained_at": timezone.localdate().isoformat(),
+                "notes": "Gruppenfortbildung",
+            },
+        )
+        self.assertEqual(resp.status_code, 302)
+
+        records = DeviceTrainingRecord.objects.filter(device=self.device, trainee=self.user)
+        self.assertEqual(records.count(), 3)
+        self.assertEqual(records.first().instructor, "Jahresunterweisung")
+
+    def test_validity_and_expiration(self):
+        today = timezone.localdate()
+        rec_unlimited = DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.user, instructor="X", valid_until=None
+        )
+        self.assertTrue(rec_unlimited.is_valid)
+
+        rec_future = DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.user, instructor="X",
+            valid_until=today + timedelta(days=30),
+        )
+        self.assertTrue(rec_future.is_valid)
+
+        rec_expired = DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.user, instructor="X",
+            valid_until=today - timedelta(days=1),
+        )
+        self.assertFalse(rec_expired.is_valid)
+
+    def test_geraetepass_displays_validity_and_latest_record(self):
+        today = timezone.localdate()
+        # Frühere abgelaufene Schulung
+        DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.user, instructor="Alt",
+            trained_at=today - timedelta(days=400),
+            valid_until=today - timedelta(days=35),
+        )
+        # Neuere gültige Schulung
+        DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.user, instructor="Neu",
+            trained_at=today - timedelta(days=30),
+            valid_until=today + timedelta(days=330),
+        )
+        self.client.force_login(self.user)
+        resp = self.client.get(reverse("mpg_geraetepass"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Gültig")
+        self.assertContains(resp, "Neu")
+
+
+class MPG5MinRoutineCheckStornoTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(name="Wache Storno", slug="wache-storno", mpg_enabled=True)
+        self.user = User.objects.create_user(username="pruefer", password="pw-123456789")
+        self.other_user = User.objects.create_user(username="fremder", password="pw-123456789")
+        Membership.objects.create(user=self.user, station=self.station, role=Membership.Role.MEMBER)
+        Membership.objects.create(user=self.other_user, station=self.station, role=Membership.Role.MEMBER)
+        self.device = MedicalDevice.objects.create(station=self.station, slug="defi-storno", name="Defi Storno")
+        self.client.force_login(self.user)
+
+    def test_storno_within_5_minutes_creates_append_only_record(self):
+        check = DeviceRoutineCheck.objects.create(
+            station=self.station,
+            device=self.device,
+            performed_by=self.user,
+            battery_ok=True,
+            visual_ok=True,
+            function_ok=True,
+            notes="Erste Kontrolle",
+        )
+        url = reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk])
+        resp = self.client.post(url, data={"reason": "Verklickt"})
+        self.assertEqual(resp.status_code, 302)
+
+        # Original unverändert
+        check_fresh = DeviceRoutineCheck.objects.get(pk=check.pk)
+        self.assertFalse(check_fresh.is_cancellation)
+        self.assertTrue(check_fresh.is_cancelled)
+
+        # Neuer Storno-Datensatz
+        storno = DeviceRoutineCheck.objects.filter(cancels_check=check).get()
+        self.assertTrue(storno.is_cancellation)
+        self.assertEqual(storno.performed_by, self.user)
+        self.assertIn("5-Minuten-Storno", storno.notes)
+        self.assertIn("Verklickt", storno.notes)
+
+        # Audit Event
+        event = AuditEvent.objects.filter(action="mpg.routine_check_cancelled").latest("created_at")
+        self.assertEqual(event.actor, self.user)
+        self.assertEqual(event.metadata["cancelled_check_id"], check.pk)
+        self.assertEqual(event.metadata["storno_check_id"], storno.pk)
+
+    def test_storno_by_pk_url_works(self):
+        check = DeviceRoutineCheck.objects.create(
+            station=self.station, device=self.device, performed_by=self.user,
+        )
+        url = reverse("mpg_routine_check_storno_by_pk", kwargs={"pk": self.device.pk, "check_id": check.pk})
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(DeviceRoutineCheck.objects.filter(cancels_check=check).exists())
+
+    def test_storno_reverts_failed_check_defect_and_status(self):
+        # Kontrolle nicht bestanden -> Gerät gesperrt und Defect erstellt
+        check = DeviceRoutineCheck(
+            station=self.station,
+            device=self.device,
+            performed_by=self.user,
+            battery_ok=False,
+            visual_ok=True,
+            function_ok=True,
+            notes="Akku leer",
+        )
+        check.save()
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+        defect = Defect.objects.filter(medical_device=self.device, status=Defect.Status.OPEN).get()
+
+        # Storno
+        resp = self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk]))
+        self.assertEqual(resp.status_code, 302)
+
+        defect.refresh_from_db()
+        self.assertEqual(defect.status, Defect.Status.DONE)
+        self.assertTrue(DefectEvent.objects.filter(defect=defect, to_status=Defect.Status.DONE).exists())
+
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
+
+    def test_storno_rejected_after_5_minutes(self):
+        check = DeviceRoutineCheck.objects.create(
+            station=self.station, device=self.device, performed_by=self.user,
+        )
+        # 6 Minuten in die Vergangenheit datieren
+        DeviceRoutineCheck.objects.filter(pk=check.pk).update(
+            checked_at=timezone.now() - timedelta(minutes=6)
+        )
+        resp = self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk]))
+        self.assertEqual(resp.status_code, 302)
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("5 Minuten" in m for m in messages))
+        self.assertFalse(DeviceRoutineCheck.objects.filter(is_cancellation=True).exists())
+
+    def test_storno_rejected_for_different_user(self):
+        check = DeviceRoutineCheck.objects.create(
+            station=self.station, device=self.device, performed_by=self.user,
+        )
+        self.client.force_login(self.other_user)
+        resp = self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk]))
+        self.assertEqual(resp.status_code, 302)
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("eigene Kontrolle" in m for m in messages))
+        self.assertFalse(DeviceRoutineCheck.objects.filter(is_cancellation=True).exists())
+
+    def test_storno_rejected_if_already_cancelled_or_cancellation_itself(self):
+        check = DeviceRoutineCheck.objects.create(
+            station=self.station, device=self.device, performed_by=self.user,
+        )
+        # Erste Storno
+        self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk]))
+        storno = DeviceRoutineCheck.objects.get(cancels_check=check)
+
+        # Zweite Storno auf dieselbe Kontrolle
+        resp = self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, check.pk]))
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("bereits storniert" in m for m in messages))
+
+        # Storno auf den Storno-Eintrag selbst
+        resp = self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, storno.pk]))
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("Storno-Eintrag kann nicht storniert werden" in m for m in messages))
+
+
+class MPGTrainingRequirementWarningTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(
+            name="Wache Einweisungspflicht",
+            slug="wache-pflicht",
+            mpg_enabled=True,
+            mpg_training_required=True,
+        )
+        self.admin = User.objects.create_user(username="station-admin", password="pw-123456789")
+        self.mpg_lead = User.objects.create_user(username="mpg-beauftragter", password="pw-123456789")
+        self.regular = User.objects.create_user(username="sanitaeter", password="pw-123456789")
+        self.untrained = User.objects.create_user(username="neuling", password="pw-123456789")
+
+        Membership.objects.create(user=self.admin, station=self.station, role=Membership.Role.ADMIN)
+        Membership.objects.create(user=self.mpg_lead, station=self.station, role=Membership.Role.MEMBER, is_mpg_lead=True)
+        Membership.objects.create(user=self.regular, station=self.station, role=Membership.Role.MEMBER)
+        Membership.objects.create(user=self.untrained, station=self.station, role=Membership.Role.MEMBER)
+
+        self.device = MedicalDevice.objects.create(
+            station=self.station, slug="defi-pflicht", name="Defi Pflicht", requires_training=True,
+        )
+        self.check_url = reverse("mpg_routine_check", args=[self.device.slug])
+
+    def test_routine_check_without_training_warns_user_and_notifies_leads(self):
+        self.client.force_login(self.untrained)
+        resp = self.client.post(self.check_url, data={"quick_pass": "1"})
+        self.assertEqual(resp.status_code, 302)
+
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("keine gültige Geräteeinweisung" in m for m in messages))
+
+        # Check wurde trotzdem angelegt (append-only)
+        self.assertTrue(DeviceRoutineCheck.objects.filter(device=self.device, performed_by=self.untrained).exists())
+
+        # Benachrichtigung an Admin und MPG-Beauftragten
+        notes = UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING)
+        recipient_ids = set(notes.values_list("user_id", flat=True))
+        self.assertEqual(recipient_ids, {self.admin.id, self.mpg_lead.id})
+        self.assertNotIn(self.regular.id, recipient_ids)
+
+    def test_routine_check_with_valid_training_produces_no_warning_or_notification(self):
+        DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.regular, instructor="Dozent",
+            valid_until=timezone.localdate() + timedelta(days=180),
+        )
+        self.client.force_login(self.regular)
+        resp = self.client.post(self.check_url, data={"quick_pass": "1"})
+        self.assertEqual(resp.status_code, 302)
+
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertFalse(any("keine gültige Geräteeinweisung" in m for m in messages))
+        self.assertFalse(UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING).exists())
+
+    def test_routine_check_with_expired_training_warns_and_notifies(self):
+        DeviceTrainingRecord.objects.create(
+            station=self.station, device=self.device, trainee=self.regular, instructor="Dozent",
+            valid_until=timezone.localdate() - timedelta(days=1),
+        )
+        self.client.force_login(self.regular)
+        resp = self.client.post(self.check_url, data={"quick_pass": "1"})
+        self.assertEqual(resp.status_code, 302)
+
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("keine gültige Geräteeinweisung" in m for m in messages))
+        self.assertTrue(UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING).exists())
+
+    def test_routine_check_with_station_switch_disabled_no_warning(self):
+        self.station.mpg_training_required = False
+        self.station.save(update_fields=["mpg_training_required"])
+
+        self.client.force_login(self.untrained)
+        resp = self.client.post(self.check_url, data={"quick_pass": "1"})
+        self.assertEqual(resp.status_code, 302)
+
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertFalse(any("keine gültige Geräteeinweisung" in m for m in messages))
+        self.assertFalse(UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING).exists())
+
+    def test_routine_check_with_device_requires_training_false_no_warning(self):
+        self.device.requires_training = False
+        self.device.save(update_fields=["requires_training"])
+
+        self.client.force_login(self.untrained)
+        resp = self.client.post(self.check_url, data={"quick_pass": "1"})
+        self.assertEqual(resp.status_code, 302)
+
+        messages = [m.message for m in get_messages(resp.wsgi_request)]
+        self.assertFalse(any("keine gültige Geräteeinweisung" in m for m in messages))
+        self.assertFalse(UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING).exists())

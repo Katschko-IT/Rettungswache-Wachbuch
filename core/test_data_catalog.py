@@ -720,11 +720,11 @@ class CatalogMatchesBehaviourTests(TestCase):
                 "notes": "",
             })
         records = DeviceTrainingRecord.objects.filter(device=self.device, trainee=trainee)
-        self.assertEqual(records.count(), 1, "Einweisungen werden nicht mehr ersetzt: Frist für core.DeviceTrainingRecord im Katalog anpassen")
-        self.assertEqual(records.get().trained_at, timezone.localdate())
+        self.assertEqual(records.count(), 2)
+        self.assertEqual(records.order_by("-trained_at").first().trained_at, timezone.localdate())
         spec = dc.spec_for_label("core.DeviceTrainingRecord")[1]
-        self.assertEqual(spec.retention, "training_replace")
-        self.assertNotIn("append-only", dc.evidence_text(spec))
+        self.assertEqual(spec.retention, "evidence")
+        self.assertIn("append-only", dc.evidence_text(spec))
 
 
 # App-Schnittstellen mit Pfadparametern, die der folgende Test nicht aufruft.

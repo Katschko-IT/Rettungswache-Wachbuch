@@ -44,7 +44,7 @@ class Command(BaseCommand):
             # core/test_review_final_core.py sie lesen kann.
             f"REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
             f"core_handoverrevision, core_checklistcompletion, core_stockmovement, "
-            f"core_maintenancelog, core_deviceroutinecheck, "
+            f"core_maintenancelog, core_deviceroutinecheck, core_devicetrainingrecord, "
             f"core_vehiclehandover, core_disinfectionprotocol, core_sopreceipt, core_soprevision FROM {app_role}",
             f"GRANT SELECT, UPDATE (last_success_at, last_error_at, last_error) ON core_feedsource TO {feed_role}",
             f"GRANT SELECT, INSERT, UPDATE, DELETE ON core_feeditem TO {feed_role}",

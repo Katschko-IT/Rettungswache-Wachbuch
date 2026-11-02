@@ -28,6 +28,7 @@ ACTION_LABELS = {
     "inventory.checkout": _("Poolartikel ausgegeben"),
     "inventory.checkin": _("Poolartikel zurückgegeben"),
     "mpg.routine_check": _("Funktionskontrolle eingetragen"),
+    "mpg.routine_check_cancelled": _("Funktionskontrolle storniert"),
     "mpg.device_locked": _("Medizingerät gesperrt"),
     "mpg.device_released": _("Medizingerät freigegeben"),
     "mpg.device_retired": _("Medizingerät außer Betrieb genommen"),

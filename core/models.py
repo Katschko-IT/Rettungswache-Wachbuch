@@ -62,6 +62,11 @@ class Station(models.Model):
     )
     checklists_enabled = models.BooleanField(default=False, verbose_name="Checklisten aktiviert")
     mpg_enabled = models.BooleanField(default=True, verbose_name="MPG & Medizingeräte aktiviert")
+    mpg_training_required = models.BooleanField(
+        default=False,
+        verbose_name="Einweisungspflicht bei Medizingeräten prüfen",
+        help_text="Warnt bei Funktionskontrollen ohne dokumentierte Einweisung und benachrichtigt MPG-Beauftragte.",
+    )
     warehouse_enabled = models.BooleanField(default=True, verbose_name="Lager & Materialwirtschaft aktiviert")
     fleet_enabled = models.BooleanField(default=True, verbose_name="Fuhrpark & Fahrzeuge aktiviert")
     display_enabled = models.BooleanField(default=True, verbose_name="Wachen-Display aktiviert")
@@ -169,6 +174,11 @@ class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="station_memberships")
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="memberships")
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER)
+    is_mpg_lead = models.BooleanField(
+        default=False,
+        verbose_name="MPG-Beauftragte/r (§ 13 MPBetreibV)",
+        help_text="Wird bei Verstößen gegen die Einweisungspflicht benachrichtigt.",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

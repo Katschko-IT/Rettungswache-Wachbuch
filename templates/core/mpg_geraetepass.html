@@ -26,10 +26,14 @@
         <span class="row-content">
           <strong><a href="{% url 'mpg_device_detail' t.device.slug %}">{{ t.device.name }}</a></strong>
           <small>{{ t.device.get_category_display }} &middot; {{ t.device.location }}</small>
-          <small>{% translate "Schulungsdatum:" %} {{ t.trained_at|date:"d.m.Y" }} &middot; {% translate "Einweiser:" %} {{ t.instructor }}</small>
+          <small>{% translate "Schulungsdatum:" %} {{ t.trained_at|date:"d.m.Y" }}{% if t.valid_until %} &middot; {% translate "Gültig bis:" %} {{ t.valid_until|date:"d.m.Y" }}{% endif %} &middot; {% translate "Einweiser:" %} {{ t.instructor }}</small>
           {% if t.notes %}<small>{{ t.notes }}</small>{% endif %}
         </span>
-        <span class="badge badge-pass">Gültig</span>
+        {% if t.is_valid %}
+          <span class="badge badge-pass">{% translate "Gültig" %}</span>
+        {% else %}
+          <span class="badge badge-fail">{% translate "Abgelaufen" %}</span>
+        {% endif %}
       </div>
     {% empty %}
       <p class="empty-state">

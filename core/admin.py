@@ -152,8 +152,8 @@ class DataProtectionOfficerAdmin(admin.ModelAdmin):
 
 @admin.register(Membership)
 class MembershipAdmin(ReadOnlyAdmin):
-    list_display = ("user", "station", "role", "is_active")
-    list_filter = ("station", "role", "is_active")
+    list_display = ("user", "station", "role", "is_mpg_lead", "is_active")
+    list_filter = ("station", "role", "is_mpg_lead", "is_active")
     search_fields = ("user__username", "user__first_name", "user__last_name")
 
 

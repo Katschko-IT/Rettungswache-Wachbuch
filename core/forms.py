@@ -372,11 +372,13 @@ class MasterAdminCreateUserForm(forms.Form):
 
 class MembershipEditForm(forms.Form):
     role = forms.ChoiceField(choices=Membership.Role.choices, label=_("Rolle"))
+    is_mpg_lead = forms.BooleanField(required=False, label=_("MPG-Beauftragte/r (§ 13 MPBetreibV)"))
     is_active = forms.BooleanField(required=False, label=_("Zugang aktiv"))
 
     def __init__(self, *args, membership, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["role"].initial = membership.role
+        self.fields["is_mpg_lead"].initial = getattr(membership, "is_mpg_lead", False)
         self.fields["is_active"].initial = membership.is_active
 
 
@@ -445,6 +447,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "city",
             "checklists_enabled",
             "mpg_enabled",
+            "mpg_training_required",
             "warehouse_enabled",
             "fleet_enabled",
             "display_enabled",
@@ -469,6 +472,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "name": _("Name der Organisationseinheit"),
             "organization_profile": _("Profil dieser Einrichtung"),
             "mpg_enabled": _("MPG & Medizingeräte (Medizinproduktebuch)"),
+            "mpg_training_required": _("Einweisungspflicht bei Medizingeräten prüfen"),
             "warehouse_enabled": _("Lager & Materialwirtschaft"),
             "fleet_enabled": _("Fuhrpark & Fahrzeuge"),
             "display_enabled": _("Wachen-Display"),

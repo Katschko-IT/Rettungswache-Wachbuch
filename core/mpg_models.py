@@ -90,6 +90,11 @@ class MedicalDevice(models.Model):
     status_note = models.CharField(max_length=300, blank=True, default="", verbose_name="Status-Bemerkung")
 
     # Prüfvorschriften & Intervalle (Monate)
+    requires_training = models.BooleanField(
+        default=True,
+        verbose_name="Einweisungspflichtig gem. § 11 MPBetreibV",
+        help_text="Erfordert vor der Anwendung/Prüfung eine dokumentierte Geräteeinweisung.",
+    )
     is_anlage_1 = models.BooleanField(default=True, verbose_name="Anlage 1 MPBetreibV (STK-Pflicht)")
     is_anlage_2 = models.BooleanField(default=False, verbose_name="Anlage 2 MPBetreibV (MTK-Pflicht)")
     stk_interval_months = models.PositiveSmallIntegerField(default=24, verbose_name="STK-Intervall (Monate)")
@@ -265,21 +270,35 @@ class DeviceTrainingRecord(models.Model):
     trainee = models.ForeignKey(User, on_delete=models.PROTECT, related_name="device_trainings")
     instructor = models.CharField(max_length=140, verbose_name="Einweiser / Gerätebeauftragter (§ 11 MPBetreibV)")
     trained_at = models.DateField(default=timezone.localdate, verbose_name="Schulungsdatum")
+    valid_until = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Gültig bis",
+        help_text="Optionales Ablaufdatum der Einweisung (leer = unbegrenzt gültig)",
+    )
     notes = models.CharField(max_length=300, blank=True, default="", verbose_name="Bemerkung")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-trained_at"]
-        constraints = [
-            models.UniqueConstraint(fields=["device", "trainee"], name="unique_device_trainee_record"),
-        ]
+        ordering = ["-trained_at", "-created_at"]
         indexes = [
             models.Index(fields=["station", "trainee"], name="dev_train_station_user_idx"),
         ]
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Einweisungsnachweise dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Einweisungsnachweis")
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Einweisungsnachweise dürfen nicht gelöscht werden.")
+
+    @property
+    def is_valid(self) -> bool:
+        if self.valid_until is None:
+            return True
+        return self.valid_until >= timezone.localdate()
 
 
 class DeviceRoutineCheck(models.Model):
@@ -294,6 +313,19 @@ class DeviceRoutineCheck(models.Model):
     visual_ok = models.BooleanField(default=True, verbose_name="Sichtprüfung / Zubehör vollständig")
     function_ok = models.BooleanField(default=True, verbose_name="Selbsttest / Funktionsprüfung OK")
     notes = models.CharField(max_length=300, blank=True, default="", verbose_name="Feststellungen / Notiz")
+    is_cancellation = models.BooleanField(
+        default=False,
+        verbose_name="Storno-Eintrag",
+        help_text="Kennzeichnet diesen Eintrag als Storno einer vorangegangenen Funktionskontrolle.",
+    )
+    cancels_check = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="cancellation_records",
+        verbose_name="Stornierte Funktionskontrolle",
+    )
 
     class Meta:
         ordering = ["-checked_at"]
@@ -305,44 +337,76 @@ class DeviceRoutineCheck(models.Model):
         if self.pk:
             raise ValidationError("Funktionskontrollen dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Funktionskontrolle")
-        # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
-        self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
+        if not self.is_cancellation:
+            # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
+            self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
         super().save(*args, **kwargs)
 
-        self.device.last_routine_check = self.checked_at
-        update_fields = ["last_routine_check", "updated_at"]
-        if not self.passed and self.device.current_status != MedicalDevice.Status.DECOMMISSIONED:
-            # Sperre mit Mangel; aufgehoben wird sie nur über die Freigabe
-            # (core/device_status.py). Eine bestandene Kontrolle hebt nichts auf.
-            from .wachalltag_models import Defect
+        if not self.is_cancellation:
+            self.device.last_routine_check = self.checked_at
+            update_fields = ["last_routine_check", "updated_at"]
+            if not self.passed and self.device.current_status != MedicalDevice.Status.DECOMMISSIONED:
+                # Sperre mit Mangel; aufgehoben wird sie nur über die Freigabe
+                # (core/device_status.py). Eine bestandene Kontrolle hebt nichts auf.
+                from .wachalltag_models import Defect
 
-            failed = [
-                label
-                for ok, label in (
-                    (self.battery_ok, "Energieversorgung"),
-                    (self.visual_ok, "Sichtprüfung/Zubehör"),
-                    (self.function_ok, "Selbsttest/Funktion"),
+                failed = [
+                    label
+                    for ok, label in (
+                        (self.battery_ok, "Energieversorgung"),
+                        (self.visual_ok, "Sichtprüfung/Zubehör"),
+                        (self.function_ok, "Selbsttest/Funktion"),
+                    )
+                    if not ok
+                ]
+                Defect.objects.create(
+                    station_id=self.station_id,
+                    medical_device=self.device,
+                    title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
+                    description=(
+                        f"Nicht in Ordnung: {', '.join(failed)}\n"
+                        f"Standort: {self.device.location}\n\n{self.notes}"
+                    ).strip(),
+                    asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
+                    priority=Defect.Priority.URGENT,
+                    status=Defect.Status.OPEN,
+                    category=Defect.Category.DEVICE,
+                    created_by=self.performed_by,
                 )
-                if not ok
-            ]
-            Defect.objects.create(
-                station_id=self.station_id,
-                medical_device=self.device,
-                title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
-                description=(
-                    f"Nicht in Ordnung: {', '.join(failed)}\n"
-                    f"Standort: {self.device.location}\n\n{self.notes}"
-                ).strip(),
-                asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
-                priority=Defect.Priority.URGENT,
-                status=Defect.Status.OPEN,
-                category=Defect.Category.DEVICE,
-                created_by=self.performed_by,
+                self.device.current_status = MedicalDevice.Status.OOB
+                self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
+                update_fields += ["current_status", "status_note"]
+            self.device.save(update_fields=update_fields)
+        else:
+            # Storno-Eintrag: Letzte gültige Kontrolle ermitteln
+            cancelled_ids = DeviceRoutineCheck.objects.filter(
+                device=self.device, is_cancellation=True
+            ).values_list("cancels_check_id", flat=True)
+            last_valid = (
+                DeviceRoutineCheck.objects.filter(device=self.device, is_cancellation=False)
+                .exclude(id__in=cancelled_ids)
+                .exclude(id=self.cancels_check_id)
+                .order_by("-checked_at")
+                .first()
             )
-            self.device.current_status = MedicalDevice.Status.OOB
-            self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
-            update_fields += ["current_status", "status_note"]
-        self.device.save(update_fields=update_fields)
+            self.device.last_routine_check = last_valid.checked_at if last_valid else None
+            self.device.save(update_fields=["last_routine_check", "updated_at"])
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Funktionskontrollen dürfen nicht gelöscht werden.")
+
+    @property
+    def is_cancelled(self) -> bool:
+        return self.cancellation_records.exists()
+
+    @property
+    def is_within_storno_window(self) -> bool:
+        age = timezone.now() - self.checked_at
+        return timedelta(0) <= age <= timedelta(minutes=5)
+
+    def can_storno(self, user) -> bool:
+        if self.is_cancellation or self.is_cancelled:
+            return False
+        if self.performed_by_id != getattr(user, "id", None):
+            return False
+        return self.is_within_storno_window

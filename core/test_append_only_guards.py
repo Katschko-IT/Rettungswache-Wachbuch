@@ -35,7 +35,7 @@ from core.models import (
     Station,
 )
 from core.fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
-from core.mpg_models import DeviceRoutineCheck, MaintenanceLog, MedicalDevice
+from core.mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
 from core.orga_models import SOPDocument, SOPReceipt, SOPRevision
 from core.wachalltag_models import (
     AssetEvent,
@@ -161,6 +161,9 @@ class AppendOnlyGuardTests(TestCase):
             ("DeviceRoutineCheck", lambda: DeviceRoutineCheck.objects.create(
                 station=self.station, device=self.device, performed_by=self.user),
              "notes", "Funktionskontrollen " + changed, "Funktionskontrollen " + deleted),
+            ("DeviceTrainingRecord", lambda: DeviceTrainingRecord.objects.create(
+                station=self.station, device=self.device, trainee=self.user, instructor="Einweiser"),
+             "notes", "Einweisungsnachweise " + changed, "Einweisungsnachweise " + deleted),
             ("SOPRevision", lambda: SOPRevision.objects.create(
                 sop=self.sop, version_label=f"9.{SOPRevision.objects.count()}", content_markdown="Text",
                 approved_by=self.user),

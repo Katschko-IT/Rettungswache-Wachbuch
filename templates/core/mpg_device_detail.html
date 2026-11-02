@@ -248,8 +248,22 @@
               {% if check.notes %}&middot; {{ check.notes }}{% endif %}
             </small>
           </span>
-          <span class="badge {% if check.passed %}badge-pass{% else %}badge-fail{% endif %}">
-            {% if check.passed %}Bestanden{% else %}Nicht bestanden{% endif %}
+          <span class="row-actions" style="display:flex; align-items:center; gap:0.5rem;">
+            {% if check.is_cancellation %}
+              <span class="badge badge-neutral">{% translate "Storno" %}</span>
+            {% elif check.is_cancelled %}
+              <span class="badge badge-neutral">{% translate "Storniert" %}</span>
+            {% else %}
+              <span class="badge {% if check.passed %}badge-pass{% else %}badge-fail{% endif %}">
+                {% if check.passed %}Bestanden{% else %}Nicht bestanden{% endif %}
+              </span>
+            {% endif %}
+            {% if not is_retired and check.performed_by_id == request.user.id and not check.is_cancellation and not check.is_cancelled and check.is_within_storno_window %}
+              <form method="post" action="{% url 'mpg_routine_check_storno' device.slug check.id %}" onsubmit="return confirm('{% translate "Möchtest du diese Funktionskontrolle wirklich stornieren?" %}');">
+                {% csrf_token %}
+                <button type="submit" class="button ghost small danger-text" title="{% translate "Funktionskontrolle stornieren (innerhalb von 5 Minuten)" %}">{% translate "Stornieren" %}</button>
+              </form>
+            {% endif %}
           </span>
         </div>
       {% empty %}
@@ -265,9 +279,14 @@
         <div class="list-row">
           <span class="row-content">
             <strong>{{ t.trainee.get_full_name|default:t.trainee.username }}</strong>
-            <small>{% translate "Eingewiesen am:" %} {{ t.trained_at|date:"d.m.Y" }} &middot; Einweiser: {{ t.instructor }}</small>
+            <small>{% translate "Eingewiesen am:" %} {{ t.trained_at|date:"d.m.Y" }}{% if t.valid_until %} &middot; {% translate "Gültig bis:" %} {{ t.valid_until|date:"d.m.Y" }}{% endif %} &middot; Einweiser: {{ t.instructor }}</small>
             {% if t.notes %}<small>{{ t.notes }}</small>{% endif %}
           </span>
+          {% if t.is_valid %}
+            <span class="badge badge-pass">{% translate "Gültig" %}</span>
+          {% else %}
+            <span class="badge badge-fail">{% translate "Abgelaufen" %}</span>
+          {% endif %}
         </div>
       {% empty %}
         <p class="empty-state">{% translate "Noch keine Einweisungen für dieses Gerät." %}{% if can_manage and not is_retired %} <button type="button" class="button ghost small" data-modal-open="training-modal">{% translate "Einweisung dokumentieren" %}</button>{% endif %}</p>
@@ -450,9 +469,15 @@
           <label for="{{ group_training_form.instructor.id_for_label }}">{% translate "Einweiser / Gerätebeauftragter:" %}</label>
           {{ group_training_form.instructor }}
         </div>
-        <div class="field">
-          <label for="{{ group_training_form.trained_at.id_for_label }}">{% translate "Datum:" %}</label>
-          {{ group_training_form.trained_at }}
+        <div class="field-row">
+          <div class="field">
+            <label for="{{ group_training_form.trained_at.id_for_label }}">{% translate "Datum:" %}</label>
+            {{ group_training_form.trained_at }}
+          </div>
+          <div class="field">
+            <label for="{{ group_training_form.valid_until.id_for_label }}">{% translate "Gültig bis (optional):" %}</label>
+            {{ group_training_form.valid_until }}
+          </div>
         </div>
         <div class="field">
           <span class="field-label">{% translate "Mitarbeiter auswählen:" %}</span>
@@ -482,6 +507,10 @@
         <div class="field">
           <label for="{{ training_form.trained_at.id_for_label }}">{% translate "Schulungsdatum:" %}</label>
           {{ training_form.trained_at }}
+        </div>
+        <div class="field">
+          <label for="{{ training_form.valid_until.id_for_label }}">{% translate "Gültig bis (optional):" %}</label>
+          {{ training_form.valid_until }}
         </div>
       </div>
       <div class="field">

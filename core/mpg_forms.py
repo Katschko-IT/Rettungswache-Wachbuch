@@ -29,6 +29,7 @@ class MedicalDeviceForm(forms.ModelForm):
             "location",
             "current_status",
             "status_note",
+            "requires_training",
             "is_anlage_1",
             "is_anlage_2",
             "stk_interval_months",
@@ -184,10 +185,12 @@ class DeviceTrainingRecordForm(forms.ModelForm):
             "trainee",
             "instructor",
             "trained_at",
+            "valid_until",
             "notes",
         ]
         widgets = {
             "trained_at": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "valid_until": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "instructor": forms.TextInput(attrs={"placeholder": "Name des Gerätebeauftragten / Herstellers"}),
             "notes": forms.TextInput(attrs={"placeholder": "z. B. Erstschulung oder Re-Zertifizierung"}),
         }
@@ -216,6 +219,11 @@ class GroupTrainingForm(forms.Form):
     )
     trained_at = forms.DateField(
         label="Schulungsdatum",
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    valid_until = forms.DateField(
+        label="Gültig bis (optional)",
+        required=False,
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     notes = forms.CharField(

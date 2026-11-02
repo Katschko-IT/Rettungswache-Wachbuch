@@ -117,12 +117,22 @@ def reject_if_retired(model, is_retired, detail_url_name: str, message):
 
     def decorator(view_func):
         @wraps(view_func)
-        def wrapped(request, slug, *args, **kwargs):
-            obj = model.objects.filter(station=request.membership.station, slug=slug).first()
+        def wrapped(request, *args, **kwargs):
+            slug = kwargs.get("slug")
+            pk = kwargs.get("pk")
+            if slug is not None:
+                obj = model.objects.filter(station=request.membership.station, slug=slug).first()
+            elif pk is not None:
+                obj = model.objects.filter(station=request.membership.station, pk=pk).first()
+            elif args:
+                obj = model.objects.filter(station=request.membership.station, slug=args[0]).first()
+            else:
+                obj = None
             if obj is not None and is_retired(obj):
                 messages.error(request, str(message))
-                return redirect(detail_url_name, slug=slug)
-            return view_func(request, slug, *args, **kwargs)
+                redirect_slug = getattr(obj, "slug", slug)
+                return redirect(detail_url_name, slug=redirect_slug)
+            return view_func(request, *args, **kwargs)
 
         return wrapped
 

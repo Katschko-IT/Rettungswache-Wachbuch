@@ -5,6 +5,7 @@ Erfüllt MPDG, MPBetreibV (§§ 6, 11-14) und DIN EN 62353.
 from __future__ import annotations
 
 import csv
+from datetime import timedelta
 from io import BytesIO
 from django.contrib import messages
 from django.db import transaction
@@ -240,10 +241,18 @@ def mpg_device_detail(request, slug: str):
     device = get_object_or_404(MedicalDevice, station=station, slug=slug)
 
     maint_logs = device.maintenance_logs.select_related("created_by").order_by("-performed_at")[:10]
-    routine_checks = device.routine_checks.select_related("performed_by").order_by("-checked_at")[:10]
-    trainings = device.trainings.select_related("trainee").order_by("-trained_at")
+    routine_checks = (
+        device.routine_checks.select_related("performed_by")
+        .prefetch_related("cancellation_records")
+        .order_by("-checked_at")[:10]
+    )
+    trainings = device.trainings.select_related("trainee").order_by("-trained_at", "-created_at")
 
-    is_user_trained = device.trainings.filter(trainee=request.user).exists()
+    is_user_trained = (
+        device.trainings.filter(trainee=request.user)
+        .filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate()))
+        .exists()
+    )
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
     maint_form = MaintenanceLogForm(auto_id="maint_%s")
@@ -338,6 +347,49 @@ def mpg_routine_check(request, slug: str):
             check.notes = f"{check.notes} | Selbsttest: {protocol}".strip(" |")[:300]
     check.save()
     audit(request.user, station, "mpg.routine_check", device, {"passed": check.passed})
+
+    if device.requires_training and station.mpg_training_required:
+        has_valid_training = (
+            DeviceTrainingRecord.objects.filter(
+                station=station,
+                device=device,
+                trainee=request.user,
+            )
+            .filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate()))
+            .exists()
+        )
+        if not has_valid_training:
+            messages.warning(
+                request,
+                _(
+                    "Achtung: Für „%(name)s“ ist keine gültige Geräteeinweisung für dich hinterlegt! "
+                    "Die MPG-Beauftragten wurden benachrichtigt."
+                )
+                % {"name": device.name},
+            )
+            from .notification_models import UserNotification
+
+            mpg_leads = (
+                Membership.objects.filter(station=station, is_active=True)
+                .filter(Q(is_mpg_lead=True) | Q(role=Membership.Role.ADMIN))
+                .select_related("user")
+            )
+            trainee_name = request.user.get_full_name() or request.user.username
+            for lead in mpg_leads:
+                UserNotification.objects.get_or_create(
+                    user=lead.user,
+                    dedupe_key=f"mpg_training_missing:{device.pk}:{check.pk}:{lead.user.pk}",
+                    defaults={
+                        "station": station,
+                        "kind": UserNotification.Kind.MPG_TRAINING_MISSING,
+                        "title": f"Funktionskontrolle ohne Einweisung: {device.name}"[:120],
+                        "body": (
+                            f"{trainee_name} hat eine Funktionskontrolle an „{device.name}“ durchgeführt, "
+                            "ohne dass eine gültige Geräteeinweisung vorliegt."
+                        )[:300],
+                        "url": reverse("mpg_device_detail", args=[device.slug]),
+                    },
+                )
 
     if not check.passed:
         messages.warning(
@@ -447,22 +499,20 @@ def mpg_training_create(request, slug: str):
             trainees = group_form.cleaned_data["trainees"]
             instructor = group_form.cleaned_data["instructor"]
             trained_at = group_form.cleaned_data["trained_at"]
+            valid_until = group_form.cleaned_data.get("valid_until")
             notes = group_form.cleaned_data.get("notes", "")
 
-            created_count = 0
-            for trainee in trainees:
-                obj, created = DeviceTrainingRecord.objects.update_or_create(
-                    device=device,
-                    trainee=trainee,
-                    defaults={
-                        "station": station,
-                        "instructor": instructor,
-                        "trained_at": trained_at,
-                        "notes": notes,
-                    },
-                )
-                if created:
-                    created_count += 1
+            with transaction.atomic():
+                for trainee in trainees:
+                    DeviceTrainingRecord.objects.create(
+                        station=station,
+                        device=device,
+                        trainee=trainee,
+                        instructor=instructor,
+                        trained_at=trained_at,
+                        valid_until=valid_until,
+                        notes=notes,
+                    )
             messages.success(
                 request,
                 f"Gruppenschulung dokumentiert: {len(trainees)} Mitarbeiter für '{device.name}' eingewiesen.",
@@ -475,8 +525,6 @@ def mpg_training_create(request, slug: str):
             record = form.save(commit=False)
             record.station = station
             record.device = device
-            # Vorherige Einweisung aktualisieren falls vorhanden
-            DeviceTrainingRecord.objects.filter(device=device, trainee=record.trainee).delete()
             record.save()
             messages.success(
                 request,
@@ -544,7 +592,11 @@ def mpg_geraetepass(request):
     ).order_by("category", "name")
 
     # Alle Trainings für die Wache laden
-    all_trainings = DeviceTrainingRecord.objects.filter(station=station).select_related("device", "trainee")
+    all_trainings = (
+        DeviceTrainingRecord.objects.filter(station=station)
+        .select_related("device", "trainee")
+        .order_by("trained_at", "created_at", "pk")
+    )
     user_device_map: dict[tuple[int, int], DeviceTrainingRecord] = {}
     for t in all_trainings:
         user_device_map[(t.trainee_id, t.device_id)] = t
@@ -555,9 +607,10 @@ def mpg_geraetepass(request):
         trained_devices = []
         for d in devices:
             rec = user_device_map.get((u.id, d.id))
+            is_trained = rec is not None and rec.is_valid
             trained_devices.append({
                 "device": d,
-                "is_trained": rec is not None,
+                "is_trained": is_trained,
                 "record": rec,
             })
         matrix.append({
@@ -567,11 +620,14 @@ def mpg_geraetepass(request):
         })
 
     # Persönlicher Gerätepass des eingeloggten Benutzers (ohne außer Betrieb
-    # genommene Geräte; deren Einweisungen bleiben auf der Geräteseite sichtbar).
-    my_trainings = [
-        t for t in all_trainings
-        if t.trainee_id == request.user.id and not is_device_retired(t.device)
-    ]
+    # genommene Geräte; neueste Einweisung je Gerät).
+    seen_devices = set()
+    my_trainings = []
+    for t in reversed(all_trainings):
+        if t.trainee_id == request.user.id and not is_device_retired(t.device):
+            if t.device_id not in seen_devices:
+                seen_devices.add(t.device_id)
+                my_trainings.append(t)
 
     return render(
         request,
@@ -675,3 +731,99 @@ def mpg_export_bestandsverzeichnis(request):
         ])
 
     return response
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("mpg_enabled")
+@require_POST
+@device_must_be_in_service
+def mpg_routine_check_storno(
+    request, slug: str | None = None, pk: int | None = None, check_id: int | None = None
+):
+    """5-Minuten-Storno für verklickte Funktionskontrollen (append-only als neuer Datensatz)."""
+    station = request.membership.station
+    if slug:
+        device = get_object_or_404(MedicalDevice, station=station, slug=slug)
+    else:
+        device = get_object_or_404(MedicalDevice, station=station, pk=pk)
+
+    check = get_object_or_404(DeviceRoutineCheck, station=station, device=device, pk=check_id)
+
+    if check.is_cancellation:
+        messages.error(request, _("Ein Storno-Eintrag kann nicht storniert werden."))
+        return redirect("mpg_device_detail", slug=device.slug)
+
+    if DeviceRoutineCheck.objects.filter(cancels_check=check).exists():
+        messages.error(request, _("Diese Funktionskontrolle wurde bereits storniert."))
+        return redirect("mpg_device_detail", slug=device.slug)
+
+    if check.performed_by != request.user:
+        messages.error(request, _("Nur die prüfende Person kann die eigene Kontrolle stornieren."))
+        return redirect("mpg_device_detail", slug=device.slug)
+
+    age = timezone.now() - check.checked_at
+    if age > timedelta(minutes=5) or age < timedelta(0):
+        messages.error(request, _("Storno ist nur innerhalb von 5 Minuten nach der Erfassung möglich."))
+        return redirect("mpg_device_detail", slug=device.slug)
+
+    reason = request.POST.get("reason", "").strip()
+    with transaction.atomic():
+        storno = DeviceRoutineCheck.objects.create(
+            station=station,
+            device=device,
+            performed_by=request.user,
+            battery_ok=check.battery_ok,
+            visual_ok=check.visual_ok,
+            function_ok=check.function_ok,
+            passed=check.passed,
+            is_cancellation=True,
+            cancels_check=check,
+            notes=f"5-Minuten-Storno für Kontrolle #{check.pk}" + (f": {reason}" if reason else ""),
+        )
+
+        # Falls die stornierte Kontrolle Mängel angelegt und das Gerät gesperrt hatte:
+        if not check.passed:
+            defect = (
+                Defect.objects.filter(
+                    station=station,
+                    medical_device=device,
+                    created_by=check.performed_by,
+                    status=Defect.Status.OPEN,
+                    category=Defect.Category.DEVICE,
+                    created_at__gte=check.checked_at,
+                )
+                .order_by("-created_at")
+                .first()
+            )
+            if defect:
+                prev_status = defect.status
+                defect.status = Defect.Status.DONE
+                defect.closed_at = timezone.now()
+                defect.save(update_fields=["status", "closed_at", "updated_at"])
+                from .wachalltag_models import DefectEvent
+
+                DefectEvent.objects.create(
+                    defect=defect,
+                    station=station,
+                    kind=DefectEvent.Kind.STATUS,
+                    actor=request.user,
+                    from_status=prev_status,
+                    to_status=Defect.Status.DONE,
+                    note=f"5-Minuten-Storno der Funktionskontrolle #{check.pk}",
+                )
+
+            if not release_blockers(device):
+                device.current_status = MedicalDevice.Status.READY
+                device.status_note = ""
+                device.save(update_fields=["current_status", "status_note", "updated_at"])
+
+        audit(
+            request.user,
+            station,
+            "mpg.routine_check_cancelled",
+            device,
+            {"cancelled_check_id": check.pk, "storno_check_id": storno.pk},
+        )
+
+    messages.success(request, _("Funktionskontrolle wurde erfolgreich storniert."))
+    return redirect("mpg_device_detail", slug=device.slug)

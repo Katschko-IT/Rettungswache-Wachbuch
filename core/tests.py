@@ -2738,7 +2738,8 @@ class DatabaseRoleLeastPrivilegeTests(TestCase):
                 statement
                 == "REVOKE UPDATE, DELETE ON core_coffeeentry, core_coffeecashmovement, core_auditevent, "
                 "core_handoverrevision, core_checklistcompletion, core_stockmovement, "
-                "core_maintenancelog, core_deviceroutinecheck FROM rwsth_app"
+                "core_maintenancelog, core_deviceroutinecheck, core_devicetrainingrecord, "
+                "core_vehiclehandover, core_disinfectionprotocol, core_sopreceipt, core_soprevision FROM rwsth_app"
                 for statement in executed
             ),
             executed,

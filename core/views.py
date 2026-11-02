@@ -1269,21 +1269,24 @@ def membership_update(request, pk):
                 before = {
                     "role": membership.role,
                     "is_active": membership.is_active,
+                    "is_mpg_lead": membership.is_mpg_lead,
                 }
                 was_active = membership.is_active
                 membership.role = form.cleaned_data["role"]
                 membership.is_active = form.cleaned_data["is_active"]
-                membership.save(update_fields=["role", "is_active"])
+                membership.is_mpg_lead = form.cleaned_data.get("is_mpg_lead", False)
+                membership.save(update_fields=["role", "is_active", "is_mpg_lead"])
                 if before["role"] != membership.role or before["is_active"] != membership.is_active:
                     from .qr_login import revoke_open_requests_for_user
                     revoke_open_requests_for_user(membership.user)
                 if was_active and not membership.is_active:
                     clear_birthday_on_exit(membership.user, membership.station, request.user)
                 audit(request.user, request.membership.station, "membership.updated", membership, {
-                    "fields": ["role", "is_active"],
+                    "fields": ["role", "is_active", "is_mpg_lead"],
                     "changes": structure_changes(before, {
                         "role": membership.role,
                         "is_active": membership.is_active,
+                        "is_mpg_lead": membership.is_mpg_lead,
                     }),
                 })
                 messages.success(request, _("Mitgliedschaft wurde aktualisiert."))

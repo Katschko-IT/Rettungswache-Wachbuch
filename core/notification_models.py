@@ -26,6 +26,8 @@ class UserNotification(models.Model):
         COFFEE_DUE = "coffee_due", "Kaffeekasse: Beitrag offen"
         # Host-Überwachung (core/host_health.py), nur an Master-Admins.
         SYSTEM_HEALTH = "system_health", "Technischer Hinweis zum Server"
+        # Einweisungspflicht (core/mpg_views.py), an MPG-Beauftragte und Admins.
+        MPG_TRAINING_MISSING = "mpg_training_missing", "MPG: Fehlende Einweisung"
 
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="user_notifications")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
