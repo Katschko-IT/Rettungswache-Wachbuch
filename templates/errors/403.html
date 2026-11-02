@@ -6,11 +6,19 @@
 <section class="error-shell" aria-labelledby="error-title">
   <p class="error-code" aria-hidden="true">{{ status_code }}</p>
   <h1 id="error-title">{{ error_label }}</h1>
-  <p class="error-message">{% translate "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an." %}</p>
-  <p class="error-actions">
-    <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
-    <a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
-  </p>
+  {% if user.is_authenticated %}
+    <p class="error-message">{% translate "Deine aktuelle Rolle hat keine Berechtigung für diese Seite." %}</p>
+    <p class="error-actions">
+      <a class="button primary" href="{% url 'dashboard' %}">{% translate "Zur Übersicht" %}</a>
+      <a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
+    </p>
+  {% else %}
+    <p class="error-message">{% translate "Du hast keine Berechtigung für diese Seite. Falls du Mitglied dieser Wache bist, melde dich mit dem entsprechenden Konto an." %}</p>
+    <p class="error-actions">
+      <a class="button primary" href="{% url 'login' %}">{% translate "Anmelden" %}</a>
+      <a class="button secondary" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
+    </p>
+  {% endif %}
   {% if correlation_id %}
   <p class="error-meta">{% translate "Korrelations-ID" %}: <code>{{ correlation_id }}</code></p>
   {% endif %}

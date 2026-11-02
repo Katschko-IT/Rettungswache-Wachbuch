@@ -20,7 +20,9 @@
     {% include "core/form_errors.html" %}
     {{ form.as_p }}
     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-    <button class="button primary" type="submit">{% translate "Anmelden" %}</button>
+    <div class="form-actions">
+      <button class="button primary" type="submit">{% translate "Anmelden" %}</button>
+    </div>
   </form>
   <p class="hint">{% translate "Für die Anmeldung werden ausschließlich technisch notwendige Sicherheitscookies verwendet." %} <a href="{% url 'privacy' %}">{% translate "Datenschutz- und Cookie-Informationen" %}</a></p>
   {% if registration_enabled %}

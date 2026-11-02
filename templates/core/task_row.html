@@ -1,7 +1,9 @@
 {% load i18n %}
-<article class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}{% if item.urgency.has_due and not item.completion %} {{ item.urgency.badge_class }}{% endif %}"{% if item.task.color %} data-band="{{ item.task.color }}"{% endif %}>
+<article id="aufgabe-{{ item.task.pk }}" class="task-row {{ item.task.band_css }}{% if item.completion %} is-done{% endif %}{% if item.urgency.has_due and not item.completion %} {{ item.urgency.badge_class }}{% endif %}"{% if item.task.color %} data-band="{{ item.task.color }}"{% endif %}>
   <div class="task-main">
-    <span class="status-label {% if item.completion %}success{% else %}neutral{% endif %}">{% if item.completion %}{% translate "Erledigt" %}{% else %}{% translate "Offen" %}{% endif %}</span>
+    {% if item.completion or item.completed %}
+      <span class="status-label success">{% translate "Erledigt" %}</span>
+    {% endif %}
     {% if item.urgency.has_due %}
       {% if not item.completion %}
         <span class="urgency-pill {{ item.urgency.badge_class }}" title="{% translate 'Fällig am' %} {{ item.task.due_date|date:'d.m.Y' }}">
@@ -24,7 +26,7 @@
   <form method="post" action="{% url 'task_toggle' item.task.pk %}">
     {% csrf_token %}
     <input type="hidden" name="tag" value="{{ work_date|date:'Y-m-d' }}">
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="next" value="{{ request.get_full_path }}#aufgabe-{{ item.task.pk }}">
     {% if item.completion %}
       <input type="hidden" name="erledigt" value="0">
       <button class="button secondary" type="submit">{% translate "Wieder öffnen" %}</button>

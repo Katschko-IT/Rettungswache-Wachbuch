@@ -65,7 +65,10 @@
 
     {% if data.fleet_vehicles %}
       <ul class="lock-chips" data-lock-fleet data-empty-text="" aria-label="{% translate 'Fahrzeuge' %}">
-        {% for vehicle in data.fleet_vehicles|slice:":8" %}<li class="lock-chip lock-status-{{ vehicle.status }}"><strong>{{ vehicle.call_sign }}</strong> {{ vehicle.status_short }}</li>{% endfor %}
+        {% for vehicle in data.fleet_vehicles|slice:":6" %}<li class="lock-chip lock-status-{{ vehicle.status }}"><strong>{{ vehicle.call_sign }}</strong> {{ vehicle.status_short }}</li>{% endfor %}
+        {% if data.fleet_vehicles|length > 6 %}
+          <li class="lock-chip lock-chip-more">+{{ data.fleet_vehicles|length|add:"-6" }} {% translate "weitere" %}</li>
+        {% endif %}
       </ul>
     {% endif %}
   </main>

@@ -101,10 +101,20 @@
     if (urgentRow) {
       urgentRow.hidden = !data.urgent_handovers;
     }
-    fillList("[data-lock-fleet]", (data.fleet_vehicles || []).slice(0, 8), function (li, item) {
+    var vehicles = data.fleet_vehicles || [];
+    fillList("[data-lock-fleet]", vehicles.slice(0, 6), function (li, item) {
       li.className = "lock-chip lock-status-" + String(item.status || "").replace(/[^a-z0-9_-]/gi, "");
       pair(li, item.call_sign, item.status_short || item.status_label || "");
     });
+    if (vehicles.length > 6) {
+      var fleetList = $("[data-lock-fleet]");
+      if (fleetList) {
+        var moreLi = document.createElement("li");
+        moreLi.className = "lock-chip lock-chip-more";
+        moreLi.textContent = "+" + (vehicles.length - 6) + " weitere";
+        fleetList.appendChild(moreLi);
+      }
+    }
   }
 
   function poll() {

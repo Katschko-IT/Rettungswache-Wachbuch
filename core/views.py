@@ -807,6 +807,7 @@ def handover_detail(request, pk):
         "handover": handover,
         "acks": acks,
         "has_acked": any(ack.user_id == request.user.pk for ack in acks),
+        "user_acknowledged": any(ack.user_id == request.user.pk for ack in acks),
         "is_author": is_author,
         "can_ack": can_ack and not is_author and all(ack.user_id != request.user.pk for ack in acks),
         "status_form": HandoverStatusForm(instance=handover),
