@@ -384,6 +384,7 @@ def setup_weather_preview(request):
             "dpo_email",
             "server_location",
             "hosting_provider",
+            # Datenschutz-Angaben (Aufsichtsbehörde: Landesdatenschutz oder kirchlich KDG / DSG-EKD)
             "supervisory_authority",
             "mfa_required",
         )

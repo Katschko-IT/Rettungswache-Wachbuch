@@ -54,10 +54,9 @@ Server und zu den Push-Diensten der Browserhersteller
 
 ## Dienste in der Anwendung
 
-Diese Dienste startet der Wachwerk-Server selbst. Geplant ist (Paket E2),
-dass die Seite `/datenschutz/` die eingeschalteten Dienste dieser Installation
-aus `core/data_flows.py` anzeigt; jeder Schlüssel dort braucht hier einen
-Abschnitt mit `<!-- flow: KEY -->`.
+Diese Dienste startet der Wachwerk-Server selbst. Die Seite `/datenschutz/`
+zeigt die eingeschalteten Dienste dieser Installation aus `core/data_flows.py` an;
+jeder Schlüssel dort hat hier einen Abschnitt mit `<!-- flow: KEY -->`.
 
 ### Wetter
 

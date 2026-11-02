@@ -78,9 +78,9 @@ Nachweis: TLS-Scan `[Datum/Tool]`, Zertifikatsprozess `[Beschreibung]`.
 - Monitoring für Verfügbarkeit, Speicher, Zertifikatsablauf und Fehlerraten
 - dokumentierte RTO/RPO-Ziele
 
-RTO: `[ausfüllen]`  
-RPO: `[ausfüllen]`  
-Restore-Test zuletzt: `[ausfüllen]`
+RTO: `RTO ≤ 2 h` (Wiederanlaufzeit; Standard-Pilotziel für lokale Wiederherstellung)  
+RPO: `RPO ≤ 24 h (täglicher Dump)` (maximaler Datenverlust; Standard-Pilotziel bei automatischer täglicher Datenbanksicherung)  
+Restore-Test zuletzt: `[ausfüllen]` (z. B. wöchentliche automatisierte Wiederherstellungsprobe via `restore-test.sh` / `wachwerk-restore-test.timer`)
 
 ## 5. Trennungsgebot / Mandantentrennung
 

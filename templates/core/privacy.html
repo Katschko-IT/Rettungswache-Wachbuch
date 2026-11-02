@@ -168,6 +168,41 @@
     {% endif %}
     <p>{% translate "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Atkinson Hyperlegible Next) und Stylesheets werden lokal vom selben Server ausgeliefert." %}</p>
     {% if signal_enabled %}<p>{% translate "Signal (optional): Diese Installation verschickt Benachrichtigungen über ein Signal-Konto der Wache. In die Wachengruppe gehen nur Hinweise ohne Namen; persönliche Nachrichten nur an Personen, die ihre Handynummer selbst hinterlegt und bestätigt haben. Die Übertragung ist Ende-zu-Ende-verschlüsselt; die Nummer wird beim Abschalten gelöscht, gesendete Nachrichten nach 30 Tagen." %}</p>{% endif %}
+
+    <h3>{% translate "Externe Datenflüsse dieser Installation" %}</h3>
+    <p>{% translate "Wachwerk arbeitet nach dem Grundsatz des Inselbetriebs. Externe Dienste sind standardmäßig abgeschaltet. Die folgende Übersicht zeigt die für diese Installation erkannten externen Datenflüsse im aktuellen Betriebszustand:" %}</p>
+
+    {% if active_data_flows %}
+      <div class="data-flows-block">
+        <h4>{% translate "Aktive externe Datenflüsse" %}</h4>
+        <ul class="data-flows-list data-flows-active">
+          {% for flow in active_data_flows %}
+            <li data-flow="{{ flow.key }}" data-flow-status="active">
+              <strong>{{ flow.title }}</strong> ({% translate "Empfänger:" %} {{ flow.recipient }}) –
+              <span class="badge badge-warning">{% translate "Aktiv" %}</span>
+              <br><small>{{ flow.description }} {% if flow.personal_data != "nein" %}{% translate "Personenbezug:" %} {{ flow.personal_data }}.{% else %}{% translate "Kein Personenbezug." %}{% endif %}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="data-flows-none"><em>{% translate "In dieser Installation sind aktuell keine externen Datenflüsse aktiv (vollständiger Inselbetrieb ohne ausgehende Verbindungen)." %}</em></p>
+    {% endif %}
+
+    {% if disabled_data_flows %}
+      <div class="data-flows-block">
+        <h4>{% translate "Abgeschaltete externe Dienste" %}</h4>
+        <ul class="data-flows-list data-flows-disabled">
+          {% for flow in disabled_data_flows %}
+            <li data-flow="{{ flow.key }}" data-flow-status="disabled">
+              <strong>{{ flow.title }}</strong> ({% translate "Empfänger:" %} {{ flow.recipient }}) –
+              <span class="badge">{% translate "Ausgeschaltet" %}</span>
+              <br><small>{{ flow.description }} {% translate "Schalter:" %} <code>{{ flow.switch }}</code>.</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
   </section>
 
   <section id="sicherheit" class="privacy-section">

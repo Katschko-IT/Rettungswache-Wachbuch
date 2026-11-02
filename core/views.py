@@ -326,8 +326,17 @@ def privacy_notice(request):
     session_cookie_age = int(getattr(settings, "SESSION_COOKIE_AGE", 1209600))
     csrf_cookie_age = int(getattr(settings, "CSRF_COOKIE_AGE", 31449600))
 
+    from .data_flows import get_data_flows
+
+    flows = get_data_flows()
+    active_flows = [flow for flow in flows if flow.is_active]
+    disabled_flows = [flow for flow in flows if not flow.is_active]
 
     return render(request, "core/privacy.html", {
+        "data_flows": flows,
+        "active_data_flows": active_flows,
+        "disabled_data_flows": disabled_flows,
+        "has_active_data_flows": bool(active_flows),
         "session_cookie": getattr(settings, "SESSION_COOKIE_NAME", "sessionid"),
         "session_cookie_name": getattr(settings, "SESSION_COOKIE_NAME", "sessionid"),
         "session_cookie_secure": bool(getattr(settings, "SESSION_COOKIE_SECURE", False)),

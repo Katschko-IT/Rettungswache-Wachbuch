@@ -29,7 +29,8 @@ Für den ersten Aufbau gibt es eine Abhak-Liste: `docs/PI-ABNAHME.md`.
 | Touch-Monitor | HDMI + USB-Touch, 15–22″ | große Tasten, Bedienung mit Handschuhen |
 | Echtzeituhr | RTC-Modul (z. B. DS3231) | Der Pi 4 hat keine Uhr. Ohne Internet und RTC stimmen nach einem Stromausfall Einwirkzeiten, Fristen und TOTP-Codes nicht |
 | Backup | USB-Stick oder zweite SSD | `backup`-Dienst schreibt ins Docker-Volume `backups-data`; Kopie auf USB siehe Abschnitt 7 |
-| optional | USV, LAN-Kabel | Updates und Zeitabgleich (NTP) |
+| USV | USV (unterbrechungsfreie Stromversorgung, z. B. USV-HAT oder Steckdosen-USV) | **Empfohlen** für zuverlässigen Dauerbetrieb des Pi: schützt vor Dateisystem- und Datenbankfehlern bei Stromausfällen oder versehentlich gezogenem Netzteil |
+| optional | LAN-Kabel | Updates und Zeitabgleich (NTP) |
 
 ## 2. Einrichtung
 
@@ -185,7 +186,7 @@ der Bereich am Terminal gesperrt.
   Probemeldung und Grenzen: [`BETRIEB-PI-LAN.md`](BETRIEB-PI-LAN.md).
 - **Zeit**: RTC-Modul einbauen oder LAN mit NTP anschließen. Die Uhrzeit auf dem
   Ruhebildschirm regelmäßig prüfen.
-- **Strom**: USV oder zumindest ein sauberes Herunterfahren (`sudo poweroff`) vor dem Ausstecken.
+- **Strom**: USV (empfohlen für zuverlässigen Dauerbetrieb) oder zumindest ein sauberes Herunterfahren (`sudo poweroff`) vor dem Ausstecken.
 - **Ressourcen**: `docker stats` zeigt Speicher je Dienst; die Grenzen stehen in
   `deploy/pi/docker-compose.pi.yml`.
 

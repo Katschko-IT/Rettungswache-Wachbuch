@@ -1048,7 +1048,10 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
     )
     supervisory_authority = forms.CharField(
         label=_("Zuständige Datenschutz-Aufsichtsbehörde (optional)"), max_length=300, required=False,
-        help_text=_("Die Landesdatenschutzbehörde am Sitz des Anbieters."),
+        help_text=_(
+            "Die Landesdatenschutzbehörde am Sitz des Anbieters. "
+            "Bei kirchlichen Trägern die zuständige kirchliche Datenschutzaufsicht (z. B. nach KDG oder DSG-EKD)."
+        ),
     )
 
     # Sicherheit
@@ -1261,6 +1264,11 @@ class SiteProfileForm(forms.ModelForm):
             "supervisory_authority", "mfa_required",
         ]
         widgets = {"impressum_extra": forms.Textarea(attrs={"rows": 3})}
+        help_texts = {
+            "supervisory_authority": _(
+                "Die Landesdatenschutzbehörde am Sitz des Betreibers oder die kirchliche Datenschutzaufsicht (z. B. nach KDG oder DSG-EKD)."
+            ),
+        }
 
     def clean(self):
         cleaned = super().clean()
