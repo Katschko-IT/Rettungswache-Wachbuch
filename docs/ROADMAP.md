@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand: 30. Oktober 2026 · aktuelle Version 0.26.1. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
+Stand: 2. November 2026 · aktuelle Version 0.27.0. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
 
 ## Vision
 
@@ -41,25 +41,25 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 | Lesebestätigung speichert keine neue IP und keinen User-Agent mehr | S |
 | `defects_by_owner` aus der API-Statistik entfernen | S |
 
-## Jetzt – 0.27 „Pilotfähig“ (Zielfenster Ende Februar 2027, ca. 11 PW)
+## 0.27 „Pilotfähig“ (Zielfenster Ende Februar 2027, ca. 11 PW)
 
-**Ziel:** Alle Voraussetzungen, damit eine echte Wache den Pilot mit unterschriebener Vereinbarung starten kann.
+**Stand:** abgeschlossen in 0.27.0 (2026-11-02), siehe [CHANGELOG](../CHANGELOG.md). Alle 9 Bausteine für den Start des Pilots sind umgesetzt.
 
-| Reihenfolge | Baustein | Aufwand |
-|---|---|---|
-| 1 | Django-Tests gegen PostgreSQL in der CI; Pflicht für alle folgenden Migrationen | 1 PW |
-| 2 | Produktgrenze Fuhrpark vollständig: fünf Zustände unter „Fahrzeugzustand“ (Einsatzbereit, Eingeschränkt, Desinfektion, Werkstatt, Außer Dienst); Desinfektionsstufen aus dem Plan, sichtbar nur für Hygiene und die durchführende Person; einmalige Bereinigung der Altdaten mit Löschprotokoll (Ausnahme von append-only per Betreiberentscheid) | 2 PW |
-| 3 | Nachweise geschützt: PROTECT und „außer Betrieb nehmen“ für Fahrzeug, Gerät, Mittel und Dienstanweisung; Einweisungen append-only mit Sicht „gültige Einweisung“; fehlende Einweisung warnt die Person selbst und die MPG-Beauftragten, eine harte Sperre ist je Wache einschaltbar; Funktionskontrolle mit Rückfrage und Storno als neuer Datensatz | 1,5 PW |
-| 4 | Desinfektion nach Plan, klein: Stufe → Mittel → Freigaberegel („nach Antrocknen“ oder „nach Einwirkzeit“). Bestehende Wachen behalten ihr Verhalten, bis die Hygienebeauftragten die Regel bestätigt haben; neue Wachen fragt der Assistent | 1 PW |
-| 5 | Betrieb Pi und LAN: `wachwerk-health` mit lokalem Banner und Alarm über Posteingang, E-Mail oder Signal; verschlüsselte Offsite-Kopie (USB-Rotation oder NAS); Restore-Probe mit echten Daten; RPO/RTO in DSGVO-TOM; USV in die Hardware-Empfehlung (R-016/R-017 für diesen Weg) | 1,5 PW |
-| 6 | Datenschutz- und Mitbestimmungsunterlagen: Datenkatalog je aktivem Modul (Felder, Rollen, Zugriffe, Auswertungen, Fristen); verbindliche Löschfristen für die Daten des Pilots; Datenflüsse an Dritte; Varianten BetrVG, LPVG und MAVO/MVG-EKD, KDG/DSG-EKD; kirchliche Aufsicht im Assistenten | 1 PW |
-| 7 | Stammdaten-Import als CSV (Artikel, Lagerorte, Medizingeräte, Fahrzeuge) mit Vorlage, Vorschau, Trockenlauf und Transaktion; Konten nur als Einladungen, nie mit Admin-Rolle; Altbestand gekennzeichnet; Datei wird nach dem Import gelöscht | 1,5 PW |
-| 8 | Papier-Rückfallebene: Druckansicht leerer Formulare aus der Konfiguration, Fristenliste der Woche, Telefonbuch | 0,5 PW |
-| 9 | UX für den Pilot: Glossar zuerst; Fokus nicht verdecken; Rücksprung mit Anker nach „Erledigt“; Sperrbildschirm 800×480; „Gelesen – quittieren“ oben | 1 PW |
+| Reihenfolge | Baustein | Aufwand | Status |
+|---|---|---|---|
+| 1 | Django-Tests gegen PostgreSQL in der CI; Pflicht für alle folgenden Migrationen | 1 PW | erledigt (Paket A) |
+| 2 | Produktgrenze Fuhrpark vollständig: fünf Zustände unter „Fahrzeugzustand“ (Einsatzbereit, Eingeschränkt, Desinfektion, Werkstatt, Außer Dienst); Desinfektionsstufen aus dem Plan, sichtbar nur für Hygiene und die durchführende Person; einmalige Bereinigung der Altdaten mit Löschprotokoll (Ausnahme von append-only per Betreiberentscheid) | 2 PW | erledigt (Paket C1/C2) |
+| 3 | Nachweise geschützt: PROTECT und „außer Betrieb nehmen“ für Fahrzeug, Gerät, Mittel und Dienstanweisung; Einweisungen append-only mit Sicht „gültige Einweisung“; fehlende Einweisung warnt die Person selbst und die MPG-Beauftragten, eine harte Sperre ist je Wache einschaltbar; Funktionskontrolle mit Rückfrage und Storno als neuer Datensatz | 1,5 PW | erledigt (Paket B1/B2) |
+| 4 | Desinfektion nach Plan, klein: Stufe → Mittel → Freigaberegel („nach Antrocknen“ oder „nach Einwirkzeit“). Bestehende Wachen behalten ihr Verhalten, bis die Hygienebeauftragten die Regel bestätigt haben; neue Wachen fragt der Assistent | 1 PW | erledigt (Paket C1/C2) |
+| 5 | Betrieb Pi und LAN: `wachwerk-health` mit lokalem Banner und Alarm über Posteingang, E-Mail oder Signal; verschlüsselte Offsite-Kopie (USB-Rotation oder NAS); Restore-Probe mit echten Daten; RPO/RTO in DSGVO-TOM; USV in die Hardware-Empfehlung (R-016/R-017 für diesen Weg) | 1,5 PW | erledigt (Paket D1/D2) |
+| 6 | Datenschutz- und Mitbestimmungsunterlagen: Datenkatalog je aktivem Modul (Felder, Rollen, Zugriffe, Auswertungen, Fristen); verbindliche Löschfristen für die Daten des Pilots; Datenflüsse an Dritte; Varianten BetrVG, LPVG und MAVO/MVG-EKD, KDG/DSG-EKD; kirchliche Aufsicht im Assistenten | 1 PW | erledigt (Paket E1/E2) |
+| 7 | Stammdaten-Import als CSV (Artikel, Lagerorte, Medizingeräte, Fahrzeuge) mit Vorlage, Vorschau, Trockenlauf und Transaktion; Konten nur als Einladungen, nie mit Admin-Rolle; Altbestand gekennzeichnet; Datei wird nach dem Import gelöscht | 1,5 PW | erledigt (Paket F1/F2) |
+| 8 | Papier-Rückfallebene: Druckansicht leerer Formulare aus der Konfiguration, Fristenliste der Woche, Telefonbuch | 0,5 PW | erledigt (Paket G) |
+| 9 | UX für den Pilot: Glossar zuerst; Fokus nicht verdecken; Rücksprung mit Anker nach „Erledigt“; Sperrbildschirm 800×480; „Gelesen – quittieren“ oben | 1 PW | erledigt (Paket H1/H2) |
 
 **App (eigener Takt, Zielfenster Dezember 2026, ca. 1,5 PW):** Zweig `fertigstellung-2026-10-24` zusammenführen (Offline-Vertrag mit 24 h, kein Cache für admin, cashier und auditor, Schlüssel beim Abmelden sperren, 401/403 zentral, Klar 2) und als App 1.1 veröffentlichen. Das behebt Datenschutzfehler bei schon verteilten Apps und hängt nicht vom Server-Release ab.
 
-**Messbare Ziele 0.27:**
+**Messbare Ziele 0.27 (alle erreicht):**
 - Ein Test prüft die Auswahlwerte von Fahrzeug und Desinfektion. Kein Feld, kein Status und keine Anzeige hat noch Einsatz- oder Erregerbezug; Altdaten sind nachweislich bereinigt.
 - Kein Nachweis lässt sich durch Löschen eines Objekts entfernen (Negativtests für alle Nachweis-Tabellen).
 - 300 Artikel und 40 Medizingeräte sind in unter 30 Minuten importiert.
@@ -75,7 +75,7 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 - Restore mit echten Daten erfolgreich; Papier-Rückfallebene ausgedruckt.
 - Ansprechperson, Supportzeiten und Ausstiegsweg (Export) schriftlich vereinbart.
 
-## Als Nächstes – 0.28 „Prüfen“ (Zielfenster Mai 2027, während des Pilots, ca. 10 PW)
+## Jetzt – Als Nächstes – 0.28 „Prüfen“ (Zielfenster Mai 2027, während des Pilots, ca. 10 PW)
 
 **Ziel:** Prüfungen haben ein Ergebnis je Punkt, Mängel entstehen ohne doppelte Erfassung, und niemand verpasst eine Frist.
 

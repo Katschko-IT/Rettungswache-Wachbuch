@@ -57,8 +57,9 @@ load_settings() {
         key=${line%%=*}
         [ "$key" != "$line" ] || continue
         case "$key" in
-            WACHWERK_DIR|PING_URL|HEALTH_URL|HEALTH_CA_FILE|HEALTH_SERVICES|CERT_MIN_DAYS|\
-            DISK_MAX_PERCENT|BACKUP_MAX_AGE_HOURS|ERRORS_MAX_15MIN|FAILS_BEFORE_ALERT|AUTO_RESTART) ;;
+            WACHWERK_DIR|PING_URL|HEALTH_URL|HEALTH_CA_FILE|HEALTH_CA_BUNDLE|HEALTH_SERVICES|CERT_MIN_DAYS|\
+            DISK_MAX_PERCENT|BACKUP_MAX_AGE_HOURS|ERRORS_MAX_15MIN|FAILS_BEFORE_ALERT|AUTO_RESTART|\
+            OFFSITE_BACKUP_DIR|BACKUP_OFFSITE_DIR|BACKUP_OFFSITE_MAX_AGE_HOURS|OFFSITE_DIR|OFFSITE_TARGET|OFFSITE_KIND|OFFSITE_MARKER_FILE) ;;
             *) continue ;;
         esac
         eval "is_set=\${$key+x}"
@@ -76,7 +77,9 @@ load_settings "$CONF_DIR/health.env"
 WACHWERK_DIR="${WACHWERK_DIR:-/opt/wachbuch}"
 PING_URL="${PING_URL:-}"
 # Lokale CA bzw. Zertifikat für curl --cacert (Pi, install.sh --mode lan).
-HEALTH_CA_FILE="${HEALTH_CA_FILE:-}"
+HEALTH_CA_FILE="${HEALTH_CA_FILE:-${HEALTH_CA_BUNDLE:-}}"
+OFFSITE_BACKUP_DIR="${OFFSITE_BACKUP_DIR:-${BACKUP_OFFSITE_DIR:-}}"
+BACKUP_OFFSITE_MAX_AGE_HOURS="${BACKUP_OFFSITE_MAX_AGE_HOURS:-}"
 # Ersetzt die Grundliste der Dauerdienste (Pi ohne feed-/push-worker, mit
 # proxy); Profile (https, demo, signal) kommen weiter dazu.
 HEALTH_SERVICES="${HEALTH_SERVICES:-}"
@@ -218,6 +221,22 @@ check_update_lock() {
     fi
 }
 
+# Lokale CA von Caddy synchronisieren, falls noch nicht vorhanden (--mode lan).
+sync_lan_ca() {
+    [ -n "$HEALTH_CA_FILE" ] || return 0
+    [ ! -s "$HEALTH_CA_FILE" ] || return 0
+    [ -n "$WACHWERK_DIR" ] || return 0
+    [ -d "$WACHWERK_DIR" ] || return 0
+    ca_dir=$(dirname "$HEALTH_CA_FILE")
+    [ -d "$ca_dir" ] || install -d -m 0700 "$ca_dir" 2>/dev/null || true
+    if (cd "$WACHWERK_DIR" && docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt "$HEALTH_CA_FILE.tmp") >/dev/null 2>&1 \
+        && [ -s "$HEALTH_CA_FILE.tmp" ]; then
+        chmod 0644 "$HEALTH_CA_FILE.tmp"
+        mv -f "$HEALTH_CA_FILE.tmp" "$HEALTH_CA_FILE"
+    fi
+    rm -f "$HEALTH_CA_FILE.tmp"
+}
+
 # 1. Erreichbarkeit über Caddy (lokal aufgelöst, damit DNS-Hairpinning egal ist)
 # Mit HEALTH_CA_FILE vertraut curl nur dieser lokalen CA bzw. dem Zertifikat
 # des Pi (in beiden Zweigen, auch mit --resolve).
@@ -229,11 +248,27 @@ curl_health() {
     fi
 }
 check_reachability() {
+    sync_lan_ca
     if [ -n "${HEALTH_URL:-}" ]; then
-        if curl_health "$HEALTH_URL"; then
-            ok "$HEALTH_URL"
+        url_host=$(printf '%s' "$HEALTH_URL" | sed -E 's|^https?://([^/:]+).*|\1|')
+        url_port=$(printf '%s' "$HEALTH_URL" | sed -nE 's|^https?://[^/:]+:([0-9]+).*|\1|p')
+        case "$HEALTH_URL" in
+            https://*) default_port="${HTTPS_PORT:-443}" ;;
+            *)         default_port="${HTTP_PORT:-80}" ;;
+        esac
+        port="${url_port:-$default_port}"
+        if [ -n "$url_host" ] && [ "$url_host" != "localhost" ] && [ "$url_host" != "127.0.0.1" ]; then
+            if curl_health --resolve "$url_host:$port:127.0.0.1" "$HEALTH_URL"; then
+                ok "$HEALTH_URL"
+            else
+                bad web:unreachable "$HEALTH_URL antwortet nicht mit 200"
+            fi
         else
-            bad web:unreachable "$HEALTH_URL antwortet nicht mit 200"
+            if curl_health "$HEALTH_URL"; then
+                ok "$HEALTH_URL"
+            else
+                bad web:unreachable "$HEALTH_URL antwortet nicht mit 200"
+            fi
         fi
     elif [ -n "$HOST" ] && [ "$HOST" != "localhost" ]; then
         url="https://$HOST:$HTTPS_PORT/healthz/"
@@ -409,22 +444,42 @@ check_backup() {
     fi
 }
 
-# 4b. Offsite-Kopie (offsite-storagebox.sh): Kopie gelungen UND frisch
-# verschlüsselt. Der Sync allein ist auch "erfolgreich", wenn seit Tagen keine
-# neue Datei mehr entsteht (z. B. Schlüssel fehlt im Backup-Dienst).
+# 4b. Offsite-Kopie (offsite-storagebox.sh, Pi & LAN USB-Rotation oder NAS):
+# Kopie vorhanden UND frisch verschlüsselt.
 check_offsite() {
-    [ -r "$CONF_DIR/offsite.env" ] || return 0
-    target=$(sed -n 's/^OFFSITE_TARGET=//p' "$CONF_DIR/offsite.env" | tail -n 1)
-    case "$target" in
-        usb:*) OFFSITE_KIND=usb ;;
-        /*) OFFSITE_KIND=path ;;
-        *your-storagebox.de*) OFFSITE_KIND=storagebox ;;
-        *) OFFSITE_KIND=ssh ;;
-    esac
-    marker="$STATE_DIR/offsite-sync.ok"
-    if [ ! -f "$marker" ]; then
-        bad offsite:never "Offsite-Kopie lief noch nie erfolgreich (journalctl -u wachwerk-offsite)"
+    target=""
+    offsite_dir=""
+    max_age="${BACKUP_OFFSITE_MAX_AGE_HOURS:-$BACKUP_MAX_AGE_HOURS}"
+    if [ -r "$CONF_DIR/offsite.env" ]; then
+        target=$(sed -n 's/^OFFSITE_TARGET=//p' "$CONF_DIR/offsite.env" | tail -n 1)
+        offsite_dir=$(sed -n 's/^OFFSITE_DIR=//p' "$CONF_DIR/offsite.env" | tail -n 1)
+    fi
+    if [ -z "$offsite_dir" ]; then
+        offsite_dir="${OFFSITE_BACKUP_DIR:-}"
+    fi
+    if [ -z "$offsite_dir" ] && [ -n "$WACHWERK_DIR" ] && [ -f "$WACHWERK_DIR/.env" ]; then
+        offsite_dir=$(env_get BACKUP_OFFSITE_DIR)
+    fi
+    [ -n "$offsite_dir" ] || return 0
+
+    if [ -n "${OFFSITE_KIND:-}" ]; then
+        :
+    elif [ -n "$target" ]; then
+        case "$target" in
+            usb:*) OFFSITE_KIND=usb ;;
+            /*) OFFSITE_KIND=path ;;
+            *your-storagebox.de*) OFFSITE_KIND=storagebox ;;
+            *) OFFSITE_KIND=ssh ;;
+        esac
     else
+        case "$offsite_dir" in
+            */media/*|*/usb*|*usb*) OFFSITE_KIND=usb ;;
+            *) OFFSITE_KIND=path ;;
+        esac
+    fi
+
+    marker="${OFFSITE_MARKER_FILE:-$STATE_DIR/offsite-sync.ok}"
+    if [ -f "$marker" ]; then
         age_h=$(( ($(date +%s) - $(stat -c %Y "$marker")) / 3600 ))
         OFFSITE_SYNC_AGE_H=$age_h
         if [ "$age_h" -ge 3 ]; then
@@ -432,10 +487,16 @@ check_offsite() {
         else
             ok "Offsite-Kopie vor $age_h h"
         fi
+    elif [ -r "$CONF_DIR/offsite.env" ]; then
+        bad offsite:never "Offsite-Kopie lief noch nie erfolgreich (journalctl -u wachwerk-offsite)"
     fi
-    offsite_dir=$(sed -n 's/^OFFSITE_DIR=//p' "$CONF_DIR/offsite.env" | tail -n 1)
+
     offsite_dir="${offsite_dir:-/var/lib/wachwerk-offsite}"
-    newest=$(find "$offsite_dir" -maxdepth 1 -type f -name 'rwsth-*.dump.gpg' -printf '%T@ %f\n' 2>/dev/null \
+    if [ ! -d "$offsite_dir" ]; then
+        bad offsite:copy_missing "keine verschlüsselte Kopie in $offsite_dir (wachbuch logs backup)"
+        return
+    fi
+    newest=$(find "$offsite_dir" -maxdepth 2 -type f -name 'rwsth-*.dump.gpg' -printf '%T@ %f\n' 2>/dev/null \
         | sort -n | tail -n 1)
     if [ -z "$newest" ]; then
         bad offsite:copy_missing "keine verschlüsselte Kopie in $offsite_dir (wachbuch logs backup)"
@@ -444,7 +505,7 @@ check_offsite() {
     OFFSITE_EPOCH=${newest%%.*}
     age_h=$(( ($(date +%s) - OFFSITE_EPOCH) / 3600 ))
     OFFSITE_AGE_H=$age_h
-    if [ "$age_h" -ge "$BACKUP_MAX_AGE_HOURS" ]; then
+    if [ "$age_h" -ge "$max_age" ]; then
         bad "offsite:copy_stale:$age_h" "neueste verschlüsselte Kopie ist $age_h Stunden alt – Verschlüsselung gescheitert? (wachbuch logs backup)"
     else
         ok "neueste verschlüsselte Kopie: ${newest#* } ($age_h h alt)"

@@ -372,6 +372,21 @@ class HealthCheckTests(SimpleTestCase):
         (self.box.state_dir / "offsite-sync.ok").touch()
         self.assert_alert(self.box.run(), "neueste verschlüsselte Kopie ist 120 Stunden alt")
 
+    def test_offsite_backup_dir_configured_in_health_env(self):
+        offsite = self.box.root / "offsite"
+        offsite.mkdir()
+        fresh = offsite / "rwsth-20261031T000000Z.dump.gpg"
+        fresh.write_bytes(b"x")
+        self.box.settings["OFFSITE_BACKUP_DIR"] = str(offsite)
+        self.box.settings["BACKUP_OFFSITE_MAX_AGE_HOURS"] = "48"
+        result = self.box.run()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        status = self.box.status()
+        self.assertEqual(status["offsite"]["kind"], "path")
+        self.assertRegex(status["offsite"]["newest_at"], ISO)
+        set_age(fresh, 50 * 3600)
+        self.assert_alert(self.box.run(), "neueste verschlüsselte Kopie ist 50 Stunden alt")
+
     def test_hanging_docker_does_not_stall_the_check(self):
         self.box.state["hang"] = "ps"
         started = time.monotonic()

@@ -94,6 +94,9 @@ write_lan_health_env() {
     fi
     he_port=$(file_get "$he_dir/.env" HTTP_PORT)
     he_tls=$(file_get "$he_dir/.env" PI_TLS_DIR)
+    he_host=$(file_get "$he_dir/.env" WACHBUCH_HOSTNAME)
+    [ -n "$he_host" ] || he_host=$(file_get "$he_dir/.env" ALLOWED_HOSTS)
+    domain_first=$(printf '%s' "$he_host" | tr ',' ' ' | awk '{print $1}')
     (
         umask 077
         {
@@ -108,11 +111,14 @@ write_lan_health_env() {
                     echo "HEALTH_SERVICES='$PI_SERVICES'"
                     ;;
                 lan)
-                    if [ -n "$he_ca" ]; then
+                    ca_dest="${he_ca:-$LAN_CA_FILE}"
+                    if [ -n "$domain_first" ] && [ "$domain_first" != "localhost" ] && [ "$domain_first" != "127.0.0.1" ]; then
                         echo "# https://<WACHBUCH_HOSTNAME>/ lokal aufgelöst, gegen die CA von Caddy"
-                        echo "HEALTH_CA_FILE=$he_ca"
+                        echo "HEALTH_URL=https://${domain_first}/healthz/"
+                        echo "HEALTH_CA_FILE=$ca_dest"
+                        echo "HEALTH_CA_BUNDLE=$ca_dest"
                     else
-                        echo "# Ohne Wurzelzertifikat von Caddy: web direkt"
+                        echo "# Ohne Hostname/Domain: web direkt"
                         echo "HEALTH_URL=http://127.0.0.1:${he_port:-8090}/healthz/"
                     fi
                     ;;
@@ -127,6 +133,9 @@ write_lan_health_env() {
             echo "#DISK_MAX_PERCENT=85"
             echo "#BACKUP_MAX_AGE_HOURS=30"
             echo "#ERRORS_MAX_15MIN=5"
+            echo "# Optional: Kopie außer Haus (NAS oder USB-Stick)"
+            echo "#OFFSITE_BACKUP_DIR=/media/pi/USB/wachbuch"
+            echo "#BACKUP_OFFSITE_MAX_AGE_HOURS=48"
             echo "# Unhealthy-Container nicht selbst neu starten"
             echo "#AUTO_RESTART=false"
         } >"$he_file.tmp"
@@ -146,7 +155,7 @@ copy_lan_ca() {
         return 0
     fi
     rm -f "$2.tmp"
-    warn "Wurzelzertifikat von Caddy nicht lesbar – die Überwachung prüft web direkt über 127.0.0.1."
+    warn "Wurzelzertifikat von Caddy noch nicht lesbar – die Überwachung synchronisiert $2 automatisch, sobald Caddy läuft."
     return 1
 }
 
@@ -245,9 +254,9 @@ fi
 say "Prüfskript und Einstellungen"
 install -m 0755 "$HETZNER_DIR/wachwerk-health.sh" /usr/local/bin/wachwerk-health
 install -d -m 0700 /etc/wachwerk
-CA_FILE=""
-if [ "$LAYOUT" = lan ] && copy_lan_ca "$DIR" "$LAN_CA_FILE"; then
-    CA_FILE="$LAN_CA_FILE"
+CA_FILE="$LAN_CA_FILE"
+if [ "$LAYOUT" = lan ]; then
+    copy_lan_ca "$DIR" "$LAN_CA_FILE" || true
 fi
 write_lan_health_env /etc/wachwerk/health.env "$LAYOUT" "$DIR" "$PING_URL" "$CA_FILE"
 info "/usr/local/bin/wachwerk-health, /etc/wachwerk/health.env"

@@ -166,20 +166,26 @@ der Bereich am Terminal gesperrt.
   `git pull && sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml up -d --build`.
   Der Pi baut die Images aus dem Checkout (`compose.build.yml`), damit Code und Images
   zusammenpassen.
-- **Backups**: Der `backup`-Dienst legt einmal täglich einen Dump (`rwsth-*.dump`) im
+- **Backups & Offsite-Kopie**: Der `backup`-Dienst legt einmal täglich einen Dump (`rwsth-*.dump`) im
   Docker-Volume `backups-data` ab und behält 7 Tage (`BACKUP_RETENTION_DAYS`). Das Volume
-  liegt auf derselben SSD – fällt sie aus, sind auch die Backups weg. Deshalb regelmäßig
-  auf einen USB-Stick kopieren (Stick einstecken, er erscheint unter `/media/<Benutzer>/…`):
-  ```bash
-  COMPOSE="sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml"
-  NEWEST=$($COMPOSE exec -T backup sh -c 'ls -1t /backups/rwsth-*.dump | head -n 1')
-  $COMPOSE cp "backup:$NEWEST" /media/$USER/<STICK>/
-  ```
-  Automatisch geht es mit einem fest eingebundenen Ziel: in `.env`
-  `BACKUP_OFFSITE_DIR=/media/<Benutzer>/<STICK>/wachbuch` und
-  `BACKUP_OFF_TARGET=file:///offsite` setzen (Ordner vorher anlegen; er muss UID 70
-  gehören oder `backup-init` setzt den Besitzer). Wiederherstellung prüfen:
-  `sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
+  liegt auf derselben SSD – fällt sie aus, sind auch die Backups weg. Deshalb ist eine
+  verschlüsselte Kopie außer Haus erforderlich:
+  - **USB-Rotation mit 2 Sticks**: Zwei USB-Sticks (z. B. „Stick A“ und „Stick B“) im wöchentlichen
+    Wechsel. Ein Stick steckt am Terminal/Pi, der andere lagert sicher außer Haus (z. B. bei der
+    Wachleitung oder in einer Nachbarwache). In `.env`:
+    `BACKUP_OFFSITE_DIR=/media/<Benutzer>/<STICK>/wachbuch` und `BACKUP_OFF_TARGET=file:///offsite`.
+    In `/etc/wachwerk/health.env` überwacht `wachwerk-health` das Alter der Kopie:
+    `OFFSITE_BACKUP_DIR=/media/<Benutzer>/<STICK>/wachbuch`
+    `BACKUP_OFFSITE_MAX_AGE_HOURS=48`
+    Fehlt der Stick oder schlägt die Verschlüsselung fehl, meldet `wachwerk-health` dies im Banner
+    und im Posteingang.
+  - **Verschlüsselter Push auf NAS / Zweitgerät**: Ein Netzlaufwerk (NFS/SMB) oder Speicherverzeichnis
+    des Kreisverbands wird auf dem Host unter `/srv/wachbuch-offsite` eingehängt:
+    `BACKUP_OFFSITE_DIR=/srv/wachbuch-offsite` und `BACKUP_OFF_TARGET=file:///offsite`.
+    In `/etc/wachwerk/health.env`:
+    `OFFSITE_BACKUP_DIR=/srv/wachbuch-offsite`.
+  - **Wiederherstellungsprobe**: Wiederherstellung aus dem Backup regelmäßig prüfen:
+    `sudo docker compose -f docker-compose.yml -f compose.build.yml -f deploy/pi/docker-compose.pi.yml run --rm restore-test`.
 - **Überwachung**: `setup-pi.sh` richtet `wachwerk-health` ein (alle 5 Minuten).
   Störungen sehen die Master-Admins als Banner und im Posteingang „Für dich“;
   Zustand und Backups unter System → „Betrieb und Datensicherung“. Anleitung,

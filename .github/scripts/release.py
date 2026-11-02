@@ -88,7 +88,7 @@ def previous_release(tags):
 
 def changelog_section(version, changelog):
     lines = changelog.splitlines()
-    heading = re.compile(rf"^## {re.escape(version)}(\s+-\s+.*)?\s*$")
+    heading = re.compile(rf"^## (?:\[{re.escape(version)}\]|{re.escape(version)})(\s+-\s+.*)?\s*$")
     for start, line in enumerate(lines):
         if heading.match(line):
             body = []

@@ -1,5 +1,134 @@
 # Changelog
 
+## [0.27.0] - 2026-11-02
+
+„Pilotfähig“: Wachwerk 0.27 bringt alle Voraussetzungen für den Start des ersten
+Wachen-Pilots. Schutz aller Nachweise vor unbeabsichtigtem Löschen, neutrale
+Fahrzeugzustände ohne Einsatzbezug, Selbstüberwachung für Raspberry Pi und
+Wachen-Netz mit verschlüsselter Kopie außer Haus, vollständiger Datenkatalog mit
+Löschfristen, CSV-Stammdaten-Import, druckbare Papier-Rückfallebene und ein
+verbindliches Glossar.
+
+**Upgrade-Hinweise:**
+
+- `sudo /opt/wachbuch/wachbuch update` wie gewohnt.
+- Auf dem Raspberry Pi im Checkout: `git pull && sudo docker compose up -d --build`.
+- Nach dem Update einmalig alte Bestände bereinigen (IP-Adressen und alte
+  Desinfektionsbemerkungen aus der Zeit vor 0.26.1):
+  `python manage.py cleanup_legacy_data --apply`
+- Für Raspberry Pi und Wachen-Netz die Host-Überwachung einrichten oder
+  aktualisieren:
+  `sudo sh deploy/lan/setup-monitoring.sh`
+
+### Paket A: PostgreSQL-Testlauf & Update-Probe in der CI
+
+- Vollständige Testsuite läuft in GitHub Actions gegen eine echte PostgreSQL-Instanz
+  (identisch zum Produktionsbetrieb), um PostgreSQL-spezifische Eigenheiten,
+  Transaktionsverhalten und Sperren vor jedem Merge abzusichern.
+- Automatischer Probelauf aller Migrationen und Update-Pfade zur Sicherstellung
+  unterbrechungsfreier Versionswechsel.
+
+### Paket B1 & B2: Nachweisschutz & Unveränderbarkeit
+
+- **Schutz vor Datenverlust (`PROTECT`):** Fremdschlüssel auf Nachweise,
+  Fahrzeuge, Medizingeräte, Desinfektionsmittel und Dienstanweisungen verhindern
+  ein kaskadierendes Löschen (`models.PROTECT`). Kein Nachweis kann durch
+  Löschen eines Bezugsobjekts entfernt werden.
+- **Ausmustern statt Löschen:** Fahrzeuge und Medizingeräte werden dauerhaft
+  ausgemustert („Außer Betrieb nehmen“); Dienstanweisungen werden „Außer Kraft“
+  gesetzt. Alle Protokolle, Prüfungen und Nachweise bleiben revisionssicher
+  erhalten.
+- **MPG-Einweisungen append-only:** Einweisungen in Medizingeräte werden nur
+  ergänzt, nie überschrieben. Die Ansicht „Gültige Einweisung“ zeigt den
+  aktuellen Stand; eine optionale Einweisungspflicht sperrt die Funktionskontrolle
+  ohne Einweisung.
+- **5-Minuten-Storno:** Eigene Funktionskontrollen können innerhalb von
+  5 Minuten storniert werden. Das Storno wird als neuer Datensatz angelegt; der
+  ursprüngliche Nachweis bleibt unverändert im Protokoll.
+- **Eingeschränkte Datenbankrechte:** Der Webdienst besitzt auf Nachweistabellen
+  nur Lese- und Schreibrechte (`INSERT`), keine Berechtigung für `UPDATE` oder
+  `DELETE`.
+
+### Paket C1 & C2: Fuhrpark & Desinfektion
+
+- **Fünf neutrale Fahrzeugzustände:** Einsatzbereit, Eingeschränkt, Desinfektion,
+  Werkstatt und Außer Dienst. Keine Einsatzphasen, kein Einsatzbezug und keine
+  Statusziffern mehr.
+- **Bestätigte Freigaberegeln:** Desinfektionsstufen nach Wirkung (z. B.
+  „Schlussdesinfektion (viruzid)“), nie nach Erregernamen. Freigabe wählbar nach
+  Antrocknen oder nach Ablauf der Einwirkzeit; bestehende Wachen bestätigen die
+  Regel vor der Aktivierung.
+- **Option „AdBlue nicht vorhanden“:** Fahrzeuge ohne SCR-Katalysator blenden
+  die AdBlue-Abfrage in der Fahrzeugübernahme vollständig aus.
+- **Altdaten-Bereinigung:** Befehl `cleanup_legacy_data` bereinigt Altdaten
+  (frühere IP-Adressen, veraltete Desinfektionsbemerkungen) mit nachvollziehbarem
+  Löschprotokoll.
+
+### Paket D1 & D2: Selbstüberwachung, Offsite-Backup & Betrieb
+
+- **Selbstüberwachung (`wachwerk-health`):** Überwachung für Raspberry Pi und
+  Wachen-Netz mit automatischer Störungsmeldung über Banner und Posteingang „Für
+  dich“ der Master-Admins (funktioniert auch im Inselbetrieb ohne Internet).
+- **Verschlüsselte Kopie außer Haus:** Feste Prüfung auf USB-Rotation mit zwei
+  Sticks oder verschlüsselten Push auf Netzlaufwerk (NAS / Zweitgerät);
+  Warnung bei fehlender oder veralteter Kopie (`OFFSITE_BACKUP_DIR`).
+- **Wiederherstellungsprobe:** Wöchentlicher automatischer Restore-Test mit echten
+  Daten.
+- **RTO/RPO & USV:** Dokumentierte Grenzwerte für Recovery Time Objective (RTO)
+  und Recovery Point Objective (RPO) in den TOM; USV-Empfehlung für den
+  unterbrechungsfreien Betrieb an der Wache.
+
+### Paket E1 & E2: Datenschutz & Mitbestimmung
+
+- **Vollständiger Datenkatalog:** Dokumentation aller Datenfelder, Rollen,
+  Zugriffsberechtigungen, Auswertungen und Rechtsgrundlagen je Modul.
+- **Löschkonzept:** Verbindliche Löschfristen für alle Fachdaten im Pilotbetrieb.
+- **Transparente Datenflüsse:** Interaktive Übersicht aller Datenflüsse direkt
+  unter `/datenschutz/` mit Live-Erkennung aktiver Schnittstellen.
+- **Kirchliche Aufsicht & Personalräte:** Hinweise und Textbausteine für KDG
+  und DSG-EKD sowie Mustervereinbarungen für Betriebsräte (BetrVG),
+  Personalräte (BPersVG/LPVG) und Mitarbeitervertretungen (MAVO, MVG-EKD).
+
+### Paket F1 & F2: Stammdaten-Import
+
+- **CSV-Import:** Strukturierter Stammdaten-Import für Lagerorte, Artikel,
+  Anfangsbestände, Medizingeräte, Fahrzeuge und Benutzer-Einladungen.
+- **Sicherheit & Vorschau:** Vorlagen zum Download, tabellarische Vorschau,
+  Validierung aller Zeilen vor der Ausführung, atomare Transaktion und
+  Trockenlauf.
+- **Berechtigungs-Schutz:** Benutzer werden ausschließlich als Einladungen
+  ohne Admin-Rolle importiert; hochgeladene Dateien werden nach der
+  Verarbeitung sofort sicher gelöscht.
+
+### Paket G: Druckbare Papier-Rückfallebene (`/papier/`)
+
+- Druckansichten unter `/papier/` für den sicheren Notbetrieb bei Strom- oder
+  Netzwerkausfall.
+- Leere Prüfformulare passend zur Wachen-Konfiguration (Fahrzeugübernahme,
+  Funktionskontrolle, Checklisten, Desinfektionsnachweis, Tagesaufgaben).
+- Fristenliste der aktuellen Woche und Wachen-Telefonbuch; reines
+  `@media print`-Styling ohne externe PDF-Bibliothek.
+
+### Paket H1 & H2: Verbindliches Glossar & UX Welle A
+
+- **Glossar (`docs/DESIGN-SYSTEM.md`):** Einheitliche und eindeutige Begriffe
+  im gesamten System (Fahrzeugzustand statt Fahrzeugstatus, Medizingerät statt
+  Asset, Dienstanweisung statt SOP, Gelesen – quittieren statt Lesequittierung).
+- **UX Welle A (A1–A11):** Saubere Fokusführung bei Dialogen und Modals, kein
+  Verdecken von Eingabefeldern durch Tastaturen, Rücksprung mit Anker nach
+  Abschluss von Aufgaben („Erledigt“), optimierter Sperrbildschirm (800×480) für
+  Wachenterminals, konsistente Platzierung von „Gelesen – quittieren“ oben.
+
+### Sicherheit & API
+
+- **Push-Worker Transaktions-Split & SSRF-Schutz:** Entkopplung von
+  Datenbanktransaktionen und Netzwerkaufrufen; Validierung ausgehender
+  Push-URLs gegen lokale und private IP-Bereiche.
+- **Foto-Datenschutz:** Pillow-JPEG-Normalisierung mit vollständiger
+  Entfernung von EXIF-, Kamera- und GPS-Metadaten vor der Speicherung.
+- **API-Token-Sicherheit:** Durchsetzung von Zwei-Faktor-Authentifizierung (MFA)
+  für administrative API-Tokens.
+
 ## 0.26.1 - 2026-10-30
 
 „Schaden begrenzen“: Das Wachbuch speichert und zeigt nur noch, was es für die

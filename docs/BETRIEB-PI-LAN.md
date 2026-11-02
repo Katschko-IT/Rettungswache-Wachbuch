@@ -201,9 +201,20 @@ Wachwerk nach 20 Minuten dauerhaft „Überwachung meldet sich nicht“. Der Ord
 ## Kopie außer Haus und Wiederherstellung
 
 Die Überwachung meldet auch eine fehlende oder veraltete Kopie außer Haus, sobald
-eine eingerichtet ist (`/etc/wachwerk/offsite.env`). Für den Pi steht der Weg
-dafür bis auf Weiteres in [`PI-WACHENTERMINAL.md`](PI-WACHENTERMINAL.md),
-Abschnitt „Betrieb“; die Wiederherstellung in [`OPERATIONS.md`](OPERATIONS.md).
+eine eingerichtet ist. Für Pi und LAN-Server bestehen zwei Wege:
+- **USB-Rotation mit 2 Sticks**: Zwei USB-Sticks im wöchentlichen Wechsel (einer am
+  Gerät, einer sicher außer Haus). In `/etc/wachwerk/health.env`:
+  `OFFSITE_BACKUP_DIR=/media/<Benutzer>/<STICK>/wachbuch` und
+  `BACKUP_OFFSITE_MAX_AGE_HOURS=48`.
+- **Verschlüsseltes Netzlaufwerk (NAS / Zweitgerät)**: Gemounteter Ordner des
+  Kreisverbands oder der Wache (z. B. `/srv/wachbuch-offsite`), in
+  `/etc/wachwerk/health.env`:
+  `OFFSITE_BACKUP_DIR=/srv/wachbuch-offsite`.
+- **Hetzner Storage Box**: Über `/etc/wachwerk/offsite.env` (siehe `docs/HETZNER.md`).
+
+Die Wiederherstellung wird in [`OPERATIONS.md`](OPERATIONS.md) beschrieben; die
+automatische wöchentliche Wiederherstellungsprobe läuft sonntags über
+`wachwerk-restore-test.timer`.
 
 ## Offene Fragen
 

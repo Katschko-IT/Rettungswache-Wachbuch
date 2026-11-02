@@ -89,13 +89,22 @@ class MonitoringInstallerTests(SimpleTestCase):
         self.assertIn("FAILS_BEFORE_ALERT=2\n", text)
         self.assertEqual(list(self.root.glob("health.env.tmp*")), [])
 
-    def test_lan_health_env_keeps_the_resolve_path(self):
+    def test_lan_health_env_configures_https_and_ca_bundle(self):
         target = self.install("lan")
         health = self.root / "health.env"
         self.call(f'write_lan_health_env "{health}" lan "{target}" "" /etc/wachwerk/lan-ca.crt')
         text = health.read_text()
+        self.assertIn("HEALTH_URL=https://wachbuch.lan/healthz/\n", text)
         self.assertIn("HEALTH_CA_FILE=/etc/wachwerk/lan-ca.crt\n", text)
-        self.assertIsNone(re.search(r"^HEALTH_URL=", text, re.M), "LAN braucht --resolve über WACHBUCH_HOSTNAME")
+        self.assertIn("HEALTH_CA_BUNDLE=/etc/wachwerk/lan-ca.crt\n", text)
+        # Auch wenn copy_lan_ca das Zertifikat noch nicht kopieren konnte, bleibt TLS konfiguriert
+        self.call(f'write_lan_health_env "{health}" lan "{target}"')
+        text = health.read_text()
+        self.assertIn("HEALTH_URL=https://wachbuch.lan/healthz/\n", text)
+        self.assertIn("HEALTH_CA_FILE=/etc/wachwerk/lan-ca.crt\n", text)
+        self.assertIn("HEALTH_CA_BUNDLE=/etc/wachwerk/lan-ca.crt\n", text)
+        # Nur ohne Hostname/Domain: Fallback auf web direkt über Port
+        (target / ".env").write_text("WACHBUCH_MODE=lan\nHTTP_PORT=8091\n")
         self.call(f'write_lan_health_env "{health}" lan "{target}"')
         self.assertIn("HEALTH_URL=http://127.0.0.1:8091/healthz/\n", health.read_text())
 
@@ -175,7 +184,7 @@ class MonitoringInstallerTests(SimpleTestCase):
         write_sh_stub(self.bin, "docker", "exit 1")
         result = self.call(f'copy_lan_ca "{target}" "{ca}" || echo ohne')
         self.assertEqual(result.stdout.strip(), "ohne")
-        self.assertIn("127.0.0.1", result.stderr)
+        self.assertIn("noch nicht lesbar", result.stderr)
         self.assertFalse(ca.exists())
 
     def test_pi_health_env_works_with_the_health_check(self):
@@ -194,6 +203,21 @@ class MonitoringInstallerTests(SimpleTestCase):
         args = next(c["args"] for c in box.calls("curl") if "/healthz/" in c["url"])
         self.assertEqual(args[-1], "https://localhost/healthz/")
         self.assertEqual(args[args.index("--cacert") + 1], "/etc/wachbuch/tls/wachbuch.crt")
+
+    def test_lan_health_env_works_with_the_health_check(self):
+        """Die erzeugte health.env für LAN nutzt https und --resolve gegen 127.0.0.1."""
+        box = HealthSandbox(self)
+        (box.dir / ".env").write_text("WACHBUCH_MODE=lan\nWACHBUCH_HOSTNAME=wachbuch.lan\n")
+        ca = box.root / "lan-ca.crt"
+        ca.write_text("CA")
+        result = self.call(f'write_lan_health_env "{box.conf / "health.env"}" lan "{box.dir}" "" "{ca}"')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        result = box.run("--verbose", write_settings=False)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        args = next(c["args"] for c in box.calls("curl") if "/healthz/" in c["url"])
+        self.assertEqual(args[-1], "https://wachbuch.lan/healthz/")
+        self.assertEqual(args[args.index("--cacert") + 1], str(ca))
+        self.assertEqual(args[args.index("--resolve") + 1], "wachbuch.lan:443:127.0.0.1")
 
     def test_installer_reuses_the_units_of_harden_host(self):
         script = MONITORING.read_text(encoding="utf-8")
