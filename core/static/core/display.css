@@ -60,6 +60,24 @@
   box-sizing: border-box;
 }
 
+/* Festes 16:9-Raster für Wand-Display / Kiosk (1920×1080 und 1280×720) */
+.display-grid-16x9 {
+  aspect-ratio: 16 / 9;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+  .display-grid-16x9 {
+    aspect-ratio: 16 / 9;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+}
+
 .display-header {
   grid-column: 1 / -1;
   display: flex;
@@ -424,6 +442,11 @@
     min-height: 100dvh;
     /* Platz für die feste Leiste unten, damit sie nichts dauerhaft verdeckt. */
     padding-bottom: 5rem;
+  }
+  .display-grid-16x9 {
+    aspect-ratio: auto;
+    max-height: none;
+    overflow: visible;
   }
   .display-clock { font-size: clamp(3.4rem, 18vw, 6rem); }
   /* Rückweg und Vollbild passen auf dem Handy nebeneinander. */

@@ -2431,3 +2431,112 @@ button.text-action {
 .demo-stats-grid dd { margin: .15rem 0 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .demo-stats-grid small { font-size: .85rem; font-weight: 600; color: var(--muted); }
 .demo-stats-days summary { display: flex; align-items: center; min-height: var(--touch); font-weight: 600; cursor: pointer; }
+
+/* Mangel in drei Tipps: Duplikat-Hinweis „Bereits gemeldet“, Foto-Knöpfe & Segment-Chips */
+.already-reported-banner {
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--warning-accent, #f59e0b);
+  background: rgba(245, 158, 11, 0.08);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 0.5rem);
+}
+.already-reported-banner[hidden] { display: none !important; }
+.already-reported-banner .alert-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+}
+.already-reported-intro {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.92rem;
+  color: var(--text-dim, #475569);
+}
+.already-reported-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.already-reported-list li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line, rgba(148, 163, 184, 0.3));
+  border-radius: var(--radius, 0.35rem);
+  font-size: 0.9rem;
+}
+
+.photo-capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+.photo-capture-btn,
+.photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--touch, 48px);
+  min-width: var(--touch, 48px);
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  border-radius: var(--radius-lg, 0.5rem);
+  box-sizing: border-box;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+.chip-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch, 48px);
+  min-width: var(--touch, 48px);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--line, rgba(148, 163, 184, 0.4));
+  border-radius: 9999px;
+  background: var(--surface, #ffffff);
+  color: var(--text, #1e293b);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.chip-pill input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.chip-pill:hover {
+  border-color: var(--brand, #0d47a1);
+  background: rgba(13, 71, 161, 0.05);
+}
+.chip-pill:has(input[type="radio"]:checked),
+.chip-pill.is-selected {
+  background: var(--brand, #0d47a1);
+  border-color: var(--brand, #0d47a1);
+  color: #ffffff;
+}
+.chip-pill:has(input[type="radio"]:focus-visible) {
+  outline: 3px solid var(--display-accent, #7fb2ff);
+  outline-offset: 2px;
+}
+

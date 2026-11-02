@@ -471,6 +471,9 @@ def defects_list(request):
             qs = qs.filter(due_at__lt=timezone.now()).exclude(status=Defect.Status.DONE)
         if request.GET.get("active") in {"1", "true", "yes"}:
             qs = qs.exclude(status=Defect.Status.DONE)
+        asset_filter = request.GET.get("asset") or request.GET.get("asset_ref")
+        if asset_filter:
+            qs = qs.filter(Q(asset_ref__iexact=asset_filter) | Q(asset_ref__icontains=asset_filter))
         limit = _int_param(request, "limit", default=100, minimum=1, maximum=200)
         offset = _int_param(request, "offset", default=0, minimum=0, maximum=10**6)
         total = qs.count()

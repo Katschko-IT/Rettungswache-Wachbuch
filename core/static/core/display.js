@@ -388,10 +388,10 @@
     }
     var items = [];
     (pinboard || []).forEach(function (p) {
-      items.push("📌 " + p.title);
+      items.push(p.title);
     });
     (news || []).forEach(function (n) {
-      items.push("📢 " + n.title);
+      items.push(n.title);
     });
     if (!items.length) {
       container.hidden = true;

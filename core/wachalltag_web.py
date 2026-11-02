@@ -6,11 +6,13 @@ incident or alarm data. All mutations remain station scoped and audited.
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
@@ -29,6 +31,7 @@ from .device_status import IN_SERVICE, asset_locked_by_device, asset_release_blo
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
+    DEFECT_WORKFLOW_ORDERING,
     AssetEvent,
     ChecklistSchedule,
     Defect,
@@ -89,28 +92,131 @@ def defects(request):
 @require_http_methods(["GET", "POST"])
 def defect_create(request):
     station = request.membership.station
+    assets = StationAsset.objects.filter(station=station).order_by("kind", "label")
+    open_defects = (
+        Defect.objects.filter(station=station)
+        .exclude(status=Defect.Status.DONE)
+        .select_related("owner", "created_by")
+        .order_by(*DEFECT_WORKFLOW_ORDERING)
+    )
+
+    from .demo_sandbox import tour_form_initial
+
+    initial = tour_form_initial(request, "defect")
+
+    requested_ref = (
+        request.POST.get("asset_ref")
+        or request.POST.get("asset")
+        or request.GET.get("asset_ref")
+        or request.GET.get("asset")
+        or initial.get("asset_ref")
+        or initial.get("asset")
+        or ""
+    ).strip()
+
+    selected_asset = None
+    selected_asset_ref = requested_ref
+    if requested_ref:
+        for a in assets:
+            if (
+                str(a.pk) == requested_ref
+                or a.asset_id.lower() == requested_ref.lower()
+                or a.label.lower() == requested_ref.lower()
+            ):
+                selected_asset = a
+                selected_asset_ref = a.label
+                break
+
+    existing_open_defects_by_asset = {}
+    defects_by_asset_data = {}
+    for a in assets:
+        matching = [
+            d for d in open_defects
+            if (
+                d.asset_ref and (
+                    d.asset_ref.strip().lower() == a.label.strip().lower()
+                    or d.asset_ref.strip().lower() == a.asset_id.strip().lower()
+                    or a.label.strip().lower() in d.asset_ref.strip().lower()
+                    or d.asset_ref.strip().lower() in a.label.strip().lower()
+                )
+            )
+        ]
+        if matching:
+            existing_open_defects_by_asset[a.asset_id] = matching
+            existing_open_defects_by_asset[a.label] = matching
+            existing_open_defects_by_asset[str(a.pk)] = matching
+            defects_by_asset_data[a.label] = [
+                {
+                    "pk": d.pk,
+                    "title": d.title,
+                    "status": str(d.get_status_display()),
+                    "priority": str(d.get_priority_display()),
+                    "asset_ref": d.asset_ref,
+                    "url": reverse("defect_detail_web", args=[d.pk]),
+                }
+                for d in matching
+            ]
+            defects_by_asset_data[a.asset_id] = defects_by_asset_data[a.label]
+
+    already_reported_defects = []
+    if selected_asset:
+        already_reported_defects = existing_open_defects_by_asset.get(selected_asset.asset_id, [])
+    elif selected_asset_ref:
+        already_reported_defects = existing_open_defects_by_asset.get(
+            selected_asset_ref,
+            [
+                d for d in open_defects
+                if d.asset_ref and (
+                    d.asset_ref.strip().lower() == selected_asset_ref.strip().lower()
+                    or selected_asset_ref.strip().lower() in d.asset_ref.strip().lower()
+                    or d.asset_ref.strip().lower() in selected_asset_ref.strip().lower()
+                )
+            ]
+        )
+
     if request.method == "POST":
         title = (request.POST.get("title") or "").strip()
         if not title:
-            messages.error(request, "Bitte einen Titel angeben.")
+            messages.error(request, _("Bitte einen Titel angeben."))
         else:
-            priority = request.POST.get("priority") or Defect.Priority.NORMAL
-            category = request.POST.get("category") or Defect.Category.TASK
+            priority = (
+                request.POST.get("priority")
+                or request.POST.get("priority_select")
+                or Defect.Priority.NORMAL
+            )
+            category = (
+                request.POST.get("category")
+                or request.POST.get("category_select")
+                or Defect.Category.TASK
+            )
             if priority not in Defect.Priority.values or category not in Defect.Category.values:
-                messages.error(request, "Priorität oder Kategorie ist ungültig.")
+                messages.error(request, _("Priorität oder Kategorie ist ungültig."))
             else:
                 owner = request.user if request.POST.get("owner_self") == "1" else None
                 due_at = _parse_local_datetime(request.POST.get("due_at"))
-                uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
+                raw_files = (
+                    request.FILES.getlist("attachments")
+                    + request.FILES.getlist("photo")
+                    + request.FILES.getlist("camera")
+                )
+                uploads, upload_error = read_uploads(raw_files)
                 if upload_error:
                     messages.error(request, upload_error)
                     return redirect("defect_create_web")
+                asset_ref_val = (request.POST.get("asset_ref") or "").strip()
+                if asset_ref_val == "__custom__" or not asset_ref_val:
+                    asset_ref_val = (request.POST.get("asset_ref_custom") or "").strip()
+                for a in assets:
+                    if asset_ref_val == a.asset_id or asset_ref_val == str(a.pk):
+                        asset_ref_val = a.label
+                        break
+
                 with transaction.atomic():
                     item = Defect.objects.create(
                         station=station,
                         title=title[:160],
                         description=(request.POST.get("description") or "")[:3000],
-                        asset_ref=(request.POST.get("asset_ref") or "")[:160],
+                        asset_ref=asset_ref_val[:160],
                         priority=priority,
                         status=Defect.Status.OPEN,
                         owner=owner,
@@ -152,7 +258,10 @@ def defect_create(request):
                     audit(request.user, station, "defect.created", item, {"via": "web"})
                 messages.success(request, _("Mangel wurde angelegt."))
                 return redirect("defect_detail_web", pk=item.pk)
-    from .demo_sandbox import tour_form_initial
+
+    initial_in_assets = any(
+        a.label == initial.get("asset_ref") for a in assets
+    ) if initial.get("asset_ref") else False
 
     return render(
         request,
@@ -160,8 +269,16 @@ def defect_create(request):
         {
             "priorities": Defect.Priority.choices,
             "categories": Defect.Category.choices,
-            # Nur in der Demo: Rundgang-Schritt 5 kommt vorausgefüllt an.
-            "initial": tour_form_initial(request, "defect"),
+            "assets": assets,
+            "existing_open_defects_by_asset": existing_open_defects_by_asset,
+            "already_reported_defects": already_reported_defects,
+            "already_reported_count": len(already_reported_defects),
+            "existing_defects": open_defects,
+            "selected_asset_ref": selected_asset_ref,
+            "selected_asset": selected_asset,
+            "defects_by_asset_json": json.dumps(defects_by_asset_data),
+            "initial": initial,
+            "initial_in_assets": initial_in_assets,
         },
     )
 

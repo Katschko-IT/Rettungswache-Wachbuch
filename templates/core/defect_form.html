@@ -8,16 +8,240 @@
   <h1>{% translate "Mangel anlegen" %}</h1>
   <p class="lead">{% translate "Nur Informationen zur Wachenorganisation, zu Material, Fahrzeugen oder Gebäuden." %}</p>
 </header>
+
+{% if already_reported_defects %}
+<div class="alert warning already-reported-banner" id="already-reported-banner" role="alert" data-already-reported-banner>
+  <div class="alert-heading">
+    <strong>{% translate "Bereits gemeldet" %}</strong>
+    {% if already_reported_count %}<span class="badge warning-badge" data-already-reported-count>{{ already_reported_count }}</span>{% endif %}
+  </div>
+  <p class="already-reported-intro">
+    {% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}
+  </p>
+  <ul class="already-reported-list" data-already-reported-list>
+    {% for defect in already_reported_defects %}
+      <li>
+        <a href="{% url 'defect_detail_web' defect.pk %}" target="_blank" rel="noopener">
+          <strong>#{{ defect.pk }} {{ defect.title }}</strong>
+        </a>
+        <span class="badge">{{ defect.get_status_display }}</span>
+        <span class="badge">{{ defect.get_priority_display }}</span>
+        {% if defect.asset_ref %}<small class="muted">({{ defect.asset_ref }})</small>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="alert warning already-reported-banner" id="already-reported-banner" role="alert" data-already-reported-banner hidden>
+  <div class="alert-heading">
+    <strong>{% translate "Bereits gemeldet" %}</strong>
+    <span class="badge warning-badge" data-already-reported-count>0</span>
+  </div>
+  <p class="already-reported-intro">
+    {% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}
+  </p>
+  <ul class="already-reported-list" data-already-reported-list></ul>
+</div>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data" class="form-card">
   {% csrf_token %}
-  <div class="field"><label for="id_title">{% translate "Titel" %}</label><input id="id_title" name="title" maxlength="160" required value="{% if request.POST %}{{ request.POST.title }}{% else %}{{ initial.title }}{% endif %}"></div>
-  <div class="field"><label for="id_description">{% translate "Beschreibung" %}</label><textarea id="id_description" name="description" maxlength="3000" rows="5">{% if request.POST %}{{ request.POST.description }}{% else %}{{ initial.description }}{% endif %}</textarea></div>
-  <div class="field"><label for="id_asset_ref">{% translate "Bezug (z. B. RTW 1, Defi, Gerätehaus)" %}</label><input id="id_asset_ref" name="asset_ref" maxlength="160" value="{% if request.POST %}{{ request.POST.asset_ref }}{% else %}{{ initial.asset_ref }}{% endif %}"></div>
-  <div class="field"><label for="id_priority">{% translate "Priorität" %}</label><select id="id_priority" name="priority">{% for value,label in priorities %}<option value="{{ value }}"{% if request.POST.priority == value or not request.POST and initial.priority == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-  <div class="field"><label for="id_category">{% translate "Kategorie" %}</label><select id="id_category" name="category">{% for value,label in categories %}<option value="{{ value }}"{% if request.POST.category == value or not request.POST and initial.category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-  <div class="field"><label for="id_due_at">{% translate "Frist (optional)" %}</label><input id="id_due_at" name="due_at" type="datetime-local" value="{% if request.POST %}{{ request.POST.due_at }}{% else %}{{ initial.due_at }}{% endif %}"></div>
-  <div class="field"><label for="id_attachments">{% translate "Anhänge (optional)" %}</label><input id="id_attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf"><p class="field-hint">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</p></div>
-  <div class="field checkbox-field"><label><input type="checkbox" name="owner_self" value="1" checked> {% translate "Mir zuordnen" %}</label></div>
-  <div class="form-actions"><button class="button primary" type="submit">{% translate "Mangel speichern" %}</button><a class="button secondary" href="{% url 'defects_web' %}">{% translate "Abbrechen" %}</a></div>
+
+  {# Tipp 1: Foto aufnehmen oder Datei anhängen #}
+  <div class="field photo-capture-field">
+    <label class="field-label">{% translate "Foto aufnehmen (Tipp 1)" %}</label>
+    <div class="photo-capture-actions">
+      <label for="id_camera" class="button secondary photo-capture-btn">
+        {% include "core/_icon.html" with name="camera" %}
+        <span>{% translate "Foto aufnehmen" %}</span>
+        <input id="id_camera" type="file" name="attachments" accept="image/*" capture="environment" class="visually-hidden photo-input">
+      </label>
+      <label for="id_attachments" class="button secondary photo-upload-btn">
+        {% include "core/_icon.html" with name="upload" %}
+        <span>{% translate "Datei wählen" %}</span>
+        <input id="id_attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="visually-hidden file-input">
+      </label>
+    </div>
+    <p class="field-hint" id="photo-file-hint">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</p>
+  </div>
+
+  <div class="field">
+    <label for="id_title">{% translate "Titel" %}</label>
+    <input id="id_title" name="title" maxlength="160" required value="{% if request.POST %}{{ request.POST.title }}{% else %}{{ initial.title }}{% endif %}">
+  </div>
+
+  {# Tipp 2: Kategorie und Priorität als Chips #}
+  <div class="field">
+    <label class="field-label" id="label_priority">{% translate "Priorität" %}</label>
+    <div class="chip-group priority-chips" role="radiogroup" aria-labelledby="label_priority">
+      {% for value,label in priorities %}
+        <label class="chip-pill{% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %} is-selected{% endif %}" for="prio_{{ value }}">
+          <input type="radio" id="prio_{{ value }}" name="priority" value="{{ value }}"
+            {% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <select id="id_priority" name="priority_select" class="visually-hidden chip-select" tabindex="-1" aria-hidden="true" hidden>
+      {% for value,label in priorities %}
+        <option value="{{ value }}"{% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label class="field-label" id="label_category">{% translate "Kategorie" %}</label>
+    <div class="chip-group category-chips" role="radiogroup" aria-labelledby="label_category">
+      {% for value,label in categories %}
+        <label class="chip-pill{% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %} is-selected{% endif %}" for="cat_{{ value }}">
+          <input type="radio" id="cat_{{ value }}" name="category" value="{{ value }}"
+            {% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <select id="id_category" name="category_select" class="visually-hidden chip-select" tabindex="-1" aria-hidden="true" hidden>
+      {% for value,label in categories %}
+        <option value="{{ value }}"{% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {# Tipp 3: Bezug als Auswahl #}
+  <div class="field">
+    <label for="id_asset_ref">{% translate "Bezug (z. B. Fahrzeug, Gerät, Raum)" %}</label>
+    <select id="id_asset_ref" name="asset_ref" class="form-select asset-select" data-asset-select>
+      <option value="">{% translate "— Kein bestimmtes Bezugsobjekt —" %}</option>
+      {% regroup assets by get_kind_display as asset_groups %}
+      {% for group in asset_groups %}
+        <optgroup label="{{ group.grouper }}">
+          {% for asset in group.list %}
+            <option value="{{ asset.label }}" data-asset-id="{{ asset.asset_id }}" data-asset-pk="{{ asset.pk }}"
+              {% if selected_asset_ref == asset.label or selected_asset_ref == asset.asset_id or initial.asset_ref == asset.label %} selected{% endif %}>
+              {{ asset.label }}{% if asset.status != 'ready' %} ({{ asset.get_status_display }}){% endif %}
+            </option>
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+      {% if initial.asset_ref and not initial_in_assets %}
+        <option value="{{ initial.asset_ref }}" selected>{{ initial.asset_ref }}</option>
+      {% endif %}
+      <option value="__custom__">{% translate "Anderer Bezug (Freitext)..." %}</option>
+    </select>
+    <input id="id_asset_ref_custom" name="asset_ref_custom" maxlength="160" placeholder="{% translate 'Eigener Bezug...' %}" class="custom-asset-input" style="margin-top: 0.5rem;" hidden>
+  </div>
+
+  <div class="field">
+    <label for="id_description">{% translate "Beschreibung" %}</label>
+    <textarea id="id_description" name="description" maxlength="3000" rows="5">{% if request.POST %}{{ request.POST.description }}{% else %}{{ initial.description }}{% endif %}</textarea>
+  </div>
+
+  <div class="field">
+    <label for="id_due_at">{% translate "Frist (optional)" %}</label>
+    <input id="id_due_at" name="due_at" type="datetime-local" value="{% if request.POST %}{{ request.POST.due_at }}{% else %}{{ initial.due_at }}{% endif %}">
+  </div>
+
+  <div class="field checkbox-field">
+    <label><input type="checkbox" name="owner_self" value="1" checked> {% translate "Mir zuordnen" %}</label>
+  </div>
+
+  <div class="form-actions">
+    <button class="button primary" type="submit">{% translate "Mangel speichern" %}</button>
+    <a class="button secondary" href="{% url 'defects_web' %}">{% translate "Abbrechen" %}</a>
+  </div>
 </form>
+
+<script id="defects-data" type="application/json">{{ defects_by_asset_json|safe }}</script>
+<script>
+(function() {
+  var defectsData = {};
+  try {
+    var raw = document.getElementById("defects-data");
+    if (raw) defectsData = JSON.parse(raw.textContent || "{}");
+  } catch(e) {}
+
+  var select = document.querySelector("[data-asset-select]");
+  var banner = document.querySelector("[data-already-reported-banner]");
+  var list = document.querySelector("[data-already-reported-list]");
+  var countBadge = document.querySelector("[data-already-reported-count]");
+  var customInput = document.getElementById("id_asset_ref_custom");
+
+  function updateDuplicates() {
+    if (!select || !banner) return;
+    var val = select.value;
+    if (val === "__custom__") {
+      if (customInput) customInput.hidden = false;
+      banner.hidden = true;
+      return;
+    }
+    if (customInput) customInput.hidden = true;
+
+    var opt = select.selectedOptions ? select.selectedOptions[0] : null;
+    var assetId = opt ? opt.getAttribute("data-asset-id") : null;
+    var items = defectsData[val] || (assetId ? defectsData[assetId] : null) || [];
+    if (items && items.length > 0) {
+      if (list) {
+        list.innerHTML = "";
+        items.forEach(function(item) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          a.href = item.url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          var strong = document.createElement("strong");
+          strong.textContent = "#" + item.pk + " " + item.title;
+          a.appendChild(strong);
+          li.appendChild(a);
+          var badge1 = document.createElement("span");
+          badge1.className = "badge";
+          badge1.textContent = item.status;
+          li.appendChild(badge1);
+          var badge2 = document.createElement("span");
+          badge2.className = "badge";
+          badge2.textContent = item.priority;
+          li.appendChild(badge2);
+          if (item.asset_ref) {
+            var sm = document.createElement("small");
+            sm.className = "muted";
+            sm.textContent = " (" + item.asset_ref + ")";
+            li.appendChild(sm);
+          }
+          list.appendChild(li);
+        });
+      }
+      if (countBadge) countBadge.textContent = items.length;
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
+  }
+
+  if (select) {
+    select.addEventListener("change", updateDuplicates);
+  }
+
+  document.querySelectorAll(".chip-group").forEach(function(group) {
+    group.addEventListener("change", function(e) {
+      if (e.target && e.target.type === "radio") {
+        group.querySelectorAll(".chip-pill").forEach(function(lbl) {
+          lbl.classList.remove("is-selected");
+        });
+        var label = e.target.closest(".chip-pill");
+        if (label) label.classList.add("is-selected");
+      }
+    });
+  });
+
+  function onFileChange(e) {
+    var hint = document.getElementById("photo-file-hint");
+    if (!hint || !e.target.files || !e.target.files.length) return;
+    var names = Array.from(e.target.files).map(function(f) { return f.name; }).join(", ");
+    hint.textContent = "Ausgewählt: " + names;
+  }
+  var cam = document.getElementById("id_camera");
+  var att = document.getElementById("id_attachments");
+  if (cam) cam.addEventListener("change", onFileChange);
+  if (att) att.addEventListener("change", onFileChange);
+})();
+</script>
 {% endblock %}
