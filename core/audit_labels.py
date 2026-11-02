@@ -120,6 +120,8 @@ ACTION_LABELS = {
     "import.articles": _("Artikel importiert"),
     "import.stock": _("Altbestand ins Lager übernommen"),
     "import.medical_devices": _("Medizingeräte importiert (Altbestand)"),
+    "import.vehicles": _("Fahrzeuge importiert"),
+    "import.invitations": _("Einladungen importiert"),
 }
 
 OBJECT_LABELS = {

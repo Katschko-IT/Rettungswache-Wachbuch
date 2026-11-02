@@ -25,7 +25,8 @@ from django.utils.http import urlencode
 
 from core import masterdata_import as mi
 from core.audit_labels import ACTION_LABELS
-from core.models import AuditEvent, Membership, Station
+from core.fleet_models import Vehicle
+from core.models import AuditEvent, EmployeeActivation, Membership, Station
 from core.mpg_models import DeviceTrainingRecord, MaintenanceLog, MedicalDevice
 from core.test_terminal import TerminalTestCase
 from core.wachalltag_models import StationAsset
@@ -248,11 +249,11 @@ class ImportTestCase(TestCase):
     def setUp(self):
         self.enterContext(translation.override("de"))
         self.station = Station.objects.create(name="RW Import", slug="rw-import", warehouse_enabled=True,
-                                              mpg_enabled=True)
+                                              mpg_enabled=True, fleet_enabled=True)
         self.admin = User.objects.create_user(username="chefin", password="x-test-pass-123")
         Membership.objects.create(user=self.admin, station=self.station, role=Membership.Role.ADMIN)
         self.other = Station.objects.create(name="RW Andere", slug="rw-andere", warehouse_enabled=True,
-                                            mpg_enabled=True)
+                                            mpg_enabled=True, fleet_enabled=True)
         self.other_admin = User.objects.create_user(username="andere", password="x-test-pass-123")
         Membership.objects.create(user=self.other_admin, station=self.other, role=Membership.Role.ADMIN)
 
@@ -691,7 +692,9 @@ class DeviceImportTests(ImportTestCase):
               "MTK-Intervall (M)", "Nächste STK", "Status"]
 
     def row(self, name="Absaugpumpe", risk="IIa", maker="Hersteller", serial="SN1", inventory="", anlage2="",
-            mtk="", next_stk="2030-06-30", status=""):
+            mtk="", next_stk="2030-06-30", status="", manufacturer=None):
+        if manufacturer is not None:
+            maker = manufacturer
         return [name, risk, maker, serial, inventory, anlage2, mtk, next_stk, status]
 
     def test_requires_serial_or_inventory_number(self):
@@ -751,6 +754,36 @@ class DeviceImportTests(ImportTestCase):
         report = self.run_kind("medizingeraete", [self.HEADER, self.row(serial="X", inventory="I1"),
                                                   self.row(serial="Y", inventory="i1")])
         self.assertIn("Inventarnummer wie Zeile 2", report.rows[1].errors[0])
+
+    def test_existing_device_with_blank_manufacturer_updated_via_serial_fallback(self):
+        # Edge case: Existing device had blank manufacturer; re-importing with manufacturer
+        # updates the existing device instead of creating a duplicate.
+        existing = MedicalDevice.objects.create(
+            station=self.station, slug="defi-old", name="Defi", serial_number="SN-BLANK",
+            manufacturer="", next_stk_date=date(2027, 1, 31),
+        )
+        report = self.run_kind("medizingeraete", [
+            self.HEADER,
+            self.row(name="Defi Neu", serial="sn-blank", inventory="", manufacturer="Weinmann"),
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertEqual(MedicalDevice.objects.filter(station=self.station).count(), 1)
+        existing.refresh_from_db()
+        self.assertEqual(existing.manufacturer, "Weinmann")
+
+    def test_existing_device_skipped_when_incoming_has_blank_manufacturer(self):
+        existing = MedicalDevice.objects.create(
+            station=self.station, slug="defi", name="Defi", serial_number="SN-UNIQUE",
+            manufacturer="Weinmann", next_stk_date=date(2027, 1, 31),
+        )
+        report = self.run_kind("medizingeraete", [
+            self.HEADER,
+            self.row(name="Defi", serial="sn-unique", inventory="", manufacturer=""),
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertEqual(MedicalDevice.objects.filter(station=self.station).count(), 1)
 
     def test_status_column_is_never_stored(self):
         report = self.run_kind("medizingeraete", [self.HEADER, self.row(status="Eingeschränkt"),
@@ -873,6 +906,245 @@ class DeviceImportTests(ImportTestCase):
         self.assertEqual(StationAsset.objects.get().status, StationAsset.Status.OOB)
 
 
+class VehicleImportTests(ImportTestCase):
+    HEADER = [
+        "Funkrufname (OPTA)", "Kennzeichen", "Typ", "Fahrgestell", "Kofferaufbau",
+        "Fahrzeugzustand", "Kilometerstand", "Tank (%)", "AdBlue (%)", "O2 Druck (bar)",
+        "Nächste HU (§ 29)", "Nächste SP", "Nächste UVV (DGUV 70)", "Tragentisch 10g",
+        "Letzte Desinfektion", "In Betrieb",
+    ]
+
+    def row(self, call_sign="Rotkreuz 1/83-1", plate="WI-RK 112", vtype="RTW",
+            chassis="Mercedes-Benz Sprinter", body="Fahrtec Systeme", status="Einsatzbereit",
+            mileage="120000", tank="80", adblue="50", o2="200",
+            next_hu="2027-06-30", next_sp="", next_uvv="2027-06-30", next_stretcher="2027-06-30",
+            last_desinf="", in_service="Ja"):
+        return [
+            call_sign, plate, vtype, chassis, body, status,
+            mileage, tank, adblue, o2, next_hu, next_sp, next_uvv, next_stretcher,
+            last_desinf, in_service,
+        ]
+
+    def test_creates_rtw_and_ktw_with_defaults_and_explicit_values(self):
+        report = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-1", plate="WI-RK 112", vtype="RTW",
+                     chassis="MAN TGE", body="WAS", next_hu="2028-05-31"),
+            self.row(call_sign="Rotkreuz 1/85-1", plate="WI-RK 113", vtype="Krankentransportwagen (KTW)",
+                     chassis="", body="", next_hu=""),
+        ])
+        self.assertImported(report, created=2)
+        v1 = Vehicle.objects.get(call_sign="Rotkreuz 1/83-1")
+        self.assertEqual(v1.license_plate, "WI-RK 112")
+        self.assertEqual(v1.vehicle_type, Vehicle.VehicleType.RTW)
+        self.assertEqual(v1.chassis_manufacturer, "MAN TGE")
+        self.assertEqual(v1.body_manufacturer, "WAS")
+        self.assertEqual(v1.next_hu_date, date(2028, 5, 31))
+        self.assertEqual(v1.tactical_status, Vehicle.TacticalStatus.READY)
+        self.assertTrue(v1.is_active)
+
+        v2 = Vehicle.objects.get(call_sign="Rotkreuz 1/85-1")
+        self.assertEqual(v2.license_plate, "WI-RK 113")
+        self.assertEqual(v2.vehicle_type, Vehicle.VehicleType.KTW)
+        self.assertEqual(v2.chassis_manufacturer, "Mercedes-Benz Sprinter")
+        self.assertEqual(v2.body_manufacturer, "Fahrtec Systeme")
+        self.assertIsNone(v2.next_hu_date)
+        self.assertTrue(v2.is_active)
+
+    def test_existing_vehicle_skipped_by_plate_or_call_sign(self):
+        Vehicle.objects.create(
+            station=self.station, slug="rk-1", call_sign="Rotkreuz 1/83-1", license_plate="WI-RK 112",
+        )
+        report = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Anderer Rufname", plate="WI - RK 112"),
+            self.row(call_sign="rotkreuz 1/83-1", plate="WI-RK 999"),
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertEqual(report.rows[1].status, "skipped")
+        self.assertEqual(Vehicle.objects.filter(station=self.station).count(), 1)
+
+    def test_existing_inactive_vehicle_stays_inactive_with_note(self):
+        Vehicle.objects.create(
+            station=self.station, slug="rk-inaktiv", call_sign="Rotkreuz 1/83-9", license_plate="WI-RK 999",
+            is_active=False,
+        )
+        report = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-9", plate="WI-RK 999"),
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertIn("Das vorhandene Fahrzeug ist außer Betrieb genommen und bleibt es", report.rows[0].notes[0])
+        self.assertFalse(Vehicle.objects.get(slug="rk-inaktiv").is_active)
+
+    def test_in_file_duplicate_plate_and_call_sign_are_errors(self):
+        report_plate = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-1", plate="WI-RK 112"),
+            self.row(call_sign="Rotkreuz 1/83-2", plate="wi-rk-112"),
+        ])
+        self.assertFalse(report_plate.committed)
+        self.assertIn("Gleiches Kennzeichen wie Zeile 2", report_plate.rows[1].errors[0])
+
+        report_call = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-1", plate="WI-RK 112"),
+            self.row(call_sign="rotkreuz 1/83-1", plate="WI-RK 113"),
+        ])
+        self.assertFalse(report_call.committed)
+        self.assertIn("Gleicher Funkrufname wie Zeile 2", report_call.rows[1].errors[0])
+
+    def test_retired_or_out_of_service_vehicle_skipped_with_note(self):
+        report = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-1", plate="WI-RK 112", status="Ausgemustert"),
+            self.row(call_sign="Rotkreuz 1/83-2", plate="WI-RK 113", status="Außer Betrieb"),
+            self.row(call_sign="Rotkreuz 1/83-3", plate="WI-RK 114", in_service="Nein"),
+        ])
+        self.assertImported(report, created=0)
+        for row in report.rows:
+            self.assertEqual(row.status, "skipped")
+            self.assertIn("Außer Betrieb genommene Fahrzeuge werden nicht übernommen", " ".join(row.notes))
+        self.assertFalse(Vehicle.objects.filter(station=self.station).exists())
+
+    def test_past_check_dates_add_warnings(self):
+        report = self.run_kind("fahrzeuge", [
+            self.HEADER,
+            self.row(call_sign="Rotkreuz 1/83-1", plate="WI-RK 112", next_hu="2020-01-01"),
+        ])
+        self.assertImported(report, created=1)
+        self.assertIn("liegt in der Vergangenheit", " ".join(report.rows[0].notes))
+        v = Vehicle.objects.get(call_sign="Rotkreuz 1/83-1")
+        self.assertEqual(v.next_hu_date, date(2020, 1, 1))
+
+    def test_fleet_export_csv_round_trip(self):
+        Vehicle.objects.create(
+            station=self.station, slug="rk-1-83-1", call_sign="Rotkreuz 1/83-1", license_plate="WI-RK 112",
+            vehicle_type=Vehicle.VehicleType.RTW, chassis_manufacturer="Mercedes-Benz Sprinter",
+            body_manufacturer="Fahrtec Systeme", tactical_status=Vehicle.TacticalStatus.READY,
+            current_mileage=125000, fuel_level_percent=85, adblue_level_percent=90, o2_pressure_bar=200,
+            next_hu_date=date(2028, 5, 31), next_uvv_date=date(2028, 5, 31),
+            next_stretcher_service_date=date(2028, 5, 31), is_active=True,
+        )
+        self.client.force_login(self.admin)
+        export_response = self.client.get(reverse("fleet_export_csv"))
+        self.assertEqual(export_response.status_code, 200)
+
+        # Import the exported raw CSV - existing vehicle is skipped cleanly without errors
+        report = self.run_kind("fahrzeuge", [], raw=export_response.content)
+        self.assertEqual(report.file_errors, [])
+        self.assertEqual(report.counts["errors"], 0)
+        self.assertEqual(report.counts["skipped"], 1)
+        self.assertEqual(report.counts["created"], 0)
+
+
+class InvitationImportTests(ImportTestCase):
+    HEADER = ["Benutzername", "Vorname", "Nachname", "Rolle", "E-Mail"]
+
+    def test_creates_invitations_for_allowed_roles(self):
+        rows = [
+            self.HEADER,
+            ["m.mustermann", "Max", "Mustermann", "Mitglied", "max@example.com"],
+            ["e.schmidt", "Erika", "Schmidt", "Schichtleitung", ""],
+            ["k.kasse", "Karl", "Kasse", "Kassenwart", "kasse@example.com"],
+            ["o.default", "Otto", "Default", "", ""],
+        ]
+        report = self.run_kind("einladungen", rows)
+        self.assertImported(report, created=4)
+        activations = EmployeeActivation.objects.filter(station=self.station).select_related("user")
+        self.assertEqual(activations.count(), 4)
+        act_map = {a.user.username: a for a in activations}
+        self.assertEqual(act_map["m.mustermann"].role, Membership.Role.MEMBER)
+        self.assertEqual(act_map["m.mustermann"].user.first_name, "Max")
+        self.assertEqual(act_map["m.mustermann"].user.last_name, "Mustermann")
+        self.assertEqual(act_map["m.mustermann"].user.email, "max@example.com")
+        self.assertIsNone(act_map["m.mustermann"].used_at)
+
+        self.assertEqual(act_map["e.schmidt"].role, Membership.Role.SHIFT_LEAD)
+        self.assertEqual(act_map["k.kasse"].role, Membership.Role.CASHIER)
+        self.assertEqual(act_map["o.default"].role, Membership.Role.MEMBER)
+
+    def test_strictly_rejects_admin_and_auditor_roles(self):
+        for bad_role in ("Admin", "Administrator", "Leitung", "Wachleitung", "Auditor", "Prüfer"):
+            report = self.run_kind("einladungen", [
+                self.HEADER,
+                ["hacker", "Evil", "Admin", bad_role, ""],
+            ])
+            self.assertFalse(report.committed, bad_role)
+            self.assertIn("Admin- und Auditor-Rollen können nicht per CSV importiert werden", report.rows[0].errors[0])
+            self.assertFalse(User.objects.filter(username="hacker").exists())
+            self.assertFalse(EmployeeActivation.objects.filter(station=self.station).exists())
+
+    def test_invalid_role_is_validation_error(self):
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["u.invalid", "Hans", "Wurst", "Superheld", ""],
+        ])
+        self.assertFalse(report.committed)
+        self.assertIn("keine erlaubte Einladungsrolle", report.rows[0].errors[0])
+
+    def test_whitespace_in_username_is_validation_error(self):
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["max mustermann", "Max", "Mustermann", "Mitglied", ""],
+        ])
+        self.assertFalse(report.committed)
+        self.assertIn("keine Leerzeichen enthalten", report.rows[0].errors[0])
+
+    def test_duplicate_username_in_file_is_error(self):
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["doppel", "Vor1", "Nach1", "Mitglied", ""],
+            ["doppel", "Vor2", "Nach2", "Mitglied", ""],
+        ])
+        self.assertFalse(report.committed)
+        self.assertIn("Gleicher Benutzername wie Zeile 2", report.rows[1].errors[0])
+
+    def test_existing_member_is_skipped(self):
+        user = User.objects.create_user(username="bestehend", password="x-test-pass-123")
+        Membership.objects.create(user=user, station=self.station, role=Membership.Role.MEMBER)
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["bestehend", "Vor", "Nach", "Mitglied", ""],
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertIn("bereits Mitglied dieser Wache", report.rows[0].notes[0])
+
+    def test_existing_open_activation_is_skipped(self):
+        user = User.objects.create_user(username="bereits.offen", password="x-test-pass-123")
+        EmployeeActivation.objects.create(
+            user=user, station=self.station, created_by=self.admin, role=Membership.Role.MEMBER,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["bereits.offen", "Vor", "Nach", "Mitglied", ""],
+        ])
+        self.assertImported(report, created=0)
+        self.assertEqual(report.rows[0].status, "skipped")
+        self.assertIn("bereits eine offene Einladung", report.rows[0].notes[0])
+
+    def test_global_user_conflict_is_error(self):
+        User.objects.create_user(username="fremder.nutzer", password="x-test-pass-123")
+        report = self.run_kind("einladungen", [
+            self.HEADER,
+            ["fremder.nutzer", "Vor", "Nach", "Mitglied", ""],
+        ])
+        self.assertFalse(report.committed)
+        self.assertIn("bereits vergeben", report.rows[0].errors[0])
+
+    def test_konten_alias_works_identically(self):
+        report = self.run_kind("konten", [
+            self.HEADER,
+            ["alias.nutzer", "Alias", "User", "Mitglied", ""],
+        ])
+        self.assertImported(report, created=1)
+        self.assertTrue(EmployeeActivation.objects.filter(station=self.station, user__username="alias.nutzer").exists())
+
+
 class ImportViewSecurityTests(ImportTestCase):
     ARTICLE_ROWS = [["Artikel", "PZN"], ["Mullbinde", VALID_PZN[0]]]
 
@@ -912,14 +1184,19 @@ class ImportViewSecurityTests(ImportTestCase):
         self.assertFalse(MedicalItem.objects.exists())
 
     def test_disabled_module_kind_and_unknown_kind_are_404(self):
-        Station.objects.filter(pk=self.station.pk).update(mpg_enabled=False)
+        Station.objects.filter(pk=self.station.pk).update(mpg_enabled=False, fleet_enabled=False)
         self.assertEqual(self.client.get(reverse("masterdata_import_run", args=["medizingeraete"])).status_code, 404)
         self.assertEqual(self.client.get(reverse("masterdata_import_template", args=["medizingeraete"])).status_code,
+                         404)
+        self.assertEqual(self.client.get(reverse("masterdata_import_run", args=["fahrzeuge"])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("masterdata_import_template", args=["fahrzeuge"])).status_code,
                          404)
         self.assertEqual(self.client.get(reverse("masterdata_import_run", args=["unbekannt"])).status_code, 404)
         overview = self.client.get(reverse("masterdata_import"))
         self.assertNotContains(overview, reverse("masterdata_import_run", args=["medizingeraete"]))
+        self.assertNotContains(overview, reverse("masterdata_import_run", args=["fahrzeuge"]))
         self.assertContains(overview, reverse("masterdata_import_run", args=["artikel"]))
+        self.assertContains(overview, reverse("masterdata_import_run", args=["einladungen"]))
 
     def test_overview_counts_only_own_station(self):
         self.item("Eigen")
@@ -937,7 +1214,7 @@ class ImportViewSecurityTests(ImportTestCase):
 
     def test_preview_writes_nothing(self):
         models = (MedicalItem, StorageLocation, ItemBatch, StockItem, StockMovement, MedicalDevice, StationAsset,
-                  MaintenanceLog, AuditEvent, User, Membership)
+                  MaintenanceLog, AuditEvent, User, Membership, Vehicle, EmployeeActivation)
         # Für den Bestand: vorhandener Artikel und Lagerort, neue Charge.
         self.item("Kompresse", pzn=VALID_PZN[1])
         self.location("Fach 9")
@@ -949,11 +1226,36 @@ class ImportViewSecurityTests(ImportTestCase):
             ("bestand", [["Artikel", "Charge (Lot)", "Hersteller-MHD", "Lagerort", "Bestand"],
                          ["Kompresse", "L-9", mhd, "Fach 9", "5"]]),
             ("medizingeraete", [["Gerätebezeichnung", "Risikoklasse", "Seriennummer"], ["Absaugpumpe", "IIa", "1"]]),
+            ("fahrzeuge", [["Funkrufname", "Kennzeichen"], ["Rotkreuz 1/83-1", "WI-RK 112"]]),
+            ("einladungen", [["Benutzername", "Vorname", "Nachname"], ["neuer.helfer", "Max", "Mustermann"]]),
         ):
             response = self.upload(rows, slug=slug)
             self.assertEqual(response.status_code, 200)
             self.assertTrue(response.context["can_commit"], slug)
         self.assertEqual({model: model.objects.count() for model in models}, before)
+
+    def test_commit_vehicles_and_invitations_writes_audit_events(self):
+        v_preview = self.upload([["Funkrufname", "Kennzeichen"], ["Rotkreuz 1/83-1", "WI-RK 112"]], slug="fahrzeuge")
+        v_done = self.commit(v_preview, slug="fahrzeuge")
+        self.assertEqual(v_done.status_code, 200)
+        self.assertEqual(Vehicle.objects.filter(station=self.station).count(), 1)
+        v_event = AuditEvent.objects.get(action="import.vehicles")
+        self.assertEqual(v_event.object_type, "Station")
+        self.assertEqual(v_event.station, self.station)
+        self.assertEqual(v_event.metadata["counts"]["created"], 1)
+
+        i_preview = self.upload([["Benutzername", "Vorname", "Nachname"], ["test.helfer", "Test", "Helfer"]], slug="einladungen")
+        i_done = self.commit(i_preview, slug="einladungen")
+        self.assertEqual(i_done.status_code, 200)
+        self.assertEqual(EmployeeActivation.objects.filter(station=self.station).count(), 1)
+        i_event = AuditEvent.objects.get(action="import.invitations")
+        self.assertEqual(i_event.object_type, "Station")
+        self.assertEqual(i_event.station, self.station)
+        self.assertEqual(i_event.metadata["counts"]["created"], 1)
+
+        audit_page = self.client.get(reverse("audit_log"))
+        self.assertContains(audit_page, "Fahrzeuge importiert")
+        self.assertContains(audit_page, "Einladungen importiert")
 
     def test_preview_then_commit_imports_and_writes_one_audit_event_with_counts_only(self):
         preview = self.upload([["Artikel", "PZN"], ["Geheimer Artikelname", VALID_PZN[0]], ["Zweiter", ""]])
@@ -1273,3 +1575,77 @@ class ImportPerformanceTests(ImportTestCase):
         self.assertEqual(MedicalDevice.objects.filter(station=self.station).count(), 40)
         self.assertEqual(StockMovement.objects.filter(station=self.station, kind="legacy").count(), 300)
         self.assertLess(elapsed, 120)
+
+    def test_bulk_import_with_vehicles_invitations_and_serial_fallback(self):
+        # 1. Setup existing device with blank manufacturer
+        existing_device = MedicalDevice.objects.create(
+            station=self.station, slug="defi-alt", name="Defi Alt",
+            serial_number="SN-FALLBACK-01", manufacturer="", next_stk_date=date(2027, 1, 31),
+        )
+
+        # 2. 300 articles
+        pzns = valid_pzns(300)
+        article_rows = [["Artikel", "PZN", "Einheit", "Kategorie", "Mindestbestand", "Sollbestand"]] + [
+            [f"Massenartikel {n:03d}", pzn, "Stück", "Sonstiges Material", "1", "2"] for n, pzn in enumerate(pzns)
+        ]
+        art_report = self.run_kind("artikel", article_rows, commit=True)
+        self.assertEqual(art_report.file_errors, [])
+        self.assertEqual(art_report.counts["errors"], 0)
+        self.assertEqual(art_report.counts["created"], 300)
+
+        # 3. 40 devices including the serial fallback device
+        device_rows = [["Gerätebezeichnung", "Risikoklasse", "Hersteller", "Seriennummer", "Inventarnummer",
+                        "Nächste STK", "Nächste DGUV V3"]] + [
+            [f"Gerät {n:02d}", "IIa", "Weinmann", f"SN-BULK-{n:03d}", f"INV-BULK-{n:03d}", "06/2030", "06/2030"]
+            for n in range(39)
+        ] + [
+            ["Defi Neu", "IIb", "Corpuls", "sn-fallback-01", "", "06/2030", "06/2030"]
+        ]
+        dev_report = self.run_kind("medizingeraete", device_rows, commit=True)
+        self.assertEqual(dev_report.file_errors, [])
+        self.assertEqual(dev_report.counts["errors"], 0)
+        self.assertEqual(dev_report.counts["created"], 39)
+        self.assertEqual(dev_report.counts["skipped"], 1)
+
+        # Serial fallback updated existing device manufacturer
+        existing_device.refresh_from_db()
+        self.assertEqual(existing_device.manufacturer, "Corpuls")
+
+        # 4. Vehicles
+        vehicle_rows = [["Funkrufname", "Kennzeichen", "Typ", "Fahrgestell", "Kofferaufbau", "Nächste HU"]] + [
+            [f"Rotkreuz 1/83-{n+1}", f"WI-RK {100+n}", "RTW", "Mercedes-Benz", "Fahrtec", "2028-06-30"]
+            for n in range(5)
+        ]
+        veh_report = self.run_kind("fahrzeuge", vehicle_rows, commit=True)
+        self.assertEqual(veh_report.file_errors, [])
+        self.assertEqual(veh_report.counts["errors"], 0)
+        self.assertEqual(veh_report.counts["created"], 5)
+
+        # 5. Invitations rejecting admin roles
+        invitation_rows_with_admin = [
+            ["Benutzername", "Vorname", "Nachname", "Rolle"],
+            ["helfer.eins", "Helfer", "Eins", "Mitglied"],
+            ["admin.versuch", "Boeser", "Admin", "Administrator"],
+        ]
+        inv_bad_report = self.run_kind("einladungen", invitation_rows_with_admin, commit=True)
+        self.assertFalse(inv_bad_report.committed)
+        self.assertIn("Admin- und Auditor-Rollen können nicht per CSV importiert werden", inv_bad_report.rows[1].errors[0])
+        self.assertFalse(User.objects.filter(username="admin.versuch").exists())
+
+        # Valid invitations import cleanly
+        valid_invitation_rows = [
+            ["Benutzername", "Vorname", "Nachname", "Rolle"],
+            ["helfer.eins", "Helfer", "Eins", "Mitglied"],
+            ["helfer.zwei", "Helfer", "Zwei", "Schichtleitung"],
+            ["helfer.drei", "Helfer", "Drei", "Kassenwart"],
+        ]
+        inv_good_report = self.run_kind("einladungen", valid_invitation_rows, commit=True)
+        self.assertEqual(inv_good_report.file_errors, [])
+        self.assertEqual(inv_good_report.counts["errors"], 0)
+        self.assertEqual(inv_good_report.counts["created"], 3)
+
+        # Verify total database counts
+        self.assertEqual(MedicalItem.objects.filter(station=self.station).count(), 300)
+        self.assertEqual(MedicalDevice.objects.filter(station=self.station).count(), 40)
+        self.assertEqual(Vehicle.objects.filter(station=self.station).count(), 5)
+        self.assertEqual(EmployeeActivation.objects.filter(station=self.station).count(), 3)

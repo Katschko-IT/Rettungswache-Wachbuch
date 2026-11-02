@@ -48,9 +48,11 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from .csv_safety import FORMULA_PREFIXES
-from .models import Station
+from .fleet_models import Vehicle
+from .models import EmployeeActivation, Membership, Station, User
 from .mpg_models import MedicalDevice
 from .services import audit
+from .setup_wizard import SetupConflict, create_employee_invite, reusable_pending_invite
 from .wachalltag_models import StationAsset
 from .warehouse_models import ItemBatch, MedicalItem, StockItem, StockMovement, StorageLocation
 
@@ -1259,6 +1261,20 @@ class MedicalDeviceHandler(KindHandler):
         self.by_serial = {
             (norm(d.serial_number), norm(d.manufacturer)): d for d in devices if d.serial_number.strip()
         }
+        by_serial_grouped: dict[str, list] = {}
+        for d in devices:
+            if d.serial_number.strip():
+                by_serial_grouped.setdefault(norm(d.serial_number), []).append(d)
+
+        self.by_serial_only = {}
+        for s_norm, dev_list in by_serial_grouped.items():
+            if len(dev_list) == 1:
+                self.by_serial_only[s_norm] = dev_list[0]
+            else:
+                blank_mfg = [d for d in dev_list if not norm(d.manufacturer)]
+                if len(blank_mfg) == 1:
+                    self.by_serial_only[s_norm] = blank_mfg[0]
+
         asset_ids = StationAsset.objects.filter(
             station=self.station, kind=StationAsset.Kind.DEVICE,
         ).values_list("asset_id", flat=True)
@@ -1364,17 +1380,278 @@ class MedicalDeviceHandler(KindHandler):
         if serial_key:
             self.seen_serial[serial_key] = result.line
         existing = self.by_inventory.get(inventory_key) or self.by_serial.get(serial_key)
+        if existing is None and serial:
+            cand = self.by_serial_only.get(norm(serial))
+            if cand is not None:
+                if not norm(cand.manufacturer) or not norm(manufacturer) or norm(cand.manufacturer) == norm(manufacturer):
+                    existing = cand
+
+        update_existing = None
         if existing is not None:
             result.status = "skipped"
+            if not existing.manufacturer and manufacturer:
+                update_existing = (existing, manufacturer)
             if existing.current_status == MedicalDevice.Status.DECOMMISSIONED:
                 # Ein Import nimmt ein Gerät nie wieder in Betrieb (core/evidence.py).
                 result.notes.append(_("Das vorhandene Gerät ist außer Betrieb genommen und bleibt es."))
-        return {"instance": instance}
+        return {"instance": instance, "update_existing": update_existing}
 
     def apply(self, plan, result):
         instance = plan["instance"]
         instance.slug = self.slugs.make(instance.name)
         instance.save()
+
+    def apply_all(self, entries) -> None:
+        super().apply_all(entries)
+        for result, plan in entries:
+            if plan.get("update_existing"):
+                dev, mfg = plan["update_existing"]
+                dev.manufacturer = mfg
+                dev.save(update_fields=["manufacturer"])
+
+
+class VehicleHandler(KindHandler):
+    model = Vehicle
+    TYPE_SYNONYMS = {
+        "rtw": "rtw", "rettungswagen": "rtw", "rettungswagen (rtw)": "rtw",
+        "ktw": "ktw", "krankentransportwagen": "ktw", "krankentransportwagen (ktw)": "ktw",
+        "nef": "nef", "notarzteinsatzfahrzeug": "nef", "notarzteinsatzfahrzeug (nef)": "nef",
+        "kdow": "kdow", "kommandowagen": "kdow", "kommandowagen (kdow)": "kdow",
+        "bktw": "bktw", "behindertentransportwagen": "bktw", "behindertentransportwagen (bktw)": "bktw",
+        "gw_san": "gw_san", "gw-san": "gw_san", "gerätewagen sanität": "gw_san",
+        "gerätewagen sanität (gw-san)": "gw_san", "geraetewagen sanitaet (gw-san)": "gw_san",
+        "reserve": "reserve", "reserve-fahrzeug": "reserve", "reservefahrzeug": "reserve",
+        "other": "other", "sonstiges": "other", "sonstiges fahrzeug": "other",
+    }
+    STATUS_SYNONYMS = {
+        "einsatzbereit": "ready", "ok": "ready", "in ordnung": "ready",
+        "eingeschränkt": "limited", "eingeschraenkt": "limited",
+        "desinfektion": "disinfection",
+        "werkstatt": "workshop",
+        "außer dienst": "out_of_service", "ausser dienst": "out_of_service",
+        "ausgemustert": "retired", "außer betrieb genommen": "retired",
+        "außer betrieb": "retired", "inaktiv": "retired",
+    }
+
+    @staticmethod
+    def _norm_plate(plate: str) -> str:
+        return norm(plate).replace("-", "").replace(" ", "").replace("_", "")
+
+    def preload(self):
+        vehicles = list(Vehicle.objects.filter(station=self.station).only(
+            "id", "slug", "license_plate", "call_sign", "is_active", "tactical_status",
+        ))
+        self.by_plate = {self._norm_plate(v.license_plate): v for v in vehicles if v.license_plate.strip()}
+        self.by_call_sign = {norm(v.call_sign): v for v in vehicles if v.call_sign.strip()}
+        self.slugs = SlugPool([v.slug for v in vehicles], "vehicle")
+        self.seen_plate: dict[str, int] = {}
+        self.seen_call_sign: dict[str, int] = {}
+
+    def validate(self, cells, result):
+        raw_status = norm(cells.raw("status")) if cells.has("status") else ""
+        status_code = self.STATUS_SYNONYMS.get(raw_status) or choice_lookup(Vehicle.TacticalStatus, self.STATUS_SYNONYMS).get(raw_status)
+        in_service = cells.boolean("in_service", default=True) if cells.has("in_service") else True
+        if status_code == "retired" or in_service is False:
+            result.status = "skipped"
+            result.label = " · ".join(part for part in (cells.raw("call_sign"), cells.raw("license_plate")) if part)
+            cells.note("status", _("Außer Betrieb genommene Fahrzeuge werden nicht übernommen."))
+            return {"instance": None}
+
+        call_sign = cells.text("call_sign", 120, required=True)
+        license_plate = cells.text("license_plate", 40, required=True)
+        vehicle_type = cells.choice(
+            "vehicle_type", Vehicle.VehicleType, self.TYPE_SYNONYMS, default=Vehicle.VehicleType.RTW,
+        )
+        chassis_manufacturer = cells.text("chassis_manufacturer", 120) or "Mercedes-Benz Sprinter"
+        body_manufacturer = cells.text("body_manufacturer", 120) or "Fahrtec Systeme"
+        year = cells.integer("year_of_manufacture", 1950, self.today.year + 1)
+        next_hu = cells.day("next_hu", month_ok=True)
+        next_sp = cells.day("next_sp", month_ok=True)
+        next_uvv = cells.day("next_uvv", month_ok=True)
+        next_stretcher = cells.day("next_stretcher", month_ok=True)
+
+        for key, value in (("next_hu", next_hu), ("next_sp", next_sp), ("next_uvv", next_uvv), ("next_stretcher", next_stretcher)):
+            if value and value < self.today:
+                cells.note(key, _("liegt in der Vergangenheit. Die Prüfung ist überfällig."))
+
+        result.label = " · ".join(part for part in (call_sign, license_plate) if part)
+
+        instance = Vehicle(
+            station=self.station,
+            slug="x",
+            call_sign=call_sign or "",
+            license_plate=license_plate or "",
+            vehicle_type=vehicle_type or Vehicle.VehicleType.RTW,
+            chassis_manufacturer=chassis_manufacturer,
+            body_manufacturer=body_manufacturer,
+            year_of_manufacture=year,
+            next_hu_date=next_hu,
+            next_sp_date=next_sp,
+            next_uvv_date=next_uvv,
+            next_stretcher_service_date=next_stretcher,
+            tactical_status=Vehicle.TacticalStatus.READY,
+            is_active=True,
+        )
+        if call_sign and license_plate:
+            _model_errors(instance, ["station", "slug"], result)
+        if result.errors:
+            return {"instance": instance}
+
+        plate_key = self._norm_plate(license_plate) if license_plate else ""
+        call_sign_key = norm(call_sign) if call_sign else ""
+
+        if plate_key and plate_key in self.seen_plate:
+            result.errors.append(_("Gleiches Kennzeichen wie Zeile %(line)s.") % {
+                "line": self.seen_plate[plate_key],
+            })
+            return {"instance": instance}
+        if call_sign_key and call_sign_key in self.seen_call_sign:
+            result.errors.append(_("Gleicher Funkrufname wie Zeile %(line)s.") % {
+                "line": self.seen_call_sign[call_sign_key],
+            })
+            return {"instance": instance}
+
+        if plate_key:
+            self.seen_plate[plate_key] = result.line
+        if call_sign_key:
+            self.seen_call_sign[call_sign_key] = result.line
+
+        existing = (self.by_plate.get(plate_key) if plate_key else None) or (self.by_call_sign.get(call_sign_key) if call_sign_key else None)
+        if existing is not None:
+            result.status = "skipped"
+            if not existing.is_active:
+                result.notes.append(_("Das vorhandene Fahrzeug ist außer Betrieb genommen und bleibt es."))
+        return {"instance": instance}
+
+    def apply(self, plan, result):
+        instance = plan["instance"]
+        if instance is None:
+            return
+        instance.slug = self.slugs.make(instance.call_sign)
+        instance.save()
+
+
+class InvitationHandler(KindHandler):
+    model = EmployeeActivation
+
+    ROLE_CHOICES = {
+        "mitglied": Membership.Role.MEMBER,
+        "member": Membership.Role.MEMBER,
+        "schichtleitung": Membership.Role.SHIFT_LEAD,
+        "schichtleiter": Membership.Role.SHIFT_LEAD,
+        "shift_lead": Membership.Role.SHIFT_LEAD,
+        "shift lead": Membership.Role.SHIFT_LEAD,
+        "kassenwart": Membership.Role.CASHIER,
+        "kassierer": Membership.Role.CASHIER,
+        "cashier": Membership.Role.CASHIER,
+    }
+    FORBIDDEN_ROLES = {
+        "admin", "administrator", "leitung", "wachleitung", "master-admin", "master_admin",
+        "auditor", "prüfer", "pruefer",
+    }
+
+    def preload(self):
+        self.existing_members = set(
+            Membership.objects.filter(station=self.station)
+            .values_list("user__username", flat=True)
+        )
+        self.existing_members_norm = {norm(u) for u in self.existing_members if u}
+
+        now = timezone.now()
+        open_activations = EmployeeActivation.objects.filter(
+            station=self.station,
+            used_at__isnull=True,
+            revoked_at__isnull=True,
+            expires_at__gt=now,
+        ).values_list("user__username", flat=True)
+        self.open_activations_norm = {norm(u) for u in open_activations if u}
+
+        self.seen_usernames: dict[str, int] = {}
+
+    def validate(self, cells, result):
+        username = cells.text("username", 150, required=True)
+        first_name = cells.text("first_name", 150) or ""
+        last_name = cells.text("last_name", 150) or ""
+        raw_role = norm(cells.raw("role")) if cells.has("role") else ""
+        email = cells.text("email", 254) or ""
+
+        result.label = username or " · ".join(part for part in (first_name, last_name) if part)
+
+        if not username:
+            return {"username": None}
+
+        if re.search(r"\s", username):
+            cells.fail("username", _("Benutzername darf keine Leerzeichen enthalten."))
+            return {"username": None}
+
+        # Check forbidden roles
+        if raw_role in self.FORBIDDEN_ROLES:
+            result.errors.append(
+                _("Admin- und Auditor-Rollen können nicht per CSV importiert werden. "
+                  "Konten werden nur als Einladungen ohne Admin-Rolle angelegt.")
+            )
+            return {"username": None}
+
+        role = Membership.Role.MEMBER
+        if raw_role:
+            role = self.ROLE_CHOICES.get(raw_role)
+            if not role:
+                cells.fail("role", _("„%(value)s“ ist keine erlaubte Einladungsrolle. Erlaubt: %(allowed)s.") % {
+                    "value": cells.raw("role"),
+                    "allowed": ", ".join([str(Membership.Role.MEMBER.label), str(Membership.Role.SHIFT_LEAD.label), str(Membership.Role.CASHIER.label)]),
+                })
+                return {"username": None}
+
+        user_norm = norm(username)
+        if user_norm in self.seen_usernames:
+            result.errors.append(_("Gleicher Benutzername wie Zeile %(line)s.") % {
+                "line": self.seen_usernames[user_norm],
+            })
+            return {"username": None}
+        self.seen_usernames[user_norm] = result.line
+
+        # Check if already member
+        if user_norm in self.existing_members_norm:
+            result.status = "skipped"
+            result.notes.append(_("Person ist bereits Mitglied dieser Wache."))
+            return {"username": None}
+
+        # Check if open activation exists
+        if user_norm in self.open_activations_norm:
+            result.status = "skipped"
+            result.notes.append(_("Für diese Person ist bereits eine offene Einladung vorhanden."))
+            return {"username": None}
+
+        # Check global user collision
+        existing_user = User.objects.filter(username__iexact=username).first()
+        if existing_user is not None and not reusable_pending_invite(existing_user, station=self.station):
+            result.errors.append(_("Dieser Benutzername ist bereits vergeben."))
+            return {"username": None}
+
+        return {
+            "username": username,
+            "first_name": first_name,
+            "last_name": last_name,
+            "role": role,
+            "email": email,
+        }
+
+    def apply(self, plan, result):
+        if not plan or not plan.get("username"):
+            return
+        user, activation, raw = create_employee_invite(
+            station=self.station,
+            created_by=self.actor,
+            data={
+                "username": plan["username"],
+                "first_name": plan["first_name"],
+                "last_name": plan["last_name"],
+                "role": plan["role"],
+            },
+        )
+        if plan.get("email"):
+            user.email = plan["email"]
+            user.save(update_fields=["email"])
 
 
 # --- Registry --------------------------------------------------------------
@@ -1580,11 +1857,126 @@ KINDS = {
         next_url_name="mpg_dashboard",
         next_label=gettext_lazy("Zu den Medizingeräten"),
     ),
+    "fahrzeuge": ImportKind(
+        slug="fahrzeuge",
+        title=gettext_lazy("Fahrzeuge"),
+        description=gettext_lazy("Fuhrpark mit Funkrufnamen, amtlichen Kennzeichen, Fahrzeugtyp und Prüffristen."),
+        module_flag="fleet_enabled",
+        audit_action="import.vehicles",
+        handler_cls=VehicleHandler,
+        columns=(
+            Column("Funkrufname (OPTA)", "call_sign", gettext_lazy("Funkrufname (OPTA), z. B. „Rotkreuz 01/83-01“."),
+                   required=True, aliases=("Funkrufname", "OPTA", "Rufname", "Fahrzeug", "Bezeichnung")),
+            Column("Amtliches Kennzeichen", "license_plate", gettext_lazy("Amtliches Kennzeichen, z. B. „M-RK 8301“."),
+                   required=True, aliases=("Kennzeichen", "Kfz-Kennzeichen", "Polizeiliches Kennzeichen")),
+            Column("Fahrzeugtyp", "vehicle_type",
+                   gettext_lazy("RTW, KTW, NEF, KdoW, BKTW, GW-San, Reserve-Fahrzeug oder Sonstiges Fahrzeug. Leer: RTW."),
+                   aliases=("Typ", "Fahrzeug-Typ", "Art"), allowed=lambda: allowed_labels(Vehicle.VehicleType)),
+            Column("Fahrgestell", "chassis_manufacturer", gettext_lazy("Fahrgestell / Basisfahrzeug, höchstens 120 Zeichen."),
+                   aliases=("Fahrgestell-Hersteller", "Hersteller", "Chassis", "Basisfahrzeug")),
+            Column("Kofferaufbau", "body_manufacturer", gettext_lazy("Kofferaufbau / Ausbau, höchstens 120 Zeichen."),
+                   aliases=("Aufbau", "Koffer", "Ausbau", "Aufbauhersteller")),
+            Column("Baujahr", "year_of_manufacture", gettext_lazy("Vierstellige Jahreszahl."),
+                   aliases=("Jahr", "Erstzulassung")),
+            Column("Nächste HU (§ 29)", "next_hu", gettext_lazy("Datum von der Prüfplakette; „06/2027“ gilt als Monatsende."),
+                   aliases=("Nächste HU", "HU", "Hauptuntersuchung", "Nächste Hauptuntersuchung", "Nächste Hauptuntersuchung (§ 29 StVZO)")),
+            Column("Nächste SP", "next_sp", gettext_lazy("Datum der Sicherheitsprüfung; „06/2027“ gilt als Monatsende."),
+                   aliases=("SP", "Sicherheitsprüfung", "Nächste Sicherheitsprüfung", "Nächste Sicherheitsprüfung (SP)")),
+            Column("Nächste UVV (DGUV 70)", "next_uvv", gettext_lazy("Datum der UVV-Prüfung; „06/2027“ gilt als Monatsende."),
+                   aliases=("Nächste UVV", "UVV", "UVV-Prüfung", "Nächste UVV-Prüfung", "Nächste UVV-Prüfung (DGUV V70)", "UVV (DGUV V70)")),
+            Column("Tragentisch 10g", "next_stretcher", gettext_lazy("Datum der Tragentisch-Wartung; „06/2027“ gilt als Monatsende."),
+                   aliases=("Tragentisch", "Tragentisch-Wartung", "10g", "Tragentisch-Wartung (10g / DIN EN 1789)", "Tragentisch 10g (DIN EN 1789)")),
+            Column("Fahrzeugzustand", "status",
+                   gettext_lazy("Wird nicht übernommen. Ausgemusterte Fahrzeuge werden übersprungen."),
+                   aliases=("Status", "Zustand", "Betriebsstatus"), allowed=lambda: allowed_labels(Vehicle.TacticalStatus)),
+            Column("In Betrieb", "in_service", gettext_lazy("Leer: Ja. Nein überspringt das Fahrzeug."),
+                   aliases=("Aktiv", "Im Dienst", "Im aktiven Wachdienst"), allowed=lambda: ["Ja", "Nein"]),
+        ),
+        ignored_headers=(
+            ("Kilometerstand", gettext_lazy("wird bei der Fahrzeugübernahme erfasst")),
+            ("km-Stand", gettext_lazy("wird bei der Fahrzeugübernahme erfasst")),
+            ("Tank (%)", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("Kraftstoff (%)", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("Kraftstoff", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("AdBlue (%)", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("AdBlue", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("O2 Druck (bar)", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("Sauerstoffdruck (bar)", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("Sauerstoff", gettext_lazy("Füllstände werden bei der Fahrzeugübernahme erfasst")),
+            ("Letzte Desinfektion", gettext_lazy("Desinfektionen werden nicht übernommen")),
+            ("Letzte HU", LAST_CHECK_HINT),
+            ("Letzte SP", LAST_CHECK_HINT),
+            ("Letzte UVV", LAST_CHECK_HINT),
+            ("Letzter Tragentisch", LAST_CHECK_HINT),
+            ("Status-Bemerkung", FREE_TEXT_HINT),
+            ("Fahrzeugakte / Besonderheiten", FREE_TEXT_HINT),
+            ("Hinweise", FREE_TEXT_HINT),
+            ("Notizen", FREE_TEXT_HINT),
+            ("Bemerkung", FREE_TEXT_HINT),
+        ),
+        not_imported_text=gettext_lazy(
+            "Vorhandene Fahrzeuge (gleiches Kennzeichen oder gleicher Funkrufname) werden übersprungen und nicht "
+            "geändert. Fahrzeugzustand, Füllstände, Kilometerstand, Desinfektionsprotokolle und Notizen werden "
+            "nicht übernommen."
+        ),
+        example_row=(("call_sign", "# Beispiel: Rotkreuz 01/83-01"), ("license_plate", "M-RK 8301"),
+                     ("vehicle_type", "Rettungswagen (RTW)"), ("chassis_manufacturer", "Mercedes-Benz Sprinter"),
+                     ("body_manufacturer", "Fahrtec Systeme"), ("year_of_manufacture", "2024"),
+                     ("next_hu", "06/2027"), ("next_uvv", "12/2026")),
+        next_url_name="fleet_dashboard",
+        next_label=gettext_lazy("Zum Fuhrpark"),
+    ),
+    "einladungen": ImportKind(
+        slug="einladungen",
+        title=gettext_lazy("Einladungen"),
+        description=gettext_lazy(
+            "Mitarbeiter-Einladungen für die Wache. Konten werden nur als Einladungen angelegt, nie mit Admin-Rolle."
+        ),
+        module_flag="",
+        audit_action="import.invitations",
+        handler_cls=InvitationHandler,
+        columns=(
+            Column("Benutzername", "username", gettext_lazy("Eindeutiger Benutzername für die Anmeldung, z. B. „m.mueller“."),
+                   required=True, aliases=("Benutzer", "Username", "Login", "Benutzerkennung")),
+            Column("Vorname", "first_name", gettext_lazy("Vorname der Person."), aliases=("First Name", "Vorname(n)")),
+            Column("Nachname", "last_name", gettext_lazy("Nachname der Person."), aliases=("Name", "Familienname", "Last Name")),
+            Column("Rolle", "role", gettext_lazy("Leer: Mitglied. Erlaubt: Mitglied, Schichtleitung, Kassenwart."),
+                   aliases=("Berechtigung", "Funktion", "Role"),
+                   allowed=lambda: [str(Membership.Role.MEMBER.label), str(Membership.Role.SHIFT_LEAD.label), str(Membership.Role.CASHIER.label)]),
+            Column("E-Mail", "email", gettext_lazy("Optionale E-Mail-Adresse."), aliases=("Mail", "Email")),
+        ),
+        ignored_headers=(
+            ("Passwort", gettext_lazy("Passwörter werden nie importiert; Personen vergeben ihr Passwort bei der Aktivierung")),
+            ("Kennwort", gettext_lazy("Passwörter werden nie importiert; Personen vergeben ihr Passwort bei der Aktivierung")),
+            ("Zwei-Faktor", gettext_lazy("wird von der Person selbst eingerichtet")),
+            ("Status", gettext_lazy("Einladungen starten immer als offen")),
+            ("Hinweise", FREE_TEXT_HINT),
+            ("Notizen", FREE_TEXT_HINT),
+            ("Bemerkung", FREE_TEXT_HINT),
+        ),
+        not_imported_text=gettext_lazy(
+            "Vorhandene Mitglieder und bereits offene Einladungen werden übersprungen und nicht geändert. "
+            "Passwörter und Admin-Rollen können per CSV nicht importiert werden."
+        ),
+        example_row=(("username", "# Beispiel: m.mueller"), ("first_name", "Max"), ("last_name", "Müller"),
+                     ("role", "Mitglied")),
+        next_url_name="team_invites",
+        next_label=gettext_lazy("Zu den Einladungen"),
+    ),
 }
+KINDS["konten"] = KINDS["einladungen"]
 
 
 def available_kinds(station) -> list[ImportKind]:
-    return [kind for kind in KINDS.values() if not kind.module_flag or getattr(station, kind.module_flag, False)]
+    seen = set()
+    result = []
+    for kind in KINDS.values():
+        if kind.slug in seen:
+            continue
+        seen.add(kind.slug)
+        if not kind.module_flag or getattr(station, kind.module_flag, False):
+            result.append(kind)
+    return result
 
 
 def get_kind(slug: str, station) -> ImportKind | None:
@@ -1662,7 +2054,7 @@ def run_import(
                     report.committed = True
             if not report.committed:
                 transaction.set_rollback(True)
-    except (IntegrityError, ValidationError, ValueError) as exc:
+    except (IntegrityError, ValidationError, ValueError, SetupConflict) as exc:
         report.committed = False
         report.file_errors.append(
             _("Zeile %(line)s konnte nicht gespeichert werden. Es wurde nichts importiert.")

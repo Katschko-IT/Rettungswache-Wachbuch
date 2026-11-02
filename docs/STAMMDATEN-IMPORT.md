@@ -1,8 +1,7 @@
 # Stammdaten-Import (CSV)
 
 Stand: 0.27 (ROADMAP 0.27, Baustein 7). Dieser Teil umfasst **Lagerorte, Artikel,
-Bestand (Altbestand) und Medizingeräte**. Fahrzeuge und Einladungen folgen in
-einem eigenen Schritt.
+Bestand (Altbestand), Medizingeräte, Fahrzeuge und Einladungen (Konten)**.
 
 Der Import ist für die Einrichtung einer Wache gedacht: Listen, die es schon in
 Excel gibt, werden einmal übernommen. Danach wird in Wachwerk gepflegt.
@@ -31,7 +30,7 @@ Excel gibt, werden einmal übernommen. Danach wird in Wachwerk gepflegt.
    jemand denselben Artikel angelegt), wird ebenfalls nichts angelegt; die neue
    Vorschau erscheint und muss erneut bestätigt werden.
 
-**Reihenfolge:** Lagerorte → Artikel → Bestand → Medizingeräte.
+**Reihenfolge:** Lagerorte → Artikel → Bestand → Medizingeräte → Fahrzeuge → Einladungen.
 
 **Wichtig für das Lager:** Öffnet jemand `/lager/` auf einer Wache ohne
 Lagerorte, legt Wachwerk drei Beispiel-Lagerorte an („Zentrallager / Apotheke“,
@@ -201,6 +200,39 @@ Spalten wie „Letzte STK“ oder „Letzte Funktionskontrolle“ werden ignorie
 Bitte die nächste Fälligkeit von der Prüfplakette übernehmen. Die Spalte
 „Außerbetriebnahme“ aus dem Bestandsverzeichnis wird ebenfalls ignoriert.
 
+### Fahrzeuge (`fahrzeuge`)
+
+| Spalte | Bedeutung |
+|---|---|
+| Funkrufname (OPTA)* | Bezeichnung / Funkrufname, z. B. `Rotkreuz 01/83-01` |
+| Amtliches Kennzeichen* | z. B. `M-RK 8301` |
+| Fahrzeugtyp | RTW (Standard), KTW, NEF, KdoW, BKTW, GW-San, Reserve-Fahrzeug oder Sonstiges Fahrzeug |
+| Fahrgestell | Basisfahrzeug / Fahrgestell-Hersteller, z. B. `Mercedes-Benz Sprinter` |
+| Kofferaufbau | Aufbauhersteller / Koffer, z. B. `Fahrtec Systeme` |
+| Baujahr | Vierstellige Jahreszahl |
+| Nächste HU (§ 29) | Datum von der Prüfplakette; `06/2027` gilt als Monatsende |
+| Nächste SP | Datum der Sicherheitsprüfung; `06/2027` gilt als Monatsende |
+| Nächste UVV (DGUV 70) | Datum der UVV-Prüfung; `06/2027` gilt als Monatsende |
+| Tragentisch 10g | Datum der Tragentisch-Wartung; `06/2027` gilt als Monatsende |
+| Fahrzeugzustand | Einsatzbereit, Eingeschränkt, Werkstatt, Außer Dienst, Ausgemustert. Ausgemusterte Fahrzeuge werden übersprungen. |
+| In Betrieb | Ja/Nein. Leer: Ja. Nein überspringt das Fahrzeug. |
+
+Schlüssel: Amtliches Kennzeichen oder Funkrufname. Vorhandene Fahrzeuge werden übersprungen und nicht geändert. Spalten der Fuhrpark-Exporte (Kilometerstand, Kraftstoff, AdBlue, Sauerstoff, Letzte Desinfektion) werden ignoriert; Füllstände und km-Stand werden bei der Fahrzeugübernahme erfasst.
+
+### Einladungen (`einladungen` / `konten`)
+
+Konten für Mitarbeiter der Wache werden ausschließlich als Einladungen angelegt, **nie mit Admin-Rolle**.
+
+| Spalte | Bedeutung |
+|---|---|
+| Benutzername* | Eindeutiger Benutzername, z. B. `m.mueller`. Keine Leerzeichen. |
+| Vorname | Vorname der Person |
+| Nachname | Nachname der Person |
+| Rolle | Mitglied (Standard), Schichtleitung oder Kassenwart. Admin- und Auditor-Rollen sind gesperrt. |
+| E-Mail | Optionale E-Mail-Adresse |
+
+Schlüssel: Benutzername. Personen, die bereits Mitglied der Wache sind oder für die bereits eine offene Einladung vorliegt, werden übersprungen. Zeilen mit Admin- oder Auditor-Rolle führen zu einem Fehler. Passwörter und Zwei-Faktor-Authentifizierung werden nie importiert; die Personen richten diese bei der Aktivierung selbst ein.
+
 ## Altbestand-Kennzeichnung
 
 - **Lager:** Buchungsart „Übernahme Altbestand“ im Lagerjournal
@@ -282,7 +314,6 @@ Importieren sind gesperrt.
 
 ## Nicht enthalten
 
-- Fahrzeuge und Einladungen (folgender Schritt).
 - Bearbeiten und Löschen von Lagerorten in der Oberfläche.
 - Aktualisieren vorhandener Einträge per Import, XLSX-Import (nur nach ADR),
   englische Spaltennamen, Import von Einweisungen, Prüfprotokollen oder
