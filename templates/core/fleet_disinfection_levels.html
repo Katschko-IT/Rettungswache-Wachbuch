@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Desinfektionsplan" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">
+      <a href="{% url 'fleet_dashboard' %}">{% translate "Fuhrpark" %}</a> &middot; {% translate "Hygiene" %}
+    </p>
+    <h1>{% translate "Desinfektionsplan der Wache" %}</h1>
+    <p class="lead">{% translate "Stufen, Desinfektionsmittel und Freigaberegeln. Bestätigte Stufen belegen das Protokoll automatisch vor." %}</p>
+  </div>
+  <div class="page-actions-bar">
+    <a class="button secondary" href="{% url 'fleet_dashboard' %}">
+      {% include "core/_icon.html" with name="arrow-left" %}{% translate "Zurück zum Fuhrpark" %}
+    </a>
+  </div>
+</header>
+
+<section class="section-block">
+  <h2>{% translate "Desinfektionsstufen" %}</h2>
+  <div class="data-table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{% translate "Stufe" %}</th>
+          <th>{% translate "Desinfektionsmittel" %}</th>
+          <th>{% translate "Freigaberegel" %}</th>
+          <th>{% translate "Einwirkzeit" %}</th>
+          <th>{% translate "Status" %}</th>
+          <th>{% translate "Aktion" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for level in levels %}
+          <tr>
+            <td><strong>{{ level.name }}</strong></td>
+            <td>{{ level.disinfectant.name|default:"–" }}</td>
+            <td>{{ level.get_release_rule_display }}</td>
+            <td>
+              {% if level.release_rule == "dry" %}
+                {% translate "Antrocknen" %}
+              {% elif level.exposure_minutes %}
+                {{ level.exposure_minutes }} {% translate "Minuten" %}
+              {% else %}
+                –
+              {% endif %}
+            </td>
+            <td>
+              {% if level.is_rule_confirmed %}
+                <span class="state success">
+                  {% translate "Bestätigt" %}{% if level.rule_confirmed_by %} ({% translate "von" %} {{ level.rule_confirmed_by.get_full_name|default:level.rule_confirmed_by.username }}){% endif %}
+                </span>
+              {% else %}
+                <span class="state warning">{% translate "Nicht bestätigt" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              <a class="button secondary btn-sm" href="{% url 'fleet_disinfection_level_confirm' level.pk %}">
+                {% if level.is_rule_confirmed %}{% translate "Bearbeiten" %}{% else %}{% translate "Bestätigen" %}{% endif %}
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="muted">{% translate "Keine Desinfektionsstufen hinterlegt." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

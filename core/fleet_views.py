@@ -5,6 +5,7 @@ import csv
 from io import BytesIO
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,10 +16,10 @@ from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
-from .disinfection_plan import ensure_default_levels
+from .disinfection_plan import can_confirm_disinfection, ensure_default_levels
 from .evidence import vehicle_must_be_active
-from .fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
-from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
+from .fleet_forms import DisinfectionLevelRuleForm, DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
+from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from .models import Membership, Station
 from .services import audit
 from .wachalltag_models import Defect, DefectEvent, StationAsset
@@ -171,6 +172,8 @@ def fleet_dashboard(request):
             "open_defects": open_defects,
             "recent_disinfections": recent_disinfections,
             "can_manage": can_manage,
+        "can_confirm_disinfection": can_confirm_disinfection(request.membership),
+            "can_confirm_disinfection": can_confirm_disinfection(request.membership),
         },
     )
 
@@ -283,6 +286,7 @@ def _detail_context(request, vehicle, handover_form=None, disinfection_form=None
         "disinfections": disinfections,
         "defects": defects,
         "can_manage": can_manage,
+        "can_confirm_disinfection": can_confirm_disinfection(request.membership),
         "handover_form": handover_form,
         "disinfection_form": disinfection_form,
         "defect_suggestion": _defect_suggestion(request, vehicle),
@@ -576,3 +580,101 @@ def export_fleet_csv(request):
         ])
 
     return response
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("fleet_enabled")
+def disinfection_levels_manage(request):
+    """Übersicht der Desinfektionsstufen im Desinfektionsplan der Wache."""
+    station = request.membership.station
+    if not can_confirm_disinfection(request.membership):
+        raise PermissionDenied
+
+    ensure_default_disinfectant(station)
+    ensure_default_levels(station)
+
+    if request.method == "POST":
+        level_id = request.POST.get("level_id")
+        level = get_object_or_404(DisinfectionLevel, station=station, pk=level_id)
+        form = DisinfectionLevelRuleForm(request.POST, instance=level, station=station)
+        if form.is_valid():
+            level = form.save(commit=False)
+            level.rule_confirmed_at = timezone.now()
+            level.rule_confirmed_by = request.user
+            level.save()
+            audit(
+                request.user,
+                station,
+                "fleet.disinfection_level_confirmed",
+                level,
+                {
+                    "level": level.name,
+                    "disinfectant": level.disinfectant.name if level.disinfectant else "",
+                    "release_rule": level.release_rule,
+                    "exposure_minutes": level.exposure_minutes,
+                },
+            )
+            messages.success(request, _("Desinfektionsstufe „%(name)s“ wurde bestätigt.") % {"name": level.name})
+            return redirect("fleet_disinfection_levels_manage")
+        else:
+            messages.error(request, _("Die Desinfektionsstufe konnte nicht bestätigt werden. Bitte die Angaben prüfen."))
+
+    levels = DisinfectionLevel.objects.filter(station=station).select_related(
+        "disinfectant", "rule_confirmed_by"
+    ).order_by("id")
+
+    return render(
+        request,
+        "core/fleet_disinfection_levels.html",
+        {
+            "levels": levels,
+            "can_confirm_disinfection": True,
+        },
+    )
+
+
+@membership_required(allowed_roles=CONTENT_ROLES)
+@station_module_required("fleet_enabled")
+def disinfection_level_confirm(request, pk: int):
+    """Regel einer Desinfektionsstufe bearbeiten und bestätigen."""
+    station = request.membership.station
+    if not can_confirm_disinfection(request.membership):
+        raise PermissionDenied
+
+    level = get_object_or_404(DisinfectionLevel, station=station, pk=pk)
+
+    if request.method == "POST":
+        form = DisinfectionLevelRuleForm(request.POST, instance=level, station=station)
+        if form.is_valid():
+            level = form.save(commit=False)
+            level.rule_confirmed_at = timezone.now()
+            level.rule_confirmed_by = request.user
+            level.save()
+            audit(
+                request.user,
+                station,
+                "fleet.disinfection_level_confirmed",
+                level,
+                {
+                    "level": level.name,
+                    "disinfectant": level.disinfectant.name if level.disinfectant else "",
+                    "release_rule": level.release_rule,
+                    "exposure_minutes": level.exposure_minutes,
+                },
+            )
+            messages.success(request, _("Desinfektionsstufe „%(name)s“ wurde bestätigt.") % {"name": level.name})
+            return redirect("fleet_disinfection_levels_manage")
+        else:
+            messages.error(request, _("Bitte die markierten Angaben prüfen."))
+    else:
+        form = DisinfectionLevelRuleForm(instance=level, station=station)
+
+    return render(
+        request,
+        "core/fleet_disinfection_level_confirm.html",
+        {
+            "level": level,
+            "form": form,
+            "can_confirm_disinfection": True,
+        },
+    )

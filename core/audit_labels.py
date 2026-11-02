@@ -35,6 +35,7 @@ ACTION_LABELS = {
     "fleet.status_changed": _("Fahrzeugzustand geändert"),
     "fleet.vehicle_retired": _("Fahrzeug außer Betrieb genommen"),
     "fleet.vehicle_reactivated": _("Fahrzeug wieder in Betrieb genommen"),
+    "fleet.disinfection_level_confirmed": _("Desinfektionsstufe bestätigt"),
     "orga.sop_status_changed": _("Status einer Dienstanweisung geändert"),
     "fleet.disinfection_crew_notified": _("Besatzung über Desinfektion benachrichtigt"),
     "checklist.completed": _("Checkliste abgeschlossen"),

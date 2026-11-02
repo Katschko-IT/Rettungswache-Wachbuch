@@ -7,7 +7,7 @@ from django.utils.formats import number_format
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from .disinfection_plan import active_disinfectants, active_levels
+from .disinfection_plan import active_disinfectants, active_levels, apply_level_defaults
 from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 
 
@@ -23,6 +23,7 @@ class VehicleForm(forms.ModelForm):
             "year_of_manufacture",
             "current_mileage",
             "fuel_level_percent",
+            "has_adblue",
             "adblue_level_percent",
             "o2_pressure_bar",
             "tactical_status",
@@ -46,6 +47,8 @@ class VehicleForm(forms.ModelForm):
     def __init__(self, *args, station=None, **kwargs):
         self.station = station
         super().__init__(*args, **kwargs)
+        if "adblue_level_percent" in self.fields:
+            self.fields["adblue_level_percent"].required = False
         if self.instance.pk:
             # Den Status eines vorhandenen Fahrzeugs ändert nur das Cockpit:
             # dort gelten Desinfektionssperre und Audit. Das Bearbeiten-Formular
@@ -61,6 +64,12 @@ class VehicleForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        has_adblue = cleaned_data.get("has_adblue", True)
+        adblue = cleaned_data.get("adblue_level_percent")
+        if not has_adblue:
+            cleaned_data["adblue_level_percent"] = 0
+        elif adblue is None and "adblue_level_percent" in self.fields:
+            self.add_error("adblue_level_percent", ValidationError(_("Bitte den AdBlue-Stand angeben."), code="required"))
         call_sign = cleaned_data.get("call_sign")
         if call_sign and not self.instance.pk:
             base_slug = slugify(call_sign)[:50] or "vehicle"
@@ -73,6 +82,23 @@ class VehicleForm(forms.ModelForm):
                     counter += 1
             self.instance.slug = slug
         return cleaned_data
+
+
+class DisinfectionLevelSelect(forms.Select):
+    """Auswahl der Desinfektionsstufe mit data-Attributen für den bestätigten Plan."""
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        if value:
+            level = getattr(value, "instance", None)
+            if level is None and hasattr(self, "levels_by_pk"):
+                level = self.levels_by_pk.get(value) or self.levels_by_pk.get(str(value))
+            if level:
+                option["attrs"]["data-disinfectant"] = str(level.disinfectant_id or "")
+                option["attrs"]["data-release-rule"] = str(level.release_rule or "")
+                option["attrs"]["data-exposure-minutes"] = str(level.exposure_minutes or "")
+                option["attrs"]["data-confirmed"] = "1" if getattr(level, "is_rule_confirmed", False) else "0"
+        return option
 
 
 class DisinfectionProtocolForm(forms.ModelForm):
@@ -103,12 +129,17 @@ class DisinfectionProtocolForm(forms.ModelForm):
         level.required = True
         level.empty_label = _("Bitte Stufe wählen")
         level.error_messages["required"] = _("Bitte eine Stufe wählen.")
+        level.widget = DisinfectionLevelSelect(choices=level.choices)
         if station is None:
             # Ohne Wache keine Auswahl (jede Abfrage ist an eine Wache gebunden).
             level.queryset = DisinfectionLevel.objects.none()
             self.fields["disinfectant"].queryset = DisinfectantMaster.objects.none()
             return
-        level.queryset = active_levels(station)
+        levels_qs = active_levels(station)
+        level.queryset = levels_qs
+        level.widget.levels_by_pk = {l.pk: l for l in levels_qs}
+        level.widget.levels_by_pk.update({str(l.pk): l for l in levels_qs})
+
         # Nur Mittel in Gebrauch; alte Protokolle behalten ihr Mittel (PROTECT).
         choices = active_disinfectants(station)
         self.fields["disinfectant"].queryset = choices
@@ -118,6 +149,27 @@ class DisinfectionProtocolForm(forms.ModelForm):
             only = choices.first()
             self.initial.setdefault("disinfectant", only.pk)
             self.initial.setdefault("exposure_minutes", only.default_exposure_minutes)
+
+        if self.is_bound:
+            level_pk = self.data.get(self.add_prefix("level")) or self.data.get("level")
+            if level_pk:
+                selected_level = level.widget.levels_by_pk.get(level_pk) or level.widget.levels_by_pk.get(str(level_pk))
+                if selected_level is None and hasattr(level.queryset, "filter"):
+                    try:
+                        selected_level = level.queryset.filter(pk=level_pk).first()
+                    except (ValueError, TypeError):
+                        pass
+                if selected_level and getattr(selected_level, "is_rule_confirmed", False) and selected_level.disinfectant_id:
+                    self.fields["disinfectant"].required = False
+                    self.fields["exposure_minutes"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        level = cleaned_data.get("level")
+        cleaned_data = apply_level_defaults(cleaned_data, level)
+        if not cleaned_data.get("disinfectant"):
+            self.add_error("disinfectant", ValidationError(_("Bitte ein Desinfektionsmittel auswählen."), code="required"))
+        return cleaned_data
 
 
 YES_NO_CHOICES = [("yes", _("Ja")), ("no", _("Nein"))]
@@ -187,7 +239,14 @@ class VehicleHandoverForm(forms.ModelForm):
 
     def __init__(self, *args, vehicle=None, **kwargs):
         super().__init__(*args, **kwargs)
+        if vehicle is None and getattr(self.instance, "vehicle_id", None):
+            vehicle = self.instance.vehicle
         self.vehicle = vehicle
+        if self.vehicle and not self.vehicle.has_adblue:
+            self.fields["adblue_percent"].required = False
+            self.fields["adblue_percent"].help_text = _("Entfällt (kein AdBlue-Tank)")
+            self.fields["adblue_percent"].widget.attrs["disabled"] = True
+
         # Ein neues Modellobjekt bringt seine Standardwerte (100 %, 200 bar,
         # „Ja“) als Startwerte mit. Die Übernahme darf nichts vorbelegen.
         for name in self.fields:
@@ -208,6 +267,19 @@ class VehicleHandoverForm(forms.ModelForm):
             self.fields["o2_pressure_bar"].help_text = _("zuletzt %(bar)s bar") % {"bar": vehicle.o2_pressure_bar}
         elif vehicle is not None:
             self.fields["mileage"].help_text = _("Erste Übernahme: bitte den km-Stand vom Tacho eintragen.")
+
+    def clean_adblue_percent(self):
+        val = self.cleaned_data.get("adblue_percent")
+        if self.vehicle and not self.vehicle.has_adblue:
+            return 0 if val is None else val
+        return val
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.vehicle and not self.vehicle.has_adblue:
+            if not cleaned_data.get("adblue_percent"):
+                cleaned_data["adblue_percent"] = 0
+        return cleaned_data
 
     def clean_mileage(self):
         mileage = self.cleaned_data["mileage"]
@@ -241,8 +313,46 @@ class VehicleHandoverForm(forms.ModelForm):
 
     @property
     def level_fields(self):
+        if self.vehicle and not self.vehicle.has_adblue:
+            return [self["fuel_percent"]]
         return [self["fuel_percent"], self["adblue_percent"]]
 
     @property
     def checkpoint_fields(self):
         return [self[name] for name in VehicleHandover.CHECKPOINTS]
+
+
+class DisinfectionLevelRuleForm(forms.ModelForm):
+    """Regel einer Desinfektionsstufe: Mittel, Freigabe und Einwirkzeit festlegen & bestätigen."""
+
+    class Meta:
+        model = DisinfectionLevel
+        fields = [
+            "disinfectant",
+            "release_rule",
+            "exposure_minutes",
+        ]
+        widgets = {
+            "exposure_minutes": forms.NumberInput(attrs={"min": 1, "max": 180, "placeholder": _("Minuten")}),
+        }
+
+    def __init__(self, *args, station=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if station is not None:
+            self.fields["disinfectant"].queryset = active_disinfectants(station)
+        self.fields["disinfectant"].required = True
+        self.fields["release_rule"].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        rule = cleaned_data.get("release_rule")
+        minutes = cleaned_data.get("exposure_minutes")
+        if rule == DisinfectionLevel.ReleaseRule.AFTER_EXPOSURE and not minutes:
+            self.add_error(
+                "exposure_minutes",
+                ValidationError(
+                    _("Bei Freigabe nach Einwirkzeit ist die Dauer in Minuten erforderlich."),
+                    code="required",
+                ),
+            )
+        return cleaned_data

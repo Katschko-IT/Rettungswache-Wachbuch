@@ -116,6 +116,12 @@
         {{ form.fuel_level_percent }}
       </div>
       <div class="field">
+        <label for="{{ form.has_adblue.id_for_label }}">
+          {{ form.has_adblue }} {{ form.has_adblue.label }}
+        </label>
+        {% if form.has_adblue.help_text %}<p class="field-hint">{{ form.has_adblue.help_text }}</p>{% endif %}
+      </div>
+      <div class="field">
         <label for="{{ form.adblue_level_percent.id_for_label }}">
           {% translate "AdBlue (%)" %}:
         </label>

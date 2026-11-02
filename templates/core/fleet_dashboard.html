@@ -24,6 +24,11 @@
     {% if can_manage %}
       <a class="button ghost" href="{% url 'fleet_retired_list' %}">{% translate "Außer Betrieb genommen" %}</a>
     {% endif %}
+    {% if can_confirm_disinfection %}
+      <a class="button secondary" href="{% url 'fleet_disinfection_levels_manage' %}">
+        {% include "core/_icon.html" with name="shield" %}{% translate "Desinfektionsplan" %}
+      </a>
+    {% endif %}
   </div>
 </header>
 
@@ -151,6 +156,7 @@
               <div class="gauge-fill {% if vehicle.o2_pressure_bar < 100 %}gauge-red{% elif vehicle.o2_pressure_bar < 150 %}gauge-amber{% else %}gauge-cyan{% endif %}" data-bar="{% widthratio vehicle.o2_pressure_bar 200 100 %}"></div>
             </div>
           </div>
+          {% if vehicle.has_adblue %}
           <div>
             <div class="split">
               <span>{% translate "AdBlue" %}:</span>
@@ -160,6 +166,7 @@
               <div class="gauge-fill {% if vehicle.adblue_level_percent < 25 %}gauge-red{% else %}gauge-blue{% endif %}" data-bar="{{ vehicle.adblue_level_percent }}"></div>
             </div>
           </div>
+          {% endif %}
           <div class="split">
             <span class="muted">{% translate "Fristen & Prüfungen" %}:</span>
             {% if vehicle.urgency.level == 'overdue' %}

@@ -127,6 +127,7 @@
           <div class="gauge-fill {% if vehicle.o2_pressure_bar < 100 %}gauge-red{% elif vehicle.o2_pressure_bar < 150 %}gauge-amber{% else %}gauge-cyan{% endif %}" data-bar="{% widthratio vehicle.o2_pressure_bar 200 100 %}"></div>
         </div>
       </div>
+      {% if vehicle.has_adblue %}
       <div class="stack-sm">
         <div class="split">
           <span>{% translate "AdBlue" %}:</span>
@@ -136,6 +137,7 @@
           <div class="gauge-fill {% if vehicle.adblue_level_percent < 25 %}gauge-red{% else %}gauge-blue{% endif %}" data-bar="{{ vehicle.adblue_level_percent }}"></div>
         </div>
       </div>
+      {% endif %}
       <div class="split">
         <span class="muted">{% translate "Kilometerstand" %}:</span>
         <strong>{{ vehicle.current_mileage }} km</strong>
@@ -198,6 +200,9 @@
         {% if field.errors %}<p class="field-error" id="{{ field.auto_id }}_error">{{ field.errors|join:" " }}</p>{% endif %}
       </fieldset>
       {% endfor %}
+      {% if not vehicle.has_adblue %}
+      <p class="field-hint">{% translate "AdBlue: Entfällt (kein AdBlue-Tank)" %}</p>
+      {% endif %}
 
       {% for field in handover_form.checkpoint_fields %}
       <fieldset class="form-section handover-choice"{% if field.errors %} aria-describedby="{{ field.auto_id }}_error"{% endif %}>
@@ -223,7 +228,14 @@
 
   {# RKI Desinfektionsprotokoll & Sperrtimer #}
   <section id="fleet-disinfection" class="section-block">
-    <h2>{% translate "RKI-Desinfektionsprotokoll" %}</h2>
+    <div class="split">
+      <h2>{% translate "RKI-Desinfektionsprotokoll" %}</h2>
+      {% if can_confirm_disinfection %}
+        <a class="button ghost" href="{% url 'fleet_disinfection_levels_manage' %}">
+          {% translate "Desinfektionsplan bearbeiten" %}
+        </a>
+      {% endif %}
+    </div>
     <p class="muted">{% translate "Desinfektion nach den Stufen der Wache, mit Einwirkzeit-Sperre." %}</p>
 
     {# Stufe ohne Vorauswahl. Bis der Desinfektionsplan bestätigt ist, bleiben Mittel, Einwirkzeit und Sperre wie bisher. #}
@@ -317,7 +329,7 @@
           <span class="row-content">
             <strong>{{ h.performed_at|date:"d.m.Y H:i" }} Uhr &middot; {{ h.crew_member.get_full_name|default:h.crew_member.username }}</strong>
             <small>
-              {{ h.mileage }} km &middot; {% translate "Kraftstoff" %} {{ h.fuel_percent }} % &middot; O₂ {{ h.o2_pressure_bar }} bar &middot; {% translate "AdBlue" %} {{ h.adblue_percent }} %
+              {{ h.mileage }} km &middot; {% translate "Kraftstoff" %} {{ h.fuel_percent }} % &middot; O₂ {{ h.o2_pressure_bar }} bar{% if vehicle.has_adblue %} &middot; {% translate "AdBlue" %} {{ h.adblue_percent }} %{% endif %}
             </small>
             {% if h.failed_checkpoints %}<span class="row-note">{% translate "Nein" %}: {{ h.failed_checkpoint_labels|join:", " }}</span>{% endif %}
             {% if h.notes %}<span class="row-note">{{ h.notes }}</span>{% endif %}

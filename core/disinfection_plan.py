@@ -50,3 +50,70 @@ def ensure_default_levels(station) -> None:
                 "exposure_minutes": minutes,
             },
         )
+
+
+def can_confirm_disinfection(membership) -> bool:
+    """Prüft, ob das Mitglied Desinfektionsstufen bestätigen oder bearbeiten darf.
+
+    Berechtigt sind Hygienebeauftragte / Schichtleitung und Master-Admins der Wache.
+    """
+    if not membership or not getattr(membership, "is_active", False):
+        return False
+    from .models import Membership
+
+    return membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+
+
+def apply_level_defaults(cleaned_data: dict, level: DisinfectionLevel | None) -> dict:
+    """Wendet die Vorgaben einer bestätigten Desinfektionsstufe auf das Protokoll an.
+
+    Ist die Stufe durch Hygienebeauftragte/Wachleitung bestätigt, werden Mittel,
+    Freigaberegel und Einwirkzeit übernommen, falls sie im Protokollformular
+    nicht abweichend/strenger angegeben wurden.
+    """
+    if level is None or not getattr(level, "is_rule_confirmed", False):
+        return cleaned_data
+
+    # Desinfektionsmittel übernehmen, falls nicht angegeben
+    disinfectant = cleaned_data.get("disinfectant")
+    is_empty_disinfectant = False
+    if disinfectant is None:
+        is_empty_disinfectant = True
+    elif isinstance(disinfectant, str) and not disinfectant.strip():
+        is_empty_disinfectant = True
+
+    if is_empty_disinfectant and getattr(level, "disinfectant", None):
+        cleaned_data["disinfectant"] = level.disinfectant
+
+    rule = getattr(level, "release_rule", None)
+    if rule:
+        if not cleaned_data.get("release_rule"):
+            cleaned_data["release_rule"] = rule
+
+        is_timer = rule in {
+            "timer",
+            "exposure",
+            getattr(DisinfectionLevel.ReleaseRule, "AFTER_EXPOSURE", "exposure"),
+        }
+        if is_timer:
+            if not cleaned_data.get("exposure_minutes") and getattr(level, "exposure_minutes", None):
+                cleaned_data["exposure_minutes"] = level.exposure_minutes
+            if cleaned_data.get("lock_timer_applied") is None:
+                cleaned_data["lock_timer_applied"] = True
+        elif rule in {"dry", getattr(DisinfectionLevel.ReleaseRule, "AFTER_DRYING", "dry")}:
+            user_rule = cleaned_data.get("release_rule")
+            if user_rule in {
+                "timer",
+                "exposure",
+                getattr(DisinfectionLevel.ReleaseRule, "AFTER_EXPOSURE", "exposure"),
+            }:
+                if not cleaned_data.get("exposure_minutes") and getattr(level, "exposure_minutes", None):
+                    cleaned_data["exposure_minutes"] = level.exposure_minutes
+                if cleaned_data.get("lock_timer_applied") is None:
+                    cleaned_data["lock_timer_applied"] = True
+            else:
+                if cleaned_data.get("lock_timer_applied") is None:
+                    cleaned_data["lock_timer_applied"] = False
+
+    return cleaned_data
+

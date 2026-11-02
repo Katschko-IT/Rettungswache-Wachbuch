@@ -79,6 +79,11 @@ class Vehicle(models.Model):
     status_note = models.CharField(max_length=255, blank=True, default="", verbose_name="Status-Bemerkung")
     current_mileage = models.PositiveIntegerField(default=10000, verbose_name="Kilometerstand (km)")
     fuel_level_percent = models.PositiveSmallIntegerField(default=100, verbose_name="Kraftstoff (%)")
+    has_adblue = models.BooleanField(
+        default=True,
+        verbose_name="AdBlue vorhanden",
+        help_text="Deaktivieren bei Fahrzeugen ohne AdBlue-Tank (z. B. Benziner oder Elektro).",
+    )
     adblue_level_percent = models.PositiveSmallIntegerField(default=100, verbose_name="AdBlue (%)")
     o2_pressure_bar = models.PositiveSmallIntegerField(default=200, verbose_name="Sauerstoffdruck (bar)")
 
@@ -349,6 +354,10 @@ class DisinfectionLevel(models.Model):
         return self.rule_confirmed_at is not None
 
     @property
+    def is_rule_confirmed(self) -> bool:
+        return self.rule_confirmed_at is not None
+
+    @property
     def is_complete(self) -> bool:
         if not self.disinfectant_id:
             return False
@@ -499,7 +508,10 @@ class VehicleHandover(models.Model):
         # Aktuelle Füllstände und km-Stand am Fahrzeug aktualisieren
         self.vehicle.current_mileage = self.mileage
         self.vehicle.fuel_level_percent = self.fuel_percent
-        self.vehicle.adblue_level_percent = self.adblue_percent
+        if self.vehicle.has_adblue:
+            self.vehicle.adblue_level_percent = self.adblue_percent
+        else:
+            self.vehicle.adblue_level_percent = 0
         self.vehicle.o2_pressure_bar = self.o2_pressure_bar
         self.vehicle.save(update_fields=["current_mileage", "fuel_level_percent", "adblue_level_percent", "o2_pressure_bar", "updated_at"])
 

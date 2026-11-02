@@ -987,3 +987,36 @@
     sync();
   });
 })();
+
+/* Desinfektionsplan: Bei Auswahl einer bestätigten Stufe Werte automatisch vorbefüllen. */
+(() => {
+  const levelSelect = document.querySelector("#fleet-disinfection select[name='level']");
+  if (!levelSelect) return;
+
+  const form = levelSelect.closest("form");
+  if (!form) return;
+
+  const disinfectantSelect = form.querySelector("select[name='disinfectant']");
+  const exposureInput = form.querySelector("input[name='exposure_minutes']");
+  const lockTimerCheckbox = form.querySelector("input[name='lock_timer_applied']");
+
+  levelSelect.addEventListener("change", () => {
+    const selected = levelSelect.selectedOptions[0];
+    if (!selected) return;
+
+    if (selected.getAttribute("data-confirmed") === "1") {
+      const dis = selected.getAttribute("data-disinfectant");
+      if (dis && disinfectantSelect) {
+        disinfectantSelect.value = dis;
+      }
+      const exp = selected.getAttribute("data-exposure-minutes");
+      if (exp && exposureInput) {
+        exposureInput.value = exp;
+      }
+      const rule = selected.getAttribute("data-release-rule");
+      if (rule && lockTimerCheckbox) {
+        lockTimerCheckbox.checked = (rule === "exposure" || rule === "timer");
+      }
+    }
+  });
+})();

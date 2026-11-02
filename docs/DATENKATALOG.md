@@ -2536,6 +2536,7 @@ Fahrzeug mit Fahrzeugzustand, Füllständen und Fristen
 | `status_note` | Status-Bemerkung | Freitext |  |
 | `current_mileage` | Kilometerstand (km) | Wert |  |
 | `fuel_level_percent` | Kraftstoff (%) | Wert |  |
+| `has_adblue` | AdBlue vorhanden | Wert |  |
 | `adblue_level_percent` | AdBlue (%) | Wert |  |
 | `o2_pressure_bar` | Sauerstoffdruck (bar) | Wert |  |
 | `next_hu_date` | Nächste Hauptuntersuchung (§ 29 StVZO) | Zeitpunkt |  |

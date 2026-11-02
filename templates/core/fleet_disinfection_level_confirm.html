@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Desinfektionsstufe bestätigen" %} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<header class="page-heading heading-with-action">
+  <div>
+    <p class="context-line">
+      <a href="{% url 'fleet_dashboard' %}">{% translate "Fuhrpark" %}</a> &middot;
+      <a href="{% url 'fleet_disinfection_levels_manage' %}">{% translate "Desinfektionsplan" %}</a> &middot;
+      {{ level.name }}
+    </p>
+    <h1>{% translate "Desinfektionsstufe bestätigen" %}: {{ level.name }}</h1>
+    <p class="lead">{% translate "Legen Sie das Desinfektionsmittel, die Freigaberegel und die Einwirkzeit für diese Stufe fest und bestätigen Sie die Regel." %}</p>
+  </div>
+  <div class="page-actions-bar">
+    <a class="button secondary" href="{% url 'fleet_disinfection_levels_manage' %}">
+      {% include "core/_icon.html" with name="arrow-left" %}{% translate "Zurück zur Übersicht" %}
+    </a>
+  </div>
+</header>
+
+<section class="section-block form-panel">
+  <form method="post" action="{% url 'fleet_disinfection_level_confirm' level.pk %}">
+    {% csrf_token %}
+    {% include "core/form_errors.html" with form=form %}
+
+    <div class="field">
+      <label for="{{ form.disinfectant.id_for_label }}">{% translate "Desinfektionsmittel" %}:</label>
+      {{ form.disinfectant }}
+      {% if form.disinfectant.errors %}<p class="field-error">{{ form.disinfectant.errors|join:" " }}</p>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.release_rule.id_for_label }}">{% translate "Freigaberegel" %}:</label>
+      {{ form.release_rule }}
+      {% if form.release_rule.errors %}<p class="field-error">{{ form.release_rule.errors|join:" " }}</p>{% endif %}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.exposure_minutes.id_for_label }}">{% translate "Einwirkzeit (Minuten)" %}:</label>
+      {{ form.exposure_minutes }}
+      <p class="field-hint">{% translate "Erforderlich bei Freigabe nach Einwirkzeit." %}</p>
+      {% if form.exposure_minutes.errors %}<p class="field-error">{{ form.exposure_minutes.errors|join:" " }}</p>{% endif %}
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button primary">
+        {% include "core/_icon.html" with name="check" %}{% translate "Regel speichern & bestätigen" %}
+      </button>
+      <a class="button ghost" href="{% url 'fleet_disinfection_levels_manage' %}">{% translate "Abbrechen" %}</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
