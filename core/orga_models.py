@@ -190,6 +190,14 @@ class SOPReceipt(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username} quittierte {self.sop.doc_number} v{self.revision.version_label}"
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Lesebestätigungen dürfen nicht verändert werden.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Lesebestätigungen dürfen nicht gelöscht werden.")
+
 
 class StationContact(models.Model):
     """Zentrales Wachen-Telefonbuch & Notfall-Schnellwahl."""

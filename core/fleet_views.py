@@ -21,7 +21,7 @@ from .fleet_forms import DisinfectionProtocolForm, VehicleForm, VehicleHandoverF
 from .fleet_models import DisinfectantMaster, DisinfectionProtocol, Vehicle, VehicleHandover
 from .models import Membership, Station
 from .services import audit
-from .wachalltag_models import Defect
+from .wachalltag_models import Defect, DefectEvent, StationAsset
 
 
 def ensure_default_disinfectant(station):
@@ -349,6 +349,8 @@ def vehicle_status_change(request, slug: str):
         "from": previous,
         "to": new_status,
     })
+    if new_status == Vehicle.TacticalStatus.READY:
+        vehicle.matching_assets().exclude(status=StationAsset.Status.READY).update(status=StationAsset.Status.READY)
     if previous == Vehicle.TacticalStatus.DISINFECTION and new_status != previous:
         from .crew_notifications import mark_vehicle_notifications_read
 
@@ -468,16 +470,36 @@ def vehicle_defect_report(request, slug: str):
         category=Defect.Category.VEHICLE,
         created_by=request.user,
     )
+    DefectEvent.objects.create(
+        defect=defect,
+        station=station,
+        actor=request.user,
+        kind=DefectEvent.Kind.CREATED,
+        note=defect.title,
+    )
+    audit(request.user, station, "defect.created", defect, {"via": "fleet"})
 
     if priority == Defect.Priority.URGENT:
-        vehicle.tactical_status = Vehicle.TacticalStatus.WORKSHOP
-        # Gespeichert in der Wachensprache (wie die Desinfektionsbemerkung).
-        with translation.override(settings.LANGUAGE_CODE):
-            vehicle.status_note = (gettext("Dringender Mangel #%(id)s: %(title)s") % {"id": defect.id, "title": title})[:255]
-        vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
-        messages.warning(request, _("Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“.") % {
-            "id": defect.id, "vehicle": vehicle.call_sign,
-        })
+        if not vehicle.is_disinfection_locked:
+            previous_status = vehicle.tactical_status
+            vehicle.tactical_status = Vehicle.TacticalStatus.WORKSHOP
+            # Gespeichert in der Wachensprache (wie die Desinfektionsbemerkung).
+            with translation.override(settings.LANGUAGE_CODE):
+                vehicle.status_note = (gettext("Dringender Mangel #%(id)s: %(title)s") % {"id": defect.id, "title": title})[:255]
+            vehicle.save(update_fields=["tactical_status", "status_note", "updated_at"])
+            vehicle.matching_assets().exclude(status=StationAsset.Status.WORKSHOP).update(status=StationAsset.Status.WORKSHOP)
+            audit(request.user, station, "fleet.status_changed", vehicle, {
+                "fields": ["tactical_status"],
+                "from": previous_status,
+                "to": Vehicle.TacticalStatus.WORKSHOP,
+            })
+            messages.warning(request, _("Mangel #%(id)s erfasst. %(vehicle)s steht jetzt auf „Werkstatt“.") % {
+                "id": defect.id, "vehicle": vehicle.call_sign,
+            })
+        else:
+            messages.warning(request, _("Mangel #%(id)s erfasst. %(vehicle)s bleibt in Desinfektion.") % {
+                "id": defect.id, "vehicle": vehicle.call_sign,
+            })
     else:
         messages.success(request, _("Mangel #%(id)s erfasst.") % {"id": defect.id})
 

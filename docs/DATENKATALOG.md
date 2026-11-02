@@ -2490,7 +2490,7 @@ Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
-- Nachweis: ja
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2556,7 +2556,7 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Lesen: Inhaltsrollen
 - Schreiben: Inhaltsrollen
 - Zugriffswege: Web
-- Nachweis: ja
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2629,7 +2629,7 @@ Lesequittung: Person, Version, Zeit
 - Lesen: die Person selbst, Schichtleitung, Master-Admin
 - Schreiben: die Person selbst
 - Zugriffswege: Web, Export/Datei
-- Nachweis: ja
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2653,7 +2653,7 @@ Version mit Text, Prüfsumme und Freigabe
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
 - Zugriffswege: Web
-- Nachweis: ja, append-only (Anwendung)
+- Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]

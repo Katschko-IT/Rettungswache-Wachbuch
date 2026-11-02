@@ -116,6 +116,19 @@ class Vehicle(models.Model):
     def __str__(self) -> str:
         return f"{self.call_sign} ({self.license_plate})"
 
+    def matching_assets(self):
+        """Passende Einträge in „Geräte & Fahrzeuge“ (StationAsset)."""
+        from .wachalltag_models import StationAsset
+
+        return StationAsset.objects.filter(
+            station=self.station,
+            kind=StationAsset.Kind.VEHICLE,
+        ).filter(
+            models.Q(label=self.call_sign)
+            | models.Q(asset_id=self.slug)
+            | models.Q(label__startswith=f"{self.call_sign} ")
+        )
+
     @property
     def status_short(self) -> str:
         """Kurzform für Sperrbildschirm und Chips (die fünf Zustände sind kurz)."""
@@ -409,6 +422,8 @@ class DisinfectionProtocol(models.Model):
         return membership.user_id == self.performed_by_id or membership.role in DISINFECTION_DETAIL_ROLES
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Desinfektionsprotokolle dürfen nicht verändert werden.")
         _require_same_station(self.vehicle, self.station_id, "Desinfektionsprotokoll (Fahrzeug)")
         _require_same_station(self.disinfectant, self.station_id, "Desinfektionsprotokoll (Mittel)")
         _require_same_station(self.level, self.station_id, "Desinfektionsprotokoll (Stufe)")
@@ -424,6 +439,9 @@ class DisinfectionProtocol(models.Model):
             # auf Display, Sperrbildschirm oder in der App.
             self.vehicle.status_note = neutral_disinfection_note(lock_until)
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Desinfektionsprotokolle dürfen nicht gelöscht werden.")
 
 
 class VehicleHandover(models.Model):
@@ -473,6 +491,8 @@ class VehicleHandover(models.Model):
         return [str(self.CHECKPOINTS[name]) for name in self.failed_checkpoints]
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            raise ValidationError("Fahrzeugübernahmen dürfen nicht verändert werden.")
         _require_same_station(self.vehicle, self.station_id, "Schichtübernahme (Fahrzeug)")
         super().save(*args, **kwargs)
 
@@ -482,3 +502,6 @@ class VehicleHandover(models.Model):
         self.vehicle.adblue_level_percent = self.adblue_percent
         self.vehicle.o2_pressure_bar = self.o2_pressure_bar
         self.vehicle.save(update_fields=["current_mileage", "fuel_level_percent", "adblue_level_percent", "o2_pressure_bar", "updated_at"])
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Fahrzeugübernahmen dürfen nicht gelöscht werden.")

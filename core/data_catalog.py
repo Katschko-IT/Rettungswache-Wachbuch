@@ -1000,6 +1000,7 @@ ROW_APPEND_ONLY = (
     "core.DefectAttachment",
     "core.DefectEvent",
     "core.DeviceRoutineCheck",
+    "core.DisinfectionProtocol",
     "core.HandoverAck",
     "core.HandoverAttachment",
     "core.HandoverRevision",
@@ -1007,8 +1008,10 @@ ROW_APPEND_ONLY = (
     "core.MaintenanceLog",
     "core.NewsAttachment",
     "core.PinboardAttachment",
+    "core.SOPReceipt",
     "core.SOPRevision",
     "core.StockMovement",
+    "core.VehicleHandover",
     "core.WikiRevision",
 )
 
@@ -1020,9 +1023,13 @@ DB_APPEND_ONLY = (
     "core.CoffeeCashMovement",
     "core.CoffeeEntry",
     "core.DeviceRoutineCheck",
+    "core.DisinfectionProtocol",
     "core.HandoverRevision",
     "core.MaintenanceLog",
+    "core.SOPReceipt",
+    "core.SOPRevision",
     "core.StockMovement",
+    "core.VehicleHandover",
 )
 
 _FORBIDDEN_TOKENS = (

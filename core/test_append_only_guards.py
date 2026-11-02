@@ -34,8 +34,9 @@ from core.models import (
     PinboardNote,
     Station,
 )
+from core.fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from core.mpg_models import DeviceRoutineCheck, MaintenanceLog, MedicalDevice
-from core.orga_models import SOPDocument, SOPRevision
+from core.orga_models import SOPDocument, SOPReceipt, SOPRevision
 from core.wachalltag_models import (
     AssetEvent,
     Defect,
@@ -86,6 +87,16 @@ class AppendOnlyGuardTests(TestCase):
         cls.device = MedicalDevice.objects.create(station=cls.station, slug="defi-journal", name="Defi")
         cls.sop = SOPDocument.objects.create(
             station=cls.station, slug="da-journal", doc_number="DA-01", title="Dienstanweisung", created_by=cls.user,
+        )
+        cls.vehicle = Vehicle.objects.create(
+            station=cls.station, slug="rtw-journal", call_sign="RTW Journal", license_plate="W-RD 1",
+        )
+        cls.agent = DisinfectantMaster.objects.create(station=cls.station, name="Wischtücher Journal")
+        cls.level = DisinfectionLevel.objects.create(
+            station=cls.station, name="Routine-Wischdesinfektion", disinfectant=cls.agent,
+        )
+        cls.revision = SOPRevision.objects.create(
+            sop=cls.sop, version_label="1.0", content_markdown="Initial", approved_by=cls.user,
         )
 
     def _attachment(self, model, **parent):
@@ -155,6 +166,16 @@ class AppendOnlyGuardTests(TestCase):
                 approved_by=self.user),
              "change_summary", "Versionen von Dienstanweisungen " + changed,
              "Versionen von Dienstanweisungen " + deleted),
+            ("VehicleHandover", lambda: VehicleHandover.objects.create(
+                station=self.station, vehicle=self.vehicle, crew_member=self.user, mileage=10000),
+             "notes", "Fahrzeugübernahmen " + changed, "Fahrzeugübernahmen " + deleted),
+            ("DisinfectionProtocol", lambda: DisinfectionProtocol.objects.create(
+                station=self.station, vehicle=self.vehicle, performed_by=self.user, disinfectant=self.agent,
+                level=self.level, lock_timer_applied=False),
+             "notes", "Desinfektionsprotokolle " + changed, "Desinfektionsprotokolle " + deleted),
+            ("SOPReceipt", lambda: SOPReceipt.objects.create(
+                station=self.station, sop=self.sop, revision=self.revision, user=self.user),
+             "acknowledged_at", "Lesebestätigungen " + changed, "Lesebestätigungen " + deleted),
         ]
 
     def test_rows_cannot_be_changed_or_deleted(self):

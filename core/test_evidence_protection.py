@@ -356,11 +356,12 @@ class DatabaseRevokeTests(TestCase):
         from core.test_review_final_core import app_role_read_only_tables
 
         read_only = app_role_read_only_tables()
-        self.assertLessEqual({"core_maintenancelog", "core_deviceroutinecheck", "core_coffeeentry",
-                              "core_stockmovement", "core_auditevent"}, read_only)
-        # Bewusst noch ohne REVOKE: Die einmalige Bereinigung der Altbestände
-        # (0.27) leert IP und Browser der Quittierungen per UPDATE.
-        self.assertNotIn("core_sopreceipt", read_only)
+        self.assertLessEqual({
+            "core_maintenancelog", "core_deviceroutinecheck", "core_coffeeentry",
+            "core_stockmovement", "core_auditevent",
+            "core_vehiclehandover", "core_disinfectionprotocol",
+            "core_sopreceipt", "core_soprevision",
+        }, read_only)
 
 
 class DisinfectantAdminTests(TestCase):
@@ -413,3 +414,103 @@ class DisinfectantAdminTests(TestCase):
         other_station = Station.objects.create(name="Andere Wache", slug="andere-wache-mittel-2")
         DisinfectantMaster.objects.create(station=other_station, name="Wischtücher")
         self.assertFalse(self._form(self.agent, is_active="").is_valid())
+
+
+class VehicleRetireAssetSyncAndDefectTests(TestCase):
+    def setUp(self):
+        self.station = Station.objects.create(name="Wache B2", slug="wache-b2", fleet_enabled=True)
+        self.admin = User.objects.create_user("admin-b2", password=PW)
+        self.member = User.objects.create_user("member-b2", password=PW)
+        Membership.objects.create(user=self.admin, station=self.station, role=Membership.Role.ADMIN)
+        Membership.objects.create(user=self.member, station=self.station, role=Membership.Role.MEMBER)
+        self.vehicle = Vehicle.objects.create(
+            station=self.station,
+            slug="rtw-b2",
+            call_sign="RTW B2/83-1",
+            license_plate="B2-RD 1",
+            tactical_status=Vehicle.TacticalStatus.READY,
+        )
+        self.asset = StationAsset.objects.create(
+            station=self.station,
+            asset_id="rtw-b2",
+            label="RTW B2/83-1",
+            kind=StationAsset.Kind.VEHICLE,
+            status=StationAsset.Status.READY,
+            updated_by=self.admin,
+        )
+
+    def test_retire_vehicle_syncs_matching_station_asset_to_oob(self):
+        from core.evidence import reactivate_vehicle, retire_vehicle
+
+        self.assertEqual(self.asset.status, StationAsset.Status.READY)
+        ok = retire_vehicle(self.vehicle, actor=self.admin)
+        self.assertTrue(ok)
+        self.vehicle.refresh_from_db()
+        self.assertFalse(self.vehicle.is_active)
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.status, StationAsset.Status.OOB)
+
+        # Reactivate sets vehicle to OUT_OF_SERVICE by default, asset remains OOB
+        reactivate_vehicle(self.vehicle, actor=self.admin)
+        self.vehicle.refresh_from_db()
+        self.assertTrue(self.vehicle.is_active)
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.status, StationAsset.Status.OOB)
+
+        # Setting status to ready syncs StationAsset to READY
+        self.client.force_login(self.admin)
+        self.client.post(reverse("fleet_vehicle_status_change", args=[self.vehicle.slug]), {"status": "ready"})
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.status, StationAsset.Status.READY)
+
+    def test_vehicle_defect_report_creates_defect_event_and_audit(self):
+        self.client.force_login(self.member)
+        response = self.client.post(
+            reverse("fleet_vehicle_defect_report", args=[self.vehicle.slug]),
+            {"title": "Blaulicht defekt", "description": "Blinkt nicht mehr", "priority": "important"},
+        )
+        self.assertRedirects(response, reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        defect = Defect.objects.get(title="Blaulicht defekt")
+        self.assertEqual(defect.created_by, self.member)
+
+        # DefectEvent must be created
+        event = DefectEvent.objects.get(defect=defect)
+        self.assertEqual(event.actor, self.member)
+        self.assertEqual(event.kind, DefectEvent.Kind.CREATED)
+        self.assertEqual(event.note, "Blaulicht defekt")
+
+        # Audit event must be created
+        audit_event = AuditEvent.objects.get(action="defect.created", object_id=str(defect.pk))
+        self.assertEqual(audit_event.actor, self.member)
+        self.assertEqual(audit_event.station, self.station)
+
+    def test_vehicle_urgent_defect_respects_disinfection_lock(self):
+        self.client.force_login(self.member)
+        # Set vehicle to DISINFECTION with active lock
+        lock_time = timezone.now() + timedelta(minutes=20)
+        self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
+        self.vehicle.disinfection_locked_until = lock_time
+        self.vehicle.status_note = "Einwirkzeit aktiv"
+        self.vehicle.save()
+
+        # Report URGENT defect while locked: tactical_status must NOT change to WORKSHOP
+        self.client.post(
+            reverse("fleet_vehicle_defect_report", args=[self.vehicle.slug]),
+            {"title": "Tragentisch klemmt", "priority": "urgent"},
+        )
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.DISINFECTION)
+        self.assertEqual(self.vehicle.status_note, "Einwirkzeit aktiv")
+        self.assertFalse(AuditEvent.objects.filter(action="fleet.status_changed").exists())
+
+        # Once lock expires, urgent defect sets status to WORKSHOP and creates audit
+        self.vehicle.disinfection_locked_until = timezone.now() - timedelta(minutes=1)
+        self.vehicle.save()
+        self.client.post(
+            reverse("fleet_vehicle_defect_report", args=[self.vehicle.slug]),
+            {"title": "Reifen platt", "priority": "urgent"},
+        )
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.tactical_status, Vehicle.TacticalStatus.WORKSHOP)
+        self.assertIn("Dringender Mangel", self.vehicle.status_note)
+        self.assertTrue(AuditEvent.objects.filter(action="fleet.status_changed").exists())

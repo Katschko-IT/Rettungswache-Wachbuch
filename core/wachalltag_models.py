@@ -132,6 +132,19 @@ class DefectEvent(models.Model):
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["station", "-created_at"], name="defect_event_station_idx")]
 
+    def __init__(self, *args, note: str | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if note is not None:
+            self.metadata.setdefault("note", note)
+
+    @property
+    def note(self) -> str:
+        return self.metadata.get("note", "")
+
+    @note.setter
+    def note(self, value: str):
+        self.metadata["note"] = value
+
     @staticmethod
     def _status_label(value):
         return Defect.Status(value).label if value in Defect.Status.values else value
@@ -147,6 +160,8 @@ class DefectEvent(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:
             raise ValidationError("Mangel-Ereignisse dürfen nicht verändert werden.")
+        if not self.station_id and self.defect_id:
+            self.station = self.defect.station
         _require_same_station(self.defect if self.defect_id else None, self.station_id, "Mangel-Ereignis")
         super().save(*args, **kwargs)
 

@@ -141,9 +141,10 @@ def retire_vehicle(vehicle, *, actor) -> bool:
     """Fahrzeug außer Betrieb nehmen. ``False``, wenn es das schon war.
 
     Übernahmen und Desinfektionen bleiben unverändert. Der Eintrag in „Geräte &
-    Fahrzeuge“ (StationAsset) wird bewusst nicht angepasst.
+    Fahrzeuge“ (StationAsset) wird auf „Außer Betrieb“ (oob) gesetzt.
     """
     from .crew_notifications import mark_vehicle_notifications_read
+    from .wachalltag_models import StationAsset
 
     with transaction.atomic():
         vehicle = Vehicle.objects.select_for_update().get(pk=vehicle.pk)
@@ -153,6 +154,7 @@ def retire_vehicle(vehicle, *, actor) -> bool:
         vehicle.save(update_fields=["is_active", "updated_at"])
         # Offene Hinweise „Fahrzeug kann freigegeben werden“ sind erledigt.
         mark_vehicle_notifications_read(vehicle)
+        vehicle.matching_assets().exclude(status=StationAsset.Status.OOB).update(status=StationAsset.Status.OOB)
         audit(actor, vehicle.station, "fleet.vehicle_retired", vehicle, {
             "fields": ["is_active"], "from": True, "to": False,
         })
@@ -164,6 +166,8 @@ def reactivate_vehicle(vehicle, *, actor) -> bool:
 
     Einsatzbereit meldet es erst die Besatzung (fail-safe).
     """
+    from .wachalltag_models import StationAsset
+
     with transaction.atomic():
         vehicle = Vehicle.objects.select_for_update().get(pk=vehicle.pk)
         if vehicle.is_active:
@@ -173,6 +177,8 @@ def reactivate_vehicle(vehicle, *, actor) -> bool:
         vehicle.tactical_status = Vehicle.TacticalStatus.OUT_OF_SERVICE
         vehicle.status_note = ""
         vehicle.save(update_fields=["is_active", "tactical_status", "status_note", "updated_at"])
+        if vehicle.tactical_status == Vehicle.TacticalStatus.READY:
+            vehicle.matching_assets().exclude(status=StationAsset.Status.READY).update(status=StationAsset.Status.READY)
         audit(actor, vehicle.station, "fleet.vehicle_reactivated", vehicle, {
             "fields": ["is_active", "tactical_status"],
             "changes": {
