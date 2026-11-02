@@ -2637,6 +2637,8 @@ Dienstanweisung: Nummer, Titel, Status, Fristen
 | `current_version` | Aktuelle Version | Wert |  |
 | `valid_from` | Gültig ab | Zeitpunkt |  |
 | `review_due_date` | Nächste Überprüfung (QM) | Zeitpunkt |  |
+| `ack_due_date` | Lesefrist bis | Zeitpunkt |  |
+| `target_role` | Zielgruppe (Rolle) | Wert |  |
 | `requires_acknowledgment` | Pflichtquittierung für Personal | Wert |  |
 | `created_by` |  | Person (Konto) |  |
 | `created_at` |  | Zeitpunkt |  |

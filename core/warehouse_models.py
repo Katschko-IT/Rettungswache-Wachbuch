@@ -193,6 +193,10 @@ class ItemBatch(models.Model):
         return self.calculated_exp_date or self.manufacturer_exp_date
 
     @property
+    def expiry_date(self) -> date:
+        return self.effective_date
+
+    @property
     def urgency(self) -> dict:
         """FEFO-Ampel: overdue, critical (<=30d), warning (<=90d), ok (>90d), recalled."""
         if self.is_recalled:
@@ -316,3 +320,6 @@ class StockMovement(models.Model):
         # Korrekturen laufen über neue Buchungen; die Datenbank sperrt UPDATE und
         # DELETE zusätzlich (grant_database_access).
         raise ValidationError("Materialbuchungen dürfen nicht gelöscht werden.")
+
+
+StockBatch = ItemBatch

@@ -111,6 +111,14 @@ class Defect(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def due_date(self):
+        from django.utils import timezone
+
+        if self.due_at:
+            return timezone.localtime(self.due_at).date()
+        return None
+
 
 class DefectEvent(models.Model):
     class Kind(models.TextChoices):

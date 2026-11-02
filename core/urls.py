@@ -127,6 +127,7 @@ urlpatterns = [
     path("orga/sop/<slug:slug>/", orga_views.sop_detail, name="sop_detail"),
     path("orga/sop/<slug:slug>/bearbeiten/", orga_views.sop_edit, name="sop_edit"),
     path("orga/sop/<slug:slug>/quittieren/", orga_views.sop_acknowledge, name="sop_acknowledge"),
+    path("orga/sop/<slug:slug>/erinnern/", orga_views.sop_remind, name="sop_remind"),
     path("orga/sop/<slug:slug>/revision-neu/", orga_views.sop_revision_create, name="sop_revision_create"),
     path("orga/sop/<slug:slug>/export-audit/", orga_views.export_sop_receipts_csv, name="sop_export_audit"),
     path("orga/kontakte/neu/", orga_views.contact_create, name="contact_create"),

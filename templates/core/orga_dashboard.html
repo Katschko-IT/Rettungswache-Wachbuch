@@ -109,6 +109,7 @@
           </h3>
           <small>
             {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
+            {% if sop.ack_due_date %} &middot; {% translate "Lesefrist bis" %}: {{ sop.ack_due_date|date:"d.m.Y" }}{% endif %}
             {% if sop.review_due_date %} &middot; {% translate "Review bis" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
           </small>
         </div>

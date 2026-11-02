@@ -5,10 +5,17 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from .models import Membership
 from .orga_models import SOPDocument, SOPRevision, StationContact
 
 
 class SOPDocumentForm(forms.ModelForm):
+    target_role = forms.ChoiceField(
+        choices=[("", "Alle aktiven Mitglieder der Wache")] + list(Membership.Role.choices),
+        required=False,
+        label="Zielgruppe (Rolle)",
+        help_text="Leer = alle aktiven Mitglieder der Wache",
+    )
     initial_content = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 10, "placeholder": "# Indikation / Anwendungsbereich\n\n## 1. Handlungsalgorithmus\n\n## 2. Medikamentendosierung\n\n## 3. Dokumentation & Übergabe"}),
         label="Inhalt / Volltext der Dienstanweisung (Markdown)",
@@ -30,11 +37,14 @@ class SOPDocumentForm(forms.ModelForm):
             "status",
             "valid_from",
             "review_due_date",
+            "ack_due_date",
+            "target_role",
             "requires_acknowledgment",
         ]
         widgets = {
             "valid_from": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "review_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "ack_due_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "doc_number": forms.TextInput(attrs={"placeholder": "z. B. SOP-MED-01"}),
             "title": forms.TextInput(attrs={"placeholder": "z. B. Invasive Notfallnarkose & RSI"}),
         }

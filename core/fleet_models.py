@@ -121,6 +121,14 @@ class Vehicle(models.Model):
     def __str__(self) -> str:
         return f"{self.call_sign} ({self.license_plate})"
 
+    @property
+    def next_hu(self):
+        return self.next_hu_date
+
+    @property
+    def next_uvv(self):
+        return self.next_uvv_date
+
     def matching_assets(self):
         """Passende Einträge in „Geräte & Fahrzeuge“ (StationAsset)."""
         from .wachalltag_models import StationAsset

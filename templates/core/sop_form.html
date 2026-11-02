@@ -74,6 +74,24 @@
       </div>
     </div>
 
+    <div class="field-row">
+      <div class="field">
+        <label for="{{ form.ack_due_date.id_for_label }}">
+          {% translate "Lesefrist bis" %}:
+        </label>
+        {{ form.ack_due_date }}
+        {% if form.ack_due_date.errors %}<div class="form-error">{{ form.ack_due_date.errors }}</div>{% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.target_role.id_for_label }}">
+          {% translate "Zielgruppe (Rolle)" %}:
+        </label>
+        {{ form.target_role }}
+        {% if form.target_role.help_text %}<small class="helptext" id="{{ form.target_role.auto_id }}_helptext">{{ form.target_role.help_text }}</small>{% endif %}
+        {% if form.target_role.errors %}<div class="form-error">{{ form.target_role.errors }}</div>{% endif %}
+      </div>
+    </div>
+
     <label class="checkbox-field" for="{{ form.requires_acknowledgment.id_for_label }}">
       {{ form.requires_acknowledgment }}
       {% translate "Pflichtquittierung für Wachpersonal aktivieren" %}

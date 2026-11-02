@@ -21,7 +21,9 @@
     <h1>{{ sop.doc_number }}: {{ sop.title }}</h1>
     <p class="lead">
       {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
+      {% if sop.ack_due_date %} &middot; {% translate "Lesefrist bis" %}: {{ sop.ack_due_date|date:"d.m.Y" }}{% endif %}
       {% if sop.review_due_date %} &middot; {% translate "Revisionsprüfung fällig am" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
+      {% if sop.target_role %} &middot; {% translate "Zielgruppe" %}: {{ sop.target_role_label }}{% endif %}
       &middot; {% translate "Erstellt von" %}: {{ sop.created_by.get_full_name|default:sop.created_by.username }}
     </p>
   </div>
@@ -39,6 +41,27 @@
     {% endif %}
   </div>
 </header>
+
+{% if can_manage and sop.requires_acknowledgment %}
+<section class="section-block split">
+  <div class="stack-sm">
+    <h2 class="m-0">{% translate "Lesequote (Aggregiert)" %}</h2>
+    <p class="m-0">
+      <strong>{{ ack_progress.acknowledged_count }} / {{ ack_progress.target_count }} ({{ ack_progress.percent }}&nbsp;%)</strong>
+      &middot; {% translate "Zielgruppe" %}: {{ sop.target_role_label }}
+      {% if sop.ack_due_date %} &middot; {% translate "Lesefrist bis" %}: {{ sop.ack_due_date|date:"d.m.Y" }}{% endif %}
+    </p>
+  </div>
+  {% if sop.status == 'active' and latest_revision and ack_progress.acknowledged_count < ack_progress.target_count %}
+  <form class="inline" method="post" action="{% url 'sop_remind' sop.slug %}">
+    {% csrf_token %}
+    <button type="submit" class="button secondary">
+      {% translate "Offene Personen erinnern" %}
+    </button>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
 
 {# Quittierung der Mitarbeiterin / des Mitarbeiters; außer Kraft gibt es keine neue #}
 {% if sop.status == 'archived' %}

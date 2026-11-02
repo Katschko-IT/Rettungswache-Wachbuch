@@ -1776,3 +1776,5 @@ from .site_profile import SiteProfile  # noqa: E402,F401
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant  # noqa: E402,F401
 from .demo_models import DemoSandbox  # noqa: E402,F401
 from .feedback_models import Feedback  # noqa: E402,F401
+from .notification_models import UserNotification, MobilePushDevice, SignalContact, SignalOutbox  # noqa: E402,F401
+from .orga_models import SOPDocument, SOPRevision, SOPReceipt, StationContact, StandardOperatingProcedure, SopReceipt  # noqa: E402,F401

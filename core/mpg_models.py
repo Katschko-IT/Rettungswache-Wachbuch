@@ -128,6 +128,14 @@ class MedicalDevice(models.Model):
         loc = f" [{self.location}]" if self.location else ""
         return f"{self.name}{loc}"
 
+    @property
+    def next_stk(self):
+        return self.next_stk_date
+
+    @property
+    def next_mtk(self):
+        return self.next_mtk_date
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         update_fields = kwargs.get("update_fields")

@@ -4,9 +4,11 @@ from __future__ import annotations
 import csv
 import hashlib
 from django.contrib import messages
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -57,6 +59,7 @@ def orga_dashboard(request):
         if (
             s.status == SOPDocument.Status.ACTIVE
             and s.requires_acknowledgment
+            and (not s.target_role or s.target_role == request.membership.role)
             and not s.user_has_acknowledged(user)
         ):
             unack_sops.append(s)
@@ -130,6 +133,7 @@ def sop_detail(request, slug: str):
             "all_revisions": all_revisions,
             "recent_receipts": recent_receipts,
             "can_manage": can_manage,
+            "ack_progress": sop.ack_progress(),
         },
     )
 
@@ -167,6 +171,92 @@ def sop_acknowledge(request, slug: str):
         messages.success(request, f"Kenntnisnahme für '{sop.doc_number} (v{latest_revision.version_label})' quittiert.")
     else:
         messages.info(request, "Sie haben diese Version der Dienstanweisung bereits quittiert.")
+
+    return redirect("sop_detail", slug=sop.slug)
+
+
+@membership_required(allowed_roles={Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN})
+@station_module_required("orga_enabled")
+@require_POST
+def sop_remind(request, slug: str):
+    """Versendet gezielt eine Erinnerung ausschließlich an noch offene Zielpersonen.
+
+    Schützt die Beschäftigtendaten: Wer noch nicht gelesen hat, erfährt niemand;
+    die Leitung sieht nur die aggregierte Quote und die Anzahl der versendeten Erinnerungen.
+    """
+    station = request.membership.station
+    sop = get_object_or_404(SOPDocument, station=station, slug=slug)
+
+    if sop.status == SOPDocument.Status.ARCHIVED:
+        messages.error(request, _("Diese Dienstanweisung ist außer Kraft."))
+        return redirect("sop_detail", slug=sop.slug)
+
+    if not sop.requires_acknowledgment or not sop.latest_revision:
+        messages.info(request, _("Für diese Dienstanweisung ist keine Pflichtquittierung aktiv."))
+        return redirect("sop_detail", slug=sop.slug)
+
+    unacknowledged = list(sop.unacknowledged_users())
+    if not unacknowledged:
+        messages.info(request, _("Alle Zielpersonen haben diese Version bereits quittiert."))
+        return redirect("sop_detail", slug=sop.slug)
+
+    from .notification_models import UserNotification
+    from .crew_notifications import _enqueue_channels
+
+    today = timezone.localdate()
+    sent_count = 0
+    url = reverse("sop_detail", args=[sop.slug])
+
+    title = _("Dienstanweisung lesen: %(doc)s") % {"doc": sop.doc_number}
+    if sop.ack_due_date:
+        body = _("Bitte nimm die Dienstanweisung „%(title)s“ (Frist bis %(date)s) zur Kenntnis und bestätige sie.") % {
+            "title": sop.title,
+            "date": sop.ack_due_date.strftime("%d.%m.%Y"),
+        }
+    else:
+        body = _("Bitte nimm die Dienstanweisung „%(title)s“ zur Kenntnis und bestätige sie.") % {
+            "title": sop.title,
+        }
+
+    for user in unacknowledged:
+        dedupe_key = f"sop_manual_remind:{sop.pk}:{sop.latest_revision.pk}:{user.pk}:{today.isoformat()}"
+        try:
+            with transaction.atomic():
+                note, created = UserNotification.objects.get_or_create(
+                    user=user,
+                    dedupe_key=dedupe_key,
+                    defaults={
+                        "station": station,
+                        "kind": UserNotification.Kind.SOP_DUE,
+                        "title": title[:120],
+                        "body": body[:300],
+                        "url": url,
+                    },
+                )
+                if created:
+                    _enqueue_channels(
+                        note,
+                        {
+                            "title": note.title,
+                            "body": note.body,
+                            "url": note.url,
+                            "notification_id": note.pk,
+                        },
+                    )
+                    sent_count += 1
+        except IntegrityError:
+            continue
+
+    if sent_count > 0:
+        messages.success(
+            request,
+            _("Erinnerung an %(count)d offene Person(en) versendet.") % {"count": sent_count},
+        )
+    else:
+        messages.info(
+            request,
+            _("Die offenen Personen wurden heute bereits an diese Version erinnert."),
+        )
 
     return redirect("sop_detail", slug=sop.slug)
 

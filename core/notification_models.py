@@ -28,6 +28,9 @@ class UserNotification(models.Model):
         SYSTEM_HEALTH = "system_health", "Technischer Hinweis zum Server"
         # Einweisungspflicht (core/mpg_views.py), an MPG-Beauftragte und Admins.
         MPG_TRAINING_MISSING = "mpg_training_missing", "MPG: Fehlende Einweisung"
+        # Fristen-Erinnerungen (core/deadline_reminders.py)
+        DEADLINE_DUE = "deadline_due", "Frist läuft ab"
+        SOP_DUE = "sop_due", "Dienstanweisung: Lesefrist offen"
 
     station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="user_notifications")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
