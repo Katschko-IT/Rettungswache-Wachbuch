@@ -417,14 +417,15 @@ def defect_attachment_limit_error(locked_defect, size):
 def checklist_complete_api(request, pk):
     response = base.checklist_complete_api(request, pk)
     if response.status_code in {200, 201}:
-        with transaction.atomic():
-            schedule = advance_checklist_schedule(pk)
         data = _payload(response)
-        if schedule is not None:
-            data["interval"] = schedule.interval
-            data["due_next"] = schedule.due_next.isoformat() if schedule.due_next else None
-            data["overdue"] = False
-            response = _json_response_from(response, data)
+        if not data.get("is_draft"):
+            with transaction.atomic():
+                schedule = advance_checklist_schedule(pk)
+            if schedule is not None:
+                data["interval"] = schedule.interval
+                data["due_next"] = schedule.due_next.isoformat() if schedule.due_next else None
+                data["overdue"] = False
+                response = _json_response_from(response, data)
     return response
 
 

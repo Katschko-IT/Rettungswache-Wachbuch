@@ -40,6 +40,7 @@ ACTION_LABELS = {
     "orga.sop_status_changed": _("Status einer Dienstanweisung geändert"),
     "fleet.disinfection_crew_notified": _("Besatzung über Desinfektion benachrichtigt"),
     "checklist.completed": _("Checkliste abgeschlossen"),
+    "checklist.draft_saved": _("Checklisten-Zwischenstand gespeichert"),
     "checklist.schedule_updated": _("Checklisten-Rhythmus geändert"),
     "checklist.schedule_removed": _("Checklisten-Rhythmus entfernt"),
     "calendar.created": _("Termin angelegt"),

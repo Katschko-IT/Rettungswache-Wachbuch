@@ -1030,20 +1030,97 @@ def checklist_complete_api(request, pk):
         return err
     body = _parse_json(request) or {}
     note = str(body.get("note") or "")[:300]
+    is_draft = bool(body.get("is_draft", False))
+    raw_results = body.get("item_results") or body.get("results")
+
+    from core.checklists_forms import validate_checklist_submission
+    from core.wachalltag_models import Defect, DefectEvent
+
+    item_results = {}
+    if raw_results and isinstance(raw_results, dict):
+        item_results, errors = validate_checklist_submission(
+            checklist, {"item_results": raw_results}, is_draft=is_draft
+        )
+        if errors and not is_draft:
+            return _json_error(request, "; ".join(errors), status=400)
+
     with transaction.atomic():
-        completion = ChecklistCompletion.objects.create(
+        completion = ChecklistCompletion(
             station=station,
             checklist=checklist,
             completed_by=request.user,
             note=note,
+            is_draft=is_draft,
+            item_results=item_results,
         )
-        audit(request.user, station, "checklist.completed", completion, {
-            "fields": ["checklist", "note"],
+        if not is_draft and item_results:
+            for item in checklist.items.all():
+                res = item_results.get(str(item.id))
+                if res and res.get("status") == "not_ok":
+                    reason = res.get("reason") or ""
+                    val = res.get("value")
+                    desc_parts = [
+                        f"Prüfpunkt: {item.text}",
+                        f"Checkliste: {checklist.title}",
+                        f"Feststellung: {reason or 'nicht in Ordnung'}",
+                    ]
+                    if val is not None:
+                        unit = f" {item.measurement_unit}" if item.measurement_unit else ""
+                        bounds = (
+                            f"[{item.min_value if item.min_value is not None else '—'}.."
+                            f"{item.max_value if item.max_value is not None else '—'}]"
+                        )
+                        desc_parts.append(f"Messwert: {val}{unit} (Grenzen: {bounds})")
+                    desc_parts.append(
+                        f"Erfasst im Prüflauf von {request.user.first_name or request.user.username}."
+                    )
+                    defect = Defect.objects.create(
+                        station=station,
+                        title=f"Mangel aus Checkliste „{checklist.title}“: {item.text}"[:160],
+                        description="\n".join(desc_parts),
+                        asset_ref=f"Checkliste: {checklist.title}"[:160],
+                        priority=Defect.Priority.IMPORTANT,
+                        status=Defect.Status.OPEN,
+                        category=Defect.Category.TASK,
+                        created_by=request.user,
+                    )
+                    DefectEvent.objects.create(
+                        defect=defect,
+                        station=station,
+                        actor=request.user,
+                        kind=DefectEvent.Kind.CREATED,
+                        note=defect.title,
+                    )
+                    audit(
+                        request.user,
+                        station,
+                        "defect.created",
+                        defect,
+                        {
+                            "via": "checklist",
+                            "checklist_id": checklist.id,
+                            "item_id": item.id,
+                        },
+                    )
+                    res["defect_id"] = defect.id
+
+        completion.item_results = item_results
+        completion.save()
+
+        defects_created = [
+            res["defect_id"] for res in item_results.values() if res.get("defect_id")
+        ]
+        audit(request.user, station, "checklist.draft_saved" if is_draft else "checklist.completed", completion, {
+            "fields": ["checklist", "note", "item_results"],
+            "defects_created": defects_created,
         })
     return JsonResponse({
         "ok": True,
         "id": completion.pk,
         "checklist": checklist.id,
+        "is_draft": completion.is_draft,
+        "item_results": completion.item_results,
+        "defects_created": defects_created,
         "completed_by": _person(request.user),
         "created_at": completion.created_at.isoformat(),
     }, status=201)

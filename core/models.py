@@ -1301,6 +1301,11 @@ class Checklist(models.Model):
     title = models.CharField(max_length=120)
     description = models.CharField(max_length=300, blank=True)
     is_active = models.BooleanField(default=True)
+    requires_personal_login = models.BooleanField(
+        "Erfordert persönliche Anmeldung",
+        default=False,
+        help_text="Läufe mit Nachweischarakter dürfen nicht über das gemeinsame Wachenterminal abgeschlossen werden.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1314,6 +1319,10 @@ class ChecklistItem(models.Model):
     checklist = models.ForeignKey(Checklist, on_delete=models.CASCADE, related_name="items")
     text = models.CharField(max_length=200)
     position = models.PositiveIntegerField(default=0)
+    is_required = models.BooleanField("Pflichtpunkt", default=True)
+    measurement_unit = models.CharField("Einheit (z. B. °C, bar)", max_length=20, blank=True)
+    min_value = models.DecimalField("Untergrenze", max_digits=8, decimal_places=2, null=True, blank=True)
+    max_value = models.DecimalField("Obergrenze", max_digits=8, decimal_places=2, null=True, blank=True)
 
     class Meta:
         ordering = ["position", "id"]
@@ -1335,6 +1344,8 @@ class ChecklistCompletion(models.Model):
         User, on_delete=models.PROTECT, related_name="checklist_completions"
     )
     note = models.CharField(max_length=300, blank=True)
+    is_draft = models.BooleanField("Zwischenstand", default=False)
+    item_results = models.JSONField("Ergebnisse je Prüfpunkt", default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1348,12 +1359,24 @@ class ChecklistCompletion(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
+            orig_is_draft = (
+                ChecklistCompletion.objects.filter(pk=self.pk)
+                .values_list("is_draft", flat=True)
+                .first()
+            )
+            if not orig_is_draft:
+                raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
+        if not self.is_draft:
+            raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
+        super().delete(*args, **kwargs)
+
+
+ChecklistTemplate = Checklist
+ChecklistRun = ChecklistCompletion
 
 
 class AuditEvent(models.Model):

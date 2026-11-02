@@ -671,3 +671,15 @@ body.has-open-modal { overflow: hidden; }
 .import-kind-card .form-actions { margin-top: auto; }
 .import-messages { margin: 0; padding-left: 1rem; }
 .import-messages li + li { margin-top: .15rem; }
+
+/* Checklisten mit Ergebnis je Punkt, Messwert und Grenzwerten (0.28) */
+.checklist-items { border: none; padding: 0; margin: var(--space-3) 0; }
+.checklist-item-row { border-bottom: 1px solid var(--line); padding: var(--space-3) 0; }
+.checklist-item-row:last-child { border-bottom: none; }
+.checklist-item-row .item-header { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-2); }
+.checklist-item-row .item-controls { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.checklist-item-row .radio-label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; font-size: 0.95rem; }
+.checklist-item-row .measurement-input { width: 7rem; }
+.checklist-item-row .reason-input { flex: 1; min-width: 12rem; }
+.checklist-defect-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-3); }
+

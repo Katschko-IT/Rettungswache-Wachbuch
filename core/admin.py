@@ -239,13 +239,14 @@ class FeedItemAdmin(ReadOnlyAdmin):
 
 class ChecklistItemInline(admin.TabularInline):
     model = ChecklistItem
+    fields = ("position", "text", "is_required", "measurement_unit", "min_value", "max_value")
     extra = 3
 
 
 @admin.register(Checklist)
 class ChecklistAdmin(admin.ModelAdmin):
-    list_display = ("title", "station", "is_active", "created_at")
-    list_filter = ("station", "is_active")
+    list_display = ("title", "station", "is_active", "requires_personal_login", "created_at")
+    list_filter = ("station", "is_active", "requires_personal_login")
     search_fields = ("title",)
     readonly_fields = ("created_at",)
     inlines = [ChecklistItemInline]
@@ -253,8 +254,8 @@ class ChecklistAdmin(admin.ModelAdmin):
 
 @admin.register(ChecklistCompletion)
 class ChecklistCompletionAdmin(ReadOnlyAdmin):
-    list_display = ("checklist", "station", "completed_by", "created_at")
-    list_filter = ("station",)
+    list_display = ("checklist", "station", "completed_by", "is_draft", "created_at")
+    list_filter = ("station", "is_draft")
 
 
 @admin.register(AuditEvent)

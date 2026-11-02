@@ -1597,6 +1597,7 @@ Checkliste mit Beschreibung
 | `title` |  | Freitext |  |
 | `description` |  | Freitext |  |
 | `is_active` |  | Wert |  |
+| `requires_personal_login` | Erfordert persönliche Anmeldung | Wert |  |
 | `created_at` |  | Zeitpunkt |  |
 
 ### core.ChecklistCompletion
@@ -1619,6 +1620,8 @@ Abschluss: Person, Zeit, Notiz
 | `checklist` |  | Verweis |  |
 | `completed_by` |  | Person (Konto) |  |
 | `note` |  | Freitext |  |
+| `is_draft` | Zwischenstand | Wert |  |
+| `item_results` | Ergebnisse je Prüfpunkt | strukturierte Angaben |  |
 | `created_at` |  | Zeitpunkt |  |
 
 ### core.ChecklistItem
@@ -1639,6 +1642,10 @@ Punkte einer Checkliste
 | `checklist` |  | Verweis |  |
 | `text` |  | Freitext |  |
 | `position` |  | Wert |  |
+| `is_required` | Pflichtpunkt | Wert |  |
+| `measurement_unit` | Einheit (z. B. °C, bar) | Wert |  |
+| `min_value` | Untergrenze | Wert |  |
+| `max_value` | Obergrenze | Wert |  |
 
 ### core.ChecklistSchedule
 
