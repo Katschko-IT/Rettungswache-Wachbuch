@@ -2920,7 +2920,7 @@ class PushOutboxWorkerTests(_PushOutboxBase):
         self.assertEqual(outbox.attempts, 0)
 
     @override_settings(**WEB_PUSH_SETTINGS)
-    def test_worker_keeps_claim_transaction_open_during_delivery(self):
+    def test_worker_does_not_hold_transaction_during_delivery(self):
         from django.db import connection
 
         from .management.commands.push_worker import process_once
@@ -2929,12 +2929,12 @@ class PushOutboxWorkerTests(_PushOutboxBase):
         handover = self.make_handover()
         notify_urgent_handover(handover, self.author)
 
-        def assert_transaction(**_kwargs):
-            self.assertTrue(connection.in_atomic_block)
+        def assert_no_transaction(**_kwargs):
+            self.assertFalse(connection.in_atomic_block)
 
         with patch(
             "core.management.commands.push_worker.webpush",
-            side_effect=assert_transaction,
+            side_effect=assert_no_transaction,
         ) as webpush_mock:
             self.assertEqual(process_once(), 1)
         webpush_mock.assert_called_once()

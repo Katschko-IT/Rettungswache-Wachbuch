@@ -11,9 +11,11 @@ def mfa_enabled():
     return bool(getattr(settings, "MFA_ENABLED", True))
 
 
-def mfa_required():
+def mfa_required(station=None):
     """Pflicht per Umgebung (MFA_REQUIRED) oder durch den Betreiber im Assistenten/Einstellungen."""
     if getattr(settings, "MFA_REQUIRED", False):
+        return True
+    if station is not None and getattr(station, "mfa_required", False):
         return True
     from .site_profile import site_mfa_required
 

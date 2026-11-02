@@ -24,7 +24,7 @@ from .api.wachalltag import (
     attachment_is_valid,
     defect_attachment_limit_error,
 )
-from .attachments import read_uploads
+from .attachments import normalize_image_to_jpeg, read_uploads
 from .device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
 from .models import Checklist, Membership
 from .services import audit
@@ -126,11 +126,18 @@ def defect_create(request):
                         actor=request.user,
                     )
                     for upload, raw in uploads:
+                        content_type = upload.content_type
+                        if content_type != "application/pdf":
+                            try:
+                                raw = normalize_image_to_jpeg(raw)
+                                content_type = "image/jpeg"
+                            except ValueError:
+                                pass
                         attachment = DefectAttachment.objects.create(
                             defect=item,
                             station=station,
                             filename=upload.name[:180],
-                            content_type=upload.content_type,
+                            content_type=content_type,
                             data=raw,
                             size=len(raw),
                             uploaded_by=request.user,
@@ -140,7 +147,7 @@ def defect_create(request):
                             station=station,
                             kind=DefectEvent.Kind.ATTACHMENT,
                             actor=request.user,
-                            metadata={"attachment_id": attachment.pk, "size": len(raw)},
+                            metadata={"attachment_id": attachment.pk, "size": len(raw), "size_bytes": len(raw)},
                         )
                     audit(request.user, station, "defect.created", item, {"via": "web"})
                 messages.success(request, _("Mangel wurde angelegt."))
@@ -210,6 +217,14 @@ def defect_detail(request, pk):
                 if not attachment_is_valid(raw, upload.content_type):
                     messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
                 else:
+                    content_type = upload.content_type
+                    if content_type != "application/pdf":
+                        try:
+                            raw = normalize_image_to_jpeg(raw)
+                            content_type = "image/jpeg"
+                        except ValueError:
+                            messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
+                            return redirect("defect_detail_web", pk=item.pk)
                     with transaction.atomic():
                         locked = Defect.objects.select_for_update().get(pk=item.pk)
                         if limit := defect_attachment_limit_error(locked, len(raw)):
@@ -219,7 +234,7 @@ def defect_detail(request, pk):
                             defect=item,
                             station=station,
                             filename=upload.name[:180],
-                            content_type=upload.content_type,
+                            content_type=content_type,
                             data=raw,
                             size=len(raw),
                             uploaded_by=request.user,
@@ -229,7 +244,7 @@ def defect_detail(request, pk):
                             station=station,
                             kind=DefectEvent.Kind.ATTACHMENT,
                             actor=request.user,
-                            metadata={"attachment_id": attachment.pk, "size": len(raw)},
+                            metadata={"attachment_id": attachment.pk, "size": len(raw), "size_bytes": len(raw)},
                         )
                         audit(request.user, station, "defect.attachment_added", item, {"attachment_id": attachment.pk, "via": "web"})
                     messages.success(request, "Foto wurde angehängt.")

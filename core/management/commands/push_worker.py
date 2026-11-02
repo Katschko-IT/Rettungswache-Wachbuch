@@ -19,11 +19,16 @@ Design:
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
 import signal
+import socket
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -43,51 +48,97 @@ except Exception:  # pragma: no cover - import guard
 logger = logging.getLogger(__name__)
 
 
-def _claim_batch(now, batch_size: int):
+class RejectRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Rejects all HTTP redirects (301, 302, 303, 307, 308) to prevent SSRF and redirect loops."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(
+            req.full_url, code, f"HTTP redirect {code} denied", headers, fp
+        )
+
+    http_error_301 = redirect_request
+    http_error_302 = redirect_request
+    http_error_303 = redirect_request
+    http_error_307 = redirect_request
+    http_error_308 = redirect_request
+
+
+def _resolve_public_ips(host: str, allow_loopback: bool = False) -> list[str]:
+    """Resolve a host to IP addresses and ensure they are globally routable.
+
+    Prevents SSRF to internal, private, or link-local networks.
+    Loopback is only allowed when allow_loopback is True (settings.DEBUG or test suite).
+    """
+    try:
+        resolved = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    except Exception as exc:
+        raise ValueError(f"Host '{host}' konnte nicht aufgeloest werden: {exc}") from exc
+    addresses = list(dict.fromkeys(item[4][0] for item in resolved))
+    if not addresses:
+        raise ValueError(f"Host '{host}' lieferte keine IP-Adressen.")
+    for addr in addresses:
+        ip = ipaddress.ip_address(addr)
+        if allow_loopback and ip.is_loopback:
+            continue
+        if not ip.is_global:
+            raise ValueError(f"Host '{host}' ({addr}) ist keine globale oeffentliche IP-Adresse.")
+    return addresses
+
+
+def _claim_batch(now, batch_size: int, lease_seconds: int = 300) -> list[PushOutbox]:
     """Atomically claim up to ``batch_size`` due outbox rows.
 
     Uses ``SELECT ... FOR UPDATE SKIP LOCKED`` on PostgreSQL so parallel
-    workers (or restarts) never deliver the same row twice. Other engines
-    fall back to a plain row lock, which is sufficient for the test suite.
+    workers (or restarts) never deliver the same row twice.
+    Bumps next_attempt_at into the future to serve as a lease so concurrent
+    workers skip them, and commits immediately before network I/O.
     """
-    vendor = connection.vendor
-    qs = (
-        PushOutbox.objects.filter(
-            status=PushOutbox.Status.PENDING,
-            next_attempt_at__lte=now,
+    with transaction.atomic():
+        vendor = connection.vendor
+        qs = (
+            PushOutbox.objects.filter(
+                status=PushOutbox.Status.PENDING,
+                next_attempt_at__lte=now,
+            )
+            .order_by("next_attempt_at")
         )
-        .order_by("next_attempt_at")
-    )
-    if vendor == "postgresql":
-        return list(
-            qs.select_for_update(skip_locked=True)[:batch_size]
-        )
-    return list(qs.select_for_update()[:batch_size])
+        if vendor == "postgresql":
+            rows = list(qs.select_for_update(skip_locked=True)[:batch_size])
+        else:
+            rows = list(qs.select_for_update()[:batch_size])
+        if rows:
+            lease_until = now + timezone.timedelta(seconds=lease_seconds)
+            for row in rows:
+                row.next_attempt_at = lease_until
+                row.save(update_fields=["next_attempt_at"])
+        return rows
 
 
 def _mark_sent(outbox: PushOutbox) -> None:
-    outbox.status = PushOutbox.Status.SENT
-    outbox.sent_at = timezone.now()
-    outbox.error_message = ""
-    outbox.save(update_fields=["status", "sent_at", "error_message"])
+    with transaction.atomic():
+        outbox.status = PushOutbox.Status.SENT
+        outbox.sent_at = timezone.now()
+        outbox.error_message = ""
+        outbox.save(update_fields=["status", "sent_at", "error_message"])
 
 
 def _schedule_retry(outbox: PushOutbox, error_message: str) -> None:
-    delay = outbox.next_backoff_seconds
-    outbox.attempts += 1
-    outbox.last_attempt_at = timezone.now()
-    outbox.error_message = error_message[:2000]
-    if outbox.attempts >= PushOutbox.MAX_ATTEMPTS:
-        outbox.status = PushOutbox.Status.DISCARDED
-        outbox.next_attempt_at = timezone.now()
-    else:
-        outbox.status = PushOutbox.Status.PENDING
-        outbox.next_attempt_at = timezone.now() + timezone.timedelta(seconds=delay)
-    outbox.save(update_fields=[
-        "attempts", "last_attempt_at", "error_message", "status", "next_attempt_at",
-    ])
-    if outbox.status == PushOutbox.Status.DISCARDED:
-        _write_discard_audit(outbox)
+    with transaction.atomic():
+        delay = outbox.next_backoff_seconds
+        outbox.attempts += 1
+        outbox.last_attempt_at = timezone.now()
+        outbox.error_message = error_message[:2000]
+        if outbox.attempts >= PushOutbox.MAX_ATTEMPTS:
+            outbox.status = PushOutbox.Status.DISCARDED
+            outbox.next_attempt_at = timezone.now()
+        else:
+            outbox.status = PushOutbox.Status.PENDING
+            outbox.next_attempt_at = timezone.now() + timezone.timedelta(seconds=delay)
+        outbox.save(update_fields=[
+            "attempts", "last_attempt_at", "error_message", "status", "next_attempt_at",
+        ])
+        if outbox.status == PushOutbox.Status.DISCARDED:
+            _write_discard_audit(outbox)
 
 
 def _write_discard_audit(outbox: PushOutbox) -> None:
@@ -109,26 +160,27 @@ def _write_discard_audit(outbox: PushOutbox) -> None:
 
 def _mark_failed(outbox: PushOutbox, error_message: str) -> None:
     """Mark the row as failed (no retry) and write an audit event."""
-    outbox.attempts += 1
-    outbox.last_attempt_at = timezone.now()
-    outbox.error_message = error_message[:2000]
-    outbox.status = PushOutbox.Status.FAILED
-    outbox.save(update_fields=[
-        "attempts", "last_attempt_at", "error_message", "status",
-    ])
-    try:
-        audit(
-            actor=None,
-            station=outbox.station,
-            action="push.outbox_failed",
-            obj=outbox,
-            metadata={
-                "attempts": outbox.attempts,
-                "user_id": outbox.user_id,
-            },
-        )
-    except Exception:  # pragma: no cover - audit is best effort
-        logger.exception("Audit fuer PushOutbox fehlgeschlagen")
+    with transaction.atomic():
+        outbox.attempts += 1
+        outbox.last_attempt_at = timezone.now()
+        outbox.error_message = error_message[:2000]
+        outbox.status = PushOutbox.Status.FAILED
+        outbox.save(update_fields=[
+            "attempts", "last_attempt_at", "error_message", "status",
+        ])
+        try:
+            audit(
+                actor=None,
+                station=outbox.station,
+                action="push.outbox_failed",
+                obj=outbox,
+                metadata={
+                    "attempts": outbox.attempts,
+                    "user_id": outbox.user_id,
+                },
+            )
+        except Exception:  # pragma: no cover - audit is best effort
+            logger.exception("Audit fuer PushOutbox fehlgeschlagen")
 
 
 def _deliver_relay(outbox: PushOutbox) -> None:
@@ -137,22 +189,36 @@ def _deliver_relay(outbox: PushOutbox) -> None:
     Vertrag: docs/PUSH-RELAY.md. Übertragen werden nur Plattform, Geräte-Token
     und der kurze organisatorische Nachrichtentext.
     """
-    import urllib.error
-    import urllib.request
-
     from core.notification_models import MobilePushDevice
 
     relay_url = getattr(settings, "PUSH_RELAY_URL", "")
     relay_token = getattr(settings, "PUSH_RELAY_TOKEN", "")
     device = MobilePushDevice.objects.filter(pk=outbox.device_id).first() if outbox.device_id else None
     if device is None:
-        outbox.status = PushOutbox.Status.DISCARDED
-        outbox.error_message = "device vanished"
-        outbox.save(update_fields=["status", "error_message"])
+        with transaction.atomic():
+            outbox.status = PushOutbox.Status.DISCARDED
+            outbox.error_message = "device vanished"
+            outbox.save(update_fields=["status", "error_message"])
         return
     if not relay_url or not relay_token:
         _schedule_retry(outbox, "push relay not configured")
         return
+
+    parsed = urllib.parse.urlsplit(relay_url)
+    allow_loopback = bool(getattr(settings, "DEBUG", False) or getattr(settings, "PUSH_RELAY_ALLOW_LOOPBACK", False))
+    if parsed.scheme != "https" and not (allow_loopback and parsed.scheme == "http"):
+        _schedule_retry(outbox, "relay URL must use https")
+        return
+    host = parsed.hostname
+    if not host:
+        _schedule_retry(outbox, "invalid relay URL hostname")
+        return
+    try:
+        _resolve_public_ips(host, allow_loopback=allow_loopback)
+    except ValueError as exc:
+        _schedule_retry(outbox, f"relay address disallowed: {exc}")
+        return
+
     payload = outbox.payload if isinstance(outbox.payload, dict) else json.loads(outbox.payload)
     body = json.dumps({
         "platform": device.platform,
@@ -171,17 +237,19 @@ def _deliver_relay(outbox: PushOutbox) -> None:
             "X-Idempotency-Key": str(outbox.id),
         },
     )
+    opener = urllib.request.build_opener(RejectRedirectHandler)
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310 - https enforced in settings
+        with opener.open(request, timeout=10) as response:
             status_code = getattr(response, "status", 200)
     except urllib.error.HTTPError as exc:
         if exc.code in {404, 410}:
             # Token beim Anbieter ungültig: Gerät entfernen, Zeile behalten.
-            outbox.status = PushOutbox.Status.DISCARDED
-            outbox.error_message = f"device token gone ({exc.code})"
-            outbox.device = None
-            outbox.save(update_fields=["status", "error_message", "device"])
-            device.delete()
+            with transaction.atomic():
+                outbox.status = PushOutbox.Status.DISCARDED
+                outbox.error_message = f"device token gone ({exc.code})"
+                outbox.device = None
+                outbox.save(update_fields=["status", "error_message", "device"])
+                device.delete()
             return
         _schedule_retry(outbox, f"relay HTTP {exc.code}")
         return
@@ -195,7 +263,7 @@ def _deliver_relay(outbox: PushOutbox) -> None:
 
 
 def _deliver(outbox: PushOutbox) -> None:
-    """Send one outbox row. Runs inside a transaction opened by the caller."""
+    """Send one outbox row. Network I/O is performed outside any DB transaction."""
     if outbox.device_id:
         _deliver_relay(outbox)
         return
@@ -209,9 +277,10 @@ def _deliver(outbox: PushOutbox) -> None:
         if outbox.subscription_id else None
     )
     if subscription is None:
-        outbox.status = PushOutbox.Status.DISCARDED
-        outbox.error_message = "subscription vanished"
-        outbox.save(update_fields=["status", "error_message"])
+        with transaction.atomic():
+            outbox.status = PushOutbox.Status.DISCARDED
+            outbox.error_message = "subscription vanished"
+            outbox.save(update_fields=["status", "error_message"])
         return
 
     subscription_info = {
@@ -241,11 +310,12 @@ def _deliver(outbox: PushOutbox) -> None:
         if status_code in {404, 410}:
             # Mark the outbox first so the subscription cascade does not
             # silently drop the forensic row.
-            outbox.status = PushOutbox.Status.DISCARDED
-            outbox.error_message = f"subscription gone ({status_code})"
-            outbox.subscription = None
-            outbox.save(update_fields=["status", "error_message", "subscription"])
-            subscription.delete()
+            with transaction.atomic():
+                outbox.status = PushOutbox.Status.DISCARDED
+                outbox.error_message = f"subscription gone ({status_code})"
+                outbox.subscription = None
+                outbox.save(update_fields=["status", "error_message", "subscription"])
+                subscription.delete()
             return
         _schedule_retry(outbox, str(exc) or "WebPushException")
         return
@@ -256,9 +326,8 @@ def _deliver(outbox: PushOutbox) -> None:
     _mark_sent(outbox)
 
 
-@transaction.atomic
 def process_once(batch_size: int = 25) -> int:
-    """Claim and process one batch while keeping row locks until delivery."""
+    """Claim and process one batch without holding locks during delivery."""
     now = timezone.now()
     claimed = _claim_batch(now, batch_size)
     if not claimed:
@@ -266,8 +335,7 @@ def process_once(batch_size: int = 25) -> int:
     processed = 0
     for outbox in claimed:
         try:
-            with transaction.atomic():
-                _deliver(outbox)
+            _deliver(outbox)
             processed += 1
         except Exception as exc:  # pragma: no cover - defensive
             logger.exception("PushOutbox %s crashed: %s", outbox.id, exc)

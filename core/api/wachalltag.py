@@ -276,6 +276,26 @@ def api_root(request):
 
 
 @csrf_exempt
+def _station_modules(station_obj, existing_modules=None):
+    existing = existing_modules or {}
+    fleet = getattr(station_obj, "fleet_enabled", True) if station_obj else True
+    mpg = getattr(station_obj, "mpg_enabled", True) if station_obj else True
+    warehouse = getattr(station_obj, "warehouse_enabled", True) if station_obj else True
+    defects_enabled = getattr(station_obj, "defects_enabled", True) if station_obj else True
+    reports_enabled = getattr(station_obj, "reports_enabled", True) if station_obj else True
+    attachments_enabled = getattr(station_obj, "attachments_enabled", True) if station_obj else True
+
+    assets_enabled = bool(fleet or mpg)
+
+    return {
+        "defects": existing.get("defects", defects_enabled),
+        "assets": existing.get("assets", assets_enabled),
+        "inventory": existing.get("inventory", warehouse),
+        "reports": existing.get("reports", reports_enabled),
+        "attachments": existing.get("attachments", attachments_enabled),
+    }
+
+
 @require_GET
 def me(request):
     response = base.me(request)
@@ -287,15 +307,8 @@ def me(request):
         station = membership.get("station")
         if isinstance(station, dict):
             modules = station.setdefault("modules", {})
-            modules.update(
-                {
-                    "defects": True,
-                    "assets": True,
-                    "inventory": True,
-                    "reports": True,
-                    "attachments": True,
-                }
-            )
+            st = getattr(request, "membership", None) and request.membership.station
+            modules.update(_station_modules(st, modules))
     return _json_response_from(response, data)
 
 
@@ -307,15 +320,8 @@ def overview(request):
         return response
     data = _payload(response)
     modules = data.setdefault("modules", {})
-    modules.update(
-        {
-            "defects": True,
-            "assets": True,
-            "inventory": True,
-            "reports": True,
-            "attachments": True,
-        }
-    )
+    st = getattr(request, "membership", None) and request.membership.station
+    modules.update(_station_modules(st, modules))
     station_id = data.get("station", {}).get("id") if isinstance(data.get("station"), dict) else None
     if station_id:
         now = timezone.now()
@@ -867,6 +873,14 @@ def defect_attachments(request, pk):
         return base._json_error(request, "Bild darf maximal 5 MiB gross sein.", status=413)
     if not attachment_is_valid(raw, content_type):
         return base._json_error(request, "Datei ist kein gueltiges Bild oder PDF.", status=415)
+    if content_type != "application/pdf":
+        from ..attachments import normalize_image_to_jpeg
+
+        try:
+            raw = normalize_image_to_jpeg(raw)
+            content_type = "image/jpeg"
+        except ValueError:
+            return base._json_error(request, "Datei ist kein gueltiges Bild.", status=415)
     with transaction.atomic():
         locked_defect = Defect.objects.select_for_update().filter(pk=pk, station=station).first()
         if locked_defect is None:
@@ -888,7 +902,7 @@ def defect_attachments(request, pk):
             station=station,
             kind=DefectEvent.Kind.ATTACHMENT,
             actor=request.user,
-            metadata={"attachment_id": item.pk, "content_type": content_type, "size": len(raw)},
+            metadata={"attachment_id": item.pk, "content_type": content_type, "size": len(raw), "size_bytes": len(raw)},
         )
         audit(
             request.user,

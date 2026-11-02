@@ -1,6 +1,10 @@
 """Gemeinsame Prüfung für Bild- und PDF-Anhänge."""
 from __future__ import annotations
 
+from io import BytesIO
+
+from PIL import Image, ImageOps, UnidentifiedImageError
+
 from .api.wachalltag import (
     ALLOWED_ATTACHMENT_TYPES,
     MAX_ATTACHMENT_BYTES,
@@ -10,6 +14,37 @@ from .api.wachalltag import (
 UPLOAD_ERROR_TYPE = "Erlaubt sind JPEG, PNG, WebP und PDF."
 UPLOAD_ERROR_SIZE = "Datei darf maximal 5 MiB groß sein."
 UPLOAD_ERROR_INVALID = "Datei ist kein gültiges Bild und kein lesbares PDF."
+
+
+def normalize_image_to_jpeg(raw: bytes) -> bytes:
+    """Return a fresh metadata-free JPEG made only from decoded pixels.
+
+    EXIF orientation is applied before metadata is discarded. Transparent
+    images (RGBA, LA, P with transparency) are composited onto a white
+    background. The output is saved as JPEG at quality=85 without EXIF.
+    """
+    try:
+        with Image.open(BytesIO(raw)) as source:
+            source.load()
+            oriented = ImageOps.exif_transpose(source)
+            if oriented.mode in {"RGBA", "LA"} or (
+                oriented.mode == "P" and "transparency" in oriented.info
+            ):
+                rgba = oriented.convert("RGBA")
+                rgb = Image.new("RGB", rgba.size, "white")
+                rgb.paste(rgba, mask=rgba.getchannel("A"))
+            elif oriented.mode != "RGB":
+                rgb = oriented.convert("RGB")
+            else:
+                rgb = oriented
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
+        raise ValueError(f"Bild konnte nicht decodiert werden: {exc}") from exc
+
+    clean = Image.new("RGB", rgb.size)
+    clean.paste(rgb)
+    out = BytesIO()
+    clean.save(out, format="JPEG", quality=85, optimize=True)
+    return out.getvalue()
 
 
 def read_upload(upload):

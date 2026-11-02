@@ -266,6 +266,15 @@ def api_token_required(view):
             return _json_error(request, "Kein aktiver Wachenzugang.", status=403, code=ERROR_CODE_NO_ACTIVE_MEMBERSHIP)
         if _is_demo_account(token.user):
             return _json_error(request, DEMO_NO_APP_ACCESS, status=403)
+        from ..mfa import mfa_enabled, mfa_required, user_has_confirmed_mfa
+
+        if mfa_enabled() and mfa_required(membership.station) and not user_has_confirmed_mfa(token.user):
+            return _json_error(
+                request,
+                "MFA ist verpflichtend. Bitte zuerst die Zwei-Faktor-Anmeldung unter /konto/mfa/ einrichten.",
+                status=403,
+                code="mfa_setup_required",
+            )
         # „Zuletzt genutzt“ minutengenau: Ein Schreibzugriff pro Lese-Anfrage
         # erzeugt bei vielen Handys einer Wache nur Sperren ohne Mehrwert.
         now = timezone.now()
@@ -532,6 +541,7 @@ def me(request):
             "label": request.api_token.label,
             "prefix": request.api_token.token_prefix,
             "scopes": request.api_token.scopes,
+            "expires_at": request.api_token.expires_at.isoformat() if request.api_token.expires_at else None,
         },
     })
 
