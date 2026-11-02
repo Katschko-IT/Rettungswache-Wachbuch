@@ -7,7 +7,13 @@
   <div>
     <p class="context-line">{% blocktranslate with category=handover.get_category_display version=handover.version %}{{ category }} &middot; Version {{ version }}{% endblocktranslate %}</p>
     <h1>{{ handover.title }}</h1>
-    <div class="status-row"><span class="status-label priority-{{ handover.priority }}">{{ handover.get_priority_display }}</span><span class="status-label neutral">{{ handover.get_status_display }}</span></div>
+    <div class="status-row">
+      <span class="status-label priority-{{ handover.priority }}">{{ handover.get_priority_display }}</span>
+      <span class="status-label neutral">{{ handover.get_status_display }}</span>
+      {% if handover.is_paper_backfill %}
+        <span class="status-label warning">{% blocktranslate with event=handover.occurred_at|date:"d.m.Y H:i" created=handover.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
+      {% endif %}
+    </div>
   </div>
   {% if can_edit_content %}<a class="button secondary" href="{% url 'handover_edit' handover.pk %}">{% translate "Inhalt korrigieren" %}</a>{% endif %}
 </header>
@@ -23,7 +29,16 @@
     </div>
   {% endif %}
   {% if can_change_status %}<form method="post" action="{% url 'handover_status' handover.pk %}" class="section-block inline-form">{% csrf_token %}<div class="field"><label for="{{ status_form.status.id_for_label }}">{% translate "Status" %}</label>{{ status_form.status }}</div><button class="button primary" type="submit">{% translate "Status aktualisieren" %}</button></form>{% endif %}
-  <dl class="summary-list"><div><dt>{% translate "Erstellt von" %}</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div><div><dt>{% translate "Erstellt" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div><div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div></dl>
+  <dl class="summary-list">
+    <div><dt>{% translate "Erstellt von" %}</dt><dd>{{ handover.author.first_name|default:handover.author.username }}</dd></div>
+    {% if handover.is_paper_backfill and handover.occurred_at %}
+      <div><dt>{% translate "Ereignis (Papier)" %}</dt><dd>{{ handover.occurred_at|date:"d.m.Y H:i" }}</dd></div>
+      <div><dt>{% translate "Erfasst im Wachbuch" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div>
+    {% else %}
+      <div><dt>{% translate "Erstellt" %}</dt><dd>{{ handover.created_at|date:"d.m.Y H:i" }}</dd></div>
+    {% endif %}
+    <div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ handover.updated_at|date:"d.m.Y H:i" }}</dd></div>
+  </dl>
   <section class="section-block handover-acks" aria-labelledby="handover-acks-title">
     <h2 id="handover-acks-title">{% translate "Gelesen" %}</h2>
     {% if acks %}

@@ -22,8 +22,32 @@ class DateTimeLocalInput(forms.DateTimeInput):
 class HandoverForm(forms.ModelForm):
     class Meta:
         model = HandoverEntry
-        fields = ["category", "priority", "title", "details"]
-        widgets = {"details": forms.Textarea(attrs={"rows": 6})}
+        fields = [
+            "category",
+            "priority",
+            "title",
+            "details",
+            "is_paper_backfill",
+            "occurred_at",
+        ]
+        widgets = {
+            "details": forms.Textarea(attrs={"rows": 6}),
+            "occurred_at": DateTimeLocalInput(format="%Y-%m-%dT%H:%M"),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        is_paper_backfill = cleaned.get("is_paper_backfill")
+        occurred_at = cleaned.get("occurred_at")
+        if is_paper_backfill:
+            if not occurred_at:
+                self.add_error("occurred_at", _("Für Nachträge von Papier muss ein Ereigniszeitpunkt angegeben werden."))
+            elif occurred_at > timezone.now():
+                self.add_error("occurred_at", _("Der Ereigniszeitpunkt darf nicht in der Zukunft liegen."))
+        return cleaned
+
+
+ShiftHandoverForm = HandoverForm
 
 
 class HandoverEditForm(forms.ModelForm):
@@ -373,12 +397,20 @@ class MasterAdminCreateUserForm(forms.Form):
 class MembershipEditForm(forms.Form):
     role = forms.ChoiceField(choices=Membership.Role.choices, label=_("Rolle"))
     is_mpg_lead = forms.BooleanField(required=False, label=_("MPG-Beauftragte/r (§ 13 MPBetreibV)"))
+    is_hygiene_lead = forms.BooleanField(required=False, label=_("Hygiene / Desinfektor:in"))
+    is_material_lead = forms.BooleanField(required=False, label=_("Material / Lager"))
+    is_fleet_lead = forms.BooleanField(required=False, label=_("Fuhrpark"))
+    is_safety_lead = forms.BooleanField(required=False, label=_("Sicherheit / Arbeitsschutz"))
     is_active = forms.BooleanField(required=False, label=_("Zugang aktiv"))
 
     def __init__(self, *args, membership, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["role"].initial = membership.role
         self.fields["is_mpg_lead"].initial = getattr(membership, "is_mpg_lead", False)
+        self.fields["is_hygiene_lead"].initial = getattr(membership, "is_hygiene_lead", False)
+        self.fields["is_material_lead"].initial = getattr(membership, "is_material_lead", False)
+        self.fields["is_fleet_lead"].initial = getattr(membership, "is_fleet_lead", False)
+        self.fields["is_safety_lead"].initial = getattr(membership, "is_safety_lead", False)
         self.fields["is_active"].initial = membership.is_active
 
 

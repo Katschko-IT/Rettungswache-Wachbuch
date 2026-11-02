@@ -48,6 +48,7 @@ from .forms import (
     MembershipEditForm,
     MasterAdminCreateUserForm,
     PinboardNoteForm,
+    ShiftHandoverForm,
     StationSettingsForm,
     StationTaskForm,
     TotpConfirmForm,
@@ -65,6 +66,7 @@ from .models import (
     Membership,
     PinboardAttachment,
     PinboardNote,
+    ShiftHandover,
     Station,
     StationTask,
     TotpDevice,
@@ -1270,23 +1272,39 @@ def membership_update(request, pk):
                     "role": membership.role,
                     "is_active": membership.is_active,
                     "is_mpg_lead": membership.is_mpg_lead,
+                    "is_hygiene_lead": membership.is_hygiene_lead,
+                    "is_material_lead": membership.is_material_lead,
+                    "is_fleet_lead": membership.is_fleet_lead,
+                    "is_safety_lead": membership.is_safety_lead,
                 }
                 was_active = membership.is_active
                 membership.role = form.cleaned_data["role"]
                 membership.is_active = form.cleaned_data["is_active"]
                 membership.is_mpg_lead = form.cleaned_data.get("is_mpg_lead", False)
-                membership.save(update_fields=["role", "is_active", "is_mpg_lead"])
+                membership.is_hygiene_lead = form.cleaned_data.get("is_hygiene_lead", False)
+                membership.is_material_lead = form.cleaned_data.get("is_material_lead", False)
+                membership.is_fleet_lead = form.cleaned_data.get("is_fleet_lead", False)
+                membership.is_safety_lead = form.cleaned_data.get("is_safety_lead", False)
+                fields_to_update = [
+                    "role", "is_active", "is_mpg_lead",
+                    "is_hygiene_lead", "is_material_lead", "is_fleet_lead", "is_safety_lead",
+                ]
+                membership.save(update_fields=fields_to_update)
                 if before["role"] != membership.role or before["is_active"] != membership.is_active:
                     from .qr_login import revoke_open_requests_for_user
                     revoke_open_requests_for_user(membership.user)
                 if was_active and not membership.is_active:
                     clear_birthday_on_exit(membership.user, membership.station, request.user)
                 audit(request.user, request.membership.station, "membership.updated", membership, {
-                    "fields": ["role", "is_active", "is_mpg_lead"],
+                    "fields": fields_to_update,
                     "changes": structure_changes(before, {
                         "role": membership.role,
                         "is_active": membership.is_active,
                         "is_mpg_lead": membership.is_mpg_lead,
+                        "is_hygiene_lead": membership.is_hygiene_lead,
+                        "is_material_lead": membership.is_material_lead,
+                        "is_fleet_lead": membership.is_fleet_lead,
+                        "is_safety_lead": membership.is_safety_lead,
                     }),
                 })
                 messages.success(request, _("Mitgliedschaft wurde aktualisiert."))

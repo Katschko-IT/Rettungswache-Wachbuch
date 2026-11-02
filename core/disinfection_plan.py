@@ -61,7 +61,10 @@ def can_confirm_disinfection(membership) -> bool:
         return False
     from .models import Membership
 
-    return membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+    return (
+        membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
+        or bool(getattr(membership, "is_hygiene_lead", False))
+    )
 
 
 def apply_level_defaults(cleaned_data: dict, level: DisinfectionLevel | None) -> dict:

@@ -152,15 +152,34 @@ class DataProtectionOfficerAdmin(admin.ModelAdmin):
 
 @admin.register(Membership)
 class MembershipAdmin(ReadOnlyAdmin):
-    list_display = ("user", "station", "role", "is_mpg_lead", "is_active")
-    list_filter = ("station", "role", "is_mpg_lead", "is_active")
+    list_display = (
+        "user",
+        "station",
+        "role",
+        "is_mpg_lead",
+        "is_hygiene_lead",
+        "is_material_lead",
+        "is_fleet_lead",
+        "is_safety_lead",
+        "is_active",
+    )
+    list_filter = (
+        "station",
+        "role",
+        "is_mpg_lead",
+        "is_hygiene_lead",
+        "is_material_lead",
+        "is_fleet_lead",
+        "is_safety_lead",
+        "is_active",
+    )
     search_fields = ("user__username", "user__first_name", "user__last_name")
 
 
 @admin.register(HandoverEntry)
 class HandoverAdmin(ReadOnlyAdmin):
-    list_display = ("title", "station", "category", "priority", "status", "updated_at")
-    list_filter = ("station", "category", "priority", "status")
+    list_display = ("title", "station", "category", "priority", "status", "is_paper_backfill", "updated_at")
+    list_filter = ("station", "category", "priority", "status", "is_paper_backfill")
 
 
 @admin.register(HandoverRevision)

@@ -18,7 +18,13 @@
     {% for item in page_obj %}
       <a class="list-row handover-list-row" href="{% url 'handover_detail' item.pk %}">
         <span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
-        <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }} &middot; {{ item.author.first_name|default:item.author.username }}</small></span>
+        <span class="row-content">
+          <strong>{{ item.title }}</strong>
+          <small>{{ item.get_category_display }} &middot; {{ item.get_status_display }} &middot; {{ item.author.first_name|default:item.author.username }}</small>
+          {% if item.is_paper_backfill %}
+            <span class="status-label warning small" style="margin-top: .25rem;">{% blocktranslate with event=item.occurred_at|date:"d.m.Y H:i" created=item.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
+          {% endif %}
+        </span>
         <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m.Y H:i" }}</time>
       </a>
     {% empty %}<p class="empty-state">{% translate "In dieser Ansicht gibt es keine Übergaben." %} <a href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a></p>{% endfor %}

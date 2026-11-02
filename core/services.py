@@ -63,6 +63,8 @@ def handover_snapshot(handover):
         "status": handover.status,
         "title": handover.title,
         "details": handover.details,
+        "is_paper_backfill": getattr(handover, "is_paper_backfill", False),
+        "occurred_at": handover.occurred_at.isoformat() if getattr(handover, "occurred_at", None) else None,
     }
 
 
@@ -79,7 +81,7 @@ def create_handover(form, membership):
         changed_by=membership.user,
     )
     audit(membership.user, membership.station, "handover.created", handover, {
-        "fields": ["category", "priority", "title", "details"],
+        "fields": ["category", "priority", "title", "details", "is_paper_backfill", "occurred_at"],
     })
     notify_urgent_handover(handover, membership.user)
     return handover

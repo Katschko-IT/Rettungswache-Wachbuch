@@ -228,6 +228,10 @@ Rolle einer Person in einer Wache
 | `station` |  | Verweis |  |
 | `role` |  | Auswahl |  |
 | `is_mpg_lead` | MPG-Beauftragte/r (§ 13 MPBetreibV) | Wert |  |
+| `is_hygiene_lead` | Hygiene / Desinfektor:in | Wert |  |
+| `is_material_lead` | Material / Lager | Wert |  |
+| `is_fleet_lead` | Fuhrpark | Wert |  |
+| `is_safety_lead` | Sicherheit / Arbeitsschutz | Wert |  |
 | `is_active` |  | Wert |  |
 | `created_at` |  | Zeitpunkt |  |
 
@@ -860,6 +864,8 @@ Anhänge (Bild oder PDF)
 | `details` |  | Freitext |  |
 | `author` |  | Person (Konto) |  |
 | `version` |  | Wert |  |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt |  |
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
 | `completed_at` |  | Zeitpunkt |  |

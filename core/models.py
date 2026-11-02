@@ -163,6 +163,12 @@ class Station(models.Model):
         return station
 
 
+class CallableList(list):
+    """List that can also be called as a method (returning self) for dual property/method access."""
+    def __call__(self):
+        return self
+
+
 class Membership(models.Model):
     class Role(models.TextChoices):
         MEMBER = "member", gettext_lazy("Mitglied")
@@ -178,6 +184,26 @@ class Membership(models.Model):
         default=False,
         verbose_name="MPG-Beauftragte/r (§ 13 MPBetreibV)",
         help_text="Wird bei Verstößen gegen die Einweisungspflicht benachrichtigt.",
+    )
+    is_hygiene_lead = models.BooleanField(
+        "Hygiene / Desinfektor:in",
+        default=False,
+        help_text="Verantwortlich für Desinfektionsplan und Hygiene-Freigaben.",
+    )
+    is_material_lead = models.BooleanField(
+        "Material / Lager",
+        default=False,
+        help_text="Verantwortlich für Lagerbestand, Chargen und Bestellungen.",
+    )
+    is_fleet_lead = models.BooleanField(
+        "Fuhrpark",
+        default=False,
+        help_text="Verantwortlich für Fahrzeuge, HU/UVV-Fristen und Werkstatt.",
+    )
+    is_safety_lead = models.BooleanField(
+        "Sicherheit / Arbeitsschutz",
+        default=False,
+        help_text="Verantwortlich für Arbeitsschutz und Sicherheitsunterweisungen.",
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -195,6 +221,21 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.station} ({self.get_role_display()})"
+
+    @property
+    def function_labels(self) -> list[str]:
+        labels = []
+        if self.is_mpg_lead:
+            labels.append("MPG-Beauftragte/r")
+        if self.is_hygiene_lead:
+            labels.append("Hygiene / Desinfektor:in")
+        if self.is_material_lead:
+            labels.append("Material / Lager")
+        if self.is_fleet_lead:
+            labels.append("Fuhrpark")
+        if self.is_safety_lead:
+            labels.append("Sicherheit / Arbeitsschutz")
+        return CallableList(labels)
 
 
 class HandoverEntry(models.Model):
@@ -223,6 +264,8 @@ class HandoverEntry(models.Model):
     details = models.TextField(max_length=3000)
     author = models.ForeignKey(User, on_delete=models.PROTECT, related_name="authored_handovers")
     version = models.PositiveIntegerField(default=1)
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -233,6 +276,10 @@ class HandoverEntry(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# Alias for shift handover model
+ShiftHandover = HandoverEntry
 
 
 class HandoverRevision(models.Model):
