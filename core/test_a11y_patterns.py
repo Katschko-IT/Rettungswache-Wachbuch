@@ -103,3 +103,19 @@ class TableMarkupTests(SimpleTestCase):
             if re.search(r"<th(?=[\s>])(?![^>]*\bscope=)[^>]*>", segment)
         ]
         self.assertEqual(missing, [])
+
+    def test_table_head_tags_are_intact(self):
+        """Ein Ersetzen von „<th“ darf aus „<thead>“ nie „<th scope=…ead>“ machen (aefa0c5)."""
+        import re
+
+        root = Path(settings.BASE_DIR) / "templates"
+        broken = []
+        for path in sorted(root.rglob("*.html")):
+            text = path.read_text(encoding="utf-8")
+            opened = len(re.findall(r"<thead(?=[\s>])", text))
+            closed = text.count("</thead>")
+            odd_tags = re.findall(r"<th(?!ead\b)[a-z]+", text)
+            if opened != closed or odd_tags:
+                broken.append(f"{path.relative_to(root)}: <thead {opened}, </thead> {closed}, fremd {odd_tags[:2]}")
+        self.assertEqual(broken, [])
+
