@@ -28,7 +28,7 @@ from django.utils.translation import gettext as _
 from .crew_notifications import _enqueue_channels
 from .models import Membership, Station, StationTask
 from .notification_models import UserNotification
-from .paper import collect_deadlines
+from .paper import active_devices, collect_deadlines
 
 
 DEFAULT_THRESHOLDS = (30, 7, 0)
@@ -120,7 +120,7 @@ def collect_deadline_items(
             from .mpg_models import MedicalDevice
 
             mpg_leads = get_mpg_leads(st)
-            devices = MedicalDevice.objects.filter(station=st)
+            devices = active_devices(st)  # ausgemusterte Geräte erinnern nicht
             for dev in devices:
                 url = reverse("mpg_device_detail", args=[dev.slug])
 
@@ -286,7 +286,11 @@ def collect_deadline_items(
         if st.warehouse_enabled:
             from .warehouse_models import ItemBatch
 
-            batches = ItemBatch.objects.filter(station=st, is_recalled=False).select_related("item")
+            batches = (
+                ItemBatch.objects.filter(station=st, is_recalled=False, stock_items__quantity__gt=0)
+                .select_related("item")
+                .distinct()  # nur Chargen mit Bestand: Leeres verfällt nicht
+            )
             for batch in batches:
                 exp = batch.expiry_date
                 if exp:

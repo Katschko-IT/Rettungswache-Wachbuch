@@ -17,6 +17,7 @@ from django.utils import timezone
 
 from core.deadline_reminders import (
     get_mtk_due_date,
+    collect_deadline_items,
     get_stk_due_date,
     send_deadline_reminders,
     send_weekly_digest,
@@ -27,7 +28,7 @@ from core.mpg_models import MedicalDevice
 from core.notification_models import UserNotification
 from core.orga_models import SOPDocument, SOPReceipt, SOPRevision
 from core.wachalltag_models import Defect
-from core.warehouse_models import ItemBatch, MedicalItem
+from core.warehouse_models import ItemBatch, MedicalItem, StockItem, StorageLocation
 
 
 class DeadlineRemindersTests(TestCase):
@@ -117,12 +118,14 @@ class DeadlineRemindersTests(TestCase):
         )
         # 2. Chargenverfall
         item = MedicalItem.objects.create(station=self.station, slug="adrenalin", name="Adrenalin 1 mg")
-        ItemBatch.objects.create(
+        batch = ItemBatch.objects.create(
             station=self.station,
             item=item,
             batch_number="LOT-7D",
             manufacturer_exp_date=due,
         )
+        location = StorageLocation.objects.create(station=self.station, slug="lager", name="Lager")
+        StockItem.objects.create(station=self.station, item=item, batch=batch, location=location, quantity=3)
         # 3. Mangel mit Frist (Owner = self.member)
         due_dt = timezone.make_aware(datetime.combine(self.today + timedelta(days=30), time(12, 0)))
         Defect.objects.create(
@@ -418,3 +421,24 @@ class SopTargetGroupTests(TestCase):
 
         self.assertEqual(sop.ack_progress()["target_count"], 2)
         self.assertEqual(set(sop.unacknowledged_users().values_list("username", flat=True)), {"autor", "mitglied"})
+
+
+class ReminderSourcesTests(TestCase):
+    """Ausgemusterte Geräte und leere Chargen lösen keine Erinnerung aus."""
+
+    def test_decommissioned_device_and_empty_batch_are_skipped(self):
+        today = date(2026, 11, 2)
+        station = Station.objects.create(name="Wache Quellen", slug="wache-quellen", mpg_enabled=True, warehouse_enabled=True)
+        lead = User.objects.create_user("leitung-q", password="pw-123456789")
+        Membership.objects.create(user=lead, station=station, role=Membership.Role.ADMIN)
+        MedicalDevice.objects.create(
+            station=station, slug="alt", name="Altgerät",
+            next_dguv_date=today + timedelta(days=30), current_status=MedicalDevice.Status.DECOMMISSIONED,
+        )
+        item = MedicalItem.objects.create(station=station, slug="leer", name="Leerartikel")
+        ItemBatch.objects.create(
+            station=station, item=item, batch_number="LEER", manufacturer_exp_date=today + timedelta(days=7),
+        )
+        self.assertEqual(collect_deadline_items(station=station, today=today), [])
+        MedicalDevice.objects.filter(slug="alt").update(current_status=MedicalDevice.Status.READY)
+        self.assertEqual([i.category for i in collect_deadline_items(station=station, today=today)], ["dguv"])
