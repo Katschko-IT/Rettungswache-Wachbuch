@@ -1,6 +1,8 @@
 """Ansichten für Checklisten (0.28)."""
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseForbidden
@@ -20,7 +22,8 @@ def _prefill_value(value) -> str:
     if value is None or value == "":
         return ""
     if isinstance(value, float):
-        return f"{value:g}"
+        # Kein „:g“ (6 Stellen, Exponent): Der Wert wird beim Abschluss erneut gespeichert.
+        return format(Decimal(str(value)).normalize(), "f")
     return str(value)
 
 
@@ -79,7 +82,9 @@ def _render_checklists(request, posted=None):
         cl.active_draft = draft
         if posted and posted["checklist_id"] == cl.id:
             results, note = posted["results"], posted["note"]
-        elif draft:
+        elif draft and draft.completed_by_id == request.user.id:
+            # Nur der eigene Zwischenstand wird eingesetzt. Fremde Antworten vorbelegt zu
+            # bekommen hieße, sie mit einem Klick als eigene Prüfung abzuschließen.
             results, note = _prefill(draft.item_results), draft.note
         else:
             results, note = {}, None

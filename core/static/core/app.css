@@ -2443,13 +2443,7 @@ button.text-action {
 .demo-stats-days summary { display: flex; align-items: center; min-height: var(--touch); font-weight: 600; cursor: pointer; }
 
 /* Mangel in drei Tipps: Duplikat-Hinweis „Bereits gemeldet“, Foto-Knöpfe & Segment-Chips */
-.already-reported-banner {
-  margin-bottom: 1.5rem;
-  border-left: 4px solid var(--warning-accent, #f59e0b);
-  background: rgba(245, 158, 11, 0.08);
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg, 0.5rem);
-}
+/* Aussehen kommt von .alert.warning (eine Hinweis-Komponente); hier nichts überschreiben. */
 .already-reported-banner[hidden] { display: none !important; }
 .already-reported-banner .alert-heading {
   display: flex;

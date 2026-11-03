@@ -320,3 +320,24 @@ class ChecklistRobustnessTests(TestCase):
         self.assertRegex(content, rf'name="result_{self.item_temp.id}" value="ok" checked')
         self.assertIn('value="4.5"', content)
         self.assertIn('value="Später weiter"', content)
+
+    def test_large_measurement_is_not_rounded_when_restored(self):
+        ChecklistCompletion.objects.create(
+            station=self.station, checklist=self.checklist, completed_by=self.user, is_draft=True,
+            item_results={str(self.item_temp.id): {"status": "ok", "value": 12345.67, "reason": ""}},
+        )
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn('value="12345.67"', content)
+
+    def test_foreign_draft_is_not_prefilled(self):
+        other = User.objects.create_user(username="kollegin", password="test-password-123!")
+        Membership.objects.create(user=other, station=self.station, role=Membership.Role.MEMBER, is_active=True)
+        ChecklistCompletion.objects.create(
+            station=self.station, checklist=self.checklist, completed_by=other, is_draft=True, note="fremde Notiz",
+            item_results={str(self.item_seal.id): {"status": "ok", "value": None, "reason": ""}},
+        )
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn("Zwischenstand vorhanden", content)  # Hinweis bleibt
+        self.assertNotRegex(content, rf'name="result_{self.item_seal.id}" value="ok" checked')
+        self.assertNotIn("fremde Notiz\" placeholder", content)
+
