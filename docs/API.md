@@ -86,7 +86,7 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_m
 | GET/POST | `/api/v1/kaffeekasse/` | Kasse; `scope` = `station` (nur Kassenwart, Wachensaldo) oder `own` (eigene Buchungen); `monthly_fee_euros` und `own` (offen, Guthaben, Monate) für jede Person; POST nur Kassenwart (optional `method` für Einzahlungen) |
 | POST | `/api/v1/kaffeekasse/bezahlt/` | „Ich habe bezahlt“: eigene Zahlung (`method` = `cash`/`transfer`/`paypal`/`wero`, `amount_euros`, optional `note`); Antwort enthält den neuen Stand (`own`, `payment`) |
 | GET | `/api/v1/checklisten/` | Checklisten + Fälligkeit |
-| POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss |
+| POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss; Body `note`, `is_draft`, `item_results` (je Punkt `status` = `ok`/`not_ok`/`na`, `value`, `reason`). Checklisten mit Grenzwerten verlangen `item_results` (sonst 400). Zwischenstände (`is_draft`) und Abschlüsse sind jeweils neue, unveränderliche Datensätze; `GET /checklisten/` zeigt nur Abschlüsse |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |
 | GET/PUT/DELETE | `/api/v1/checklisten/<id>/schedule/` | tägliche/wöchentliche/monatliche Wiederholung |
 | GET | `/api/v1/reports/` | leichte Stationsauswertung |

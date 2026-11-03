@@ -28,7 +28,7 @@ from django.utils.translation import gettext as _
 from .crew_notifications import _enqueue_channels
 from .models import Membership, Station, StationTask
 from .notification_models import UserNotification
-from .paper import collect_deadlines
+from .paper import active_devices, collect_deadlines
 
 
 DEFAULT_THRESHOLDS = (30, 7, 0)
@@ -117,10 +117,8 @@ def collect_deadline_items(
 
         # 1. Medizingeräte (MPG)
         if st.mpg_enabled:
-            from .mpg_models import MedicalDevice
-
             mpg_leads = get_mpg_leads(st)
-            devices = MedicalDevice.objects.filter(station=st)
+            devices = active_devices(st)  # ausgemusterte Geräte erinnern nicht
             for dev in devices:
                 url = reverse("mpg_device_detail", args=[dev.slug])
 
@@ -286,7 +284,11 @@ def collect_deadline_items(
         if st.warehouse_enabled:
             from .warehouse_models import ItemBatch
 
-            batches = ItemBatch.objects.filter(station=st, is_recalled=False).select_related("item")
+            batches = (
+                ItemBatch.objects.filter(station=st, is_recalled=False, stock_items__quantity__gt=0)
+                .select_related("item")
+                .distinct()  # nur Chargen mit Bestand: Leeres verfällt nicht
+            )
             for batch in batches:
                 exp = batch.expiry_date
                 if exp:
@@ -545,6 +547,20 @@ def send_deadline_reminders(
                 continue
 
     return created_count
+
+
+def run_scheduled_reminders(today: date | None = None) -> int:
+    """Tageslauf für den Dienst ``notify_crew``: Erinnerungen, montags die Wochenübersicht.
+
+    Idempotent (Deduplizierung je Person, Frist und Schwelle), darf also stündlich
+    laufen. Grenze: Eine Erinnerung gilt nur am Stichtag. Fällt der Dienst den
+    ganzen Tag aus, entfällt sie; Überfälliges wird nicht erneut gemeldet.
+    """
+    today = today or timezone.localdate()
+    count = send_deadline_reminders(today=today)
+    if today.weekday() == 0:
+        count += send_weekly_digest(today=today)
+    return count
 
 
 def send_weekly_digest(station: Station | None = None, today: date | None = None) -> int:

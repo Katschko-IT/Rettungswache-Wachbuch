@@ -391,7 +391,7 @@ class ChecklistCompleteRouteTests(BasePhase1RoutesTestCase):
             object_id=str(completion.pk),
         ).latest("created_at")
         self.assertEqual(event.actor, self.user_member)
-        self.assertEqual(event.metadata.get("fields"), ["checklist", "note"])
+        self.assertEqual(event.metadata.get("fields"), ["checklist", "note", "item_results"])
 
     def test_role_matrix_all_content_roles_allowed_auditor_forbidden(self):
         # CONTENT_ROLES: MEMBER, CASHIER, SHIFT_LEAD, ADMIN

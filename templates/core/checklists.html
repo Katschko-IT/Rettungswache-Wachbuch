@@ -44,11 +44,8 @@
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form">
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once>
     {% csrf_token %}
-    {% if checklist.active_draft %}
-    <input type="hidden" name="draft_id" value="{{ checklist.active_draft.id }}">
-    {% endif %}
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>
@@ -58,18 +55,19 @@
           <div class="item-header">
             <strong>{{ item.text }}</strong>
             {% if item.is_required %}<span class="badge">{% translate "Pflicht" %}</span>{% endif %}
-            {% if item.min_value or item.max_value or item.measurement_unit %}
+            {% if item.min_value is not None or item.max_value is not None or item.measurement_unit %}
             <span class="badge badge-info">
               {% translate "Soll:" %}
-              {% if item.min_value %}{{ item.min_value }}{% endif %}
-              {% if item.min_value and item.max_value %}–{% endif %}
-              {% if item.max_value %}{{ item.max_value }}{% endif %}
+              {% if item.min_value is not None %}{{ item.min_value }}{% endif %}
+              {% if item.min_value is not None and item.max_value is not None %}–{% endif %}
+              {% if item.max_value is not None %}{{ item.max_value }}{% endif %}
               {{ item.measurement_unit }}
             </span>
             {% endif %}
           </div>
 
-          <div class="item-controls cluster">
+          <fieldset class="item-controls cluster">
+            <legend class="visually-hidden">{% blocktranslate with text=item.text %}Ergebnis für: {{ text }}{% endblocktranslate %}</legend>
             <label class="radio-label">
               <input type="radio" name="result_{{ item.id }}" value="ok">
               <span>{% translate "in Ordnung" %}</span>
@@ -83,12 +81,14 @@
               <span>{% translate "entfällt" %}</span>
             </label>
 
-            {% if item.min_value or item.max_value or item.measurement_unit %}
-            <input type="text" inputmode="decimal" name="value_{{ item.id }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
+            {% if item.min_value is not None or item.max_value is not None or item.measurement_unit %}
+            <label class="visually-hidden" for="value_{{ item.id }}">{% blocktranslate with text=item.text %}Messwert für: {{ text }}{% endblocktranslate %}</label>
+            <input type="text" inputmode="decimal" id="value_{{ item.id }}" name="value_{{ item.id }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
             {% endif %}
 
-            <input type="text" name="reason_{{ item.id }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
-          </div>
+            <label class="visually-hidden" for="reason_{{ item.id }}">{% blocktranslate with text=item.text %}Grund oder Bemerkung zu: {{ text }}{% endblocktranslate %}</label>
+            <input type="text" id="reason_{{ item.id }}" name="reason_{{ item.id }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
+          </fieldset>
         </div>
         {% endfor %}
       </div>
@@ -99,15 +99,19 @@
     </p>
 
     <div class="form-group">
-      <input type="text" name="note" maxlength="300" value="{% if checklist.active_draft %}{{ checklist.active_draft.note }}{% endif %}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
+      <label class="visually-hidden" for="note_{{ checklist.id }}">{% translate "Gesamtnotiz (optional)" %}</label>
+      <input type="text" id="note_{{ checklist.id }}" name="note" maxlength="300" value="{% if checklist.active_draft %}{{ checklist.active_draft.note }}{% endif %}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
     </div>
 
+    {% if checklist.requires_personal_login and terminal_open_mode %}
+    <p class="context-line" id="checklist-login-{{ checklist.id }}">{% translate "Diese Checkliste hat Nachweischarakter und lässt sich am Wachenterminal nicht abschließen. Bitte persönlich anmelden." %}</p>
+    {% endif %}
     <div class="form-actions cluster">
-      <button class="button primary" type="submit" name="action" value="complete" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true"{% endif %}>
+      <button class="button primary" type="submit" name="action" value="complete" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true" aria-describedby="checklist-login-{{ checklist.id }}"{% endif %}>
         {% include "core/_icon.html" with name="check" %}
         {% translate "Als erledigt vermerken" %}
       </button>
-      <button class="button secondary" type="submit" name="action" value="draft" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true"{% endif %}>
+      <button class="button secondary" type="submit" name="action" value="draft" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true" aria-describedby="checklist-login-{{ checklist.id }}"{% endif %}>
         {% translate "Zwischenstand speichern" %}
       </button>
     </div>

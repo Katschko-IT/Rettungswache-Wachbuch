@@ -1,6 +1,8 @@
 """Management Command: Versendet Fristen-Erinnerungen bei 30, 7 und 0 Tagen und Montags-Wochenübersicht."""
 from __future__ import annotations
 
+from datetime import date
+
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
@@ -32,6 +34,10 @@ class Command(BaseCommand):
             help="Wochenübersicht der anstehenden Fristen an die Wachleitung versenden.",
         )
         parser.add_argument(
+            "--today",
+            help="Stichtag (JJJJ-MM-TT) statt heute; für Tests und Nachläufe.",
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Nur anzeigen, welche Fristen fällig sind, ohne Benachrichtigungen anzulegen.",
@@ -52,6 +58,11 @@ class Command(BaseCommand):
             raise CommandError("Ungültiges Format für --thresholds. Beispiel: --thresholds=30,7,0")
 
         today = timezone.localdate()
+        if options["today"]:
+            try:
+                today = date.fromisoformat(options["today"])
+            except ValueError:
+                raise CommandError("Ungültiges Datum für --today. Beispiel: --today=2026-11-03")
 
         if options["dry_run"]:
             items = collect_deadline_items(station=station, today=today, thresholds=thresholds)

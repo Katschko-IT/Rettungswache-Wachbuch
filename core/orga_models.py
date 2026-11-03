@@ -119,57 +119,52 @@ class SOPDocument(models.Model):
             return "Alle aktiven Mitglieder"
         return str(dict(Membership.Role.choices).get(self.target_role, self.target_role))
 
+    def _target_user_ids(self) -> set[int]:
+        """Aktive Zielpersonen, die quittieren können.
+
+        Auditoren (kein Zugriff auf Inhalte) und das Dienstkonto „Wachenterminal“
+        (keine Lesebestätigung, AGENTS.md § 4) gehören nie zur Zielgruppe; sonst
+        erreichte die Quote nie 100 % und diese Konten bekämen Erinnerungen.
+        """
+        from .models import Membership
+        from .terminal_models import StationTerminalCode
+
+        memberships = Membership.objects.filter(station=self.station, is_active=True).exclude(
+            role=Membership.Role.AUDITOR
+        )
+        if self.target_role:
+            memberships = memberships.filter(role=self.target_role)
+        service_users = StationTerminalCode.objects.values_list("service_user_id", flat=True)
+        return set(memberships.exclude(user_id__in=service_users).values_list("user_id", flat=True))
+
     def ack_progress(self) -> dict[str, int]:
         """Berechnet die aggregierte Lesequote für die Wachleitung.
 
         Gibt die Quote als Aggregat zurück, ohne einzelne Personen aufzuführen
         (Schutz der Beschäftigtendaten gem. Mitbestimmung).
         """
-        from .models import Membership
-
-        target_memberships = Membership.objects.filter(
-            station=self.station,
-            is_active=True,
-        )
-        if self.target_role:
-            target_memberships = target_memberships.filter(role=self.target_role)
-
-        target_user_ids = set(target_memberships.values_list("user_id", flat=True))
+        target_user_ids = self._target_user_ids()
         target_count = len(target_user_ids)
 
         latest = self.latest_revision
         if not latest or target_count == 0:
-            return {
-                "acknowledged_count": 0,
-                "target_count": target_count,
-                "percent": 0,
-            }
+            return {"acknowledged_count": 0, "target_count": target_count, "percent": 0}
 
         acked_user_ids = set(
             self.receipts.filter(revision=latest, user_id__in=target_user_ids).values_list("user_id", flat=True)
         )
         acknowledged_count = len(acked_user_ids)
-        percent = round((acknowledged_count / target_count) * 100) if target_count > 0 else 0
-
         return {
             "acknowledged_count": acknowledged_count,
             "target_count": target_count,
-            "percent": percent,
+            "percent": round((acknowledged_count / target_count) * 100),
         }
 
     def unacknowledged_users(self):
         """Gibt die aktiven User der Zielgruppe zurück, die die aktuelle Revision noch nicht quittiert haben."""
         from django.contrib.auth.models import User
-        from .models import Membership
 
-        target_memberships = Membership.objects.filter(
-            station=self.station,
-            is_active=True,
-        )
-        if self.target_role:
-            target_memberships = target_memberships.filter(role=self.target_role)
-
-        target_user_ids = set(target_memberships.values_list("user_id", flat=True))
+        target_user_ids = self._target_user_ids()
         latest = self.latest_revision
         if not latest or not target_user_ids:
             return User.objects.none()
@@ -177,8 +172,7 @@ class SOPDocument(models.Model):
         acked_user_ids = set(
             self.receipts.filter(revision=latest, user_id__in=target_user_ids).values_list("user_id", flat=True)
         )
-        open_ids = target_user_ids - acked_user_ids
-        return User.objects.filter(id__in=open_ids)
+        return User.objects.filter(id__in=target_user_ids - acked_user_ids)
 
 
 class SOPRevision(models.Model):

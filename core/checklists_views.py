@@ -42,7 +42,11 @@ def checklists(request):
 
     for cl in checklists_qs:
         cl.latest_completion = latest.get(cl.id)
-        cl.active_draft = drafts.get(cl.id)
+        draft = drafts.get(cl.id)
+        # Ein Zwischenstand gilt nur, solange kein neuerer Abschluss existiert.
+        if draft and cl.latest_completion and draft.created_at <= cl.latest_completion.created_at:
+            draft = None
+        cl.active_draft = draft
 
     return render(
         request,
@@ -100,29 +104,16 @@ def checklist_complete(request, pk):
     else:
         item_results = {}
 
-    draft_id = request.POST.get("draft_id")
     with transaction.atomic():
-        completion = None
-        if draft_id:
-            completion = ChecklistCompletion.objects.filter(
-                pk=draft_id, checklist=checklist, station=station, is_draft=True
-            ).first()
-
-        note = (request.POST.get("note") or "")[:300]
-        if completion is None:
-            completion = ChecklistCompletion(
-                station=station,
-                checklist=checklist,
-                completed_by=request.user,
-                note=note,
-                is_draft=is_draft,
-                item_results=item_results,
-            )
-        else:
-            completion.note = note
-            completion.is_draft = is_draft
-            completion.completed_by = request.user
-            completion.item_results = item_results
+        # Append-only: Zwischenstand und Abschluss sind jeweils ein neuer Datensatz.
+        completion = ChecklistCompletion(
+            station=station,
+            checklist=checklist,
+            completed_by=request.user,
+            note=(request.POST.get("note") or "")[:300],
+            is_draft=is_draft,
+            item_results=item_results,
+        )
 
         # Bei endgültigem Abschluss Mängel für „nicht in Ordnung“-Punkte automatisch anlegen
         if not is_draft and has_item_submission:

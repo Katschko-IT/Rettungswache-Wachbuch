@@ -41,7 +41,7 @@
 
 /* Text */
 .muted { color: var(--muted); }
-.text-small { font-size: .875rem; }
+.text-small { font-size: var(--fs-sm); }
 .text-strong { font-weight: 700; }
 .text-right { text-align: right; }
 .text-center { text-align: center; }
@@ -90,7 +90,7 @@
 .state.warning::before { background: var(--warning-accent); }
 .state.success { color: var(--success); }
 .state.info { color: var(--brand); }
-.state.large { font-size: 1.25rem; }
+.state.large { font-size: var(--fs-xl); }
 
 /* —— Navigation, Kopf und Aktionen ——————————————————————————————— */
 .page-actions-bar,
@@ -101,7 +101,7 @@
   gap: var(--space-2);
 }
 .action-bar { margin: 0 0 var(--space-5); }
-.breadcrumb-nav, .breadcrumbs { margin: 0 0 var(--space-4); font-size: .95rem; }
+.breadcrumb-nav, .breadcrumbs { margin: 0 0 var(--space-4); font-size: var(--fs-base); }
 .breadcrumb-nav .back-link { margin: 0; }
 .breadcrumb-nav a, .breadcrumbs a { font-weight: 600; }
 .page-header { margin: 0 0 var(--space-5); }
@@ -113,7 +113,7 @@
   min-width: 2.75rem;
   min-height: 2.75rem;
   padding: .35rem .75rem;
-  font-size: .9rem;
+  font-size: var(--fs-sm);
 }
 .button.block { width: 100%; }
 /* Knöpfe ohne Variante verhalten sich wie primary (Altbestand). */
@@ -185,8 +185,8 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .kpi-card.border-danger { border-left: 4px solid var(--danger); }
 .kpi-card.border-warning { border-left: 4px solid var(--warning-accent); }
 .kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
-.kpi-label { color: var(--muted); font-size: .875rem; font-weight: 600; }
-.kpi-note { color: var(--muted); font-size: .875rem; }
+.kpi-label { color: var(--muted); font-size: var(--fs-sm); font-weight: 600; }
+.kpi-note { color: var(--muted); font-size: var(--fs-sm); }
 
 /* —— Hinweise und Karten (Farben in app.css) ————————————————————— */
 .card { padding: 1.25rem; }
@@ -200,7 +200,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .section-block > h2,
 .section-block > header { margin-bottom: var(--space-3); }
 .section-block > h2 { display: flex; align-items: center; gap: var(--space-2); }
-.section-block h3 { margin: 0 0 var(--space-2); font-size: 1.05rem; }
+.section-block h3 { margin: 0 0 var(--space-2); font-size: var(--fs-md); }
 .section-block + .section-block,
 .grid-auto + .section-block,
 .grid-2 + .section-block,
@@ -234,7 +234,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 
 /* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein. */
 .list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
-.row-content .row-note { display: block; margin-top: var(--space-1); color: var(--text); font-size: .9rem; }
+.row-content .row-note { display: block; margin-top: var(--space-1); color: var(--text); font-size: var(--fs-sm); }
 
 /* Listenzeilen mit Fristenampel: Kante nur bei Handlungsbedarf. */
 .module-row {
@@ -267,7 +267,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .data-table, .table, .table-compact {
   width: 100%;
   border-collapse: collapse;
-  font-size: .95rem;
+  font-size: var(--fs-base);
 }
 .data-table th, .data-table td,
 .table th, .table td,
@@ -280,7 +280,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .table-compact th, .table-compact td { padding: .45rem .5rem; }
 .data-table th, .table th, .table-compact th {
   color: var(--muted);
-  font-size: .875rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .data-table thead th, .table thead th { background: var(--surface-soft); }
@@ -302,7 +302,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .badge-info { color: var(--brand); background: var(--accent-soft); border-color: color-mix(in srgb, var(--brand) 35%, transparent); }
 
 /* Bestandsanzeige im Lager. */
-.stock-figure { font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.stock-figure { font-weight: 700; font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
 .stock-low { color: var(--danger); }
 .stock-ok { color: var(--success); }
 
@@ -326,7 +326,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
   min-height: var(--touch);
   padding: .55rem .75rem;
 }
-.form-error { margin: var(--space-1) 0 0; color: var(--danger); font-size: .9rem; }
+.form-error { margin: var(--space-1) 0 0; color: var(--danger); font-size: var(--fs-sm); }
 .search-form {
   display: flex;
   flex-wrap: wrap;
@@ -355,7 +355,7 @@ fieldset.form-section {
 fieldset.form-section > legend {
   margin-bottom: var(--space-3);
   padding: 0;
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   font-weight: 700;
 }
 /* Ganze Zeile mit Kästchen ist antippbar. */
@@ -439,7 +439,7 @@ body.has-open-modal { overflow: hidden; }
   align-items: center;
   gap: var(--space-2);
   margin: 0 0 var(--space-4);
-  font-size: 1.2rem;
+  font-size: var(--fs-lg);
 }
 .modal-panel .modal-actions {
   display: flex;
@@ -468,8 +468,8 @@ body.has-open-modal { overflow: hidden; }
   text-align: center;
 }
 .qr-sticker img { display: block; width: 11.25rem; height: 11.25rem; margin: 0 auto; }
-.qr-sticker strong { display: block; margin-top: var(--space-2); font-size: .9rem; }
-.qr-sticker small { display: block; font-size: .75rem; }
+.qr-sticker strong { display: block; margin-top: var(--space-2); font-size: var(--fs-sm); }
+.qr-sticker small { display: block; font-size: var(--fs-xs); }
 
 /* —— Kamera-Scanner (data-scanner in ui.js) ————————————————————————— */
 .scanner-view {
@@ -491,7 +491,7 @@ body.has-open-modal { overflow: hidden; }
   color: var(--paper);
   background: color-mix(in srgb, var(--paper-ink) 75%, transparent);
   border-radius: var(--radius-sm);
-  font-size: .85rem;
+  font-size: var(--fs-sm);
 }
 .input-with-button { display: flex; gap: var(--space-2); }
 .input-with-button input { flex: 1; min-width: 0; }
@@ -501,7 +501,7 @@ body.has-open-modal { overflow: hidden; }
 .module-row .row-due { flex: 1.5 1 11rem; }
 .module-row .row-actions { flex: 0 1 auto; justify-content: flex-end; }
 .module-row .row-main small,
-.module-row .row-due small { display: block; margin-top: var(--space-1); color: var(--muted); font-size: .85rem; }
+.module-row .row-due small { display: block; margin-top: var(--space-1); color: var(--muted); font-size: var(--fs-sm); }
 
 /* —— Altbestand ——————————————————————————————————————————————————— */
 .markdown-body { max-width: 72ch; line-height: 1.6; }
@@ -519,7 +519,7 @@ body.has-open-modal { overflow: hidden; }
 /* —— Modul: Fuhrpark —— */
 .fleet-status-buttons { margin-top: var(--space-4); }
 .fleet-actions { margin-top: var(--space-4); }
-.fleet-call-sign { font-size: 1.1rem; }
+.fleet-call-sign { font-size: var(--fs-md); }
 /* Filterreiter auf dem Handy in einer wischbaren Zeile statt fünf Zeilen. */
 @media (max-width: 760px) {
   .fleet-filter { flex-wrap: nowrap; overflow-x: auto; padding-bottom: var(--space-1); }
@@ -530,7 +530,7 @@ body.has-open-modal { overflow: hidden; }
 /* Zeilen mit Aktionen im Abschnitt: bündig wie .item-list .list-row. */
 .orga-list > .module-row { padding-inline: 1.25rem; }
 .orga-list > .module-row:last-child { border-bottom: 0; }
-.orga-list .row-content h3 { margin: 0; font-size: 1.05rem; }
+.orga-list .row-content h3 { margin: 0; font-size: var(--fs-md); }
 .section-block .orga-subheading { margin-top: var(--space-5); }
 
 /* —— Modul: Display —— */
@@ -577,7 +577,7 @@ body.has-open-modal { overflow: hidden; }
   border-radius: var(--radius);
 }
 .help-results, .help-topics, .help-admin { margin: 0 0 var(--space-5); }
-.help-results h2, .help-topics h2, .help-admin h2 { margin: 0 0 var(--space-3); font-size: 1.2rem; }
+.help-results h2, .help-topics h2, .help-admin h2 { margin: 0 0 var(--space-3); font-size: var(--fs-lg); }
 .help-list {
   margin: 0;
   padding: 0;
@@ -589,12 +589,12 @@ body.has-open-modal { overflow: hidden; }
 .help-list li { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--line); }
 .help-list li:last-child { border-bottom: 0; }
 .help-list a { min-height: var(--touch); display: inline-flex; align-items: center; }
-.help-list span { display: block; color: var(--muted); font-size: .9rem; }
-.help-meta, .help-article-meta { color: var(--muted); font-size: .875rem; }
+.help-list span { display: block; color: var(--muted); font-size: var(--fs-sm); }
+.help-meta, .help-article-meta { color: var(--muted); font-size: var(--fs-sm); }
 .help-article-meta { margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--line); }
 .help-article { max-width: 70ch; }
 .help-article section + section { margin-top: var(--space-5); }
-.help-article h2 { margin: 0 0 var(--space-2); font-size: 1.2rem; }
+.help-article h2 { margin: 0 0 var(--space-2); font-size: var(--fs-lg); }
 .help-article p { margin: 0; line-height: 1.65; }
 
 /* Pinnwand und Anhänge */
@@ -678,8 +678,42 @@ body.has-open-modal { overflow: hidden; }
 .checklist-item-row:last-child { border-bottom: none; }
 .checklist-item-row .item-header { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-2); }
 .checklist-item-row .item-controls { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-.checklist-item-row .radio-label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; font-size: 0.95rem; }
+.checklist-item-row .radio-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+/* Das echte Radio bleibt bedienbar (Tastatur, Screenreader), nur unsichtbar. */
+.checklist-item-row .radio-label input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.checklist-item-row .radio-label:has(input:checked) { background: var(--brand); border-color: var(--brand); color: var(--on-primary); }
+.checklist-item-row .radio-label:has(input[value="not_ok"]:checked) { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.checklist-item-row .radio-label:has(input[value="na"]:checked) { background: var(--surface-soft); border-color: var(--line-strong); color: var(--text); box-shadow: inset 0 0 0 2px var(--text); }
+.checklist-item-row .radio-label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 6px var(--brand-deep); }
+/* Bemerkung nur, wenn „nicht in Ordnung“ oder „entfällt“ gewählt ist (Begründung nötig). */
+.checklist-item-row .item-controls:not(:has(input[value="not_ok"]:checked, input[value="na"]:checked)) .reason-input { display: none; }
 .checklist-item-row .measurement-input { width: 7rem; }
 .checklist-item-row .reason-input { flex: 1; min-width: 12rem; }
-.checklist-defect-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-3); }
+.checklist-defect-hint { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--space-3); }
 
+
+/* Windows-Kontrastmodus: Der gewählte Chip braucht mehr als eine Hintergrundfarbe. */
+@media (forced-colors: active) {
+  .checklist-item-row .radio-label:has(input:checked) { border-width: 4px; forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: ButtonText; }
+}

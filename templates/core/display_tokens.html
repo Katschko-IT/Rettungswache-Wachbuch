@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{% translate "Wachen-Display" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'station_settings' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zu Einstellungen" %}</a>
 </nav>
 <header class="page-heading">
@@ -36,12 +36,13 @@
 
     <div class="table-responsive">
       <table class="table display-module-table">
+<caption class="visually-hidden">{% translate "Bausteine und Bildschirm-Zonen der Wandanzeige" %}</caption>
         <thead>
           <tr>
-            <th class="text-center">{% translate "Aktiv" %}</th>
-            <th>{% translate "Baustein / Modul" %}</th>
-            <th>{% translate "Bildschirm-Zone" %}</th>
-            <th>{% translate "Eigener Titel" %}</th>
+            <th scope="col" class="text-center">{% translate "Aktiv" %}</th>
+            <th scope="col">{% translate "Baustein / Modul" %}</th>
+            <th scope="col">{% translate "Bildschirm-Zone" %}</th>
+            <th scope="col">{% translate "Eigener Titel" %}</th>
           </tr>
         </thead>
         <tbody>

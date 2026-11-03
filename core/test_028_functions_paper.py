@@ -231,3 +231,21 @@ class PaperBackfillHandoverTests(TestCase):
         detail_response = self.client.get(reverse("handover_detail", args=[handover.pk]))
         content = detail_response.content.decode("utf-8")
         self.assertNotIn("Nachtrag von Papier", content)
+
+
+class PaperBackfillHiddenFieldTests(TestCase):
+    def test_occurred_at_is_dropped_without_paper_backfill_flag(self):
+        from django.utils import timezone
+
+        from .forms import HandoverForm
+        from .models import HandoverEntry
+
+        form = HandoverForm(data={
+            "category": HandoverEntry.Category.choices[0][0],
+            "priority": HandoverEntry.Priority.choices[0][0],
+            "title": "Ohne Papierbogen",
+            "details": "Kurz.",
+            "occurred_at": (timezone.now() + timezone.timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.cleaned_data["occurred_at"])

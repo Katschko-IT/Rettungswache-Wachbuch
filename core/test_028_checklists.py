@@ -201,7 +201,7 @@ class Checklist028Tests(TestCase):
         # Draft does NOT create defects yet
         self.assertEqual(Defect.objects.count(), 0)
 
-        # Now complete the draft
+        # Abschluss legt einen neuen Datensatz an; der Zwischenstand bleibt unverändert
         resp = self.client.post(
             url,
             {
@@ -214,11 +214,21 @@ class Checklist028Tests(TestCase):
             },
         )
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(ChecklistCompletion.objects.count(), 1)
-        completed = ChecklistCompletion.objects.get(pk=draft.id)
-        self.assertFalse(completed.is_draft)
+        self.assertEqual(ChecklistCompletion.objects.count(), 2)
+        draft.refresh_from_db()
+        self.assertTrue(draft.is_draft)
+        self.assertEqual(draft.note, "Unterbrochen durch Einsatz")
+        completed = ChecklistCompletion.objects.get(is_draft=False)
+        self.assertNotEqual(completed.pk, draft.pk)
         self.assertEqual(completed.note, "Nach Einsatz abgeschlossen")
         self.assertEqual(Defect.objects.count(), 1)
+
+        # Auch Zwischenstände sind append-only (kein UPDATE/DELETE für die App-Rolle)
+        draft.note = "Manipulationsversuch"
+        with self.assertRaises(ValidationError):
+            draft.save()
+        with self.assertRaises(ValidationError):
+            draft.delete()
 
         # Finalized completion is append-only (cannot be modified or deleted)
         completed.note = "Manipulationsversuch"
@@ -226,3 +236,54 @@ class Checklist028Tests(TestCase):
             completed.save()
         with self.assertRaises(ValidationError):
             completed.delete()
+
+
+class ChecklistRobustnessTests(TestCase):
+    """Review 2026-11: nan/inf und API ohne Ergebnisse bei Grenzwerten."""
+
+    setUp = Checklist028Tests.setUp
+
+    def test_non_finite_measurement_is_rejected_not_a_server_error(self):
+        url = reverse("checklist_complete", args=[self.checklist.id])
+        for raw in ("nan", "inf", "-inf", "1e999"):
+            with self.subTest(value=raw):
+                resp = self.client.post(url, {
+                    f"result_{self.item_temp.id}": "ok",
+                    f"value_{self.item_temp.id}": raw,
+                    f"result_{self.item_seal.id}": "ok",
+                    "action": "complete",
+                })
+                self.assertEqual(resp.status_code, 302)
+        self.assertEqual(ChecklistCompletion.objects.count(), 0)
+
+    def test_api_requires_item_results_when_limits_exist(self):
+        raw_token = "wb_test_028_robust_token_1234567890"
+        ApiToken.objects.create(
+            user=self.user,
+            label="Test robust",
+            token_prefix=raw_token[:11],
+            token_hash=hash_api_token(raw_token),
+            scopes=["write:checklists"],
+            expires_at=timezone.now() + timedelta(days=1),
+        )
+        response = self.client.post(
+            reverse("api_v1_checkliste_erledigt", args=[self.checklist.id]),
+            data=json.dumps({"note": "ohne Ergebnisse"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {raw_token}",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ChecklistCompletion.objects.count(), 0)
+
+    def test_huge_integer_measurement_is_a_validation_error(self):
+        from .checklists_forms import validate_checklist_submission
+
+        results, errors = validate_checklist_submission(
+            self.checklist, {"item_results": {str(self.item_temp.id): {"status": "ok", "value": 10**400}}},
+        )
+        self.assertTrue(errors)
+        self.assertIsNone(results[str(self.item_temp.id)]["value"])
+
+    def test_checklist_form_blocks_double_submit(self):
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn('class="checklist-form" data-submit-once', content)

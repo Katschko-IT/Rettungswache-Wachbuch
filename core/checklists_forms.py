@@ -1,6 +1,7 @@
 """Formulare und Validierung für Checklisten-Läufe (0.28)."""
 from __future__ import annotations
 
+import math
 from decimal import Decimal
 from typing import Any
 
@@ -31,11 +32,11 @@ def validate_checklist_submission(
         key = str(item.id)
         if direct_results and isinstance(direct_results, dict) and key in direct_results:
             item_entry = direct_results[key] or {}
-            status = str(item_entry.get("status") or "").strip()
+            status = str(item_entry.get("status") or "").strip()[:20]
             raw_val = item_entry.get("value")
             reason = str(item_entry.get("reason") or "").strip()[:500]
         else:
-            status = str(data.get(f"result_{item.id}", "") or "").strip()
+            status = str(data.get(f"result_{item.id}", "") or "").strip()[:20]
             raw_val = data.get(f"value_{item.id}")
             reason = str(data.get(f"reason_{item.id}", "") or "").strip()[:500]
 
@@ -43,7 +44,10 @@ def validate_checklist_submission(
         val: float | None = None
         if raw_val not in (None, ""):
             if isinstance(raw_val, (int, float, Decimal)):
-                val = float(raw_val)
+                try:
+                    val = float(raw_val)
+                except OverflowError:  # z. B. JSON-Ganzzahl mit 400 Ziffern
+                    val = float("inf")
             else:
                 raw_str = str(raw_val).strip().replace(",", ".")
                 if raw_str:
@@ -54,6 +58,14 @@ def validate_checklist_submission(
                             _("Ungültiger Messwert für „%(item)s“: %(value)s")
                             % {"item": item.text, "value": raw_val}
                         )
+
+        # nan/inf sind keine Messwerte (Vergleich mit Decimal und JSON-Speicher scheitern daran)
+        if val is not None and not math.isfinite(val):
+            errors.append(
+                _("Ungültiger Messwert für „%(item)s“: %(value)s")
+                % {"item": item.text, "value": raw_val}
+            )
+            val = None
 
         # Grenzwerte prüfen
         measurement_out_of_bounds = False
@@ -68,7 +80,10 @@ def validate_checklist_submission(
             status = "not_ok"
             if not reason:
                 unit = f" {item.measurement_unit}" if item.measurement_unit else ""
-                bounds = f"[{item.min_value or '—'}..{item.max_value or '—'}]"
+                bounds = (
+                    f"[{item.min_value if item.min_value is not None else '—'}.."
+                    f"{item.max_value if item.max_value is not None else '—'}]"
+                )
                 reason = _("Messwert %(val)s%(unit)s außerhalb Grenzwert %(bounds)s") % {
                     "val": val,
                     "unit": unit,

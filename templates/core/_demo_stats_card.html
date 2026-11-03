@@ -15,6 +15,7 @@
     <summary>{% translate "Letzte 14 Tage" %}</summary>
     <div class="table-wrap" tabindex="0" role="region" aria-label="{% translate 'Demo-Kennzahlen je Tag' %}">
       <table class="responsive-table">
+<caption class="visually-hidden">{% translate "Demo-Nutzung der letzten Tage" %}</caption>
         <thead><tr><th scope="col">{% translate "Tag" %}</th><th scope="col">{% translate "Demos" %}</th><th scope="col">{% translate "Rundgang abgeschlossen" %}</th><th scope="col">{% translate "Rückmeldungen" %}</th></tr></thead>
         <tbody>{% for row in stats.days %}<tr><td data-label="{% translate 'Tag' %}">{{ row.day|date:"D, d.m." }}</td><td data-label="{% translate 'Demos' %}">{{ row.started }}</td><td data-label="{% translate 'Rundgang abgeschlossen' %}">{{ row.tour_completed }}</td><td data-label="{% translate 'Rückmeldungen' %}">{{ row.feedback }}</td></tr>{% endfor %}</tbody>
       </table>

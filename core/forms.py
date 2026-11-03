@@ -39,6 +39,9 @@ class HandoverForm(forms.ModelForm):
         cleaned = super().clean()
         is_paper_backfill = cleaned.get("is_paper_backfill")
         occurred_at = cleaned.get("occurred_at")
+        if not is_paper_backfill:
+            # Das Feld ist ohne Häkchen nur ausgeblendet und wird trotzdem gesendet.
+            cleaned["occurred_at"] = None
         if is_paper_backfill:
             if not occurred_at:
                 self.add_error("occurred_at", _("Für Nachträge von Papier muss ein Ereigniszeitpunkt angegeben werden."))

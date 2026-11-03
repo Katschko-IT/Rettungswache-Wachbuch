@@ -38,6 +38,7 @@ from .errors import (
     log_exception,
 )
 
+from .checklists_views import checklist_complete, checklists  # noqa: F401  (URL-Ziele)
 from .forms import (
     BirthdayForm,
     CalendarEventForm,
@@ -279,7 +280,7 @@ def web_manifest(request):
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
-        "background_color": "#f5f7f6",
+        "background_color": "#f4f2ed",
         "theme_color": "#ffffff",
         "icons": icons,
         "shortcuts": shortcuts,
@@ -1066,8 +1067,6 @@ def task_edit(request, pk):
         "task": task,
     })
 
-
-from .checklists_views import checklist_complete, checklists
 
 
 @membership_required(CONTENT_ROLES)

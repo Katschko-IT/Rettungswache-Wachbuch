@@ -11,7 +11,8 @@ from .orga_models import SOPDocument, SOPRevision, StationContact
 
 class SOPDocumentForm(forms.ModelForm):
     target_role = forms.ChoiceField(
-        choices=[("", "Alle aktiven Mitglieder der Wache")] + list(Membership.Role.choices),
+        choices=[("", "Alle aktiven Mitglieder der Wache")]
+        + [choice for choice in Membership.Role.choices if choice[0] != Membership.Role.AUDITOR],
         required=False,
         label="Zielgruppe (Rolle)",
         help_text="Leer = alle aktiven Mitglieder der Wache",

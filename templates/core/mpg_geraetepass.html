@@ -3,7 +3,7 @@
 {% block title %}{% translate "Digitaler Gerätepass & Einweisungsmatrix" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'mpg_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 
@@ -52,6 +52,7 @@
 
   <div class="table-responsive">
     <table class="table-compact table-sticky">
+<caption class="visually-hidden">{% translate "Geräteeinweisungen je Person und Gerät" %}</caption>
       <thead>
         <tr>
           <th scope="col">{% translate "Mitarbeiter" %}</th>

@@ -12,6 +12,7 @@
   {% if checklist.schedule %}<p>{% blocktranslate with interval=checklist.schedule.get_interval_display %}Rhythmus: {{ interval }}{% endblocktranslate %}</p>{% endif %}
   <div class="paper-scroll">
   <table class="paper-table paper-rows">
+<caption class="visually-hidden">{% translate "Prüfpunkte zum Abhaken" %}</caption>
     <thead>
       <tr>
         <th scope="col" class="paper-num">{% translate "Nr." %}</th>
