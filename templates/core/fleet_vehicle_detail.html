@@ -3,7 +3,7 @@
 {% block title %}{{ vehicle.call_sign }}{% if vehicle.license_plate %} ({{ vehicle.license_plate }}){% endif %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'fleet_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Fuhrpark-Übersicht" %}</a>
 </nav>
 

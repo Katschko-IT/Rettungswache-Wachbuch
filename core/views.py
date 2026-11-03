@@ -279,7 +279,7 @@ def web_manifest(request):
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
-        "background_color": "#f5f7f6",
+        "background_color": "#f4f2ed",
         "theme_color": "#ffffff",
         "icons": icons,
         "shortcuts": shortcuts,

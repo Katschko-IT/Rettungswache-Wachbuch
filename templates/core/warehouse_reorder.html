@@ -3,7 +3,7 @@
 {% block title %}{% translate "Nachbestellung & Bestellschein" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'warehouse_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Lagerübersicht" %}</a>
 </nav>
 

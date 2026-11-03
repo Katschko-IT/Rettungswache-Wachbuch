@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{% translate "Wachen-Display" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'station_settings' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zu Einstellungen" %}</a>
 </nav>
 <header class="page-heading">

@@ -77,8 +77,10 @@
   <div class="connection-chip" data-connection-chip hidden role="status"></div>
 
   {% if terminal_session %}
-    <div class="terminal-session-bar" role="status">
-      <span>{% translate "Wachenterminal" %} · {% blocktranslate with seconds=terminal_idle_seconds %}Sperrt sich nach Inaktivität in <strong data-idle-countdown>{{ seconds }}</strong> s{% endblocktranslate %}</span>
+    <div class="terminal-session-bar">
+      <span>{% translate "Wachenterminal" %} · {% blocktranslate with seconds=terminal_idle_seconds %}Sperrt sich nach Inaktivität in <strong data-idle-countdown aria-hidden="true">{{ seconds }}</strong> s{% endblocktranslate %}</span>
+      <span class="idle-warning" data-idle-warning role="alert" hidden>{% translate "Das Terminal sperrt sich in wenigen Sekunden." %}</span>
+      <button type="button" class="button secondary" data-idle-extend hidden>{% translate "Weiter arbeiten" %}</button>
       {% if terminal_open_mode %}<a class="button secondary" href="{% url 'terminal_menu' %}">{% include "core/_icon.html" with name="home" %}{% translate "Start" %}</a>{% endif %}
       <form method="post" action="{% url 'terminal_logout' %}" data-idle-logout="{{ terminal_idle_seconds }}" data-clear-cache-on-submit>
         {% csrf_token %}

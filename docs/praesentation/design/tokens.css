@@ -1,4 +1,6 @@
-/* Wachbuch Klar 2 – Design-Tokens (hell und Nachtdienst).
+/* Wachbuch Klar 3 – Design-Tokens (hell und Nachtdienst).
+   Richtung „Papier & Signal“: warme Papierflächen, Tinte als Text, Blau nur für
+   Bedienung, Rot/Gelb/Grün nur für Zustand.
    Einzige Quelle für App, Projektseite (site/) und Folien (docs/praesentation/);
    die Kopien dort erzeugt scripts/sync_design_assets.py, ein Test prüft sie.
    Gleichnamig in Wachbuch-Client lib/theme/design_tokens.dart. */
@@ -7,18 +9,18 @@
   color-scheme: light;
 
   /* Flächen */
-  --bg: #f5f7f6;
-  --bg-accent: #e9eeec;
-  --surface: #ffffff;
-  --surface-soft: #eef2f1;
-  --surface-raised: #ffffff;
+  --bg: #f4f2ed;
+  --bg-accent: #ebe8e1;
+  --surface: #fffefc;
+  --surface-soft: #efece5;
+  --surface-raised: #fffefc;
 
   /* Text und Linien. --line ist dekorativ, --line-strong begrenzt
      Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11). */
-  --text: #14212b;
-  --muted: #4d5b66;
-  --line: #d7dde1;
-  --line-strong: #6f7d88;
+  --text: #15202b;
+  --muted: #55606a;
+  --line: #ddd8cd;
+  --line-strong: #7a7468;
 
   /* Aktion: Blaulicht. Nur für Bedienung, Auswahl und aktive Navigation. */
   --brand: #0e4aa8;
@@ -62,9 +64,9 @@
   --focus: #f2a900;
   --focus-ring: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus);
 
-  --radius-sm: .375rem;
-  --radius: .625rem;
-  --radius-lg: .875rem;
+  --radius-sm: .5rem;
+  --radius: .75rem;
+  --radius-lg: 1.125rem;
   --shadow: none;
   --shadow-soft: none;
   --shadow-overlay: 0 12px 32px rgba(20, 33, 43, .18);
@@ -76,6 +78,23 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
+
+  /* Schriftskala: nur diese Stufen, keine Zwischenwerte in den Komponenten. */
+  --fs-xs: .8rem;
+  --fs-sm: .9rem;
+  --fs-base: 1rem;
+  --fs-md: 1.05rem;
+  --fs-lg: 1.15rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.6rem;
+  --fs-3xl: clamp(1.9rem, 3.5vw, 2.6rem);
+  --lh-tight: 1.15;
+  --lh-body: 1.55;
+
+  /* Bewegung (nur mit prefers-reduced-motion: no-preference verwenden). */
+  --dur-fast: .12s;
+  --dur: .2s;
+  --ease: cubic-bezier(.2, 0, 0, 1);
 
   --content: 72rem;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -91,7 +110,7 @@
   background: var(--bg);
   font-synthesis: none;
   font-size: 100%;
-  line-height: 1.5;
+  line-height: var(--lh-body);
 }
 
 /* Nachtdienst: dunkle Flächen, gedämpfte Signale, gelber Fokus. Folgt dem

@@ -36,23 +36,52 @@ Minimales JavaScript dient ausschließlich der installierbaren PWA
 (Service-Worker, Installationshinweis, Online-Status) und ist keine
 Voraussetzung für die Kernabläufe.
 
-## Kanonische Tokens (Web = Client)
+## Kanonische Tokens (Web)
 
-| Rolle | Hex | Verwendung |
+Quelle ist `core/static/core/tokens.css` (Stand „Wachbuch Klar 3“, Richtung
+„Papier & Signal“: warme Papierflächen, Tinte als Text, Blau nur für Bedienung,
+Rot/Gelb/Grün nur für Zustand). Projektseite und Folien erhalten Kopien über
+`scripts/sync_design_assets.py`. Der Flutter-Client hat eigene Werte
+(`lib/theme/design_tokens.dart`) und ist derzeit **nicht** auf diese Tabelle
+abgeglichen.
+
+| Rolle | Hell | Verwendung |
 |---|---|---|
-| `brand` / Primary | `#0D47A1` | Header, Primaeraktion, aktive Navigation |
-| `brandDeep` | `#082E63` | Hover/Pressed, dunkle Flaechen |
-| `brandInk` | `#17343D` | Ueberschriften |
-| `accent` | `#2563EB` | Links, Info, Prioritaet normal |
-| `bg` | `#F7F9FC` | Seitenhintergrund |
-| `surface` | `#FFFFFF` | Flaechen mit Rand `#DCE4EF` |
-| `urgent` | `#DC2626` | Dringend / Fehler (nur semantisch) |
-| `important` | `#F59E0B` | Wichtig / Warnung |
-| `done` / success | `#16A34A` | Erledigt / Erfolg |
-| `focus` | `#F0B429` | Tastaturfokus und Service-Akzentstreifen |
+| `bg` | `#f4f2ed` | Seitenhintergrund (Papier) |
+| `surface` | `#fffefc` | Karten und Felder, Rand `--line` `#ddd8cd` |
+| `text` / `muted` | `#15202b` / `#55606a` | Text, gedämpfter Text (≥ 5,4:1 auf allen Flächen) |
+| `line-strong` | `#7a7468` | Rand von Bedienelementen (≥ 3:1) |
+| `brand` | `#0e4aa8` | Primäraktion, aktive Navigation (passt zum blauen Logo) |
+| `danger` / `warning` / `success` | `#b81d18` / `#8a4b00` / `#136b3a` | nur Zustand |
+| `focus` | `#f2a900` | Tastaturfokus, mit dunklem Ring (`--brand-deep`) |
+
+Dunkelmodus (`prefers-color-scheme` oder `data-theme="dark"`) und
+`prefers-contrast: more` stehen in derselben Datei.
+
+**Schriftskala** (nur diese Stufen in Komponenten): `--fs-xs` 0,8 · `--fs-sm` 0,9 ·
+`--fs-base` 1 · `--fs-md` 1,05 · `--fs-lg` 1,15 · `--fs-xl` 1,25 rem ·
+`--fs-2xl` 1,6 rem · `--fs-3xl` fließend 1,9–2,6 rem. Zeilenhöhe `--lh-body`
+1,55, Überschriften `--lh-tight` 1,15. Wand-Display, Sperrbildschirm und
+Bildschirmtastatur behalten eigene Größen.
+
+**Radius** `--radius-sm` .5 · `--radius` .75 · `--radius-lg` 1,125 rem.
+**Bewegung** `--dur-fast` .12 s · `--dur` .2 s · `--ease`; nur mit
+`prefers-reduced-motion: no-preference`.
 
 Flächen nutzen Rand statt schwerer Schatten. Touch-Ziele: mindestens **48 x 48
-CSS-Pixel** (Client und WCAG 2.5.5).
+CSS-Pixel** (`--touch`). `core/test_design_tokens.py` prüft, dass jede benutzte
+Variable definiert ist.
+
+### Muster aus „Klar 3“
+
+- **Auswahl kurzer Optionen** (Checkliste: in Ordnung / nicht in Ordnung /
+  entfällt) als Segment-Chips mit echtem Radio darunter; gewählt = gefüllt, der
+  Text bleibt (Farbe ist nie allein). Begründung erscheint erst bei „nicht in
+  Ordnung“ oder „entfällt“.
+- **Selten gebrauchte Angaben** (Papierbogen-Zeitpunkt) erscheinen erst, wenn
+  die zugehörige Checkbox gesetzt ist.
+- **Unsichtbare Eingaben** (`.visually-hidden`) dürfen die Seite nicht
+  verbreitern.
 
 ## Zehn verbindliche Regeln
 

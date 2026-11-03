@@ -21,7 +21,7 @@
     <label class="checkbox-field" for="{{ form.is_paper_backfill.id_for_label }}">{{ form.is_paper_backfill }} {% translate "Nachtrag vom Papierbogen" %}</label>
     <p class="field-hint">{% translate "Aktivieren, wenn ein handschriftlicher Papierbogen nachträglich ins Wachbuch übertragen wird." %}</p>
   </div>
-  <div class="field">
+  <div class="field paper-time">
     {{ form.occurred_at.errors }}
     <label for="{{ form.occurred_at.id_for_label }}">{% translate "Ereigniszeitpunkt (Papierbogen)" %}</label>
     {{ form.occurred_at }}

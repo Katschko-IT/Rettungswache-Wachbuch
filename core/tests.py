@@ -122,7 +122,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertTrue(font.is_file())
         manifest = self.client.get(reverse("web_manifest")).json()
         self.assertEqual(manifest["theme_color"], "#ffffff")
-        self.assertEqual(manifest["background_color"], "#f5f7f6")
+        self.assertEqual(manifest["background_color"], "#f4f2ed")
         self.assertNotIn("medical", manifest.get("categories", []))
 
     def test_landing_uses_public_service_copy(self):

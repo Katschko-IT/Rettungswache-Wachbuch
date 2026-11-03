@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{{ import_kind.title }} | {% translate "Stammdaten importieren" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'masterdata_import' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zum Import" %}</a>
 </nav>
 

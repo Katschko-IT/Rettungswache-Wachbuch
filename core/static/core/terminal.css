@@ -48,7 +48,7 @@
   background: var(--lock-glass);
   color: var(--lock-ink);
   font: inherit;
-  font-size: 1.15rem;
+  font-size: var(--fs-lg);
   letter-spacing: 0.02em;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -85,7 +85,7 @@
   align-items: flex-start;
   gap: 1rem;
   color: var(--lock-ink-dim);
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   line-height: 1.25;
   text-align: center;
   cursor: default;
@@ -113,7 +113,7 @@
   border-radius: 50%;
   background: var(--lock-ink-dim);
   color: var(--lock-bg);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
 }
 
 .terminal-unlock {
@@ -149,7 +149,7 @@
 .terminal-unlock-station {
   margin: 0;
   color: var(--lock-ink-soft);
-  font-size: 1rem;
+  font-size: var(--fs-base);
   letter-spacing: 0.02em;
 }
 
@@ -192,7 +192,7 @@
   min-height: 1.4rem;
   margin: 0;
   color: var(--lock-error);
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 /* ---- Vorschau aus der Demo (kein Terminal, kein Absenden) ---- */
@@ -208,7 +208,7 @@
   border-radius: 1rem;
   background: var(--lock-glass-strong);
   color: var(--lock-ink);
-  font-size: 0.92rem;
+  font-size: var(--fs-sm);
   line-height: 1.4;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -234,7 +234,7 @@
   max-width: 20rem;
   margin: 0;
   color: var(--lock-ink-dim);
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   line-height: 1.4;
 }
 
@@ -315,7 +315,7 @@
   background: transparent;
   color: var(--lock-ink-dim);
   font: inherit;
-  font-size: 1.05rem;
+  font-size: var(--fs-md);
   cursor: pointer;
 }
 
@@ -415,7 +415,7 @@
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
-  font-size: 1.1rem;
+  font-size: var(--fs-md);
   font-weight: 700;
   text-decoration: none;
 }
@@ -435,7 +435,7 @@
   background: var(--danger-soft);
   border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-style: normal;
 }
 
@@ -468,7 +468,7 @@
 
 .terminal-card-head h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: var(--fs-lg);
 }
 
 .terminal-card-head small {
@@ -512,7 +512,7 @@
 .terminal-month-date {
   margin: 0.6rem 0 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .terminal-pair-card {

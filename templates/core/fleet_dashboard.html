@@ -235,7 +235,7 @@
   <div class="modal-panel">
     <h2 id="scanner-modal-title">{% include "core/_icon.html" with name="camera" %}{% translate "Fahrzeug-QR scannen" %}</h2>
     <div class="scanner-view">
-      <video id="qr-video" data-scanner-video muted></video>
+      <video id="qr-video" data-scanner-video muted aria-label="{% translate 'Kamerabild des Scanners' %}"></video>
       <p class="scanner-status" id="scanner-status" data-scanner-status role="status">{% translate "Kamera wird initialisiert..." %}</p>
     </div>
     <div class="field">

@@ -3,7 +3,7 @@
 {% block title %}{{ device.name }} | {% translate "MPG Gerätebuch" %}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'mpg_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 

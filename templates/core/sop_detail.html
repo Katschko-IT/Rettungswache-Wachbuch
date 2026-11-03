@@ -3,7 +3,7 @@
 {% block title %}{{ sop.doc_number }}: {{ sop.title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'orga_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur SOP-Übersicht" %}</a>
 </nav>
 
