@@ -44,8 +44,13 @@
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once>
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once data-checklist-progress>
     {% csrf_token %}
+
+    <div class="checklist-progress" data-progress-box hidden>
+      <progress max="{{ checklist.items.count }}" value="0" data-progress-bar aria-labelledby="progress-text-{{ checklist.id }}"></progress>
+      <span id="progress-text-{{ checklist.id }}" data-progress-text data-progress-template="{% translate '%(done)s von %(total)s Prüfpunkten beantwortet' %}">{% blocktranslate with done=0 total=checklist.items.count %}{{ done }} von {{ total }} Prüfpunkten beantwortet{% endblocktranslate %}</span>
+    </div>
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>
@@ -69,25 +74,25 @@
           <fieldset class="item-controls cluster">
             <legend class="visually-hidden">{% blocktranslate with text=item.text %}Ergebnis für: {{ text }}{% endblocktranslate %}</legend>
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="ok">
+              <input type="radio" name="result_{{ item.id }}" value="ok"{% if item.prefill.status == 'ok' %} checked{% endif %}>
               <span>{% translate "in Ordnung" %}</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="not_ok">
+              <input type="radio" name="result_{{ item.id }}" value="not_ok"{% if item.prefill.status == 'not_ok' %} checked{% endif %}>
               <span>{% translate "nicht in Ordnung" %}</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="na">
+              <input type="radio" name="result_{{ item.id }}" value="na"{% if item.prefill.status == 'na' %} checked{% endif %}>
               <span>{% translate "entfällt" %}</span>
             </label>
 
             {% if item.min_value is not None or item.max_value is not None or item.measurement_unit %}
             <label class="visually-hidden" for="value_{{ item.id }}">{% blocktranslate with text=item.text %}Messwert für: {{ text }}{% endblocktranslate %}</label>
-            <input type="text" inputmode="decimal" id="value_{{ item.id }}" name="value_{{ item.id }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
+            <input type="text" inputmode="decimal" id="value_{{ item.id }}" name="value_{{ item.id }}" value="{{ item.prefill.value }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
             {% endif %}
 
             <label class="visually-hidden" for="reason_{{ item.id }}">{% blocktranslate with text=item.text %}Grund oder Bemerkung zu: {{ text }}{% endblocktranslate %}</label>
-            <input type="text" id="reason_{{ item.id }}" name="reason_{{ item.id }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
+            <input type="text" id="reason_{{ item.id }}" name="reason_{{ item.id }}" value="{{ item.prefill.reason }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
           </fieldset>
         </div>
         {% endfor %}
@@ -100,7 +105,7 @@
 
     <div class="form-group">
       <label class="visually-hidden" for="note_{{ checklist.id }}">{% translate "Gesamtnotiz (optional)" %}</label>
-      <input type="text" id="note_{{ checklist.id }}" name="note" maxlength="300" value="{% if checklist.active_draft %}{{ checklist.active_draft.note }}{% endif %}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
+      <input type="text" id="note_{{ checklist.id }}" name="note" maxlength="300" value="{{ checklist.prefill_note|default_if_none:'' }}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
     </div>
 
     {% if checklist.requires_personal_login and terminal_open_mode %}

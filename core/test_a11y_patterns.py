@@ -5,6 +5,7 @@ und Zoom-Test im Browser bleibt nach Go-live-Checkliste erforderlich.
 """
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -119,3 +120,14 @@ class TableMarkupTests(SimpleTestCase):
                 broken.append(f"{path.relative_to(root)}: <thead {opened}, </thead> {closed}, fremd {odd_tags[:2]}")
         self.assertEqual(broken, [])
 
+class ChecklistProgressTests(TestCase):
+    setUp = ChecklistFormA11yTests.setUp
+
+    def test_progress_box_is_hidden_until_script_runs_and_not_live(self):
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn("data-checklist-progress", content)
+        self.assertIn("data-progress-box hidden", content)
+        self.assertIn("0 von 1 Prüfpunkten beantwortet", content)
+        box = re.search(r"<div class=\"checklist-progress\".*?</div>", content, flags=re.S).group(0)
+        self.assertNotIn("aria-live", box)
+        self.assertNotIn("role=", box)

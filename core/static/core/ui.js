@@ -28,6 +28,9 @@
  *                                  Eingabe ab; Restzeit in [data-idle-countdown];
  *                                  20 s vorher erscheinen [data-idle-warning] und
  *                                  [data-idle-extend] („Weiter arbeiten“)
+ *   data-checklist-progress        Formular mit Prüfpunkten ([data-item-id]): zeigt in
+ *                                  [data-progress-box] „x von y beantwortet“ (Fortschritt,
+ *                                  kein Live-Bereich); ohne JS bleibt der Kasten verborgen
  *   data-theme-toggle              wechselt hell/dunkel; die Wahl liegt im Cookie
  *                                  wb_theme, damit der Server sie beim nächsten
  *                                  Laden ohne Aufblitzen setzt
@@ -638,6 +641,33 @@
     });
   }
 
+  // --- Checklisten-Fortschritt ---------------------------------------------
+
+  function setupChecklistProgress(form) {
+    var box = form.querySelector("[data-progress-box]");
+    var bar = form.querySelector("[data-progress-bar]");
+    var text = form.querySelector("[data-progress-text]");
+    var rows = form.querySelectorAll("[data-item-id]");
+    if (!box || !bar || !text || !rows.length) {
+      return;
+    }
+    var template = text.getAttribute("data-progress-template") || "%(done)s / %(total)s";
+    function update() {
+      var done = 0;
+      Array.prototype.forEach.call(rows, function (row) {
+        if (row.querySelector("input[type=radio]:checked")) {
+          done += 1;
+        }
+      });
+      bar.max = rows.length;
+      bar.value = done;
+      text.textContent = template.replace("%(done)s", String(done)).replace("%(total)s", String(rows.length));
+    }
+    form.addEventListener("change", update);
+    update();
+    box.hidden = false;
+  }
+
   function effectiveTheme() {
     var chosen = document.documentElement.getAttribute("data-theme");
     if (chosen === "dark" || chosen === "light") { return chosen; }
@@ -656,6 +686,7 @@
     applyLayoutHints(document);
     each("[data-theme-toggle]", document, setupThemeToggle);
     setupFormErrors();
+    each("form[data-checklist-progress]", document, setupChecklistProgress);
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);
     each("[data-pin-pad]", document, setupPinPad);

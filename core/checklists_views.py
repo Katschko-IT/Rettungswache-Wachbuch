@@ -1,6 +1,8 @@
 """Ansichten für Checklisten (0.28)."""
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseForbidden
@@ -16,10 +18,41 @@ from .terminal import is_open_mode
 from .wachalltag_models import Defect, DefectEvent
 
 
+def _prefill_value(value) -> str:
+    if value is None or value == "":
+        return ""
+    if isinstance(value, float):
+        # Kein „:g“ (6 Stellen, Exponent): Der Wert wird beim Abschluss erneut gespeichert.
+        return format(Decimal(str(value)).normalize(), "f")
+    return str(value)
+
+
+def _prefill(results: dict) -> dict:
+    """Vorbelegung je Prüfpunkt (nur Text), aus einem Zwischenstand oder einer abgelehnten Eingabe."""
+    return {
+        key: {
+            "status": str(entry.get("status") or ""),
+            "value": _prefill_value(entry.get("value")),
+            "reason": str(entry.get("reason") or ""),
+        }
+        for key, entry in (results or {}).items()
+        if isinstance(entry, dict)
+    }
+
+
 @membership_required(CONTENT_ROLES)
 @station_module_required("checklists_enabled")
 def checklists(request):
     """Übersicht der aktiven Checklisten mit letztem Abschluss und Zwischenstand."""
+    return _render_checklists(request)
+
+
+def _render_checklists(request, posted=None):
+    """Seite der Checklisten; ``posted`` belegt die abgelehnte Eingabe wieder vor.
+
+    Ohne abgelehnte Eingabe wird der letzte Zwischenstand eingesetzt, damit „Zwischenstand
+    speichern“ die Antworten beim nächsten Öffnen tatsächlich wiederherstellt.
+    """
     station = request.membership.station
     checklists_qs = list(
         Checklist.objects.filter(station=station, is_active=True).prefetch_related("items")
@@ -47,6 +80,17 @@ def checklists(request):
         if draft and cl.latest_completion and draft.created_at <= cl.latest_completion.created_at:
             draft = None
         cl.active_draft = draft
+        if posted and posted["checklist_id"] == cl.id:
+            results, note = posted["results"], posted["note"]
+        elif draft and draft.completed_by_id == request.user.id:
+            # Nur der eigene Zwischenstand wird eingesetzt. Fremde Antworten vorbelegt zu
+            # bekommen hieße, sie mit einem Klick als eigene Prüfung abzuschließen.
+            results, note = _prefill(draft.item_results), draft.note
+        else:
+            results, note = {}, None
+        cl.prefill_note = note
+        for item in cl.items.all():
+            item.prefill = results.get(str(item.id), {})
 
     return render(
         request,
@@ -100,7 +144,22 @@ def checklist_complete(request, pk):
         if errors and not is_draft:
             for err in errors:
                 messages.error(request, err)
-            return redirect("checklists")
+            # Nicht umleiten: Sonst wären alle bereits gegebenen Antworten weg.
+            return _render_checklists(
+                request,
+                posted={
+                    "checklist_id": checklist.id,
+                    "note": (request.POST.get("note") or "")[:300],
+                    "results": {
+                        str(item.id): {
+                            "status": request.POST.get(f"result_{item.id}", ""),
+                            "value": request.POST.get(f"value_{item.id}", ""),
+                            "reason": request.POST.get(f"reason_{item.id}", ""),
+                        }
+                        for item in items
+                    },
+                },
+            )
     else:
         item_results = {}
 

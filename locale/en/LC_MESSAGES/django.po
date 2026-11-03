@@ -27,6 +27,11 @@ msgstr "%(category)s &middot; Version %(version)s"
 msgid "%(count)s Punkte brauchen Aufmerksamkeit"
 msgstr "%(count)s items need attention"
 
+#: templates/core/checklists.html:52
+#: templates/core/checklists.html:52
+msgid "%(done)s von %(total)s Prüfpunkten beantwortet"
+msgstr "%(done)s of %(total)s check items answered"
+
 #: templates/core/_demo_tour.html:6
 #: templates/core/terminal_menu.html:86
 msgid "%(done)s von %(total)s erledigt"
@@ -814,7 +819,7 @@ msgstr "Continue as master admin: team, settings, display"
 msgid "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen."
 msgstr "As an EMS employee, you are required to take note of new medical and organizational work instructions."
 
-#: templates/core/checklists.html:112
+#: templates/core/checklists.html:117
 msgid "Als erledigt vermerken"
 msgstr "Mark as completed"
 
@@ -4020,7 +4025,7 @@ msgstr "This batch is blocked (recall)."
 msgid "Diese Checkliste hat Nachweischarakter und kann am gemeinsamen Wachenterminal nicht abgeschlossen werden. Bitte melde dich mit deinem persönlichen Konto an."
 msgstr "This checklist has evidence character and cannot be completed at the shared station terminal. Please sign in with your personal account."
 
-#: templates/core/checklists.html:107
+#: templates/core/checklists.html:112
 msgid "Diese Checkliste hat Nachweischarakter und lässt sich am Wachenterminal nicht abschließen. Bitte persönlich anmelden."
 msgstr "This checklist has evidence character and cannot be completed at the station terminal. Please sign in personally."
 
@@ -4969,7 +4974,7 @@ msgstr "Requires personal sign-in"
 msgid "Ergebnis"
 msgstr "Result"
 
-#: templates/core/checklists.html:70
+#: templates/core/checklists.html:75
 msgid "Ergebnis für: %(text)s"
 msgstr "Result for: %(text)s"
 
@@ -6311,8 +6316,8 @@ msgstr "Total station stock:"
 msgid "Gesamten Kalender als ICS"
 msgstr "Entire calendar as ICS"
 
-#: templates/core/checklists.html:102
-#: templates/core/checklists.html:103
+#: templates/core/checklists.html:107
+#: templates/core/checklists.html:108
 msgid "Gesamtnotiz (optional)"
 msgstr "Overall note (optional)"
 
@@ -6479,11 +6484,11 @@ msgstr "Large digital clock, weekday, formatted date and station name."
 msgid "Grund"
 msgstr "Reason"
 
-#: templates/core/checklists.html:90
+#: templates/core/checklists.html:95
 msgid "Grund / Bemerkung"
 msgstr "Reason / remark"
 
-#: templates/core/checklists.html:89
+#: templates/core/checklists.html:94
 msgid "Grund oder Bemerkung zu: %(text)s"
 msgstr "Reason or remark for: %(text)s"
 
@@ -6794,7 +6799,7 @@ msgstr "Payment note"
 msgid "Hinweis zum Kontakt"
 msgstr "Note"
 
-#: templates/core/checklists.html:98
+#: templates/core/checklists.html:103
 msgid "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an."
 msgstr "Note: checklist items marked \"not OK\" or measurements outside the limits automatically create a defect with a back-reference when completed."
 
@@ -8892,7 +8897,7 @@ msgstr "Quantity:"
 msgid "Messtechnische Kontrolle (Jahresende: %(date)s) für „%(name)s“."
 msgstr "Metrological check (end of year: %(date)s) for \"%(name)s\"."
 
-#: templates/core/checklists.html:86
+#: templates/core/checklists.html:91
 msgid "Messwert"
 msgstr "Measurement"
 
@@ -8900,7 +8905,7 @@ msgstr "Measurement"
 msgid "Messwert %(val)s%(unit)s außerhalb Grenzwert %(bounds)s"
 msgstr "Measurement %(val)s%(unit)s outside limit %(bounds)s"
 
-#: templates/core/checklists.html:85
+#: templates/core/checklists.html:90
 msgid "Messwert für: %(text)s"
 msgstr "Measurement for: %(text)s"
 
@@ -10568,7 +10573,7 @@ msgstr "Personal pairing QR code"
 msgid "Persönlicher Zugang"
 msgstr "Personal access"
 
-#: templates/core/checklists.html:57
+#: templates/core/checklists.html:62
 #: templates/core/masterdata_import_kind.html:43
 msgid "Pflicht"
 msgstr "Required"
@@ -10801,7 +10806,7 @@ msgstr "Inspection reports (STK / MTK / DGUV)"
 msgid "Prüfpunkt"
 msgstr "Check item"
 
-#: templates/core/checklists.html:51
+#: templates/core/checklists.html:56
 msgid "Prüfpunkte"
 msgstr "Check items"
 
@@ -11903,7 +11908,7 @@ msgstr "Software version"
 msgid "Soll"
 msgstr "Expected"
 
-#: templates/core/checklists.html:60
+#: templates/core/checklists.html:65
 msgid "Soll:"
 msgstr "Target:"
 
@@ -14611,7 +14616,7 @@ msgstr "Cache"
 msgid "Zwischenstand der Checkliste wurde gespeichert."
 msgstr "The checklist draft was saved."
 
-#: templates/core/checklists.html:115
+#: templates/core/checklists.html:120
 msgid "Zwischenstand speichern"
 msgstr "Save draft"
 
@@ -14756,7 +14761,7 @@ msgstr "usable with restrictions"
 msgid "endet spätestens %(time)s Uhr"
 msgstr "ends at %(time)s at the latest"
 
-#: templates/core/checklists.html:81
+#: templates/core/checklists.html:86
 msgid "entfällt"
 msgstr "not applicable"
 
@@ -14827,7 +14832,7 @@ msgstr "here are the payment details for the coffee fund of %(station)s (monthly
 msgid "immer oben"
 msgstr "always in the bar"
 
-#: templates/core/checklists.html:73
+#: templates/core/checklists.html:78
 #: templates/core/paper_checklists.html:20
 msgid "in Ordnung"
 msgstr "OK"
@@ -14938,7 +14943,7 @@ msgstr "unreachable"
 msgid "nicht hinterlegt"
 msgstr "not provided"
 
-#: templates/core/checklists.html:77
+#: templates/core/checklists.html:82
 #: templates/core/paper_checklists.html:21
 msgid "nicht in Ordnung"
 msgstr "not OK"

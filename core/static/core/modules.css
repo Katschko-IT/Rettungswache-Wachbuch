@@ -190,11 +190,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 
 /* —— Hinweise und Karten (Farben in app.css) ————————————————————— */
 .card { padding: 1.25rem; }
-.alert, .callout { margin: 0 0 var(--space-4); padding: .85rem 1rem; }
-.alert.warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
-.alert.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
-.alert.success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
-.alert > :last-child, .callout > :last-child { margin-bottom: 0; }
+/* .alert/.callout/.message/.notice: eine Komponente in app.css. */
 
 /* —— Abschnitte und Listen ——————————————————————————————————————— */
 .section-block > h2,
@@ -717,3 +713,7 @@ body.has-open-modal { overflow: hidden; }
 @media (forced-colors: active) {
   .checklist-item-row .radio-label:has(input:checked) { border-width: 4px; forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: ButtonText; }
 }
+
+/* Fortschritt einer Checkliste (ui.js: data-checklist-progress) */
+.checklist-progress { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-3) 0; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.checklist-progress progress { width: min(14rem, 50%); height: .6rem; accent-color: var(--brand); }
