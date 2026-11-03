@@ -5,6 +5,7 @@ und Zoom-Test im Browser bleibt nach Go-live-Checkliste erforderlich.
 """
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -104,6 +105,20 @@ class TableMarkupTests(SimpleTestCase):
         ]
         self.assertEqual(missing, [])
 
+    def test_table_head_tags_are_intact(self):
+        """Ein Ersetzen von „<th“ darf aus „<thead>“ nie „<th scope=…ead>“ machen (aefa0c5)."""
+        import re
+
+        root = Path(settings.BASE_DIR) / "templates"
+        broken = []
+        for path in sorted(root.rglob("*.html")):
+            text = path.read_text(encoding="utf-8")
+            opened = len(re.findall(r"<thead(?=[\s>])", text))
+            closed = text.count("</thead>")
+            odd_tags = re.findall(r"<th(?!ead\b)[a-z]+", text)
+            if opened != closed or odd_tags:
+                broken.append(f"{path.relative_to(root)}: <thead {opened}, </thead> {closed}, fremd {odd_tags[:2]}")
+        self.assertEqual(broken, [])
 
 class ChecklistProgressTests(TestCase):
     setUp = ChecklistFormA11yTests.setUp
@@ -113,4 +128,6 @@ class ChecklistProgressTests(TestCase):
         self.assertIn("data-checklist-progress", content)
         self.assertIn("data-progress-box hidden", content)
         self.assertIn("0 von 1 Prüfpunkten beantwortet", content)
-        self.assertNotIn('data-progress-text role="status"', content)
+        box = re.search(r"<div class=\"checklist-progress\".*?</div>", content, flags=re.S).group(0)
+        self.assertNotIn("aria-live", box)
+        self.assertNotIn("role=", box)

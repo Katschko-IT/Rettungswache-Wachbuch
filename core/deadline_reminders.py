@@ -117,8 +117,6 @@ def collect_deadline_items(
 
         # 1. Medizingeräte (MPG)
         if st.mpg_enabled:
-            from .mpg_models import MedicalDevice
-
             mpg_leads = get_mpg_leads(st)
             devices = active_devices(st)  # ausgemusterte Geräte erinnern nicht
             for dev in devices:
