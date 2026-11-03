@@ -190,63 +190,8 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 
 /* —— Hinweise und Karten (Farben in app.css) ————————————————————— */
 .card { padding: 1.25rem; }
-.alert, .callout { margin: 0 0 var(--space-4); padding: .85rem 1rem; }
-.alert.warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
-.alert.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
-.alert.success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
-.alert > :last-child, .callout > :last-child { margin-bottom: 0; }
+/* .alert/.callout/.message/.notice: eine Komponente in app.css. */
 
-/* —— Abschnitte und Listen ——————————————————————————————————————— */
-.section-block > h2,
-.section-block > header { margin-bottom: var(--space-3); }
-.section-block > h2 { display: flex; align-items: center; gap: var(--space-2); }
-.section-block h3 { margin: 0 0 var(--space-2); font-size: var(--fs-md); }
-.section-block + .section-block,
-.grid-auto + .section-block,
-.grid-2 + .section-block,
-.section-block + .grid-2,
-.section-block + .grid-auto,
-.grid-2 + .grid-2 { margin-top: var(--space-4); }
-.grid-2 > *, .grid-auto > *, .grid-auto-sm > *, .kpi-grid > *,
-.grid-2 > .section-block + .section-block,
-.grid-auto > .section-block + .section-block { margin-top: 0; margin-bottom: 0; }
-/* Innerhalb eines Abschnitts: keine zweite Karte, nur Trennlinien. */
-.section-block .summary-list,
-.section-block .table-wrap,
-.section-block .card {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-}
-.section-block .summary-list > div { padding-inline: 0; }
-.section-block .card { padding: 0; }
-.section-block .item-list { margin-inline: -1.25rem; }
-.section-block .item-list .list-row { padding-inline: 1.25rem; }
-/* Leerer Zustand innerhalb eines Abschnitts: kein zweiter Rahmen. */
-.section-block .empty-state {
-  margin-top: var(--space-2);
-  padding: var(--space-3) 0;
-  border: 0;
-  border-radius: 0;
-}
-.section-block .item-list > .empty-state { padding-inline: 1.25rem; }
-.legend-chip { gap: .4rem; }
-
-/* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein. */
-.list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
-.row-content .row-note { display: block; margin-top: var(--space-1); color: var(--text); font-size: var(--fs-sm); }
-
-/* Listenzeilen mit Fristenampel: Kante nur bei Handlungsbedarf. */
-.module-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: .85rem 1rem;
-  border-bottom: 1px solid var(--line);
-}
-.module-row-overdue { border-left: 4px solid var(--danger); background: color-mix(in srgb, var(--danger-soft) 60%, transparent); }
-.module-row-critical { border-left: 4px solid var(--warning-accent); }
 .module-row-warning { border-left: 4px solid var(--warning-accent); }
 
 /* Notiz-/Hinweisfläche innerhalb eines Abschnitts (keine eigene Karte). */
@@ -717,3 +662,7 @@ body.has-open-modal { overflow: hidden; }
 @media (forced-colors: active) {
   .checklist-item-row .radio-label:has(input:checked) { border-width: 4px; forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: ButtonText; }
 }
+
+/* Fortschritt einer Checkliste (ui.js: data-checklist-progress) */
+.checklist-progress { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-3) 0; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.checklist-progress progress { width: min(14rem, 50%); height: .6rem; accent-color: var(--brand); }

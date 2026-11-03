@@ -44,8 +44,13 @@
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once>
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once data-checklist-progress>
     {% csrf_token %}
+
+    <div class="checklist-progress" data-progress-box hidden>
+      <progress max="{{ checklist.items.count }}" value="0" data-progress-bar aria-labelledby="progress-text-{{ checklist.id }}"></progress>
+      <span id="progress-text-{{ checklist.id }}" data-progress-text data-progress-template="{% translate '%(done)s von %(total)s Prüfpunkten beantwortet' %}">{% blocktranslate with done=0 total=checklist.items.count %}{{ done }} von {{ total }} Prüfpunkten beantwortet{% endblocktranslate %}</span>
+    </div>
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>

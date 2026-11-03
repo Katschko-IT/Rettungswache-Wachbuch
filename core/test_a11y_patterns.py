@@ -103,3 +103,14 @@ class TableMarkupTests(SimpleTestCase):
             if re.search(r"<th(?=[\s>])(?![^>]*\bscope=)[^>]*>", segment)
         ]
         self.assertEqual(missing, [])
+
+
+class ChecklistProgressTests(TestCase):
+    setUp = ChecklistFormA11yTests.setUp
+
+    def test_progress_box_is_hidden_until_script_runs_and_not_live(self):
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn("data-checklist-progress", content)
+        self.assertIn("data-progress-box hidden", content)
+        self.assertIn("0 von 1 Prüfpunkten beantwortet", content)
+        self.assertNotIn('data-progress-text role="status"', content)
