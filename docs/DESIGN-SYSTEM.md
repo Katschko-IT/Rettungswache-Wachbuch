@@ -61,8 +61,9 @@ Dunkelmodus (`prefers-color-scheme` oder `data-theme="dark"`) und
 **Schriftskala** (nur diese Stufen in Komponenten): `--fs-xs` 0,8 · `--fs-sm` 0,9 ·
 `--fs-base` 1 · `--fs-md` 1,05 · `--fs-lg` 1,15 · `--fs-xl` 1,25 rem ·
 `--fs-2xl` 1,6 rem · `--fs-3xl` fließend 1,9–2,6 rem. Zeilenhöhe `--lh-body`
-1,55, Überschriften `--lh-tight` 1,15. Wand-Display, Sperrbildschirm und
-Bildschirmtastatur behalten eigene Größen.
+1,55, Überschriften `--lh-tight` 1,15. Wand-Display, Sperrbildschirm, Terminal-Sperrseite (`terminal_home.html` lädt
+`tokens.css` nicht) und Bildschirmtastatur behalten eigene Größen; `core/test_design_tokens.py`
+prüft das.
 
 **Radius** `--radius-sm` .5 · `--radius` .75 · `--radius-lg` 1,125 rem.
 **Bewegung** `--dur-fast` .12 s · `--dur` .2 s · `--ease`; nur mit

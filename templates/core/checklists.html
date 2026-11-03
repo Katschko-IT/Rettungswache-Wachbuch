@@ -44,7 +44,7 @@
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form">
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once>
     {% csrf_token %}
 
     <fieldset class="checklist-items">

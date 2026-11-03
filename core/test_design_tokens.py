@@ -41,3 +41,13 @@ class DesignTokenTests(SimpleTestCase):
 
     def test_hidden_inputs_cannot_widen_the_page(self):
         self.assertIn("input.visually-hidden", _css()["app.css"])
+
+
+class StandaloneTemplatesTests(SimpleTestCase):
+    def test_terminal_lock_screen_css_does_not_need_tokens(self):
+        """terminal_home.html bindet tokens.css nicht ein; terminal.css darf --fs-* nicht verwenden."""
+        template = (Path(settings.BASE_DIR) / "templates" / "core" / "terminal_home.html").read_text(encoding="utf-8")
+        self.assertNotIn("tokens.css", template)
+        files = _css()
+        for name in ("terminal.css", "lockscreen.css"):
+            self.assertNotIn("var(--fs-", files[name], name)

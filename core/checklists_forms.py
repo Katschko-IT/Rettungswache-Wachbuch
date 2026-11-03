@@ -44,7 +44,10 @@ def validate_checklist_submission(
         val: float | None = None
         if raw_val not in (None, ""):
             if isinstance(raw_val, (int, float, Decimal)):
-                val = float(raw_val)
+                try:
+                    val = float(raw_val)
+                except OverflowError:  # z. B. JSON-Ganzzahl mit 400 Ziffern
+                    val = float("inf")
             else:
                 raw_str = str(raw_val).strip().replace(",", ".")
                 if raw_str:

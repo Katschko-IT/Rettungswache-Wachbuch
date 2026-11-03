@@ -586,7 +586,10 @@
     var links = [];
     each(".field-error, .form-error, .errorlist", document, function (error) {
       var text = error.textContent.replace(/\s+/g, " ").trim();
-      if (!text || error.closest(".error-summary")) {
+      // Verschachtelt (div.form-error > ul.errorlist): nur der innere zählt; Django
+      // setzt aria-describedby auf die Liste mit eigener ID bereits selbst.
+      var nested = error.querySelector(".field-error, .form-error, .errorlist");
+      if (!text || error.closest(".error-summary") || nested) {
         return;
       }
       if (!error.id) {

@@ -274,3 +274,16 @@ class ChecklistRobustnessTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(ChecklistCompletion.objects.count(), 0)
+
+    def test_huge_integer_measurement_is_a_validation_error(self):
+        from .checklists_forms import validate_checklist_submission
+
+        results, errors = validate_checklist_submission(
+            self.checklist, {"item_results": {str(self.item_temp.id): {"status": "ok", "value": 10**400}}},
+        )
+        self.assertTrue(errors)
+        self.assertIsNone(results[str(self.item_temp.id)]["value"])
+
+    def test_checklist_form_blocks_double_submit(self):
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertIn('class="checklist-form" data-submit-once', content)

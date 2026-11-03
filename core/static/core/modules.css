@@ -712,3 +712,8 @@ body.has-open-modal { overflow: hidden; }
 .checklist-item-row .reason-input { flex: 1; min-width: 12rem; }
 .checklist-defect-hint { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--space-3); }
 
+
+/* Windows-Kontrastmodus: Der gewählte Chip braucht mehr als eine Hintergrundfarbe. */
+@media (forced-colors: active) {
+  .checklist-item-row .radio-label:has(input:checked) { border-width: 4px; forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: ButtonText; }
+}
