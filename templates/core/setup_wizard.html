@@ -32,7 +32,7 @@
         {% if weather_preview.stale %}<span> {% blocktranslate with date=weather_preview.fetched_at age=weather_preview.age_minutes %}Zwischengespeichert vom {{ date }} – Alter: {{ age }} Minuten, bitte als veraltet behandeln.{% endblocktranslate %}</span>{% else %}<span> {% blocktranslate with date=weather_preview.fetched_at age=weather_preview.age_minutes %}Abgerufen am {{ date }} (Alter: {{ age }} Minuten).{% endblocktranslate %}</span>{% endif %}
         <table class="data-table">
           <caption>{% translate "Nächste fünf lokale Tage am Wachenstandort (Open-Meteo)" %}</caption>
-          <thead><tr><th>{% translate "Datum" %}</th><th>{% translate "Min." %}</th><th>{% translate "Max." %}</th><th>{% translate "Niederschlag" %}</th></tr></thead>
+          <th scope="col"ead><tr><th scope="col">{% translate "Datum" %}</th><th scope="col">{% translate "Min." %}</th><th scope="col">{% translate "Max." %}</th><th scope="col">{% translate "Niederschlag" %}</th></tr></thead>
           <tbody>
             {% for day in weather_preview.days %}
               <tr><td>{{ day.date }}</td><td>{{ day.temperature_min }} °C</td><td>{{ day.temperature_max }} °C</td><td>{{ day.precipitation_mm }} mm</td></tr>

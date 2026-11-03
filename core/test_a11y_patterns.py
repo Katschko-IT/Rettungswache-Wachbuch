@@ -73,3 +73,33 @@ class TerminalBarA11yTests(SimpleTestCase):
         self.assertIn("data-idle-countdown aria-hidden=\"true\"", base)
         self.assertIn("data-idle-warning", base)
         self.assertIn("data-idle-extend", base)
+
+
+class TableMarkupTests(SimpleTestCase):
+    """Jede Tabelle der Oberfläche hat einen Namen, jede Kopfzelle einen scope (WCAG 1.3.1)."""
+
+    def _tables(self):
+        import re
+
+        root = Path(settings.BASE_DIR) / "templates" / "core"
+        for path in sorted(root.glob("*.html")):
+            text = path.read_text(encoding="utf-8")
+            for match in re.finditer(r"<table\b[^>]*>", text):
+                segment = text[match.start():text.find("</table>", match.start())]
+                yield path.name, match.group(0), segment
+
+    def test_every_table_has_a_caption_or_label(self):
+        missing = [
+            name for name, tag, segment in self._tables()
+            if "<caption" not in segment and "aria-label" not in tag
+        ]
+        self.assertEqual(missing, [])
+
+    def test_every_header_cell_has_a_scope(self):
+        import re
+
+        missing = [
+            name for name, _tag, segment in self._tables()
+            if re.search(r"<th(?=[\s>])(?![^>]*\bscope=)[^>]*>", segment)
+        ]
+        self.assertEqual(missing, [])

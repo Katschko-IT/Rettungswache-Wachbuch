@@ -60,6 +60,7 @@
     </div>
     <div class="table-scroll">
     <table class="facts hardware-table">
+<caption class="visually-hidden">{% translate "Hardware-Anforderungen" %}</caption>
       <thead>
         <tr><th scope="col"></th><th scope="col">{% translate "Mindestens" %}</th><th scope="col">{% translate "Empfohlen" %}</th></tr>
       </thead>
@@ -77,6 +78,7 @@
     <h3 class="install-subhead">{% translate "Beispiele" %}</h3>
     <div class="table-scroll">
     <table class="facts hardware-table">
+<caption class="visually-hidden">{% translate "Geeignete Geräte im Vergleich" %}</caption>
       <thead>
         <tr><th scope="col">{% translate "Gerät" %}</th><th scope="col">{% translate "Prozessor / Speicher" %}</th><th scope="col">{% translate "Strom im Leerlauf (Richtwert)" %}</th><th scope="col">{% translate "Passt für" %}</th></tr>
       </thead>
@@ -104,6 +106,7 @@
 
     <h3 class="install-subhead">{% translate "Außerdem" %}</h3>
     <table class="facts">
+<caption class="visually-hidden">{% translate "Was du außerdem brauchst" %}</caption>
       <tbody>
         <tr><th scope="row">{% translate "Für den Internet-Weg" %}</th><td>{% translate "Eine Domain, bei der du einen DNS-Eintrag anlegen kannst, z. B. wache.example.org" %}</td></tr>
         <tr><th scope="row">{% translate "Für Backups" %}</th><td>{% translate "Einen USB-Stick oder eine zweite Festplatte, die sicher verwahrt wird" %}</td></tr>
@@ -171,6 +174,7 @@ sudo reboot</code></pre>
       <p class="pub-muted">{% translate "Verwaltet wird mit dem Programm „wachbuch“ im Installationsordner. Unter Linux mit sudo und vollem Pfad wie unten, unter macOS ohne sudo als ~/wachbuch/wachbuch:" %}</p>
     </div>
     <table class="facts">
+<caption class="visually-hidden">{% translate "Befehle zur Verwaltung auf dem Server" %}</caption>
       <tbody>
         <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch status</code></th><td>{% translate "Läuft alles?" %}</td></tr>
         <tr><th scope="row"><code>sudo /opt/wachbuch/wachbuch update</code></th><td>{% translate "Neue Version holen – vorher wird automatisch gesichert." %}</td></tr>

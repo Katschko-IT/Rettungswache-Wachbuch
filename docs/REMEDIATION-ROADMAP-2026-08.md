@@ -293,7 +293,7 @@ RPO/RTO festlegen; automatisierter Restore in isolierter Umgebung; Ergebnis und 
 
 ### [~] R-018 Barrierefreiheitsabnahme
 
-Stand 2026-11-03 (PR 140, nur statisch und im lokalen Browser, ohne Hilfsmittel): Kontraste der Tokens berechnet (Hell und Dunkel ≥ 4,5:1), Fokusfalle und `inert` in Dialogen, Formularfehler mit `aria-invalid`/`aria-describedby` und Fehlerübersicht mit Links, Vorwarnung vor der Terminal-Sperre, Checkliste mit `fieldset`/`legend` und Labels. Belegt durch `core.test_a11y_patterns`. **Offen** (Pflicht vor der Abnahme, unverändert): die Punkte unten, besonders NVDA/JAWS und VoiceOver, 400-%-Zoom, Tabellen (19 ohne `caption`, 7 ohne `scope`) und reale Nutzende.
+Stand 2026-11-03 (PR 140, nur statisch und im lokalen Browser, ohne Hilfsmittel): Kontraste der Tokens berechnet (Hell und Dunkel ≥ 4,5:1), Fokusfalle und `inert` in Dialogen, Formularfehler mit `aria-invalid`/`aria-describedby` und Fehlerübersicht mit Links, Vorwarnung vor der Terminal-Sperre, Checkliste mit `fieldset`/`legend` und Labels. Belegt durch `core.test_a11y_patterns`. **Offen** (Pflicht vor der Abnahme, unverändert): die Punkte unten, besonders NVDA/JAWS und VoiceOver, 400-%-Zoom und reale Nutzende. Tabellen: erledigt in PR 140 (jede Tabelle in `templates/core` hat `caption`, jede Kopfzelle `scope`; `core.test_a11y_patterns.TableMarkupTests`).
 
 - Tastatur und 400-%-Zoom
 - Reflow bei 320 CSS-Pixel

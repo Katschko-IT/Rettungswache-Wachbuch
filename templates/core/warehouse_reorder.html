@@ -35,17 +35,18 @@
   {% if proposals %}
     <div class="table-responsive">
       <table class="data-table">
-        <thead>
+<caption class="visually-hidden">{% translate "Bestellvorschläge" %}</caption>
+        <th scope="col"ead>
           <tr>
-            <th>{% translate "PZN" %}</th>
-            <th>{% translate "Artikelbezeichnung" %}</th>
-            <th>{% translate "Kategorie" %}</th>
-            <th class="num">{% translate "Ist-Bestand" %}</th>
-            <th class="num">{% translate "Mindestbestand" %}</th>
-            <th class="num">{% translate "Sollbestand" %}</th>
-            <th class="num">{% translate "Bestellvorschlag" %}</th>
-            <th>{% translate "Einheit" %}</th>
-            <th><span class="sr-only">{% translate "Aktion" %}</span></th>
+            <th scope="col">{% translate "PZN" %}</th>
+            <th scope="col">{% translate "Artikelbezeichnung" %}</th>
+            <th scope="col">{% translate "Kategorie" %}</th>
+            <th scope="col" class="num">{% translate "Ist-Bestand" %}</th>
+            <th scope="col" class="num">{% translate "Mindestbestand" %}</th>
+            <th scope="col" class="num">{% translate "Sollbestand" %}</th>
+            <th scope="col" class="num">{% translate "Bestellvorschlag" %}</th>
+            <th scope="col">{% translate "Einheit" %}</th>
+            <th scope="col"><span class="sr-only">{% translate "Aktion" %}</span></th>
           </tr>
         </thead>
         <tbody>
