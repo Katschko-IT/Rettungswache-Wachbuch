@@ -248,7 +248,7 @@
               {% if check.notes %}&middot; {{ check.notes }}{% endif %}
             </small>
           </span>
-          <span class="row-actions" style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="row-actions row-actions-flex">
             {% if check.is_cancellation %}
               <span class="badge badge-neutral">{% translate "Storno" %}</span>
             {% elif check.is_cancelled %}
@@ -259,7 +259,7 @@
               </span>
             {% endif %}
             {% if not is_retired and check.performed_by_id == request.user.id and not check.is_cancellation and not check.is_cancelled and check.is_within_storno_window %}
-              <form method="post" action="{% url 'mpg_routine_check_storno' device.slug check.id %}" onsubmit="return confirm('{% translate "Möchtest du diese Funktionskontrolle wirklich stornieren?" %}');">
+              <form method="post" action="{% url 'mpg_routine_check_storno' device.slug check.id %}" data-confirm="{% translate 'Möchtest du diese Funktionskontrolle wirklich stornieren?' %}">
                 {% csrf_token %}
                 <button type="submit" class="button ghost small danger-text" title="{% translate "Funktionskontrolle stornieren (innerhalb von 5 Minuten)" %}">{% translate "Stornieren" %}</button>
               </form>

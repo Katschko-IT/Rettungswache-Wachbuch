@@ -201,7 +201,7 @@ class Checklist028Tests(TestCase):
         # Draft does NOT create defects yet
         self.assertEqual(Defect.objects.count(), 0)
 
-        # Now complete the draft
+        # Abschluss legt einen neuen Datensatz an; der Zwischenstand bleibt unverändert
         resp = self.client.post(
             url,
             {
@@ -214,11 +214,21 @@ class Checklist028Tests(TestCase):
             },
         )
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(ChecklistCompletion.objects.count(), 1)
-        completed = ChecklistCompletion.objects.get(pk=draft.id)
-        self.assertFalse(completed.is_draft)
+        self.assertEqual(ChecklistCompletion.objects.count(), 2)
+        draft.refresh_from_db()
+        self.assertTrue(draft.is_draft)
+        self.assertEqual(draft.note, "Unterbrochen durch Einsatz")
+        completed = ChecklistCompletion.objects.get(is_draft=False)
+        self.assertNotEqual(completed.pk, draft.pk)
         self.assertEqual(completed.note, "Nach Einsatz abgeschlossen")
         self.assertEqual(Defect.objects.count(), 1)
+
+        # Auch Zwischenstände sind append-only (kein UPDATE/DELETE für die App-Rolle)
+        draft.note = "Manipulationsversuch"
+        with self.assertRaises(ValidationError):
+            draft.save()
+        with self.assertRaises(ValidationError):
+            draft.delete()
 
         # Finalized completion is append-only (cannot be modified or deleted)
         completed.note = "Manipulationsversuch"

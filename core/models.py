@@ -1358,21 +1358,16 @@ class ChecklistCompletion(models.Model):
             raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
 
     def save(self, *args, **kwargs):
+        # Append-only, auch für Zwischenstände: Die App-Rolle hat auf
+        # core_checklistcompletion kein UPDATE/DELETE (grant_database_access).
+        # Jeder Zwischenstand und jeder Abschluss ist ein neuer Datensatz.
         if self.pk:
-            orig_is_draft = (
-                ChecklistCompletion.objects.filter(pk=self.pk)
-                .values_list("is_draft", flat=True)
-                .first()
-            )
-            if not orig_is_draft:
-                raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
+            raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if not self.is_draft:
-            raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
-        super().delete(*args, **kwargs)
+        raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
 
 
 ChecklistTemplate = Checklist

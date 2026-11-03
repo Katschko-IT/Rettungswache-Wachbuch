@@ -995,7 +995,7 @@ def checklists_api(request):
     lists = Checklist.objects.filter(station=station, is_active=True).prefetch_related("items")
     latest = {}
     for completion in (
-        ChecklistCompletion.objects.filter(station=station)
+        ChecklistCompletion.objects.filter(station=station, is_draft=False)
         .select_related("completed_by")
         .order_by("checklist_id", "-created_at")
     ):

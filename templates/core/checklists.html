@@ -46,9 +46,6 @@
 
   <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form">
     {% csrf_token %}
-    {% if checklist.active_draft %}
-    <input type="hidden" name="draft_id" value="{{ checklist.active_draft.id }}">
-    {% endif %}
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>
