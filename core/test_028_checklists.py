@@ -85,7 +85,7 @@ class Checklist028Tests(TestCase):
                 "action": "complete",
             },
         )
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
         self.assertEqual(ChecklistCompletion.objects.count(), 0)
 
         # 'na' with reason succeeds
@@ -253,7 +253,7 @@ class ChecklistRobustnessTests(TestCase):
                     f"result_{self.item_seal.id}": "ok",
                     "action": "complete",
                 })
-                self.assertEqual(resp.status_code, 302)
+                self.assertEqual(resp.status_code, 200)
         self.assertEqual(ChecklistCompletion.objects.count(), 0)
 
     def test_api_requires_item_results_when_limits_exist(self):
@@ -287,3 +287,36 @@ class ChecklistRobustnessTests(TestCase):
     def test_checklist_form_blocks_double_submit(self):
         content = self.client.get(reverse("checklists")).content.decode("utf-8")
         self.assertIn('class="checklist-form" data-submit-once', content)
+
+    def test_rejected_submission_keeps_the_entered_answers(self):
+        url = reverse("checklist_complete", args=[self.checklist.id])
+        resp = self.client.post(url, {
+            f"result_{self.item_temp.id}": "not_ok",
+            f"value_{self.item_temp.id}": "9,5",
+            f"reason_{self.item_temp.id}": "Tür stand offen",
+            # Pflichtpunkt „Plombe“ fehlt -> Abschluss wird abgelehnt
+            "note": "Nachtschicht",
+            "action": "complete",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(ChecklistCompletion.objects.count(), 0)
+        content = resp.content.decode("utf-8")
+        self.assertIn("ist nicht ausgefüllt", content)
+        self.assertRegex(content, rf'name="result_{self.item_temp.id}" value="not_ok" checked')
+        self.assertIn('value="9,5"', content)
+        self.assertIn('value="Tür stand offen"', content)
+        self.assertIn('value="Nachtschicht"', content)
+        self.assertNotRegex(content, rf'name="result_{self.item_seal.id}" value="ok" checked')
+
+    def test_saved_draft_is_restored_into_the_form(self):
+        url = reverse("checklist_complete", args=[self.checklist.id])
+        self.client.post(url, {
+            f"result_{self.item_temp.id}": "ok",
+            f"value_{self.item_temp.id}": "4.5",
+            "note": "Später weiter",
+            "action": "draft",
+        })
+        content = self.client.get(reverse("checklists")).content.decode("utf-8")
+        self.assertRegex(content, rf'name="result_{self.item_temp.id}" value="ok" checked')
+        self.assertIn('value="4.5"', content)
+        self.assertIn('value="Später weiter"', content)
