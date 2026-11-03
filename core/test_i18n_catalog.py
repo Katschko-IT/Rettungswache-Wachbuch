@@ -276,6 +276,8 @@ class RepositoryCatalogTests(SimpleTestCase):
             "OK": "Lehnwort, identisch",
             "Reserve": "Tankanzeige, im Englischen identisch",
             "Normal": "Lehnwort, identisch",
+            "Hosting": "Fachbegriff, identisch",
+            "Hygiene": "Lehnwort, im Englischen identisch",
             "AdBlue": "Markenname",
             "AdBlue (%)": "Markenname mit Einheit",
             "UDI-DI (GTIN):": "Normkennung",
