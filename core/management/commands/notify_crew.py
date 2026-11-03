@@ -34,6 +34,7 @@ from django.db import close_old_connections
 from django.utils import timezone
 
 from core.coffee import remind_open_fees
+from core.deadline_reminders import run_scheduled_reminders
 from core.crew_notifications import notify_ready_vehicles
 from core.host_health import STALE_AFTER, notify_host_health
 from core.signal_messenger import deliver_outbox as deliver_signal
@@ -84,6 +85,8 @@ class Command(BaseCommand):
         # Kaffeekasse: Monatsbeiträge buchen und einmal im Monat erinnern –
         # das genügt alle 15 Minuten.
         coffee_due_at = 0.0
+        # Fristen-Erinnerungen (30/7/0 Tage, montags Wochenübersicht): stündlich genügt.
+        reminders_due_at = 0.0
 
         def _handle_signal(signum, _frame):  # pragma: no cover - signal path
             stop["flag"] = True
@@ -104,6 +107,12 @@ class Command(BaseCommand):
                 if time.monotonic() >= coffee_due_at:
                     count += remind_open_fees()
                     coffee_due_at = time.monotonic() + 15 * 60
+                if time.monotonic() >= reminders_due_at:
+                    try:
+                        count += run_scheduled_reminders()
+                    except Exception:
+                        logger.exception("notify_crew: Fristen-Erinnerungen fehlgeschlagen")
+                    reminders_due_at = time.monotonic() + 60 * 60
                 try:
                     count += notify_host_health(
                         allow_stale_alert=time.monotonic() - loop_started_at >= STALE_AFTER.total_seconds(),

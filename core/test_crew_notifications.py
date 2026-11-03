@@ -198,9 +198,12 @@ class PushRelayDeliveryTests(TestCase):
         return response
 
     def test_relay_success_marks_sent_and_sends_minimal_payload(self):
+        import urllib.request
+
         from core.management.commands.push_worker import process_once
 
-        with mock.patch("urllib.request.urlopen", return_value=self._response(202)) as urlopen:
+        with mock.patch("core.management.commands.push_worker._resolve_public_ips", return_value=["203.0.113.7"]), \
+                mock.patch.object(urllib.request.OpenerDirector, "open", return_value=self._response(202)) as urlopen:
             process_once()
         self.row.refresh_from_db()
         self.assertEqual(self.row.status, PushOutbox.Status.SENT)
@@ -211,11 +214,13 @@ class PushRelayDeliveryTests(TestCase):
 
     def test_gone_token_removes_device(self):
         import urllib.error
+        import urllib.request
 
         from core.management.commands.push_worker import process_once
 
         error = urllib.error.HTTPError("https://relay.example.org", 410, "gone", {}, None)
-        with mock.patch("urllib.request.urlopen", side_effect=error):
+        with mock.patch("core.management.commands.push_worker._resolve_public_ips", return_value=["203.0.113.7"]), \
+                mock.patch.object(urllib.request.OpenerDirector, "open", side_effect=error):
             process_once()
         self.row.refresh_from_db()
         self.assertEqual(self.row.status, PushOutbox.Status.DISCARDED)

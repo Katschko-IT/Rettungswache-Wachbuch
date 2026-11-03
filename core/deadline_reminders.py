@@ -547,6 +547,20 @@ def send_deadline_reminders(
     return created_count
 
 
+def run_scheduled_reminders(today: date | None = None) -> int:
+    """Tageslauf für den Dienst ``notify_crew``: Erinnerungen, montags die Wochenübersicht.
+
+    Idempotent (Deduplizierung je Person, Frist und Schwelle), darf also stündlich
+    laufen. Grenze: Eine Erinnerung gilt nur am Stichtag. Fällt der Dienst den
+    ganzen Tag aus, entfällt sie; Überfälliges wird nicht erneut gemeldet.
+    """
+    today = today or timezone.localdate()
+    count = send_deadline_reminders(today=today)
+    if today.weekday() == 0:
+        count += send_weekly_digest(today=today)
+    return count
+
+
 def send_weekly_digest(station: Station | None = None, today: date | None = None) -> int:
     """Montags-Wochenübersicht über alle in den nächsten 7 Tagen anstehenden Fristen."""
     today = today or timezone.localdate()

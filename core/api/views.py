@@ -1037,6 +1037,11 @@ def checklist_complete_api(request, pk):
     from core.wachalltag_models import Defect, DefectEvent
 
     item_results = {}
+    if not is_draft and not (raw_results and isinstance(raw_results, dict)):
+        # Ohne Ergebnisse je Punkt lassen sich Grenzwerte nicht prüfen. Ältere
+        # Clients ohne Grenzwert-Punkte dürfen weiter nur mit Notiz abschließen.
+        if checklist.items.exclude(min_value=None, max_value=None).exists():
+            return _json_error(request, "item_results ist für Checklisten mit Grenzwerten erforderlich.", status=400)
     if raw_results and isinstance(raw_results, dict):
         item_results, errors = validate_checklist_submission(
             checklist, {"item_results": raw_results}, is_draft=is_draft

@@ -236,3 +236,41 @@ class Checklist028Tests(TestCase):
             completed.save()
         with self.assertRaises(ValidationError):
             completed.delete()
+
+
+class ChecklistRobustnessTests(TestCase):
+    """Review 2026-11: nan/inf und API ohne Ergebnisse bei Grenzwerten."""
+
+    setUp = Checklist028Tests.setUp
+
+    def test_non_finite_measurement_is_rejected_not_a_server_error(self):
+        url = reverse("checklist_complete", args=[self.checklist.id])
+        for raw in ("nan", "inf", "-inf", "1e999"):
+            with self.subTest(value=raw):
+                resp = self.client.post(url, {
+                    f"result_{self.item_temp.id}": "ok",
+                    f"value_{self.item_temp.id}": raw,
+                    f"result_{self.item_seal.id}": "ok",
+                    "action": "complete",
+                })
+                self.assertEqual(resp.status_code, 302)
+        self.assertEqual(ChecklistCompletion.objects.count(), 0)
+
+    def test_api_requires_item_results_when_limits_exist(self):
+        raw_token = "wb_test_028_robust_token_1234567890"
+        ApiToken.objects.create(
+            user=self.user,
+            label="Test robust",
+            token_prefix=raw_token[:11],
+            token_hash=hash_api_token(raw_token),
+            scopes=["write:checklists"],
+            expires_at=timezone.now() + timedelta(days=1),
+        )
+        response = self.client.post(
+            reverse("api_v1_checkliste_erledigt", args=[self.checklist.id]),
+            data=json.dumps({"note": "ohne Ergebnisse"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {raw_token}",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ChecklistCompletion.objects.count(), 0)

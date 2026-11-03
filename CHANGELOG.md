@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unveröffentlicht] – 0.28
+
+- **Checklisten:** Ergebnis je Prüfpunkt, Messwerte mit Grenzen, Mangel bei „nicht in Ordnung“,
+  Zwischenstände. Abschlüsse und Zwischenstände sind append-only (jeder Stand ein neuer Datensatz).
+  `nan`/`inf` sind keine Messwerte. API: Grenzwert-Checklisten verlangen `item_results`.
+- **Fristen-Erinnerungen:** 30/7/0 Tage vor Ablauf, montags Wochenübersicht. Läuft stündlich im Dienst
+  `notify_crew`; `python manage.py send_deadline_reminders [--today JJJJ-MM-TT] [--dry-run]` zum Prüfen.
+  Grenze: Eine Erinnerung gilt nur am Stichtag; Überfälliges wird nicht erneut gemeldet.
+- **Dienstanweisungen:** Lesefrist und Zielgruppe; Auditoren und das Wachenterminal zählen nicht zur
+  Lesequote. Neue Funktionsrollen (Hygiene, Material, Fuhrpark, Sicherheit), Papierbogen-Nachträge.
+- **Design „Klar 3“:** Papier-Töne, Schriftskala, Segment-Chips in der Checkliste. Barrierefreiheit:
+  Fokusfalle in Dialogen, verknüpfte Formularfehler, Vorwarnung vor der Terminal-Sperre.
+
 ## [0.27.0] - 2026-11-02
 
 „Pilotfähig“: Wachwerk 0.27 bringt alle Voraussetzungen für den Start des ersten

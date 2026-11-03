@@ -200,6 +200,7 @@ class DeadlineRemindersTests(TestCase):
             "send_deadline_reminders",
             station=self.station.slug,
             thresholds="3",
+            today=self.today.isoformat(),
             dry_run=True,
             stdout=out,
         )
@@ -210,6 +211,7 @@ class DeadlineRemindersTests(TestCase):
             "send_deadline_reminders",
             station=self.station.slug,
             thresholds="3",
+            today=self.today.isoformat(),
             weekly_digest=True,
             stdout=out_live,
         )
@@ -385,3 +387,34 @@ class SopReadingObligationAndQuoteTests(TestCase):
         created_sop = SOPDocument.objects.get(doc_number="SOP-HYG-09")
         self.assertEqual(created_sop.ack_due_date.isoformat(), due_str)
         self.assertEqual(created_sop.target_role, Membership.Role.MEMBER)
+
+
+class SopTargetGroupTests(TestCase):
+    """Lesequote und Erinnerungen betreffen nur Personen, die quittieren können."""
+
+    def test_auditor_and_terminal_service_user_are_not_targets(self):
+        from core.models import Membership, Station, User
+        from core.orga_models import SOPDocument, SOPRevision
+        from core.terminal_models import StationTerminalCode
+
+        station = Station.objects.create(name="Wache Ziel", slug="wache-ziel", orga_enabled=True)
+        author = User.objects.create_user("autor", password="pw-123456789")
+        member = User.objects.create_user("mitglied", password="pw-123456789")
+        auditor = User.objects.create_user("auditor", password="pw-123456789")
+        service = User.objects.create_user("wachenterminal-%d" % station.pk)
+        for user, role in (
+            (author, Membership.Role.ADMIN), (member, Membership.Role.MEMBER),
+            (auditor, Membership.Role.AUDITOR), (service, Membership.Role.MEMBER),
+        ):
+            Membership.objects.create(user=user, station=station, role=role)
+        StationTerminalCode.objects.create(station=station, service_user=service)
+        sop = SOPDocument.objects.create(
+            station=station, slug="s1", doc_number="SOP-1", title="Test", created_by=author,
+            requires_acknowledgment=True,
+        )
+        SOPRevision.objects.create(
+            sop=sop, version_label="1.0", content_markdown="x", change_summary="Erstfassung", approved_by=author,
+        )
+
+        self.assertEqual(sop.ack_progress()["target_count"], 2)
+        self.assertEqual(set(sop.unacknowledged_users().values_list("username", flat=True)), {"autor", "mitglied"})
