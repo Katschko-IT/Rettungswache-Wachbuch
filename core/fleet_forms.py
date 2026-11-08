@@ -137,8 +137,8 @@ class DisinfectionProtocolForm(forms.ModelForm):
             return
         levels_qs = active_levels(station)
         level.queryset = levels_qs
-        level.widget.levels_by_pk = {l.pk: l for l in levels_qs}
-        level.widget.levels_by_pk.update({str(l.pk): l for l in levels_qs})
+        level.widget.levels_by_pk = {lvl.pk: lvl for lvl in levels_qs}
+        level.widget.levels_by_pk.update({str(lvl.pk): lvl for lvl in levels_qs})
 
         # Nur Mittel in Gebrauch; alte Protokolle behalten ihr Mittel (PROTECT).
         choices = active_disinfectants(station)
