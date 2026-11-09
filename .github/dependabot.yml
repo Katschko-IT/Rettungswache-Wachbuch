@@ -24,9 +24,9 @@ updates:
           - "django-*"
         update-types: ["minor", "patch"]
       security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types: ["security"]
 
   # Docker dependencies
   - package-ecosystem: "docker"
