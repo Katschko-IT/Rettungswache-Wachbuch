@@ -204,11 +204,16 @@ def validate_results(items, raw, *, final: bool) -> tuple[dict[str, dict[str, An
     """Ergebnisse je Prüfpunkt prüfen und mit Kopie des Prüfpunkts zurückgeben.
 
     Immer: Status nur ``ok``/``not_ok``/``na`` (oder leer), Messwerte endlich
-    und im Bereich der Spalte. Ein Messwert außerhalb der Grenzwerte setzt
-    „nicht in Ordnung“ mit automatischer Begründung (0 ist ein echter
-    Grenzwert). Beim Abschluss zusätzlich: mindestens ein Ergebnis,
+    und im Bereich der Spalte. Beim Abschluss zusätzlich: Ein Messwert
+    außerhalb der Grenzwerte setzt „nicht in Ordnung“ mit automatischer
+    Begründung (0 ist ein echter Grenzwert), mindestens ein Ergebnis,
     Pflichtpunkte bewertet, „entfällt“ mit Begründung, Messpunkte mit
     Messwert bei „in Ordnung“/„nicht in Ordnung“.
+
+    Ein Zwischenstand speichert Ergebnis und Begründung so, wie die Person sie
+    gewählt hat. Erst der Abschluss wertet den dann eingegebenen Messwert aus;
+    wird nach dem Fortsetzen neu gemessen, bleibt keine veraltete
+    automatische Begründung stehen.
     """
     results: dict[str, dict[str, Any]] = {}
     input_errors: list[str] = []
@@ -240,7 +245,7 @@ def validate_results(items, raw, *, final: bool) -> tuple[dict[str, dict[str, An
                 )
             else:
                 value = number
-        if value is not None and _outside_limits(item, value):
+        if final and value is not None and _outside_limits(item, value):
             status = STATUS_NOT_OK
             if not reason:
                 unit = f" {item.measurement_unit}" if item.measurement_unit else ""

@@ -275,6 +275,36 @@ class Checklist028Tests(ChecklistBase):
         with self.assertRaises(ValidationError):
             run.delete()
 
+    def test_draft_keeps_own_status_and_finalize_rechecks_the_limits(self):
+        # Zwischenstand mit Messwert außerhalb der Grenzen: gespeichert wird die eigene Wahl.
+        self.client.post(self.url, {
+            f"result_{self.item_temp.id}": "ok", f"value_{self.item_temp.id}": "9,5",
+            f"result_{self.item_seal.id}": "ok", "action": "draft",
+        })
+        entry = ChecklistDraft.objects.get().item_results[str(self.item_temp.id)]
+        self.assertEqual((entry["status"], entry["reason"]), ("ok", ""))
+        page = self.client.get(reverse("checklists"))
+        self.assertContains(page, f'name="result_{self.item_temp.id}" value="ok" checked')
+        self.assertContains(page, f'name="reason_{self.item_temp.id}" value=""')
+        self.assertNotContains(page, "außerhalb Grenzwert")
+        # Neu gemessen und im Rahmen: kein Mangel, keine veraltete Begründung.
+        self.post_run(**{f"value_{self.item_temp.id}": "5,0"})
+        run = ChecklistCompletion.objects.get()
+        entry = run.item_results[str(self.item_temp.id)]
+        self.assertEqual((entry["status"], entry["value"], entry["reason"]), ("ok", 5.0, ""))
+        self.assertFalse(Defect.objects.exists())
+
+    def test_resumed_draft_still_out_of_limits_becomes_not_ok_on_finalize(self):
+        self.client.post(self.url, {
+            f"result_{self.item_temp.id}": "ok", f"value_{self.item_temp.id}": "9,5",
+            f"result_{self.item_seal.id}": "ok", "action": "draft",
+        })
+        self.post_run(**{f"value_{self.item_temp.id}": "9,5"})
+        entry = ChecklistCompletion.objects.get().item_results[str(self.item_temp.id)]
+        self.assertEqual(entry["status"], "not_ok")
+        self.assertIn("Messwert 9.5 °C außerhalb Grenzwert [2.00..8.00]", entry["reason"])
+        self.assertEqual(Defect.objects.count(), 1)
+
     def test_validation_error_keeps_every_entered_value(self):
         resp = self.post_run(**{
             f"result_{self.item_temp.id}": "ok", f"value_{self.item_temp.id}": "",
@@ -677,6 +707,17 @@ class ApiTests(ChecklistBase):
         self.assertFalse(ChecklistDraft.objects.exists())
         self.assertIsNone(self.client.get(self.draft_url, **self.auth).json()["draft"])
         self.assertIsNotNone(self.entry()["last_completed_at"])
+
+    def test_api_draft_out_of_limits_keeps_own_status_until_finalize(self):
+        out = {str(self.item_temp.id): {"status": "ok", "value": 9.5}, str(self.item_seal.id): {"status": "ok"}}
+        self.assertEqual(self.api_post(self.draft_url, {"item_results": out}, self.auth).status_code, 200)
+        resumed = self.client.get(self.draft_url, **self.auth).json()["draft"]["item_results"][str(self.item_temp.id)]
+        self.assertEqual((resumed["status"], resumed["reason"]), ("ok", ""))
+        done = self.api_post(self.done_url, {"item_results": self.full}, self.auth)
+        self.assertEqual(done.status_code, 201)
+        entry = ChecklistCompletion.objects.get().item_results[str(self.item_temp.id)]
+        self.assertEqual((entry["status"], entry["reason"]), ("ok", ""))
+        self.assertFalse(Defect.objects.exists())
 
     def test_final_run_without_results_is_a_400(self):
         for payload in ({}, {"note": "x"}, {"item_results": {}}, {"item_results": None},
