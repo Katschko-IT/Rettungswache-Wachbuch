@@ -742,7 +742,12 @@ components:
     DefectWrite:
       type: object
       properties:
-        title: { type: string, maxLength: 160 }
+        title:
+          type: string
+          maxLength: 160
+          description: >-
+            Optional since 0.28. When empty, the server builds "<category>: <asset_ref>" in the station
+            language (as the web defect form does).
         description: { type: string, maxLength: 3000 }
         asset_ref: { type: string, maxLength: 160 }
         priority: { type: string, enum: [normal, important, urgent] }

@@ -533,8 +533,8 @@ def defects_list(request):
     if body is None:
         return base._json_error(request, "JSON-Koerper erwartet.", status=400)
     title = str(body.get("title") or "").strip()
-    if not title or len(title) > 160:
-        return base._json_error(request, "Titel ist erforderlich (max. 160 Zeichen).", status=422)
+    if len(title) > 160:
+        return base._json_error(request, "Titel ist zu lang (max. 160 Zeichen).", status=422)
     priority = str(body.get("priority") or Defect.Priority.NORMAL)
     category = str(body.get("category") or Defect.Category.TASK)
     if priority not in Defect.Priority.values or category not in Defect.Category.values:
@@ -546,6 +546,11 @@ def defects_list(request):
         return base._json_error(request, str(exc), status=422)
     description = str(body.get("description") or "")[:3000]
     asset_ref = str(body.get("asset_ref") or "")[:160]
+    if not title:
+        # Wie im Mangelformular (0.28): ohne Titel „<Kategorie>: <Bezug>“ in Wachensprache.
+        from core.wachalltag_web import _auto_defect_title
+
+        title = _auto_defect_title(category, asset_ref.strip())
     with transaction.atomic():
         item = Defect.objects.create(
             station=station,

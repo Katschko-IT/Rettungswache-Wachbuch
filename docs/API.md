@@ -120,7 +120,7 @@ Wachbuch. Clients zeigen einen Nachtrag gekennzeichnet an, etwa
 
 ### Mängel
 
-Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
+Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Seit 0.28 ist der Titel beim Anlegen (`POST /api/v1/defects/`) optional: Ohne Titel bildet der Server wie das Mangelformular „Kategorie: Bezug“ in der Wachensprache. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
 
 `GET /api/v1/defects/` sortiert fachlich: offen → in Bearbeitung → wartend →
 erledigt, innerhalb davon dringend → wichtig → normal, dann nach Frist. Die
