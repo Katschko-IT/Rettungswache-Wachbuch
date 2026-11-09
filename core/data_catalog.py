@@ -508,8 +508,10 @@ MODULES = (
             EvaluationSpec("api_v1_defect_attachments", "Anhänge eines Mangels mit Benutzername der hochladenden Person (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
-                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent."),
+            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person, Bezug (Text, Fahrzeug oder Medizingerät)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
+                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent. "
+                      "Der Bezug verweist auf ein Fahrzeug oder Medizingerät der Wache (keine Personen); ein Gerätemangel sperrt das Gerät. "
+                      "Das Wachenterminal wählt keine Medizingeräte."),
             ModelSpec("core.DefectEvent", "Verlauf: Statuswechsel mit Person", C + ("terminal",), ("system",), ("web", "app", "terminal"), "evidence", evidence=True),
             ModelSpec("core.DefectAttachment", "Fotos zum Mangel (Metadaten entfernt)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
         ),

@@ -262,11 +262,15 @@ def _detail_context(request, vehicle, handover_form=None, disinfection_form=None
     # Schichtleitung und Admin; alle anderen sehen „Desinfektion“.
     for protocol in disinfections:
         protocol.show_details = protocol.details_visible_to(request.membership)
-    defects = Defect.objects.filter(
-        station=station,
-        category=Defect.Category.VEHICLE,
-        asset_ref__icontains=vehicle.license_plate,
-    ).order_by("-created_at")[:5]
+    # Offene Mängel: verknüpft (Defect.vehicle, seit 0.28) oder ältere
+    # Meldungen mit dem Kennzeichen im Bezug; ohne Kennzeichen nur verknüpfte.
+    linked = Q(vehicle=vehicle)
+    if vehicle.license_plate:
+        linked |= Q(category=Defect.Category.VEHICLE, asset_ref__icontains=vehicle.license_plate)
+    defects = (
+        Defect.objects.filter(station=station).filter(linked)
+        .exclude(status=Defect.Status.DONE).order_by("-created_at")[:5]
+    )
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
@@ -469,6 +473,7 @@ def vehicle_defect_report(request, slug: str):
         title=title[:160],
         description=f"Fahrzeug: {vehicle.call_sign} ({vehicle.license_plate})\nkm-Stand: {vehicle.current_mileage}\n\n{description}".strip(),
         asset_ref=f"{vehicle.call_sign} ({vehicle.license_plate})",
+        vehicle=vehicle,
         priority=priority,
         status=Defect.Status.OPEN,
         category=Defect.Category.VEHICLE,
