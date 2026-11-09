@@ -772,8 +772,9 @@ class ScheduledWorkerStepTests(_StationMixin, TestCase):
 
     def test_state_survives_a_restart(self):
         dr.run_scheduled_reminders(now=_at(self.monday, 7))
-        # Neuer Prozess: kein Zustand im Speicher, nur die Datenbank.
-        importlib.reload(dr)
+        # Der Zeitplan hält keinen Zustand im Prozess, nur in der Datenbank: Ein
+        # neu gestarteter Dienst sieht denselben Stand und läuft nicht sofort.
+        self.assertEqual(WorkerJobState.objects.filter(last_started_at__isnull=False).count(), 2)
         with mock.patch.object(dr, "send_deadline_reminders", return_value=0) as send, \
                 mock.patch.object(dr, "send_weekly_digest", return_value=0) as digest:
             dr.run_scheduled_reminders(now=_at(self.monday, 7, 20))
