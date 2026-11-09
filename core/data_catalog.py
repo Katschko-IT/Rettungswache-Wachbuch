@@ -684,6 +684,7 @@ MODULES = (
                            "Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen "
                            "Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, "
                            "Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. "
+                           "Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). "
                            "Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
                            "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an "
                            "bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an "
@@ -692,7 +693,8 @@ MODULES = (
             ModelSpec("core.PushSubscription", "Browser-Push-Abo (Adresse beim Browserhersteller, Schlüssel, Browser)", ("self",), ("self",), ("web",), "device_unregister"),
             ModelSpec("core.PushOutbox", "Warteschlange für Push-Nachrichten", ("system",), ("system",), ("push",), "push_outbox"),
             ModelSpec("core.WorkerJobState", "Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der letzten Wochenübersicht", ("admin",), ("system",), ("web",), "technical",
-                      note="Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin sieht den Stand unter System."),
+                      note="Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin echter Wachen sieht den Stand "
+                           "unter System (ohne Anzahl, nicht in der öffentlichen Demo)."),
         ),
     ),
     ModuleSpec(
@@ -792,7 +794,8 @@ MODULES = (
         evaluations=(
             EvaluationSpec("sop_detail", "Quittierungsliste einer Dienstanweisung mit Namen", CS, True,
                            "Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); "
-                           "ohne Vereinbarung nur Anzahl und Quote der Zielgruppe"),
+                           "ohne Vereinbarung nur Anzahl und Quote der Zielgruppe. Bei einer Zielgruppe von ein oder zwei "
+                           "Personen lässt auch die Quote auf Einzelne schließen (docs/MITBESTIMMUNG-VORLAGE.md)"),
             EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True,
                            "Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version"),
         ),

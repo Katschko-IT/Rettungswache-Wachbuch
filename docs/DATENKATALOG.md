@@ -2116,7 +2116,7 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 - Nachweis: nein
 - Frist technisch: keine technische Löschung (siehe docs/LOESCHKONZEPT.md, Lücken)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
+- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2140,7 +2140,7 @@ Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der le
 - Zugriffswege: Web
 - Nachweis: nein
 - Frist technisch: ohne Personenbezug; bleibt, solange die Installation besteht
-- Hinweis: Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin sieht den Stand unter System.
+- Hinweis: Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin echter Wachen sieht den Stand unter System (ohne Anzahl, nicht in der öffentlichen Demo).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2670,7 +2670,7 @@ Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); ohne Vereinbarung nur Anzahl und Quote der Zielgruppe |
+| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); ohne Vereinbarung nur Anzahl und Quote der Zielgruppe. Bei einer Zielgruppe von ein oder zwei Personen lässt auch die Quote auf Einzelne schließen (docs/MITBESTIMMUNG-VORLAGE.md) |
 | Quittierungsnachweis als CSV mit Namen | `sop_export_audit` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version |
 
 ### core.SOPDocument
