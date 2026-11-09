@@ -36,3 +36,12 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+
+  # axe-core-Prüfung der CI (tests/a11y, gesperrt über package-lock.json)
+  - package-ecosystem: "npm"
+    directory: "/tests/a11y"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "accessibility"

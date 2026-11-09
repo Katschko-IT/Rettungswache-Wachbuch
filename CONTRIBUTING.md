@@ -90,6 +90,37 @@ fehlt oder nicht zum heruntergeladenen Artefakt passt. Bei jeder Änderung an
 `requirements.txt` die Lock-Datei neu erzeugen, die Hash-Verifikation lokal
 prüfen und beide Dateien committen.
 
+## Barrierefreiheit und Wand-Display prüfen (Job `a11y`)
+
+Der CI-Job `a11y` startet die App wie im Container (DEBUG aus, Gunicorn mit
+WhiteNoise nach `collectstatic`, echte CSP) mit Musterdaten und prüft mit
+axe-core und Playwright (gesperrt in `tests/a11y/package-lock.json`):
+
+- die Hauptseiten jeder Rolle (auch Wachenterminal) in vier Darstellungen:
+  System hell und dunkel sowie der Umschalter der App gegen das System;
+  jeder Fund der Schwere critical oder serious lässt den Job scheitern,
+- das Wand-Display über den Display-Link bei 1920x1080 und 1280x720 (kein
+  Scrollen, Raster 16:9 auf 0,02 genau, kein sichtbares Element außerhalb von
+  Raster oder Bildschirm, keine abgeschnittene Spalte, keine Emojis),
+- das Mangelformular bei 390x844 ohne seitliches Scrollen.
+
+Bericht und Bildschirmfotos liegen als Artefakt `a11y-report` am Lauf. Lokal
+(SQLite in einem eigenen Verzeichnis, nie `runserver --insecure`, sonst fehlen
+die gehashten CSS-Dateien):
+
+```bash
+export DJANGO_SECRET_KEY=test-only DJANGO_DEBUG=false DEMO_MODE=true   TERMINAL_ENABLED=true TERMINAL_CODE=1234 SECURE_COOKIES=false   BASE_URL=http://127.0.0.1:8765 DATABASE_URL=sqlite:////tmp/a11y/db.sqlite3
+python manage.py migrate --noinput && python manage.py load_demo_data
+python manage.py collectstatic --noinput
+python tests/a11y/seed.py > /tmp/a11y/seed.json
+GUNICORN_BIND=127.0.0.1:8765 gunicorn --config config/gunicorn.py --daemon   --pid /tmp/a11y/gunicorn.pid config.wsgi:application
+cd tests/a11y && npm ci --ignore-scripts && npx playwright install chromium
+SEED_JSON=/tmp/a11y/seed.json OUT_DIR=/tmp/a11y/out node run-axe.js
+```
+
+`A11Y_ROLES` und `A11Y_THEMES` schränken einen lokalen Lauf ein (z. B.
+`A11Y_ROLES=none` prüft nur das Wand-Display).
+
 ## Datenschutz
 
 Issues, Tests, Screenshots und Commits dürfen keine personenbezogenen Daten,
