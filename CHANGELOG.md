@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unveröffentlicht]
+
+- **Design „Klar 3“:** Papier-Töne, Schriftskala (`--fs-*`), ein Hinweis-Baustein (`.notice`; `.message`,
+  `.alert`, `.callout` sind Aliase), Komponentenkatalog in `docs/DESIGN-SYSTEM.md`.
+- **Barrierefreiheit:** Fokusfalle in Dialogen, Formularfehler mit `aria-invalid`/`aria-describedby` und
+  Fehlerübersicht mit Links, Vorwarnung vor der Terminal-Sperre, Tabellen mit Beschriftung und `scope`.
+- **Checkliste:** Fortschritt „x von y Prüfpunkten beantwortet“; das Formular sperrt Doppelklicks
+  (Abschlüsse sind unveränderlich).
+
 ## [0.28.0] - 2026-11-09
 
 „Prüfen“: Prüfungen haben ein Ergebnis je Punkt, Mängel entstehen ohne

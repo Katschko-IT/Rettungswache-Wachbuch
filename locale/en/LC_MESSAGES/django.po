@@ -51,6 +51,11 @@ msgstr[1] "%(count)d items are already recorded as open defects; no further defe
 msgid "%(count)s Punkte brauchen Aufmerksamkeit"
 msgstr "%(count)s items need attention"
 
+#: templates/core/checklists.html:91
+#: templates/core/checklists.html:91
+msgid "%(done)s von %(total)s Prüfpunkten beantwortet"
+msgstr "%(done)s of %(total)s check items answered"
+
 #: templates/core/_demo_tour.html:6
 #: templates/core/terminal_menu.html:86
 msgid "%(done)s von %(total)s erledigt"
@@ -596,7 +601,7 @@ msgstr "Active external data flows"
 msgid "Aktivieren"
 msgstr "Activate"
 
-#: templates/core/checklists.html:159
+#: templates/core/checklists.html:164
 msgid "Aktivieren, wenn ein ausgefüllter Papierbogen nachträglich übertragen wird. Gespeichert werden der Zeitpunkt laut Bogen und der Zeitpunkt der Eingabe. Höchstens 365 Tage zurück."
 msgstr "Tick this when a completed paper sheet is transferred afterwards. Both the time on the sheet and the time of entry are stored. At most 365 days back."
 
@@ -813,7 +818,7 @@ msgstr "Disable all second factors"
 msgid "Alle Übergaben"
 msgstr "All handovers"
 
-#: templates/core/checklists.html:139
+#: templates/core/checklists.html:144
 msgid "Alle übrigen Punkte in Ordnung"
 msgstr "All remaining items OK"
 
@@ -883,7 +888,7 @@ msgstr "As an EMS employee, you are required to take note of new medical and org
 msgid "Als Person speichert das Wachbuch, wer nachträgt („erfasst von“). Wer laut Bogen gehandelt hat (Kürzel), steht nur auf dem Original."
 msgstr "The station log stores the person who enters the backfill as the person (“entered by”). Who acted according to the sheet (initials) is only on the original."
 
-#: templates/core/checklists.html:171
+#: templates/core/checklists.html:176
 msgid "Als erledigt vermerken"
 msgstr "Mark as completed"
 
@@ -5216,7 +5221,7 @@ msgstr "Event (paper)"
 
 #: core/paper_backfill.py:138
 #: templates/core/_paper_backfill_fields.html:19
-#: templates/core/checklists.html:162
+#: templates/core/checklists.html:167
 msgid "Ereigniszeitpunkt (Papierbogen)"
 msgstr "Event time (paper sheet)"
 
@@ -6692,8 +6697,8 @@ msgstr "Total station stock:"
 msgid "Gesamten Kalender als ICS"
 msgstr "Entire calendar as ICS"
 
-#: templates/core/checklists.html:150
-#: templates/core/checklists.html:151
+#: templates/core/checklists.html:155
+#: templates/core/checklists.html:156
 msgid "Gesamtnotiz (optional)"
 msgstr "Overall note (optional)"
 
@@ -6864,11 +6869,11 @@ msgstr "Large digital clock, weekday, formatted date and station name."
 msgid "Grund"
 msgstr "Reason"
 
-#: templates/core/checklists.html:130
+#: templates/core/checklists.html:135
 msgid "Grund / Bemerkung"
 msgstr "Reason / note"
 
-#: templates/core/checklists.html:129
+#: templates/core/checklists.html:134
 msgid "Grund oder Bemerkung zu %(item)s"
 msgstr "Reason or remark for %(item)s"
 
@@ -7183,7 +7188,7 @@ msgstr "Payment note"
 msgid "Hinweis zum Kontakt"
 msgstr "Note"
 
-#: templates/core/checklists.html:146
+#: templates/core/checklists.html:151
 msgid "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an. Ist für den Prüfpunkt schon ein offener Mangel gemeldet, entsteht kein zweiter."
 msgstr "Note: items rated \"not OK\" or with values outside the limits automatically create a defect with a back reference on completion. If an open defect is already reported for the item, no second one is created."
 
@@ -9360,8 +9365,8 @@ msgstr "Metrological check (end of year: %(date)s) for “%(name)s”."
 
 #: core/checklists_views.py:347
 #: templates/core/checklist_run_detail.html:39
-#: templates/core/checklists.html:103
-#: templates/core/checklists.html:126
+#: templates/core/checklists.html:108
+#: templates/core/checklists.html:131
 msgid "Messwert"
 msgstr "Measurement"
 
@@ -9369,7 +9374,7 @@ msgstr "Measurement"
 msgid "Messwert %(val)s%(unit)s außerhalb Grenzwert %(bounds)s"
 msgstr "Measurement %(val)s%(unit)s outside limit %(bounds)s"
 
-#: templates/core/checklists.html:125
+#: templates/core/checklists.html:130
 msgid "Messwert für %(item)s"
 msgstr "Measured value for %(item)s"
 
@@ -9882,7 +9887,7 @@ msgstr "Message areas"
 #: core/paper_backfill.py:133
 #: templates/core/_paper_backfill_fields.html:10
 #: templates/core/_paper_backfill_fields.html:13
-#: templates/core/checklists.html:158
+#: templates/core/checklists.html:163
 msgid "Nachtrag vom Papierbogen"
 msgstr "Entry from paper sheet"
 
@@ -10884,7 +10889,7 @@ msgstr "Pack / counting unit:"
 msgid "Papier-Rückfall"
 msgstr "Paper fallback"
 
-#: templates/core/checklists.html:156
+#: templates/core/checklists.html:161
 msgid "Papierbogen nachtragen"
 msgstr "Backfill paper sheet"
 
@@ -11128,7 +11133,7 @@ msgid "Persönlicher Zugang"
 msgstr "Personal access"
 
 #: templates/core/checklist_run_detail.html:48
-#: templates/core/checklists.html:96
+#: templates/core/checklists.html:101
 #: templates/core/masterdata_import_kind.html:43
 msgid "Pflicht"
 msgstr "Required"
@@ -11380,7 +11385,7 @@ msgid "Prüfpunkt: %(item)s"
 msgstr "Item: %(item)s"
 
 #: templates/core/checklist_run_detail.html:30
-#: templates/core/checklists.html:90
+#: templates/core/checklists.html:95
 msgid "Prüfpunkte"
 msgstr "Check items"
 
@@ -12294,7 +12299,7 @@ msgstr "Server error."
 msgid "Serverstandort"
 msgstr "Server location"
 
-#: templates/core/checklists.html:140
+#: templates/core/checklists.html:145
 msgid "Setzt nur noch offene Punkte ohne Messwert auf „in Ordnung“. Messpunkte bleiben unverändert."
 msgstr "Sets only items that are still open and have no measurement to \"OK\". Measurement items stay unchanged."
 
@@ -12491,7 +12496,7 @@ msgstr "Software version"
 msgid "Soll"
 msgstr "Expected"
 
-#: templates/core/checklists.html:100
+#: templates/core/checklists.html:105
 msgid "Soll:"
 msgstr "Target:"
 
@@ -15262,7 +15267,7 @@ msgstr "Cache"
 msgid "Zwischenstand der Checkliste wurde gespeichert."
 msgstr "Checklist progress was saved."
 
-#: templates/core/checklists.html:174
+#: templates/core/checklists.html:179
 msgid "Zwischenstand speichern"
 msgstr "Save progress"
 
@@ -15413,7 +15418,7 @@ msgid "endet spätestens %(time)s Uhr"
 msgstr "ends at %(time)s at the latest"
 
 #: core/checklists_service.py:507
-#: templates/core/checklists.html:121
+#: templates/core/checklists.html:126
 msgid "entfällt"
 msgstr "not applicable"
 
@@ -15499,7 +15504,7 @@ msgid "immer oben"
 msgstr "always in the bar"
 
 #: core/checklists_service.py:505
-#: templates/core/checklists.html:113
+#: templates/core/checklists.html:118
 #: templates/core/paper_checklists.html:20
 msgid "in Ordnung"
 msgstr "OK"
@@ -15624,7 +15629,7 @@ msgstr "not provided"
 
 #: core/checklists_service.py:506
 #: core/checklists_service.py:377
-#: templates/core/checklists.html:117
+#: templates/core/checklists.html:122
 #: templates/core/paper_checklists.html:21
 msgid "nicht in Ordnung"
 msgstr "not OK"

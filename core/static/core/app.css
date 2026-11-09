@@ -393,15 +393,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .app-version { color: var(--muted); }
 .key-fingerprint { font-family: var(--mono, monospace); letter-spacing: 0.04em; overflow-wrap: anywhere; }
 .messages { max-width: 48rem; margin-bottom: 1.5rem; }
-.message {
-  padding: .85rem 1rem;
-  color: var(--text);
-  background: var(--info-soft);
-  border-left: 4px solid var(--info);
-  border-radius: 0 var(--radius) var(--radius) 0;
-}
 .message + .message { margin-top: .5rem; }
-.message.error { background: var(--danger-soft); border-color: var(--danger); }
 
 .page-heading { max-width: 48rem; margin-bottom: 1.75rem; }
 .page-heading.narrow, .narrow { max-width: 42rem; }
@@ -886,13 +878,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .feed-list-clean h2 { margin: .25rem 0; font-size: var(--fs-md); }
 .feed-list-clean p { max-width: 70ch; margin: .25rem 0 0; color: var(--muted); }
-.notice {
-  max-width: 70ch;
-  padding: .75rem 1rem;
-  background: var(--warning-soft);
-  border-left: 4px solid var(--warning);
-  border-radius: 0 var(--radius) var(--radius) 0;
-}
 .sources { margin-top: 1rem; }
 .sources > div {
   display: grid;
@@ -1924,19 +1909,42 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .badge-pass::before { background: var(--success); }
 
 /* —— Hinweise —— */
-.message,
+/* Hinweis: eine Komponente. Kanonisch ist .notice; .message (Django-Meldungen), .alert und
+   .callout sind Altnamen mit gleichem Aussehen. Stufen über Eigenschaften, nicht über
+   einzelne Farbregeln: info (Standard), success, warning, danger. */
 .notice,
+.message,
 .alert,
 .callout {
+  --notice-accent: var(--info);
+  --notice-bg: var(--info-soft);
+  --notice-line: color-mix(in srgb, var(--info) 30%, transparent);
+  padding: .85rem 1rem;
   color: var(--text);
-  background: var(--info-soft);
-  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
-  border-left: 4px solid var(--info);
+  background: var(--notice-bg);
+  border: 1px solid var(--notice-line);
+  border-left: 4px solid var(--notice-accent);
   border-radius: var(--radius);
 }
-.message.success, .alert-success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
-.message.warning, .alert-warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
-.message.error, .alert-danger, .alert-error { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
+.notice { max-width: 70ch; }
+.alert, .callout { margin: 0 0 var(--space-4); }
+.alert > :last-child, .callout > :last-child { margin-bottom: 0; }
+.notice.success, .message.success, .alert.success, .alert-success, .callout.success {
+  --notice-accent: var(--success);
+  --notice-bg: var(--success-soft);
+  --notice-line: color-mix(in srgb, var(--success) 35%, transparent);
+}
+.notice.warning, .message.warning, .alert.warning, .alert-warning, .callout.warning {
+  --notice-accent: var(--warning-accent);
+  --notice-bg: var(--warning-soft);
+  --notice-line: color-mix(in srgb, var(--warning-accent) 45%, transparent);
+}
+.notice.danger, .notice.error, .message.error, .message.danger,
+.alert.danger, .alert.error, .alert-danger, .alert-error, .callout.danger {
+  --notice-accent: var(--danger);
+  --notice-bg: var(--danger-soft);
+  --notice-line: color-mix(in srgb, var(--danger) 35%, transparent);
+}
 .connection-chip {
   color: var(--warning);
   background: var(--warning-soft);

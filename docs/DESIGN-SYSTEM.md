@@ -84,6 +84,23 @@ Variable definiert ist.
 - **Unsichtbare Eingaben** (`.visually-hidden`) dürfen die Seite nicht
   verbreitern.
 
+## Komponenten (Stand „Klar 3“, Stufe 2)
+
+Kanonische Namen; Altnamen bleiben als Aliase mit gleichem Aussehen bestehen und werden in
+neuen Templates nicht mehr verwendet.
+
+| Komponente | Kanonisch | Stufen | Altnamen (nicht neu verwenden) |
+|---|---|---|---|
+| Hinweis | `.notice` | info (Standard), `.success`, `.warning`, `.danger` | `.message` (Django-Meldungen, `.error`), `.alert` (`-success`, `-warning`, `-danger`, `-error`), `.callout` |
+| Plakette für Zustand | `.status-label` | `neutral`, `info`, `success`, `warning`, `danger`, `priority-*`, `status-*` | `.badge` (`-pass`, `-fail`, `-info`, `-neutral`) |
+| Auswahl kurzer Optionen | Segment-Chips (Radio darunter) | gewählt, Fokus | – |
+| Fortschritt | `<progress>` mit Text (`data-checklist-progress`) | – | – |
+
+Ein Hinweis setzt seine Stufe über die Eigenschaften `--notice-accent`, `--notice-bg` und
+`--notice-line` (eine Stelle in `app.css`), nicht über einzelne Farbregeln. Zustände eines
+Hinweises: Standard, `role="alert"` nur für Fehler. Fortschritt ist kein Live-Bereich; der Text
+ändert sich bei jeder Antwort, soll aber nicht angesagt werden.
+
 ## Zehn verbindliche Regeln
 
 1. Jede Seite hat genau eine Hauptaufgabe und genau eine `h1`.

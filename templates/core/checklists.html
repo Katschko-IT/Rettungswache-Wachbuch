@@ -81,10 +81,15 @@
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-checklist-form
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-checklist-form data-submit-once data-checklist-progress
         data-all-ok-done="{% translate 'Offene Punkte ohne Messwert sind auf „in Ordnung“ gesetzt.' %}"
         data-all-ok-none="{% translate 'Es gibt keine offenen Punkte ohne Messwert.' %}">
     {% csrf_token %}
+
+    <div class="checklist-progress" data-progress-box hidden>
+      <progress max="{{ checklist.item_rows|length }}" value="0" data-progress-bar aria-labelledby="progress-text-{{ checklist.id }}"></progress>
+      <span id="progress-text-{{ checklist.id }}" data-progress-text data-progress-template="{% translate '%(done)s von %(total)s Prüfpunkten beantwortet' %}">{% blocktranslate with done=0 total=checklist.item_rows|length %}{{ done }} von {{ total }} Prüfpunkten beantwortet{% endblocktranslate %}</span>
+    </div>
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>
