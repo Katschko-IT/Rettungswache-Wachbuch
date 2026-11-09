@@ -40,12 +40,16 @@ E-Mail eingerichtet ist (``EMAIL_HOST``) und keine öffentliche Demo läuft.
 
 Zeitplan: Der notify-worker ruft ``run_scheduled_reminders`` auf; Erinnerungen
 höchstens einmal je Stunde, die Wochenübersicht einmal je ISO-Kalenderwoche ab
-Montag 06:00 Ortszeit (verpasst: beim nächsten Lauf derselben Woche).
+Montag 06:00 Ortszeit (verpasst: beim nächsten Lauf derselben Woche). In der
+Ruhezeit von 22:00 bis 06:00 Ortszeit läuft keins von beiden: Die Schwellen
+wechseln um Mitternacht, die neuen Erinnerungen kommen mit dem ersten Lauf ab
+06:00 und nicht nachts per Push, Signal oder E-Mail.
 """
 from __future__ import annotations
 
 import calendar
 import logging
+import time as monotonic_clock
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from typing import Any, Iterable
@@ -82,6 +86,9 @@ REMINDER_INTERVAL = timedelta(hours=1)
 RETRY_AFTER = timedelta(minutes=10)
 DIGEST_WEEKDAY = 0  # Montag
 DIGEST_HOUR = 6
+# Ruhezeit (Ortszeit): keine neuen Erinnerungen und keine Wochenübersicht.
+QUIET_START_HOUR = 22
+QUIET_END_HOUR = DIGEST_HOUR
 
 # Bereiche: Kurzname, Bezeichnung, Feld des Abos, Funktionen, Inhalt.
 FLEET, MPG, MATERIAL, SOP, TASKS = "fleet", "mpg", "material", "sop", "tasks"
@@ -848,13 +855,29 @@ def digest_week_due(now: datetime) -> str | None:
     return iso_week_key(monday)
 
 
+def in_quiet_hours(now: datetime) -> bool:
+    """Ruhezeit von 22:00 bis 06:00 Ortszeit (``TIME_ZONE``)."""
+    hour = timezone.localtime(now).hour
+    return hour >= QUIET_START_HOUR or hour < QUIET_END_HOUR
+
+
 def run_scheduled_reminders(now: datetime | None = None) -> int:
     """Schritt des notify-workers: Erinnerungen stündlich, Wochenübersicht einmal je Woche.
 
+    Nie in der Ruhezeit (``in_quiet_hours``): Die Schwellen wechseln um
+    Mitternacht, die neuen Erinnerungen kommen mit dem ersten Lauf ab 06:00.
     Fehler werden protokolliert und erst nach ``RETRY_AFTER`` erneut versucht;
     sie zählen nicht als Fehlversuch des Dienstes.
     """
     now = now or timezone.now()
+    if in_quiet_hours(now):
+        return 0
+    started = monotonic_clock.monotonic()
+
+    def finished_at() -> datetime:
+        # Auf der Uhr des Laufs (``now``), damit Ende und Woche zusammenpassen.
+        return now + timedelta(seconds=monotonic_clock.monotonic() - started)
+
     total = 0
     if _claim_interval(JOB_REMINDERS, now, REMINDER_INTERVAL):
         try:
@@ -865,7 +888,7 @@ def run_scheduled_reminders(now: datetime | None = None) -> int:
                 last_failed_at=now, last_started_at=now - REMINDER_INTERVAL + RETRY_AFTER,
             )
         else:
-            WorkerJobState.objects.filter(name=JOB_REMINDERS).update(last_finished_at=timezone.now(), last_count=count)
+            WorkerJobState.objects.filter(name=JOB_REMINDERS).update(last_finished_at=finished_at(), last_count=count)
             total += count
     week = digest_week_due(now)
     if week and _claim_period(JOB_DIGEST, week, now):
@@ -873,14 +896,38 @@ def run_scheduled_reminders(now: datetime | None = None) -> int:
             count = send_weekly_digest(today=timezone.localtime(now).date())
         except Exception:
             logger.exception("Wochenübersicht fehlgeschlagen")
+            # Woche wieder frei für den nächsten Versuch; die letzte erfolgreiche
+            # Woche ergibt sich aus last_finished_at (JobStatus).
             WorkerJobState.objects.filter(name=JOB_DIGEST).update(last_period="", last_failed_at=now)
         else:
-            WorkerJobState.objects.filter(name=JOB_DIGEST).update(last_finished_at=timezone.now(), last_count=count)
+            WorkerJobState.objects.filter(name=JOB_DIGEST).update(last_finished_at=finished_at(), last_count=count)
             total += count
     return total
 
 
-def schedule_status() -> dict[str, WorkerJobState | None]:
-    """Letzte Läufe für Systemstatus und Heartbeat (eine Abfrage)."""
+@dataclass(frozen=True)
+class JobStatus:
+    """Stand eines Schritts für die Seite System und den Heartbeat (keine Personen)."""
+
+    last_success_at: datetime | None = None
+    # Woche der letzten erfolgreichen Wochenübersicht, z. B. „2026-W46“.
+    week: str = ""
+    # Letzter Fehler, nur wenn er nach dem letzten erfolgreichen Lauf liegt.
+    error_at: datetime | None = None
+
+
+def _job_status(state: WorkerJobState | None) -> JobStatus:
+    if state is None:
+        return JobStatus()
+    success = state.last_finished_at
+    error = state.last_failed_at if state.last_failed_at and (success is None or state.last_failed_at > success) else None
+    # Die Übersicht einer Woche läuft immer in dieser Woche (ab Montag 06:00,
+    # nie in der Ruhezeit), deshalb ergibt das Ende des Laufs die Woche.
+    week = iso_week_key(timezone.localtime(success).date()) if success else ""
+    return JobStatus(last_success_at=success, week=week, error_at=error)
+
+
+def schedule_status() -> dict[str, JobStatus]:
+    """Letzte erfolgreiche Läufe und aktuelle Fehler (eine Abfrage)."""
     states = {state.name: state for state in WorkerJobState.objects.filter(name__in=(JOB_REMINDERS, JOB_DIGEST))}
-    return {"reminders": states.get(JOB_REMINDERS), "digest": states.get(JOB_DIGEST)}
+    return {"reminders": _job_status(states.get(JOB_REMINDERS)), "digest": _job_status(states.get(JOB_DIGEST))}

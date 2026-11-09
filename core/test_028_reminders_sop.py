@@ -431,6 +431,23 @@ def _at(day: date, hour: int = 12, minute: int = 0):
     return timezone.make_aware(datetime.combine(day, time(hour, minute)), TZ)
 
 
+NOTIFY = "core.management.commands.notify_crew"
+
+
+def _notify_crew_one_watch_pass(**options):
+    """Ein Durchlauf von ``notify_crew --watch``; SIGTERM beim ersten Warten beendet ihn."""
+    import signal as signal_module
+
+    with mock.patch(f"{NOTIFY}.close_old_connections"), mock.patch(f"{NOTIFY}.signal.signal") as register, \
+            mock.patch(f"{NOTIFY}.time.sleep") as sleep:
+        def stop_on_first_sleep(_seconds):
+            handlers = {call.args[0]: call.args[1] for call in register.call_args_list}
+            handlers[signal_module.SIGTERM](signal_module.SIGTERM, None)
+
+        sleep.side_effect = stop_on_first_sleep
+        call_command("notify_crew", watch=True, interval=30, stdout=io.StringIO(), **options)
+
+
 class _StationMixin:
     """Wache mit Leitung, Funktionsträgern, Auditor und Wachenterminal."""
 
@@ -840,24 +857,115 @@ class ScheduledWorkerStepTests(_StationMixin, TestCase):
         self.assertIsNotNone(WorkerJobState.objects.get(name=dr.JOB_REMINDERS).last_failed_at)
 
     def test_notify_crew_pass_runs_the_step_and_writes_the_last_run(self):
+        # Zeitpunkt fest (Montag 07:00), damit der Test nicht in die Ruhezeit fällt.
         with tempfile.TemporaryDirectory() as tmp:
             heartbeat = Path(tmp) / "alive"
-            with mock.patch("core.management.commands.notify_crew.close_old_connections"), \
-                    mock.patch("core.management.commands.notify_crew.run_scheduled_reminders",
-                               wraps=dr.run_scheduled_reminders) as step:
-                call_command("notify_crew", heartbeat_file=str(heartbeat), stdout=io.StringIO())
+            with mock.patch(f"{NOTIFY}.run_scheduled_reminders",
+                            side_effect=lambda: dr.run_scheduled_reminders(now=_at(self.monday, 7))) as step:
+                _notify_crew_one_watch_pass(heartbeat_file=str(heartbeat))
             step.assert_called_once()
             lines = heartbeat.read_text().splitlines()
         self.assertEqual(len(lines), 2)
-        self.assertRegex(lines[1], r"^deadline_reminders=\d{4}-\d\d-\d\dT\S+ weekly_digest=(\d{4}-W\d\d|-)$")
+        self.assertRegex(lines[1], r"^deadline_reminders=2026-11-09T\S+ weekly_digest=2026-W46$")
         self.assertTrue(self.notes_for(self.lead).exists())
 
     def test_reminder_failure_does_not_stop_notify_crew(self):
-        with mock.patch("core.management.commands.notify_crew.close_old_connections"), \
-                mock.patch("core.management.commands.notify_crew.run_scheduled_reminders",
-                           side_effect=RuntimeError("x")), \
-                self.assertLogs("core.management.commands.notify_crew", level="ERROR"):
-            call_command("notify_crew", stdout=io.StringIO())
+        with mock.patch(f"{NOTIFY}.run_scheduled_reminders", side_effect=RuntimeError("x")), \
+                self.assertLogs(NOTIFY, level="ERROR"):
+            _notify_crew_one_watch_pass()
+
+    def test_signal_goes_out_before_the_reminders_and_one_shot_runs_none(self):
+        """Ersatzlauf von wachwerk-health (ohne --watch, mit Zeitlimit): nur zustellen."""
+        order: list[str] = []
+
+        def reminders():
+            order.append("reminders")
+            return 0
+
+        with mock.patch(f"{NOTIFY}.deliver_signal", side_effect=lambda: order.append("signal")), \
+                mock.patch(f"{NOTIFY}.run_scheduled_reminders", side_effect=reminders):
+            _notify_crew_one_watch_pass()
+            self.assertEqual(order, ["signal", "reminders"])
+            order.clear()
+            with mock.patch(f"{NOTIFY}.close_old_connections"), mock.patch(f"{NOTIFY}.signal.signal"):
+                call_command("notify_crew", stdout=io.StringIO())
+            self.assertEqual(order, ["signal"])
+        self.assertFalse(WorkerJobState.objects.exists())
+
+    def test_quiet_hours_from_22_to_6(self):
+        """Die Schwellen wechseln um Mitternacht; die Erinnerung kommt erst ab 06:00."""
+        tuesday = self.monday + timedelta(days=1)
+        # Die 7-Tage-Schwelle dieser HU wird am Dienstag um Mitternacht erreicht.
+        Vehicle.objects.create(station=self.station, slug="ktw", call_sign="KTW 2", license_plate="RW-2",
+                               next_hu_date=tuesday + timedelta(days=7))
+        with mock.patch.object(dr, "send_deadline_reminders", wraps=dr.send_deadline_reminders) as send, \
+                mock.patch.object(dr, "send_weekly_digest", wraps=dr.send_weekly_digest) as digest:
+            for hour, minute in ((0, 30), (5, 59), (22, 0), (23, 59)):
+                self.assertEqual(dr.run_scheduled_reminders(now=_at(tuesday, hour, minute)), 0)
+            send.assert_not_called()
+            digest.assert_not_called()
+            self.assertFalse(WorkerJobState.objects.exists())
+            self.assertFalse(self.notes_for(self.lead).exists())
+            self.assertGreater(dr.run_scheduled_reminders(now=_at(tuesday, 6, 30)), 0)
+            send.assert_called_once()
+            digest.assert_called_once()
+        self.assertTrue(self.notes_for(self.lead, title__startswith="HU fällig in 7 Tagen: KTW 2").exists())
+        self.assertTrue(dr.in_quiet_hours(_at(tuesday, 22, 0)))
+        self.assertFalse(dr.in_quiet_hours(_at(tuesday, 21, 59)))
+        self.assertFalse(dr.in_quiet_hours(_at(tuesday, 6, 0)))
+
+    def test_status_keeps_the_last_good_week_and_shows_only_current_errors(self):
+        admin = self.person(self.station, "w-admin", Membership.Role.ADMIN)
+        dr.run_scheduled_reminders(now=_at(self.monday, 7))
+        next_monday = self.monday + timedelta(days=7)
+        with mock.patch.object(dr, "send_weekly_digest", side_effect=RuntimeError("smtp")), \
+                mock.patch.object(dr, "send_deadline_reminders", side_effect=RuntimeError("db")), \
+                self.assertLogs("core.deadline_reminders", level="ERROR"):
+            dr.run_scheduled_reminders(now=_at(next_monday, 7))
+        status = dr.schedule_status()
+        self.assertEqual(status["digest"].week, "2026-W46")
+        self.assertEqual(status["digest"].error_at, _at(next_monday, 7))
+        self.assertEqual(status["reminders"].error_at, _at(next_monday, 7))
+        self.client.force_login(admin)
+        page = self.client.get(reverse("system_status"))
+        self.assertContains(page, "2026-W46 · 09.11.2026 07:00")
+        self.assertContains(page, "Letzter Fehler der Wochenübersicht")
+        self.assertContains(page, "<dt>Letzter Fehler</dt>", html=False)
+        self.assertNotContains(page, "noch keine")
+        # Erinnerungen laufen nach 10 Minuten wieder; der alte Fehler verschwindet.
+        dr.run_scheduled_reminders(now=_at(next_monday, 7, 10))
+        status = dr.schedule_status()
+        self.assertIsNone(status["reminders"].error_at)
+        self.assertEqual(status["digest"].week, "2026-W47")
+        self.assertIsNone(status["digest"].error_at)
+        page = self.client.get(reverse("system_status"))
+        self.assertNotContains(page, "Letzter Fehler")
+        self.assertContains(page, "2026-W47")
+
+    @override_settings(DEMO_MODE=True, DEMO_SANDBOX=True, MFA_REQUIRED=False)
+    def test_demo_admins_do_not_see_the_server_wide_schedule(self):
+        from core.demo_models import DemoSandbox
+
+        DemoSandbox.objects.create(station=self.station, token="demo-p2-tok")
+        admin = self.person(self.station, "w-demo-admin", Membership.Role.ADMIN)
+        dr.run_scheduled_reminders(now=_at(self.monday, 7))
+        self.client.force_login(admin)
+        page = self.client.get(reverse("system_status"))
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, "Fristen-Erinnerungen")
+        self.assertNotContains(page, "2026-W46")
+        real = self.make_station(slug="rw-p2-real")
+        real_admin = self.person(real, "w-real-admin", Membership.Role.ADMIN)
+        self.client.force_login(real_admin)
+        self.assertContains(self.client.get(reverse("system_status")), "2026-W46")
+
+    @override_settings(DEMO_MODE=True, DEMO_SANDBOX=False, MFA_REQUIRED=False)
+    def test_shared_demo_admin_does_not_see_the_schedule(self):
+        admin = self.person(self.station, "w-demo-admin", Membership.Role.ADMIN)
+        self.client.force_login(admin)
+        page = self.client.get(reverse("system_status"))
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, "Fristen-Erinnerungen")
 
     def test_system_status_shows_the_last_run(self):
         admin = self.person(self.station, "w-admin", Membership.Role.ADMIN)

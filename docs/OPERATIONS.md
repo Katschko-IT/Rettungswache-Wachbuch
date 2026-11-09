@@ -149,24 +149,41 @@ Es gibt keinen Cron auf dem Host. Der Dienst `notify-worker` (`notify_crew
   Ortszeit (`TIME_ZONE`). War der Dienst am Montag aus, kommt sie beim
   nächsten Lauf derselben Woche. Sie nennt je Person nur die abonnierten
   Bereiche, auch Überfälliges, und im Posteingang höchstens 8 ganze Zeilen
-  („… und N weitere Fristen“); die E-Mail enthält die ganze Liste.
+  („… und N weitere Fristen“); die E-Mail enthält die ganze Liste. Eine
+  Frist, die niemanden mit Abo und passender Funktion erreicht (z. B. die HU,
+  wenn nur Sicherheit / Arbeitsschutz den Bereich Fahrzeuge abonniert hat),
+  steht in der Übersicht der Leitung, wie bei den Erinnerungen.
+- **Ruhezeit** von 22:00 bis 06:00 Ortszeit: Dann läuft keins von beiden.
+  Die Schwellen wechseln um Mitternacht; die neuen Erinnerungen kommen mit dem
+  ersten Lauf ab 06:00 und nicht nachts per Push, Signal oder E-Mail. Eine
+  Wochenübersicht, die bis Sonntag 22:00 nicht versendet werden konnte,
+  entfällt für diese Woche.
 
-Der letzte Lauf steht in der Datenbank (Tabelle `WorkerJobState`). Ein
-Neustart des Dienstes löst deshalb keinen sofortigen neuen Lauf aus; doppelte
-Läufe wären durch die Schlüssel je Nachricht ohnehin wirkungslos. Ein Fehler
-wird protokolliert, nach 10 Minuten erneut versucht und zählt nicht als
-Fehlversuch des Dienstes. Den Stand zeigen
+Der letzte Lauf steht in der Datenbank (Tabelle `WorkerJobState`, dort auch
+die Anzahl neuer Nachrichten über alle Wachen). Ein Neustart des Dienstes löst
+deshalb keinen sofortigen neuen Lauf aus; doppelte Läufe wären durch die
+Schlüssel je Nachricht ohnehin wirkungslos. Ein Fehler wird protokolliert,
+nach 10 Minuten erneut versucht und zählt nicht als Fehlversuch des Dienstes.
+Im Durchlauf des Dienstes geht zuerst der Signal-Postausgang hinaus (z. B. eine
+Störungsmeldung der Host-Überwachung), danach folgen die Fristen-Erinnerungen.
+Der einmalige Lauf ohne `--watch`, den `wachwerk-health` bei ausgefallenem
+notify-worker mit Zeitlimit startet, stellt nur Meldungen zu und versendet
+keine Fristen-Erinnerungen. Den Stand zeigen
 
-- die Seite **System** (`/system/`, Master-Admin): letzter Lauf mit Anzahl
-  neuer Nachrichten, Woche der letzten Wochenübersicht, letzter Fehler;
+- die Seite **System** (`/system/`, Master-Admin echter Wachen; nicht in der
+  öffentlichen Demo): letzter erfolgreicher Lauf, Woche und Zeit der letzten
+  erfolgreichen Wochenübersicht und, je Schritt, ein Fehler, der nach dem
+  letzten Erfolg aufgetreten ist;
 - die Heartbeat-Datei des Dienstes, zweite Zeile, z. B.
-  `deadline_reminders=2026-11-09T07:00:02+00:00 weekly_digest=2026-W46`:
+  `deadline_reminders=2026-11-09T07:00:02+00:00 weekly_digest=2026-W46`
+  (jeweils der letzte erfolgreiche Lauf):
 
 ```bash
 docker compose exec -T notify-worker cat /tmp/notify_crew.alive
 ```
 
-Von Hand (Tests, Nachholen, Fehlersuche; Doppel entstehen nicht):
+Von Hand (Tests, Nachholen, Fehlersuche; Doppel entstehen nicht; ohne
+Ruhezeit):
 
 ```bash
 docker compose exec -T notify-worker python manage.py send_deadline_reminders --dry-run

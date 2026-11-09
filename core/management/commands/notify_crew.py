@@ -6,14 +6,18 @@ geschriebenen Outbox-Zeilen.
 
 Im selben Durchlauf: Erinnerungen der Kaffeekasse, Meldungen der
 Host-Überwachung an die Master-Admins (``core.host_health``; Störung, behoben,
-Überwachung schweigt), Fristen-Erinnerungen und Wochenübersicht
-(``core.deadline_reminders.run_scheduled_reminders``: höchstens einmal je
-Stunde bzw. einmal je ISO-Kalenderwoche ab Montag 06:00 Ortszeit, Stand in der
-Datenbank) und der Signal-Postausgang. Ein Fehler bei der Host-Überwachung
-oder bei den Fristen-Erinnerungen hält die übrigen Meldungen nie auf und zählt
-nicht als Fehlversuch des Dienstes. Ohne ``--watch`` (einmaliger Lauf, z. B. als
-Ersatzweg von ``wachwerk-health``) gibt es nie die Meldung „Überwachung meldet
-sich nicht“.
+Überwachung schweigt), der Signal-Postausgang und danach Fristen-Erinnerungen
+und Wochenübersicht (``core.deadline_reminders.run_scheduled_reminders``:
+höchstens einmal je Stunde bzw. einmal je ISO-Kalenderwoche ab Montag 06:00
+Ortszeit, nie zwischen 22:00 und 06:00, Stand in der Datenbank). Ein Fehler
+bei der Host-Überwachung oder bei den Fristen-Erinnerungen hält die übrigen
+Meldungen nie auf und zählt nicht als Fehlversuch des Dienstes.
+
+Ohne ``--watch`` (einmaliger Lauf, z. B. als Ersatzweg von ``wachwerk-health``
+mit Zeitlimit, wenn der notify-worker nicht läuft) gibt es nie die Meldung
+„Überwachung meldet sich nicht“ und keine Fristen-Erinnerungen: Der Lauf soll
+die Störungsmeldung zustellen und nicht seine Zeit mit allen Wachen, der
+Wochenübersicht und SMTP verbrauchen. Von Hand: ``send_deadline_reminders``.
 
 Betrieb im Container:
 
@@ -71,9 +75,8 @@ def reminder_heartbeat_line() -> str:
         logger.exception("notify_crew: Stand der Fristen-Erinnerungen nicht lesbar")
         return ""
     reminders, digest = status["reminders"], status["digest"]
-    last_run = reminders.last_finished_at.isoformat() if reminders and reminders.last_finished_at else "-"
-    week = digest.last_period if digest and digest.last_period else "-"
-    return f"deadline_reminders={last_run} weekly_digest={week}"
+    last_run = reminders.last_success_at.isoformat() if reminders.last_success_at else "-"
+    return f"deadline_reminders={last_run} weekly_digest={digest.week or '-'}"
 
 
 class Command(BaseCommand):
@@ -130,14 +133,17 @@ class Command(BaseCommand):
                     )
                 except Exception:
                     logger.exception("notify_crew: Meldung der Host-Überwachung fehlgeschlagen")
-                # Fristen-Erinnerungen (stündlich) und Wochenübersicht (je
-                # ISO-Woche); der Zeitplan steht in der Datenbank.
-                try:
-                    count += run_scheduled_reminders()
-                except Exception:
-                    logger.exception("notify_crew: Fristen-Erinnerungen fehlgeschlagen")
-                # Signal-Postausgang (nur wenn SIGNAL_API_URL gesetzt ist).
+                # Signal-Postausgang (nur wenn SIGNAL_API_URL gesetzt ist) vor
+                # den Fristen-Erinnerungen: Eine Störungsmeldung geht zuerst hinaus.
                 deliver_signal()
+                if options["watch"]:
+                    # Fristen-Erinnerungen (stündlich) und Wochenübersicht (je
+                    # ISO-Woche); der Zeitplan steht in der Datenbank. Ihre
+                    # Signal-Nachrichten gehen im nächsten Durchlauf hinaus.
+                    try:
+                        count += run_scheduled_reminders()
+                    except Exception:
+                        logger.exception("notify_crew: Fristen-Erinnerungen fehlgeschlagen")
             except Exception as exc:
                 failures += 1
                 logger.exception(
