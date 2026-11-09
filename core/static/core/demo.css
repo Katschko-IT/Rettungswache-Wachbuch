@@ -8,7 +8,7 @@
   width: min(42rem, calc(100% - 2rem));
   margin: 1rem auto;
   color: var(--muted);
-  font-size: .95rem;
+  font-size: var(--fs-base);
 }
 
 /* —— Seitengerüst, sobald das Deck läuft (app.js setzt die Klasse) —— */
@@ -136,7 +136,7 @@ body.demo-deck-active .site-footer { display: none; }
 .demo-slide .boundary { padding-block: clamp(1.5rem, 5cqh, 3rem); }
 .demo-slide .boundary h2 { max-width: none; }
 .demo-slide .boundary-list { margin-top: 2rem; gap: 1.5rem 3rem; }
-.demo-slide .boundary-list strong { font-size: 1.15rem; margin-bottom: .25rem; }
+.demo-slide .boundary-list strong { font-size: var(--fs-lg); margin-bottom: .25rem; }
 .demo-slide .boundary-list span { line-height: 1.5; }
 
 /* Installation */
@@ -146,15 +146,15 @@ body.demo-deck-active .site-footer { display: none; }
 .demo-slide .code-block code { white-space: pre-wrap; word-break: break-all; }
 .demo-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; }
 .demo-steps li { grid-template-columns: 1fr; align-content: start; gap: .75rem; }
-.demo-steps h3 { margin: 0; font-size: 1.05rem; line-height: 1.3; color: var(--text); }
-.demo-steps p { line-height: 1.5; font-size: .95rem; }
+.demo-steps h3 { margin: 0; font-size: var(--fs-md); line-height: 1.3; color: var(--text); }
+.demo-steps p { line-height: 1.5; font-size: var(--fs-base); }
 
 /* Schluss */
 .demo-cta { margin-top: 2rem; }
 .demo-cta form { display: contents; }
-.demo-facts .facts { font-size: 1rem; }
+.demo-facts .facts { font-size: var(--fs-base); }
 .demo-facts .note { margin-top: 1.5rem; }
-.demo-legal { margin: 1.5rem 0 0; color: var(--muted); font-size: .92rem; }
+.demo-legal { margin: 1.5rem 0 0; color: var(--muted); font-size: var(--fs-sm); }
 .demo-legal a { color: inherit; }
 
 /* —— Steuerleiste —— */
@@ -218,7 +218,7 @@ body.demo-deck-active .site-footer { display: none; }
   .demo-split,
   .demo-split-even { grid-template-columns: 1fr; gap: 1.75rem; }
   .demo-slide h2 { max-width: 20ch; font-size: clamp(1.75rem, 6vw, 2.5rem); margin-bottom: .9rem; }
-  .demo-lead { font-size: 1.05rem; line-height: 1.5; }
+  .demo-lead { font-size: var(--fs-md); line-height: 1.5; }
   .demo-kicker { margin-bottom: .6rem; }
   .demo-media { justify-self: start; }
   .demo-media-duo { max-width: 34rem; }
@@ -234,21 +234,21 @@ body.demo-deck-active .site-footer { display: none; }
   /* Schritte als nummerierte Liste mit Ziffer links – spart Höhe. */
   .demo-steps { grid-template-columns: 1fr; gap: .9rem; margin-top: 1.25rem; }
   .demo-steps li { grid-template-columns: 2rem minmax(0, 1fr); gap: .75rem; }
-  .demo-steps li::before { width: 2rem; height: 2rem; font-size: .9rem; }
-  .demo-steps p { font-size: .92rem; }
+  .demo-steps li::before { width: 2rem; height: 2rem; font-size: var(--fs-sm); }
+  .demo-steps p { font-size: var(--fs-sm); }
   .demo-single > .demo-copy { margin-bottom: 1.25rem; }
   .demo-slide .boundary { padding: 1.25rem 1.25rem 1.25rem 2.5rem; }
   .demo-slide .boundary::before { width: .75rem; }
   .demo-slide .boundary-list { margin-top: 1rem; gap: .75rem; }
-  .demo-slide .boundary-list strong { font-size: 1.05rem; overflow-wrap: anywhere; }
-  .demo-slide .boundary-list span { font-size: .95rem; }
-  .demo-slide .code-block { font-size: .8rem; padding: .9rem 1rem; }
+  .demo-slide .boundary-list strong { font-size: var(--fs-md); overflow-wrap: anywhere; }
+  .demo-slide .boundary-list span { font-size: var(--fs-base); }
+  .demo-slide .code-block { font-size: var(--fs-xs); padding: .9rem 1rem; }
   .demo-cta { margin-top: 1.25rem; }
   .pub-actions.demo-cta .pub-button { flex: 1 1 auto; }
-  .demo-facts .facts { font-size: .95rem; }
+  .demo-facts .facts { font-size: var(--fs-base); }
   .demo-facts .facts th, .demo-facts .facts td { padding-block: .5rem; }
   .demo-facts .facts th { width: 28%; padding-right: 1rem; }
-  .demo-facts .note { margin-top: 1rem; padding: .75rem 1rem; font-size: .95rem; }
+  .demo-facts .note { margin-top: 1rem; padding: .75rem 1rem; font-size: var(--fs-base); }
   .demo-legal { margin-top: .6rem; }
   .demo-deck-bar .pub-button { padding-inline: .8rem; }
   .demo-deck-bar { gap: .5rem; }

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{% translate "Vorschau" %} · {{ import_kind.title }} | {{ app_name }}{% endblock %}
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'masterdata_import_run' import_kind.slug %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Spaltenbeschreibung" %}</a>
 </nav>
 

@@ -54,6 +54,21 @@ class DefectQuickFormAndDuplicateHintTests(TestCase):
         )
         self.client.force_login(self.user)
 
+    def test_duplicate_hint_data_is_escaped_json_script(self):
+        """Mangeltitel dürfen den JSON-Block nicht verlassen (kein |safe, kein Inline-Skript)."""
+        Defect.objects.create(
+            station=self.station,
+            title="</script><img src=x onerror=alert(1)>",
+            asset_ref="RTW 1",
+            created_by=self.user,
+        )
+        response = self.client.get(reverse("defect_create_web"))
+        content = response.content.decode("utf-8")
+        self.assertNotIn("</script><img", content)
+        self.assertIn('id="defects-data"', content)
+        self.assertIn("\\u003C/script\\u003E", content)
+        self.assertNotRegex(content, r"<script(?![^>]*\ssrc=)(?![^>]*type=\"application/json\")")
+
     def test_defect_create_renders_3_step_quick_form(self):
         """Page renders 3-step quick form: photo input, category/priority chips, asset reference."""
         response = self.client.get(reverse("defect_create_web"))

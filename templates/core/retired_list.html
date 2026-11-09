@@ -3,7 +3,7 @@
 {% block title %}{{ title }} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{{ back_url }}">{% include "core/_icon.html" with name="back" %}{{ back_label }}</a>
 </nav>
 

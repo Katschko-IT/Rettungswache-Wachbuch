@@ -4,7 +4,7 @@
 {% block title %}{% blocktranslate with label=token.label %}Konfiguration: {{ label }}{% endblocktranslate %} · {{ current_membership.station.name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'display_tokens' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Übersicht" %}</a>
 </nav>
 
@@ -18,12 +18,13 @@
 
   <div class="table-responsive">
     <table class="table display-module-table">
+<caption class="visually-hidden">{% translate "Bausteine und Bildschirm-Zonen der Wandanzeige" %}</caption>
       <thead>
         <tr>
-          <th class="text-center">{% translate "Aktiv" %}</th>
-          <th>{% translate "Modul" %}</th>
-          <th>{% translate "Position (Zone)" %}</th>
-          <th>{% translate "Eigener Titel" %}</th>
+          <th scope="col" class="text-center">{% translate "Aktiv" %}</th>
+          <th scope="col">{% translate "Modul" %}</th>
+          <th scope="col">{% translate "Position (Zone)" %}</th>
+          <th scope="col">{% translate "Eigener Titel" %}</th>
         </tr>
       </thead>
       <tbody>

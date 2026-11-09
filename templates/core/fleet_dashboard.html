@@ -206,12 +206,13 @@
   <h2>{% translate "RKI-Desinfektionsbuch (Letzte Protokolle)" %}</h2>
   <div class="table-responsive">
     <table class="data-table">
+<caption class="visually-hidden">{% translate "Letzte Desinfektionen" %}</caption>
       <thead>
         <tr>
-          <th>{% translate "Datum / Uhrzeit" %}</th>
-          <th>{% translate "Fahrzeug" %}</th>
-          <th>{% translate "Desinfektionsmittel" %}</th>
-          <th>{% translate "Desinfektor / Personal" %}</th>
+          <th scope="col">{% translate "Datum / Uhrzeit" %}</th>
+          <th scope="col">{% translate "Fahrzeug" %}</th>
+          <th scope="col">{% translate "Desinfektionsmittel" %}</th>
+          <th scope="col">{% translate "Desinfektor / Personal" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -235,7 +236,7 @@
   <div class="modal-panel">
     <h2 id="scanner-modal-title">{% include "core/_icon.html" with name="camera" %}{% translate "Fahrzeug-QR scannen" %}</h2>
     <div class="scanner-view">
-      <video id="qr-video" data-scanner-video muted></video>
+      <video id="qr-video" data-scanner-video muted aria-label="{% translate 'Kamerabild des Scanners' %}"></video>
       <p class="scanner-status" id="scanner-status" data-scanner-status role="status">{% translate "Kamera wird initialisiert..." %}</p>
     </div>
     <div class="field">

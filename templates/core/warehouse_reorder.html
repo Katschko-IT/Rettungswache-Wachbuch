@@ -3,7 +3,7 @@
 {% block title %}{% translate "Nachbestellung & Bestellschein" %} | {{ app_name }}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'warehouse_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur Lagerübersicht" %}</a>
 </nav>
 
@@ -35,17 +35,18 @@
   {% if proposals %}
     <div class="table-responsive">
       <table class="data-table">
+<caption class="visually-hidden">{% translate "Bestellvorschläge" %}</caption>
         <thead>
           <tr>
-            <th>{% translate "PZN" %}</th>
-            <th>{% translate "Artikelbezeichnung" %}</th>
-            <th>{% translate "Kategorie" %}</th>
-            <th class="num">{% translate "Ist-Bestand" %}</th>
-            <th class="num">{% translate "Mindestbestand" %}</th>
-            <th class="num">{% translate "Sollbestand" %}</th>
-            <th class="num">{% translate "Bestellvorschlag" %}</th>
-            <th>{% translate "Einheit" %}</th>
-            <th><span class="sr-only">{% translate "Aktion" %}</span></th>
+            <th scope="col">{% translate "PZN" %}</th>
+            <th scope="col">{% translate "Artikelbezeichnung" %}</th>
+            <th scope="col">{% translate "Kategorie" %}</th>
+            <th scope="col" class="num">{% translate "Ist-Bestand" %}</th>
+            <th scope="col" class="num">{% translate "Mindestbestand" %}</th>
+            <th scope="col" class="num">{% translate "Sollbestand" %}</th>
+            <th scope="col" class="num">{% translate "Bestellvorschlag" %}</th>
+            <th scope="col">{% translate "Einheit" %}</th>
+            <th scope="col"><span class="sr-only">{% translate "Aktion" %}</span></th>
           </tr>
         </thead>
         <tbody>

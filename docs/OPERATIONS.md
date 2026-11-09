@@ -809,3 +809,20 @@ erfordern ein neues Mapping in `core.errors.ERROR_CODES`.
   kanonische JSON-Antworten werden ausgeliefert. 500-Fehler loggen den
   vollständigen Stacktrace intern, die Antwort enthält nur die
   Korrelations-ID.
+
+## Fristen-Erinnerungen
+
+Der Dienst `notify-worker` (`notify_crew --watch`) prüft stündlich die Fristen (Medizingeräte,
+Fahrzeuge, Lager, Mängel, Dienstanweisungen, Aufgaben) und legt persönliche Benachrichtigungen bei
+30, 7 und 0 Tagen an, montags zusätzlich die Wochenübersicht für die Wachleitung. Doppelte
+Benachrichtigungen verhindert der Dedupe-Schlüssel je Person, Frist und Schwelle.
+
+Prüfen ohne Versand:
+
+```bash
+docker compose exec -T notify-worker python manage.py send_deadline_reminders --dry-run
+```
+
+Mit `--today JJJJ-MM-TT` lässt sich ein anderer Stichtag simulieren. Grenze: Eine Erinnerung gilt nur
+am Stichtag. Fällt `notify-worker` den ganzen Tag aus, entfällt sie, und Überfälliges wird nicht
+erneut gemeldet.

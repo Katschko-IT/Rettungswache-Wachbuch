@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{{ import_kind.title }} | {% translate "Stammdaten importieren" %} | {{ app_name }}{% endblock %}
 {% block content %}
-<nav class="breadcrumb-nav">
+<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
   <a class="back-link" href="{% url 'masterdata_import' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zum Import" %}</a>
 </nav>
 
@@ -36,6 +36,7 @@
   <p class="help-text">{% translate "Die Überschriften sind fest und bleiben deutsch. Spalten mit * sind Pflicht. Die Reihenfolge ist egal; unbekannte Spalten werden ignoriert." %}</p>
   <div class="table-wrap">
     <table class="data-table">
+<caption class="visually-hidden">{% translate "Spalten der Importdatei" %}</caption>
       <thead>
         <tr>
           <th scope="col">{% translate "Spalte" %}</th>

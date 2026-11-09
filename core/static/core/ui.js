@@ -25,7 +25,9 @@
  *   data-pin-dots="input-id"       Punkte-Anzeige der eingegebenen Ziffern
  *   data-lock-screen               Sperrbildschirm: Antippen öffnet [data-unlock-panel]
  *   data-idle-logout="120"         sendet dieses Formular nach N Sekunden ohne
- *                                  Eingabe ab; Restzeit in [data-idle-countdown]
+ *                                  Eingabe ab; Restzeit in [data-idle-countdown];
+ *                                  20 s vorher erscheinen [data-idle-warning] und
+ *                                  [data-idle-extend] („Weiter arbeiten“)
  *   data-theme-toggle              wechselt hell/dunkel; die Wahl liegt im Cookie
  *                                  wb_theme, damit der Server sie beim nächsten
  *                                  Laden ohne Aufblitzen setzt
@@ -61,6 +63,55 @@
   // --- Modals -------------------------------------------------------------
 
   var lastTrigger = null;
+  var inertedByModal = [];
+
+  var FOCUSABLE = "a[href], button:not([disabled]), input:not([type=hidden]):not([disabled]), " +
+    "select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+  // Alles außerhalb des Modals wird für Tastatur und Screenreader gesperrt
+  // (aria-modal allein verhindert das nicht überall).
+  function inertBackground(modal) {
+    var node = modal;
+    while (node && node !== document.body) {
+      var parent = node.parentElement;
+      if (!parent) {
+        break;
+      }
+      Array.prototype.forEach.call(parent.children, function (sibling) {
+        if (sibling !== node && !sibling.inert && sibling.tagName !== "SCRIPT") {
+          sibling.inert = true;
+          inertedByModal.push(sibling);
+        }
+      });
+      node = parent;
+    }
+  }
+
+  function releaseBackground() {
+    inertedByModal.forEach(function (el) {
+      el.inert = false;
+    });
+    inertedByModal = [];
+  }
+
+  function trapTab(event, modal) {
+    var items = Array.prototype.filter.call(modal.querySelectorAll(FOCUSABLE), function (el) {
+      return !el.hidden && el.offsetParent !== null;
+    });
+    if (!items.length) {
+      event.preventDefault();
+      return;
+    }
+    var first = items[0];
+    var last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   function openModal(modal, trigger) {
     if (!modal) {
@@ -82,6 +133,8 @@
     }
     lastTrigger = trigger || null;
     modal.hidden = false;
+    releaseBackground();
+    inertBackground(modal);
     document.body.classList.add("has-open-modal");
     var focusTarget = modal.querySelector("[autofocus], input:not([type=hidden]), select, textarea, button");
     if (focusTarget) {
@@ -95,6 +148,7 @@
       return;
     }
     modal.hidden = true;
+    releaseBackground();
     if (!document.querySelector(".wb-modal:not([hidden])")) {
       document.body.classList.remove("has-open-modal");
     }
@@ -132,6 +186,11 @@
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
       each(".wb-modal:not([hidden])", document, closeModal);
+    } else if (event.key === "Tab") {
+      var open = document.querySelector(".wb-modal:not([hidden])");
+      if (open) {
+        trapTab(event, open);
+      }
     }
   });
 
@@ -449,10 +508,26 @@
       return;
     }
     var counter = document.querySelector("[data-idle-countdown]");
+    var warning = document.querySelector("[data-idle-warning]");
+    var extend = document.querySelector("[data-idle-extend]");
+    var warnAt = Math.min(20, Math.floor(seconds / 2));
     var deadline = Date.now() + seconds * 1000;
     var sent = false;
+    var warned = false;
+    function showWarning(on) {
+      if (warning) {
+        warning.hidden = !on;
+      }
+      if (extend) {
+        extend.hidden = !on;
+      }
+      warned = on;
+    }
     function reset() {
       deadline = Date.now() + seconds * 1000;
+      if (warned) {
+        showWarning(false);
+      }
     }
     ["pointerdown", "keydown", "touchstart", "wheel"].forEach(function (name) {
       document.addEventListener(name, reset, { passive: true });
@@ -462,11 +537,105 @@
       if (counter) {
         counter.textContent = String(left);
       }
+      // WCAG 2.2.1: Vorwarnung mit einfacher Möglichkeit zum Verlängern.
+      if (left <= warnAt && left > 0 && !warned) {
+        showWarning(true);
+        if (extend) {
+          extend.focus();
+        }
+      }
       if (left === 0 && !sent) {
         sent = true;
         form.submit();
       }
     }, 1000);
+  }
+
+  // --- Formularfehler -----------------------------------------------------
+  // Verknüpft Fehlermeldungen mit ihrem Feld (aria-invalid, aria-describedby)
+  // und füllt die Fehlerübersicht mit Links auf die betroffenen Felder.
+
+  var CONTROL = "input:not([type=hidden]):not([type=submit]):not([type=button]), select, textarea";
+  var errorCounter = 0;
+
+  function controlForError(error) {
+    var node = error.parentElement;
+    for (var depth = 0; node && depth < 3 && node.tagName !== "FORM"; depth += 1) {
+      var controls = node.querySelectorAll(CONTROL);
+      if (controls.length) {
+        var names = {};
+        Array.prototype.forEach.call(controls, function (c) {
+          names[c.name || c.id] = true;
+        });
+        return Object.keys(names).length === 1 ? controls[0] : null;
+      }
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function labelText(control) {
+    var label = control.id ? document.querySelector("label[for='" + control.id + "']") : null;
+    if (!label) {
+      label = control.closest("label");
+    }
+    return label ? label.textContent.replace(/\s+/g, " ").trim() : "";
+  }
+
+  function setupFormErrors() {
+    var links = [];
+    each(".field-error, .form-error, .errorlist", document, function (error) {
+      var text = error.textContent.replace(/\s+/g, " ").trim();
+      // Verschachtelt (div.form-error > ul.errorlist): nur der innere zählt; Django
+      // setzt aria-describedby auf die Liste mit eigener ID bereits selbst.
+      var nested = error.querySelector(".field-error, .form-error, .errorlist");
+      if (!text || error.closest(".error-summary") || nested) {
+        return;
+      }
+      if (!error.id) {
+        errorCounter += 1;
+        error.id = "wb-error-" + errorCounter;
+      }
+      var control = controlForError(error);
+      if (control && control.id) {
+        control.setAttribute("aria-invalid", "true");
+        var ids = (control.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
+        if (ids.indexOf(error.id) === -1) {
+          ids.push(error.id);
+        }
+        control.setAttribute("aria-describedby", ids.join(" "));
+      }
+      links.push({ control: control, text: text });
+    });
+    each(".error-summary", document, function (summary) {
+      if (!links.length || summary.querySelector("[data-error-list]")) {
+        return;
+      }
+      var list = document.createElement("ul");
+      list.setAttribute("data-error-list", "");
+      links.forEach(function (entry) {
+        var li = document.createElement("li");
+        var label = entry.control ? labelText(entry.control) : "";
+        var message = label ? label + ": " + entry.text : entry.text;
+        if (entry.control && entry.control.id) {
+          var a = document.createElement("a");
+          a.href = "#" + entry.control.id;
+          a.textContent = message;
+          li.appendChild(a);
+        } else {
+          li.textContent = message;
+        }
+        list.appendChild(li);
+      });
+      summary.appendChild(list);
+      summary.removeAttribute("role");
+      summary.setAttribute("aria-labelledby", "wb-error-summary-title");
+      var heading = summary.querySelector("h2");
+      if (heading && !heading.id) {
+        heading.id = "wb-error-summary-title";
+      }
+      summary.focus();
+    });
   }
 
   function effectiveTheme() {
@@ -486,6 +655,7 @@
   function init() {
     applyLayoutHints(document);
     each("[data-theme-toggle]", document, setupThemeToggle);
+    setupFormErrors();
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);
     each("[data-pin-pad]", document, setupPinPad);
