@@ -11,6 +11,8 @@ from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy
 
+from .paper_backfill import PaperBackfillRecord, backfill_constraint
+
 
 class Station(models.Model):
     class Profile(models.TextChoices):
@@ -278,7 +280,7 @@ class Membership(models.Model):
                 raise ValidationError(gettext_lazy("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
 
 
-class HandoverEntry(models.Model):
+class HandoverEntry(PaperBackfillRecord, models.Model):
     class Category(models.TextChoices):
         STATION = "station", gettext_lazy("Wache")
         VEHICLE = "vehicle", gettext_lazy("Fahrzeugzustand")
@@ -313,6 +315,9 @@ class HandoverEntry(models.Model):
     class Meta:
         ordering = ["status", "-created_at"]
         indexes = [models.Index(fields=["station", "status", "-created_at"])]
+        # Ereigniszeit nur mit Häkchen (core/paper_backfill.py). Nicht streng:
+        # Übergaben vor 0.28 kennen keine Ereigniszeit.
+        constraints = [backfill_constraint("handoverentry", strict=False)]
 
     def __str__(self):
         return self.title

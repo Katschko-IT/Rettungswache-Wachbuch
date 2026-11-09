@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import Station
+from .paper_backfill import PaperBackfillRecord, backfill_constraint
 
 
 def _require_same_station(parent, station_id: int | None, label: str) -> None:
@@ -309,8 +310,15 @@ class DeviceTrainingRecord(models.Model):
         return self.valid_until >= timezone.localdate()
 
 
-class DeviceRoutineCheck(models.Model):
-    """Tägliche oder schichtweise Funktionskontrolle gem. Herstellervorgaben und Betreiberplan."""
+class DeviceRoutineCheck(PaperBackfillRecord, models.Model):
+    """Tägliche oder schichtweise Funktionskontrolle gem. Herstellervorgaben und Betreiberplan.
+
+    ``checked_at`` ist die Erfassung (auch für das 5-Minuten-Storno). Bei einem
+    Nachtrag vom Papierbogen steht die Zeit laut Bogen in ``occurred_at``
+    (``core/paper_backfill.py``).
+    """
+
+    BACKFILL_ENTRY_FIELD = "checked_at"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="device_routine_checks")
     device = models.ForeignKey(MedicalDevice, on_delete=models.PROTECT, related_name="routine_checks")
@@ -334,12 +342,15 @@ class DeviceRoutineCheck(models.Model):
         related_name="cancellation_records",
         verbose_name="Stornierte Funktionskontrolle",
     )
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
 
     class Meta:
         ordering = ["-checked_at"]
         indexes = [
             models.Index(fields=["station", "-checked_at"], name="dev_check_station_time_idx"),
         ]
+        constraints = [backfill_constraint("deviceroutinecheck")]
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -351,8 +362,13 @@ class DeviceRoutineCheck(models.Model):
         super().save(*args, **kwargs)
 
         if not self.is_cancellation:
-            self.device.last_routine_check = self.checked_at
-            update_fields = ["last_routine_check", "updated_at"]
+            update_fields = ["updated_at"]
+            # „Letzter Funktionscheck“ nach Ereigniszeit: Ein älterer Nachtrag
+            # schiebt ihn nicht zurück.
+            last = self.device.last_routine_check
+            if not self.is_paper_backfill or last is None or self.event_at > last:
+                self.device.last_routine_check = self.event_at
+                update_fields.append("last_routine_check")
             if not self.passed and self.device.current_status != MedicalDevice.Status.DECOMMISSIONED:
                 # Sperre mit Mangel; aufgehoben wird sie nur über die Freigabe
                 # (core/device_status.py). Eine bestandene Kontrolle hebt nichts auf.
@@ -367,12 +383,22 @@ class DeviceRoutineCheck(models.Model):
                     )
                     if not ok
                 ]
+                # Auch ein Nachtrag sperrt: Laut Bogen ist das Gerät nicht zu
+                # verwenden, bis die Schichtleitung es nach dem Mangel freigibt.
+                backfill_line = ""
+                if self.is_paper_backfill:
+                    from django.conf import settings
+                    from django.utils import translation
+
+                    # Gespeichert in der Wachensprache (wie andere Mangeltexte).
+                    with translation.override(settings.LANGUAGE_CODE):
+                        backfill_line = f"{self.paper_backfill_label}\n"
                 Defect.objects.create(
                     station_id=self.station_id,
                     medical_device=self.device,
                     title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
                     description=(
-                        f"Nicht in Ordnung: {', '.join(failed)}\n"
+                        f"{backfill_line}Nicht in Ordnung: {', '.join(failed)}\n"
                         f"Standort: {self.device.location}\n\n{self.notes}"
                     ).strip(),
                     asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
@@ -390,14 +416,15 @@ class DeviceRoutineCheck(models.Model):
             cancelled_ids = DeviceRoutineCheck.objects.filter(
                 device=self.device, is_cancellation=True
             ).values_list("cancels_check_id", flat=True)
-            last_valid = (
+            from .paper_backfill import newest_event_first
+
+            last_valid = newest_event_first(
                 DeviceRoutineCheck.objects.filter(device=self.device, is_cancellation=False)
                 .exclude(id__in=cancelled_ids)
-                .exclude(id=self.cancels_check_id)
-                .order_by("-checked_at")
-                .first()
-            )
-            self.device.last_routine_check = last_valid.checked_at if last_valid else None
+                .exclude(id=self.cancels_check_id),
+                "checked_at",
+            ).first()
+            self.device.last_routine_check = last_valid.event_at if last_valid else None
             self.device.save(update_fields=["last_routine_check", "updated_at"])
 
     def delete(self, *args, **kwargs):
