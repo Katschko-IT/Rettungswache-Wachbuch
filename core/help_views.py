@@ -131,9 +131,12 @@ def help_article(request: HttpRequest, slug: str) -> HttpResponse:
 def system_status(request: HttpRequest) -> HttpResponse:
     from .host_health import host_health_visible, read_host_health
 
+    from .deadline_reminders import schedule_status
+
     host_health = read_host_health() if host_health_visible(request.membership) else None
     return render(request, "core/system_status.html", {
         "host_health": host_health,
+        "reminder_schedule": schedule_status(),
         "host_health_stale": bool(host_health and host_health.is_stale()),
         "app_version": settings.APP_VERSION,
         "build_commit": build_commit(),

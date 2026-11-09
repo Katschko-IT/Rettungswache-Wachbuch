@@ -6,17 +6,22 @@ geschriebenen Outbox-Zeilen.
 
 Im selben Durchlauf: Erinnerungen der Kaffeekasse, Meldungen der
 Host-Überwachung an die Master-Admins (``core.host_health``; Störung, behoben,
-Überwachung schweigt) und der Signal-Postausgang. Ein Fehler bei der
-Host-Überwachung hält die übrigen Meldungen nie auf und zählt nicht als
-Fehlversuch des Dienstes. Ohne ``--watch`` (einmaliger Lauf, z. B. als
+Überwachung schweigt), Fristen-Erinnerungen und Wochenübersicht
+(``core.deadline_reminders.run_scheduled_reminders``: höchstens einmal je
+Stunde bzw. einmal je ISO-Kalenderwoche ab Montag 06:00 Ortszeit, Stand in der
+Datenbank) und der Signal-Postausgang. Ein Fehler bei der Host-Überwachung
+oder bei den Fristen-Erinnerungen hält die übrigen Meldungen nie auf und zählt
+nicht als Fehlversuch des Dienstes. Ohne ``--watch`` (einmaliger Lauf, z. B. als
 Ersatzweg von ``wachwerk-health``) gibt es nie die Meldung „Überwachung meldet
 sich nicht“.
 
 Betrieb im Container:
 
 - Nach jedem erfolgreichen Durchlauf schreibt der Befehl einen Zeitstempel in
-  die Heartbeat-Datei (``--heartbeat-file`` bzw. ``NOTIFY_HEARTBEAT_FILE``).
-  Der Compose-Healthcheck prüft das Alter dieser Datei.
+  die Heartbeat-Datei (``--heartbeat-file`` bzw. ``NOTIFY_HEARTBEAT_FILE``),
+  dazu eine Zeile mit dem letzten Lauf der Fristen-Erinnerungen und der Woche
+  der letzten Wochenübersicht. Der Compose-Healthcheck prüft das Alter dieser
+  Datei.
 - Schlägt der Durchlauf mehrfach hintereinander fehl (z. B. Datenbank nicht
   erreichbar), beendet sich der Befehl mit einem Fehlercode, damit Docker ihn
   neu startet und der Fehler sichtbar wird, statt still weiterzulaufen.
@@ -35,6 +40,7 @@ from django.utils import timezone
 
 from core.coffee import remind_open_fees
 from core.crew_notifications import notify_ready_vehicles
+from core.deadline_reminders import run_scheduled_reminders, schedule_status
 from core.host_health import STALE_AFTER, notify_host_health
 from core.signal_messenger import deliver_outbox as deliver_signal
 
@@ -48,12 +54,26 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
-def write_heartbeat(path: str) -> None:
+def write_heartbeat(path: str, extra: str = "") -> None:
     """Schreibt den Zeitstempel atomar, damit der Healthcheck nie halbe Dateien liest."""
     target = Path(path)
     temporary = target.with_name(f".{target.name}.tmp")
-    temporary.write_text(timezone.now().isoformat() + "\n", encoding="utf-8")
+    lines = [timezone.now().isoformat()] + ([extra] if extra else [])
+    temporary.write_text("\n".join(lines) + "\n", encoding="utf-8")
     os.replace(temporary, target)
+
+
+def reminder_heartbeat_line() -> str:
+    """Letzter Lauf der Fristen-Erinnerungen und Woche der letzten Wochenübersicht."""
+    try:
+        status = schedule_status()
+    except Exception:
+        logger.exception("notify_crew: Stand der Fristen-Erinnerungen nicht lesbar")
+        return ""
+    reminders, digest = status["reminders"], status["digest"]
+    last_run = reminders.last_finished_at.isoformat() if reminders and reminders.last_finished_at else "-"
+    week = digest.last_period if digest and digest.last_period else "-"
+    return f"deadline_reminders={last_run} weekly_digest={week}"
 
 
 class Command(BaseCommand):
@@ -110,6 +130,12 @@ class Command(BaseCommand):
                     )
                 except Exception:
                     logger.exception("notify_crew: Meldung der Host-Überwachung fehlgeschlagen")
+                # Fristen-Erinnerungen (stündlich) und Wochenübersicht (je
+                # ISO-Woche); der Zeitplan steht in der Datenbank.
+                try:
+                    count += run_scheduled_reminders()
+                except Exception:
+                    logger.exception("notify_crew: Fristen-Erinnerungen fehlgeschlagen")
                 # Signal-Postausgang (nur wenn SIGNAL_API_URL gesetzt ist).
                 deliver_signal()
             except Exception as exc:
@@ -132,7 +158,7 @@ class Command(BaseCommand):
                 started = True
                 failures = 0
                 if heartbeat_file:
-                    write_heartbeat(heartbeat_file)
+                    write_heartbeat(heartbeat_file, reminder_heartbeat_line())
                 if count:
                     self.stdout.write(f"notify_crew: {count} Benachrichtigungen angelegt")
             if not options["watch"] or stop["flag"]:

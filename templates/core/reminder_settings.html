@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Erinnerungen" %} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'account_home' %}">{% translate "Zurück zum Konto" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Konto" %}</p>
+  <h1>{% translate "Erinnerungen" %}</h1>
+  <p class="lead">{% translate "Fristen-Erinnerungen kommen 30, 7 und 0 Tage vor einer Frist in deinen Posteingang, dazu einmal je Woche die Wochenübersicht. Persönliche Erinnerungen (Lesefrist einer Dienstanweisung, eigene Mängel) bekommst du immer." %}</p>
+</header>
+<form method="post" class="form-card narrow">
+  {% csrf_token %}
+  {% include "core/form_errors.html" %}
+  {% if has_categories %}
+    <fieldset>
+      <legend>{% translate "Bereiche" %}</legend>
+      <p class="helptext">{% translate "Angezeigt werden nur Bereiche, die zu deiner Rolle oder Funktion passen. Hat niemand der Wache einen Bereich eingeschaltet, erhalten Schichtleitung und Master-Admin ihn trotzdem." %}</p>
+      {% for field in form.category_fields %}
+        <label class="checkbox-field" for="{{ field.id_for_label }}">
+          {{ field }}
+          <span><strong>{{ field.label }}</strong><small class="helptext">{{ field.help_text }}</small></span>
+        </label>
+      {% endfor %}
+    </fieldset>
+  {% else %}
+    <p>{% translate "Bereiche abonnieren können Schichtleitung, Master-Admin und Personen mit einer Funktion (z. B. Fuhrpark oder MPG-Beauftragte/r). Die Funktion vergibt der Master-Admin im Team." %}</p>
+  {% endif %}
+  <fieldset>
+    <legend>{% translate "E-Mail" %}</legend>
+    {% if email_available %}
+      <label class="checkbox-field" for="{{ form.reminder_email.id_for_label }}">
+        {{ form.reminder_email }}
+        <span><strong>{{ form.reminder_email.label }}</strong><small class="helptext">{{ form.reminder_email.help_text }}</small></span>
+      </label>
+    {% elif email_configured %}
+      <p class="helptext">{% translate "Für E-Mail-Erinnerungen fehlt eine E-Mail-Adresse in deinem Profil." %}</p>
+    {% else %}
+      <p class="helptext">{% translate "E-Mail ist auf diesem Server nicht eingerichtet. Erinnerungen kommen in den Posteingang und, wenn eingerichtet, per Push oder Signal." %}</p>
+    {% endif %}
+  </fieldset>
+  <div class="form-actions">
+    <button class="button primary" type="submit">{% translate "Speichern" %}</button>
+  </div>
+</form>
+{% endblock %}

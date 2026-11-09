@@ -46,6 +46,21 @@
 
 {% if host_health %}{% include "core/_system_operations.html" %}{% endif %}
 
+<section aria-labelledby="system-reminders-title">
+  <h2 id="system-reminders-title">{% translate "Fristen-Erinnerungen" %}</h2>
+  <p>{% translate "Der notify-worker versendet die Erinnerungen höchstens einmal je Stunde und die Wochenübersicht einmal je Kalenderwoche ab Montag 06:00 Uhr." %}</p>
+  <dl class="system-facts">
+    <dt>{% translate "Letzter Lauf" %}</dt>
+    <dd>{% if reminder_schedule.reminders.last_finished_at %}{{ reminder_schedule.reminders.last_finished_at|date:"d.m.Y H:i" }} ({{ reminder_schedule.reminders.last_count }}){% else %}{% translate "noch keiner" %}{% endif %}</dd>
+    <dt>{% translate "Letzte Wochenübersicht" %}</dt>
+    <dd>{% if reminder_schedule.digest.last_period %}{{ reminder_schedule.digest.last_period }}{% if reminder_schedule.digest.last_finished_at %} · {{ reminder_schedule.digest.last_finished_at|date:"d.m.Y H:i" }}{% endif %}{% else %}{% translate "noch keine" %}{% endif %}</dd>
+    {% if reminder_schedule.reminders.last_failed_at %}
+      <dt>{% translate "Letzter Fehler" %}</dt>
+      <dd>{{ reminder_schedule.reminders.last_failed_at|date:"d.m.Y H:i" }}</dd>
+    {% endif %}
+  </dl>
+</section>
+
 <section aria-labelledby="system-diagnostics-title">
   <h2 id="system-diagnostics-title">{% translate "Diagnose" %}</h2>
   <p>{% translate "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache." %}</p>

@@ -405,6 +405,8 @@ class MembershipEditForm(forms.Form):
 
     def __init__(self, *args, membership, **kwargs):
         super().__init__(*args, **kwargs)
+        from .terminal import is_service_user
+
         self.fields["role"].initial = membership.role
         self.fields["is_mpg_lead"].initial = getattr(membership, "is_mpg_lead", False)
         self.fields["is_hygiene_lead"].initial = getattr(membership, "is_hygiene_lead", False)
@@ -412,6 +414,19 @@ class MembershipEditForm(forms.Form):
         self.fields["is_fleet_lead"].initial = getattr(membership, "is_fleet_lead", False)
         self.fields["is_safety_lead"].initial = getattr(membership, "is_safety_lead", False)
         self.fields["is_active"].initial = membership.is_active
+        # Das Dienstkonto des Wachenterminals übernimmt keine Funktion (AGENTS.md § 4).
+        self.service_account = is_service_user(membership.user)
+        if self.service_account:
+            for field in Membership.FUNCTION_FIELDS:
+                self.fields[field].disabled = True
+                self.fields[field].initial = False
+                self.fields[field].help_text = _("Das Wachenterminal-Konto kann keine Funktion übernehmen.")
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.service_account and any(cleaned.get(field) for field in Membership.FUNCTION_FIELDS):
+            raise ValidationError(_("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
+        return cleaned
 
 
 class TrafficConfigMixin:
@@ -484,6 +499,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "fleet_enabled",
             "display_enabled",
             "orga_enabled",
+            "sop_receipt_names_agreed",
             "traffic_enabled",
             "traffic_roads",
             "traffic_radius_km",
@@ -509,6 +525,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "fleet_enabled": _("Fuhrpark & Fahrzeuge"),
             "display_enabled": _("Wachen-Display"),
             "orga_enabled": _("Organisation & Desk"),
+            "sop_receipt_names_agreed": _("Namen bei Lesebestätigungen von Dienstanweisungen anzeigen"),
             "holidays_enabled": _("Feiertage im Kalender"),
             "holiday_state": _("Bundesland für Feiertage"),
             "weather_enabled": _("Wettervorhersage aktiviert (Open-Meteo)"),
@@ -530,6 +547,12 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "payment_note": _("Zahlungshinweis"),
         }
         help_texts = {
+            "sop_receipt_names_agreed": _(
+                "Nur einschalten, wenn eine Vereinbarung mit der Beschäftigtenvertretung (Betriebsrat, "
+                "Personalrat oder MAV) das erlaubt (Vorlage: docs/MITBESTIMMUNG-VORLAGE.md). Aus: Schichtleitung "
+                "und Master-Admin sehen nur Anzahl und Quote, keine Namen und keinen Export mit Namen; die "
+                "Erinnerung an offene Personen funktioniert trotzdem."
+            ),
             "holidays_enabled": _("Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."),
             "holiday_state": _("Bestimmt die gesetzlichen Feiertage für den Wachenkalender und ICS-Export."),
             "weather_enabled": _("5-Tage-Wetter am Wachenstandort über Open-Meteo abrufen. Erfordert eine hinterlegte Adresse."),
