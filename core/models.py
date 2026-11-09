@@ -142,6 +142,19 @@ class Station(models.Model):
         default=False,
         verbose_name="Kommunale Quellen Steinhagen und Kreis Gütersloh",
     )
+    # „Namen nur nach Vereinbarung“ (Roadmap 0.28): Ohne Vereinbarung mit der
+    # Beschäftigtenvertretung sieht die Leitung bei Dienstanweisungen nur Anzahl
+    # und Quote, keine Namen (docs/MITBESTIMMUNG-VORLAGE.md). Nur der
+    # Master-Admin schaltet um; die Änderung steht im Audit.
+    sop_receipt_names_agreed = models.BooleanField(
+        default=False,
+        verbose_name="Namen bei Lesebestätigungen von Dienstanweisungen anzeigen",
+        help_text=(
+            "Nur einschalten, wenn eine Vereinbarung mit der Beschäftigtenvertretung (Betriebsrat, "
+            "Personalrat oder MAV) das erlaubt. Aus: Schichtleitung und Master-Admin sehen nur Anzahl "
+            "und Quote, keine Namen und keinen Export mit Namen."
+        ),
+    )
 
     class Meta:
         ordering = ["name"]
@@ -205,8 +218,31 @@ class Membership(models.Model):
         default=False,
         help_text="Verantwortlich für Arbeitsschutz und Sicherheitsunterweisungen.",
     )
+    # Fristen-Erinnerungen je Bereich (core/deadline_reminders.py). Leer heißt
+    # Standard: an für die Bereiche der eigenen Funktionen, für Schichtleitung
+    # und Master-Admin alle Bereiche. Die Person stellt das selbst ein.
+    remind_fleet = models.BooleanField("Erinnerungen: Fahrzeuge", null=True, blank=True, default=None)
+    remind_mpg = models.BooleanField("Erinnerungen: Medizinprodukte", null=True, blank=True, default=None)
+    remind_material = models.BooleanField("Erinnerungen: Material", null=True, blank=True, default=None)
+    remind_sop = models.BooleanField("Erinnerungen: Dienstanweisungen", null=True, blank=True, default=None)
+    remind_tasks = models.BooleanField("Erinnerungen: Aufgaben und Prüfungen", null=True, blank=True, default=None)
+    reminder_email = models.BooleanField(
+        "Erinnerungen zusätzlich per E-Mail",
+        default=False,
+        help_text="Fristen-Erinnerungen und Wochenübersicht auch an die E-Mail-Adresse des Kontos.",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Funktionen (Roadmap 0.28): Kurzname, Feld, Bezeichnung.
+    FUNCTIONS = (
+        ("mpg", "is_mpg_lead", gettext_lazy("MPG-Beauftragte/r")),
+        ("hygiene", "is_hygiene_lead", gettext_lazy("Hygiene / Desinfektor:in")),
+        ("material", "is_material_lead", gettext_lazy("Material / Lager")),
+        ("fleet", "is_fleet_lead", gettext_lazy("Fuhrpark")),
+        ("safety", "is_safety_lead", gettext_lazy("Sicherheit / Arbeitsschutz")),
+    )
+    FUNCTION_FIELDS = tuple(field for _code, field, _label in FUNCTIONS)
 
     class Meta:
         constraints = [
@@ -224,18 +260,22 @@ class Membership(models.Model):
 
     @property
     def function_labels(self) -> list[str]:
-        labels = []
-        if self.is_mpg_lead:
-            labels.append("MPG-Beauftragte/r")
-        if self.is_hygiene_lead:
-            labels.append("Hygiene / Desinfektor:in")
-        if self.is_material_lead:
-            labels.append("Material / Lager")
-        if self.is_fleet_lead:
-            labels.append("Fuhrpark")
-        if self.is_safety_lead:
-            labels.append("Sicherheit / Arbeitsschutz")
-        return CallableList(labels)
+        """Bezeichnungen der Funktionen in der Sprache der Anfrage."""
+        return CallableList(str(label) for _code, field, label in self.FUNCTIONS if getattr(self, field, False))
+
+    @property
+    def has_function(self) -> bool:
+        return any(getattr(self, field, False) for field in self.FUNCTION_FIELDS)
+
+    def clean(self):
+        super().clean()
+        # Das Dienstkonto des Wachenterminals bekommt keine Funktion
+        # (AGENTS.md § 4: es darf nicht erweitert werden).
+        if self.user_id and self.has_function:
+            from .terminal import is_service_user
+
+            if is_service_user(self.user):
+                raise ValidationError(gettext_lazy("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
 
 
 class HandoverEntry(models.Model):
