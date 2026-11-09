@@ -313,6 +313,111 @@ class DefectReferenceListTests(DefectFormBase):
         self.assertIn("5 MiB", response.context["errors"]["attachments"])
 
 
+class RetiredMirrorTests(DefectFormBase):
+    """Spiegel außer Betrieb genommener Fahrzeuge und Geräte sind nicht wählbar."""
+
+    def setUp(self):
+        super().setUp()
+        self.retired_mirror = StationAsset.objects.create(
+            station=self.station, asset_id="rtw-alt", label="RTW Alt (MU-RD 999)", kind=StationAsset.Kind.VEHICLE,
+        )
+        self.decommissioned_mirror = StationAsset.objects.create(
+            station=self.station, asset_id="defi-alt", label="Alter Defi", kind=StationAsset.Kind.DEVICE,
+        )
+
+    def keys(self, **kwargs):
+        from core.defect_refs import build_reference_options
+
+        return [option.key for option in build_reference_options(self.station, **kwargs)]
+
+    def test_mirrors_of_retired_objects_are_not_offered(self):
+        response = self.client.get(reverse("defect_create_web"))
+        keys = [option.key for _group, items in response.context["reference_groups"] for option in items]
+        self.assertNotIn(f"asset:{self.retired_mirror.pk}", keys)
+        self.assertNotIn(f"asset:{self.decommissioned_mirror.pk}", keys)
+        self.assertNotContains(response, "RTW Alt")
+        self.assertNotContains(response, "Alter Defi")
+        # Auch ohne Medizingeräte in der Auswahl (Wachenterminal) bleibt der Spiegel weg.
+        self.assertNotIn(f"asset:{self.decommissioned_mirror.pk}", self.keys(include_devices=False))
+
+    def test_retiring_a_vehicle_or_device_removes_its_existing_mirror(self):
+        Vehicle.objects.filter(pk=self.vehicle.pk).update(is_active=False)
+        MedicalDevice.objects.filter(pk=self.device.pk).update(current_status=MedicalDevice.Status.DECOMMISSIONED)
+        device_mirror = StationAsset.objects.create(
+            station=self.station, asset_id="defi-1", label="Defibrillator", kind=StationAsset.Kind.DEVICE,
+        )
+        keys = self.keys()
+        self.assertNotIn(f"vehicle:{self.vehicle.pk}", keys)
+        self.assertNotIn(f"asset:{self.mirror.pk}", keys)
+        self.assertNotIn(f"asset:{device_mirror.pk}", keys)
+
+    def test_posting_a_hidden_mirror_is_rejected(self):
+        response = self.post({"asset_ref": f"asset:{self.retired_mirror.pk}", "title": "Alt"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("asset_ref", response.context["errors"])
+        self.assertFalse(Defect.objects.exists())
+
+    def test_reused_call_sign_keeps_the_mirror_with_the_active_vehicle(self):
+        Vehicle.objects.create(
+            station=self.station, slug="rtw-831-vorgaenger", call_sign="RTW 1/83-1", license_plate="MU-RD 800",
+            is_active=False,
+        )
+        from core.defect_refs import build_reference_options
+
+        options = build_reference_options(self.station)
+        vehicle_option = next(option for option in options if option.vehicle_id == self.vehicle.pk)
+        self.assertIn(f"asset:{self.mirror.pk}", vehicle_option.lookup)
+        self.assertNotIn(f"asset:{self.mirror.pk}", [option.key for option in options])
+
+    def test_modules_off_keep_the_asset_list_as_it_is(self):
+        Station.objects.filter(pk=self.station.pk).update(fleet_enabled=False, mpg_enabled=False)
+        self.station.refresh_from_db()
+        keys = self.keys()
+        self.assertIn(f"asset:{self.retired_mirror.pk}", keys)
+        self.assertIn(f"asset:{self.decommissioned_mirror.pk}", keys)
+
+
+class VehiclePageDefectsTests(DefectFormBase):
+    """„Offene Mängel an diesem Fahrzeug“: exakt, nie über Teilstrings."""
+
+    def setUp(self):
+        super().setUp()
+        self.ktw9 = Vehicle.objects.create(station=self.station, slug="mrk-1", call_sign="KTW 9", license_plate="M-RK 1")
+        self.ktw10 = Vehicle.objects.create(station=self.station, slug="mrk-12", call_sign="KTW 10", license_plate="M-RK 12")
+
+    def page(self, vehicle):
+        return self.client.get(reverse("fleet_vehicle_detail", args=[vehicle.slug]))
+
+    def test_plate_prefix_does_not_match_another_vehicle(self):
+        self.defect(title="Nur KTW 10 verknüpft", vehicle=self.ktw10, asset_ref="KTW 10 (M-RK 12)", category="vehicle")
+        self.defect(title="Nur KTW 10 Text", asset_ref="KTW 10 (M-RK 12)", category="vehicle")
+        page9 = self.page(self.ktw9)
+        self.assertNotContains(page9, "Nur KTW 10")
+        page10 = self.page(self.ktw10)
+        self.assertContains(page10, "Nur KTW 10 verknüpft")
+        self.assertContains(page10, "Nur KTW 10 Text")
+
+    def test_older_unlinked_reports_match_exact_names_only(self):
+        self.defect(title="Alt mit Kennzeichen", asset_ref="ktw 9  (m-rk 1)")
+        self.defect(title="Alt nur Rufname", asset_ref="KTW 9")
+        self.defect(title="Alt Teilstring", asset_ref="KTW 9 (M-RK 1) Laderaum")
+        self.defect(title="Erledigt", asset_ref="KTW 9 (M-RK 1)", status=Defect.Status.DONE)
+        # Mit einem anderen Fahrzeug verknüpft: gehört nie hierher, auch bei passendem Text.
+        self.defect(title="Falsch verknüpft", asset_ref="KTW 9 (M-RK 1)", vehicle=self.ktw10)
+        page = self.page(self.ktw9)
+        self.assertContains(page, "Alt mit Kennzeichen")
+        self.assertContains(page, "Alt nur Rufname")
+        self.assertNotContains(page, "Alt Teilstring")
+        self.assertNotContains(page, "Erledigt")
+        self.assertNotContains(page, "Falsch verknüpft")
+
+    def test_other_station_defects_never_show(self):
+        Defect.objects.create(
+            station=self.other, title="Fremd gleicher Name", asset_ref="KTW 9 (M-RK 1)", created_by=self.other_user,
+        )
+        self.assertNotContains(self.page(self.ktw9), "Fremd gleicher Name")
+
+
 class DefectFormMarkupTests(DefectFormBase):
     def test_every_label_belongs_to_a_control_and_no_jargon(self):
         html = self.client.get(reverse("defect_create_web")).content.decode()
@@ -566,6 +671,28 @@ class DefectApiTests(TestCase):
         self.assertEqual(self.titles(asset="RTW 1"), [])
         self.assertEqual(self.titles(asset=f"vehicle:{foreign_vehicle.pk}"), [])
         self.assertEqual(self.titles(asset="rtw-x"), [])
+
+    def test_bare_call_sign_matches_like_the_web_hint(self):
+        vehicle = Vehicle.objects.create(station=self.station, slug="zz-1", call_sign="ZZ 1", license_plate="P-1")
+        Defect.objects.create(station=self.station, title="linked", asset_ref="foo", vehicle=vehicle, created_by=self.user)
+        Defect.objects.create(station=self.station, title="plate text", asset_ref="ZZ 1 (P-1)", created_by=self.user)
+        Defect.objects.create(station=self.station, title="sign text", asset_ref="zz  1", created_by=self.user)
+        Defect.objects.create(station=self.station, title="prefix", asset_ref="ZZ 10", created_by=self.user)
+        self.assertEqual(self.titles(asset="ZZ 1"), ["linked", "plate text", "sign text"])
+        self.assertEqual(self.titles(asset="ZZ"), [])
+        # Dasselbe wie der Hinweis im Browser für denselben Freitext.
+        from core.defect_refs import build_reference_options, duplicates_for
+
+        open_defects = list(Defect.objects.filter(station=self.station))
+        hint = duplicates_for(None, open_defects, text="ZZ 1", options=build_reference_options(self.station))
+        self.assertEqual(sorted(defect.title for defect in hint), ["linked", "plate text", "sign text"])
+
+    def test_bare_call_sign_never_reaches_another_station(self):
+        Vehicle.objects.create(station=self.station, slug="zz-1", call_sign="ZZ 1", license_plate="P-1")
+        foreign = Vehicle.objects.create(station=self.other, slug="zz-1", call_sign="ZZ 1", license_plate="P-1")
+        Defect.objects.create(station=self.other, title="fremd", asset_ref="x", vehicle=foreign, created_by=self.other_user)
+        Defect.objects.create(station=self.other, title="fremd text", asset_ref="ZZ 1", created_by=self.other_user)
+        self.assertEqual(self.titles(asset="ZZ 1"), [])
 
     def test_me_view_is_csrf_exempt_and_helper_is_plain(self):
         from core.api import wachalltag

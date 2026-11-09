@@ -55,6 +55,13 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     bleiben sichtbar. „Wieder in Betrieb nehmen“ setzt es auf „Außer Dienst“, bis die
     Besatzung es einsatzbereit meldet. Liste: `/fuhrpark/ausser-betrieb/`; Audit
     `fleet.vehicle_retired` / `fleet.vehicle_reactivated`; CSV-Spalte „In Betrieb“.
+    Auch ein Eintrag unter „Geräte & Fahrzeuge“, der das Fahrzeug spiegelt, steht dann
+    nicht mehr in der Bezugsauswahl der Mangelmeldung (ebenso bei außer Betrieb
+    genommenen Medizingeräten).
+- **Offene Mängel an diesem Fahrzeug** (Fahrzeugseite, seit 0.28): mit dem Fahrzeug
+  verknüpfte Mängel und ältere Meldungen ohne Verknüpfung, deren Bezug exakt ein Name des
+  Fahrzeugs ist (Rufname mit Kennzeichen, der Rufname allein nur, wenn er eindeutig ist).
+  Nie über Teilstrings: Das Kennzeichen „M-RK 1“ findet nicht die Mängel von „M-RK 12“.
   - Desinfektionsmittel werden im Django-Admin über „In Gebrauch“ aus dem Protokoll
     genommen, nicht gelöscht. Mindestens ein Mittel der Wache bleibt in Gebrauch.
     Ebenso Stufen des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer

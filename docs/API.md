@@ -110,7 +110,7 @@ Liste ist paginiert:
 | `offset` | Startposition, Standard 0 |
 | `active=1` | erledigte Mängel ausblenden |
 | `status`, `priority`, `overdue=1` | Filter wie bisher |
-| `asset` (auch `asset_ref`) | Mängel zu genau einem Bezug (seit 0.28): Schlüssel `vehicle:<id>`, `device:<id>`, `asset:<id>`, Kurzname eines Fahrzeugs oder Geräts, `asset_id` aus „Geräte & Fahrzeuge“ oder der Bezug als Text. Text zählt nur bei exakt gleichem Wortlaut (Groß-/Kleinschreibung und Leerraum egal), nie als Teilstring: „RTW 1“ findet nicht „RTW 10“. Verknüpfte Mängel (`vehicle`, `medical_device`) zählen unabhängig vom Text. Immer nur die eigene Wache. |
+| `asset` (auch `asset_ref`) | Mängel zu genau einem Bezug (seit 0.28): Schlüssel `vehicle:<id>`, `device:<id>`, `asset:<id>`, Kurzname eines Fahrzeugs oder Geräts, `asset_id` aus „Geräte & Fahrzeuge“ oder der Bezug als Text. Text zählt nur bei exakt gleichem Wortlaut (Groß-/Kleinschreibung und Leerraum egal), nie als Teilstring: „RTW 1“ findet nicht „RTW 10“. Verknüpfte Mängel (`vehicle`, `medical_device`) zählen unabhängig vom Text. Ist der Text exakt ein Name eines Fahrzeugs oder Geräts (etwa der Rufname allein, wenn er eindeutig ist), zählen auch dessen verknüpfte Mängel, wie beim Hinweis „bereits gemeldet“ im Mangelformular. Immer nur die eigene Wache. |
 
 Antwort: `{"ok": true, "count": <Gesamtzahl>, "results": [...], "next": <Pfad oder null>, "previous": <Pfad oder null>}`.
 `next`/`previous` sind relative Pfade mit allen Filtern; Clients folgen ihnen,

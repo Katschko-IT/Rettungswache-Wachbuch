@@ -103,7 +103,9 @@ def build_reference_options(station, *, include_devices=True) -> list[RefOption]
     nicht außer Betrieb genommene, jeweils nur bei eingeschaltetem Modul.
     Ein Eintrag aus „Geräte & Fahrzeuge“, der ein gelistetes Fahrzeug oder
     Gerät spiegelt, erscheint nicht doppelt; seine Namen zählen für das
-    Fahrzeug bzw. Gerät.
+    Fahrzeug bzw. Gerät. Spiegelt er ein außer Betrieb genommenes Fahrzeug
+    oder Gerät, erscheint er gar nicht (sonst ließe sich das Objekt über den
+    Spiegel doch wählen, und der Mangel hinge an keinem Fahrzeug bzw. Gerät).
     """
     from .fleet_models import Vehicle
     from .mpg_models import MedicalDevice
@@ -114,7 +116,8 @@ def build_reference_options(station, *, include_devices=True) -> list[RefOption]
     options: list[RefOption] = []
 
     if getattr(station, "fleet_enabled", False):
-        vehicles = list(Vehicle.objects.filter(station=station, is_active=True).order_by("call_sign"))
+        all_vehicles = list(Vehicle.objects.filter(station=station).order_by("call_sign"))
+        vehicles = [vehicle for vehicle in all_vehicles if vehicle.is_active]
         unique_signs = _unique(normalize_ref(v.call_sign) for v in vehicles)
         for vehicle in vehicles:
             option = RefOption(
@@ -140,13 +143,35 @@ def build_reference_options(station, *, include_devices=True) -> list[RefOption]
                     option.aliases.add(normalize_ref(asset.label))
                     option.lookup |= {f"{ASSET_PREFIX}{asset.pk}", str(asset.pk), asset.asset_id.lower()}
             options.append(option)
+        # Spiegel außer Dienst gestellter Fahrzeuge fallen weg (erst nach den
+        # aktiven: ein Rufname, den ein neues Fahrzeug übernommen hat, gehört
+        # dem aktiven Fahrzeug).
+        for vehicle in all_vehicles:
+            if vehicle.is_active:
+                continue
+            for asset in assets:
+                if (
+                    asset.pk not in mirrored
+                    and asset.kind == StationAsset.Kind.VEHICLE
+                    and _mirrors_vehicle(asset, vehicle)
+                ):
+                    mirrored.add(asset.pk)
+
+    if getattr(station, "mpg_enabled", False):
+        all_devices = list(MedicalDevice.objects.filter(station=station).order_by("name", "pk"))
+        retired_slugs = {
+            device.slug for device in all_devices
+            if device.current_status == MedicalDevice.Status.DECOMMISSIONED
+        }
+        for asset in assets:
+            if asset.kind == StationAsset.Kind.DEVICE and asset.asset_id in retired_slugs:
+                mirrored.add(asset.pk)
 
     if include_devices and getattr(station, "mpg_enabled", False):
-        devices = list(
-            MedicalDevice.objects.filter(station=station)
-            .exclude(current_status=MedicalDevice.Status.DECOMMISSIONED)
-            .order_by("name", "pk")
-        )
+        devices = [
+            device for device in all_devices
+            if device.current_status != MedicalDevice.Status.DECOMMISSIONED
+        ]
         unique_names = _unique(normalize_ref(d.name) for d in devices)
         for device in devices:
             option = RefOption(
@@ -299,14 +324,61 @@ def filter_defects_by_reference(queryset, station, value):
 
     options = build_reference_options(station)
     option = resolve_reference(options, value)
-    aliases = option.aliases if option is not None else {normalize_ref(value)}
+    if option is not None:
+        same_object = [option]
+        aliases = set(option.aliases)
+    else:
+        # Freitext wie im Hinweis (duplicates_for): exakt gleicher Bezug oder
+        # jedes Objekt, zu dessen Namen der Text exakt passt (z. B. der
+        # Rufname allein), samt seiner verknüpften Mängel.
+        normalized = normalize_ref(value)
+        same_object = [candidate for candidate in options if normalized in candidate.aliases]
+        aliases = {normalized}
+        for candidate in same_object:
+            aliases |= candidate.aliases
     text_ids = [
         pk for pk, ref in Defect.objects.filter(station=station).exclude(asset_ref="").values_list("pk", "asset_ref")
         if normalize_ref(ref) in aliases
     ]
     condition = Q(pk__in=text_ids)
-    if option is not None and option.vehicle_id is not None:
-        condition |= Q(vehicle_id=option.vehicle_id)
-    if option is not None and option.device_id is not None:
-        condition |= Q(medical_device_id=option.device_id)
+    for candidate in same_object:
+        if candidate.vehicle_id is not None:
+            condition |= Q(vehicle_id=candidate.vehicle_id)
+        if candidate.device_id is not None:
+            condition |= Q(medical_device_id=candidate.device_id)
     return queryset.filter(station=station).filter(condition)
+
+
+def open_defects_for_vehicle(vehicle):
+    """Offene Mängel eines Fahrzeugs für seine Seite im Fuhrpark.
+
+    Verknüpfte Meldungen (``Defect.vehicle``) und ältere Meldungen ohne
+    Verknüpfung, deren Bezug exakt einem Namen des Fahrzeugs entspricht
+    (Rufname mit Kennzeichen, Rufname allein nur wenn eindeutig, Einträge aus
+    „Geräte & Fahrzeuge“, die es spiegeln). Nie Teilstrings: „M-RK 1“ ist
+    nicht „M-RK 12“. Eine Meldung, die mit einem anderen Fahrzeug verknüpft
+    ist, gehört nie hierher.
+    """
+    from django.db.models import Q
+
+    from .wachalltag_models import Defect
+
+    station = vehicle.station
+    option = next(
+        (
+            candidate for candidate in build_reference_options(station, include_devices=False)
+            if candidate.vehicle_id == vehicle.pk
+        ),
+        None,
+    )
+    if option is not None:
+        aliases = option.aliases
+    else:
+        # Außer Dienst gestellt (nicht in der Auswahl): nur der volle Bezug.
+        aliases = {normalize_ref(vehicle_ref_label(vehicle))}
+    open_defects = Defect.objects.filter(station=station).exclude(status=Defect.Status.DONE)
+    text_ids = [
+        pk for pk, ref in open_defects.filter(vehicle__isnull=True).exclude(asset_ref="").values_list("pk", "asset_ref")
+        if normalize_ref(ref) in aliases
+    ]
+    return open_defects.filter(Q(vehicle=vehicle) | Q(pk__in=text_ids))

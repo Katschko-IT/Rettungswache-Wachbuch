@@ -16,6 +16,7 @@ from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
+from .defect_refs import open_defects_for_vehicle
 from .disinfection_plan import can_confirm_disinfection, ensure_default_levels
 from .evidence import vehicle_must_be_active
 from .fleet_forms import DisinfectionLevelRuleForm, DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
@@ -263,14 +264,9 @@ def _detail_context(request, vehicle, handover_form=None, disinfection_form=None
     for protocol in disinfections:
         protocol.show_details = protocol.details_visible_to(request.membership)
     # Offene Mängel: verknüpft (Defect.vehicle, seit 0.28) oder ältere
-    # Meldungen mit dem Kennzeichen im Bezug; ohne Kennzeichen nur verknüpfte.
-    linked = Q(vehicle=vehicle)
-    if vehicle.license_plate:
-        linked |= Q(category=Defect.Category.VEHICLE, asset_ref__icontains=vehicle.license_plate)
-    defects = (
-        Defect.objects.filter(station=station).filter(linked)
-        .exclude(status=Defect.Status.DONE).order_by("-created_at")[:5]
-    )
+    # Meldungen ohne Verknüpfung, deren Bezug exakt ein Name des Fahrzeugs ist
+    # (nie ein Teilstring des Kennzeichens; siehe core/defect_refs.py).
+    defects = open_defects_for_vehicle(vehicle).order_by("-created_at")[:5]
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
