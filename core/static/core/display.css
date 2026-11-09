@@ -51,29 +51,81 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
-  grid-template-rows: auto 1fr auto auto;
-  gap: clamp(1rem, 2.2vw, 2.4rem);
-  padding: clamp(1.6rem, 3.2vw, 3.6rem);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+  /* minmax(0, 1fr): Die mittlere Zeile wächst nicht mit dem Inhalt, Kopf und
+     Fußzeile (dringende Übergaben, Laufschrift) bleiben im Bild. Was nicht
+     passt, kürzt display.js mit „+N weitere“. */
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: clamp(1rem, calc(2.2 * var(--vw, 1vw)), 2.4rem);
+  padding: clamp(1.6rem, calc(3.2 * var(--vw, 1vw)), 3.6rem);
   height: 100vh;
   height: 100dvh;
   box-sizing: border-box;
 }
 
-/* Festes 16:9-Raster für Wand-Display / Kiosk (1920×1080 und 1280×720) */
-.display-grid-16x9 {
-  aspect-ratio: 16 / 9;
-  max-height: 100vh;
-  max-height: 100dvh;
-  overflow: hidden;
-  box-sizing: border-box;
+/* Festes 16:9-Raster nur im Kiosk über den Display-Link (1920×1080,
+   1280×720 und jede andere Größe): Der Rahmen ist so groß wie möglich,
+   mittig, mit Rand auf Bildschirmen, die nicht 16:9 sind. Schriften und
+   Abstände rechnen mit der Rahmenbreite (--vw, rem) statt mit der
+   Fensterbreite; so sieht der Rahmen auf jedem Bildschirm gleich aus.
+   Aufrufe über die Sitzung (PC, Vorschau) bleiben fließend. */
+@media (min-width: 901px) {
+  .display-kiosk {
+    --frame-w: min(100vw, calc(100vh * 16 / 9));
+    --vw: calc(var(--frame-w) / 100);
+    font-size: calc(var(--frame-w) / 80);
+  }
+
+  .display-kiosk .display-body {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .display-kiosk .display-surface {
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    min-height: 0;
+    background: #05090e;
+  }
+
+  .display-kiosk .display-background,
+  .display-kiosk .display-vignette {
+    position: absolute;
+    inset: auto;
+    left: 50%;
+    top: 50%;
+    width: var(--frame-w);
+    height: calc(var(--frame-w) * 9 / 16);
+    transform: translate(-50%, -50%);
+  }
+
+  /* .display-surface im Selektor: schlägt „.display-surface .display-grid“
+     (height: 100%) weiter unten. */
+  .display-kiosk .display-surface .display-grid-16x9 {
+    width: var(--frame-w);
+    height: calc(var(--frame-w) * 9 / 16);
+    min-height: 0;
+    max-height: 100vh;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
 }
 
+/* Spalten, Kopf und Fußzeile schneiden nichts still ab: display.js kürzt
+   Listen, bis jede Spalte passt (siehe fitRegions). Auch über die Sitzung
+   (fließend, ohne 16:9) ist die Anzeige genau so hoch wie das Fenster, damit
+   die Fußzeile mit den dringenden Übergaben im Bild bleibt. */
 @media (min-width: 901px) {
-  .display-grid-16x9 {
-    aspect-ratio: 16 / 9;
-    max-height: 100vh;
-    max-height: 100dvh;
+  .display-body > .display-surface {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .display-column,
+  .display-traffic-strip {
+    min-height: 0;
     overflow: hidden;
   }
 }
@@ -85,19 +137,19 @@
   justify-content: space-between;
   gap: 1.5rem;
   border-bottom: 1px solid var(--display-line);
-  padding-bottom: clamp(0.8rem, 1.4vw, 1.4rem);
+  padding-bottom: clamp(0.8rem, calc(1.4 * var(--vw, 1vw)), 1.4rem);
 }
 
 .display-clock-block {
   display: flex;
   align-items: baseline;
-  gap: clamp(0.8rem, 1.6vw, 1.6rem);
+  gap: clamp(0.8rem, calc(1.6 * var(--vw, 1vw)), 1.6rem);
   flex-wrap: wrap;
 }
 
 .display-clock {
   margin: 0;
-  font-size: clamp(4rem, 11vw, 11rem);
+  font-size: clamp(4rem, calc(11 * var(--vw, 1vw)), 11rem);
   line-height: 0.92;
   font-weight: 300;
   letter-spacing: -0.02em;
@@ -106,7 +158,7 @@
 
 .display-date {
   margin: 0;
-  font-size: clamp(1.05rem, 2vw, 1.9rem);
+  font-size: clamp(1.05rem, calc(2 * var(--vw, 1vw)), 1.9rem);
   color: var(--display-dim);
   font-weight: 400;
   text-transform: capitalize;
@@ -115,7 +167,7 @@
 .display-station {
   margin: 0;
   align-self: flex-end;
-  font-size: clamp(0.95rem, 1.5vw, 1.5rem);
+  font-size: clamp(0.95rem, calc(1.5 * var(--vw, 1vw)), 1.5rem);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--display-dim);
@@ -131,7 +183,7 @@
 
 .display-heading {
   margin: 0;
-  font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+  font-size: clamp(0.8rem, calc(1.05 * var(--vw, 1vw)), 1.05rem);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--display-dim);
@@ -144,14 +196,14 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.5rem, 1vw, 0.95rem);
+  gap: clamp(0.5rem, calc(1 * var(--vw, 1vw)), 0.95rem);
 }
 
 .display-list li {
   display: flex;
   gap: 0.9rem;
   align-items: baseline;
-  font-size: clamp(1.05rem, 1.75vw, 1.85rem);
+  font-size: clamp(1.05rem, calc(1.75 * var(--vw, 1vw)), 1.85rem);
   line-height: 1.22;
   border-bottom: 1px solid rgba(244, 247, 251, 0.10);
   padding-bottom: 0.5rem;
@@ -170,7 +222,7 @@
 
 .display-empty {
   color: var(--display-dim);
-  font-size: clamp(1rem, 1.4vw, 1.35rem);
+  font-size: clamp(1rem, calc(1.4 * var(--vw, 1vw)), 1.35rem);
 }
 
 .display-waste {
@@ -183,7 +235,7 @@
 }
 
 .display-waste li {
-  font-size: clamp(0.85rem, 1.15vw, 1.1rem);
+  font-size: clamp(0.85rem, calc(1.15 * var(--vw, 1vw)), 1.1rem);
   padding: 0.35rem 0.75rem;
   border: 1px solid var(--display-line);
   border-radius: 999px;
@@ -198,14 +250,14 @@
 }
 
 .display-metric span {
-  font-size: clamp(3rem, 6.5vw, 6.4rem);
+  font-size: clamp(3rem, calc(6.5 * var(--vw, 1vw)), 6.4rem);
   line-height: 1;
   font-weight: 300;
   font-variant-numeric: tabular-nums;
 }
 
 .display-metric small {
-  font-size: clamp(0.9rem, 1.3vw, 1.25rem);
+  font-size: clamp(0.9rem, calc(1.3 * var(--vw, 1vw)), 1.25rem);
   color: var(--display-dim);
 }
 
@@ -228,7 +280,7 @@
 .display-sub {
   margin: 0;
   color: var(--display-dim);
-  font-size: clamp(0.9rem, 1.2vw, 1.15rem);
+  font-size: clamp(0.9rem, calc(1.2 * var(--vw, 1vw)), 1.15rem);
 }
 
 .display-temperature {
@@ -236,20 +288,20 @@
   display: flex;
   align-items: baseline;
   gap: 0.25rem;
-  font-size: clamp(2.6rem, 5.5vw, 5.2rem);
+  font-size: clamp(2.6rem, calc(5.5 * var(--vw, 1vw)), 5.2rem);
   font-weight: 300;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .display-temperature small {
-  font-size: clamp(1rem, 1.6vw, 1.7rem);
+  font-size: clamp(1rem, calc(1.6 * var(--vw, 1vw)), 1.7rem);
   color: var(--display-dim);
 }
 
 .display-weather-label {
   margin: 0.35rem 0 0;
-  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-size: clamp(1rem, calc(1.5 * var(--vw, 1vw)), 1.5rem);
   text-transform: capitalize;
 }
 
@@ -261,7 +313,7 @@
   flex-direction: column;
   gap: 0.4rem;
   color: var(--display-dim);
-  font-size: clamp(0.95rem, 1.35vw, 1.35rem);
+  font-size: clamp(0.95rem, calc(1.35 * var(--vw, 1vw)), 1.35rem);
 }
 
 .display-traffic-strip {
@@ -319,14 +371,14 @@
 }
 
 .display-traffic-title {
-  font-size: clamp(0.95rem, 1.1vw, 1.2rem);
+  font-size: clamp(0.95rem, calc(1.1 * var(--vw, 1vw)), 1.2rem);
   font-weight: 600;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .display-traffic-meta {
-  font-size: clamp(0.78rem, 0.92vw, 0.98rem);
+  font-size: clamp(0.78rem, calc(0.92 * var(--vw, 1vw)), 0.98rem);
   color: var(--display-dim);
 }
 
@@ -337,7 +389,7 @@
   justify-content: space-between;
   gap: 1rem;
   border-top: 1px solid var(--display-line);
-  padding-top: clamp(0.7rem, 1.2vw, 1.1rem);
+  padding-top: clamp(0.7rem, calc(1.2 * var(--vw, 1vw)), 1.1rem);
 }
 
 .display-urgent {
@@ -348,7 +400,7 @@
 }
 
 .display-urgent-count {
-  font-size: clamp(1.6rem, 2.6vw, 2.6rem);
+  font-size: clamp(1.6rem, calc(2.6 * var(--vw, 1vw)), 2.6rem);
   font-weight: 600;
   color: var(--display-warn);
   font-variant-numeric: tabular-nums;
@@ -356,7 +408,7 @@
 
 .display-urgent-label {
   color: var(--display-text);
-  font-size: clamp(1rem, 1.45vw, 1.4rem);
+  font-size: clamp(1rem, calc(1.45 * var(--vw, 1vw)), 1.4rem);
   font-weight: 500;
   letter-spacing: 0.03em;
 }
@@ -377,7 +429,7 @@
 .display-hint {
   margin: 0;
   color: rgba(244, 247, 251, 0.42);
-  font-size: clamp(0.75rem, 1vw, 0.95rem);
+  font-size: clamp(0.75rem, calc(1 * var(--vw, 1vw)), 0.95rem);
 }
 
 .display-fullscreen-prompt {
@@ -448,7 +500,7 @@
     max-height: none;
     overflow: visible;
   }
-  .display-clock { font-size: clamp(3.4rem, 18vw, 6rem); }
+  .display-clock { font-size: clamp(3.4rem, calc(18 * var(--vw, 1vw)), 6rem); }
   /* Rückweg und Vollbild passen auf dem Handy nebeneinander. */
   .display-fullscreen-prompt { padding: 0.75rem; gap: 0.5rem; }
   .display-fullscreen-button,
@@ -537,7 +589,7 @@ body.is-display-open {
 .display-ticker {
   display: inline-flex;
   align-items: center;
-  font-size: clamp(1rem, 1.3vw, 1.4rem);
+  font-size: clamp(1rem, calc(1.3 * var(--vw, 1vw)), 1.4rem);
   color: var(--display-accent, #7fb2ff);
   background: rgba(11, 22, 34, 0.65);
   border: 1px solid var(--display-line);
@@ -561,7 +613,7 @@ body.is-display-open {
 .display-region {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.8rem, 1.4vw, 1.4rem);
+  gap: clamp(0.8rem, calc(1.4 * var(--vw, 1vw)), 1.4rem);
 }
 
 /* Fahrzeuge, Gerätefristen und Material: Name groß, Zustand darunter,
@@ -573,7 +625,7 @@ body.is-display-open {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.4rem, 0.8vw, 0.75rem);
+  gap: clamp(0.4rem, calc(0.8 * var(--vw, 1vw)), 0.75rem);
 }
 
 .display-vehicle,
@@ -586,19 +638,19 @@ body.is-display-open {
 
 .display-vehicle-name,
 .display-alert-name {
-  font-size: clamp(1.05rem, 1.6vw, 1.7rem);
+  font-size: clamp(1.05rem, calc(1.6 * var(--vw, 1vw)), 1.7rem);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
 .display-vehicle-status,
 .display-alert-label {
-  font-size: clamp(0.9rem, 1.25vw, 1.25rem);
+  font-size: clamp(0.9rem, calc(1.25 * var(--vw, 1vw)), 1.25rem);
 }
 
 .display-vehicle-meta {
   color: var(--display-dim);
-  font-size: clamp(0.8rem, 1.05vw, 1.05rem);
+  font-size: clamp(0.8rem, calc(1.05 * var(--vw, 1vw)), 1.05rem);
 }
 
 .display-vehicle-meta:empty { display: none; }
@@ -614,3 +666,158 @@ body.is-display-open {
 .display-level-critical,
 .display-level-low { border-left-color: #f0a030; }
 .display-level-warning { border-left-color: #e8d36a; }
+
+/* „+N weitere“: Rest einer gekürzten Liste (display.js, capList/fitRegions). */
+.display-more {
+  list-style: none;
+  margin: 0;
+  color: var(--display-dim);
+  font-size: clamp(0.85rem, calc(1.1 * var(--vw, 1vw)), 1.15rem);
+  border-bottom: 0;
+}
+
+.display-list li.display-more {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Dringende Tagesaufgaben: eine Zeile je Aufgabe, Stufe als Randstreifen. */
+.display-tasks-urgent {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.display-tasks-urgent[hidden] {
+  display: none;
+}
+
+.display-task-urgent {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  min-width: 0;
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--display-line);
+  font-size: clamp(0.85rem, calc(1.1 * var(--vw, 1vw)), 1.15rem);
+}
+
+.display-task-urgent strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.display-task-urgent-label {
+  flex: 0 0 auto;
+  color: var(--display-dim);
+}
+
+/* Kopf und Fußzeile sind Zeilen, keine Spalten (.display-region stapelt). */
+.display-header.display-region,
+.display-footer.display-region {
+  flex-direction: row;
+}
+
+.display-header .region-top-right {
+  margin-left: auto;
+}
+
+/* Fahrzeuge: Name und Zustand in einer Zeile, Hinweise darunter. Fristen:
+   Name und Hinweis je eine Zeile (Hinweise sind länger). */
+.display-vehicle {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  align-items: baseline;
+}
+
+.display-vehicle-name,
+.display-alert-name,
+.display-alert-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.display-vehicle-status {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.display-vehicle-meta {
+  grid-column: 1 / -1;
+}
+
+/* Termine: höchstens zwei Zeilen je Titel. */
+.display-list span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Kiosk: dichter, damit alle Bereiche im 16:9-Rahmen Platz haben. */
+@media (min-width: 901px) {
+  .display-kiosk .display-grid {
+    padding: calc(2.2 * var(--vw)) calc(2.6 * var(--vw));
+    row-gap: calc(1.3 * var(--vw));
+    column-gap: calc(2.4 * var(--vw));
+  }
+
+  .display-kiosk .display-header {
+    padding-bottom: calc(0.9 * var(--vw));
+    align-items: center;
+  }
+
+  .display-kiosk .display-clock {
+    font-size: calc(7.2 * var(--vw));
+  }
+
+  .display-kiosk .display-metric span {
+    font-size: calc(4.4 * var(--vw));
+  }
+
+  .display-kiosk .display-temperature {
+    font-size: calc(3.6 * var(--vw));
+  }
+
+  .display-kiosk .display-footer {
+    padding-top: calc(0.8 * var(--vw));
+  }
+
+  .display-kiosk .display-column,
+  .display-kiosk .display-region {
+    gap: calc(0.8 * var(--vw));
+  }
+
+  .display-kiosk .display-fleet,
+  .display-kiosk .display-alerts {
+    gap: calc(0.5 * var(--vw));
+  }
+
+  .display-kiosk .display-vehicle,
+  .display-kiosk .display-alert {
+    padding-top: calc(0.15 * var(--vw));
+    padding-bottom: calc(0.15 * var(--vw));
+  }
+}
+
+/* Kiosk ohne Maus: Leiste mit „Vollbild starten“ nur kurz nach einer
+   Bewegung oder Taste, damit sie die Fußzeile nicht dauerhaft verdeckt. */
+.display-kiosk .display-fullscreen-prompt.is-idle {
+  display: none;
+}
+
+/* Gekürzte Zeilen tragen hidden; Zeilen mit display: flex/grid würden das
+   sonst überstimmen. */
+[data-max-rows] > [hidden] {
+  display: none !important;
+}
