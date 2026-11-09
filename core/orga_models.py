@@ -13,13 +13,47 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext, gettext_lazy
 
-from .models import Station
+from .models import Membership, Station
 
 
 def _require_same_station(parent, station_id: int | None, label: str) -> None:
     if parent is not None and station_id and getattr(parent, "station_id", None) != station_id:
         raise ValidationError(f"{label} und Wache müssen übereinstimmen.")
+
+
+def reading_audience(station):
+    """Aktive Mitgliedschaften, die eine Dienstanweisung lesen und bestätigen können.
+
+    Nur Inhaltsrollen mit aktivem Konto; ohne Auditor und ohne das Dienstkonto
+    „Wachenterminal“ (AGENTS.md § 4: keine Lesebestätigungen am Terminal).
+    Zielgruppe, Quote, offene Personen und Erinnerungen bauen darauf auf.
+    """
+    from .access import CONTENT_ROLES
+    from .terminal_models import StationTerminalCode
+
+    service_ids = StationTerminalCode.objects.values_list("service_user_id", flat=True)
+    return (
+        Membership.objects.filter(
+            station=station,
+            is_active=True,
+            user__is_active=True,
+            role__in=CONTENT_ROLES,
+        )
+        .exclude(user_id__in=service_ids)
+    )
+
+
+def in_reading_audience(membership) -> bool:
+    """Gehört die Mitgliedschaft grundsätzlich zur Leserschaft (siehe ``reading_audience``)?"""
+    from .access import CONTENT_ROLES
+    from .terminal import is_service_user
+
+    if membership is None or not membership.is_active or membership.role not in CONTENT_ROLES:
+        return False
+    user = membership.user
+    return bool(user.is_active) and not is_service_user(user)
 
 
 class SOPDocument(models.Model):
@@ -58,6 +92,14 @@ class SOPDocument(models.Model):
         blank=True,
         default="",
         help_text="Leer = alle aktiven Mitglieder der Wache",
+    )
+    # Kurzname aus Membership.FUNCTIONS; zusammen mit target_role gilt beides.
+    target_function = models.CharField(
+        "Zielgruppe (Funktion)",
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Leer = ohne Einschränkung nach Funktion",
     )
     requires_acknowledgment = models.BooleanField(
         default=True,
@@ -113,28 +155,71 @@ class SOPDocument(models.Model):
 
     @property
     def target_role_label(self) -> str:
-        from .models import Membership
-
         if not self.target_role:
-            return "Alle aktiven Mitglieder"
+            return str(gettext_lazy("Alle aktiven Mitglieder"))
         return str(dict(Membership.Role.choices).get(self.target_role, self.target_role))
+
+    @property
+    def target_function_label(self) -> str:
+        labels = {code: label for code, _field, label in Membership.FUNCTIONS}
+        return str(labels.get(self.target_function, "")) if self.target_function else ""
+
+    @property
+    def target_group_label(self) -> str:
+        """Zielgruppe in Worten: Rolle und, falls gesetzt, Funktion."""
+        function = self.target_function_label
+        if not function:
+            return self.target_role_label
+        if not self.target_role:
+            return gettext("Funktion %(function)s") % {"function": function}
+        return gettext("%(role)s mit Funktion %(function)s") % {
+            "role": self.target_role_label,
+            "function": function,
+        }
+
+    def _function_field(self) -> str | None:
+        for code, field, _label in Membership.FUNCTIONS:
+            if code == self.target_function:
+                return field
+        return None
+
+    def matches_target(self, membership) -> bool:
+        """Passen Rolle und Funktion der Mitgliedschaft zur Zielgruppe (ohne Leserschaftsprüfung)?"""
+        if membership is None:
+            return False
+        if self.target_role and membership.role != self.target_role:
+            return False
+        field = self._function_field()
+        if self.target_function and (field is None or not getattr(membership, field, False)):
+            return False
+        return True
+
+    def is_target_member(self, membership) -> bool:
+        """Muss diese Person die Dienstanweisung bestätigen?"""
+        return in_reading_audience(membership) and self.matches_target(membership)
+
+    def target_memberships(self):
+        memberships = reading_audience(self.station)
+        if self.target_role:
+            memberships = memberships.filter(role=self.target_role)
+        if self.target_function:
+            field = self._function_field()
+            if field is None:
+                return memberships.none()
+            memberships = memberships.filter(**{field: True})
+        return memberships
+
+    def target_user_ids(self) -> set[int]:
+        return set(self.target_memberships().values_list("user_id", flat=True))
 
     def ack_progress(self) -> dict[str, int]:
         """Berechnet die aggregierte Lesequote für die Wachleitung.
 
         Gibt die Quote als Aggregat zurück, ohne einzelne Personen aufzuführen
-        (Schutz der Beschäftigtendaten gem. Mitbestimmung).
+        (Schutz der Beschäftigtendaten gem. Mitbestimmung). Es zählen nur
+        Personen der Zielgruppe; freiwillige Bestätigungen anderer nicht.
         """
-        from .models import Membership
-
-        target_memberships = Membership.objects.filter(
-            station=self.station,
-            is_active=True,
-        )
-        if self.target_role:
-            target_memberships = target_memberships.filter(role=self.target_role)
-
-        target_user_ids = set(target_memberships.values_list("user_id", flat=True))
+        target_user_ids = self.target_user_ids()
         target_count = len(target_user_ids)
 
         latest = self.latest_revision
@@ -158,18 +243,8 @@ class SOPDocument(models.Model):
         }
 
     def unacknowledged_users(self):
-        """Gibt die aktiven User der Zielgruppe zurück, die die aktuelle Revision noch nicht quittiert haben."""
-        from django.contrib.auth.models import User
-        from .models import Membership
-
-        target_memberships = Membership.objects.filter(
-            station=self.station,
-            is_active=True,
-        )
-        if self.target_role:
-            target_memberships = target_memberships.filter(role=self.target_role)
-
-        target_user_ids = set(target_memberships.values_list("user_id", flat=True))
+        """Personen der Zielgruppe, die die aktuelle Revision noch nicht bestätigt haben."""
+        target_user_ids = self.target_user_ids()
         latest = self.latest_revision
         if not latest or not target_user_ids:
             return User.objects.none()
@@ -178,7 +253,7 @@ class SOPDocument(models.Model):
             self.receipts.filter(revision=latest, user_id__in=target_user_ids).values_list("user_id", flat=True)
         )
         open_ids = target_user_ids - acked_user_ids
-        return User.objects.filter(id__in=open_ids)
+        return User.objects.filter(id__in=open_ids).order_by("pk")
 
 
 class SOPRevision(models.Model):
@@ -274,6 +349,42 @@ class SOPReceipt(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Lesebestätigungen dürfen nicht gelöscht werden.")
+
+
+def acknowledgement_refusal(sop: SOPDocument, membership) -> tuple[str, str] | None:
+    """Warum die Person die aktuelle Version nicht bestätigen kann: (Code, Text), sonst ``None``.
+
+    Dieselben Regeln für Web und App: nur mit dem eigenen Konto einer
+    Inhaltsrolle (nie das Wachenterminal), nur „In Kraft“ und nur mit einem
+    freigegebenen Textstand.
+    """
+    from .access import CONTENT_ROLES
+    from .terminal import is_service_user
+
+    if membership is None or membership.role not in CONTENT_ROLES or is_service_user(membership.user):
+        return "forbidden", gettext("Lesebestätigungen gibt es nur mit dem eigenen Konto.")
+    if sop.status == SOPDocument.Status.ARCHIVED:
+        return "not_in_force", gettext("Diese Dienstanweisung ist außer Kraft und kann nicht mehr quittiert werden.")
+    if sop.status != SOPDocument.Status.ACTIVE:
+        return "not_in_force", gettext("Diese Dienstanweisung ist noch ein Entwurf und kann noch nicht bestätigt werden.")
+    if sop.latest_revision is None:
+        return "no_revision", gettext("Diese Dienstanweisung hat noch keinen freigegebenen Textstand.")
+    return None
+
+
+def record_acknowledgement(sop: SOPDocument, user: User) -> tuple[SOPReceipt, bool]:
+    """Lesebestätigung der aktuellen Version (append-only, idempotent).
+
+    Datensparsam (ab 0.26.1): Person, Version und Zeitpunkt. IP-Adresse und
+    Browser werden nicht gespeichert.
+    """
+    return SOPReceipt.objects.get_or_create(
+        station=sop.station,
+        sop=sop,
+        revision=sop.latest_revision,
+        user=user,
+        defaults={"ip_address": None, "user_agent": "", "acknowledged_at": timezone.now()},
+    )
 
 
 class StationContact(models.Model):

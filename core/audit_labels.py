@@ -70,6 +70,7 @@ ACTION_LABELS = {
     "news.created": _("Neuigkeit veröffentlicht"),
     "membership.user_created": _("Konto angelegt"),
     "membership.updated": _("Rolle oder Zugang geändert"),
+    "membership.reminders_updated": _("Einstellungen der Erinnerungen geändert"),
     "mfa.reset": _("Zwei-Faktor-Anmeldung zurückgesetzt"),
     "station.settings_updated": _("Einstellungen der Wache geändert"),
     "birthday.preference_changed": _("Geburtstagsanzeige geändert"),

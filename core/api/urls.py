@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import chat, notifications, views, wachalltag
+from . import chat, notifications, sop, views, wachalltag
 
 urlpatterns = [
     path("", wachalltag.api_root, name="api_v1_root"),
@@ -53,7 +53,10 @@ urlpatterns = [
     path("chat/groups/<int:pk>/members/", chat.group_members, name="api_v1_chat_group_members"),
     path("pinnwand/", views.pinboard_api, name="api_v1_pinnwand"),
     path("benachrichtigungen/", notifications.notifications, name="api_v1_notifications"),
+    path("benachrichtigungen/gelesen/", notifications.notifications_read_kinds, name="api_v1_notifications_read_kinds"),
     path("benachrichtigungen/<int:pk>/gelesen/", notifications.notification_read, name="api_v1_notification_read"),
+    path("dienstanweisungen/", sop.sop_list, name="api_v1_sops"),
+    path("dienstanweisungen/<int:pk>/quittieren/", sop.sop_ack, name="api_v1_sop_ack"),
     path("fahrzeuge/sperren/", notifications.vehicle_locks, name="api_v1_vehicle_locks"),
     path("push/geraete/", notifications.push_devices, name="api_v1_push_devices"),
     path("check-update/", views.check_update, name="api_v1_check_update"),

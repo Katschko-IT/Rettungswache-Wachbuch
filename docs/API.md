@@ -201,11 +201,20 @@ Siehe auch [`CLIENT.md`](CLIENT.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`ASV
 
 | Methode | Pfad | Zweck |
 | --- | --- | --- |
-| `GET` | `/api/v1/benachrichtigungen/` | persönlicher Posteingang: `unread_count`, `results[]` mit `id`, `kind`, `key`, `title`, `body`, `url`, `created_at`, `read` |
+| `GET` | `/api/v1/benachrichtigungen/` | persönlicher Posteingang: `unread_count`, `results[]` mit `id`, `kind`, `key`, `title`, `body`, `url`, `created_at`, `read`; optional `?kinds=vehicle_ready,coffee_due` (kommagetrennt, ab 0.28): nur diese Arten, unbekannte werden ignoriert |
 | `POST` | `/api/v1/benachrichtigungen/<id>/gelesen/` | als gelesen markieren (nur eigene) |
+| `POST` | `/api/v1/benachrichtigungen/gelesen/` | ab 0.28: alle ungelesenen Hinweise der Arten aus `kinds` (JSON-Liste oder kommagetrennt) als gelesen markieren; ohne bekannte Art `400` |
+| `GET` | `/api/v1/dienstanweisungen/` | ab 0.28: eigene Lesepflichten (in Kraft, mit Textstand, Zielgruppe nach Rolle und Funktion): `id`, `doc_number`, `title`, `revision` (`id`, `version`), `ack_due_date`, `overdue`, `acknowledged`, `acknowledged_at`, `in_target_group`, `url` (Webseite der Dienstanweisung); `?offen=1` nur noch nicht bestätigte. Keine anderen Personen, keine Quote |
+| `POST` | `/api/v1/dienstanweisungen/<id>/quittieren/` | ab 0.28: aktuelle Version bestätigen, wie im Web (nur „In Kraft“, nur eigenes Konto, nie Wachenterminal oder Auditor); speichert Person, Version und Zeit, keine IP-Adresse und keinen Browser; optional `{"revision": <id>}` (ganze Zahl, sonst `400`) – gibt es inzwischen eine neuere Version, `409`. Antwort `201` (neu) oder `200` (schon bestätigt) |
 | `GET` | `/api/v1/fahrzeuge/sperren/` | laufende Desinfektionssperren der Fahrzeuge, die die Person besetzt: `vehicle_id`, `call_sign`, `locked_until` (ISO 8601), `key`, `title`, `body` – die App plant daraus eine lokale Erinnerung |
 | `POST`/`DELETE` | `/api/v1/push/geraete/` | APNs-/FCM-Token an- bzw. abmelden (`platform`, `token`, optional `app_version`) |
 
 Alle Endpunkte brauchen den Scope `read:me`. Fahrzeuge werden nie automatisch
 freigegeben; der Hinweis fordert die Besatzung zur Prüfung und Freigabe auf.
+
+Arten im Posteingang: `vehicle_ready`, `coffee_due`, `system_health` (nur
+Master-Admins), `mpg_training_missing`, `deadline_due` (Fristen-Erinnerungen
+und Wochenübersicht) und `sop_due` (Lesefrist einer Dienstanweisung). Eine App,
+die nur einige Arten anzeigt, fragt mit `kinds` genau diese ab; so verdrängen
+ungelesene Fristen-Erinnerungen keine Hinweise, die die App kennt.
 Native Push-Zustellung: [`PUSH-RELAY.md`](PUSH-RELAY.md).

@@ -1,4 +1,11 @@
-"""Management Command: Versendet Fristen-Erinnerungen bei 30, 7 und 0 Tagen und Montags-Wochenübersicht."""
+"""Fristen-Erinnerungen und Wochenübersicht von Hand auslösen.
+
+Im Betrieb plant der notify-worker beides selbst (``core.deadline_reminders.
+run_scheduled_reminders``): Erinnerungen höchstens einmal je Stunde, die
+Wochenübersicht einmal je ISO-Kalenderwoche ab Montag 06:00. Dieser Befehl
+bleibt für Tests, Nachholen und Fehlersuche; dank der Schlüssel je Nachricht
+entstehen dabei keine Doppel.
+"""
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand, CommandError
@@ -14,7 +21,7 @@ from core.models import Station
 
 
 class Command(BaseCommand):
-    help = "Versendet Fristen-Erinnerungen bei 30, 7 und 0 Tagen sowie optional die Montags-Wochenübersicht."
+    help = "Versendet Fristen-Erinnerungen bei 30, 7 und 0 Tagen sowie optional die Wochenübersicht."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -29,7 +36,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--weekly-digest",
             action="store_true",
-            help="Wochenübersicht der anstehenden Fristen an die Wachleitung versenden.",
+            help="Wochenübersicht der laufenden Kalenderwoche versenden (je Person nach Abo).",
         )
         parser.add_argument(
             "--dry-run",
@@ -58,8 +65,8 @@ class Command(BaseCommand):
             self.stdout.write(f"Dry-Run: {len(items)} fällige Frist(en) gefunden:")
             for item in items:
                 self.stdout.write(
-                    f" - [{item.category.upper()}] {item.title} (Fällig am {item.due_date}, "
-                    f"in {item.days_remaining} Tagen, Empfänger: {len(item.recipients)})"
+                    f" - [{item.category.upper()}] {item.title} (fällig am {item.due_date}, "
+                    f"Schwelle {item.threshold} Tage, Empfänger: {len(item.recipients)})"
                 )
             return
 

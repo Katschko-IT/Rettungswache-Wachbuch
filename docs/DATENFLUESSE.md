@@ -159,9 +159,9 @@ jeder Schlüssel dort hat hier einen Abschnitt mit `<!-- flow: KEY -->`.
 <!-- flow: email -->
 
 - **Empfänger und Rolle:** der SMTP-Anbieter des Betreibers (`EMAIL_HOST`). Auftragsverarbeiter **[prüfen]**.
-- **Daten:** E-Mail-Adresse und Name der Person, offener Betrag und Zahlungsangaben der Kaffeekasse (Kontoinhaber, IBAN, Verwendungszweck, Überweisungs-QR), Name der Wache. Technische Hinweise der Host-Überwachung enthalten nur den Zustand des Servers (übersetzte Codes, Uhrzeit, Link auf `/system/`), keine Inhalte aus Wachwerk.
+- **Daten:** E-Mail-Adresse und Name der Person, offener Betrag und Zahlungsangaben der Kaffeekasse (Kontoinhaber, IBAN, Verwendungszweck, Überweisungs-QR), Name der Wache. Technische Hinweise der Host-Überwachung enthalten nur den Zustand des Servers (übersetzte Codes, Uhrzeit, Link auf `/system/`), keine Inhalte aus Wachwerk. Fristen-Erinnerungen und Wochenübersicht enthalten Titel und Text der Erinnerung (Gerät, Fahrzeug, Charge, Mangel, Aufgabe oder Dienstanweisung mit Frist, bei Lesefristen der Leitung die Quote als Zahl) und einen Link, keine anderen Personen.
 - **Personenbezug:** ja.
-- **Auslöser:** Erinnerung der Kaffeekasse an Teilnehmende, die E-Mails gewählt haben, oder Test-E-Mail durch Kassenwart bzw. Master-Admin; technische Hinweise zum Server an die Master-Admins und an `HEALTH_ALERT_EMAIL` (`docs/BETRIEB-PI-LAN.md`).
+- **Auslöser:** Erinnerung der Kaffeekasse an Teilnehmende, die E-Mails gewählt haben, oder Test-E-Mail durch Kassenwart bzw. Master-Admin; technische Hinweise zum Server an die Master-Admins und an `HEALTH_ALERT_EMAIL` (`docs/BETRIEB-PI-LAN.md`); Fristen-Erinnerungen und Wochenübersicht an Personen, die unter Mein Konto → Erinnerungen „Erinnerungen zusätzlich per E-Mail“ selbst eingeschaltet haben (Standard aus), an die E-Mail-Adresse ihres Kontos.
 - **Schalter und Standard:** `EMAIL_HOST`, Standard leer; in der öffentlichen Demo immer aus.
 - **Drittland:** je nach Anbieter **[prüfen]**.
 - **Empfehlung Pilot:** nur mit einem Anbieter mit AV-Vertrag.

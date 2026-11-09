@@ -32,12 +32,15 @@ class NotifyCrewHeartbeatTests(SimpleTestCase):
             patcher = patch(f"{NOTIFY}.{target}")
             patcher.start()
             self.addCleanup(patcher.stop)
-        # Kaffeekasse-Erinnerungen und Meldungen der Host-Überwachung laufen im
-        # selben Durchlauf; hier ohne Datenbank.
-        for target in ("remind_open_fees", "deliver_signal", "notify_host_health"):
+        # Kaffeekasse-Erinnerungen, Meldungen der Host-Überwachung und
+        # Fristen-Erinnerungen laufen im selben Durchlauf; hier ohne Datenbank.
+        for target in ("remind_open_fees", "deliver_signal", "notify_host_health", "run_scheduled_reminders"):
             patcher = patch(f"{NOTIFY}.{target}", return_value=0)
             patcher.start()
             self.addCleanup(patcher.stop)
+        patcher = patch(f"{NOTIFY}.reminder_heartbeat_line", return_value="deadline_reminders=- weekly_digest=-")
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_success_writes_heartbeat(self):
         with patch(f"{NOTIFY}.notify_ready_vehicles", return_value=0):

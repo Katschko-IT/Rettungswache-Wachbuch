@@ -32,7 +32,7 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Meldungen, Verkehr und Wetter](#modul-lage) | `Station.feeds_enabled` | Freitext möglich | 0 | Einstellung, Meldungen |
 | [Pinnwand](#modul-pinnwand) | `Station.pinboard_enabled` | ja | 0 | Lücke, Anhang |
 | [Wachenchat, Privatnachrichten und Post (E2EE)](#modul-chat) | `Station.chat_enabled` | ja | 0 | Konto, Lücke |
-| [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange |
+| [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange, Technische Tabelle |
 | [Signal-Benachrichtigungen](#modul-signal) | Einstellung SIGNAL_API_URL und SIGNAL_NUMBER | ja | 0 | Freiwillige Angabe, Signal-Warteschlange |
 | [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Organisationsdaten, Nachweis |
 | [Lager und Material](#modul-lager) | `Station.warehouse_enabled` | ja | 2 | Organisationsdaten, Nachweis |
@@ -211,15 +211,15 @@ Einladungen zur Kontoaktivierung (nur Hash)
 
 ### core.Membership
 
-Rolle einer Person in einer Wache
+Rolle einer Person in einer Wache, Funktionen, Abo der Fristen-Erinnerungen
 
 - Lesen: die Person selbst, Master-Admin
-- Schreiben: Master-Admin
+- Schreiben: die Person selbst, Master-Admin
 - Zugriffswege: Web, App (API), Django-Admin (lesen)
 - Nachweis: nein
 - Frist technisch: solange das Konto besteht; Deaktivieren oder Löschen durch Master-Admin bzw. Superuser
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin.
+- Hinweis: Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin. Rolle, Zugang und Funktionen setzt der Master-Admin; das Wachenterminal-Konto bekommt keine Funktion. Welche Bereiche der Fristen-Erinnerungen eine Person bekommt und ob zusätzlich per E-Mail (Standard aus), stellt nur die Person selbst unter Mein Konto → Erinnerungen ein.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -232,6 +232,12 @@ Rolle einer Person in einer Wache
 | `is_material_lead` | Material / Lager | Wert |  |
 | `is_fleet_lead` | Fuhrpark | Wert |  |
 | `is_safety_lead` | Sicherheit / Arbeitsschutz | Wert |  |
+| `remind_fleet` | Erinnerungen: Fahrzeuge | Wert |  |
+| `remind_mpg` | Erinnerungen: Medizinprodukte | Wert |  |
+| `remind_material` | Erinnerungen: Material | Wert |  |
+| `remind_sop` | Erinnerungen: Dienstanweisungen | Wert |  |
+| `remind_tasks` | Erinnerungen: Aufgaben und Prüfungen | Wert |  |
+| `reminder_email` | Erinnerungen zusätzlich per E-Mail | Wert |  |
 | `is_active` |  | Wert |  |
 | `created_at` |  | Zeitpunkt |  |
 
@@ -629,7 +635,7 @@ Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse
 - Nachweis: nein
 - Frist technisch: solange die Installation besteht; Änderung durch Master-Admin
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse.
+- Hinweis: Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse. „Namen bei Lesebestätigungen anzeigen“ (Standard aus) schaltet nur der Master-Admin, wenn eine Vereinbarung mit der Beschäftigtenvertretung das erlaubt; die Änderung steht im Audit.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -678,6 +684,7 @@ Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse
 | `traffic_radius_km` | Umkreis in km | Wert |  |
 | `traffic_warning_areas` | Gebiete für Bevölkerungswarnungen | Freitext |  |
 | `traffic_local_sources` | Kommunale Quellen Steinhagen und Kreis Gütersloh | Wert |  |
+| `sop_receipt_names_agreed` | Namen bei Lesebestätigungen von Dienstanweisungen anzeigen | Wert |  |
 
 <a id="modul-audit"></a>
 
@@ -2109,7 +2116,7 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 - Nachweis: nein
 - Frist technisch: keine technische Löschung (siehe docs/LOESCHKONZEPT.md, Lücken)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
+- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2123,6 +2130,27 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 | `dedupe_key` |  | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
 | `read_at` |  | Zeitpunkt |  |
+
+### core.WorkerJobState
+
+Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der letzten Wochenübersicht
+
+- Lesen: Master-Admin
+- Schreiben: System
+- Zugriffswege: Web
+- Nachweis: nein
+- Frist technisch: ohne Personenbezug; bleibt, solange die Installation besteht
+- Hinweis: Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin echter Wachen sieht den Stand unter System (ohne Anzahl, nicht in der öffentlichen Demo).
+
+| Feld | Bezeichnung | Art | Hinweis |
+| --- | --- | --- | --- |
+| `id` |  | Wert |  |
+| `name` |  | Wert |  |
+| `last_started_at` |  | Zeitpunkt |  |
+| `last_finished_at` |  | Zeitpunkt |  |
+| `last_failed_at` |  | Zeitpunkt |  |
+| `last_period` |  | Wert |  |
+| `last_count` |  | Wert |  |
 
 <a id="modul-signal"></a>
 
@@ -2642,16 +2670,16 @@ Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** |  |
-| Quittierungsnachweis als CSV mit Namen | `sop_export_audit` | Schichtleitung, Master-Admin | **ja** |  |
+| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); ohne Vereinbarung nur Anzahl und Quote der Zielgruppe. Bei einer Zielgruppe von ein oder zwei Personen lässt auch die Quote auf Einzelne schließen (docs/MITBESTIMMUNG-VORLAGE.md) |
+| Quittierungsnachweis als CSV mit Namen | `sop_export_audit` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version |
 
 ### core.SOPDocument
 
-Dienstanweisung: Nummer, Titel, Status, Fristen
+Dienstanweisung: Nummer, Titel, Status, Fristen, Zielgruppe nach Rolle und Funktion
 
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
-- Zugriffswege: Web, Export/Datei
+- Zugriffswege: Web, App (API), Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2671,6 +2699,7 @@ Dienstanweisung: Nummer, Titel, Status, Fristen
 | `review_due_date` | Nächste Überprüfung (QM) | Zeitpunkt |  |
 | `ack_due_date` | Lesefrist bis | Zeitpunkt |  |
 | `target_role` | Zielgruppe (Rolle) | Wert |  |
+| `target_function` | Zielgruppe (Funktion) | Wert |  |
 | `requires_acknowledgment` | Pflichtquittierung für Personal | Wert |  |
 | `created_by` |  | Person (Konto) |  |
 | `created_at` |  | Zeitpunkt |  |
@@ -2682,12 +2711,12 @@ Lesequittung: Person, Version, Zeit
 
 - Lesen: die Person selbst, Schichtleitung, Master-Admin
 - Schreiben: die Person selbst
-- Zugriffswege: Web, Export/Datei
+- Zugriffswege: Web, App (API), Export/Datei
 - Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Mitglieder sehen nur ihren eigenen Stand.
+- Hinweis: Mitglieder sehen nur ihren eigenen Stand (auch in der App). Namen sieht die Leitung nur mit Vereinbarung. Nicht am Wachenterminal und nicht für Auditoren.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |

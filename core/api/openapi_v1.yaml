@@ -424,6 +424,100 @@ paths:
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       responses:
         "200": { description: Schedule removed }
+  /benachrichtigungen/:
+    get:
+      summary: Own notification inbox (unread first, at most 50 unread and 20 read)
+      description: |
+        Personal notices (UserNotification) of the caller at the own station.
+        Scope read:me. Optional `kinds` limits the result to the given kinds so
+        the app only polls what it renders; unknown kinds are ignored.
+      parameters:
+        - in: query
+          name: kinds
+          required: false
+          description: Comma-separated kinds, e.g. vehicle_ready,coffee_due
+          schema:
+            type: string
+            example: vehicle_ready,coffee_due,deadline_due,sop_due
+      responses:
+        "200":
+          description: "Notifications: id, kind, key, title, body, url, created_at, read"
+        "403": { $ref: "#/components/responses/Error" }
+  /benachrichtigungen/gelesen/:
+    post:
+      summary: Mark all unread notifications of the given kinds as read
+      description: |
+        Scope read:me. Body `{"kinds": ["deadline_due", "sop_due"]}` or query
+        `?kinds=deadline_due,sop_due`. Without a known kind the request is
+        refused (no accidental "mark everything read").
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kinds:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200": { description: "ok, kinds, marked (number of notifications marked read)" }
+        "400": { $ref: "#/components/responses/Error" }
+  /benachrichtigungen/{id}/gelesen/:
+    post:
+      summary: Mark one own notification as read
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Notification marked read }
+        "404": { $ref: "#/components/responses/Error" }
+  /dienstanweisungen/:
+    get:
+      summary: Work instructions the caller must read and acknowledge
+      description: |
+        Scope read:me. Only work instructions in force with a released text
+        that require acknowledgement and whose target group (role and
+        function) includes the caller. Each entry: id, doc_number, title,
+        revision {id, version}, ack_due_date, overdue, acknowledged,
+        acknowledged_at, in_target_group, url (web page of the document). No
+        names of other people and no quota. Auditors and the station terminal
+        service account get 403.
+      parameters:
+        - in: query
+          name: offen
+          required: false
+          description: "1 = only work instructions not yet acknowledged in the current version"
+          schema: { type: string, enum: ["1", "0"] }
+      responses:
+        "200": { description: List of own reading obligations }
+        "403": { $ref: "#/components/responses/Error" }
+  /dienstanweisungen/{id}/quittieren/:
+    post:
+      summary: Acknowledge the current version of a work instruction
+      description: |
+        Same rules as the web: own account of a content role (never the
+        station terminal), work instruction in force, released text. Outside
+        the target group the acknowledgement is voluntary and not counted in
+        the quota. Stores person, version and time only (no IP address, no
+        user agent). Idempotent. Optional body `{"revision": <id>}`: if a newer
+        version exists, 409 is returned so the app can show the new text first.
+        `revision` must be an integer (or a string of ASCII digits); floats,
+        booleans and other values return 400 validation_error.
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                revision: { type: integer }
+      responses:
+        "201": { description: Acknowledgement recorded (created true) }
+        "200": { description: Already acknowledged (created false) }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
   /reports/:
     get:
       summary: Lightweight station Wachalltag report

@@ -217,7 +217,12 @@ class MaintenanceResultWithoutPreselectionTests(TestCase):
 
 class SOPReceiptDataMinimisationTests(TestCase):
     def setUp(self):
-        self.station = Station.objects.create(name="RW Orga 0.26.1", slug="rw-0261-orga", orga_enabled=True)
+        # Namen in Quittierungsliste und Export gibt es seit 0.28 nur mit
+        # Vereinbarung („Namen nur nach Vereinbarung“); diese Tests prüfen die
+        # Datensparsamkeit genau dieser Namensansicht.
+        self.station = Station.objects.create(
+            name="RW Orga 0.26.1", slug="rw-0261-orga", orga_enabled=True, sop_receipt_names_agreed=True,
+        )
         self.user = User.objects.create_user(
             username="leserin", first_name="Lea", last_name="Leser", password="x-test-pass-123",
         )

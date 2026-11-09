@@ -607,7 +607,7 @@ def dashboard(request):
     # ihren Handlungsbedarf hier, damit die Übersicht das ganze Lagebild zeigt.
     from .module_overview import module_attention_cards
 
-    cards.extend(module_attention_cards(station, request.user))
+    cards.extend(module_attention_cards(station, request.user, request.membership))
     attention_items = []
     if urgent_count:
         attention_items.append({
@@ -1213,9 +1213,13 @@ def membership_update(request, pk):
             form.add_error("role", "Die eigene Master-Admin-Rolle kann hier nicht entzogen werden.")
         from .terminal import is_service_user
 
-        if is_service_user(membership.user) and new_role != Membership.Role.MEMBER:
+        service_account = is_service_user(membership.user)
+        if service_account and new_role != Membership.Role.MEMBER:
             # Das Dienstkonto des Wachenterminals bleibt immer einfaches Mitglied.
             form.add_error("role", "Das Wachenterminal-Konto bleibt Mitglied.")
+        if service_account and any(form.cleaned_data.get(field) for field in Membership.FUNCTION_FIELDS):
+            # … und übernimmt keine Funktion (AGENTS.md § 4).
+            form.add_error(None, _("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
         with transaction.atomic():
             if not form.errors:
                 membership = Membership.objects.select_for_update().get(pk=membership.pk)
