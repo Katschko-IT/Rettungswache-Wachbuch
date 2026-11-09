@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .disinfection_plan import active_disinfectants, active_levels, apply_level_defaults
 from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
+from .paper_backfill import PaperBackfillFormMixin
 
 
 class VehicleForm(forms.ModelForm):
@@ -101,11 +102,12 @@ class DisinfectionLevelSelect(forms.Select):
         return option
 
 
-class DisinfectionProtocolForm(forms.ModelForm):
+class DisinfectionProtocolForm(PaperBackfillFormMixin, forms.ModelForm):
     """Desinfektion erfassen: Stufe aus dem Plan der Wache, ohne Vorauswahl.
 
     Bis der Desinfektionsplan bestätigt ist, bleiben Mittel, Einwirkzeit und
-    Sperre wie bisher im Formular.
+    Sperre wie bisher im Formular. Optional als Nachtrag vom Papierbogen mit
+    dem Beginn laut Bogen (``core/paper_backfill.py``).
     """
 
     class Meta:
@@ -116,6 +118,8 @@ class DisinfectionProtocolForm(forms.ModelForm):
             "exposure_minutes",
             "lock_timer_applied",
             "notes",
+            "is_paper_backfill",
+            "occurred_at",
         ]
         widgets = {
             "exposure_minutes": forms.NumberInput(attrs={"min": 1, "max": 120}),
@@ -123,8 +127,9 @@ class DisinfectionProtocolForm(forms.ModelForm):
             "notes": forms.TextInput(attrs={"placeholder": _("z. B. Trage und Griffe zusätzlich gewischt")}),
         }
 
-    def __init__(self, *args, station=None, **kwargs):
+    def __init__(self, *args, station=None, allow_backfill=True, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setup_paper_backfill(allow=allow_backfill)
         level = self.fields["level"]
         level.required = True
         level.empty_label = _("Bitte Stufe wählen")
@@ -169,7 +174,7 @@ class DisinfectionProtocolForm(forms.ModelForm):
         cleaned_data = apply_level_defaults(cleaned_data, level)
         if not cleaned_data.get("disinfectant"):
             self.add_error("disinfectant", ValidationError(_("Bitte ein Desinfektionsmittel auswählen."), code="required"))
-        return cleaned_data
+        return self.clean_paper_backfill(cleaned_data)
 
 
 YES_NO_CHOICES = [("yes", _("Ja")), ("no", _("Nein"))]
@@ -199,8 +204,13 @@ class FillLevelField(forms.TypedChoiceField):
         super().__init__(choices=FILL_LEVEL_CHOICES, coerce=int, empty_value=None, required=True, **kwargs)
 
 
-class VehicleHandoverForm(forms.ModelForm):
-    """Fahrzeugübernahme: Jede Angabe wird aktiv gemacht, nichts ist vorbelegt."""
+class VehicleHandoverForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Fahrzeugübernahme: Jede Angabe wird aktiv gemacht, nichts ist vorbelegt.
+
+    Optional als Nachtrag vom Papierbogen: Dann wird der km-Stand nicht mit dem
+    letzten Stand verglichen; die Werte am Fahrzeug ändert der Nachtrag nur,
+    wenn er die neueste Übernahme ist (``VehicleHandover.save``).
+    """
 
     mileage = forms.IntegerField(
         label=_("km-Stand"),
@@ -232,12 +242,14 @@ class VehicleHandoverForm(forms.ModelForm):
             "medical_devices_checked",
             "vehicle_clean",
             "notes",
+            "is_paper_backfill",
+            "occurred_at",
         ]
         widgets = {
             "notes": forms.TextInput(attrs={"placeholder": "Besonderheiten, z. B. Steinschlag Windschutzscheibe"}),
         }
 
-    def __init__(self, *args, vehicle=None, **kwargs):
+    def __init__(self, *args, vehicle=None, allow_backfill=True, **kwargs):
         super().__init__(*args, **kwargs)
         if vehicle is None and getattr(self.instance, "vehicle_id", None):
             vehicle = self.instance.vehicle
@@ -253,6 +265,7 @@ class VehicleHandoverForm(forms.ModelForm):
             if name != "notes":
                 self.initial.pop(name, None)
                 self.fields[name].initial = None
+        self.setup_paper_backfill(allow=allow_backfill)
         # Verlässlich ist der km-Stand erst nach einer gespeicherten Übernahme.
         # Neue oder aus dem Gerätemodul übernommene Fahrzeuge tragen sonst nur
         # den Platzhalter des Modells (10.000 km) und blockierten die erste
@@ -260,10 +273,11 @@ class VehicleHandoverForm(forms.ModelForm):
         self.last_mileage = None
         if vehicle is not None and vehicle.pk and vehicle.handovers.exists():
             self.last_mileage = vehicle.current_mileage
+            # Kein min-Attribut mit dem letzten Stand: Ein Nachtrag vom
+            # Papierbogen darf darunter liegen; live prüft clean_mileage.
             self.fields["mileage"].help_text = _("zuletzt %(km)s km") % {
                 "km": number_format(vehicle.current_mileage, force_grouping=True),
             }
-            self.fields["mileage"].widget.attrs["min"] = vehicle.current_mileage
             self.fields["o2_pressure_bar"].help_text = _("zuletzt %(bar)s bar") % {"bar": vehicle.o2_pressure_bar}
         elif vehicle is not None:
             self.fields["mileage"].help_text = _("Erste Übernahme: bitte den km-Stand vom Tacho eintragen.")
@@ -279,10 +293,13 @@ class VehicleHandoverForm(forms.ModelForm):
         if self.vehicle and not self.vehicle.has_adblue:
             if not cleaned_data.get("adblue_percent"):
                 cleaned_data["adblue_percent"] = 0
-        return cleaned_data
+        return self.clean_paper_backfill(cleaned_data)
 
     def clean_mileage(self):
         mileage = self.cleaned_data["mileage"]
+        if self.backfill_allowed and self.is_backfill_requested:
+            # Nachtrag: Der Bogen ist älter als der letzte Stand am Fahrzeug.
+            return mileage
         last = self.last_mileage
         if last is not None and mileage < last:
             raise ValidationError(

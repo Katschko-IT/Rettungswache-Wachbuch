@@ -44,15 +44,23 @@ def crew_for_vehicle(vehicle, now=None):
     from .fleet_models import DisinfectionProtocol, VehicleHandover
     from .models import Membership
 
+    from .paper_backfill import event_time
+
     now = now or timezone.now()
     since = now - CREW_WINDOW
+    # Nach Ereigniszeit: Wer einen alten Papierbogen nachträgt, besetzt das
+    # Fahrzeug deshalb nicht.
     user_ids = set(
-        VehicleHandover.objects.filter(vehicle=vehicle, performed_at__gte=since)
+        VehicleHandover.objects.filter(vehicle=vehicle)
+        .annotate(event_time=event_time("performed_at"))
+        .filter(event_time__gte=since)
         .values_list("crew_member_id", flat=True)
     )
     latest = (
-        DisinfectionProtocol.objects.filter(vehicle=vehicle, started_at__gte=since)
-        .order_by("-started_at")
+        DisinfectionProtocol.objects.filter(vehicle=vehicle)
+        .annotate(event_time=event_time("started_at"))
+        .filter(event_time__gte=since)
+        .order_by("-event_time", "-pk")
         .values_list("performed_by_id", flat=True)
         .first()
     )

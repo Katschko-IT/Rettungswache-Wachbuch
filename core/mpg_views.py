@@ -29,6 +29,7 @@ from .mpg_forms import (
 )
 from .device_status import ASSET_TO_DEVICE, DEVICE_TO_ASSET, mirror_to_asset, release_blockers
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
+from .paper_backfill import backfill_audit_metadata, can_backfill, newest_event_first
 from .services import audit
 from .wachalltag_models import Defect
 
@@ -125,8 +126,10 @@ def mpg_dashboard(request):
         status__in=[Defect.Status.OPEN, Defect.Status.IN_PROGRESS, Defect.Status.WAITING],
     ).order_by("-priority", "created_at")
 
-    recent_checks = DeviceRoutineCheck.objects.filter(station=station).select_related(
-        "device", "performed_by"
+    # Nach Zeit laut Bogen (Nachtrag) bzw. Erfassung, neueste zuerst.
+    recent_checks = newest_event_first(
+        DeviceRoutineCheck.objects.filter(station=station).select_related("device", "performed_by"),
+        "checked_at",
     )[:5]
     recent_maint = MaintenanceLog.objects.filter(station=station).select_related(
         "device", "created_by"
@@ -241,11 +244,10 @@ def mpg_device_detail(request, slug: str):
     device = get_object_or_404(MedicalDevice, station=station, slug=slug)
 
     maint_logs = device.maintenance_logs.select_related("created_by").order_by("-performed_at")[:10]
-    routine_checks = (
-        device.routine_checks.select_related("performed_by")
-        .prefetch_related("cancellation_records")
-        .order_by("-checked_at")[:10]
-    )
+    routine_checks = newest_event_first(
+        device.routine_checks.select_related("performed_by").prefetch_related("cancellation_records"),
+        "checked_at",
+    )[:10]
     trainings = device.trainings.select_related("trainee").order_by("-trained_at", "-created_at")
 
     is_user_trained = (
@@ -256,7 +258,7 @@ def mpg_device_detail(request, slug: str):
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
     maint_form = MaintenanceLogForm(auto_id="maint_%s")
-    check_form = DeviceRoutineCheckForm(auto_id="check_%s")
+    check_form = DeviceRoutineCheckForm(auto_id="check_%s", allow_backfill=can_backfill(request.user))
     training_form = DeviceTrainingRecordForm(station=station, auto_id="training_%s")
     group_training_form = GroupTrainingForm(station=station, auto_id="group_%s")
 
@@ -328,13 +330,19 @@ def mpg_routine_check(request, slug: str):
             notes="Schnellkontrolle: alle Prüfpunkte bestätigt",
         )
     else:
-        form = DeviceRoutineCheckForm(request.POST)
+        form = DeviceRoutineCheckForm(request.POST, allow_backfill=can_backfill(request.user))
         if not form.is_valid():
             if any(name in form.errors for name in DeviceRoutineCheckForm.CHECK_POINTS):
                 messages.error(
                     request,
                     _("Funktionskontrolle nicht gespeichert: Bitte jeden Prüfpunkt mit Ja oder Nein beantworten."),
                 )
+            elif "occurred_at" in form.errors or form.non_field_errors():
+                # Nachtrag vom Papierbogen: Ereigniszeit fehlt, liegt in der Zukunft oder zu weit zurück.
+                problems = [*form.errors.get("occurred_at", []), *form.non_field_errors()]
+                messages.error(request, " ".join([
+                    _("Funktionskontrolle nicht gespeichert."), *[str(problem) for problem in problems],
+                ]))
             else:
                 messages.error(request, _("Funktionskontrolle nicht gespeichert. Bitte die Angaben prüfen."))
             return redirect("mpg_device_detail", slug=device.slug)
@@ -346,18 +354,15 @@ def mpg_routine_check(request, slug: str):
         if protocol:
             check.notes = f"{check.notes} | Selbsttest: {protocol}".strip(" |")[:300]
     check.save()
-    audit(request.user, station, "mpg.routine_check", device, {"passed": check.passed})
+    audit(request.user, station, "mpg.routine_check", device, {"passed": check.passed, **backfill_audit_metadata(check)})
 
     if device.requires_training and station.mpg_training_required:
-        has_valid_training = (
-            DeviceTrainingRecord.objects.filter(
-                station=station,
-                device=device,
-                trainee=request.user,
-            )
-            .filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate()))
-            .exists()
-        )
+        # Gültig am Tag der Kontrolle (bei einem Nachtrag laut Bogen).
+        check_day = timezone.localtime(check.event_at).date()
+        trainings = DeviceTrainingRecord.objects.filter(station=station, device=device, trainee=request.user)
+        if check.is_paper_backfill:
+            trainings = trainings.filter(trained_at__lte=check_day)
+        has_valid_training = trainings.filter(Q(valid_until__isnull=True) | Q(valid_until__gte=check_day)).exists()
         if not has_valid_training:
             messages.warning(
                 request,
@@ -396,6 +401,10 @@ def mpg_routine_check(request, slug: str):
             request,
             f"Funktionskontrolle nicht bestanden. '{device.name}' ist gesperrt und ein Mangel wurde angelegt.",
         )
+    elif check.is_paper_backfill:
+        messages.success(request, _("Nachtrag vom Papierbogen gespeichert (Ereignis %(time)s).") % {
+            "time": timezone.localtime(check.occurred_at).strftime("%d.%m.%Y %H:%M"),
+        })
     elif was_locked:
         messages.info(
             request,
