@@ -6,7 +6,6 @@ incident or alarm data. All mutations remain station scoped and audited.
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 
 from django.contrib import messages
@@ -276,7 +275,7 @@ def defect_create(request):
             "existing_defects": open_defects,
             "selected_asset_ref": selected_asset_ref,
             "selected_asset": selected_asset,
-            "defects_by_asset_json": json.dumps(defects_by_asset_data),
+            "defects_by_asset_data": defects_by_asset_data,
             "initial": initial,
             "initial_in_assets": initial_in_assets,
         },
