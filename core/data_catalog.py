@@ -382,8 +382,11 @@ MODULES = (
             ModelSpec("auth.Permission", "Django-Rechte für den Django-Admin", ("superuser",), ("system",), (), "technical"),
             ModelSpec("core.UserProfile", "Sprache und Profilbild", ("self", "member", "shift_lead", "cashier", "admin", "terminal"), ("self",), ("web", "app", "terminal"), "account",
                       note="Profilbilder sehen Inhaltsrollen derselben Wache und das Wachenterminal (nur Anzeige)."),
-            ModelSpec("core.Membership", "Rolle einer Person in einer Wache", ("self", "admin"), ("admin",), ("web", "app"), "account",
-                      note="Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin."),
+            ModelSpec("core.Membership", "Rolle einer Person in einer Wache, Funktionen, Abo der Fristen-Erinnerungen", ("self", "admin"), ("self", "admin"), ("web", "app"), "account",
+                      note="Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin. Rolle, Zugang und Funktionen "
+                           "setzt der Master-Admin; das Wachenterminal-Konto bekommt keine Funktion. Welche Bereiche der "
+                           "Fristen-Erinnerungen eine Person bekommt und ob zusätzlich per E-Mail (Standard aus), stellt nur "
+                           "die Person selbst unter Mein Konto → Erinnerungen ein."),
             ModelSpec("core.TotpDevice", "Zwei-Faktor-Schlüssel (TOTP), verschlüsselt gespeichert", ("self",), ("self", "admin"), ("web",), "account",
                       note="Der Master-Admin kann den zweiten Faktor zurücksetzen, aber nicht lesen."),
             ModelSpec("core.WebAuthnCredential", "Passkeys (öffentlicher Schlüssel, Gerätename)", ("self",), ("self",), ("web",), "account"),
@@ -416,7 +419,9 @@ MODULES = (
              "(docs/STAMMDATEN-IMPORT.md).",
         models=(
             ModelSpec("core.Station", "Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse", C + ("superuser",), ("admin", "superuser"), ("web", "app", "display"), "config",
-                      note="Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse."),
+                      note="Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse. "
+                           "„Namen bei Lesebestätigungen anzeigen“ (Standard aus) schaltet nur der Master-Admin, wenn eine "
+                           "Vereinbarung mit der Beschäftigtenvertretung das erlaubt; die Änderung steht im Audit."),
             ModelSpec("core.SiteProfile", "Betreiberangaben für Impressum und Datenschutzinformation", ("public",), ("admin",), ("public", "terminal"), "config"),
             ModelSpec("core.DataProtectionOfficer", "Kontakt der Datenschutzbeauftragten", ("public", "admin", "superuser"), ("admin", "superuser"), ("public", "terminal"), "config",
                       note="Öffentlich nur, wenn „in der Datenschutzinformation veröffentlichen“ gesetzt ist; interne Notizen nie."),
@@ -675,13 +680,19 @@ MODULES = (
         web_prefixes=("/benachrichtigungen/", "/hinweise/"), entry_url="push_settings",
         models=(
             ModelSpec("core.UserNotification", "Persönlicher Hinweis: Titel, Text, Link, gelesen", ("self",), ("system",), ("web", "app", "push", "signal", "email"), "gap",
-                      note="Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
+                      note="Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, "
+                           "Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen "
+                           "Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, "
+                           "Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. "
+                           "Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
                            "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an "
                            "bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an "
                            "HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md)."),
             ModelSpec("core.MobilePushDevice", "App-Gerät für Push (Plattform, Geräte-Token, App-Version)", ("self",), ("self",), ("app",), "device_unregister"),
             ModelSpec("core.PushSubscription", "Browser-Push-Abo (Adresse beim Browserhersteller, Schlüssel, Browser)", ("self",), ("self",), ("web",), "device_unregister"),
             ModelSpec("core.PushOutbox", "Warteschlange für Push-Nachrichten", ("system",), ("system",), ("push",), "push_outbox"),
+            ModelSpec("core.WorkerJobState", "Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der letzten Wochenübersicht", ("admin",), ("system",), ("web",), "technical",
+                      note="Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin sieht den Stand unter System."),
         ),
     ),
     ModuleSpec(
@@ -779,16 +790,20 @@ MODULES = (
         "Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.",
         flag="orga_enabled", web_prefixes=("/orga/",), entry_url="orga_dashboard",
         evaluations=(
-            EvaluationSpec("sop_detail", "Quittierungsliste einer Dienstanweisung mit Namen", CS, True),
-            EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True),
+            EvaluationSpec("sop_detail", "Quittierungsliste einer Dienstanweisung mit Namen", CS, True,
+                           "Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); "
+                           "ohne Vereinbarung nur Anzahl und Quote der Zielgruppe"),
+            EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True,
+                           "Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version"),
         ),
         models=(
-            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, CS, ("web", "export"),
+            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen, Zielgruppe nach Rolle und Funktion", C, CS, ("web", "app", "export"),
                       note="Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision. Nicht löschen, "
                            "sondern außer Kraft setzen; Versionen und Quittierungen bleiben."),
             ModelSpec("core.SOPRevision", "Version mit Text, Prüfsumme und Freigabe", C, CS, ("web",), "evidence", evidence=True),
-            ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "export"), "evidence", evidence=True,
-                      note="Mitglieder sehen nur ihren eigenen Stand."),
+            ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "app", "export"), "evidence", evidence=True,
+                      note="Mitglieder sehen nur ihren eigenen Stand (auch in der App). Namen sieht die Leitung nur mit Vereinbarung. "
+                           "Nicht am Wachenterminal und nicht für Auditoren."),
             ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, CS, ("web", "export")),
         ),
     ),

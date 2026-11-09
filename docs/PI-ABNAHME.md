@@ -82,6 +82,10 @@ Je ein **iPhone** und ein **Android-Handy**, mobile Daten zunächst **aus**.
 - [ ] 7.3 Mangel an einem Fahrzeug melden → Fahrzeug gesperrt; Freigabe nur durch Leitung
 - [ ] 7.4 **Mit** LAN-Kabel: bekommt ein Handy im Wachen-WLAN Internet über den Pi?
       (ja / nein – wichtig für die Entscheidung, ob das WLAN Insel bleiben soll)
+- [ ] 7.5 Fahrzeug mit HU in 5 Tagen anlegen: spätestens nach einer Stunde steht bei
+      Schichtleitung und Fuhrpark „HU fällig in 5 Tagen“ im Posteingang; die Seite
+      **System** zeigt unter „Fristen-Erinnerungen“ den letzten Lauf
+      (`docs/OPERATIONS.md`, Abschnitt Fristen-Erinnerungen)
 
 ## 8. Strom, Zeit und Backup
 

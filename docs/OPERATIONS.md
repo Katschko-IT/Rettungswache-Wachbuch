@@ -39,7 +39,9 @@ in `ALLOWED_HOSTS`; geprüft werden Datenbank und Cache), `notify-worker`,
 `housekeeping` und `demo-cleaner` das Alter ihrer Heartbeat-Datei (< 180 s),
 `push-worker` das Alter seiner (< 300 s). `notify-worker` beendet sich nach zehn
 Fehlversuchen in Folge (`NOTIFY_MAX_FAILURES`) mit Fehlercode, damit Docker ihn neu
-startet und der Fehler in `wachbuch status` sichtbar wird.
+startet und der Fehler in `wachbuch status` sichtbar wird. Seine Heartbeat-Datei
+nennt in der zweiten Zeile auch den letzten Lauf der Fristen-Erinnerungen
+(siehe [Fristen-Erinnerungen und Wochenübersicht](#fristen-erinnerungen-und-wochenübersicht)).
 
 ## Benutzer und Rollen
 
@@ -130,6 +132,72 @@ Alle Abrufe laufen über eine feste HTTPS-Allowlist (`core/traffic.py`,
 `ALLOWED_HOSTS`), nur Port 443, ohne Weiterleitungen und mit Größenlimit. Die
 kommunalen Quellen werten HTML aus und können bei Layoutänderungen der Seiten
 leer werden.
+
+## Fristen-Erinnerungen und Wochenübersicht
+
+Es gibt keinen Cron auf dem Host. Der Dienst `notify-worker` (`notify_crew
+--watch`, auch auf dem Raspberry Pi) plant beides selbst
+(`core/deadline_reminders.py`, `run_scheduled_reminders`):
+
+- **Erinnerungen** höchstens einmal je Stunde für alle aktiven Wachen. Je
+  Eintrag und Fälligkeit geht nur die kleinste überschrittene Schwelle von
+  30, 7 und 0 Tagen hinaus, die noch nicht versendet wurde. Ein Termin, der
+  5 Tage vorher eingetragen wird, bekommt einmal die 7-Tage-Erinnerung. War
+  der Server am Fälligkeitstag aus, wird die 0-Tage-Erinnerung nachgeholt
+  (bis 30 Tage nach der Fälligkeit). Es gibt keine tägliche Wiederholung.
+- **Wochenübersicht KW n** einmal je ISO-Kalenderwoche ab Montag 06:00
+  Ortszeit (`TIME_ZONE`). War der Dienst am Montag aus, kommt sie beim
+  nächsten Lauf derselben Woche. Sie nennt je Person nur die abonnierten
+  Bereiche, auch Überfälliges, und im Posteingang höchstens 8 ganze Zeilen
+  („… und N weitere Fristen“); die E-Mail enthält die ganze Liste.
+
+Der letzte Lauf steht in der Datenbank (Tabelle `WorkerJobState`). Ein
+Neustart des Dienstes löst deshalb keinen sofortigen neuen Lauf aus; doppelte
+Läufe wären durch die Schlüssel je Nachricht ohnehin wirkungslos. Ein Fehler
+wird protokolliert, nach 10 Minuten erneut versucht und zählt nicht als
+Fehlversuch des Dienstes. Den Stand zeigen
+
+- die Seite **System** (`/system/`, Master-Admin): letzter Lauf mit Anzahl
+  neuer Nachrichten, Woche der letzten Wochenübersicht, letzter Fehler;
+- die Heartbeat-Datei des Dienstes, zweite Zeile, z. B.
+  `deadline_reminders=2026-11-09T07:00:02+00:00 weekly_digest=2026-W46`:
+
+```bash
+docker compose exec -T notify-worker cat /tmp/notify_crew.alive
+```
+
+Von Hand (Tests, Nachholen, Fehlersuche; Doppel entstehen nicht):
+
+```bash
+docker compose exec -T notify-worker python manage.py send_deadline_reminders --dry-run
+docker compose exec -T notify-worker python manage.py send_deadline_reminders --weekly-digest
+```
+
+Quellen: Medizingeräte (STK zum Monatsende, MTK zum Jahresende, DGUV V3;
+ohne ausgemusterte Geräte), Fahrzeuge (HU, SP, UVV-Prüfung, Wartung
+Tragentisch; ohne ausgemusterte Fahrzeuge), Chargen mit Bestand (Verfall),
+offene Mängel mit Frist, Dienstanweisungen in Kraft (Lesefrist, QM-Überprüfung),
+aktive Wachaufgaben mit Fälligkeitsdatum und Prüfintervalle von Checklisten
+(wöchentlich: am Fälligkeitstag; monatlich: 7 Tage vorher und am
+Fälligkeitstag; tägliche Checklisten stehen nur auf der Übersicht). Hygiene
+hat noch keine Fristquelle.
+
+Empfänger je Bereich: Schichtleitung und Master-Admin sowie Personen mit der
+passenden Funktion (Fahrzeuge: Fuhrpark, bei der UVV-Prüfung auch Sicherheit /
+Arbeitsschutz; Medizinprodukte: MPG-Beauftragte/r; Material: Material / Lager;
+Aufgaben und Prüfungen: Sicherheit / Arbeitsschutz; Dienstanweisungen: nur die
+Leitung). Jede Person stellt unter **Mein Konto → Erinnerungen** selbst ein,
+welche ihrer Bereiche sie bekommt (Standard: alle passenden). Hat niemand der
+Wache einen Bereich eingeschaltet, bekommt die Leitung ihn trotzdem. Lesefristen
+gehen persönlich an die offenen Personen der Zielgruppe, Mangel-Fristen
+zusätzlich an die eingetragene Bearbeitung. Nie an Auditoren, das Dienstkonto
+„Wachenterminal“ oder deaktivierte Konten.
+
+E-Mail: nur wenn `EMAIL_HOST` gesetzt ist (wie bei Kaffeekasse und
+Host-Überwachung), nie in der öffentlichen Demo, und nur an Personen, die
+„Erinnerungen zusätzlich per E-Mail“ selbst eingeschaltet haben (Standard aus).
+Je Lauf und Person eine E-Mail an die Adresse des Kontos. SMTP-Fehler stehen im
+Protokoll des notify-workers; der Eintrag im Posteingang bleibt.
 
 ## Push-Outbox
 

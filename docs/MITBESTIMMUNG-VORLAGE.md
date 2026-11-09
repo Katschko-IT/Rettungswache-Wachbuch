@@ -69,7 +69,8 @@ Wachwerk-Fakten (Spalte „Auswertungen mit Personenbezug“ im Datenkatalog):
 - Die Kennzahl „Läufe mit Ergebnis je Punkt (30 Tage)“ sehen Schichtleitung und Master-Admin nur als **Summe der Wache**, nie je Person.
 - Die Einweisungsmatrix (Gerätepass) zeigt für jedes Mitglied, für welche Geräte eine Einweisung vorliegt, und eine **Quote je Person**; sichtbar für alle Inhaltsrollen.
 - Verläufe in Mängeln, Geräteausgabe, Medizinprodukten, Lager, Fuhrpark und Wiki nennen die handelnde Person; die Mängelliste nennt die zuständige Person. Die App zeigt bei Mängeln den Benutzernamen.
-- Lesequittungen von Dienstanweisungen mit Namen sehen nur Schichtleitung und Master-Admin (auch als CSV).
+- Lesebestätigungen von Dienstanweisungen: Schichtleitung und Master-Admin sehen die **Quote als Zahl** („3 / 8 (38 %)“) für die Zielgruppe. **Namen** (Liste und CSV) sehen sie nur, wenn der Master-Admin unter Einstellungen „Namen bei Lesebestätigungen von Dienstanweisungen anzeigen“ einschaltet (Standard: aus; die Änderung steht im Audit-Protokoll). Ohne den Schalter enthält der Export nur Anzahlen je Version. Die Erinnerung an offene Personen funktioniert in beiden Fällen, ohne der Leitung Namen zu nennen. Zur Zielgruppe zählen weder Auditor noch Wachenterminal noch deaktivierte Konten.
+- Fristen-Erinnerungen (Prüffristen von Fahrzeugen und Medizingeräten, Verfall, Mängel, Aufgaben, Dienstanweisungen) gehen an Schichtleitung, Master-Admin und Personen mit der passenden Funktion; jede Person wählt die Bereiche selbst ab und entscheidet selbst über E-Mail. Die Erinnerungen und die Wochenübersicht nennen keine anderen Personen.
 - Desinfektionen zeigen allen Inhaltsrollen Datum, Mittel und die durchführende Person; Stufe, Einwirkzeit und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2).
 - Stände und Buchungen der Kaffeekasse aller Teilnehmenden sieht nur der Kassenwart (Web und App, in der App mit vollem Namen).
 - Das Audit-Protokoll (Person, Zeit, Aktion, geänderte Felder) sehen Auditor und Master-Admin; es enthält keine fachlichen Freitexte.
@@ -83,6 +84,7 @@ Zu regeln:
 - Kein Abgleich von Zeitstempeln mit Arbeitszeit oder Dienstplan.
 - **Verwertungsverbot:** Daten aus Wachwerk werden nicht für arbeitsrechtliche Maßnahmen gegen einzelne Beschäftigte genutzt. Ausnahmen (z. B. begründeter Verdacht einer Straftat) nur nach Beteiligung der Interessenvertretung: `[ausfüllen]`
 - ob die Sichtbarkeit der Namen (Lesebestätigungen, erledigte Aufgaben, Gerätepass) so bleibt: `[entscheiden]`
+- ob die Leitung bei Dienstanweisungen Namen sehen darf (Schalter „Namen bei Lesebestätigungen von Dienstanweisungen anzeigen“, Standard aus); wenn ja, für welche Zwecke (z. B. Nachweis gegenüber Träger oder ÄLRD) und wie lange der Export aufbewahrt wird: `[entscheiden]`
 
 ### 2.4 Rollen und Zugriffe
 

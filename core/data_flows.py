@@ -299,7 +299,10 @@ FLOW_SPECS: tuple[DataFlowSpec, ...] = (
         personal_data="ja",
         switch="EMAIL_HOST",
         pilot_recommendation="nach Entscheidung",
-        description="E-Mail-Versand für Kaffeekasse und technische Servermeldungen.",
+        description=(
+            "E-Mail-Versand für Kaffeekasse, technische Servermeldungen und – nur für Personen, die das selbst "
+            "eingeschaltet haben – Fristen-Erinnerungen und Wochenübersicht."
+        ),
         in_application=True,
         checker=_check_email,
     ),
