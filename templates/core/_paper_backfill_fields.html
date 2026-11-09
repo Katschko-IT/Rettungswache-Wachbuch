@@ -1,0 +1,23 @@
+{% load i18n %}
+{% comment %}
+Nachtrag vom Papierbogen (core/paper_backfill.py): Häkchen und Ereigniszeit.
+Fehlt das Feld im Formular (Wachenterminal), bleibt der Block leer.
+Parameter: form, when_hint (Frage nach der Zeit laut Bogen), effect_hint (optional).
+{% endcomment %}
+{% if "is_paper_backfill" in form.fields %}
+<details class="details-help paper-backfill-fields"{% if form.is_paper_backfill.value or form.occurred_at.errors or form.non_field_errors %} open{% endif %}>
+  <summary>{% translate "Nachtrag vom Papierbogen" %}</summary>
+  <div class="field">
+    {{ form.is_paper_backfill.errors }}
+    <label class="checkbox-field" for="{{ form.is_paper_backfill.id_for_label }}">{{ form.is_paper_backfill }} {% translate "Nachtrag vom Papierbogen" %}</label>
+    <p class="field-hint">{% translate "Aktivieren, wenn ein handschriftlicher Papierbogen nachträglich ins Wachbuch übertragen wird." %}</p>
+  </div>
+  <div class="field">
+    {{ form.occurred_at.errors }}
+    <label for="{{ form.occurred_at.id_for_label }}">{% translate "Ereigniszeitpunkt (Papierbogen)" %}</label>
+    {{ form.occurred_at }}
+    <p class="field-hint">{{ when_hint }} {% translate "Nicht in der Zukunft und höchstens 365 Tage zurück." %}</p>
+    {% if effect_hint %}<p class="field-hint">{{ effect_hint }}</p>{% endif %}
+  </div>
+</details>
+{% endif %}

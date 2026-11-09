@@ -87,10 +87,28 @@ paths:
     get:
       summary: Active handovers
       responses:
-        "200": { description: Handover list }
+        "200":
+          description: Handover list (results are Handover objects without detail fields)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/Handover" }
         "403": { $ref: "#/components/responses/Error" }
     post:
       summary: Create handover
+      description: >-
+        Optional paper backfill (0.28): is_paper_backfill true plus occurred_at (event time
+        from the paper sheet, not in the future, at most 365 days ago). occurred_at is ignored
+        and stored as null without the flag. A backfill sends no Web-Push. The Wachenterminal
+        service account cannot create a backfill (422).
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HandoverWrite" }
       responses:
         "201": { description: Handover created }
         "403": { $ref: "#/components/responses/Error" }
@@ -100,7 +118,11 @@ paths:
       summary: Handover detail
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       responses:
-        "200": { description: Handover detail }
+        "200":
+          description: Handover detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Handover" }
         "404": { $ref: "#/components/responses/Error" }
   /handovers/{id}/status/:
     post:
@@ -725,6 +747,30 @@ components:
         owner: { type: string, description: Username of an active station member }
         due_at: { type: string, format: date-time, nullable: true }
         category: { type: string, enum: [vehicle, material, safety, facility, key, device, task] }
+    Handover:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        category: { type: string, enum: [station, vehicle, material, task, safety] }
+        priority: { type: string, enum: [normal, important, urgent] }
+        status: { type: string, enum: [open, in_progress, done] }
+        updated_at: { type: string, format: date-time }
+        is_paper_backfill: { type: boolean, description: "Nachtrag vom Papierbogen (0.28)" }
+        occurred_at: { type: string, format: date-time, nullable: true, description: "Event time from the paper sheet; null unless is_paper_backfill" }
+        details: { type: string, description: detail only }
+        created_at: { type: string, format: date-time, description: "detail only; for a backfill the entry time" }
+        version: { type: integer, description: detail only }
+    HandoverWrite:
+      type: object
+      required: [category, title, details]
+      properties:
+        category: { type: string, enum: [station, vehicle, material, task, safety] }
+        priority: { type: string, enum: [normal, important, urgent] }
+        title: { type: string, maxLength: 160 }
+        details: { type: string, maxLength: 3000 }
+        is_paper_backfill: { type: boolean }
+        occurred_at: { type: string, format: date-time, description: "Required with is_paper_backfill: not in the future, at most 365 days ago" }
     HandoverAck:
       type: object
       required: [handover_id, by, at]

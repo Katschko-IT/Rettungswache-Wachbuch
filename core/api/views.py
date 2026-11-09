@@ -555,6 +555,8 @@ def _person(user):
 
 
 def _handover_json(item, *, detail=False):
+    from ..paper_backfill import iso_utc
+
     data = {
         "id": item.pk,
         "title": item.title,
@@ -563,6 +565,9 @@ def _handover_json(item, *, detail=False):
         "status": item.status,
         "updated_at": item.updated_at.isoformat(),
     }
+    # Nachtrag vom Papierbogen: Ereigniszeit laut Bogen, sonst null (0.28).
+    data["is_paper_backfill"] = item.is_paper_backfill
+    data["occurred_at"] = iso_utc(item.occurred_at) if item.is_paper_backfill else None
     if detail:
         data["details"] = item.details
         data["created_at"] = item.created_at.isoformat()
@@ -706,7 +711,10 @@ def handover_create(request):
     body = _parse_json(request)
     if body is None:
         return _json_error(request, "JSON-Körper erwartet.")
-    form = HandoverForm(body)
+    from ..paper_backfill import can_backfill
+
+    # Das Dienstkonto des Wachenterminals trägt nichts nach (422 mit Hinweis).
+    form = HandoverForm(body, allow_backfill=can_backfill(request.user))
     if not form.is_valid():
         return _json_error(
             request,

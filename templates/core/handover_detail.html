@@ -10,9 +10,7 @@
     <div class="status-row">
       <span class="status-label priority-{{ handover.priority }}">{{ handover.get_priority_display }}</span>
       <span class="status-label neutral">{{ handover.get_status_display }}</span>
-      {% if handover.is_paper_backfill %}
-        <span class="status-label warning">{% blocktranslate with event=handover.occurred_at|date:"d.m.Y H:i" created=handover.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
-      {% endif %}
+      {% include "core/_paper_backfill_badge.html" with record=handover %}
     </div>
   </div>
   {% if can_edit_content %}<a class="button secondary" href="{% url 'handover_edit' handover.pk %}">{% translate "Inhalt korrigieren" %}</a>{% endif %}

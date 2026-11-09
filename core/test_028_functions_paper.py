@@ -201,12 +201,12 @@ class PaperBackfillHandoverTests(TestCase):
         self.assertIsNotNone(handover.occurred_at)
 
         # Detail view shows paper backfill badge with both timestamps
+        # (Wortlaut seit P4: „Nachtrag vom Papierbogen · Ereignis … · erfasst …“).
         detail_response = self.client.get(reverse("handover_detail", args=[handover.pk]))
         self.assertEqual(detail_response.status_code, 200)
         content = detail_response.content.decode("utf-8")
-        self.assertIn("Nachtrag von Papier", content)
-        self.assertIn("Ereignis:", content)
-        self.assertIn("Erfasst:", content)
+        self.assertIn("Nachtrag vom Papierbogen · Ereignis ", content)
+        self.assertIn(" · erfasst ", content)
         self.assertIn(handover.occurred_at.strftime("%d.%m.%Y"), content)
         self.assertIn(handover.created_at.strftime("%d.%m.%Y"), content)
 
@@ -214,9 +214,8 @@ class PaperBackfillHandoverTests(TestCase):
         list_response = self.client.get(reverse("handover_list"))
         self.assertEqual(list_response.status_code, 200)
         list_content = list_response.content.decode("utf-8")
-        self.assertIn("Nachtrag von Papier", list_content)
-        self.assertIn("Ereignis:", list_content)
-        self.assertIn("Erfasst:", list_content)
+        self.assertIn("Nachtrag vom Papierbogen · Ereignis ", list_content)
+        self.assertIn(" · erfasst ", list_content)
 
     def test_normal_handover_does_not_display_paper_backfill_badge(self):
         handover = ShiftHandover.objects.create(
@@ -230,4 +229,4 @@ class PaperBackfillHandoverTests(TestCase):
         )
         detail_response = self.client.get(reverse("handover_detail", args=[handover.pk]))
         content = detail_response.content.decode("utf-8")
-        self.assertNotIn("Nachtrag von Papier", content)
+        self.assertNotIn("Nachtrag vom Papierbogen · Ereignis", content)

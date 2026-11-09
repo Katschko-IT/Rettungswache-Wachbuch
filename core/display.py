@@ -172,9 +172,11 @@ def display_payload(station) -> dict:
             "urgent_items": urgent_items[:5],
         }
 
+    # Nachträge vom Papierbogen sind Vergangenheit: Sie zählen nicht als neue
+    # dringende Übergabe (kein Gong, keine Zahl auf dem Display).
     urgent = (
         HandoverEntry.objects.filter(
-            station=station, priority=HandoverEntry.Priority.URGENT
+            station=station, priority=HandoverEntry.Priority.URGENT, is_paper_backfill=False,
         )
         .exclude(status=HandoverEntry.Status.DONE)
         .count()

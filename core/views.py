@@ -722,8 +722,12 @@ def handover_list(request):
 @require_http_methods(["GET", "POST"])
 def handover_create(request):
     from .demo_sandbox import tour_form_initial
+    from .paper_backfill import can_backfill
 
-    form = HandoverForm(request.POST or None, initial=tour_form_initial(request))
+    # Am Wachenterminal kein Nachtrag vom Papierbogen (AGENTS.md §4).
+    form = HandoverForm(
+        request.POST or None, initial=tour_form_initial(request), allow_backfill=can_backfill(request.user),
+    )
     if request.method == "POST" and form.is_valid():
         uploads, upload_error = read_uploads(request.FILES.getlist("attachments"))
         if upload_error:

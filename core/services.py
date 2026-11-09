@@ -13,6 +13,7 @@ from .models import (
     HandoverRevision,
     PinboardNote,
 )
+from .paper_backfill import backfill_audit_metadata, iso_utc
 from .push import notify_urgent_handover
 
 
@@ -64,7 +65,7 @@ def handover_snapshot(handover):
         "title": handover.title,
         "details": handover.details,
         "is_paper_backfill": getattr(handover, "is_paper_backfill", False),
-        "occurred_at": handover.occurred_at.isoformat() if getattr(handover, "occurred_at", None) else None,
+        "occurred_at": iso_utc(getattr(handover, "occurred_at", None)),
     }
 
 
@@ -80,10 +81,16 @@ def create_handover(form, membership):
         snapshot=handover_snapshot(handover),
         changed_by=membership.user,
     )
+    fields = ["category", "priority", "title", "details"]
+    if handover.is_paper_backfill:
+        fields += ["is_paper_backfill", "occurred_at"]
     audit(membership.user, membership.station, "handover.created", handover, {
-        "fields": ["category", "priority", "title", "details", "is_paper_backfill", "occurred_at"],
+        "fields": fields,
+        **backfill_audit_metadata(handover),
     })
-    notify_urgent_handover(handover, membership.user)
+    # Ein Nachtrag vom Papierbogen ist Vergangenheit: keine Live-Benachrichtigung.
+    if not handover.is_paper_backfill:
+        notify_urgent_handover(handover, membership.user)
     return handover
 
 
@@ -118,14 +125,21 @@ def update_handover_content(handover, cleaned_data, membership):
     before = {
         "category": locked.category,
         "priority": locked.priority,
+        "is_paper_backfill": locked.is_paper_backfill,
+        "occurred_at": iso_utc(locked.occurred_at),
     }
     field_names = []
-    for field in ("category", "priority", "title", "details"):
+    for field in ("category", "priority", "title", "details", "is_paper_backfill", "occurred_at"):
         if field in cleaned_data and getattr(locked, field) != cleaned_data[field]:
             setattr(locked, field, cleaned_data[field])
             field_names.append(field)
     if not field_names:
         return locked
+    if not locked.is_paper_backfill and locked.occurred_at is not None:
+        # Ohne Häkchen keine Ereigniszeit (Datenbank-Bedingung).
+        locked.occurred_at = None
+        if "occurred_at" not in field_names:
+            field_names.append("occurred_at")
     locked.version += 1
     locked.save(update_fields=[*field_names, "version", "updated_at"])
     HandoverRevision.objects.create(
@@ -137,13 +151,21 @@ def update_handover_content(handover, cleaned_data, membership):
     after = {
         "category": locked.category,
         "priority": locked.priority,
+        "is_paper_backfill": locked.is_paper_backfill,
+        "occurred_at": iso_utc(locked.occurred_at),
     }
+    # Häkchen und Ereigniszeit stehen im Audit nur, wenn sie sich geändert haben
+    # (strukturierte Werte, keine Freitexte).
     audit(membership.user, membership.station, "handover.content_updated", locked, {
         "fields": field_names,
         "version": locked.version,
         "changes": structure_changes(before, after),
     })
-    if locked.priority == HandoverEntry.Priority.URGENT and "priority" in field_names:
+    if (
+        locked.priority == HandoverEntry.Priority.URGENT
+        and "priority" in field_names
+        and not locked.is_paper_backfill
+    ):
         notify_urgent_handover(locked, membership.user)
     return locked
 

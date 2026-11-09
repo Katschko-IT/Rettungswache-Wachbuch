@@ -16,17 +16,9 @@
     <p class="field-hint">{% translate "Keine Namen, Diagnosen, Einsatznummern, Adressen oder Krankheitsgründe eintragen." %}</p>
     {{ form.details }}
   </div>
-  <div class="field">
-    {{ form.is_paper_backfill.errors }}
-    <label class="checkbox-field" for="{{ form.is_paper_backfill.id_for_label }}">{{ form.is_paper_backfill }} {% translate "Nachtrag vom Papierbogen" %}</label>
-    <p class="field-hint">{% translate "Aktivieren, wenn ein handschriftlicher Papierbogen nachträglich ins Wachbuch übertragen wird." %}</p>
-  </div>
-  <div class="field">
-    {{ form.occurred_at.errors }}
-    <label for="{{ form.occurred_at.id_for_label }}">{% translate "Ereigniszeitpunkt (Papierbogen)" %}</label>
-    {{ form.occurred_at }}
-    <p class="field-hint">{% translate "Wann fand die Übergabe laut Papierbogen statt?" %}</p>
-  </div>
+  {% translate "Wann fand die Übergabe laut Papierbogen statt?" as when_hint %}
+  {% translate "Ein Nachtrag löst keine Push-Benachrichtigung aus und zählt auf dem Wachen-Display nicht als neue dringende Übergabe." as effect_hint %}
+  {% include "core/_paper_backfill_fields.html" with form=form when_hint=when_hint effect_hint=effect_hint %}
   <div class="field">
     <label for="handover-attachments">{% translate "Anhänge (optional)" %}</label>
     <input id="handover-attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf">
