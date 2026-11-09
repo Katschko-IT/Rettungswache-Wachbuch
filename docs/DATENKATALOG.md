@@ -825,7 +825,7 @@ Lesebestätigung: Person und Zeit
 
 ### core.HandoverAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -934,7 +934,7 @@ Quittierung: Person und Zeit
 
 ### core.NewsAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Schichtleitung, Master-Admin
@@ -1777,7 +1777,7 @@ Aushänge der Wache.
 
 ### core.PinboardAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)

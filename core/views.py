@@ -73,12 +73,10 @@ from .models import (
     WebAuthnCredential,
 )
 from .api.wachalltag import (
-    ALLOWED_ATTACHMENT_TYPES,
     MAX_ATTACHMENT_BYTES,
     MAX_ATTACHMENTS_PER_HANDOVER,
-    attachment_is_valid,
 )
-from .attachments import read_uploads
+from .attachments import read_upload, read_uploads
 from .wachalltag_models import ChecklistSchedule, Defect, HandoverAck, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
 from .checklists_views import checklist_complete, checklists  # noqa: F401 (urls nutzen views.*)
@@ -732,14 +730,14 @@ def handover_create(request):
             messages.error(request, upload_error)
         else:
             handover = create_handover(form, request.membership)
-            for upload, raw in uploads:
+            for upload in uploads:
                 HandoverAttachment.objects.create(
                     handover=handover,
                     station=request.membership.station,
-                    filename=upload.name[:180],
+                    filename=upload.name,
                     content_type=upload.content_type,
-                    data=raw,
-                    size=len(raw),
+                    data=upload.data,
+                    size=upload.size,
                     uploaded_by=request.user,
                 )
             messages.success(request, _("Übergabe wurde angelegt."))
@@ -771,33 +769,27 @@ def handover_detail(request, pk):
         messages.success(request, _("Als gelesen quittiert.") if created else _("Bereits quittiert."))
         return redirect("handover_detail", pk=pk)
     if request.method == "POST" and request.POST.get("action") == "upload":
-        upload = request.FILES.get("attachment")
-        if upload is None:
-            messages.error(request, _("Bitte eine Datei auswählen."))
-        elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
-            messages.error(request, _("Erlaubt sind JPEG, PNG, WebP und PDF."))
-        elif upload.size > MAX_ATTACHMENT_BYTES:
-            messages.error(request, _("Datei darf maximal 5 MiB groß sein."))
-        elif handover.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
+        if handover.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
             messages.error(request, _("Mehr Anhänge sind nicht möglich."))
         else:
-            raw = upload.read()
-            if not attachment_is_valid(raw, upload.content_type):
-                messages.error(request, _("Datei ist kein gültiges Bild und kein lesbares PDF."))
+            # Prüft Typ, Größe und Inhalt; Bilder ohne Metadaten (EXIF, GPS).
+            upload, upload_error = read_upload(request.FILES.get("attachment"))
+            if upload_error:
+                messages.error(request, upload_error)
             else:
                 with transaction.atomic():
                     attachment = HandoverAttachment.objects.create(
                         handover=handover,
                         station=request.membership.station,
-                        filename=upload.name[:180],
+                        filename=upload.name,
                         content_type=upload.content_type,
-                        data=raw,
-                        size=len(raw),
+                        data=upload.data,
+                        size=upload.size,
                         uploaded_by=request.user,
                     )
                     audit(request.user, request.membership.station, "handover.attachment_added", handover, {
                         "attachment_id": attachment.pk,
-                        "size": len(raw),
+                        "size": upload.size,
                     })
                 messages.success(request, _("Anhang wurde hinzugefügt."))
                 return redirect("handover_detail", pk=pk)
@@ -1578,14 +1570,14 @@ def pinboard_create(request):
             body=form.cleaned_data["body"],
             category=form.cleaned_data["category"],
         )
-        for upload, raw in uploads:
+        for upload in uploads:
             PinboardAttachment.objects.create(
                 note=note,
                 station=request.membership.station,
-                filename=upload.name[:180],
+                filename=upload.name,
                 content_type=upload.content_type,
-                data=raw,
-                size=len(raw),
+                data=upload.data,
+                size=upload.size,
                 uploaded_by=request.user,
             )
         messages.success(request, _("Aushang wurde angelegt."))

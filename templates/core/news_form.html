@@ -10,11 +10,11 @@
   {% csrf_token %}
   <p class="form-row">
     <label for="news-title">{% translate "Titel" %} *</label>
-    <input id="news-title" name="title" type="text" maxlength="160" required>
+    <input id="news-title" name="title" type="text" maxlength="160" required value="{{ request.POST.title }}">
   </p>
   <p class="form-row">
     <label for="news-body">{% translate "Text" %} *</label>
-    <textarea id="news-body" name="body" rows="8" maxlength="4000" required></textarea>
+    <textarea id="news-body" name="body" rows="8" maxlength="4000" required>{{ request.POST.body }}</textarea>
   </p>
   <p class="form-row">
     <label for="news-upload">{% translate "Anhang (optional)" %}</label>
