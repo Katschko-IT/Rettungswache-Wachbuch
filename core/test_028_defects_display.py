@@ -630,6 +630,26 @@ class UploadMetadataTests(TestCase):
         self.assertEqual(attachment.size, len(attachment.data))
 
 
+    def test_signal_renames_png_it_converts_to_jpeg(self):
+        handover = HandoverEntry.objects.create(
+            station=self.station, category="station", title="Scan", details="x", author=self.user,
+        )
+        raw = png_bytes()
+        attachment = HandoverAttachment.objects.create(
+            handover=handover, station=self.station, filename="scan.png", content_type="image/png",
+            data=raw, size=len(raw), uploaded_by=self.user,
+        )
+        attachment.refresh_from_db()
+        self.assertEqual(attachment.content_type, "image/jpeg")
+        self.assertEqual(attachment.filename, "scan.jpg")
+        self.assertTrue(bytes(attachment.data).startswith(b"\xff\xd8\xff"))
+        note = PinboardNote.objects.create(station=self.station, author=self.user, title="Aushang", body="x")
+        pin = PinboardAttachment.objects.create(
+            note=note, station=self.station, filename="plan.final.png", content_type="image/png",
+            data=raw, size=len(raw), uploaded_by=self.user,
+        )
+        self.assertEqual((pin.filename, pin.content_type), ("plan.final.jpg", "image/jpeg"))
+
 class DefectApiTests(TestCase):
     def setUp(self):
         self.station = Station.objects.create(name="Wache API", slug="wache-api")

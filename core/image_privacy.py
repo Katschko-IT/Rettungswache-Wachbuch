@@ -100,6 +100,10 @@ def _strip_metadata_before_save(instance) -> None:
     instance.data = clean
     instance.size = len(clean)
     instance.content_type = "image/jpeg"
+    # Model.save() hat die Endung schon aus dem alten Typ gebildet (läuft vor
+    # diesem Signal); der Inhalt ist jetzt JPEG, also auch der Name.
+    stem = (instance.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+    instance.filename = f"{stem[:170]}.jpg"
 
 
 @receiver(pre_save, sender=HandoverAttachment, dispatch_uid="strip_handover_attachment_metadata")
