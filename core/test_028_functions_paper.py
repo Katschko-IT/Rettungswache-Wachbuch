@@ -192,7 +192,7 @@ class PaperBackfillHandoverTests(TestCase):
                 "title": "Handschriftlicher Bogen Frühschicht",
                 "details": "Wache sauber übergeben laut Papierprotokoll.",
                 "is_paper_backfill": "on",
-                "occurred_at": occurred.strftime("%Y-%m-%dT%H:%M"),
+                "occurred_at": timezone.localtime(occurred).strftime("%Y-%m-%dT%H:%M"),
             },
         )
         handover = ShiftHandover.objects.get(title="Handschriftlicher Bogen Frühschicht")
@@ -207,8 +207,10 @@ class PaperBackfillHandoverTests(TestCase):
         content = detail_response.content.decode("utf-8")
         self.assertIn("Nachtrag vom Papierbogen · Ereignis ", content)
         self.assertIn(" · erfasst ", content)
-        self.assertIn(handover.occurred_at.strftime("%d.%m.%Y"), content)
-        self.assertIn(handover.created_at.strftime("%d.%m.%Y"), content)
+        # Angezeigt wird Ortszeit; zwischen Mitternacht und dem UTC-Versatz
+        # unterscheidet sich das Datum von UTC.
+        self.assertIn(timezone.localtime(handover.occurred_at).strftime("%d.%m.%Y"), content)
+        self.assertIn(timezone.localtime(handover.created_at).strftime("%d.%m.%Y"), content)
 
         # List view shows paper backfill badge
         list_response = self.client.get(reverse("handover_list"))

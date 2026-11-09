@@ -12,24 +12,33 @@ Abgedeckte Prüfpunkte (Audit 0.28, Paket P4):
 - defects-display-paper-15: Das Wachenterminal trägt nichts nach.
 - defects-display-paper-16: Audit nennt Häkchen und Ereigniszeit nur beim Nachtrag.
 - Prüfer-Nachtrag: Kein Web-Push und kein Gong für nachgetragene dringende Übergaben.
+- Review P4: Person eines Nachtrags ist, wer ihn erfasst („erfasst von“), ohne
+  Einweisungsprüfung und ohne Besatzung; ein überholtes „Nein“ sperrt nicht;
+  Fehlerzusammenfassung ohne doppelte Formularfehler; JSON-Typen der API;
+  Ereigniszeit auf die Minute; Desinfektion ohne Stufe mit „Frei ab“ laut Bogen.
 """
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape
 
 from core.api.views import hash_api_token
 from core.audit_labels import ACTION_LABELS, annotate
 from core.crew_notifications import crew_for_vehicle
 from core.disinfection_plan import ensure_default_levels
 from core.display import display_payload
-from core.fleet_forms import DisinfectionProtocolForm, VehicleHandoverForm
+from core.fleet_forms import (
+    DisinfectionProtocolForm,
+    VehicleHandoverForm,
+    minutes_until_release,
+)
 from core.fleet_models import (
     DisinfectantMaster,
     DisinfectionLevel,
@@ -49,7 +58,8 @@ from core.models import (
     Station,
 )
 from core.mpg_forms import DeviceRoutineCheckForm
-from core.mpg_models import DeviceRoutineCheck, MedicalDevice
+from core.mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MedicalDevice
+from core.notification_models import UserNotification
 from core.paper_backfill import (
     BACKFILL_MAX_DAYS,
     TERMINAL_REFUSAL,
@@ -190,7 +200,10 @@ class HandoverBackfillTests(BackfillBase):
         self.assertIs(event.metadata["paper_backfill"], True)
         self.assertEqual(event.metadata["occurred_at"], backfill.occurred_at.isoformat())
         self.assertIn("occurred_at", event.metadata["fields"])
-        self.assertNotIn("details", json.dumps(event.metadata).replace('"details"', ""))
+        # Keine Freitexte im Audit: weder Titel noch Text der Übergabe.
+        dumped = json.dumps(event.metadata, ensure_ascii=False)
+        for text in (self.handover_data()["title"], self.handover_data()["details"]):
+            self.assertNotIn(text, dumped)
 
         self.client.post(reverse("handover_create"), self.handover_data(title="Live"))
         live = HandoverEntry.objects.get(title="Live")
@@ -285,6 +298,35 @@ class HandoverBackfillTests(BackfillBase):
         event = AuditEvent.objects.get(action="handover.content_updated")
         self.assertEqual(event.metadata["changes"]["is_paper_backfill"], {"from": True, "to": False})
 
+    def test_correction_without_time_change_keeps_seconds_and_audit_clean(self):
+        # Ereigniszeit mit Sekunden (App-Schnittstelle vor 0.28): Das Formular
+        # zeigt nur Minuten. Eine reine Titelkorrektur ändert die Zeit nicht.
+        occurred = (self.now - timedelta(hours=3)).replace(second=37, microsecond=0)
+        backfill = HandoverEntry.objects.create(
+            station=self.station, category="station", title="Alt", details="d", author=self.member,
+            is_paper_backfill=True, occurred_at=occurred,
+        )
+        self.client.force_login(self.lead)
+        response = self.client.post(reverse("handover_edit", args=[backfill.pk]), {
+            **self.handover_data(title="Neu", details="d"), "is_paper_backfill": "on",
+            "occurred_at": local_input(occurred),
+        })
+        self.assertRedirects(response, reverse("handover_detail", args=[backfill.pk]))
+        backfill.refresh_from_db()
+        self.assertEqual(backfill.title, "Neu")
+        self.assertEqual(backfill.occurred_at, occurred)
+        event = AuditEvent.objects.get(action="handover.content_updated")
+        self.assertEqual(event.metadata["fields"], ["title"])
+        self.assertNotIn("occurred_at", event.metadata["changes"])
+
+    def test_web_backfill_is_stored_to_the_minute(self):
+        form = HandoverForm(self.handover_data(
+            is_paper_backfill="on",
+            occurred_at=timezone.localtime(self.now - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:45"),
+        ))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["occurred_at"].second, 0)
+
     def test_members_cannot_correct(self):
         _response, backfill = self.create_backfill()
         self.client.force_login(self.member)
@@ -342,6 +384,32 @@ class HandoverApiBackfillTests(BackfillBase):
         self.assertEqual(stray.status_code, 201)
         self.assertIsNone(HandoverEntry.objects.get(title="Ohne Haken").occurred_at)
 
+    def test_api_rejects_wrong_json_types_with_422(self):
+        headers = self.token(self.member, "wb_test_p4_member_token_types1")
+        for value in (12345, ["x"], {"a": 1}, True):
+            for flag in (True, None):
+                with self.subTest(value=value, flag=flag):
+                    extra = {"occurred_at": value}
+                    if flag is not None:
+                        extra["is_paper_backfill"] = flag
+                    response = self.post(headers, **extra)
+                    self.assertEqual(response.status_code, 422, response.content)
+                    self.assertIn("occurred_at", response.json()["fields"])
+        response = self.post(headers, is_paper_backfill=[1], occurred_at=(self.now - timedelta(hours=1)).isoformat())
+        self.assertEqual(response.status_code, 422)
+        self.assertIn("is_paper_backfill", response.json()["fields"])
+        self.assertFalse(HandoverEntry.objects.exists())
+        # null bleibt erlaubt (kein Nachtrag).
+        self.assertEqual(self.post(headers, occurred_at=None, is_paper_backfill=None).status_code, 201)
+
+    def test_api_truncates_event_time_to_the_minute(self):
+        headers = self.token(self.member, "wb_test_p4_member_token_minute")
+        occurred = (self.now - timedelta(hours=2)).replace(second=37, microsecond=123000)
+        response = self.post(headers, is_paper_backfill=True, occurred_at=occurred.isoformat())
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(HandoverEntry.objects.get().occurred_at, minute(occurred))
+        self.assertEqual(response.json()["occurred_at"], minute(occurred).isoformat())
+
     def test_terminal_service_account_cannot_backfill_over_api(self):
         headers = self.token(self.service_user, "wb_test_p4_terminal_token_12345")
         response = self.post(headers, is_paper_backfill=True, occurred_at=(self.now - timedelta(hours=1)).isoformat())
@@ -368,7 +436,7 @@ class TerminalBackfillTests(BackfillBase):
             is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(hours=1)),
         ))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "am Wachenterminal nicht möglich")
+        self.assertContains(response, "am Wachenterminal nicht möglich", count=1)
         self.assertFalse(HandoverEntry.objects.exists())
         # Ohne Häkchen bleibt das Schreiben einer Übergabe am Terminal möglich.
         self.client.post(reverse("handover_create"), self.handover_data(title="Am Terminal"))
@@ -479,6 +547,25 @@ class VehicleHandoverBackfillTests(FleetBackfillBase):
         self.assertIn(self.member, crew_for_vehicle(self.vehicle))
 
 
+    def test_recent_backfill_does_not_make_the_person_entering_it_crew(self):
+        # Die Schichtleitung trägt einen Bogen von vor 2 Stunden nach: Sie hat
+        # das Fahrzeug nicht übernommen.
+        self.handover_post(user=self.lead, is_paper_backfill="on",
+                           occurred_at=local_input(self.now - timedelta(hours=2)))
+        self.assertTrue(VehicleHandover.objects.filter(is_paper_backfill=True, crew_member=self.lead).exists())
+        self.assertNotIn(self.lead, crew_for_vehicle(self.vehicle))
+
+    def test_history_names_the_person_entering_a_backfill(self):
+        self.handover_post(user=self.member)
+        self.handover_post(user=self.lead, is_paper_backfill="on",
+                           occurred_at=local_input(self.now - timedelta(days=1)))
+        page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        history = page.content.decode().split("Letzte Schichtübernahmen", 1)[1]
+        self.assertIn("erfasst von Sam", history)
+        self.assertNotIn("erfasst von Nora", history)
+        self.assertIn("Nora", history)
+
+
 class DisinfectionBackfillTests(FleetBackfillBase):
     def test_finished_backfill_does_not_lock_vehicle(self):
         occurred = self.now - timedelta(hours=6)
@@ -530,6 +617,67 @@ class DisinfectionBackfillTests(FleetBackfillBase):
         self.disinfection_post(is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(hours=6)))
         page = self.client.get(reverse("fleet_dashboard"))
         self.assertContains(page, LABEL_START)
+        self.assertContains(page, "erfasst von Nora")
+
+    def test_backfill_without_level_takes_exposure_from_release_time(self):
+        occurred = minute(self.now - timedelta(minutes=10))
+        release = timezone.localtime(occurred + timedelta(minutes=25)).strftime("%H:%M")
+        response = self.disinfection_post(level="", exposure_minutes="", lock_timer_applied="",
+                                          is_paper_backfill="on", occurred_at=local_input(occurred),
+                                          released_at=release)
+        self.assertRedirects(response, reverse("fleet_vehicle_detail", args=[self.vehicle.slug]),
+                             fetch_redirect_response=False)
+        protocol = DisinfectionProtocol.objects.get()
+        self.assertIsNone(protocol.level)
+        self.assertEqual(protocol.exposure_minutes, 25)
+        self.assertTrue(protocol.lock_timer_applied)
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.disinfection_locked_until, occurred + timedelta(minutes=25))
+
+    def test_release_time_overrides_entered_exposure(self):
+        occurred = minute(self.now - timedelta(hours=5))
+        release = timezone.localtime(occurred + timedelta(minutes=40)).strftime("%H:%M")
+        self.disinfection_post(is_paper_backfill="on", occurred_at=local_input(occurred), released_at=release,
+                               exposure_minutes=15)
+        self.assertEqual(DisinfectionProtocol.objects.get().exposure_minutes, 40)
+
+    def test_backfill_without_level_needs_release_time_or_exposure(self):
+        response = self.disinfection_post(level="", exposure_minutes="", is_paper_backfill="on",
+                                          occurred_at=local_input(self.now - timedelta(hours=5)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Bitte „Frei ab“ laut Bogen oder die Einwirkzeit angeben.")
+        self.assertFalse(DisinfectionProtocol.objects.exists())
+        # Mit eingetragener Einwirkzeit geht es auch ohne „Frei ab“.
+        self.disinfection_post(level="", exposure_minutes=20, is_paper_backfill="on",
+                               occurred_at=local_input(self.now - timedelta(hours=5)))
+        self.assertEqual(DisinfectionProtocol.objects.get().exposure_minutes, 20)
+
+    def test_release_time_must_follow_the_start_within_twelve_hours(self):
+        occurred = minute(self.now - timedelta(hours=20))
+        before = timezone.localtime(occurred - timedelta(hours=1)).strftime("%H:%M")
+        response = self.disinfection_post(is_paper_backfill="on", occurred_at=local_input(occurred), released_at=before)
+        self.assertContains(response, "höchstens 12 Stunden danach")
+        self.assertFalse(DisinfectionProtocol.objects.exists())
+
+    def test_minutes_until_release_crosses_midnight(self):
+        start = datetime(2026, 11, 3, 23, 50, tzinfo=timezone.get_current_timezone())
+        self.assertEqual(minutes_until_release(start, time(0, 20)), 30)
+        self.assertEqual(minutes_until_release(start, time(23, 55)), 5)
+        self.assertIsNone(minutes_until_release(start, time(23, 50)))
+        self.assertIsNone(minutes_until_release(start, time(23, 0)))
+        self.assertIsNone(minutes_until_release(start, time(12, 0)))
+
+    def test_live_disinfection_still_requires_a_level(self):
+        response = self.disinfection_post(level="")
+        self.assertContains(response, "Bitte eine Stufe wählen.")
+        self.assertFalse(DisinfectionProtocol.objects.exists())
+
+    def test_release_time_field_only_with_backfill(self):
+        self.client.force_login(self.member)
+        page = self.client.get(reverse("fleet_vehicle_detail", args=[self.vehicle.slug]))
+        self.assertContains(page, 'name="released_at"')
+        form = DisinfectionProtocolForm(station=self.station, allow_backfill=False)
+        self.assertNotIn("released_at", form.fields)
 
     def test_form_without_backfill_permission(self):
         form = DisinfectionProtocolForm(
@@ -583,6 +731,65 @@ class RoutineCheckBackfillTests(BackfillBase):
         defect = Defect.objects.get(medical_device=self.device)
         self.assertTrue(defect.description.startswith(LABEL_START))
 
+    def test_failed_backfill_older_than_a_valid_check_does_not_lock(self):
+        self.post()  # heute bestanden
+        self.device.refresh_from_db()
+        latest = self.device.last_routine_check
+        response = self.post(function_ok="no", is_paper_backfill="on",
+                             occurred_at=local_input(self.now - timedelta(days=5)))
+        self.assertContains(response, "Eine neuere Kontrolle liegt vor")
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.READY)
+        self.assertEqual(self.device.last_routine_check, latest)
+        defect = Defect.objects.get(medical_device=self.device)
+        self.assertEqual(defect.priority, Defect.Priority.IMPORTANT)
+        self.assertTrue(defect.description.startswith(LABEL_START))
+        self.assertIn("nicht gesperrt", defect.description)
+
+    def test_cancelled_newer_check_does_not_count(self):
+        self.post()
+        live = DeviceRoutineCheck.objects.get()
+        self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, live.pk]))
+        self.post(function_ok="no", is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(days=5)))
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.OOB)
+        self.assertEqual(Defect.objects.get(medical_device=self.device).priority, Defect.Priority.URGENT)
+
+    def test_storno_of_superseded_failed_backfill_keeps_device_status(self):
+        self.post()
+        MedicalDevice.objects.filter(pk=self.device.pk).update(current_status=MedicalDevice.Status.LIMITED)
+        self.post(function_ok="no", is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(days=5)))
+        backfill = DeviceRoutineCheck.objects.get(is_paper_backfill=True)
+        self.client.post(reverse("mpg_routine_check_storno", args=[self.device.slug, backfill.pk]))
+        self.assertTrue(backfill.is_cancelled)
+        self.device.refresh_from_db()
+        self.assertEqual(self.device.current_status, MedicalDevice.Status.LIMITED)
+
+    def test_backfill_skips_training_check_and_notification(self):
+        Station.objects.filter(pk=self.station.pk).update(mpg_training_required=True)
+        MedicalDevice.objects.filter(pk=self.device.pk).update(requires_training=True)
+        self.client.force_login(self.lead)
+        response = self.client.post(reverse("mpg_routine_check", args=[self.device.slug]), {
+            "battery_ok": "yes", "visual_ok": "yes", "function_ok": "yes", "notes": "",
+            "is_paper_backfill": "on", "occurred_at": local_input(self.now - timedelta(days=2)),
+        }, follow=True)
+        self.assertNotContains(response, "keine gültige Geräteeinweisung")
+        self.assertFalse(UserNotification.objects.filter(kind=UserNotification.Kind.MPG_TRAINING_MISSING).exists())
+        self.assertFalse(DeviceTrainingRecord.objects.exists())
+        # Gegenprobe: Dieselbe Person prüft live ohne Einweisung.
+        self.client.post(reverse("mpg_routine_check", args=[self.device.slug]), {
+            "battery_ok": "yes", "visual_ok": "yes", "function_ok": "yes", "notes": "",
+        })
+        notice = UserNotification.objects.get(kind=UserNotification.Kind.MPG_TRAINING_MISSING, user=self.admin)
+        self.assertIn("Sam", notice.body)
+
+    def test_lists_name_the_person_entering_a_backfill(self):
+        self.post(is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(hours=8)))
+        self.post()
+        detail = self.client.get(reverse("mpg_device_detail", args=[self.device.slug])).content.decode()
+        self.assertEqual(detail.count("erfasst von Nora"), 1)
+        self.assertContains(self.client.get(reverse("mpg_dashboard")), "erfasst von Nora", count=1)
+
     def test_storno_window_counts_from_entry(self):
         self.post(is_paper_backfill="on", occurred_at=local_input(self.now - timedelta(days=3)))
         check = DeviceRoutineCheck.objects.get()
@@ -614,6 +821,18 @@ class RoutineCheckBackfillTests(BackfillBase):
         )
         self.assertFalse(form.is_valid())
         self.assertIn(str(TERMINAL_REFUSAL), form.non_field_errors())
+
+
+# ---- Fehlerzusammenfassung --------------------------------------------------
+
+
+class ErrorSummaryTests(BackfillBase):
+    def test_login_error_is_shown_once(self):
+        response = self.client.post(reverse("login"), {"username": "nfs-p4", "password": "falsch"})
+        self.assertEqual(response.status_code, 200)
+        errors = response.context["form"].non_field_errors()
+        self.assertTrue(errors)
+        self.assertEqual(response.content.decode().count(escape(errors[0])), 1)
 
 
 # ---- Papierblätter -----------------------------------------------------------
