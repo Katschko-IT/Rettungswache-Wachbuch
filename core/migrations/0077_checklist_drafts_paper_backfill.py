@@ -5,9 +5,12 @@
 - ``ChecklistCompletion`` ist wieder strikt append-only. Bisherige
   Zwischenstände (``is_draft=True``, eingeführt mit 0075) wandern in
   ``ChecklistDraft``: je Wache und Checkliste nur der neueste, mit seiner
-  Zeit, Person, Notiz und den Ergebnissen. Danach werden die Zwischenstands-
-  Zeilen aus ``core_checklistcompletion`` gelöscht und die Spalte
-  ``is_draft`` entfällt. Endgültige Abschlüsse bleiben unverändert.
+  Zeit, Person, Notiz und den Ergebnissen. Gibt es für dieselbe Wache und
+  Checkliste einen endgültigen Abschluss, der gleich alt oder jünger ist, ist
+  der Zwischenstand überholt (bis 0.28 ließ ein Abschluss über die App den
+  alten Zwischenstand stehen) und wird nicht übernommen. Danach werden alle
+  Zwischenstands-Zeilen aus ``core_checklistcompletion`` gelöscht und die
+  Spalte ``is_draft`` entfällt. Endgültige Abschlüsse bleiben unverändert.
 - ``ChecklistCompletion.is_paper_backfill``/``occurred_at``: Nachtrag vom
   Papierbogen mit Ereigniszeit (Standard: kein Nachtrag, leer).
 - ``Defect.source_checklist_run`` (PROTECT, leer für bestehende Mängel) und
@@ -23,7 +26,8 @@ Rückweg: Die Spalte ``is_draft`` kommt zurück (Standard „nein“), jeder
 Zwischenstand wird wieder eine Zeile mit ``is_draft=True`` (Zeit = letzte
 Änderung, Person = zuletzt bearbeitet von), danach entfallen die neue Tabelle
 und die neuen Felder. Angaben zum Papier-Nachtrag und der Rückverweis am
-Mangel gehen beim Rückweg verloren.
+Mangel gehen beim Rückweg verloren, ebenso ältere und überholte
+Zwischenstände, die schon der Hinweg nicht übernommen hat.
 """
 
 import django.db.models.deletion
@@ -58,6 +62,15 @@ def move_legacy_drafts(apps, schema_editor):
         if key in seen:
             continue
         seen.add(key)
+        superseded = ChecklistCompletion.objects.filter(
+            is_draft=False,
+            station_id=row.station_id,
+            checklist_id=row.checklist_id,
+            created_at__gte=row.created_at,
+        ).exists()
+        if superseded:
+            # Ein späterer Abschluss hat diesen Stand schon erledigt.
+            continue
         draft = ChecklistDraft.objects.create(
             station_id=row.station_id,
             checklist_id=row.checklist_id,

@@ -1100,6 +1100,7 @@ class DraftMigrationTests(TransactionTestCase):
         ben = OldUser.objects.create(username="mig-ben")
         first = OldChecklist.objects.create(station=station, title="Kühlschrank")
         second = OldChecklist.objects.create(station=station, title="Rundgang")
+        third = OldChecklist.objects.create(station=station, title="Rucksack")
         now = timezone.now()
 
         def row(checklist, user, is_draft, age, note):
@@ -1112,21 +1113,25 @@ class DraftMigrationTests(TransactionTestCase):
         row(first, anna, True, 3, "alter Stand")
         row(first, ben, True, 1, "neuer Stand")
         row(second, ben, True, 2, "Rundgang halb")
+        # Bis 0.28 ließ ein Abschluss über die App den Zwischenstand stehen: überholt, nicht übernehmen.
+        row(third, anna, True, 4, "überholter Stand")
+        third_final = row(third, ben, False, 2, "Rucksack fertig")
 
         new = self._migrate(self.after)
         Draft = new.get_model("core", "ChecklistDraft")
         Completion = new.get_model("core", "ChecklistCompletion")
-        self.assertEqual(list(Completion.objects.values_list("pk", flat=True)), [final.pk])
+        self.assertEqual(sorted(Completion.objects.values_list("pk", flat=True)), sorted([final.pk, third_final.pk]))
         drafts = {d.checklist_id: d for d in Draft.objects.all()}
         self.assertEqual(set(drafts), {first.pk, second.pk})
+        self.assertFalse(Draft.objects.filter(checklist_id=third.pk).exists())
         self.assertEqual((drafts[first.pk].note, drafts[first.pk].updated_by_id), ("neuer Stand", ben.pk))
         self.assertEqual(drafts[first.pk].item_results, {"1": {"status": "ok"}})
         self.assertLess(drafts[second.pk].updated_at, now - timedelta(days=1))
-        self.assertEqual(Completion.objects.get().is_paper_backfill, False)
+        self.assertFalse(Completion.objects.filter(is_paper_backfill=True).exists())
 
         back = self._migrate(self.before)
         Completion = back.get_model("core", "ChecklistCompletion")
-        self.assertEqual(Completion.objects.filter(is_draft=False).count(), 1)
+        self.assertEqual(Completion.objects.filter(is_draft=False).count(), 2)
         self.assertEqual(
             sorted(Completion.objects.filter(is_draft=True).values_list("note", flat=True)),
             ["Rundgang halb", "neuer Stand"],
