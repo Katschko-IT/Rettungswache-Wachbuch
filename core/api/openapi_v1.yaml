@@ -500,6 +500,8 @@ paths:
         the quota. Stores person, version and time only (no IP address, no
         user agent). Idempotent. Optional body `{"revision": <id>}`: if a newer
         version exists, 409 is returned so the app can show the new text first.
+        `revision` must be an integer (or a string of ASCII digits); floats,
+        booleans and other values return 400 validation_error.
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       requestBody:
         required: false
@@ -512,6 +514,7 @@ paths:
       responses:
         "201": { description: Acknowledgement recorded (created true) }
         "200": { description: Already acknowledged (created false) }
+        "400": { $ref: "#/components/responses/Error" }
         "403": { $ref: "#/components/responses/Error" }
         "404": { $ref: "#/components/responses/Error" }
         "409": { $ref: "#/components/responses/Error" }
