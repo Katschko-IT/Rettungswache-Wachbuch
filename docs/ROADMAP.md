@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand: 2. November 2026 · aktuelle Version 0.27.0. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
+Stand: 9. November 2026 · aktuelle Version 0.28.0. Diese Datei ersetzt den Stand vom 3. August 2026. Sie führt `PRODUKT-FAHRPLAN.md`, `FUNKTIONSMATRIX-20261019.md`, `WAVE-3-READINESS.md` und `ROADMAP-OFFENE-BAUSTELLEN.md` zusammen; diese werden archiviert. Sicherheits- und Betriebsmaßnahmen stehen weiter in `REMEDIATION-ROADMAP-2026-08.md`; ihr Status ändert sich nur mit Beleg (AGENTS.md §§ 2, 5, 7). Der Wettbewerbsvergleich steht in [`KONKURRENZANALYSE.md`](KONKURRENZANALYSE.md); Funktionsvorschläge mit Bewertung: [`FUNKTIONSVORSCHLAEGE.md`](FUNKTIONSVORSCHLAEGE.md); UX-Plan: [`UX-PLAN.md`](UX-PLAN.md).
 
 ## Vision
 
@@ -75,7 +75,9 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 - Restore mit echten Daten erfolgreich; Papier-Rückfallebene ausgedruckt.
 - Ansprechperson, Supportzeiten und Ausstiegsweg (Export) schriftlich vereinbart.
 
-## Jetzt – Als Nächstes – 0.28 „Prüfen“ (Zielfenster Mai 2027, während des Pilots, ca. 10 PW)
+## 0.28 „Prüfen“ (Zielfenster Mai 2027, während des Pilots, ca. 10 PW)
+
+**Stand:** abgeschlossen in 0.28.0 (2026-11-09), siehe [CHANGELOG](../CHANGELOG.md); App 1.2 bringt die Funktionen aufs Telefon. Technisch belegt sind die Erinnerung 30 Tage vorher (automatisch im notify-worker, auch nach einem Ausfall nachgeholt) und axe-core in der CI (0 Funde critical/serious, hell und dunkel). Die Ziele zur Quote je Punkt (Kennzahl auf der Checklistenseite) und zum Bedientest „Mangel mit Foto in höchstens 3 Taps“ werden im Pilot gemessen.
 
 **Ziel:** Prüfungen haben ein Ergebnis je Punkt, Mängel entstehen ohne doppelte Erfassung, und niemand verpasst eine Frist.
 
@@ -93,7 +95,7 @@ Wachwerk ist die quelloffene, selbst betriebene Wachenorganisation für Rettungs
 - Moderierter Bedientest mit 5 Personen: „Mangel mit Foto“ in höchstens 3 Taps.
 - axe-core (Playwright) in der CI: 0 Funde der Schwere critical oder serious, hell und dunkel.
 
-## Als Nächstes – 0.29 „Nachweisen und Material“ (Zielfenster August 2027, ca. 11 PW)
+## Jetzt – Als Nächstes – 0.29 „Nachweisen und Material“ (Zielfenster August 2027, ca. 11 PW)
 
 **Ziel:** Das MP-Buch ist vollständig, Begehungen sind vorbereitet, Fahrzeuge sind sichtbar vollständig beladen.
 
