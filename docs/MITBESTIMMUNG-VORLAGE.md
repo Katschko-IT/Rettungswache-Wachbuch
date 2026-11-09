@@ -65,6 +65,8 @@ Wachwerk-Fakten (Spalte „Auswertungen mit Personenbezug“ im Datenkatalog):
 
 - Lesebestätigungen von Übergaben zeigen **Name und Uhrzeit**; sichtbar für alle Inhaltsrollen und am Wachenterminal.
 - Erledigte Tagesaufgaben und Checklisten zeigen im Web den **Vornamen** und die Uhrzeit; sichtbar für alle Inhaltsrollen und am Wachenterminal. Die App zeigt beim letzten Abschluss einer Checkliste den **vollen Namen**.
+- Seit 0.28 zeigt der Verlauf einer Checkliste je Lauf den **Vornamen**, die Zeit und die Ergebnisse je Prüfpunkt (mit Begründungen); sichtbar für alle Inhaltsrollen, nicht am Wachenterminal. Den CSV-Export der Läufe (mit **vollem Namen**, z. B. als Temperaturprotokoll) erstellen nur Schichtleitung und Master-Admin. Ein offener Zwischenstand zeigt, wer ihn zuletzt gespeichert hat.
+- Die Kennzahl „Läufe mit Ergebnis je Punkt (30 Tage)“ sehen Schichtleitung und Master-Admin nur als **Summe der Wache**, nie je Person.
 - Die Einweisungsmatrix (Gerätepass) zeigt für jedes Mitglied, für welche Geräte eine Einweisung vorliegt, und eine **Quote je Person**; sichtbar für alle Inhaltsrollen.
 - Verläufe in Mängeln, Geräteausgabe, Medizinprodukten, Lager, Fuhrpark und Wiki nennen die handelnde Person; die Mängelliste nennt die zuständige Person. Die App zeigt bei Mängeln den Benutzernamen.
 - Lesequittungen von Dienstanweisungen mit Namen sehen nur Schichtleitung und Master-Admin (auch als CSV).

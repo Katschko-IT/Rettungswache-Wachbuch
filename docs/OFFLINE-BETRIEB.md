@@ -184,6 +184,12 @@ Hilfe (alle Rollen außer Auditor).
   Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und
   bleiben als Original bei der Wachleitung. Nachträge mit Ereigniszeit und
   Eingabezeit sind für 0.28 geplant.
+- **Checklisten nachtragen (seit 0.28):** Ein ausgefüllter Checklisten-Bogen
+  lässt sich auf der Checklistenseite unter „Papierbogen nachtragen“ mit dem
+  Zeitpunkt laut Bogen erfassen (nicht in der Zukunft, höchstens 365 Tage
+  zurück). Verlauf, Einzellauf und Export zeigen den Nachtrag mit
+  Ereigniszeit und Eingabezeit; „Zuletzt erledigt“ und die Fälligkeit richten
+  sich nach der Ereigniszeit. Am Wachenterminal ist der Nachtrag gesperrt.
 - **Offen:** Aufbewahrung und Vernichtung der ausgefüllten Blätter
   (handschriftliche Kürzel und Zeiten sind personenbezogene Daten) regelt das
   Löschkonzept (Datenschutzunterlagen 0.27, Entscheidung von Betreiber und

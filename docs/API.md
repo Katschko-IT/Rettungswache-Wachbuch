@@ -85,9 +85,10 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_m
 | GET/POST | `/api/v1/kalender/` | Termine (laufende und kommende, mit `description`) |
 | GET/POST | `/api/v1/kaffeekasse/` | Kasse; `scope` = `station` (nur Kassenwart, Wachensaldo) oder `own` (eigene Buchungen); `monthly_fee_euros` und `own` (offen, Guthaben, Monate) für jede Person; POST nur Kassenwart (optional `method` für Einzahlungen) |
 | POST | `/api/v1/kaffeekasse/bezahlt/` | „Ich habe bezahlt“: eigene Zahlung (`method` = `cash`/`transfer`/`paypal`/`wero`, `amount_euros`, optional `note`); Antwort enthält den neuen Stand (`own`, `payment`) |
-| GET | `/api/v1/checklisten/` | Checklisten + Fälligkeit |
-| POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss |
+| GET | `/api/v1/checklisten/` | Checklisten mit Prüfpunkten (`item_details`: Kennung, Text, Pflicht, Einheit, Grenzwerte), letztem Lauf, Zwischenstand und Fälligkeit |
+| POST | `/api/v1/checklisten/<id>/erledigt/` | Lauf abschließen mit `item_results`; mit `is_draft: true` Zwischenstand speichern |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |
+| GET/POST | `/api/v1/checklisten/<id>/zwischenstand/` | gemeinsamen Zwischenstand der Wache lesen oder ersetzen |
 | GET/PUT/DELETE | `/api/v1/checklisten/<id>/schedule/` | tägliche/wöchentliche/monatliche Wiederholung |
 | GET | `/api/v1/reports/` | leichte Stationsauswertung |
 
@@ -133,7 +134,16 @@ Fahrzeuge/Geräte besitzen einen operationalen Status (`ready`, `limited`, `work
 
 ### Quittierungen und Checklisten
 
-Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig.
+Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig. Ein Nachtrag vom Papierbogen, dessen Ereigniszeit vor dem laufenden Zyklus liegt, schreibt die Fälligkeit nicht fort.
+
+Checklisten-Läufe (seit 0.28) prüfen Web und App mit derselben Logik (`core/checklists_service.py`):
+
+- `item_results` ist ein Objekt mit der Kennung des Prüfpunkts aus `item_details` als Schlüssel und je `status` (`ok`, `not_ok`, `na`), `value` (Messwert, Zahl oder Text mit Dezimalkomma) und `reason`. Ein Abschluss ohne Ergebnisse ist ein Fehler 400 (`validation_error`, Liste in `errors`). Pflichtpunkte brauchen ein Ergebnis, „entfällt“ eine Begründung, Messpunkte bei `ok`/`not_ok` einen Messwert. Ein Wert außerhalb der Grenzwerte wird `not_ok` mit automatischer Begründung; 0 ist ein echter Grenzwert. NaN, Infinity, Werte über 999999,99, fremde Kennungen, Einträge ohne Objekt und Schalter, die nicht `true`/`false` (oder `1`/`0`) sind, sind ebenfalls ein 400.
+- Jedes gespeicherte Ergebnis enthält eine Kopie des Prüfpunkts (Text, Einheit, Grenzwerte, Pflicht). Spätere Änderungen an der Checkliste ändern alte Läufe nicht.
+- Ein Lauf wird einmal gespeichert (append-only) und löscht den Zwischenstand. Für „nicht in Ordnung“ entsteht ein Mangel mit Rückverweis auf den Lauf; gibt es für denselben Prüfpunkt noch einen offenen Mangel aus dieser Checkliste, verweist das Ergebnis auf ihn (`defects_linked`) statt einen zweiten anzulegen.
+- Der Zwischenstand gehört der Wache: Die nächste Person setzt ihn fort. Speichern ersetzt ihn vollständig.
+- Nachtrag vom Papierbogen: `is_paper_backfill: true` mit `occurred_at` (nicht in der Zukunft, höchstens 365 Tage zurück).
+- Das Dienstkonto „Wachenterminal“ schließt keine Checklisten mit `requires_personal_login` ab und trägt keine Papierbögen nach.
 
 ### Reports
 

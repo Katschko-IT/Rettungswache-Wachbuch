@@ -32,7 +32,7 @@ enthalten, soweit die aktuelle Rolle sie online ohnehin sehen darf:
 | Datentyp | Erlaubte Felder | Nicht erlaubt |
 |---|---|---|
 | Tagesaufgaben | `id`, `title`, `band`, `weekday`, `sort_order`, Status `done` + `work_date` | Notizen anderer Nutzer, Ersteller-Profile |
-| Checklisten | `id`, `title`, `description`, Item-Texte, letzter Abschluss (Zeit, Anzeigename) | Abschlussnotizen, Verlauf, Auditor-Sichten |
+| Checklisten | `id`, `title`, `description`, Item-Texte und `item_details` (Kennung, Pflicht, Einheit, Grenzwerte), letzter Abschluss (Zeit, Anzeigename) | Abschlussnotizen, Verlauf, Zwischenstand (`draft`: Begründungen und Name), Auditor-Sichten |
 | Übergaben (nur Liste) | `id`, `title`, `created_at`, `urgent` | Freitext-Body, Anhänge, Empfängerlisten |
 | Eigene Mitgliedschaft | `station_id`, `station_name`, `role`, `user_id`, `display_name` | E-Mail, Telefon, Geburtstag, Avatar |
 | Metadaten | `schema_version`, `fetched_at`, `expires_at`, `station_id` | Correlation-IDs, Session-IDs, CSRF-Tokens |

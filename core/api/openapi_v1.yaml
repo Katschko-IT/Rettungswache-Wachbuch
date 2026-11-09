@@ -317,22 +317,94 @@ paths:
         "422": { $ref: "#/components/responses/Error" }
   /checklisten/:
     get:
-      summary: Active checklists including recurring schedule state
+      summary: Active checklists with items, last final run, open draft and recurring schedule state
+      description: |
+        `items` keeps the item texts for older apps. `item_details` carries the item ids that
+        `item_results` must use, plus required flag, unit and limits. `last_completed_at` is the
+        time of the newest final run (the event time for a paper backfill); drafts never count.
+        `draft` is the station's shared draft of this checklist (or null).
       responses:
-        "200": { description: Checklist list }
+        "200":
+          description: Checklist list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/Checklist" }
+        "403": { $ref: "#/components/responses/Error" }
         "404": { $ref: "#/components/responses/Error" }
   /checklisten/{id}/erledigt/:
     post:
-      summary: Complete checklist and advance recurring due date
+      summary: Finalize a checklist run (or save the draft with is_draft true)
+      description: |
+        One shared validation for web and app. A final run needs item_results for the checklist's
+        items (missing or empty results are a 400), every required item rated, a reason for `na`,
+        and a value for measurement items rated `ok` or `not_ok`. A value outside the limits turns
+        the item into `not_ok` with an automatic reason. NaN, Infinity, values beyond
+        999999.99, unknown item ids, non-object entries and non-boolean flags are a 400.
+        A final run is stored once (append-only), deletes the shared draft, creates a defect for
+        each `not_ok` item unless an open defect of the same checklist item exists (then the
+        result links to it, see `defects_linked`), and advances the recurring due date. The
+        terminal service account cannot finalize checklists with `requires_personal_login` and
+        cannot backfill.
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistRunWrite" }
       responses:
-        "201": { description: Completion recorded }
+        "200": { description: "Draft saved (is_draft true)", content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "201": { description: Final run recorded, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistRun" } } } }
+        "400": { description: "validation_error; `errors` lists every problem", content: { application/json: { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
   /checklisten/{id}/abschluss/:
     post:
       summary: Alias for /erledigt/
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistRunWrite" }
       responses:
-        "201": { description: Completion recorded }
+        "200": { description: "Draft saved (is_draft true)" }
+        "201": { description: Final run recorded }
+        "400": { $ref: "#/components/responses/Error" }
+  /checklisten/{id}/zwischenstand/:
+    get:
+      summary: Read the station's shared draft of a checklist (null if none)
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Draft or null, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "404": { $ref: "#/components/responses/Error" }
+    post:
+      summary: Save (replace) the shared draft; same item rules as a run, without the completeness checks
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_results: { $ref: "#/components/schemas/ChecklistItemResults" }
+                note: { type: string, maxLength: 300 }
+      responses:
+        "200": { description: Draft saved, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      summary: Same as POST
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Draft saved }
   /checklisten/{id}/schedule/:
     get:
       summary: Read recurring checklist schedule
@@ -430,6 +502,103 @@ components:
               enum: [validation_error, auth_required, forbidden, mfa_required, mfa_setup_required, not_found, conflict, payload_too_large, unsupported_media_type, rate_limit, server_error]
             message: { type: string }
             correlation_id: { type: string }
+    ValidationErrorResponse:
+      allOf:
+        - { $ref: "#/components/schemas/ErrorResponse" }
+        - type: object
+          properties:
+            errors: { type: array, items: { type: string } }
+    ChecklistItem:
+      type: object
+      properties:
+        id: { type: integer, description: "Key for item_results" }
+        text: { type: string }
+        position: { type: integer }
+        required: { type: boolean }
+        unit: { type: string }
+        min: { type: string, nullable: true, description: "Decimal as string, e.g. \"2.00\"; 0 is a real limit" }
+        max: { type: string, nullable: true }
+        measurement: { type: boolean, description: "Unit or limit set: ok/not_ok need a value" }
+    Checklist:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        items: { type: array, items: { type: string }, description: "Item texts (older apps)" }
+        item_details: { type: array, items: { $ref: "#/components/schemas/ChecklistItem" } }
+        requires_personal_login: { type: boolean }
+        last_completed_at: { type: string, format: date-time, nullable: true }
+        last_completed_by: { type: string, nullable: true }
+        last_completed_paper_backfill: { type: boolean }
+        draft: { allOf: [{ $ref: "#/components/schemas/ChecklistDraft" }], nullable: true }
+        interval: { type: string }
+        due_next: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
+    ChecklistItemResult:
+      type: object
+      properties:
+        status: { type: string, enum: ["", ok, not_ok, na] }
+        value: { oneOf: [{ type: number }, { type: string }], nullable: true, description: "Measurement; a string may use a decimal comma" }
+        reason: { type: string, maxLength: 500 }
+    ChecklistItemResults:
+      type: object
+      description: "Object keyed by item id (from item_details)"
+      additionalProperties: { $ref: "#/components/schemas/ChecklistItemResult" }
+    ChecklistStoredResult:
+      allOf:
+        - { $ref: "#/components/schemas/ChecklistItemResult" }
+        - type: object
+          description: "Stored with a copy of the item at the time of the run"
+          properties:
+            text: { type: string }
+            unit: { type: string }
+            min: { type: string, nullable: true }
+            max: { type: string, nullable: true }
+            required: { type: boolean }
+            position: { type: integer }
+            defect_id: { type: integer, nullable: true }
+            defect_linked: { type: boolean, description: "true: links to an open defect that already existed" }
+    ChecklistRunWrite:
+      type: object
+      properties:
+        item_results: { $ref: "#/components/schemas/ChecklistItemResults" }
+        note: { type: string, maxLength: 300 }
+        is_draft: { type: boolean, description: "true/false (also 1/0, \"true\"/\"false\"); anything else is a 400" }
+        is_paper_backfill: { type: boolean }
+        occurred_at: { type: string, format: date-time, description: "Event time of a paper backfill: not in the future, at most 365 days ago" }
+    ChecklistDraft:
+      type: object
+      properties:
+        id: { type: integer }
+        note: { type: string }
+        item_results: { type: object, additionalProperties: { $ref: "#/components/schemas/ChecklistStoredResult" } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        updated_by: { type: string }
+    ChecklistDraftResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        is_draft: { type: boolean }
+        checklist: { type: integer }
+        draft: { allOf: [{ $ref: "#/components/schemas/ChecklistDraft" }], nullable: true }
+    ChecklistRun:
+      type: object
+      properties:
+        ok: { type: boolean }
+        id: { type: integer }
+        checklist: { type: integer }
+        is_draft: { type: boolean, enum: [false] }
+        item_results: { type: object, additionalProperties: { $ref: "#/components/schemas/ChecklistStoredResult" } }
+        defects_created: { type: array, items: { type: integer } }
+        defects_linked: { type: array, items: { type: integer } }
+        created_at: { type: string, format: date-time }
+        occurred_at: { type: string, format: date-time, nullable: true }
+        is_paper_backfill: { type: boolean }
+        interval: { type: string }
+        due_next: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
     Defect:
       allOf:
         - { $ref: "#/components/schemas/DefectWrite" }
