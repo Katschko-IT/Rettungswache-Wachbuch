@@ -2,6 +2,7 @@ from django.urls import include, path
 
 from . import (
     account_views,
+    checklists_views,
     coffee_views,
     community_views,
     demo_sandbox,
@@ -179,6 +180,10 @@ urlpatterns = [
     path("aufgaben/<int:pk>/status/", views.task_toggle, name="task_toggle"),
     path("checklisten/", views.checklists, name="checklists"),
     path("checklisten/<int:pk>/erledigt/", views.checklist_complete, name="checklist_complete"),
+    # Verlauf, Lauf und Export: am Wachenterminal gesperrt (core/terminal.py, OPEN_MODE_BLOCKED).
+    path("checklisten/verlauf/<int:pk>/", checklists_views.checklist_history, name="checklist_history"),
+    path("checklisten/verlauf/<int:pk>/export.csv", checklists_views.checklist_runs_export, name="checklist_runs_export"),
+    path("checklisten/verlauf/lauf/<int:pk>/", checklists_views.checklist_run_detail, name="checklist_run_detail"),
     path("pinnwand/", views.pinboard, name="pinboard"),
     path("pinnwand/neu/", views.pinboard_create, name="pinboard_create"),
     path("pinnwand/<int:pk>/bearbeiten/", views.pinboard_edit, name="pinboard_edit"),

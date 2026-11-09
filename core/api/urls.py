@@ -39,6 +39,7 @@ urlpatterns = [
     path("checklisten/<int:pk>/erledigt/", wachalltag.checklist_complete_api, name="api_v1_checkliste_erledigt"),
     path("checklisten/<int:pk>/abschluss/", wachalltag.checklist_complete_api, name="api_v1_checkliste_abschluss"),
     path("checklisten/<int:pk>/schedule/", wachalltag.checklist_schedule, name="api_v1_checkliste_schedule"),
+    path("checklisten/<int:pk>/zwischenstand/", views.checklist_draft_api, name="api_v1_checkliste_zwischenstand"),
     # E2EE messaging (ciphertext envelopes only; server never decrypts)
     path("chat/identity/", chat.identity, name="api_v1_chat_identity"),
     path("chat/keys/", chat.member_keys, name="api_v1_chat_keys"),

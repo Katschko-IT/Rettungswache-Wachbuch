@@ -18,7 +18,7 @@ from urllib.parse import quote
 
 from PIL import Image, UnidentifiedImageError
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -269,6 +269,8 @@ def api_root(request):
         "handover_ack": True,
         "defect_attachments": True,
         "checklist_schedules": True,
+        "checklist_item_results": True,
+        "checklist_drafts": True,
         "reports": True,
         "offline_safe_reads": True,
     }
@@ -369,6 +371,16 @@ def _next_month(value):
     return value.replace(year=year, month=month, day=day)
 
 
+def _previous_month(value):
+    month = value.month - 1
+    year = value.year
+    if month == 0:
+        month = 12
+        year -= 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return value.replace(year=year, month=month, day=day)
+
+
 def _step_schedule(value, interval):
     if interval == ChecklistSchedule.Interval.DAILY:
         return value + timedelta(days=1)
@@ -377,21 +389,45 @@ def _step_schedule(value, interval):
     return _next_month(value)
 
 
-def _advance_schedule(schedule):
-    """Advance exactly along the configured cadence to the first future due."""
-    now = timezone.now()
-    next_due = _step_schedule(schedule.due_next or now, schedule.interval)
-    while next_due <= now:
+def _step_schedule_back(value, interval):
+    if interval == ChecklistSchedule.Interval.DAILY:
+        return value - timedelta(days=1)
+    if interval == ChecklistSchedule.Interval.WEEKLY:
+        return value - timedelta(days=7)
+    return _previous_month(value)
+
+
+def _advance_schedule(schedule, done_at=None):
+    """Advance exactly along the configured cadence to the first due after the run.
+
+    A normal run counts at ``now``, so the new due lies in the future. A paper
+    backfill counts at its event time ``done_at``: the due moves to the first
+    step after that time and may stay in the past, so cycles missed after the
+    paper sheet remain overdue.
+    """
+    reference = done_at or timezone.now()
+    next_due = _step_schedule(schedule.due_next or reference, schedule.interval)
+    while next_due <= reference:
         next_due = _step_schedule(next_due, schedule.interval)
     schedule.due_next = next_due
     schedule.save(update_fields=["due_next", "updated_at"])
 
 
-def advance_checklist_schedule(checklist_id):
-    """Nach einem Abschluss das Prüfintervall weiterschalten (Web und API)."""
+def advance_checklist_schedule(checklist_id, done_at=None):
+    """Nach einem Abschluss das Prüfintervall weiterschalten (Web und API).
+
+    ``done_at`` ist die Ereigniszeit eines Nachtrags vom Papierbogen. Liegt sie
+    vor dem laufenden Zyklus (vor der Fälligkeit davor), gehört der Lauf zu
+    einem früheren Zyklus und die Fälligkeit bleibt stehen. Sonst rückt die
+    Fälligkeit von der Ereigniszeit aus weiter, nicht von jetzt: Zyklen nach
+    dem Papierbogen, für die noch kein Lauf vorliegt, bleiben überfällig.
+    """
     schedule = ChecklistSchedule.objects.select_for_update().filter(checklist_id=checklist_id).first()
     if schedule is not None:
-        _advance_schedule(schedule)
+        if done_at is not None and schedule.due_next is not None:
+            if done_at < _step_schedule_back(schedule.due_next, schedule.interval):
+                return schedule
+        _advance_schedule(schedule, done_at=done_at)
     return schedule
 
 
@@ -415,16 +451,17 @@ def defect_attachment_limit_error(locked_defect, size):
 @csrf_exempt
 @require_POST
 def checklist_complete_api(request, pk):
+    # Das Prüfintervall schreibt der Abschluss selbst fort (core/checklists_service.py,
+    # in derselben Transaktion); hier kommt nur der neue Stand in die Antwort.
     response = base.checklist_complete_api(request, pk)
-    if response.status_code in {200, 201}:
+    if response.status_code == 201:
         data = _payload(response)
         if not data.get("is_draft"):
-            with transaction.atomic():
-                schedule = advance_checklist_schedule(pk)
+            schedule = ChecklistSchedule.objects.filter(checklist_id=pk).first()
             if schedule is not None:
                 data["interval"] = schedule.interval
                 data["due_next"] = schedule.due_next.isoformat() if schedule.due_next else None
-                data["overdue"] = False
+                data["overdue"] = bool(schedule.due_next and schedule.due_next < timezone.now())
                 response = _json_response_from(response, data)
     return response
 

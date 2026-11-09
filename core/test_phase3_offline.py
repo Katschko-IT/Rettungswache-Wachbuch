@@ -253,9 +253,10 @@ class WanOutageCoreFlowTests(TestCase):
         self.client.force_login(self.user_member)
 
         with OutboundNetworkBlocker() as blocker:
+            # Seit 0.28 braucht ein Abschluss das Ergebnis je Prüfpunkt.
             resp = self.client.post(
                 reverse("checklist_complete", kwargs={"pk": self.checklist.pk}),
-                {"note": "Synthetic"},
+                {"note": "Synthetic", f"result_{self.checklist_item.pk}": "ok"},
             )
             self.assertEqual(resp.status_code, 302)
 

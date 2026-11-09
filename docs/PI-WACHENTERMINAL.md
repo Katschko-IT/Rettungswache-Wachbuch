@@ -119,6 +119,12 @@ Bewusst **nicht** im Alltagsmodus: Fuhrpark, Medizingeräte, Lager, Dienstanweis
 (persönliche Verantwortung), Verwaltung von Aufgaben, Team, Einstellungen, Konto,
 Chat und Post.
 
+Checklisten am Terminal (seit 0.28): Läufe ohne Nachweischarakter lassen sich
+abschließen und als Zwischenstand speichern. Checklisten mit „Erfordert
+persönliche Anmeldung“ (im Django-Admin je Checkliste) sind gesperrt, im Web
+und in der App. Ebenfalls gesperrt sind der Nachtrag vom Papierbogen sowie
+Verlauf, Einzellauf und CSV-Export der Läufe (`/checklisten/verlauf/`).
+
 ## 5. Sicherheitsmodell
 
 | Schutz | Umsetzung |

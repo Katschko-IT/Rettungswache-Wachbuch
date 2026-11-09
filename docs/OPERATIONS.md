@@ -194,7 +194,9 @@ Die Datenbank unterscheidet fünf Rollen mit klar getrennten Aufgaben:
   `core_auditevent`, `core_handoverrevision`, `core_checklistcompletion`,
   `core_stockmovement`, `core_maintenancelog` (STK/MTK/DGUV-Prüfungen) und
   `core_deviceroutinecheck` (Funktionskontrollen). Die App ändert diese Zeilen
-  nie und sperrt sie nie mit `FOR UPDATE`.
+  nie und sperrt sie nie mit `FOR UPDATE`. Zwischenstände von Checklisten
+  liegen seit 0.28 in der veränderbaren Tabelle `core_checklistdraft`; ein
+  Abschluss legt genau eine Zeile in `core_checklistcompletion` an.
 - `rwsth_feed` (entspricht `FEED_DB_USER`): ausschließlich `FeedSource`-
   Status- und `FeedItem`-CRUD.
 - `rwsth_push` (entspricht `PUSH_DB_USER`): `SELECT`/`UPDATE` auf der
@@ -358,8 +360,9 @@ wieder.
 - Automatisch: Der Compose-Dienst `housekeeping` läuft in jeder Installation
   und räumt stündlich mit den Rechten der App-Rolle auf: abgelaufene
   Sitzungen, Anmeldeprotokolle (`LOGIN_LOG_RETENTION_DAYS`, Standard 30),
-  Fehlerereignisse, QR-Anmeldungen, Push-Outbox, Feed-Einträge, Rückmeldungen
-  und abgelaufene Zähler der Begrenzungen. Von Hand:
+  Fehlerereignisse, QR-Anmeldungen, Push-Outbox, Feed-Einträge, Rückmeldungen,
+  abgelaufene Zähler der Begrenzungen und Zwischenstände von Checklisten, die
+  30 Tage nicht geändert wurden (`core_checklistdraft`, kein Nachweis). Von Hand:
   `docker compose exec -T housekeeping python manage.py housekeeping`.
 - Audit-Purge (`RETENTION_AUDIT_DAYS`) ist bewusst nicht dabei: Er braucht
   Owner-Rechte und eine Freigabe, dann von Hand mit `apply_retention`.

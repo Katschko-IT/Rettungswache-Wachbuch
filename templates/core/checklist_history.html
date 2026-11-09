@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Verlauf der Läufe" %} · {{ checklist.title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'checklists' %}">{% translate "Zurück zu Checklisten" %}</a>
+<header class="page-heading">
+  <p class="context-line">{% translate "Checklisten" %}</p>
+  <h1>{{ checklist.title }}</h1>
+  <p class="lead">{% translate "Endgültig abgeschlossene Läufe, neueste zuerst. Nachträge vom Papierbogen stehen mit dem Zeitpunkt laut Bogen." %}</p>
+</header>
+
+{% if can_export %}
+<section class="section-block">
+  <h2>{% translate "Export als CSV" %}</h2>
+  <p>{% translate "Alle Läufe eines Zeitraums mit Ergebnis, Messwert und Grenzwerten je Prüfpunkt, zum Beispiel als Temperaturprotokoll." %}</p>
+  <form method="get" action="{% url 'checklist_runs_export' checklist.pk %}" class="inline-form">
+    <label for="export-von">{% translate "von" %}</label>
+    <input id="export-von" type="date" name="von" value="{{ export_from }}" min="{{ export_min }}" max="{{ export_max }}" required>
+    <label for="export-bis">{% translate "bis" %}</label>
+    <input id="export-bis" type="date" name="bis" value="{{ export_to }}" min="{{ export_min }}" max="{{ export_max }}" required>
+    <button class="button secondary" type="submit">{% translate "CSV herunterladen" %}</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="section-block flush">
+  <div class="item-list">
+    {% for run in page_obj %}
+      <a class="list-row" href="{% url 'checklist_run_detail' run.pk %}">
+        <span class="row-content">
+          <strong>{{ run.effective_at|date:"d.m.Y H:i" }} · {{ run.completed_by.first_name|default:run.completed_by.username }}</strong>
+          <small>
+            {% if run.summary.total %}
+              {% blocktranslate with ok=run.summary.ok not_ok=run.summary.not_ok na=run.summary.na open=run.summary.open %}{{ ok }} in Ordnung · {{ not_ok }} nicht in Ordnung · {{ na }} entfällt · {{ open }} ohne Ergebnis{% endblocktranslate %}
+            {% else %}
+              {% translate "ohne Ergebnis je Punkt" %}
+            {% endif %}
+          </small>
+          {% if run.is_paper_backfill %}
+            <span class="status-label warning">{% blocktranslate with event=run.occurred_at|date:"d.m.Y H:i" created=run.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
+          {% endif %}
+        </span>
+        {% if run.summary.not_ok %}<span class="status-label warning">{% translate "Mängel" %}</span>{% elif run.complete %}<span class="status-label neutral">{% translate "vollständig" %}</span>{% endif %}
+      </a>
+    {% empty %}
+      <p class="empty-state">{% translate "Für diese Checkliste gibt es noch keine abgeschlossenen Läufe." %}</p>
+    {% endfor %}
+  </div>
+  {% include "core/pagination.html" %}
+</section>
+{% endblock %}

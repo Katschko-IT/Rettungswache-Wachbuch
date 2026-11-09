@@ -253,6 +253,11 @@ jobs:
           test "$(q 'SHOW statement_timeout')" = "1min"
           test "$(q "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'UPDATE')")" = "f"
           test "$(q "SELECT has_table_privilege('rwsth_app', 'core_auditevent', 'DELETE')")" = "f"
+          # Checklisten-Läufe append-only; Zwischenstände in eigener, veränderbarer Tabelle (0.28).
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_checklistcompletion', 'UPDATE')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_checklistcompletion', 'DELETE')")" = "f"
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_checklistdraft', 'UPDATE')")" = "t"
+          test "$(q "SELECT has_table_privilege('rwsth_app', 'core_checklistdraft', 'DELETE')")" = "t"
           test "$(q "SELECT has_column_privilege('rwsth_feed', 'core_station', 'waste_calendar_url', 'SELECT')")" = "t"
           test "$(q "SELECT has_column_privilege('rwsth_feed', 'core_station', 'iban', 'SELECT')")" = "f"
           test "$(q "SELECT has_table_privilege('rwsth_backup', 'core_handoverentry', 'SELECT')")" = "t"

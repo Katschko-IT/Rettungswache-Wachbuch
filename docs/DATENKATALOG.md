@@ -28,7 +28,7 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Geburtstage (freiwillig)](#modul-geburtstage) | `Station.birthdays_enabled` | ja | 1 | Freiwillige Angabe |
 | [Kaffeekasse (freiwillig)](#modul-kaffeekasse) | `Station.coffee_enabled` | ja | 5 | Nachweis, Organisationsdaten |
 | [Tagesaufgaben](#modul-aufgaben) | `Station.tasks_enabled` | ja | 2 | Organisationsdaten, Erledigt-Vermerk |
-| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 2 | Organisationsdaten, Nachweis |
+| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 6 | Organisationsdaten, Nachweis, Checklisten-Zwischenstand |
 | [Meldungen, Verkehr und Wetter](#modul-lage) | `Station.feeds_enabled` | Freitext möglich | 0 | Einstellung, Meldungen |
 | [Pinnwand](#modul-pinnwand) | `Station.pinboard_enabled` | ja | 0 | Lücke, Anhang |
 | [Wachenchat, Privatnachrichten und Post (E2EE)](#modul-chat) | `Station.chat_enabled` | ja | 0 | Konto, Lücke |
@@ -1081,6 +1081,9 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 | `updated_at` |  | Zeitpunkt |  |
 | `closed_at` |  | Zeitpunkt |  |
 | `medical_device` |  | Verweis |  |
+| `source_checklist_run` | Aus Checklisten-Lauf | Verweis | Lauf, der den Mangel angelegt hat |
+| `source_item_id` | Prüfpunkt (Kennung) | Wert |  |
+| `source_item_text` | Prüfpunkt (Text zum Zeitpunkt des Laufs) | Freitext | Kopie des Prüfpunkts aus der Checkliste, kein Eintrag der Person |
 
 ### core.DefectAttachment
 
@@ -1575,8 +1578,12 @@ Checklisten mit Abschluss und Fälligkeit.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Letzter Abschluss je Checkliste mit Vorname und Zeit | `checklists` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
-| Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App) | `api_v1_checklisten` | Inhaltsrollen | **ja** |  |
+| Letzter Lauf und offener Zwischenstand je Checkliste mit Vorname und Zeit | `checklists` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** | Schichtleitung und Master-Admin sehen dazu den Anteil der Läufe mit Ergebnis je Punkt (30 Tage, Summe der Wache, keine Werte je Person) |
+| Letzter Lauf und offener Zwischenstand je Checkliste mit vollem Namen und Zeit (App) | `api_v1_checklisten` | Inhaltsrollen | **ja** |  |
+| Zwischenstand einer Checkliste mit vollem Namen der letzten Bearbeitung (App) | `api_v1_checkliste_zwischenstand` | Inhaltsrollen | **ja** |  |
+| Verlauf der Läufe einer Checkliste mit Vorname, Zeit und Zahl der Ergebnisse | `checklist_history` | Inhaltsrollen | **ja** | nicht am Wachenterminal |
+| Ein Lauf mit Vorname, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt | `checklist_run_detail` | Inhaltsrollen | **ja** | nicht am Wachenterminal |
+| Läufe eines Zeitraums als CSV mit vollem Namen, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt (z. B. Temperaturprotokoll) | `checklist_runs_export` | Schichtleitung, Master-Admin | **ja** | Zellen, die mit = + - @ oder Tab/Zeilenumbruch beginnen, bekommen ein Apostroph vorangestellt |
 
 ### core.Checklist
 
@@ -1588,7 +1595,7 @@ Checkliste mit Beschreibung
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an.
+- Hinweis: Anlegen und Bearbeiten (auch „Erfordert persönliche Anmeldung“) nur im Django-Admin; Web und App zeigen Checklisten nur an.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1602,16 +1609,16 @@ Checkliste mit Beschreibung
 
 ### core.ChecklistCompletion
 
-Abschluss: Person, Zeit, Notiz
+Lauf: Person, Zeit, Notiz, Ergebnis und Messwert je Prüfpunkt mit Begründung
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
-- Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen)
+- Zugriffswege: Web, App (API), Wachenterminal, Export/Datei, Django-Admin (lesen)
 - Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Append-only.
+- Hinweis: Append-only: ein Lauf entsteht mit einem INSERT. Nachtrag vom Papierbogen mit Ereigniszeit und Eingabezeit. Läufe mit Nachweischarakter und Nachträge nicht über das Dienstkonto Wachenterminal; Verlauf, Einzellauf und Export nicht am Wachenterminal.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1620,9 +1627,34 @@ Abschluss: Person, Zeit, Notiz
 | `checklist` |  | Verweis |  |
 | `completed_by` |  | Person (Konto) |  |
 | `note` |  | Freitext |  |
-| `is_draft` | Zwischenstand | Wert |  |
-| `item_results` | Ergebnisse je Prüfpunkt | strukturierte Angaben |  |
+| `item_results` | Ergebnisse je Prüfpunkt | Freitext | Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt |  |
 | `created_at` |  | Zeitpunkt |  |
+
+### core.ChecklistDraft
+
+Zwischenstand: Ergebnisse je Prüfpunkt, Notiz, wer ihn angelegt und zuletzt bearbeitet hat
+
+- Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
+- Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
+- Zugriffswege: Web, App (API), Wachenterminal
+- Nachweis: nein
+- Frist technisch: der Abschluss des Laufs löscht ihn; sonst nach 30 Tagen ohne Änderung (`housekeeping`)
+- Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Kein Nachweis und veränderbar: höchstens einer je Checkliste und Wache, die Besatzung setzt ihn gemeinsam fort.
+
+| Feld | Bezeichnung | Art | Hinweis |
+| --- | --- | --- | --- |
+| `id` |  | Wert |  |
+| `station` |  | Verweis |  |
+| `checklist` |  | Verweis |  |
+| `created_by` |  | Person (Konto) |  |
+| `updated_by` |  | Person (Konto) |  |
+| `item_results` | Ergebnisse je Prüfpunkt | Freitext | Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts |
+| `note` |  | Freitext |  |
+| `created_at` |  | Zeitpunkt |  |
+| `updated_at` |  | Zeitpunkt |  |
 
 ### core.ChecklistItem
 
@@ -1634,7 +1666,7 @@ Punkte einer Checkliste
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Anlegen und Bearbeiten nur im Django-Admin.
+- Hinweis: Anlegen und Bearbeiten nur im Django-Admin. Jeder Lauf speichert eine Kopie von Text, Einheit, Grenzwerten und Pflicht.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |

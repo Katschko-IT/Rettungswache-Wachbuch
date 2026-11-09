@@ -72,6 +72,8 @@ OPEN_MODE_BLOCKED = (
     "/kalender/feed.ics",
     "/aufgaben/verwaltung/",
     "/aufgaben/neu/",
+    # Verlauf, Einzelläufe und Export der Checklisten (Namen, Begründungen) nur persönlich.
+    "/checklisten/verlauf/",
     "/terminal/handy/",
 )
 # Auf einem Terminal nie: Offline-Seitencache im Service Worker.
