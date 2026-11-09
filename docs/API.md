@@ -88,7 +88,7 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_m
 | GET | `/api/v1/checklisten/` | Checklisten mit Prüfpunkten (`item_details`: Kennung, Text, Pflicht, Einheit, Grenzwerte), letztem Lauf, Zwischenstand und Fälligkeit |
 | POST | `/api/v1/checklisten/<id>/erledigt/` | Lauf abschließen mit `item_results`; mit `is_draft: true` Zwischenstand speichern |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |
-| GET/POST | `/api/v1/checklisten/<id>/zwischenstand/` | gemeinsamen Zwischenstand der Wache lesen oder ersetzen |
+| GET/POST/PUT | `/api/v1/checklisten/<id>/zwischenstand/` | gemeinsamen Zwischenstand der Wache lesen (GET) oder ersetzen (POST und PUT gleichbedeutend) |
 | GET/PUT/DELETE | `/api/v1/checklisten/<id>/schedule/` | tägliche/wöchentliche/monatliche Wiederholung |
 | GET | `/api/v1/reports/` | leichte Stationsauswertung |
 
