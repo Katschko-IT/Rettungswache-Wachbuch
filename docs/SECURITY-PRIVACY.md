@@ -20,6 +20,13 @@ Dieses Dokument ist keine Rechtsberatung.
   Sprache, Darstellung; auf Terminal und Display je ein Gerätecookie);
   vollständige Liste im Datenkatalog, Abschnitt „Daten auf Endgeräten“;
   Transparenz unter `/datenschutz/`.
+- Bild-Anhänge ohne Metadaten (0.28): Jedes Bild an Übergaben (auch Fotos
+  nachgetragener Papierbögen), Pinnwand, Neuigkeiten und Mängeln wird aus den
+  Bildpunkten neu als JPEG geschrieben, ohne EXIF, GPS-Position, Kamera,
+  Aufnahmezeit, XMP oder Kommentar (`core/attachments.py`). Lässt sich ein Bild
+  nicht neu schreiben, wird es mit einer Meldung abgelehnt, nie im Original
+  gespeichert. Ein Signal vor dem Speichern (`core/image_privacy.py`) schreibt
+  auch Bilder aus anderen Codepfaden neu, wenn sie noch Metadaten tragen.
 - Produkt ohne eingebettetes KI-System; kein Social Scoring über Auditdaten.
 - Fahrzeugzustand mit fünf neutralen Zuständen (Einsatzbereit, Eingeschränkt,
   Desinfektion, Werkstatt, Außer Dienst), ohne Einsatzphasen und ohne

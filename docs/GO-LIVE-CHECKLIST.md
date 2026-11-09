@@ -5,7 +5,10 @@ betriebliche Freigabe.
 
 ## Technik
 
-- [ ] CI und Anwendungstests sind grün
+- [ ] CI und Anwendungstests sind grün, einschließlich Job `a11y` (axe-core ohne
+      Funde critical/serious hell und dunkel, Wand-Display 16:9 bei 1920x1080 und
+      1280x720, Bildschirmfotos im Artefakt angesehen)
+- [ ] Reverse Proxy nimmt Formulare mit Foto an (`client_max_body_size 12M` oder mehr)
 - [ ] Container-Healthchecks sind grün
 - [ ] Anwendung ist nur über den vorgesehenen TLS-Einstieg erreichbar
 - [ ] Anmeldung erfolgt nur über lokale Konten hinter dem vorgesehenen Proxy

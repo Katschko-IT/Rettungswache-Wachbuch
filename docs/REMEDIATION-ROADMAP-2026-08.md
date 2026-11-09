@@ -291,7 +291,14 @@ Stand 0.27 (Paket D1): `wachwerk-health` prüft im Internet, im Wachen-Netz und 
 
 RPO/RTO festlegen; automatisierter Restore in isolierter Umgebung; Ergebnis und Backupalter sichtbar. Lokales Kurzzeit-Backup allein reicht nicht.
 
-### [ ] R-018 Barrierefreiheitsabnahme
+### [~] R-018 Barrierefreiheitsabnahme
+
+Begonnen (0.28): Der CI-Job `a11y` (`tests/a11y/run-axe.js`) prüft die
+Hauptseiten jeder Rolle mit axe-core (WCAG 2.0/2.1/2.2 A und AA) hell, dunkel
+und mit dem Umschalter der App und schlägt bei Funden der Schwere critical oder
+serious fehl; dazu das Wand-Display bei 1920x1080 und 1280x720 und das
+Mangelformular bei 390x844 ohne seitliches Scrollen. Das ersetzt die folgenden
+manuellen Prüfungen nicht:
 
 - Tastatur und 400-%-Zoom
 - Reflow bei 320 CSS-Pixel
