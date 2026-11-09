@@ -1,5 +1,119 @@
 # Changelog
 
+## [0.28.0] - 2026-11-09
+
+„Prüfen“: Prüfungen haben ein Ergebnis je Punkt, Mängel entstehen ohne
+doppelte Erfassung, und Fristen erinnern von selbst. Dazu kommen
+Lesepflicht mit Frist, Funktionen in der Wache, Nachträge vom Papierbogen,
+ein festes 16:9-Wand-Display und eine automatische Barrierefreiheitsprüfung
+in der CI. Passende App: Wachwerk Mobile 1.2.
+
+**Upgrade-Hinweise:**
+
+- `sudo /opt/wachbuch/wachbuch update` wie gewohnt; die Migrationen 0074 bis
+  0080 laufen automatisch.
+- Fristen-Erinnerungen versendet ab jetzt der `notify-worker` selbst (kein
+  Cron nötig). Beim ersten Lauf nach dem Update geht einmalig für jede Frist
+  der nächsten 30 Tage und für bis zu 30 Tage überfällige Fristen die passende
+  Erinnerung hinaus. Stand: Seite System, Abschnitt Fristen-Erinnerungen.
+- Damit Erinnerungen nicht nur bei Schichtleitung und Master-Admin landen,
+  unter Team die Funktionen vergeben (Fuhrpark, MPG-Beauftragte/r, Material,
+  Hygiene, Sicherheit). Jede Person wählt ihre Bereiche unter
+  Mein Konto → Erinnerungen.
+- Namen in Lesebestätigungen von Dienstanweisungen sind für die Leitung
+  ausgeblendet (Standard aus). Nur nach einer Vereinbarung mit Betriebsrat,
+  Personalrat oder MAV schaltet der Master-Admin sie unter Einstellungen ein.
+- Alle bestehenden Prüfpunkte von Checklisten sind Pflichtpunkte. Ein
+  Abschluss ohne Ergebnis je Pflichtpunkt wird abgelehnt; optionale Punkte im
+  Admin bei „Pflichtpunkt“ herausnehmen.
+- Eigene Reverse-Proxys müssen Formulare mit Foto annehmen:
+  `client_max_body_size 12M` (die mitgelieferten nginx-Vorlagen setzen das).
+- Zwischenstände von Checklisten liegen in einer eigenen Tabelle; die
+  Migration übernimmt sie. Endgültige Läufe bleiben unverändert und sind
+  wieder strikt append-only.
+
+### Checklisten mit Ergebnis je Punkt
+
+- Je Prüfpunkt „in Ordnung“, „nicht in Ordnung“ oder „entfällt“ mit
+  Begründung; Pflichtpunkte; Messwerte mit Einheit und Grenzwerten (deckt das
+  Temperaturprotokoll ab). Web und App prüfen nach denselben Regeln auf dem
+  Server.
+- Zwischenstand je Wache und Checkliste, den die Besatzung fortsetzt. Ein
+  abgelehnter Abschluss zeigt alle Eingaben erneut.
+- „Nicht in Ordnung“ legt einen Mangel mit Rückverweis auf den Lauf an; ein
+  offener Mangel desselben Prüfpunkts wird verknüpft statt doppelt angelegt.
+- Verlauf, Einzellauf und CSV-Export (Temperaturprotokoll) mit Schutz gegen
+  Formeln; Kennzahl „Läufe mit Ergebnis je Punkt (30 Tage)“ als Summe der
+  Wache; Schnellaktion „Alle übrigen Punkte in Ordnung“.
+- Läufe mit Nachweischarakter sind am Wachenterminal gesperrt, auch in der
+  App.
+
+### Mängel in drei Tipps
+
+- „Mangel melden“ auf der Übersicht; von Fahrzeug- oder Geräteseite genügen
+  Foto und Speichern. Titel optional (Web und App-API bilden „Kategorie:
+  Bezug“), Kategorie und Priorität als Chips.
+- Bezug aus Fuhrpark, Medizinprodukten und „Geräte & Fahrzeuge“; ein
+  Gerätemangel sperrt das Gerät. Hinweis „bereits gemeldet“ direkt am
+  Bezugsfeld, nur bei genau gleichem Bezug.
+- Große Handyfotos werden vor dem Hochladen verkleinert; ein Fehler beim
+  Hochladen behält alle Eingaben.
+
+### Fristen und Erinnerungen
+
+- Erinnerungen 30, 7 und 0 Tage vor STK (Monatsende), MTK (Jahresende), HU,
+  UVV, SP, Tragentisch, Charge, Mangel, Dienstanweisung und Prüfintervallen
+  von Checklisten. Je Frist kommt die nächste fällige Stufe genau einmal, auch
+  nach einem Ausfall.
+- „Wochenübersicht KW n“ je Person mit den eigenen Bereichen, ab Montag
+  06:00; Ruhezeit 22 bis 6 Uhr für Push, Signal und E-Mail.
+- Funktionen in der Wache (MPG-Beauftragte/r, Hygiene, Material, Fuhrpark,
+  Sicherheit); Erinnerungen je Bereich abonnierbar; optional per E-Mail.
+- Ausgemusterte Geräte und Fahrzeuge, leere Chargen und abgeschaltete
+  Aufgaben erinnern nicht mehr.
+
+### Lesepflicht für Dienstanweisungen
+
+- Frist und Zielgruppe nach Rolle oder Funktion; Erinnerung nur an Offene;
+  die Leitung sieht die Quote, Namen nur nach Vereinbarung.
+- Wachenterminal, Auditoren und deaktivierte Konten zählen nicht zur
+  Zielgruppe; Entwürfe fordern niemanden zur Bestätigung auf.
+
+### Nachträge vom Papierbogen
+
+- Übergaben, Fahrzeugübernahmen, Desinfektionen, Funktionskontrollen und
+  Checklisten lassen sich mit Ereigniszeit laut Bogen nachtragen (nicht in
+  der Zukunft, höchstens 365 Tage zurück) und sind überall gekennzeichnet:
+  „Nachtrag vom Papierbogen · Ereignis … · erfasst …“.
+- Nachträge senden keinen Live-Push, das Wachenterminal kann nichts
+  nachtragen, und „letzte Desinfektion“ oder Fälligkeiten rechnen nach der
+  Ereigniszeit.
+
+### Wand-Display und Barrierefreiheit
+
+- Festes 16:9-Raster nur über den Display-Link, mittig auf jedem Bildschirm,
+  ohne Emojis; lange Listen enden mit „+N weitere“, nichts wird still
+  abgeschnitten.
+- Neuer CI-Job: axe-core (Playwright) prüft die Hauptseiten aller Rollen hell
+  und dunkel (0 Funde der Schwere critical oder serious) und die Geometrie des
+  Wand-Displays bei 1920×1080 und 1280×720.
+- Lesbare ausgewählte Chips im dunklen Modus, deutlicher Tastaturfokus,
+  Kaffeekasse ohne blasse Monate.
+
+### Sicherheit, Betrieb & API
+
+- Bilder an Übergaben, Pinnwand, Neuigkeiten und Mängeln werden ohne EXIF-
+  und Kameradaten gespeichert.
+- Push-Worker: Schutz vor internen Zielen beim Relay, keine Weiterleitungen;
+  API-Tokens mit Ablauf und MFA-Pflicht.
+- `GET /api/v1/defects/?asset=` lieferte Fehler 500; der Filter passt jetzt
+  exakt. Die CI prüft zusätzlich undefinierte Namen (Ruff F63, F7, F82).
+- App-API: Prüfpunkte mit echten Kennungen und Zwischenstand, Lesepflichten
+  abrufen und bestätigen, Benachrichtigungen nach Art, Nachtrag-Felder an
+  Übergaben.
+- Inline-Skripte und Stilattribute der neuen Seiten entfernt (CSP ohne
+  unsafe-inline).
+
 ## [0.27.0] - 2026-11-02
 
 „Pilotfähig“: Wachwerk 0.27 bringt alle Voraussetzungen für den Start des ersten

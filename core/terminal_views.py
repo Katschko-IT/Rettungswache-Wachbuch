@@ -368,12 +368,15 @@ def terminal_menu(request):
 
 
 def _open_handovers(station, limit: int = 6):
-    """Offene Übergaben: dringend zuerst, sonst die neuesten."""
+    """Offene Übergaben: dringend zuerst, sonst die neuesten (Nachtrag: nach Zeit laut Bogen)."""
+    from .paper_backfill import newest_event_first
+
     rank = {HandoverEntry.Priority.URGENT: 0, HandoverEntry.Priority.IMPORTANT: 1}
     items = list(
-        HandoverEntry.objects.filter(station=station)
-        .exclude(status=HandoverEntry.Status.DONE)
-        .order_by("-created_at")[:40]
+        newest_event_first(
+            HandoverEntry.objects.filter(station=station).exclude(status=HandoverEntry.Status.DONE),
+            "created_at",
+        )[:40]
     )
     items.sort(key=lambda item: rank.get(item.priority, 2))
     return items[:limit]

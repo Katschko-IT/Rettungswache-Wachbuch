@@ -12,14 +12,17 @@ from django.utils.translation import gettext_lazy as _
 
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
 from .models import BirthdayPreference, CalendarEvent, CoffeeEntry, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
+from .paper_backfill import DateTimeLocalInput, PaperBackfillFormMixin
 from .site_profile import SiteProfile
 
 
-class DateTimeLocalInput(forms.DateTimeInput):
-    input_type = "datetime-local"
+class HandoverForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Übergabe anlegen (Web und App), optional als Nachtrag vom Papierbogen.
 
+    ``allow_backfill=False`` (Wachenterminal) blendet Häkchen und Ereigniszeit
+    aus; ein trotzdem gesendeter Nachtrag wird abgewiesen.
+    """
 
-class HandoverForm(forms.ModelForm):
     class Meta:
         model = HandoverEntry
         fields = [
@@ -32,28 +35,28 @@ class HandoverForm(forms.ModelForm):
         ]
         widgets = {
             "details": forms.Textarea(attrs={"rows": 6}),
-            "occurred_at": DateTimeLocalInput(format="%Y-%m-%dT%H:%M"),
         }
 
+    def __init__(self, *args, allow_backfill=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup_paper_backfill(allow=allow_backfill)
+
     def clean(self):
-        cleaned = super().clean()
-        is_paper_backfill = cleaned.get("is_paper_backfill")
-        occurred_at = cleaned.get("occurred_at")
-        if is_paper_backfill:
-            if not occurred_at:
-                self.add_error("occurred_at", _("Für Nachträge von Papier muss ein Ereigniszeitpunkt angegeben werden."))
-            elif occurred_at > timezone.now():
-                self.add_error("occurred_at", _("Der Ereigniszeitpunkt darf nicht in der Zukunft liegen."))
-        return cleaned
+        return self.clean_paper_backfill(super().clean())
 
 
 ShiftHandoverForm = HandoverForm
 
 
-class HandoverEditForm(forms.ModelForm):
+class HandoverEditForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Inhalt korrigieren (Schichtleitung, Admin), auch Häkchen und Ereigniszeit.
+
+    Die Ereigniszeit liegt vor der Erfassung und höchstens 365 Tage davor.
+    """
+
     class Meta:
         model = HandoverEntry
-        fields = ["category", "priority", "title", "details"]
+        fields = ["category", "priority", "title", "details", "is_paper_backfill", "occurred_at"]
         widgets = {"details": forms.Textarea(attrs={"rows": 6})}
         labels = {
             "category": "Kategorie",
@@ -61,6 +64,13 @@ class HandoverEditForm(forms.ModelForm):
             "title": "Titel",
             "details": "Details",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup_paper_backfill(reference=self.instance.created_at if self.instance.pk else None)
+
+    def clean(self):
+        return self.clean_paper_backfill(super().clean())
 
 
 class HandoverStatusForm(forms.ModelForm):

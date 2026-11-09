@@ -68,7 +68,7 @@
       {% for item in open_handovers %}
         <a class="list-row" href="{% url 'handover_detail' item.pk %}">
           <span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
-          <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small></span>
+          <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small>{% include "core/_paper_backfill_badge.html" with record=item %}</span>
           <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m. H:i" }}</time>
         </a>
       {% empty %}<p class="empty-state">{% translate "Keine aktiven Übergaben." %} <a href="{% url 'handover_create' %}">{% translate "Übergabe anlegen" %}</a></p>{% endfor %}

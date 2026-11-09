@@ -364,6 +364,22 @@ GATES = {
 C = CONTENT
 CS = ("shift_lead", "admin")
 
+# Nachtrag vom Papierbogen (0.28, core/paper_backfill.py): an Übergabe,
+# Fahrzeugübernahme, Desinfektion und Funktionskontrolle.
+BACKFILL_NOTE = (
+    "Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens "
+    "365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen "
+    "und Ereigniszeit."
+)
+BACKFILL_TIME_NOTE = "Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung)"
+# Fahrzeugübernahme, Desinfektion und Funktionskontrolle: Die Person eines
+# Nachtrags ist, wer ihn erfasst, nicht das Kürzel laut Bogen.
+BACKFILL_PERSON_NOTE = (
+    "Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur "
+    "auf dem Original."
+)
+BACKFILL_PERSON_FIELD_NOTE = "bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat"
+
 MODULES = (
     ModuleSpec(
         "konto", "Konten, Anmeldung und Rollen",
@@ -462,8 +478,9 @@ MODULES = (
         models=(
             ModelSpec("core.HandoverEntry", "Übergabe: Titel, Text, Kategorie, Priorität, Status, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"),
                       "evidence", evidence=True,
-                      note="Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; "
-                           "jede Änderung bleibt als Version in core.HandoverRevision erhalten."),
+                      note="Display: nur die Zahl dringender offener Übergaben, ohne Nachträge vom Papierbogen. Status und Bearbeitung: "
+                           "Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten. "
+                           f"{BACKFILL_NOTE}"),
             ModelSpec("core.HandoverRevision", "Versionen einer Übergabe (Schnappschuss, Person)", C, ("system",), ("web",), "evidence", evidence=True),
             ModelSpec("core.HandoverAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
             ModelSpec("core.HandoverAck", "Lesebestätigung: Person und Zeit", C + ("terminal",), C, ("web", "app", "terminal"), "evidence", evidence=True),
@@ -727,7 +744,10 @@ MODULES = (
                            "Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und Master-Admin); die Nachweise bleiben."),
             ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, CS, ("web",), "evidence", evidence=True),
-            ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True),
+            ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True,
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag prüft deshalb keine Geräteeinweisung. "
+                           "Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. "
+                           "Das 5-Minuten-Storno zählt ab der Erfassung."),
         ),
     ),
     ModuleSpec(
@@ -785,8 +805,13 @@ MODULES = (
             ModelSpec("core.DisinfectionProtocol", "Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit", C, C, ("web",), "evidence", evidence=True,
                       note="Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, "
                            "Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und "
-                           "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe."),
-            ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True),
+                           "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. "
+                           f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der "
+                           "Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). "
+                           "Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus "
+                           "„Frei ab“ laut Bogen."),
+            ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True,
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen."),
         ),
     ),
     ModuleSpec(
@@ -924,7 +949,10 @@ FIELD_OVERRIDES = {
     "axes.AccessLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
     "axes.AccessFailureLog.http_accept": ("Netzwerk/Gerät", ""),
     "axes.AccessFailureLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
-    "core.DisinfectionProtocol.level": (None, D2_NOTE),
+    "core.DisinfectionProtocol.level": (None, f"{D2_NOTE}; bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe)"),
+    "core.DisinfectionProtocol.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.VehicleHandover.crew_member": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.DeviceRoutineCheck.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
     "core.DisinfectionProtocol.exposure_minutes": (None, D2_NOTE),
     "core.DisinfectionProtocol.lock_timer_applied": (None, D2_NOTE),
     "core.DisinfectionProtocol.notes": (None, f"{D2_NOTE}; Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data`"),
@@ -938,6 +966,15 @@ FIELD_OVERRIDES = {
     "core.ChecklistDraft.item_results": ("Freitext", "Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts"),
     "core.Defect.source_checklist_run": (None, "Lauf, der den Mangel angelegt hat"),
     "core.Defect.source_item_text": (None, "Kopie des Prüfpunkts aus der Checkliste, kein Eintrag der Person"),
+    "core.Vehicle.last_disinfection": (None, "nach Beginn laut Bogen, wenn die neueste Desinfektion ein Nachtrag ist"),
+    "core.MedicalDevice.last_routine_check": (None, "nach Zeit laut Bogen, wenn die neueste Kontrolle ein Nachtrag ist"),
+    "core.HandoverEntry.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.VehicleHandover.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.VehicleHandover.performed_at": (None, "Erfassung im Wachbuch"),
+    "core.DisinfectionProtocol.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.DisinfectionProtocol.started_at": (None, "Erfassung im Wachbuch; bei einem Nachtrag steht der Beginn laut Bogen in der Ereigniszeit"),
+    "core.DeviceRoutineCheck.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.DeviceRoutineCheck.checked_at": (None, "Erfassung im Wachbuch; danach richtet sich das 5-Minuten-Storno"),
     "admin.LogEntry.object_repr": ("Freitext", "Bezeichnung des geänderten Objekts"),
     "admin.LogEntry.change_message": ("Freitext", "Beschreibung der Änderung im Django-Admin"),
 }

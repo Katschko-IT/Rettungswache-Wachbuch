@@ -858,7 +858,7 @@ Anhänge (Bild ohne Metadaten oder PDF)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten.
+- Hinweis: Display: nur die Zahl dringender offener Übergaben, ohne Nachträge vom Papierbogen. Status und Bearbeitung: Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -872,7 +872,7 @@ Anhänge (Bild ohne Metadaten oder PDF)
 | `author` |  | Person (Konto) |  |
 | `version` |  | Wert |  |
 | `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
-| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
 | `completed_at` |  | Zeitpunkt |  |
@@ -2237,14 +2237,15 @@ Funktionskontrolle mit Person und Ergebnis
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag prüft deshalb keine Geräteeinweisung. Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. Das 5-Minuten-Storno zählt ab der Erfassung.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `device` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
-| `checked_at` |  | Zeitpunkt |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
+| `checked_at` |  | Zeitpunkt | Erfassung im Wachbuch; danach richtet sich das 5-Minuten-Storno |
 | `passed` | Funktionskontrolle bestanden | Wert |  |
 | `battery_ok` | Akkus / Energieversorgung einsatzklar | Wert |  |
 | `visual_ok` | Sichtprüfung / Zubehör vollständig | Wert |  |
@@ -2252,6 +2253,8 @@ Funktionskontrolle mit Person und Ergebnis
 | `notes` | Feststellungen / Notiz | Freitext |  |
 | `is_cancellation` | Storno-Eintrag | Wert |  |
 | `cancels_check` | Stornierte Funktionskontrolle | Verweis |  |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 ### core.DeviceTrainingRecord
 
@@ -2345,7 +2348,7 @@ Medizingerät mit Fristen und Status
 | `next_stk_date` | Nächste STK | Zeitpunkt |  |
 | `next_mtk_date` | Nächste MTK | Zeitpunkt |  |
 | `next_dguv_date` | Nächste DGUV V3 | Zeitpunkt |  |
-| `last_routine_check` | Letzter Funktionscheck | Zeitpunkt |  |
+| `last_routine_check` | Letzter Funktionscheck | Zeitpunkt | nach Zeit laut Bogen, wenn die neueste Kontrolle ein Nachtrag ist |
 | `manual_url` | Online-Bedienungsanleitung | Link |  |
 | `notes` | Hinweise / Medizinproduktebuch-Notizen | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
@@ -2574,20 +2577,22 @@ Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe.
+- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus „Frei ab“ laut Bogen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
 | `disinfectant` |  | Verweis |  |
-| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
-| `started_at` | Beginn Desinfektion | Zeitpunkt |  |
+| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe) |
+| `started_at` | Beginn Desinfektion | Zeitpunkt | Erfassung im Wachbuch; bei einem Nachtrag steht der Beginn laut Bogen in der Ereigniszeit |
 | `exposure_minutes` | Einwirkzeit (Minuten) | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `lock_timer_applied` | Einwirkzeit-Sperre angewendet | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `notes` | Bemerkung (keine Patienten- oder Einsatzangaben) | Freitext | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data` |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 ### core.Vehicle
 
@@ -2623,7 +2628,7 @@ Fahrzeug mit Fahrzeugzustand, Füllständen und Fristen
 | `next_sp_date` | Nächste Sicherheitsprüfung (SP) | Zeitpunkt |  |
 | `next_uvv_date` | Nächste UVV-Prüfung (DGUV V70) | Zeitpunkt |  |
 | `next_stretcher_service_date` | Tragentisch-Wartung (10g / DIN EN 1789) | Zeitpunkt |  |
-| `last_disinfection` | Letzte Desinfektion | Zeitpunkt |  |
+| `last_disinfection` | Letzte Desinfektion | Zeitpunkt | nach Beginn laut Bogen, wenn die neueste Desinfektion ein Nachtrag ist |
 | `disinfection_locked_until` | Desinfektions-Sperre aktiv bis | Zeitpunkt |  |
 | `is_active` | Im aktiven Wachdienst | Wert | aus: außer Betrieb genommen; Übernahmen und Desinfektionen bleiben erhalten |
 | `notes` | Fahrzeugakte / Besonderheiten | Freitext |  |
@@ -2641,14 +2646,15 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `crew_member` |  | Person (Konto) |  |
-| `performed_at` |  | Zeitpunkt |  |
+| `crew_member` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
+| `performed_at` |  | Zeitpunkt | Erfassung im Wachbuch |
 | `mileage` | Kilometerstand | Wert |  |
 | `fuel_percent` | Tankfüllstand (%) | Wert |  |
 | `adblue_percent` | AdBlue (%) | Wert |  |
@@ -2657,6 +2663,8 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 | `medical_devices_checked` | Medizingeräte-Selbsttests OK | Wert |  |
 | `vehicle_clean` | Patientenraum & Fahrerkabine sauber | Wert |  |
 | `notes` | Feststellungen / Bemerkung | Freitext |  |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 <a id="modul-orga"></a>
 

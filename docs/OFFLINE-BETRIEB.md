@@ -119,7 +119,7 @@ Hilfe (alle Rollen außer Auditor).
 
 | Ansicht | Pfad | Inhalt |
 | --- | --- | --- |
-| Deckblatt | `/papier/` | fünf Schritte für den Ausfall, leere Zeilen für Ansprechperson Technik und Telefon |
+| Deckblatt | `/papier/` | fünf Schritte für den Ausfall (Schritt 5: Blätter danach als Nachtrag vom Papierbogen erfassen), leere Zeilen für Ansprechperson Technik und Telefon |
 | Fristen der Woche | `/papier/fristen/` | HU, SP, UVV und Tragentisch der aktiven Fahrzeuge; STK (Anlage 1), MTK (Anlage 2) und DGUV V3 der Medizingeräte; Überprüfung aktiver Dienstanweisungen; Verfall von Chargen mit Bestand (ohne Rückruf); auch schon Überfälliges |
 | Telefonbuch | `/papier/telefonbuch/` | Notfall-Schnellwahl, Kontakte nach Kategorie, leere Zeilen für Nachträge von Hand |
 | Checklisten | `/papier/checklisten/` | ein Blatt je aktiver Checkliste |
@@ -175,15 +175,11 @@ Hilfe (alle Rollen außer Auditor).
     nur alte, leere Blätter vernichtet, auch die in den Fahrzeugen. Ausgefüllte
     Blätter sind Nachweise: Sie gehen an die Wachleitung und bleiben dort als
     Original (siehe „Nach dem Ausfall“ und „Offen“).
-- **Nach dem Ausfall:** Version 0.27 übernimmt nichts von Papier ins System.
-  Die heutigen Formulare stempeln die Zeit der Eingabe: Eine nachträglich
-  erfasste Desinfektion würde das Fahrzeug ab jetzt sperren, eine
-  Fahrzeugübernahme mit älterem km-Stand wird abgelehnt, Funktionskontrollen
-  und Checklisten bekämen die falsche Zeit. Deshalb wird nach dem Ausfall nur
-  der aktuelle Stand erfasst (je Fahrzeug eine neue Fahrzeugübernahme, offene
-  Mängel). Die ausgefüllten Blätter sind der Nachweis für die Ausfallzeit und
-  bleiben als Original bei der Wachleitung. Nachträge mit Ereigniszeit und
-  Eingabezeit sind für 0.28 geplant.
+- **Nach dem Ausfall (seit 0.28):** Die ausgefüllten Blätter werden als
+  „Nachtrag vom Papierbogen“ erfasst. Jedes Blatt nennt das unten in einer
+  Zeile („Später im Wachbuch als Nachtrag vom Papierbogen erfassen.“). Die
+  Originale bleiben bei der Wachleitung. Einzelheiten unter
+  „Nachtrag vom Papierbogen“.
 - **Checklisten nachtragen (seit 0.28):** Ein ausgefüllter Checklisten-Bogen
   lässt sich auf der Checklistenseite unter „Papierbogen nachtragen“ mit dem
   Zeitpunkt laut Bogen erfassen (nicht in der Zukunft, höchstens 365 Tage
@@ -203,6 +199,78 @@ Hilfe (alle Rollen außer Auditor).
   in der englischen Oberfläche deutsch (siehe `docs/UX-PLAN.md`, B4).
 - Einmal geöffnete Seiten können im Seitencache des Service Workers mit ihrem
   alten Stand liegen. Verlässlich ist nur der vorab gedruckte Ausdruck.
+
+### Nachtrag vom Papierbogen
+
+Nachtragen lassen sich Übergaben, Fahrzeugübernahmen, Desinfektionen und
+Funktionskontrollen; Checklisten haben einen eigenen Nachtrag mit denselben
+Regeln. Im jeweiligen Formular den Block „Nachtrag vom Papierbogen“ öffnen,
+das Häkchen setzen und die Zeit laut Bogen eintragen. Gespeichert werden zwei
+Zeiten: das Ereignis laut Bogen und die Erfassung im Wachbuch
+(`core/paper_backfill.py`).
+
+- **Regeln für alle Nachträge:**
+  - Die Ereigniszeit liegt nicht in der Zukunft und höchstens 365 Tage zurück.
+    Sie wird nur mit Häkchen gespeichert; ohne Häkchen bleibt sie leer (auch
+    als Bedingung in der Datenbank). Sie gilt auf die Minute, wie auf dem
+    Bogen; Sekunden werden abgeschnitten.
+  - Das Wachenterminal trägt nichts nach: Das Formular zeigt dort keinen
+    Nachtrag, ein trotzdem gesendeter Nachtrag wird abgewiesen, auch über die
+    App-Schnittstelle. Wer nachträgt, meldet sich persönlich an.
+  - Das Audit nennt bei einem Nachtrag das Häkchen und die Ereigniszeit, sonst
+    nichts davon. Fahrzeugübernahmen und Desinfektionen bekommen dafür eigene
+    Audit-Einträge („… vom Papierbogen nachgetragen“).
+- **Person:** Als Person speichert ein Nachtrag, wer ihn erfasst; Listen
+  zeigen dort „erfasst von …“. Wer laut Bogen gehandelt hat (Kürzel), steht
+  nur auf dem Original bei der Wachleitung. Deshalb prüft ein Nachtrag keine
+  Geräteeinweisung (keine Nachricht an die MPG-Beauftragten), und eine
+  nachgetragene Fahrzeugübernahme macht niemanden zur Besatzung für
+  Benachrichtigungen. Stufe, Einwirkzeit und Bemerkung einer nachgetragenen
+  Desinfektion sieht die Person, die sie erfasst hat (Entscheidung D2).
+- **Kennzeichnung:** Überall, wo ein Nachtrag erscheint (Listen, Detail,
+  Übersicht, Druck der Seite, Startseite des Wachenterminals), steht
+  „Nachtrag vom Papierbogen · Ereignis … · erfasst …“. Die App erhält
+  `is_paper_backfill` und `occurred_at` (docs/API.md).
+- **Was nach der Ereigniszeit rechnet:** Sortierung der Listen, „Letzte
+  Desinfektion“ am Fahrzeug und „Letzter Funktionscheck“ am Gerät. Ein
+  älterer Nachtrag schiebt „Letzte …“ nicht zurück. Das 5-Minuten-Storno
+  einer Funktionskontrolle zählt weiter ab der Erfassung.
+- **Übergabe:** Ein Nachtrag sendet keinen Web-Push, auch nicht, wenn er
+  „Dringend“ ist, und zählt auf dem Wachen-Display und dem Sperrbildschirm
+  nicht als neue dringende Übergabe (kein Gong). Schichtleitung und
+  Master-Admin können Häkchen und Ereigniszeit über „Inhalt korrigieren“
+  ändern; das ergibt eine neue Version mit Audit-Eintrag. Die Ereigniszeit
+  liegt dann vor der Erfassung und höchstens 365 Tage davor.
+- **Fahrzeugübernahme:** Der km-Stand wird nicht mit dem letzten Stand
+  verglichen. km-Stand, Füllstände und O₂-Druck am Fahrzeug ändert ein
+  Nachtrag nur, wenn er nach der Zeit laut Bogen die neueste Übernahme ist.
+  Ein „Nein“ führt wie sonst zur Mangelmeldung; Warnungen zu niedrigem
+  Sauerstoff oder Kraftstoff entfallen, weil der Stand Vergangenheit ist.
+- **Desinfektion:** Der Bogen nennt keine Stufe und keine Einwirkzeit
+  (Entscheidung D2). Bei einem Nachtrag ist die Stufe deshalb freiwillig; die
+  Uhrzeit aus „Frei ab“ kommt in das Feld „Frei ab laut Papierbogen“ und
+  ergibt die Einwirkzeit ab dem Beginn laut Bogen (höchstens 12 Stunden
+  danach, auch über Mitternacht). Ohne „Frei ab“ gilt die eingetragene
+  Einwirkzeit. Gesperrt wird das Fahrzeug nur, wenn die Einwirkzeit noch
+  läuft und länger als eine bestehende Sperre dauert; sonst ändert der
+  Nachtrag den Fahrzeugzustand nicht (die Freigabe steht auf dem Bogen).
+  Stufe, Einwirkzeit und Bemerkung sehen wie sonst nur die durchführende
+  Person, Schichtleitung und Master-Admin (Entscheidung D2).
+- **Funktionskontrolle:** Ein nachgetragenes „Nein“ legt immer einen Mangel
+  an (Zeile „Nachtrag vom Papierbogen · …“ in der Beschreibung). Ist der
+  Nachtrag nach der Zeit laut Bogen die neueste gültige Kontrolle, sperrt er
+  das Gerät, und der Mangel ist dringend; ist das Gerät inzwischen in
+  Ordnung, schließt die Schichtleitung den Mangel ab und gibt es frei. Liegt
+  eine neuere Kontrolle vor, gilt deren Ergebnis: Der Gerätestatus bleibt, der
+  Mangel bekommt die Priorität „Wichtig“ und den Hinweis, dass nicht gesperrt
+  wurde. Eine Geräteeinweisung prüft ein Nachtrag nicht (siehe „Person“).
+- **Nicht korrigierbar:** Fahrzeugübernahmen, Desinfektionen und
+  Funktionskontrollen bleiben append-only. Eine falsch erfasste Zeit lässt
+  sich dort nicht ändern; die Korrektur ist ein neuer Eintrag mit Bemerkung
+  (bei Funktionskontrollen auch das 5-Minuten-Storno).
+- **Reihenfolge nach einem Ausfall:** zuerst die Blätter nachtragen, dann je
+  Fahrzeug eine aktuelle Fahrzeugübernahme erfassen. Umgekehrt geht es auch:
+  Ältere Nachträge ändern den aktuellen Stand am Fahrzeug nicht.
 
 ## Raspberry Pi mit eigenem WLAN
 

@@ -217,11 +217,11 @@
       <tbody>
         {% for proto in recent_disinfections %}
           <tr>
-            <td class="nowrap">{{ proto.started_at|date:"d.m.Y H:i" }} Uhr</td>
+            <td class="nowrap">{{ proto.event_at|date:"d.m.Y H:i" }} Uhr</td>
             {# Stufe und Einwirkzeit stehen nur im Protokoll am Fahrzeug – und nur für die durchführende Person, Schichtleitung und Admin. #}
-            <td><a href="{% url 'fleet_vehicle_detail' proto.vehicle.slug %}#fleet-disinfection-history"><strong>{{ proto.vehicle.call_sign }}</strong></a>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}</td>
+            <td><a href="{% url 'fleet_vehicle_detail' proto.vehicle.slug %}#fleet-disinfection-history"><strong>{{ proto.vehicle.call_sign }}</strong></a>{% if proto.vehicle.license_plate %} ({{ proto.vehicle.license_plate }}){% endif %}{% include "core/_paper_backfill_badge.html" with record=proto %}</td>
             <td>{{ proto.disinfectant.name }}</td>
-            <td>{{ proto.performed_by.get_full_name|default:proto.performed_by.username }}</td>
+            <td>{% include "core/_paper_backfill_person.html" with record=proto person=proto.performed_by %}</td>
           </tr>
         {% endfor %}
       </tbody>

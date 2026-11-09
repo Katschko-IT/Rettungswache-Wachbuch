@@ -21,9 +21,7 @@
         <span class="row-content">
           <strong>{{ item.title }}</strong>
           <small>{{ item.get_category_display }} &middot; {{ item.get_status_display }} &middot; {{ item.author.first_name|default:item.author.username }}</small>
-          {% if item.is_paper_backfill %}
-            <span class="status-label warning small backfill-label">{% blocktranslate with event=item.occurred_at|date:"d.m.Y H:i" created=item.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
-          {% endif %}
+          {% include "core/_paper_backfill_badge.html" with record=item %}
         </span>
         <time datetime="{{ item.updated_at|date:'c' }}">{{ item.updated_at|date:"d.m.Y H:i" }}</time>
       </a>

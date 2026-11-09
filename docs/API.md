@@ -96,9 +96,31 @@ Die vollständige, maschinenlesbare Beschreibung ist `core/api/openapi_v1.yaml` 
 
 ## Wachalltag-Datenmodell
 
+### Übergaben: Nachtrag vom Papierbogen
+
+Seit 0.28 enthält jede Übergabe in Liste, Detail und Übersicht
+`is_paper_backfill` (ja/nein) und `occurred_at` (Ereigniszeit laut
+Papierbogen, ISO 8601, sonst `null`). `created_at` bleibt die Erfassung im
+Wachbuch. Clients zeigen einen Nachtrag gekennzeichnet an, etwa
+„Nachtrag vom Papierbogen · Ereignis <Zeit> · erfasst <Zeit>“.
+
+`POST /api/v1/handovers/` nimmt beide Felder an:
+
+- `occurred_at` ist mit `is_paper_backfill: true` Pflicht, liegt nicht in der
+  Zukunft und höchstens 365 Tage zurück; sonst 422 mit `fields.occurred_at`.
+- `occurred_at` ist Text (ISO 8601) oder `null`, `is_paper_backfill` ein
+  Wahrheitswert. Andere JSON-Typen (Zahl, Liste, Objekt) ergeben ebenfalls 422
+  mit dem Feld in `fields`.
+- Die Ereigniszeit gilt auf die Minute; Sekunden werden abgeschnitten (wie im
+  Formular der Weboberfläche).
+- Ohne `is_paper_backfill` wird `occurred_at` nicht gespeichert.
+- Ein Nachtrag löst keinen Web-Push aus.
+- Das Dienstkonto des Wachenterminals kann keinen Nachtrag anlegen (422 mit
+  Hinweis in `fields.__all__`).
+
 ### Mängel
 
-Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
+Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Seit 0.28 ist der Titel beim Anlegen (`POST /api/v1/defects/`) optional: Ohne Titel bildet der Server wie das Mangelformular „Kategorie: Bezug“ in der Wachensprache. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
 
 `GET /api/v1/defects/` sortiert fachlich: offen → in Bearbeitung → wartend →
 erledigt, innerhalb davon dringend → wichtig → normal, dann nach Frist. Die

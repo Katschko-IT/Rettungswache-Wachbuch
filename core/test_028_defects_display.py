@@ -716,6 +716,29 @@ class DefectApiTests(TestCase):
         Defect.objects.create(station=self.other, title="fremd text", asset_ref="ZZ 1", created_by=self.other_user)
         self.assertEqual(self.titles(asset="ZZ 1"), [])
 
+    def post_defect(self, **body):
+        return self.client.post(
+            "/api/v1/defects/", data=json.dumps(body), content_type="application/json", **self.auth,
+        )
+
+    def test_api_builds_title_like_the_web_form_when_empty(self):
+        from core.wachalltag_web import _auto_defect_title
+
+        response = self.post_defect(title="  ", category="material", asset_ref="RTW 1")
+        self.assertEqual(response.status_code, 201, response.content)
+        created = Defect.objects.get(pk=response.json()["id"])
+        self.assertEqual(created.title, _auto_defect_title("material", "RTW 1"))
+        self.assertIn("RTW 1", created.title)
+        response = self.post_defect(category="device")
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Defect.objects.get(pk=response.json()["id"]).title, _auto_defect_title("device", ""))
+
+    def test_api_keeps_given_title_and_rejects_overlong(self):
+        response = self.post_defect(title="Trage quietscht", category="material", asset_ref="RTW 1")
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Defect.objects.get(pk=response.json()["id"]).title, "Trage quietscht")
+        self.assertEqual(self.post_defect(title="x" * 161).status_code, 422)
+
     def test_me_view_is_csrf_exempt_and_helper_is_plain(self):
         from core.api import wachalltag
 
