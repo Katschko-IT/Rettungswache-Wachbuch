@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import Station
+from .paper_backfill import PaperBackfillRecord, backfill_constraint
 
 
 def _require_same_station(parent, station_id: int | None, label: str) -> None:
@@ -309,8 +310,15 @@ class DeviceTrainingRecord(models.Model):
         return self.valid_until >= timezone.localdate()
 
 
-class DeviceRoutineCheck(models.Model):
-    """Tägliche oder schichtweise Funktionskontrolle gem. Herstellervorgaben und Betreiberplan."""
+class DeviceRoutineCheck(PaperBackfillRecord, models.Model):
+    """Tägliche oder schichtweise Funktionskontrolle gem. Herstellervorgaben und Betreiberplan.
+
+    ``checked_at`` ist die Erfassung (auch für das 5-Minuten-Storno). Bei einem
+    Nachtrag vom Papierbogen steht die Zeit laut Bogen in ``occurred_at``
+    (``core/paper_backfill.py``).
+    """
+
+    BACKFILL_ENTRY_FIELD = "checked_at"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="device_routine_checks")
     device = models.ForeignKey(MedicalDevice, on_delete=models.PROTECT, related_name="routine_checks")
@@ -334,25 +342,35 @@ class DeviceRoutineCheck(models.Model):
         related_name="cancellation_records",
         verbose_name="Stornierte Funktionskontrolle",
     )
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
 
     class Meta:
         ordering = ["-checked_at"]
         indexes = [
             models.Index(fields=["station", "-checked_at"], name="dev_check_station_time_idx"),
         ]
+        constraints = [backfill_constraint("deviceroutinecheck")]
 
     def save(self, *args, **kwargs):
         if self.pk:
             raise ValidationError("Funktionskontrollen dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Funktionskontrolle")
+        # Ob diese Kontrolle das Gerät gesperrt hat (für die Meldung in der Ansicht).
+        self.device_locked = False
         if not self.is_cancellation:
             # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
             self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
         super().save(*args, **kwargs)
 
         if not self.is_cancellation:
-            self.device.last_routine_check = self.checked_at
-            update_fields = ["last_routine_check", "updated_at"]
+            update_fields = ["updated_at"]
+            # „Letzter Funktionscheck“ nach Ereigniszeit: Ein älterer Nachtrag
+            # schiebt ihn nicht zurück.
+            last = self.device.last_routine_check
+            if not self.is_paper_backfill or last is None or self.event_at > last:
+                self.device.last_routine_check = self.event_at
+                update_fields.append("last_routine_check")
             if not self.passed and self.device.current_status != MedicalDevice.Status.DECOMMISSIONED:
                 # Sperre mit Mangel; aufgehoben wird sie nur über die Freigabe
                 # (core/device_status.py). Eine bestandene Kontrolle hebt nichts auf.
@@ -367,38 +385,75 @@ class DeviceRoutineCheck(models.Model):
                     )
                     if not ok
                 ]
+                # Ein Nachtrag sperrt nur, wenn er nach der Zeit laut Bogen die
+                # neueste gültige Kontrolle ist. Liegt eine neuere vor, gilt
+                # deren Ergebnis; der Mangel hält das „Nein“ vom Bogen trotzdem
+                # fest (Priorität „Wichtig“ statt „Dringend“).
+                superseded = self.is_paper_backfill and self._newer_valid_check_exists()
+                backfill_lines = ""
+                if self.is_paper_backfill:
+                    from django.conf import settings
+                    from django.utils import translation
+                    from django.utils.translation import gettext
+
+                    # Gespeichert in der Wachensprache (wie andere Mangeltexte).
+                    with translation.override(settings.LANGUAGE_CODE):
+                        backfill_lines = f"{self.paper_backfill_label}\n"
+                        if superseded:
+                            backfill_lines += gettext(
+                                "Eine neuere Funktionskontrolle liegt vor; das Gerät wurde deshalb nicht gesperrt."
+                            ) + "\n"
                 Defect.objects.create(
                     station_id=self.station_id,
                     medical_device=self.device,
                     title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
                     description=(
-                        f"Nicht in Ordnung: {', '.join(failed)}\n"
+                        f"{backfill_lines}Nicht in Ordnung: {', '.join(failed)}\n"
                         f"Standort: {self.device.location}\n\n{self.notes}"
                     ).strip(),
                     asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
-                    priority=Defect.Priority.URGENT,
+                    priority=Defect.Priority.IMPORTANT if superseded else Defect.Priority.URGENT,
                     status=Defect.Status.OPEN,
                     category=Defect.Category.DEVICE,
                     created_by=self.performed_by,
                 )
-                self.device.current_status = MedicalDevice.Status.OOB
-                self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
-                update_fields += ["current_status", "status_note"]
+                if not superseded:
+                    self.device.current_status = MedicalDevice.Status.OOB
+                    self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
+                    update_fields += ["current_status", "status_note"]
+                    self.device_locked = True
             self.device.save(update_fields=update_fields)
         else:
             # Storno-Eintrag: Letzte gültige Kontrolle ermitteln
             cancelled_ids = DeviceRoutineCheck.objects.filter(
                 device=self.device, is_cancellation=True
             ).values_list("cancels_check_id", flat=True)
-            last_valid = (
+            from .paper_backfill import newest_event_first
+
+            last_valid = newest_event_first(
                 DeviceRoutineCheck.objects.filter(device=self.device, is_cancellation=False)
                 .exclude(id__in=cancelled_ids)
-                .exclude(id=self.cancels_check_id)
-                .order_by("-checked_at")
-                .first()
-            )
-            self.device.last_routine_check = last_valid.checked_at if last_valid else None
+                .exclude(id=self.cancels_check_id),
+                "checked_at",
+            ).first()
+            self.device.last_routine_check = last_valid.event_at if last_valid else None
             self.device.save(update_fields=["last_routine_check", "updated_at"])
+
+    def _newer_valid_check_exists(self) -> bool:
+        """Gibt es eine nicht stornierte Kontrolle, die nach Ereigniszeit neuer ist?"""
+        from .paper_backfill import event_time
+
+        cancelled_ids = DeviceRoutineCheck.objects.filter(
+            device_id=self.device_id, is_cancellation=True
+        ).values_list("cancels_check_id", flat=True)
+        return (
+            DeviceRoutineCheck.objects.filter(device_id=self.device_id, is_cancellation=False)
+            .exclude(pk=self.pk)
+            .exclude(id__in=cancelled_ids)
+            .annotate(event_time=event_time("checked_at"))
+            .filter(event_time__gt=self.event_at)
+            .exists()
+        )
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Funktionskontrollen dürfen nicht gelöscht werden.")

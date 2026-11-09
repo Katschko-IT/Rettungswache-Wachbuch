@@ -28,11 +28,11 @@ Die Fristen in diesem Katalog sind die technisch umgesetzten. Verbindliche Frist
 | [Geburtstage (freiwillig)](#modul-geburtstage) | `Station.birthdays_enabled` | ja | 1 | Freiwillige Angabe |
 | [Kaffeekasse (freiwillig)](#modul-kaffeekasse) | `Station.coffee_enabled` | ja | 5 | Nachweis, Organisationsdaten |
 | [Tagesaufgaben](#modul-aufgaben) | `Station.tasks_enabled` | ja | 2 | Organisationsdaten, Erledigt-Vermerk |
-| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 2 | Organisationsdaten, Nachweis |
+| [Checklisten und Prüfintervalle](#modul-checklisten) | `Station.checklists_enabled` | ja | 6 | Organisationsdaten, Nachweis, Checklisten-Zwischenstand |
 | [Meldungen, Verkehr und Wetter](#modul-lage) | `Station.feeds_enabled` | Freitext möglich | 0 | Einstellung, Meldungen |
 | [Pinnwand](#modul-pinnwand) | `Station.pinboard_enabled` | ja | 0 | Lücke, Anhang |
 | [Wachenchat, Privatnachrichten und Post (E2EE)](#modul-chat) | `Station.chat_enabled` | ja | 0 | Konto, Lücke |
-| [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange |
+| [Benachrichtigungen und Push](#modul-benachrichtigungen) | immer aktiv | ja | 0 | Lücke, Gerätebindung, Push-Warteschlange, Technische Tabelle |
 | [Signal-Benachrichtigungen](#modul-signal) | Einstellung SIGNAL_API_URL und SIGNAL_NUMBER | ja | 0 | Freiwillige Angabe, Signal-Warteschlange |
 | [Medizinprodukte (MPBetreibV)](#modul-mpg) | `Station.mpg_enabled` | ja | 3 | Organisationsdaten, Nachweis |
 | [Lager und Material](#modul-lager) | `Station.warehouse_enabled` | ja | 2 | Organisationsdaten, Nachweis |
@@ -211,15 +211,15 @@ Einladungen zur Kontoaktivierung (nur Hash)
 
 ### core.Membership
 
-Rolle einer Person in einer Wache
+Rolle einer Person in einer Wache, Funktionen, Abo der Fristen-Erinnerungen
 
 - Lesen: die Person selbst, Master-Admin
-- Schreiben: Master-Admin
+- Schreiben: die Person selbst, Master-Admin
 - Zugriffswege: Web, App (API), Django-Admin (lesen)
 - Nachweis: nein
 - Frist technisch: solange das Konto besteht; Deaktivieren oder Löschen durch Master-Admin bzw. Superuser
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin.
+- Hinweis: Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin. Rolle, Zugang und Funktionen setzt der Master-Admin; das Wachenterminal-Konto bekommt keine Funktion. Welche Bereiche der Fristen-Erinnerungen eine Person bekommt und ob zusätzlich per E-Mail (Standard aus), stellt nur die Person selbst unter Mein Konto → Erinnerungen ein.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -232,6 +232,12 @@ Rolle einer Person in einer Wache
 | `is_material_lead` | Material / Lager | Wert |  |
 | `is_fleet_lead` | Fuhrpark | Wert |  |
 | `is_safety_lead` | Sicherheit / Arbeitsschutz | Wert |  |
+| `remind_fleet` | Erinnerungen: Fahrzeuge | Wert |  |
+| `remind_mpg` | Erinnerungen: Medizinprodukte | Wert |  |
+| `remind_material` | Erinnerungen: Material | Wert |  |
+| `remind_sop` | Erinnerungen: Dienstanweisungen | Wert |  |
+| `remind_tasks` | Erinnerungen: Aufgaben und Prüfungen | Wert |  |
+| `reminder_email` | Erinnerungen zusätzlich per E-Mail | Wert |  |
 | `is_active` |  | Wert |  |
 | `created_at` |  | Zeitpunkt |  |
 
@@ -629,7 +635,7 @@ Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse
 - Nachweis: nein
 - Frist technisch: solange die Installation besteht; Änderung durch Master-Admin
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse.
+- Hinweis: Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse. „Namen bei Lesebestätigungen anzeigen“ (Standard aus) schaltet nur der Master-Admin, wenn eine Vereinbarung mit der Beschäftigtenvertretung das erlaubt; die Änderung steht im Audit.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -678,6 +684,7 @@ Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse
 | `traffic_radius_km` | Umkreis in km | Wert |  |
 | `traffic_warning_areas` | Gebiete für Bevölkerungswarnungen | Freitext |  |
 | `traffic_local_sources` | Kommunale Quellen Steinhagen und Kreis Gütersloh | Wert |  |
+| `sop_receipt_names_agreed` | Namen bei Lesebestätigungen von Dienstanweisungen anzeigen | Wert |  |
 
 <a id="modul-audit"></a>
 
@@ -818,7 +825,7 @@ Lesebestätigung: Person und Zeit
 
 ### core.HandoverAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -851,7 +858,7 @@ Anhänge (Bild oder PDF)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten.
+- Hinweis: Display: nur die Zahl dringender offener Übergaben, ohne Nachträge vom Papierbogen. Status und Bearbeitung: Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -865,7 +872,7 @@ Anhänge (Bild oder PDF)
 | `author` |  | Person (Konto) |  |
 | `version` |  | Wert |  |
 | `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
-| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
 | `completed_at` |  | Zeitpunkt |  |
@@ -927,7 +934,7 @@ Quittierung: Person und Zeit
 
 ### core.NewsAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Schichtleitung, Master-Admin
@@ -1053,7 +1060,7 @@ Mängel an Fahrzeugen, Geräten und Gebäude mit Frist und Verlauf.
 
 ### core.Defect
 
-Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
+Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person, Bezug (Text, Fahrzeug oder Medizingerät)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -1062,7 +1069,7 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent.
+- Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent. Der Bezug verweist auf ein Fahrzeug oder Medizingerät der Wache (keine Personen); ein Gerätemangel sperrt das Gerät. Das Wachenterminal wählt keine Medizingeräte.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1080,7 +1087,11 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
 | `closed_at` |  | Zeitpunkt |  |
+| `vehicle` |  | Verweis |  |
 | `medical_device` |  | Verweis |  |
+| `source_checklist_run` | Aus Checklisten-Lauf | Verweis | Lauf, der den Mangel angelegt hat |
+| `source_item_id` | Prüfpunkt (Kennung) | Wert |  |
+| `source_item_text` | Prüfpunkt (Text zum Zeitpunkt des Laufs) | Freitext | Kopie des Prüfpunkts aus der Checkliste, kein Eintrag der Person |
 
 ### core.DefectAttachment
 
@@ -1575,8 +1586,12 @@ Checklisten mit Abschluss und Fälligkeit.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Letzter Abschluss je Checkliste mit Vorname und Zeit | `checklists` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** |  |
-| Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App) | `api_v1_checklisten` | Inhaltsrollen | **ja** |  |
+| Letzter Lauf und offener Zwischenstand je Checkliste mit Vorname und Zeit | `checklists` | Inhaltsrollen, Wachenterminal (Dienstkonto) | **ja** | Schichtleitung und Master-Admin sehen dazu den Anteil der Läufe mit Ergebnis je Punkt (30 Tage, Summe der Wache, keine Werte je Person) |
+| Letzter Lauf und offener Zwischenstand je Checkliste mit vollem Namen und Zeit (App) | `api_v1_checklisten` | Inhaltsrollen | **ja** |  |
+| Zwischenstand einer Checkliste mit vollem Namen der letzten Bearbeitung (App) | `api_v1_checkliste_zwischenstand` | Inhaltsrollen | **ja** |  |
+| Verlauf der Läufe einer Checkliste mit Vorname, Zeit und Zahl der Ergebnisse | `checklist_history` | Inhaltsrollen | **ja** | nicht am Wachenterminal |
+| Ein Lauf mit Vorname, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt | `checklist_run_detail` | Inhaltsrollen | **ja** | nicht am Wachenterminal |
+| Läufe eines Zeitraums als CSV mit vollem Namen, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt (z. B. Temperaturprotokoll) | `checklist_runs_export` | Schichtleitung, Master-Admin | **ja** | Zellen, die mit = + - @ oder Tab/Zeilenumbruch beginnen, bekommen ein Apostroph vorangestellt |
 
 ### core.Checklist
 
@@ -1588,7 +1603,7 @@ Checkliste mit Beschreibung
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an.
+- Hinweis: Anlegen und Bearbeiten (auch „Erfordert persönliche Anmeldung“) nur im Django-Admin; Web und App zeigen Checklisten nur an.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1602,16 +1617,16 @@ Checkliste mit Beschreibung
 
 ### core.ChecklistCompletion
 
-Abschluss: Person, Zeit, Notiz
+Lauf: Person, Zeit, Notiz, Ergebnis und Messwert je Prüfpunkt mit Begründung
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
-- Zugriffswege: Web, App (API), Wachenterminal, Django-Admin (lesen)
+- Zugriffswege: Web, App (API), Wachenterminal, Export/Datei, Django-Admin (lesen)
 - Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Append-only.
+- Hinweis: Append-only: ein Lauf entsteht mit einem INSERT. Nachtrag vom Papierbogen mit Ereigniszeit und Eingabezeit. Läufe mit Nachweischarakter und Nachträge nicht über das Dienstkonto Wachenterminal; Verlauf, Einzellauf und Export nicht am Wachenterminal.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1620,9 +1635,34 @@ Abschluss: Person, Zeit, Notiz
 | `checklist` |  | Verweis |  |
 | `completed_by` |  | Person (Konto) |  |
 | `note` |  | Freitext |  |
-| `is_draft` | Zwischenstand | Wert |  |
-| `item_results` | Ergebnisse je Prüfpunkt | strukturierte Angaben |  |
+| `item_results` | Ergebnisse je Prüfpunkt | Freitext | Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt |  |
 | `created_at` |  | Zeitpunkt |  |
+
+### core.ChecklistDraft
+
+Zwischenstand: Ergebnisse je Prüfpunkt, Notiz, wer ihn angelegt und zuletzt bearbeitet hat
+
+- Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
+- Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
+- Zugriffswege: Web, App (API), Wachenterminal
+- Nachweis: nein
+- Frist technisch: der Abschluss des Laufs löscht ihn; sonst nach 30 Tagen ohne Änderung (`housekeeping`)
+- Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Kein Nachweis und veränderbar: höchstens einer je Checkliste und Wache, die Besatzung setzt ihn gemeinsam fort.
+
+| Feld | Bezeichnung | Art | Hinweis |
+| --- | --- | --- | --- |
+| `id` |  | Wert |  |
+| `station` |  | Verweis |  |
+| `checklist` |  | Verweis |  |
+| `created_by` |  | Person (Konto) |  |
+| `updated_by` |  | Person (Konto) |  |
+| `item_results` | Ergebnisse je Prüfpunkt | Freitext | Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts |
+| `note` |  | Freitext |  |
+| `created_at` |  | Zeitpunkt |  |
+| `updated_at` |  | Zeitpunkt |  |
 
 ### core.ChecklistItem
 
@@ -1634,7 +1674,7 @@ Punkte einer Checkliste
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Anlegen und Bearbeiten nur im Django-Admin.
+- Hinweis: Anlegen und Bearbeiten nur im Django-Admin. Jeder Lauf speichert eine Kopie von Text, Einheit, Grenzwerten und Pflicht.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1737,7 +1777,7 @@ Aushänge der Wache.
 
 ### core.PinboardAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -2077,7 +2117,7 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 - Nachweis: nein
 - Frist technisch: keine technische Löschung (siehe docs/LOESCHKONZEPT.md, Lücken)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
+- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2091,6 +2131,27 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 | `dedupe_key` |  | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
 | `read_at` |  | Zeitpunkt |  |
+
+### core.WorkerJobState
+
+Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der letzten Wochenübersicht
+
+- Lesen: Master-Admin
+- Schreiben: System
+- Zugriffswege: Web
+- Nachweis: nein
+- Frist technisch: ohne Personenbezug; bleibt, solange die Installation besteht
+- Hinweis: Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin echter Wachen sieht den Stand unter System (ohne Anzahl, nicht in der öffentlichen Demo).
+
+| Feld | Bezeichnung | Art | Hinweis |
+| --- | --- | --- | --- |
+| `id` |  | Wert |  |
+| `name` |  | Wert |  |
+| `last_started_at` |  | Zeitpunkt |  |
+| `last_finished_at` |  | Zeitpunkt |  |
+| `last_failed_at` |  | Zeitpunkt |  |
+| `last_period` |  | Wert |  |
+| `last_count` |  | Wert |  |
 
 <a id="modul-signal"></a>
 
@@ -2176,14 +2237,15 @@ Funktionskontrolle mit Person und Ergebnis
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag prüft deshalb keine Geräteeinweisung. Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. Das 5-Minuten-Storno zählt ab der Erfassung.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `device` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
-| `checked_at` |  | Zeitpunkt |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
+| `checked_at` |  | Zeitpunkt | Erfassung im Wachbuch; danach richtet sich das 5-Minuten-Storno |
 | `passed` | Funktionskontrolle bestanden | Wert |  |
 | `battery_ok` | Akkus / Energieversorgung einsatzklar | Wert |  |
 | `visual_ok` | Sichtprüfung / Zubehör vollständig | Wert |  |
@@ -2191,6 +2253,8 @@ Funktionskontrolle mit Person und Ergebnis
 | `notes` | Feststellungen / Notiz | Freitext |  |
 | `is_cancellation` | Storno-Eintrag | Wert |  |
 | `cancels_check` | Stornierte Funktionskontrolle | Verweis |  |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 ### core.DeviceTrainingRecord
 
@@ -2284,7 +2348,7 @@ Medizingerät mit Fristen und Status
 | `next_stk_date` | Nächste STK | Zeitpunkt |  |
 | `next_mtk_date` | Nächste MTK | Zeitpunkt |  |
 | `next_dguv_date` | Nächste DGUV V3 | Zeitpunkt |  |
-| `last_routine_check` | Letzter Funktionscheck | Zeitpunkt |  |
+| `last_routine_check` | Letzter Funktionscheck | Zeitpunkt | nach Zeit laut Bogen, wenn die neueste Kontrolle ein Nachtrag ist |
 | `manual_url` | Online-Bedienungsanleitung | Link |  |
 | `notes` | Hinweise / Medizinproduktebuch-Notizen | Freitext |  |
 | `created_at` |  | Zeitpunkt |  |
@@ -2513,20 +2577,22 @@ Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe.
+- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus „Frei ab“ laut Bogen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
 | `disinfectant` |  | Verweis |  |
-| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
-| `started_at` | Beginn Desinfektion | Zeitpunkt |  |
+| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe) |
+| `started_at` | Beginn Desinfektion | Zeitpunkt | Erfassung im Wachbuch; bei einem Nachtrag steht der Beginn laut Bogen in der Ereigniszeit |
 | `exposure_minutes` | Einwirkzeit (Minuten) | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `lock_timer_applied` | Einwirkzeit-Sperre angewendet | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `notes` | Bemerkung (keine Patienten- oder Einsatzangaben) | Freitext | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data` |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 ### core.Vehicle
 
@@ -2562,7 +2628,7 @@ Fahrzeug mit Fahrzeugzustand, Füllständen und Fristen
 | `next_sp_date` | Nächste Sicherheitsprüfung (SP) | Zeitpunkt |  |
 | `next_uvv_date` | Nächste UVV-Prüfung (DGUV V70) | Zeitpunkt |  |
 | `next_stretcher_service_date` | Tragentisch-Wartung (10g / DIN EN 1789) | Zeitpunkt |  |
-| `last_disinfection` | Letzte Desinfektion | Zeitpunkt |  |
+| `last_disinfection` | Letzte Desinfektion | Zeitpunkt | nach Beginn laut Bogen, wenn die neueste Desinfektion ein Nachtrag ist |
 | `disinfection_locked_until` | Desinfektions-Sperre aktiv bis | Zeitpunkt |  |
 | `is_active` | Im aktiven Wachdienst | Wert | aus: außer Betrieb genommen; Übernahmen und Desinfektionen bleiben erhalten |
 | `notes` | Fahrzeugakte / Besonderheiten | Freitext |  |
@@ -2580,14 +2646,15 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `crew_member` |  | Person (Konto) |  |
-| `performed_at` |  | Zeitpunkt |  |
+| `crew_member` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
+| `performed_at` |  | Zeitpunkt | Erfassung im Wachbuch |
 | `mileage` | Kilometerstand | Wert |  |
 | `fuel_percent` | Tankfüllstand (%) | Wert |  |
 | `adblue_percent` | AdBlue (%) | Wert |  |
@@ -2596,6 +2663,8 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 | `medical_devices_checked` | Medizingeräte-Selbsttests OK | Wert |  |
 | `vehicle_clean` | Patientenraum & Fahrerkabine sauber | Wert |  |
 | `notes` | Feststellungen / Bemerkung | Freitext |  |
+| `is_paper_backfill` | Nachtrag vom Papierbogen | Wert |  |
+| `occurred_at` | Ereigniszeitpunkt (Papierbogen) | Zeitpunkt | Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung) |
 
 <a id="modul-orga"></a>
 
@@ -2610,16 +2679,16 @@ Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.
 
 | Ausgabe | URL-Name | Rollen | Personenbezug | Hinweis |
 | --- | --- | --- | --- | --- |
-| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** |  |
-| Quittierungsnachweis als CSV mit Namen | `sop_export_audit` | Schichtleitung, Master-Admin | **ja** |  |
+| Quittierungsliste einer Dienstanweisung mit Namen | `sop_detail` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); ohne Vereinbarung nur Anzahl und Quote der Zielgruppe. Bei einer Zielgruppe von ein oder zwei Personen lässt auch die Quote auf Einzelne schließen (docs/MITBESTIMMUNG-VORLAGE.md) |
+| Quittierungsnachweis als CSV mit Namen | `sop_export_audit` | Schichtleitung, Master-Admin | **ja** | Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version |
 
 ### core.SOPDocument
 
-Dienstanweisung: Nummer, Titel, Status, Fristen
+Dienstanweisung: Nummer, Titel, Status, Fristen, Zielgruppe nach Rolle und Funktion
 
 - Lesen: Inhaltsrollen
 - Schreiben: Schichtleitung, Master-Admin
-- Zugriffswege: Web, Export/Datei
+- Zugriffswege: Web, App (API), Export/Datei
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
@@ -2639,6 +2708,7 @@ Dienstanweisung: Nummer, Titel, Status, Fristen
 | `review_due_date` | Nächste Überprüfung (QM) | Zeitpunkt |  |
 | `ack_due_date` | Lesefrist bis | Zeitpunkt |  |
 | `target_role` | Zielgruppe (Rolle) | Wert |  |
+| `target_function` | Zielgruppe (Funktion) | Wert |  |
 | `requires_acknowledgment` | Pflichtquittierung für Personal | Wert |  |
 | `created_by` |  | Person (Konto) |  |
 | `created_at` |  | Zeitpunkt |  |
@@ -2650,12 +2720,12 @@ Lesequittung: Person, Version, Zeit
 
 - Lesen: die Person selbst, Schichtleitung, Master-Admin
 - Schreiben: die Person selbst
-- Zugriffswege: Web, Export/Datei
+- Zugriffswege: Web, App (API), Export/Datei
 - Nachweis: ja, append-only (Anwendung und Datenbankrechte)
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Mitglieder sehen nur ihren eigenen Stand.
+- Hinweis: Mitglieder sehen nur ihren eigenen Stand (auch in der App). Namen sieht die Leitung nur mit Vereinbarung. Nicht am Wachenterminal und nicht für Auditoren.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |

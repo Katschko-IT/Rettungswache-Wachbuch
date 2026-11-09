@@ -11,6 +11,8 @@ from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy
 
+from .paper_backfill import PaperBackfillRecord, backfill_constraint
+
 
 class Station(models.Model):
     class Profile(models.TextChoices):
@@ -142,6 +144,19 @@ class Station(models.Model):
         default=False,
         verbose_name="Kommunale Quellen Steinhagen und Kreis Gütersloh",
     )
+    # „Namen nur nach Vereinbarung“ (Roadmap 0.28): Ohne Vereinbarung mit der
+    # Beschäftigtenvertretung sieht die Leitung bei Dienstanweisungen nur Anzahl
+    # und Quote, keine Namen (docs/MITBESTIMMUNG-VORLAGE.md). Nur der
+    # Master-Admin schaltet um; die Änderung steht im Audit.
+    sop_receipt_names_agreed = models.BooleanField(
+        default=False,
+        verbose_name="Namen bei Lesebestätigungen von Dienstanweisungen anzeigen",
+        help_text=(
+            "Nur einschalten, wenn eine Vereinbarung mit der Beschäftigtenvertretung (Betriebsrat, "
+            "Personalrat oder MAV) das erlaubt. Aus: Schichtleitung und Master-Admin sehen nur Anzahl "
+            "und Quote, keine Namen und keinen Export mit Namen."
+        ),
+    )
 
     class Meta:
         ordering = ["name"]
@@ -205,8 +220,31 @@ class Membership(models.Model):
         default=False,
         help_text="Verantwortlich für Arbeitsschutz und Sicherheitsunterweisungen.",
     )
+    # Fristen-Erinnerungen je Bereich (core/deadline_reminders.py). Leer heißt
+    # Standard: an für die Bereiche der eigenen Funktionen, für Schichtleitung
+    # und Master-Admin alle Bereiche. Die Person stellt das selbst ein.
+    remind_fleet = models.BooleanField("Erinnerungen: Fahrzeuge", null=True, blank=True, default=None)
+    remind_mpg = models.BooleanField("Erinnerungen: Medizinprodukte", null=True, blank=True, default=None)
+    remind_material = models.BooleanField("Erinnerungen: Material", null=True, blank=True, default=None)
+    remind_sop = models.BooleanField("Erinnerungen: Dienstanweisungen", null=True, blank=True, default=None)
+    remind_tasks = models.BooleanField("Erinnerungen: Aufgaben und Prüfungen", null=True, blank=True, default=None)
+    reminder_email = models.BooleanField(
+        "Erinnerungen zusätzlich per E-Mail",
+        default=False,
+        help_text="Fristen-Erinnerungen und Wochenübersicht auch an die E-Mail-Adresse des Kontos.",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Funktionen (Roadmap 0.28): Kurzname, Feld, Bezeichnung.
+    FUNCTIONS = (
+        ("mpg", "is_mpg_lead", gettext_lazy("MPG-Beauftragte/r")),
+        ("hygiene", "is_hygiene_lead", gettext_lazy("Hygiene / Desinfektor:in")),
+        ("material", "is_material_lead", gettext_lazy("Material / Lager")),
+        ("fleet", "is_fleet_lead", gettext_lazy("Fuhrpark")),
+        ("safety", "is_safety_lead", gettext_lazy("Sicherheit / Arbeitsschutz")),
+    )
+    FUNCTION_FIELDS = tuple(field for _code, field, _label in FUNCTIONS)
 
     class Meta:
         constraints = [
@@ -224,21 +262,25 @@ class Membership(models.Model):
 
     @property
     def function_labels(self) -> list[str]:
-        labels = []
-        if self.is_mpg_lead:
-            labels.append("MPG-Beauftragte/r")
-        if self.is_hygiene_lead:
-            labels.append("Hygiene / Desinfektor:in")
-        if self.is_material_lead:
-            labels.append("Material / Lager")
-        if self.is_fleet_lead:
-            labels.append("Fuhrpark")
-        if self.is_safety_lead:
-            labels.append("Sicherheit / Arbeitsschutz")
-        return CallableList(labels)
+        """Bezeichnungen der Funktionen in der Sprache der Anfrage."""
+        return CallableList(str(label) for _code, field, label in self.FUNCTIONS if getattr(self, field, False))
+
+    @property
+    def has_function(self) -> bool:
+        return any(getattr(self, field, False) for field in self.FUNCTION_FIELDS)
+
+    def clean(self):
+        super().clean()
+        # Das Dienstkonto des Wachenterminals bekommt keine Funktion
+        # (AGENTS.md § 4: es darf nicht erweitert werden).
+        if self.user_id and self.has_function:
+            from .terminal import is_service_user
+
+            if is_service_user(self.user):
+                raise ValidationError(gettext_lazy("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
 
 
-class HandoverEntry(models.Model):
+class HandoverEntry(PaperBackfillRecord, models.Model):
     class Category(models.TextChoices):
         STATION = "station", gettext_lazy("Wache")
         VEHICLE = "vehicle", gettext_lazy("Fahrzeugzustand")
@@ -273,6 +315,9 @@ class HandoverEntry(models.Model):
     class Meta:
         ordering = ["status", "-created_at"]
         indexes = [models.Index(fields=["station", "status", "-created_at"])]
+        # Ereigniszeit nur mit Häkchen (core/paper_backfill.py). Nicht streng:
+        # Übergaben vor 0.28 kennen keine Ereigniszeit.
+        constraints = [backfill_constraint("handoverentry", strict=False)]
 
     def __str__(self):
         return self.title
@@ -1330,9 +1375,22 @@ class ChecklistItem(models.Model):
     def __str__(self):
         return self.text
 
+    @property
+    def has_measurement(self) -> bool:
+        """Messpunkt: Einheit oder Grenzwert gesetzt (0 ist ein echter Grenzwert)."""
+        return bool(self.measurement_unit) or self.min_value is not None or self.max_value is not None
+
 
 class ChecklistCompletion(models.Model):
-    """Append-only Abschluss einer Checkliste."""
+    """Append-only Abschluss einer Checkliste (Nachweis).
+
+    Ein Lauf entsteht mit genau einem INSERT und wird danach weder geändert
+    noch gelöscht (Anwendung und Datenbankrechte, siehe
+    ``grant_database_access``). Zwischenstände liegen in ``ChecklistDraft``.
+    ``item_results`` hält je Prüfpunkt Ergebnis, Messwert, Begründung und eine
+    Kopie des Prüfpunkts (Text, Einheit, Grenzwerte, Pflicht) zum Zeitpunkt
+    des Laufs.
+    """
 
     station = models.ForeignKey(
         Station, on_delete=models.PROTECT, related_name="checklist_completions"
@@ -1344,8 +1402,9 @@ class ChecklistCompletion(models.Model):
         User, on_delete=models.PROTECT, related_name="checklist_completions"
     )
     note = models.CharField(max_length=300, blank=True)
-    is_draft = models.BooleanField("Zwischenstand", default=False)
     item_results = models.JSONField("Ergebnisse je Prüfpunkt", default=dict, blank=True)
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1356,11 +1415,17 @@ class ChecklistCompletion(models.Model):
         super().clean()
         if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
             raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+        if self.occurred_at is not None and not self.is_paper_backfill:
+            raise ValidationError("Ein Ereigniszeitpunkt gehört nur zu einem Nachtrag vom Papierbogen.")
+        if self.is_paper_backfill and self.occurred_at is None:
+            raise ValidationError("Ein Nachtrag vom Papierbogen braucht einen Ereigniszeitpunkt.")
+
+    @property
+    def effective_at(self):
+        """Zeitpunkt des Laufs: Ereigniszeit bei Nachträgen, sonst Erfassungszeit."""
+        return self.occurred_at or self.created_at
 
     def save(self, *args, **kwargs):
-        # Append-only, auch für Zwischenstände: Die App-Rolle hat auf
-        # core_checklistcompletion kein UPDATE/DELETE (grant_database_access).
-        # Jeder Zwischenstand und jeder Abschluss ist ein neuer Datensatz.
         if self.pk:
             raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
         self.full_clean()
@@ -1368,6 +1433,45 @@ class ChecklistCompletion(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
+
+
+class ChecklistDraft(models.Model):
+    """Zwischenstand eines Checklisten-Laufs: veränderbar, kein Nachweis.
+
+    Je Wache und Checkliste gibt es höchstens einen Zwischenstand. Die
+    Besatzung teilt ihn, damit die nächste Person weitermachen kann. Der
+    Abschluss legt einen ``ChecklistCompletion`` an und löscht den
+    Zwischenstand; ``housekeeping`` löscht Zwischenstände, die 30 Tage nicht
+    geändert wurden.
+    """
+
+    RETENTION_DAYS = 30
+
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="checklist_drafts")
+    checklist = models.ForeignKey(Checklist, on_delete=models.CASCADE, related_name="drafts")
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    updated_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    item_results = models.JSONField("Ergebnisse je Prüfpunkt", default=dict, blank=True)
+    note = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["station", "checklist"], name="checklist_draft_one_per_station"),
+        ]
+        indexes = [models.Index(fields=["updated_at"], name="checklist_draft_updated_idx")]
+
+    def clean(self):
+        super().clean()
+        if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
+            raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+
+    def save(self, *args, **kwargs):
+        if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
+            raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+        super().save(*args, **kwargs)
 
 
 ChecklistTemplate = Checklist

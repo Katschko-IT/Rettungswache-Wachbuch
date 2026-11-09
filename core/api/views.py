@@ -49,7 +49,7 @@ from ..models import (
     ApiToken,
     CalendarEvent,
     Checklist,
-    ChecklistCompletion,
+    ChecklistDraft,
     CoffeeEntry,
     HandoverEntry,
     Membership,
@@ -555,6 +555,8 @@ def _person(user):
 
 
 def _handover_json(item, *, detail=False):
+    from ..paper_backfill import iso_utc
+
     data = {
         "id": item.pk,
         "title": item.title,
@@ -563,6 +565,9 @@ def _handover_json(item, *, detail=False):
         "status": item.status,
         "updated_at": item.updated_at.isoformat(),
     }
+    # Nachtrag vom Papierbogen: Ereigniszeit laut Bogen, sonst null (0.28).
+    data["is_paper_backfill"] = item.is_paper_backfill
+    data["occurred_at"] = iso_utc(item.occurred_at) if item.is_paper_backfill else None
     if detail:
         data["details"] = item.details
         data["created_at"] = item.created_at.isoformat()
@@ -706,7 +711,15 @@ def handover_create(request):
     body = _parse_json(request)
     if body is None:
         return _json_error(request, "JSON-Körper erwartet.")
-    form = HandoverForm(body)
+    from ..paper_backfill import can_backfill, json_backfill_type_errors
+
+    # Falsche JSON-Typen (Zahl, Liste, Objekt) gibt das Formular nicht sauber
+    # zurück; sie werden vorher mit 422 und Feldfehler abgewiesen.
+    type_errors = json_backfill_type_errors(body)
+    if type_errors:
+        return _json_error(request, "Eingaben sind ungültig.", status=422, fields=type_errors)
+    # Das Dienstkonto des Wachenterminals trägt nichts nach (422 mit Hinweis).
+    form = HandoverForm(body, allow_backfill=can_backfill(request.user))
     if not form.is_valid():
         return _json_error(
             request,
@@ -981,154 +994,217 @@ def coffee_paid_api(request):
     )
 
 
+def _checklist_item_json(item):
+    return {
+        "id": item.pk,
+        "text": item.text,
+        "position": item.position,
+        "required": bool(item.is_required),
+        "unit": item.measurement_unit,
+        "min": None if item.min_value is None else str(item.min_value),
+        "max": None if item.max_value is None else str(item.max_value),
+        "measurement": item.has_measurement,
+    }
+
+
+def _checklist_draft_json(draft):
+    if draft is None:
+        return None
+    return {
+        "id": draft.pk,
+        "note": draft.note,
+        "item_results": draft.item_results,
+        "created_at": draft.created_at.isoformat(),
+        "updated_at": draft.updated_at.isoformat(),
+        "updated_by": _person(draft.updated_by)["display_name"],
+    }
+
+
+def _checklist_run_json(run, *, created=(), linked=()):
+    return {
+        "ok": True,
+        "id": run.pk,
+        "checklist": run.checklist_id,
+        "is_draft": False,
+        "item_results": run.item_results,
+        "defects_created": [defect.pk for defect in created],
+        "defects_linked": [defect.pk for defect in linked],
+        "completed_by": _person(run.completed_by),
+        "created_at": run.created_at.isoformat(),
+        "occurred_at": run.occurred_at.isoformat() if run.occurred_at else None,
+        "is_paper_backfill": run.is_paper_backfill,
+    }
+
+
+def _checklist_access_error(request, *, write):
+    station = request.membership.station
+    if not station.checklists_enabled:
+        return _json_error(request, "Modul ist nicht aktiviert.", status=404)
+    scope = "write:checklists" if write else "read:checklists"
+    if not _scope_allowed(request.api_token, scope):
+        return _json_error(request, f"Scope {scope} fehlt.", status=403)
+    if request.membership.role not in CONTENT_ROLES:
+        message = "Rolle darf Checklisten nicht abschließen." if write else "Rolle hat keinen Zugriff auf Checklisten."
+        return _json_error(request, message, status=403)
+    return None
+
+
+def _terminal_refusal(request, checklist, *, backfill=False):
+    """Das Dienstkonto „Wachenterminal“ schließt keine Läufe mit Nachweischarakter ab und trägt nichts nach."""
+    from ..terminal import is_service_user
+
+    if (checklist.requires_personal_login or backfill) and is_service_user(request.user):
+        return _json_error(
+            request,
+            _("Checklisten mit Nachweischarakter sind am Wachenterminal gesperrt. Bitte persönlich anmelden."),
+            status=403,
+        )
+    return None
+
+
 @csrf_exempt
 @require_GET
 @api_token_required
 def checklists_api(request):
+    from ..checklists_service import latest_runs
+
     station = request.membership.station
-    if not station.checklists_enabled:
-        return _json_error(request, "Modul ist nicht aktiviert.", status=404)
-    if not _scope_allowed(request.api_token, "read:checklists"):
-        return _json_error(request, "Scope read:checklists fehlt.", status=403)
-    if request.membership.role not in CONTENT_ROLES:
-        return _json_error(request, "Rolle hat keinen Zugriff auf Checklisten.", status=403)
-    lists = Checklist.objects.filter(station=station, is_active=True).prefetch_related("items")
-    latest = {}
-    for completion in (
-        ChecklistCompletion.objects.filter(station=station, is_draft=False)
-        .select_related("completed_by")
-        .order_by("checklist_id", "-created_at")
-    ):
-        latest.setdefault(completion.checklist_id, completion)
+    if error := _checklist_access_error(request, write=False):
+        return error
+    lists = list(Checklist.objects.filter(station=station, is_active=True).prefetch_related("items"))
+    latest = latest_runs(lists)
+    drafts = {
+        draft.checklist_id: draft
+        for draft in ChecklistDraft.objects.filter(station=station, checklist__in=lists).select_related("updated_by")
+    }
     results = []
     for checklist in lists:
         last = latest.get(checklist.id)
+        items = list(checklist.items.all())
         results.append({
             "id": checklist.id,
             "title": checklist.title,
             "description": checklist.description,
-            "items": [item.text for item in checklist.items.all()],
-            "last_completed_at": last.created_at.isoformat() if last else None,
+            # Bisheriges Feld für ältere Apps: nur die Texte.
+            "items": [item.text for item in items],
+            "item_details": [_checklist_item_json(item) for item in items],
+            "requires_personal_login": checklist.requires_personal_login,
+            "last_completed_at": last.effective_at.isoformat() if last else None,
             "last_completed_by": _person(last.completed_by)["display_name"] if last else None,
+            "last_completed_paper_backfill": bool(last and last.is_paper_backfill),
+            "draft": _checklist_draft_json(drafts.get(checklist.id)),
         })
     return JsonResponse({"ok": True, "results": results})
+
+
+def _checklist_body(request, checklist):
+    """Gemeinsames Einlesen für Abschluss und Zwischenstand: (Ergebnisse roh, Notiz, Fehlerantwort)."""
+    from ..checklists_service import ChecklistInputError, checklist_items, raw_results_from_json
+
+    body = _parse_json(request)
+    if body is None:
+        return None, None, None, _json_error(request, _("Der Inhalt muss ein JSON-Objekt sein."), status=400)
+    items = checklist_items(checklist)
+    payload = body.get("item_results", body.get("results"))
+    try:
+        raw = raw_results_from_json(items, payload)
+    except ChecklistInputError as exc:
+        return None, None, None, _json_error(request, str(exc), status=400, errors=[str(exc)])
+    note = body.get("note")
+    if note is not None and not isinstance(note, str):
+        message = _("„note“ muss Text sein.")
+        return None, None, None, _json_error(request, message, status=400, errors=[message])
+    return body, items, (raw, (note or "")[:300]), None
+
+
+def _save_checklist_draft(request, checklist, items, raw, note):
+    from ..checklists_service import save_draft, validate_results
+
+    item_results, errors = validate_results(items, raw, final=False)
+    if errors:
+        return _json_error(request, "; ".join(errors), status=400, errors=errors)
+    draft = save_draft(
+        station=request.membership.station, checklist=checklist, user=request.user,
+        item_results=item_results, note=note, via="api",
+    )
+    return JsonResponse({"ok": True, "is_draft": True, "checklist": checklist.pk, "draft": _checklist_draft_json(draft)})
 
 
 @csrf_exempt
 @require_POST
 @api_token_required
 def checklist_complete_api(request, pk):
+    """Lauf abschließen (oder mit ``is_draft: true`` den Zwischenstand speichern)."""
+    from ..checklists_service import (
+        ChecklistInputError,
+        backfill_errors,
+        finalize_run,
+        parse_backfill_time,
+        parse_flag,
+        validate_results,
+    )
+
     station = request.membership.station
-    if not station.checklists_enabled:
-        return _json_error(request, "Modul ist nicht aktiviert.", status=404)
-    if not _scope_allowed(request.api_token, "write:checklists"):
-        return _json_error(request, "Scope write:checklists fehlt.", status=403)
-    if request.membership.role not in CONTENT_ROLES:
-        return _json_error(request, "Rolle darf Checklisten nicht abschließen.", status=403)
+    if error := _checklist_access_error(request, write=True):
+        return error
     checklist, err = _api_get_or_404(request, Checklist, pk=pk, station=station, is_active=True)
     if err:
         return err
-    body = _parse_json(request) or {}
-    note = str(body.get("note") or "")[:300]
-    is_draft = bool(body.get("is_draft", False))
-    raw_results = body.get("item_results") or body.get("results")
+    body, items, parsed, error = _checklist_body(request, checklist)
+    if error:
+        return error
+    raw, note = parsed
+    try:
+        is_draft = parse_flag(body.get("is_draft"), "is_draft")
+        is_backfill = parse_flag(body.get("is_paper_backfill"), "is_paper_backfill")
+    except ChecklistInputError as exc:
+        return _json_error(request, str(exc), status=400, errors=[str(exc)])
+    if error := _terminal_refusal(request, checklist, backfill=is_backfill):
+        return error
+    if is_draft:
+        return _save_checklist_draft(request, checklist, items, raw, note)
 
-    from core.checklists_forms import validate_checklist_submission
-    from core.wachalltag_models import Defect, DefectEvent
+    item_results, errors = validate_results(items, raw, final=True)
+    occurred_at = None
+    if is_backfill:
+        occurred_at, readable = parse_backfill_time(body.get("occurred_at"))
+        if not readable:
+            errors.append(_("Bitte einen gültigen Ereigniszeitpunkt angeben."))
+        else:
+            errors.extend(backfill_errors(occurred_at))
+    if errors:
+        return _json_error(request, "; ".join(errors), status=400, errors=errors)
+    result = finalize_run(
+        station=station, checklist=checklist, user=request.user, item_results=item_results, note=note,
+        is_paper_backfill=is_backfill, occurred_at=occurred_at, via="api",
+    )
+    return JsonResponse(
+        _checklist_run_json(result.completion, created=result.created_defects, linked=result.linked_defects),
+        status=201,
+    )
 
-    item_results = {}
-    if not is_draft and not (raw_results and isinstance(raw_results, dict)):
-        # Ohne Ergebnisse je Punkt lassen sich Grenzwerte nicht prüfen. Ältere
-        # Clients ohne Grenzwert-Punkte dürfen weiter nur mit Notiz abschließen.
-        if checklist.items.exclude(min_value=None, max_value=None).exists():
-            return _json_error(request, "item_results ist für Checklisten mit Grenzwerten erforderlich.", status=400)
-    if raw_results and isinstance(raw_results, dict):
-        item_results, errors = validate_checklist_submission(
-            checklist, {"item_results": raw_results}, is_draft=is_draft
-        )
-        if errors and not is_draft:
-            return _json_error(request, "; ".join(errors), status=400)
 
-    with transaction.atomic():
-        completion = ChecklistCompletion(
-            station=station,
-            checklist=checklist,
-            completed_by=request.user,
-            note=note,
-            is_draft=is_draft,
-            item_results=item_results,
-        )
-        if not is_draft and item_results:
-            for item in checklist.items.all():
-                res = item_results.get(str(item.id))
-                if res and res.get("status") == "not_ok":
-                    reason = res.get("reason") or ""
-                    val = res.get("value")
-                    desc_parts = [
-                        f"Prüfpunkt: {item.text}",
-                        f"Checkliste: {checklist.title}",
-                        f"Feststellung: {reason or 'nicht in Ordnung'}",
-                    ]
-                    if val is not None:
-                        unit = f" {item.measurement_unit}" if item.measurement_unit else ""
-                        bounds = (
-                            f"[{item.min_value if item.min_value is not None else '—'}.."
-                            f"{item.max_value if item.max_value is not None else '—'}]"
-                        )
-                        desc_parts.append(f"Messwert: {val}{unit} (Grenzen: {bounds})")
-                    desc_parts.append(
-                        f"Erfasst im Prüflauf von {request.user.first_name or request.user.username}."
-                    )
-                    defect = Defect.objects.create(
-                        station=station,
-                        title=f"Mangel aus Checkliste „{checklist.title}“: {item.text}"[:160],
-                        description="\n".join(desc_parts),
-                        asset_ref=f"Checkliste: {checklist.title}"[:160],
-                        priority=Defect.Priority.IMPORTANT,
-                        status=Defect.Status.OPEN,
-                        category=Defect.Category.TASK,
-                        created_by=request.user,
-                    )
-                    DefectEvent.objects.create(
-                        defect=defect,
-                        station=station,
-                        actor=request.user,
-                        kind=DefectEvent.Kind.CREATED,
-                        note=defect.title,
-                    )
-                    audit(
-                        request.user,
-                        station,
-                        "defect.created",
-                        defect,
-                        {
-                            "via": "checklist",
-                            "checklist_id": checklist.id,
-                            "item_id": item.id,
-                        },
-                    )
-                    res["defect_id"] = defect.id
-
-        completion.item_results = item_results
-        completion.save()
-
-        defects_created = [
-            res["defect_id"] for res in item_results.values() if res.get("defect_id")
-        ]
-        audit(request.user, station, "checklist.draft_saved" if is_draft else "checklist.completed", completion, {
-            "fields": ["checklist", "note", "item_results"],
-            "defects_created": defects_created,
-        })
-    return JsonResponse({
-        "ok": True,
-        "id": completion.pk,
-        "checklist": checklist.id,
-        "is_draft": completion.is_draft,
-        "item_results": completion.item_results,
-        "defects_created": defects_created,
-        "completed_by": _person(request.user),
-        "created_at": completion.created_at.isoformat(),
-    }, status=201)
+@csrf_exempt
+@require_http_methods(["GET", "POST", "PUT"])
+@api_token_required
+def checklist_draft_api(request, pk):
+    """Gemeinsamer Zwischenstand einer Checkliste: lesen (GET) oder ersetzen (POST/PUT)."""
+    station = request.membership.station
+    if error := _checklist_access_error(request, write=request.method != "GET"):
+        return error
+    checklist, err = _api_get_or_404(request, Checklist, pk=pk, station=station, is_active=True)
+    if err:
+        return err
+    if request.method == "GET":
+        draft = ChecklistDraft.objects.filter(station=station, checklist=checklist).select_related("updated_by").first()
+        return JsonResponse({"ok": True, "checklist": checklist.pk, "draft": _checklist_draft_json(draft)})
+    if error := _terminal_refusal(request, checklist):
+        return error
+    _body, items, parsed, error = _checklist_body(request, checklist)
+    if error:
+        return error
+    raw, note = parsed
+    return _save_checklist_draft(request, checklist, items, raw, note)
 
 
 def _pinboard_json(note):

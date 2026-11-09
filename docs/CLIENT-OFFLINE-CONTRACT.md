@@ -32,10 +32,25 @@ enthalten, soweit die aktuelle Rolle sie online ohnehin sehen darf:
 | Datentyp | Erlaubte Felder | Nicht erlaubt |
 |---|---|---|
 | Tagesaufgaben | `id`, `title`, `band`, `weekday`, `sort_order`, Status `done` + `work_date` | Notizen anderer Nutzer, Ersteller-Profile |
-| Checklisten | `id`, `title`, `description`, Item-Texte, letzter Abschluss (Zeit, Anzeigename) | Abschlussnotizen, Verlauf, Auditor-Sichten |
+| Checklisten | `id`, `title`, `description`, Item-Texte und `item_details` (Kennung, Pflicht, Einheit, Grenzwerte), letzter Abschluss (Zeit, Anzeigename) | Abschlussnotizen, Verlauf, Zwischenstand (`draft`: Begründungen und Name), Auditor-Sichten |
 | Übergaben (nur Liste) | `id`, `title`, `created_at`, `urgent` | Freitext-Body, Anhänge, Empfängerlisten |
 | Eigene Mitgliedschaft | `station_id`, `station_name`, `role`, `user_id`, `display_name` | E-Mail, Telefon, Geburtstag, Avatar |
 | Metadaten | `schema_version`, `fetched_at`, `expires_at`, `station_id` | Correlation-IDs, Session-IDs, CSRF-Tokens |
+
+Abweichung der ausgelieferten App (Stand 0.28): `GET /api/v1/checklisten/`
+liefert je Checkliste den gemeinsamen Zwischenstand der Wache (`draft` mit
+Ergebnissen, Begründungen, Notiz und Anzeigename der zuletzt bearbeitenden
+Person), damit die nächste Person in der App fortsetzen kann. Die App bis
+einschließlich 1.x legt die ganze Antwort im verschlüsselten Lesecache ab
+(`SecureApiCache`, an Server und Token gebunden), also auch `draft`. Die Zeile
+„Checklisten“ oben gilt für diese Versionen deshalb noch nicht vollständig.
+Offene Aufgabe für den Client: `results[].draft` vor dem Schreiben in den
+Lesecache entfernen und den Zwischenstand nur online über
+`/api/v1/checklisten/<id>/zwischenstand/` laden. Bis dahin überschreibt jedes
+erfolgreiche Laden der Liste den Cache-Eintrag; ein abgeschlossener oder
+gelöschter Zwischenstand verschwindet damit beim nächsten Laden auch aus dem
+Lesecache. Auf dem Server löscht `housekeeping` Zwischenstände nach 30 Tagen
+ohne Änderung.
 
 Verboten im Cache: Audit-Log, Kaffeekasse, Chat, private Chats, sichere Mail,
 Geburtstage, Teamverwaltung, API-Tokens, Push-Subscriptions, Aktivierungstokens,

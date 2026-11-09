@@ -342,10 +342,18 @@ class I18nFoundationTests(TestCase):
 
         for e in en_entries:
             if e["msgid"]:
-                self.assertTrue(
-                    bool(e["msgstr"].strip()),
-                    f"Leerer msgstr im englischen Katalog bei: {e['msgid']}",
-                )
+                if e["plural"] is not None:
+                    # Pluraleintrag (ngettext): beide englischen Formen muessen gefuellt sein.
+                    for index in (0, 1):
+                        self.assertTrue(
+                            bool(e["msgstr_plural"].get(index, "").strip()),
+                            f"Leere Pluralform [{index}] im englischen Katalog bei: {e['msgid']}",
+                        )
+                else:
+                    self.assertTrue(
+                        bool(e["msgstr"].strip()),
+                        f"Leerer msgstr im englischen Katalog bei: {e['msgid']}",
+                    )
                 self.assertFalse(
                     e["fuzzy"],
                     f"Fuzzy msgstr im englischen Katalog bei: {e['msgid']}",
@@ -473,7 +481,14 @@ class I18nContractHardeningTests(TestCase):
         en_path = settings.BASE_DIR / "locale" / "en" / "LC_MESSAGES" / "django.po"
         de_entries = parse_po(de_path)
         for entry in de_entries:
-            if entry["msgid"]:
+            if not entry["msgid"]:
+                continue
+            if entry["plural"] is not None:
+                # Pluraleintrag (ngettext): Einzahl und Mehrzahl sind im deutschen Katalog identisch.
+                self.assertEqual(
+                    entry["msgstr_plural"], {0: entry["msgid"], 1: entry["plural"]}, entry["msgid"]
+                )
+            else:
                 self.assertEqual(entry["msgstr"], entry["msgid"], entry["msgid"])
         self.assertEqual(validate(parse_po(en_path), en_path, language="en"), [])
 

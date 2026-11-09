@@ -166,7 +166,12 @@ class EvidenceRows:
         cash = CoffeeCashMovement.objects.create(
             station=s, kind=CoffeeCashMovement.Kind.PURCHASE, amount_cents=-300, reason="Milch", created_by=u,
         )
-        defect = Defect.objects.create(station=s, title="Mangel", created_by=u, owner=o, medical_device=device)
+        # Ein Mangel aus einem Checklisten-Lauf zeigt per PROTECT auf den Lauf (0.28).
+        checklist_run = ChecklistCompletion.objects.create(station=s, checklist=checklist, completed_by=u)
+        defect = Defect.objects.create(
+            station=s, title="Mangel", created_by=u, owner=o, medical_device=device, vehicle=vehicle,
+            source_checklist_run=checklist_run, source_item_id=1, source_item_text="Plombe",
+        )
         revision = SOPRevision.objects.create(sop=sop, version_label="1.0", content_markdown="Text", approved_by=u)
         routine_check_original = DeviceRoutineCheck.objects.create(station=s, device=device, performed_by=u)
         return {
@@ -178,7 +183,7 @@ class EvidenceRows:
             "core.HandoverAttachment": attachment(HandoverAttachment, handover=handover),
             "core.NewsAttachment": attachment(NewsAttachment, post=post),
             "core.PinboardAttachment": attachment(PinboardAttachment, note=note),
-            "core.ChecklistCompletion": ChecklistCompletion.objects.create(station=s, checklist=checklist, completed_by=u),
+            "core.ChecklistCompletion": checklist_run,
             "core.CoffeeEntry": CoffeeEntry.objects.create(
                 station=s, member=u, amount_cents=-100, reason="Korrektur", created_by=o, correction_of=coffee),
             "core.CoffeeCashMovement": CoffeeCashMovement.objects.create(

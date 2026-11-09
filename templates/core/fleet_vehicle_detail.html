@@ -220,6 +220,10 @@
         {{ handover_form.notes }}
       </div>
 
+      {% translate "Wann fand die Übernahme laut Papierbogen statt?" as when_hint %}
+      {% translate "Der km-Stand wird nicht mit dem letzten Stand verglichen. km-Stand und Füllstände am Fahrzeug ändert ein Nachtrag nur, wenn er die neueste Übernahme ist." as effect_hint %}
+      {% include "core/_paper_backfill_fields.html" with form=handover_form when_hint=when_hint effect_hint=effect_hint %}
+
       <button type="submit" class="button {% if vehicle.awaiting_crew_release %}secondary{% else %}primary{% endif %} block">
         {% include "core/_icon.html" with name="check" %}{% translate "Schichtübernahme bestätigen" %}
       </button>
@@ -273,6 +277,10 @@
         {{ disinfection_form.notes }}
       </div>
 
+      {% translate "Beginn der Desinfektion laut Papierbogen." as when_hint %}
+      {% translate "Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig. Die Einwirkzeit zählt ab dem Beginn laut Bogen bis „Frei ab“. Gesperrt wird das Fahrzeug nur, wenn sie noch läuft." as effect_hint %}
+      {% include "core/_paper_backfill_fields.html" with form=disinfection_form when_hint=when_hint effect_hint=effect_hint extra_field=disinfection_form.released_at %}
+
       <button type="submit" class="button secondary block">
         {% include "core/_icon.html" with name="check" %}{% translate "Desinfektion erfassen" %}
       </button>
@@ -283,6 +291,16 @@
   <section id="fleet-defect" class="section-block">
     <h2>{% translate "Werkstattmangel melden" %}</h2>
     <p class="muted">{% translate "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt." %}</p>
+    {# Mangel in drei Tipps: Formular mit diesem Fahrzeug als Bezug (Foto, Speichern). #}
+    <p><a class="button secondary" href="{% url 'defect_create_web' %}?asset=vehicle:{{ vehicle.pk }}">{% include "core/_icon.html" with name="camera" %}{% translate "Mangel mit Foto melden" %}</a></p>
+    {% if defects %}
+      <h3>{% translate "Offene Mängel an diesem Fahrzeug" %}</h3>
+      <ul>
+        {% for defect in defects %}
+          <li><a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }} {{ defect.title }}</a> · {{ defect.get_status_display }} · {{ defect.get_priority_display }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% if defect_suggestion %}
       <div class="alert warning" role="status">
         <p><strong>{% translate "Bei der Übernahme mit „Nein“ beantwortet:" %}</strong> {{ defect_suggestion.points|join:", " }}</p>
@@ -327,7 +345,8 @@
       {% for h in handovers %}
         <div class="list-row">
           <span class="row-content">
-            <strong>{{ h.performed_at|date:"d.m.Y H:i" }} Uhr &middot; {{ h.crew_member.get_full_name|default:h.crew_member.username }}</strong>
+            <strong>{{ h.event_at|date:"d.m.Y H:i" }} Uhr &middot; {% include "core/_paper_backfill_person.html" with record=h person=h.crew_member %}</strong>
+            {% include "core/_paper_backfill_badge.html" with record=h %}
             <small>
               {{ h.mileage }} km &middot; {% translate "Kraftstoff" %} {{ h.fuel_percent }} % &middot; O₂ {{ h.o2_pressure_bar }} bar{% if vehicle.has_adblue %} &middot; {% translate "AdBlue" %} {{ h.adblue_percent }} %{% endif %}
             </small>
@@ -349,7 +368,8 @@
         <div class="list-row">
           {# Stufe, Einwirkzeit und Bemerkung nur für die durchführende Person, Schichtleitung und Admin #}
           <span class="row-content">
-            <strong>{{ d.started_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
+            <strong>{{ d.event_at|date:"d.m.Y H:i" }} Uhr &middot; {% include "core/_paper_backfill_person.html" with record=d person=d.performed_by %}</strong>
+            {% include "core/_paper_backfill_badge.html" with record=d %}
             {% if d.show_details %}
               <small>{% if d.level %}{{ d.level.name }}{% else %}{% translate "Desinfektion" %}{% endif %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %} &middot; {% blocktranslate with minutes=d.exposure_minutes %}Einwirkzeit {{ minutes }} Min.{% endblocktranslate %}{% if not d.lock_timer_applied %} &middot; {% translate "ohne Sperre" %}{% endif %}</small>
               {% if d.notes %}<span class="row-note">{{ d.notes }}</span>{% endif %}

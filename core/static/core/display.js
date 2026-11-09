@@ -86,6 +86,100 @@
     });
   }
 
+  /* Dichte begrenzen: höchstens data-max-rows Zeilen je Liste, der Rest als
+   * „+N weitere“. Abgeschnitten wird nie still (Wand-Display, ROADMAP 0.28). */
+  function moreLabel(list) {
+    var root = list.closest("[data-display-root]");
+    return (root && root.getAttribute("data-more-label")) || "weitere";
+  }
+
+  function dataRows(list) {
+    return Array.prototype.filter.call(list.children, function (child) {
+      return !child.hasAttribute("data-display-more");
+    });
+  }
+
+  function setMore(list, hiddenCount) {
+    var more = list.querySelector("[data-display-more]");
+    if (!hiddenCount) {
+      if (more) {
+        more.remove();
+      }
+      return;
+    }
+    if (!more) {
+      more = document.createElement(list.tagName === "UL" || list.tagName === "OL" ? "li" : "p");
+      more.className = "display-more";
+      more.setAttribute("data-display-more", "");
+      list.appendChild(more);
+    }
+    more.textContent = "+" + hiddenCount + " " + moreLabel(list);
+  }
+
+  function capList(list) {
+    var max = parseInt(list.getAttribute("data-max-rows") || "0", 10);
+    var rows = dataRows(list);
+    var limit = max && rows.length > max ? max : rows.length;
+    rows.forEach(function (row, index) {
+      row.hidden = index >= limit;
+    });
+    setMore(list, rows.length - limit);
+  }
+
+  function overflows(element) {
+    return element.scrollHeight > element.clientHeight + 1;
+  }
+
+  /* Passt eine Spalte trotz Obergrenze nicht in ihre Rasterzeile (lange
+   * Titel, kleiner Bildschirm), wird die längste Liste darin um je eine Zeile
+   * gekürzt, bis alles passt. Reicht auch das nicht (sehr niedriges Fenster
+   * über die Sitzung), bleiben die Listen bei ihrer Obergrenze und die Spalte
+   * lässt sich scrollen (is-scrollable), statt still abzuschneiden. Im
+   * Kiosk-Rahmen prüft das die CI (Job a11y). Auf schmalen Bildschirmen
+   * scrollt die Seite. */
+  function fitRegions(root) {
+    var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
+    Array.prototype.forEach.call(regions, function (region) {
+      region.classList.remove("is-scrollable");
+    });
+    if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
+      return;
+    }
+    Array.prototype.forEach.call(regions, function (region) {
+      var guard = 60;
+      while (overflows(region) && guard > 0) {
+        guard -= 1;
+        var best = null;
+        var bestCount = 0;
+        var lists = Array.prototype.filter.call(region.querySelectorAll("[data-max-rows]"), function (list) {
+          return !list.closest("[hidden]");
+        });
+        // Zuerst Listen mit mehreren Zeilen kürzen, zur Not bis auf „+N weitere“.
+        [1, 0].some(function (threshold) {
+          lists.forEach(function (list) {
+            var visible = dataRows(list).filter(function (row) { return !row.hidden; });
+            if (visible.length > threshold && visible.length > (best ? bestCount : threshold)) {
+              best = list;
+              bestCount = visible.length;
+            }
+          });
+          return best !== null;
+        });
+        if (!best) {
+          break;
+        }
+        var rows = dataRows(best);
+        var shown = rows.filter(function (row) { return !row.hidden; });
+        shown[shown.length - 1].hidden = true;
+        setMore(best, rows.length - shown.length + 1);
+      }
+      if (overflows(region)) {
+        Array.prototype.forEach.call(region.querySelectorAll("[data-max-rows]"), capList);
+        region.classList.add("is-scrollable");
+      }
+    });
+  }
+
   function renderEvents(root, events) {
     var list = root.querySelector("[data-display-events]");
     if (!list) {
@@ -109,6 +203,7 @@
       item.appendChild(title);
       list.appendChild(item);
     });
+    capList(list);
   }
 
   function renderWaste(root, waste) {
@@ -122,6 +217,7 @@
       item.textContent = entry.day + " · " + entry.title;
       list.appendChild(item);
     });
+    capList(list);
   }
 
   function renderTasks(root, tasks) {
@@ -140,22 +236,19 @@
       urgentEl.textContent = "";
       if (tasks && Array.isArray(tasks.urgent_items) && tasks.urgent_items.length > 0) {
         tasks.urgent_items.forEach(function (item) {
-          var row = document.createElement("div");
-          row.style.borderLeft = "3px solid " + (item.color || "#e11d48");
-          row.style.paddingLeft = "6px";
-          row.style.margin = "4px 0";
-          row.style.fontSize = "0.85rem";
+          // Farbe nur als Randstreifen über die Stufe (CSS), der Text sagt es.
+          var row = document.createElement("li");
+          row.className = "display-task-urgent display-level-" + safeClass(item.level);
           var strong = document.createElement("strong");
           strong.textContent = item.title;
           var span = document.createElement("span");
-          span.style.color = item.color || "#e11d48";
-          span.style.fontWeight = "600";
-          span.style.marginLeft = "4px";
-          span.textContent = "(" + item.label + ")";
+          span.className = "display-task-urgent-label";
+          span.textContent = item.label;
           row.appendChild(strong);
           row.appendChild(span);
           urgentEl.appendChild(row);
         });
+        capList(urgentEl);
         show(urgentEl, true);
       } else {
         show(urgentEl, false);
@@ -202,6 +295,7 @@
       item.appendChild(name);
       list.appendChild(item);
     });
+    capList(list);
   }
 
   function formatPeriod(start, end) {
@@ -272,6 +366,7 @@
       item.appendChild(meta);
       list.appendChild(item);
     });
+    capList(list);
     show(section, true);
   }
 
@@ -288,6 +383,7 @@
     (items || []).forEach(function (item) {
       list.appendChild(build(item, list));
     });
+    capList(list);
     if (container) {
       container.hidden = container.hasAttribute("data-module-off") || !(items && items.length);
     }
@@ -380,25 +476,46 @@
     });
   }
 
+  /* Laufschrift aus Pinnwand und Neuigkeiten: höchstens data-max-items Titel
+   * und nur so viele, wie in die Zeile passen; der Rest steht als
+   * „+N weitere“ daneben. Ein einzelner zu langer Titel endet sichtbar mit
+   * „…“ (CSS). Abgeschnitten wird nie still. */
   function renderPinboardNews(root, pinboard, news) {
     var container = root.querySelector("[data-display-pinboard-news]");
     var textNode = root.querySelector("[data-display-ticker-text]");
     if (!container || !textNode) {
       return;
     }
+    var ticker = textNode.parentNode;
+    var moreNode = root.querySelector("[data-display-ticker-more]");
     var items = [];
-    (pinboard || []).forEach(function (p) {
-      items.push(p.title);
+    (pinboard || []).concat(news || []).forEach(function (entry) {
+      if (entry && entry.title) {
+        items.push(entry.title);
+      }
     });
-    (news || []).forEach(function (n) {
-      items.push(n.title);
-    });
-    if (!items.length) {
+    if (!items.length || container.hasAttribute("data-module-off")) {
       container.hidden = true;
       return;
     }
-    textNode.textContent = items.join("   ·   ");
     container.hidden = false;
+    var max = parseInt(ticker.getAttribute("data-max-items") || "0", 10) || items.length;
+    var shown = Math.min(items.length, max);
+
+    function paint(count) {
+      textNode.textContent = items.slice(0, count).join("   ·   ");
+      var rest = items.length - count;
+      if (moreNode) {
+        moreNode.textContent = rest ? "+" + rest + " " + moreLabel(ticker) : "";
+        moreNode.hidden = !rest;
+      }
+    }
+
+    paint(shown);
+    while (shown > 1 && textNode.scrollWidth > textNode.clientWidth + 1) {
+      shown -= 1;
+      paint(shown);
+    }
   }
 
   var audioCtx = null;
@@ -437,7 +554,10 @@
     } catch (e) {}
   }
 
+  var lastPayload = null;
+
   function apply(payload) {
+    lastPayload = payload;
     if (typeof payload.urgent_handovers === "number") {
       if (lastUrgentHandovers !== null && payload.urgent_handovers > lastUrgentHandovers) {
         playAlarmGong();
@@ -457,8 +577,35 @@
       renderFleet(root, payload.fleet_vehicles);
       renderAlerts(root, "[data-display-mpg]", payload.mpg_alerts);
       renderAlerts(root, "[data-display-warehouse]", payload.warehouse_alerts);
+      fitRegions(root);
     });
   }
+
+  // Webfonts laden erst, wenn Text sie braucht, und ändern die Zeilenhöhen:
+  // danach noch einmal einpassen.
+  function refit() {
+    if (lastPayload) {
+      apply(lastPayload);
+    }
+  }
+  if (document.fonts) {
+    if (document.fonts.addEventListener) {
+      document.fonts.addEventListener("loadingdone", refit);
+    }
+    if (document.fonts.ready) {
+      document.fonts.ready.then(refit);
+    }
+  }
+
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () {
+      if (lastPayload) {
+        apply(lastPayload);
+      }
+    }, 250);
+  });
 
   var sseSource = null;
   function initSSE() {
@@ -605,6 +752,24 @@
         return !child.hidden;
       });
       prompt.hidden = Boolean(document.fullscreenElement) || !anyVisible;
+    }
+
+    /* Kiosk über den Display-Link: Die Leiste erscheint beim Start und nach
+     * einer Bewegung oder Taste für einige Sekunden, sonst verdeckte sie die
+     * Fußzeile (dringende Übergaben) auf einem Fernseher ohne Maus dauerhaft. */
+    if (prompt && document.documentElement.classList.contains("display-kiosk")) {
+      var idleTimer = null;
+      var wake = function () {
+        prompt.classList.remove("is-idle");
+        window.clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(function () {
+          prompt.classList.add("is-idle");
+        }, 6000);
+      };
+      ["mousemove", "pointerdown", "keydown", "touchstart"].forEach(function (name) {
+        document.addEventListener(name, wake, { passive: true });
+      });
+      wake();
     }
 
     if (button) {

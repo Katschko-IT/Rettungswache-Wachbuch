@@ -17,6 +17,7 @@ from django.utils import translation
 from django.utils.translation import gettext, gettext_lazy as _
 
 from .models import Membership, Station
+from .paper_backfill import PaperBackfillRecord, backfill_constraint
 
 
 def _require_same_station(parent, station_id: int | None, label: str) -> None:
@@ -395,20 +396,27 @@ class DisinfectionLevel(models.Model):
         super().save(*args, **kwargs)
 
 
-class DisinfectionProtocol(models.Model):
+class DisinfectionProtocol(PaperBackfillRecord, models.Model):
     """Revisionssicherer Nachweis einer Fahrzeugdesinfektion nach Stufe des Plans.
 
     Stufe, Einwirkzeit und Bemerkung sehen nur die durchführende Person,
     Schichtleitung und Admin (``details_visible_to``); alle anderen sehen
-    „Desinfektion“ mit Datum, Mittel und Person.
+    „Desinfektion“ mit Datum, Mittel und Person. Das gilt auch für Nachträge.
+
+    ``started_at`` ist die Erfassung. Bei einem Nachtrag vom Papierbogen steht
+    der Beginn laut Bogen in ``occurred_at`` (``core/paper_backfill.py``).
     """
+
+    BACKFILL_ENTRY_FIELD = "started_at"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="disinfection_protocols")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="disinfections")
     performed_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="disinfections")
     disinfectant = models.ForeignKey(DisinfectantMaster, on_delete=models.PROTECT, related_name="protocols")
-    # Leer nur bei programmatisch angelegten Protokollen: Das Formular verlangt
-    # eine Stufe, Migration 0069 hat allen Altprotokollen eine zugeordnet.
+    # Leer bei programmatisch angelegten Protokollen und bei einem Nachtrag vom
+    # Papierbogen ohne Stufe (der Bogen nennt keine, Entscheidung D2). Sonst
+    # verlangt das Formular eine Stufe; Migration 0069 hat allen
+    # Altprotokollen eine zugeordnet.
     level = models.ForeignKey(
         DisinfectionLevel, on_delete=models.PROTECT, null=True, blank=True, related_name="protocols",
         verbose_name=_("Stufe"),
@@ -425,12 +433,15 @@ class DisinfectionProtocol(models.Model):
             "Nur Angaben zur Desinfektion. Keine Namen, Diagnosen, Transportziele oder Einsatzdaten eintragen."
         ),
     )
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
 
     class Meta:
         ordering = ["-started_at"]
         indexes = [
             models.Index(fields=["station", "-started_at"], name="disinf_station_time_idx"),
         ]
+        constraints = [backfill_constraint("disinfectionprotocol")]
 
     def details_visible_to(self, membership) -> bool:
         """Stufe, Einwirkzeit und Bemerkung: nur durchführende Person, Schichtleitung, Admin."""
@@ -447,22 +458,63 @@ class DisinfectionProtocol(models.Model):
         super().save(*args, **kwargs)
 
         # Fahrzeug aktualisieren
+        if self.is_paper_backfill:
+            self._apply_backfill_to_vehicle()
+            return
         self.vehicle.last_disinfection = self.started_at
         if self.lock_timer_applied and self.exposure_minutes > 0:
             lock_until = self.started_at + timedelta(minutes=self.exposure_minutes)
-            self.vehicle.disinfection_locked_until = lock_until
-            self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
-            # Neutral: Die Stufe steht nur im Protokoll, nie im Fahrzeugzustand,
-            # auf Display, Sperrbildschirm oder in der App.
-            self.vehicle.status_note = neutral_disinfection_note(lock_until)
+            self._lock_vehicle(lock_until)
         self.vehicle.save(update_fields=["last_disinfection", "disinfection_locked_until", "tactical_status", "status_note", "updated_at"])
+
+    def _lock_vehicle(self, lock_until) -> None:
+        self.vehicle.disinfection_locked_until = lock_until
+        self.vehicle.tactical_status = Vehicle.TacticalStatus.DISINFECTION
+        # Neutral: Die Stufe steht nur im Protokoll, nie im Fahrzeugzustand,
+        # auf Display, Sperrbildschirm oder in der App.
+        self.vehicle.status_note = neutral_disinfection_note(lock_until)
+
+    @property
+    def lock_until(self):
+        """Ende der Einwirkzeit ab dem Beginn (bei einem Nachtrag laut Bogen)."""
+        if not (self.lock_timer_applied and self.exposure_minutes > 0):
+            return None
+        return self.event_at + timedelta(minutes=self.exposure_minutes)
+
+    def _apply_backfill_to_vehicle(self) -> None:
+        """Nachtrag: rechnet ab dem Beginn laut Bogen, nicht ab der Erfassung.
+
+        „Letzte Desinfektion“ rückt nur vor, wenn der Nachtrag neuer ist. Eine
+        Sperre entsteht nur, wenn die Einwirkzeit ab dem Beginn laut Bogen noch
+        läuft und länger als eine bestehende Sperre dauert; eine abgelaufene
+        Einwirkzeit ändert den Fahrzeugzustand nicht (die Freigabe steht auf
+        dem Bogen).
+        """
+        fields = []
+        event = self.event_at
+        if self.vehicle.last_disinfection is None or event > self.vehicle.last_disinfection:
+            self.vehicle.last_disinfection = event
+            fields.append("last_disinfection")
+        lock_until = self.lock_until
+        current = self.vehicle.disinfection_locked_until
+        if lock_until and lock_until > timezone.now() and (current is None or lock_until > current):
+            self._lock_vehicle(lock_until)
+            fields += ["disinfection_locked_until", "tactical_status", "status_note"]
+        if fields:
+            self.vehicle.save(update_fields=[*fields, "updated_at"])
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Desinfektionsprotokolle dürfen nicht gelöscht werden.")
 
 
-class VehicleHandover(models.Model):
-    """Revisionssicheres Schichtübernahmeprotokoll (3-Minuten Express-Check)."""
+class VehicleHandover(PaperBackfillRecord, models.Model):
+    """Revisionssicheres Schichtübernahmeprotokoll (3-Minuten Express-Check).
+
+    ``performed_at`` ist die Erfassung; bei einem Nachtrag vom Papierbogen
+    steht die Zeit laut Bogen in ``occurred_at`` (``core/paper_backfill.py``).
+    """
+
+    BACKFILL_ENTRY_FIELD = "performed_at"
 
     station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="vehicle_handovers")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="handovers")
@@ -478,6 +530,8 @@ class VehicleHandover(models.Model):
     medical_devices_checked = models.BooleanField(default=True, verbose_name="Medizingeräte-Selbsttests OK")
     vehicle_clean = models.BooleanField(default=True, verbose_name="Patientenraum & Fahrerkabine sauber")
     notes = models.CharField(max_length=255, blank=True, default="", verbose_name="Feststellungen / Bemerkung")
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
 
     # Ja/Nein-Prüfpunkte der Übernahme (Formular: Pflichtangabe ohne Vorauswahl).
     CHECKPOINTS = {
@@ -497,6 +551,7 @@ class VehicleHandover(models.Model):
         indexes = [
             models.Index(fields=["station", "-performed_at"], name="handover_station_time_idx"),
         ]
+        constraints = [backfill_constraint("vehiclehandover")]
 
     @property
     def failed_checkpoints(self) -> list[str]:
@@ -513,6 +568,11 @@ class VehicleHandover(models.Model):
         _require_same_station(self.vehicle, self.station_id, "Schichtübernahme (Fahrzeug)")
         super().save(*args, **kwargs)
 
+        if self.is_paper_backfill and self._newer_handover_exists():
+            # Ein älterer Nachtrag ist nur Nachweis: Der Stand am Fahrzeug
+            # stammt aus einer neueren Übernahme.
+            return
+
         # Aktuelle Füllstände und km-Stand am Fahrzeug aktualisieren
         self.vehicle.current_mileage = self.mileage
         self.vehicle.fuel_level_percent = self.fuel_percent
@@ -522,6 +582,17 @@ class VehicleHandover(models.Model):
             self.vehicle.adblue_level_percent = 0
         self.vehicle.o2_pressure_bar = self.o2_pressure_bar
         self.vehicle.save(update_fields=["current_mileage", "fuel_level_percent", "adblue_level_percent", "o2_pressure_bar", "updated_at"])
+
+    def _newer_handover_exists(self) -> bool:
+        from .paper_backfill import event_time
+
+        return (
+            VehicleHandover.objects.filter(vehicle_id=self.vehicle_id)
+            .exclude(pk=self.pk)
+            .annotate(event_time=event_time("performed_at"))
+            .filter(event_time__gt=self.event_at)
+            .exists()
+        )
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Fahrzeugübernahmen dürfen nicht gelöscht werden.")

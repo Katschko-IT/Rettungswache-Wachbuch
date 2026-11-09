@@ -90,6 +90,14 @@
         {% if form.target_role.help_text %}<small class="helptext" id="{{ form.target_role.auto_id }}_helptext">{{ form.target_role.help_text }}</small>{% endif %}
         {% if form.target_role.errors %}<div class="form-error">{{ form.target_role.errors }}</div>{% endif %}
       </div>
+      <div class="field">
+        <label for="{{ form.target_function.id_for_label }}">
+          {% translate "Zielgruppe (Funktion)" %}:
+        </label>
+        {{ form.target_function }}
+        {% if form.target_function.help_text %}<small class="helptext" id="{{ form.target_function.auto_id }}_helptext">{{ form.target_function.help_text }}</small>{% endif %}
+        {% if form.target_function.errors %}<div class="form-error">{{ form.target_function.errors }}</div>{% endif %}
+      </div>
     </div>
 
     <label class="checkbox-field" for="{{ form.requires_acknowledgment.id_for_label }}">

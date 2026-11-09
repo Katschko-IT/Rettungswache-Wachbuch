@@ -89,6 +89,16 @@ class Defect(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    # Fahrzeug aus dem Fuhrpark, wenn der Bezug in der Auswahl gewählt wurde
+    # (0.28). Der Text in asset_ref bleibt die lesbare Form. PROTECT wie bei
+    # medical_device: Fahrzeuge werden außer Betrieb genommen, nicht gelöscht.
+    vehicle = models.ForeignKey(
+        "core.Vehicle",
+        on_delete=models.PROTECT,
+        related_name="defects",
+        null=True,
+        blank=True,
+    )
     # Gesperrtes Medizinprodukt: Solange der Mangel offen ist, bleibt das Gerät
     # gesperrt (siehe core/device_status.py). PROTECT: Ein gerätebezogener Mangel
     # ist eine Funktionsstörung im Medizinproduktebuch und bleibt mit dem Gerät
@@ -100,16 +110,35 @@ class Defect(models.Model):
         null=True,
         blank=True,
     )
+    # Rückverweis auf den Checklisten-Lauf, der den Mangel angelegt hat (0.28).
+    # Kennung und Text des Prüfpunkts sind eine Kopie zum Zeitpunkt des Laufs:
+    # Prüfpunkte bleiben im Django-Admin bearbeitbar.
+    source_checklist_run = models.ForeignKey(
+        "core.ChecklistCompletion",
+        on_delete=models.PROTECT,
+        related_name="source_defects",
+        null=True,
+        blank=True,
+        verbose_name="Aus Checklisten-Lauf",
+    )
+    source_item_id = models.PositiveIntegerField("Prüfpunkt (Kennung)", null=True, blank=True)
+    source_item_text = models.CharField("Prüfpunkt (Text zum Zeitpunkt des Laufs)", max_length=200, blank=True, default="")
 
     class Meta:
         ordering = DEFECT_WORKFLOW_ORDERING
         indexes = [
             models.Index(fields=["station", "status", "due_at"], name="defect_station_status_idx"),
             models.Index(fields=["station", "priority"], name="defect_station_prio_idx"),
+            models.Index(fields=["station", "source_item_id"], name="defect_station_source_idx"),
         ]
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.source_checklist_run_id:
+            _require_same_station(self.source_checklist_run, self.station_id, "Checklisten-Lauf")
+        super().save(*args, **kwargs)
 
     @property
     def due_date(self):

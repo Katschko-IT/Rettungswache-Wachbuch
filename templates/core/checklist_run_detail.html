@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Checklisten-Lauf" %} · {{ checklist.title }} | {{ app_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'checklist_history' checklist.pk %}">{% translate "Zurück zum Verlauf" %}</a>
+<header class="page-heading narrow">
+  <p class="context-line">{% translate "Checklisten-Lauf" %}</p>
+  <h1>{{ checklist.title }}</h1>
+  <div class="status-row">
+    {% if run.is_paper_backfill %}
+      <span class="status-label warning">{% blocktranslate with event=run.occurred_at|date:"d.m.Y H:i" created=run.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (Ereignis: {{ event }} · Erfasst: {{ created }}){% endblocktranslate %}</span>
+    {% endif %}
+    {% if complete %}<span class="status-label neutral">{% translate "Ergebnis je Punkt vollständig" %}</span>{% endif %}
+  </div>
+</header>
+<section class="section-block">
+  <dl class="summary-list">
+    <div><dt>{% translate "Erledigt von" %}</dt><dd>{{ run.completed_by.first_name|default:run.completed_by.username }}</dd></div>
+    {% if run.is_paper_backfill %}
+      <div><dt>{% translate "Ereignis (Papier)" %}</dt><dd>{{ run.occurred_at|date:"d.m.Y H:i" }}</dd></div>
+      <div><dt>{% translate "Erfasst im Wachbuch" %}</dt><dd>{{ run.created_at|date:"d.m.Y H:i" }}</dd></div>
+    {% else %}
+      <div><dt>{% translate "Abgeschlossen am" %}</dt><dd>{{ run.created_at|date:"d.m.Y H:i" }}</dd></div>
+    {% endif %}
+    <div><dt>{% translate "Ergebnis" %}</dt><dd>{% blocktranslate with ok=summary.ok not_ok=summary.not_ok na=summary.na open=summary.open %}{{ ok }} in Ordnung · {{ not_ok }} nicht in Ordnung · {{ na }} entfällt · {{ open }} ohne Ergebnis{% endblocktranslate %}</dd></div>
+    {% if run.note %}<div><dt>{% translate "Notiz" %}</dt><dd>{{ run.note }}</dd></div>{% endif %}
+  </dl>
+</section>
+<section class="section-block">
+  <h2>{% translate "Prüfpunkte" %}</h2>
+  {% if rows %}
+  <div class="table-responsive">
+    <table class="data-table">
+      <caption class="visually-hidden">{% translate "Ergebnis je Prüfpunkt" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Prüfpunkt" %}</th>
+          <th scope="col">{% translate "Ergebnis" %}</th>
+          <th scope="col">{% translate "Messwert" %}</th>
+          <th scope="col">{% translate "Grenzwerte" %}</th>
+          <th scope="col">{% translate "Begründung" %}</th>
+          <th scope="col">{% translate "Mangel" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <th scope="row">{{ row.text }}{% if row.required %} <span class="badge">{% translate "Pflicht" %}</span>{% endif %}</th>
+          <td>{% if row.status == "not_ok" %}<span class="status-label warning">{{ row.status_label }}</span>{% else %}{{ row.status_label }}{% endif %}</td>
+          <td>{% if row.value_text %}{{ row.value_text }} {{ row.unit }}{% else %}—{% endif %}</td>
+          <td>{% if row.has_limits %}{{ row.bounds }} {{ row.unit }}{% else %}—{% endif %}</td>
+          <td>{{ row.reason|default:"—" }}</td>
+          <td>
+            {% if row.defect %}
+              <a href="{% url 'defect_detail_web' row.defect.pk %}">#{{ row.defect.pk }} {{ row.defect.get_status_display }}</a>{% if row.defect_linked %} <small>{% translate "(bereits offen gemeldet)" %}</small>{% endif %}
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">{% translate "Dieser Lauf wurde ohne Ergebnis je Punkt abgeschlossen." %}</p>
+  {% endif %}
+</section>
+{% endblock %}

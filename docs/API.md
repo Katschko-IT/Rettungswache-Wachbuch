@@ -85,9 +85,10 @@ Kanonische Codes: `validation_error`, `auth_required`, `forbidden`, `no_active_m
 | GET/POST | `/api/v1/kalender/` | Termine (laufende und kommende, mit `description`) |
 | GET/POST | `/api/v1/kaffeekasse/` | Kasse; `scope` = `station` (nur Kassenwart, Wachensaldo) oder `own` (eigene Buchungen); `monthly_fee_euros` und `own` (offen, Guthaben, Monate) für jede Person; POST nur Kassenwart (optional `method` für Einzahlungen) |
 | POST | `/api/v1/kaffeekasse/bezahlt/` | „Ich habe bezahlt“: eigene Zahlung (`method` = `cash`/`transfer`/`paypal`/`wero`, `amount_euros`, optional `note`); Antwort enthält den neuen Stand (`own`, `payment`) |
-| GET | `/api/v1/checklisten/` | Checklisten + Fälligkeit |
-| POST | `/api/v1/checklisten/<id>/erledigt/` | Abschluss; Body `note`, `is_draft`, `item_results` (je Punkt `status` = `ok`/`not_ok`/`na`, `value`, `reason`). Checklisten mit Grenzwerten verlangen `item_results` (sonst 400). Zwischenstände (`is_draft`) und Abschlüsse sind jeweils neue, unveränderliche Datensätze; `GET /checklisten/` zeigt nur Abschlüsse |
+| GET | `/api/v1/checklisten/` | Checklisten mit Prüfpunkten (`item_details`: Kennung, Text, Pflicht, Einheit, Grenzwerte), letztem Lauf, Zwischenstand und Fälligkeit |
+| POST | `/api/v1/checklisten/<id>/erledigt/` | Lauf abschließen mit `item_results`; mit `is_draft: true` Zwischenstand speichern |
 | POST | `/api/v1/checklisten/<id>/abschluss/` | Client-Alias des Abschlusses |
+| GET/POST/PUT | `/api/v1/checklisten/<id>/zwischenstand/` | gemeinsamen Zwischenstand der Wache lesen (GET) oder ersetzen (POST und PUT gleichbedeutend) |
 | GET/PUT/DELETE | `/api/v1/checklisten/<id>/schedule/` | tägliche/wöchentliche/monatliche Wiederholung |
 | GET | `/api/v1/reports/` | leichte Stationsauswertung |
 
@@ -95,9 +96,31 @@ Die vollständige, maschinenlesbare Beschreibung ist `core/api/openapi_v1.yaml` 
 
 ## Wachalltag-Datenmodell
 
+### Übergaben: Nachtrag vom Papierbogen
+
+Seit 0.28 enthält jede Übergabe in Liste, Detail und Übersicht
+`is_paper_backfill` (ja/nein) und `occurred_at` (Ereigniszeit laut
+Papierbogen, ISO 8601, sonst `null`). `created_at` bleibt die Erfassung im
+Wachbuch. Clients zeigen einen Nachtrag gekennzeichnet an, etwa
+„Nachtrag vom Papierbogen · Ereignis <Zeit> · erfasst <Zeit>“.
+
+`POST /api/v1/handovers/` nimmt beide Felder an:
+
+- `occurred_at` ist mit `is_paper_backfill: true` Pflicht, liegt nicht in der
+  Zukunft und höchstens 365 Tage zurück; sonst 422 mit `fields.occurred_at`.
+- `occurred_at` ist Text (ISO 8601) oder `null`, `is_paper_backfill` ein
+  Wahrheitswert. Andere JSON-Typen (Zahl, Liste, Objekt) ergeben ebenfalls 422
+  mit dem Feld in `fields`.
+- Die Ereigniszeit gilt auf die Minute; Sekunden werden abgeschnitten (wie im
+  Formular der Weboberfläche).
+- Ohne `is_paper_backfill` wird `occurred_at` nicht gespeichert.
+- Ein Nachtrag löst keinen Web-Push aus.
+- Das Dienstkonto des Wachenterminals kann keinen Nachtrag anlegen (422 mit
+  Hinweis in `fields.__all__`).
+
 ### Mängel
 
-Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
+Mängel besitzen Titel, Beschreibung, Bezug zu Fahrzeug/Gerät, Priorität, Kategorie, Zuständigkeit, Frist und Status. Seit 0.28 ist der Titel beim Anlegen (`POST /api/v1/defects/`) optional: Ohne Titel bildet der Server wie das Mangelformular „Kategorie: Bezug“ in der Wachensprache. Änderungen erzeugen stationsbezogene Ereignisse/Audit-Einträge. Ein identischer Statuswechsel erzeugt keinen zweiten Status-Event.
 
 `GET /api/v1/defects/` sortiert fachlich: offen → in Bearbeitung → wartend →
 erledigt, innerhalb davon dringend → wichtig → normal, dann nach Frist. Die
@@ -109,6 +132,7 @@ Liste ist paginiert:
 | `offset` | Startposition, Standard 0 |
 | `active=1` | erledigte Mängel ausblenden |
 | `status`, `priority`, `overdue=1` | Filter wie bisher |
+| `asset` (auch `asset_ref`) | Mängel zu genau einem Bezug (seit 0.28): Schlüssel `vehicle:<id>`, `device:<id>`, `asset:<id>`, Kurzname eines Fahrzeugs oder Geräts, `asset_id` aus „Geräte & Fahrzeuge“ oder der Bezug als Text. Text zählt nur bei exakt gleichem Wortlaut (Groß-/Kleinschreibung und Leerraum egal), nie als Teilstring: „RTW 1“ findet nicht „RTW 10“. Verknüpfte Mängel (`vehicle`, `medical_device`) zählen unabhängig vom Text. Ist der Text exakt ein Name eines Fahrzeugs oder Geräts (etwa der Rufname allein, wenn er eindeutig ist), zählen auch dessen verknüpfte Mängel, wie beim Hinweis „bereits gemeldet“ im Mangelformular. Immer nur die eigene Wache. |
 
 Antwort: `{"ok": true, "count": <Gesamtzahl>, "results": [...], "next": <Pfad oder null>, "previous": <Pfad oder null>}`.
 `next`/`previous` sind relative Pfade mit allen Filtern; Clients folgen ihnen,
@@ -116,7 +140,7 @@ statt selbst Offsets zu berechnen.
 
 ### Fotos
 
-Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG, WebP und PDF. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit, bevor Daten persistiert werden. Grenzen (Web und API gleich):
+Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG, WebP und PDF. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit, bevor Daten persistiert werden. Jedes Bild wird aus den Bildpunkten neu als JPEG geschrieben, ohne EXIF, GPS, Kameradaten, XMP oder Kommentare; lässt es sich nicht neu schreiben, wird es abgelehnt (415) statt im Original gespeichert. Das gilt seit 0.28 auch für Anhänge an Übergaben, Pinnwand und Neuigkeiten im Web. Grenzen (Web und API gleich):
 
 - maximal **5 MiB je Datei** (Server); der offizielle Client verkleinert Fotos vorab auf höchstens 2 MiB
 - maximal **25 Megapixel je Bild**
@@ -133,7 +157,16 @@ Fahrzeuge/Geräte besitzen einen operationalen Status (`ready`, `limited`, `work
 
 ### Quittierungen und Checklisten
 
-Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig.
+Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig. Ein Nachtrag vom Papierbogen, dessen Ereigniszeit vor dem laufenden Zyklus liegt, schreibt die Fälligkeit nicht fort. Sonst rechnet der Nachtrag von seiner Ereigniszeit aus weiter, nicht von jetzt: Die Fälligkeit springt auf den ersten Termin nach dem Bogen und kann in der Vergangenheit liegen. Zyklen nach dem Bogen ohne eigenen Lauf bleiben so überfällig (`overdue: true`).
+
+Checklisten-Läufe (seit 0.28) prüfen Web und App mit derselben Logik (`core/checklists_service.py`):
+
+- `item_results` ist ein Objekt mit der Kennung des Prüfpunkts aus `item_details` als Schlüssel und je `status` (`ok`, `not_ok`, `na`), `value` (Messwert, Zahl oder Text mit Dezimalkomma) und `reason`. Ein Abschluss ohne Ergebnisse ist ein Fehler 400 (`validation_error`, Liste in `errors`). Pflichtpunkte brauchen ein Ergebnis, „entfällt“ eine Begründung, Messpunkte bei `ok`/`not_ok` einen Messwert. Beim Abschluss wird ein Wert außerhalb der Grenzwerte `not_ok` mit automatischer Begründung; 0 ist ein echter Grenzwert. Ein Zwischenstand speichert Status und Begründung so, wie sie gesendet wurden; ausgewertet wird erst der Messwert beim Abschluss. NaN, Infinity, Werte über 999999,99, fremde Kennungen, Einträge ohne Objekt und Schalter, die nicht `true`/`false` (oder `1`/`0`) sind, sind ebenfalls ein 400.
+- Jedes gespeicherte Ergebnis enthält eine Kopie des Prüfpunkts (Text, Einheit, Grenzwerte, Pflicht). Spätere Änderungen an der Checkliste ändern alte Läufe nicht.
+- Ein Lauf wird einmal gespeichert (append-only) und löscht den Zwischenstand. Für „nicht in Ordnung“ entsteht ein Mangel mit Rückverweis auf den Lauf; gibt es für denselben Prüfpunkt noch einen offenen Mangel aus dieser Checkliste, verweist das Ergebnis auf ihn (`defects_linked`) statt einen zweiten anzulegen.
+- Der Zwischenstand gehört der Wache: Die nächste Person setzt ihn fort. Speichern ersetzt ihn vollständig.
+- Nachtrag vom Papierbogen: `is_paper_backfill: true` mit `occurred_at` (nicht in der Zukunft, höchstens 365 Tage zurück).
+- Das Dienstkonto „Wachenterminal“ schließt keine Checklisten mit `requires_personal_login` ab und trägt keine Papierbögen nach.
 
 ### Reports
 
@@ -179,7 +212,7 @@ Maßgeblich ist [`CLIENT-OFFLINE-CONTRACT.md`](CLIENT-OFFLINE-CONTRACT.md): Der 
 - TLS vor dem App-Port
 - Authorization-Header nicht loggen
 - Korrelations-ID für Support/Fehleranalyse verwenden
-- Reverse Proxy für Mängelfoto-Uploads auf mindestens 3 MiB Request-Body konfigurieren
+- Reverse Proxy für Uploads auf mindestens 12 MiB Request-Body konfigurieren (Foto bis 5 MiB plus Formular; die mitgelieferten nginx-Vorlagen setzen `client_max_body_size 12M`, Caddy 20 MB)
 - Push-Endpunkte folgen der serverseitigen HTTPS-/Port-/Host-Allowlist
 - `/healthz/` bleibt außerhalb der Produkt-API
 - Backup/Restore vor Pilot-/Produktivbetrieb testen
@@ -191,11 +224,20 @@ Siehe auch [`CLIENT.md`](CLIENT.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`ASV
 
 | Methode | Pfad | Zweck |
 | --- | --- | --- |
-| `GET` | `/api/v1/benachrichtigungen/` | persönlicher Posteingang: `unread_count`, `results[]` mit `id`, `kind`, `key`, `title`, `body`, `url`, `created_at`, `read` |
+| `GET` | `/api/v1/benachrichtigungen/` | persönlicher Posteingang: `unread_count`, `results[]` mit `id`, `kind`, `key`, `title`, `body`, `url`, `created_at`, `read`; optional `?kinds=vehicle_ready,coffee_due` (kommagetrennt, ab 0.28): nur diese Arten, unbekannte werden ignoriert |
 | `POST` | `/api/v1/benachrichtigungen/<id>/gelesen/` | als gelesen markieren (nur eigene) |
+| `POST` | `/api/v1/benachrichtigungen/gelesen/` | ab 0.28: alle ungelesenen Hinweise der Arten aus `kinds` (JSON-Liste oder kommagetrennt) als gelesen markieren; ohne bekannte Art `400` |
+| `GET` | `/api/v1/dienstanweisungen/` | ab 0.28: eigene Lesepflichten (in Kraft, mit Textstand, Zielgruppe nach Rolle und Funktion): `id`, `doc_number`, `title`, `revision` (`id`, `version`), `ack_due_date`, `overdue`, `acknowledged`, `acknowledged_at`, `in_target_group`, `url` (Webseite der Dienstanweisung); `?offen=1` nur noch nicht bestätigte. Keine anderen Personen, keine Quote |
+| `POST` | `/api/v1/dienstanweisungen/<id>/quittieren/` | ab 0.28: aktuelle Version bestätigen, wie im Web (nur „In Kraft“, nur eigenes Konto, nie Wachenterminal oder Auditor); speichert Person, Version und Zeit, keine IP-Adresse und keinen Browser; optional `{"revision": <id>}` (ganze Zahl, sonst `400`) – gibt es inzwischen eine neuere Version, `409`. Antwort `201` (neu) oder `200` (schon bestätigt) |
 | `GET` | `/api/v1/fahrzeuge/sperren/` | laufende Desinfektionssperren der Fahrzeuge, die die Person besetzt: `vehicle_id`, `call_sign`, `locked_until` (ISO 8601), `key`, `title`, `body` – die App plant daraus eine lokale Erinnerung |
 | `POST`/`DELETE` | `/api/v1/push/geraete/` | APNs-/FCM-Token an- bzw. abmelden (`platform`, `token`, optional `app_version`) |
 
 Alle Endpunkte brauchen den Scope `read:me`. Fahrzeuge werden nie automatisch
 freigegeben; der Hinweis fordert die Besatzung zur Prüfung und Freigabe auf.
+
+Arten im Posteingang: `vehicle_ready`, `coffee_due`, `system_health` (nur
+Master-Admins), `mpg_training_missing`, `deadline_due` (Fristen-Erinnerungen
+und Wochenübersicht) und `sop_due` (Lesefrist einer Dienstanweisung). Eine App,
+die nur einige Arten anzeigt, fragt mit `kinds` genau diese ab; so verdrängen
+ungelesene Fristen-Erinnerungen keine Hinweise, die die App kennt.
 Native Push-Zustellung: [`PUSH-RELAY.md`](PUSH-RELAY.md).

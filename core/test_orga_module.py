@@ -165,6 +165,10 @@ class OrgaModuleTests(TestCase):
         self.assertFalse(StationContact.objects.filter(pk=contact.pk).exists())
 
     def test_export_audit_csv(self):
+        # Namen im Export nur mit Vereinbarung (seit 0.28, Station.sop_receipt_names_agreed);
+        # ohne Vereinbarung prüft core/test_028_reminders_sop.py den Export ohne Namen.
+        self.station.sop_receipt_names_agreed = True
+        self.station.save(update_fields=["sop_receipt_names_agreed"])
         sop = SOPDocument.objects.get(station=self.station, doc_number="SOP-MED-01")
         self.client.post(reverse("sop_acknowledge", args=[sop.slug]))
 

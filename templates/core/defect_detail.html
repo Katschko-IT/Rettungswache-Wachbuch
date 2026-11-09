@@ -13,6 +13,9 @@
     <div><dt>{% translate "Priorität" %}</dt><dd><span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span></dd></div>
     <div><dt>{% translate "Status" %}</dt><dd>{{ item.get_status_display }}</dd></div>
     <div><dt>{% translate "Bezug" %}</dt><dd>{{ item.asset_ref|default:"—" }}</dd></div>
+    {% if item.source_checklist_run %}{% with run=item.source_checklist_run %}
+    <div><dt>{% translate "Herkunft" %}</dt><dd>{% blocktranslate asvar source_text with name=run.checklist.title date=run.effective_at|date:"d.m.Y H:i" %}Aus Checkliste {{ name }} vom {{ date }}{% endblocktranslate %}{% if terminal_open_mode %}{{ source_text }}{% else %}<a href="{% url 'checklist_run_detail' run.pk %}">{{ source_text }}</a>{% endif %}{% if item.source_item_text %} · {{ item.source_item_text }}{% endif %}</dd></div>
+    {% endwith %}{% endif %}
     <div><dt>{% translate "Zuständig" %}</dt><dd>{% if item.owner %}{{ item.owner.first_name|default:item.owner.username }}{% else %}—{% endif %}</dd></div>
     <div><dt>{% translate "Frist" %}</dt><dd>{% if item.due_at %}{{ item.due_at|date:"d.m.Y H:i" }}{% else %}—{% endif %}</dd></div>
     <div><dt>{% translate "Aktualisiert" %}</dt><dd>{{ item.updated_at|date:"d.m.Y H:i" }}</dd></div>

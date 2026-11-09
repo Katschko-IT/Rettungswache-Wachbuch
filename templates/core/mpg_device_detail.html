@@ -3,7 +3,7 @@
 {% block title %}{{ device.name }} | {% translate "MPG Gerätebuch" %}{% endblock %}
 
 {% block content %}
-<nav class="breadcrumb-nav" aria-label="{% translate 'Brotkrumen' %}">
+<nav class="breadcrumb-nav">
   <a class="back-link" href="{% url 'mpg_dashboard' %}">{% include "core/_icon.html" with name="back" %}{% translate "Zurück zur MPG-Übersicht" %}</a>
 </nav>
 
@@ -162,6 +162,10 @@
   <button type="button" class="button danger" data-modal-open="defect-modal">
     {% include "core/_icon.html" with name="alert" %}{% translate "Mangel melden / Sperren" %}
   </button>
+  {# Mangel in drei Tipps mit Foto: sperrt das Gerät genauso wie der Dialog. #}
+  <a class="button secondary" href="{% url 'defect_create_web' %}?asset=device:{{ device.pk }}">
+    {% include "core/_icon.html" with name="camera" %}{% translate "Mangel mit Foto melden" %}
+  </a>
 
   {% if can_manage %}
     <button type="button" class="button secondary" data-modal-open="maint-modal">
@@ -240,7 +244,8 @@
       {% for check in routine_checks %}
         <div class="list-row">
           <span class="row-content">
-            <strong>{{ check.checked_at|date:"d.m.Y H:i" }} &middot; {{ check.performed_by.get_full_name|default:check.performed_by.username }}</strong>
+            <strong>{{ check.event_at|date:"d.m.Y H:i" }} &middot; {% include "core/_paper_backfill_person.html" with record=check person=check.performed_by %}</strong>
+            {% include "core/_paper_backfill_badge.html" with record=check %}
             <small>
               Akku: {% if check.battery_ok %}OK{% else %}Fehler{% endif %} &middot;
               Sicht: {% if check.visual_ok %}OK{% else %}Fehler{% endif %} &middot;
@@ -248,7 +253,7 @@
               {% if check.notes %}&middot; {{ check.notes }}{% endif %}
             </small>
           </span>
-          <span class="row-actions row-actions-flex">
+          <span class="row-actions row-actions-inline">
             {% if check.is_cancellation %}
               <span class="badge badge-neutral">{% translate "Storno" %}</span>
             {% elif check.is_cancelled %}
@@ -259,7 +264,7 @@
               </span>
             {% endif %}
             {% if not is_retired and check.performed_by_id == request.user.id and not check.is_cancellation and not check.is_cancelled and check.is_within_storno_window %}
-              <form method="post" action="{% url 'mpg_routine_check_storno' device.slug check.id %}" data-confirm="{% translate 'Möchtest du diese Funktionskontrolle wirklich stornieren?' %}">
+              <form method="post" action="{% url 'mpg_routine_check_storno' device.slug check.id %}" data-confirm="{% translate "Möchtest du diese Funktionskontrolle wirklich stornieren?" %}">
                 {% csrf_token %}
                 <button type="submit" class="button ghost small danger-text" title="{% translate "Funktionskontrolle stornieren (innerhalb von 5 Minuten)" %}">{% translate "Stornieren" %}</button>
               </form>
@@ -338,6 +343,9 @@
         <textarea id="check_selftest" name="selftest_protocol" rows="2" maxlength="500" placeholder="{% translate 'Text vom Geräteausdruck oder gescannter QR-Inhalt' %}"></textarea>
         <small class="helptext">{% translate "Wird nur als Notiz gespeichert und nicht ausgewertet." %}</small>
       </div>
+      {% translate "Datum und Uhrzeit der Kontrolle laut Papierbogen." as when_hint %}
+      {% translate "Ein Nachtrag mit „Nein“ legt einen Mangel an. Gesperrt wird das Gerät nur, wenn keine neuere Kontrolle vorliegt. Eine Geräteeinweisung prüft ein Nachtrag nicht." as effect_hint %}
+      {% include "core/_paper_backfill_fields.html" with form=check_form when_hint=when_hint effect_hint=effect_hint %}
       <div class="modal-actions">
         <button type="button" class="button secondary" data-modal-close>{% translate "Abbrechen" %}</button>
         <button type="submit" class="button primary">{% translate "Speichern" %}</button>

@@ -23,7 +23,7 @@
       {% translate "Gültig ab" %}: {{ sop.valid_from|date:"d.m.Y" }}
       {% if sop.ack_due_date %} &middot; {% translate "Lesefrist bis" %}: {{ sop.ack_due_date|date:"d.m.Y" }}{% endif %}
       {% if sop.review_due_date %} &middot; {% translate "Revisionsprüfung fällig am" %}: {{ sop.review_due_date|date:"d.m.Y" }}{% endif %}
-      {% if sop.target_role %} &middot; {% translate "Zielgruppe" %}: {{ sop.target_role_label }}{% endif %}
+      {% if sop.target_role or sop.target_function %} &middot; {% translate "Zielgruppe" %}: {{ sop.target_group_label }}{% endif %}
       &middot; {% translate "Erstellt von" %}: {{ sop.created_by.get_full_name|default:sop.created_by.username }}
     </p>
   </div>
@@ -36,7 +36,7 @@
         {% include "core/_icon.html" with name="refresh" %}{% translate "Neue Version publizieren" %}
       </a>
       <a class="button ghost" href="{% url 'sop_export_audit' sop.slug %}">
-        {% include "core/_icon.html" with name="download" %}{% translate "Quittierungs-Audit (CSV)" %}
+        {% include "core/_icon.html" with name="download" %}{% if show_names %}{% translate "Quittierungs-Audit (CSV)" %}{% else %}{% translate "Lesebestätigungen je Version (CSV, ohne Namen)" %}{% endif %}
       </a>
     {% endif %}
   </div>
@@ -48,7 +48,7 @@
     <h2 class="m-0">{% translate "Lesequote (Aggregiert)" %}</h2>
     <p class="m-0">
       <strong>{{ ack_progress.acknowledged_count }} / {{ ack_progress.target_count }} ({{ ack_progress.percent }}&nbsp;%)</strong>
-      &middot; {% translate "Zielgruppe" %}: {{ sop.target_role_label }}
+      &middot; {% translate "Zielgruppe" %}: {{ sop.target_group_label }}
       {% if sop.ack_due_date %} &middot; {% translate "Lesefrist bis" %}: {{ sop.ack_due_date|date:"d.m.Y" }}{% endif %}
     </p>
   </div>
@@ -70,14 +70,15 @@
     <p class="m-0">{% translate "Diese Dienstanweisung ist außer Kraft. Versionen und Quittierungen bleiben als Nachweis erhalten." %}</p>
   </div>
 {% elif sop.requires_acknowledgment %}
-  {% if has_acknowledged %}
+  {% if not latest_revision %}
+  {% elif has_acknowledged %}
     <div class="alert success">
       <strong class="state success">{% translate "Kenntnisnahme quittiert" %}</strong>
       <p class="m-0">
         {% blocktranslate with version=latest_revision.version_label %}Du hast diese Version (v{{ version }}) der Dienstanweisung gelesen und bestätigt. Der Eintrag ist im Audit-Log nachvollziehbar archiviert.{% endblocktranslate %}
       </p>
     </div>
-  {% else %}
+  {% elif is_target %}
     <div class="alert warning split">
       <div class="stack-sm">
         <strong class="state warning">{% translate "Pflichtquittierung ausstehend" %}</strong>
@@ -89,6 +90,19 @@
         {% csrf_token %}
         <button type="submit" class="button primary">
           {% include "core/_icon.html" with name="check" %}{% translate "Gelesen, verstanden & quittieren" %}
+        </button>
+      </form>
+    </div>
+  {% elif can_acknowledge %}
+    <div class="alert split" role="status">
+      <div class="stack-sm">
+        <strong>{% translate "Nicht für deine Zielgruppe" %}</strong>
+        <p class="m-0">{% translate "Diese Dienstanweisung richtet sich nicht an dich. Du kannst sie freiwillig als gelesen bestätigen; das zählt nicht zur Lesequote." %}</p>
+      </div>
+      <form class="inline" method="post" action="{% url 'sop_acknowledge' sop.slug %}">
+        {% csrf_token %}
+        <button type="submit" class="button secondary">
+          {% include "core/_icon.html" with name="check" %}{% translate "Gelesen – quittieren" %}
         </button>
       </form>
     </div>
@@ -140,7 +154,12 @@
     </div>
   </section>
 
-  {% if can_manage %}
+  {% if can_manage and not show_names %}
+  <section class="section-block">
+    <h2>{% translate "Lesebestätigungen" %}</h2>
+    <p class="m-0">{% translate "Namen sind ausgeblendet: Die Wache hat keine Vereinbarung mit der Beschäftigtenvertretung hinterlegt. Sichtbar sind nur Anzahl und Quote; die Erinnerung an offene Personen funktioniert trotzdem, ohne Namen zu nennen." %}</p>
+  </section>
+  {% elif can_manage %}
   <section class="section-block">
     <h2>{% translate "Mitarbeiter-Quittierungsbuch (Audit Trail)" %}</h2>
     <div class="item-list">

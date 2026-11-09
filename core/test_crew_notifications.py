@@ -178,6 +178,12 @@ class CrewNotificationApiTests(TestCase):
         self.assertFalse(MobilePushDevice.objects.exists())
 
 
+# Die Relay-Adresse wird vor dem Senden aufgelöst (Schutz vor internen Zielen),
+# gesendet wird über einen Opener ohne Weiterleitungen. Tests dürfen weder vom
+# echten DNS noch vom Netz abhängen.
+RESOLVE = "core.management.commands.push_worker._resolve_public_ips"
+
+
 @override_settings(PUSH_RELAY_URL="https://relay.example.org/v1/push", PUSH_RELAY_TOKEN="secret")
 class PushRelayDeliveryTests(TestCase):
     def setUp(self):
@@ -198,29 +204,30 @@ class PushRelayDeliveryTests(TestCase):
         return response
 
     def test_relay_success_marks_sent_and_sends_minimal_payload(self):
-        import urllib.request
-
         from core.management.commands.push_worker import process_once
 
-        with mock.patch("core.management.commands.push_worker._resolve_public_ips", return_value=["203.0.113.7"]), \
-                mock.patch.object(urllib.request.OpenerDirector, "open", return_value=self._response(202)) as urlopen:
+        opener = mock.MagicMock()
+        opener.open.return_value = self._response(202)
+        with mock.patch("urllib.request.build_opener", return_value=opener), \
+                mock.patch(RESOLVE, return_value=["93.184.216.34"]):
             process_once()
         self.row.refresh_from_db()
         self.assertEqual(self.row.status, PushOutbox.Status.SENT)
-        request = urlopen.call_args[0][0]
+        request = opener.open.call_args[0][0]
         sent = json.loads(request.data)
         self.assertEqual(set(sent), {"platform", "token", "title", "body", "url"})
         self.assertEqual(request.get_header("Authorization"), "Bearer secret")
 
     def test_gone_token_removes_device(self):
         import urllib.error
-        import urllib.request
 
         from core.management.commands.push_worker import process_once
 
         error = urllib.error.HTTPError("https://relay.example.org", 410, "gone", {}, None)
-        with mock.patch("core.management.commands.push_worker._resolve_public_ips", return_value=["203.0.113.7"]), \
-                mock.patch.object(urllib.request.OpenerDirector, "open", side_effect=error):
+        opener = mock.MagicMock()
+        opener.open.side_effect = error
+        with mock.patch("urllib.request.build_opener", return_value=opener), \
+                mock.patch(RESOLVE, return_value=["93.184.216.34"]):
             process_once()
         self.row.refresh_from_db()
         self.assertEqual(self.row.status, PushOutbox.Status.DISCARDED)

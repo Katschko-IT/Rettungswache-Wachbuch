@@ -36,9 +36,8 @@ class ChecklistFormA11yTests(TestCase):
 
     def test_each_item_is_a_labelled_group_with_labelled_fields(self):
         content = self.client.get(reverse("checklists")).content.decode("utf-8")
-        self.assertIn('<fieldset class="item-controls cluster">', content)
-        self.assertIn("Ergebnis für: Temperatur", content)
-        for field_id in (f"value_{self.item.id}", f"reason_{self.item.id}", f"note_{self.checklist.id}"):
+        self.assertIn(f'role="radiogroup" aria-labelledby="item-{self.item.id}-label"', content)
+        for field_id in (f"value-{self.item.id}", f"reason-{self.item.id}", f"note-{self.checklist.id}"):
             self.assertIn(f'id="{field_id}"', content)
             self.assertIn(f'for="{field_id}"', content)
 

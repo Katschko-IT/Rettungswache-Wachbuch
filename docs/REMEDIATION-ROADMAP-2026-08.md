@@ -293,7 +293,12 @@ RPO/RTO festlegen; automatisierter Restore in isolierter Umgebung; Ergebnis und 
 
 ### [~] R-018 Barrierefreiheitsabnahme
 
-Stand 2026-11-03 (PR 140, nur statisch und im lokalen Browser, ohne Hilfsmittel): Kontraste der Tokens berechnet (Hell und Dunkel ≥ 4,5:1), Fokusfalle und `inert` in Dialogen, Formularfehler mit `aria-invalid`/`aria-describedby` und Fehlerübersicht mit Links, Vorwarnung vor der Terminal-Sperre, Checkliste mit `fieldset`/`legend` und Labels. Belegt durch `core.test_a11y_patterns`. **Offen** (Pflicht vor der Abnahme, unverändert): die Punkte unten, besonders NVDA/JAWS und VoiceOver, 400-%-Zoom und reale Nutzende. Tabellen: erledigt in PR 140 (jede Tabelle in `templates/core` hat `caption`, jede Kopfzelle `scope`; `core.test_a11y_patterns.TableMarkupTests`).
+Begonnen (0.28): Der CI-Job `a11y` (`tests/a11y/run-axe.js`) prüft die
+Hauptseiten jeder Rolle mit axe-core (WCAG 2.0/2.1/2.2 A und AA) hell, dunkel
+und mit dem Umschalter der App und schlägt bei Funden der Schwere critical oder
+serious fehl; dazu das Wand-Display bei 1920x1080 und 1280x720 und das
+Mangelformular bei 390x844 ohne seitliches Scrollen. Das ersetzt die folgenden
+manuellen Prüfungen nicht:
 
 - Tastatur und 400-%-Zoom
 - Reflow bei 320 CSS-Pixel

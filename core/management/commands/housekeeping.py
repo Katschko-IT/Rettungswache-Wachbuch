@@ -18,6 +18,8 @@ Gelöscht werden:
 - Feed-Einträge nach ``RETENTION_FEED_DAYS`` und Rückmeldungen nach
   ``FEEDBACK_RETENTION_DAYS`` (wie ``apply_retention``)
 - abgelaufene Zähler der Rate-Limits
+- Zwischenstände von Checklisten, die 30 Tage nicht geändert wurden
+  (``ChecklistDraft``, kein Nachweis; der Abschluss löscht sie sonst selbst)
 
 Der Dienst nutzt die App-Datenbankrolle: Sie darf all das löschen, aber
 nichts aus den append-only Tabellen (Audit, Kaffeekasse, Checklisten-
@@ -83,6 +85,14 @@ def _qr_logins(now):
     return requests.delete()[0] + totp_steps.delete()[0]
 
 
+def _checklist_drafts(now):
+    from core.models import ChecklistDraft
+
+    cutoff = now - timedelta(days=ChecklistDraft.RETENTION_DAYS)
+    deleted, _ = ChecklistDraft.objects.filter(updated_at__lt=cutoff).delete()
+    return deleted
+
+
 STEPS = (
     ("Sitzungen", _sessions),
     ("Anmeldeprotokolle", _login_logs),
@@ -92,6 +102,7 @@ STEPS = (
     ("Feed-Einträge", lambda now: apply_feed_retention(now=now)),
     ("Rückmeldungen", lambda now: apply_feedback_retention(now=now)),
     ("Rate-Limit-Zähler", lambda now: cleanup_expired()),
+    ("Checklisten-Zwischenstände", _checklist_drafts),
 )
 
 

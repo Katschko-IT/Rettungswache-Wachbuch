@@ -12,14 +12,17 @@ from django.utils.translation import gettext_lazy as _
 
 from .coffee_models import CoffeeCashMovement, CoffeeFund, CoffeeParticipant
 from .models import BirthdayPreference, CalendarEvent, CoffeeEntry, EmployeeActivation, HandoverEntry, Membership, PinboardNote, Station, StationTask
+from .paper_backfill import DateTimeLocalInput, PaperBackfillFormMixin
 from .site_profile import SiteProfile
 
 
-class DateTimeLocalInput(forms.DateTimeInput):
-    input_type = "datetime-local"
+class HandoverForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Übergabe anlegen (Web und App), optional als Nachtrag vom Papierbogen.
 
+    ``allow_backfill=False`` (Wachenterminal) blendet Häkchen und Ereigniszeit
+    aus; ein trotzdem gesendeter Nachtrag wird abgewiesen.
+    """
 
-class HandoverForm(forms.ModelForm):
     class Meta:
         model = HandoverEntry
         fields = [
@@ -32,31 +35,28 @@ class HandoverForm(forms.ModelForm):
         ]
         widgets = {
             "details": forms.Textarea(attrs={"rows": 6}),
-            "occurred_at": DateTimeLocalInput(format="%Y-%m-%dT%H:%M"),
         }
 
+    def __init__(self, *args, allow_backfill=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup_paper_backfill(allow=allow_backfill)
+
     def clean(self):
-        cleaned = super().clean()
-        is_paper_backfill = cleaned.get("is_paper_backfill")
-        occurred_at = cleaned.get("occurred_at")
-        if not is_paper_backfill:
-            # Das Feld ist ohne Häkchen nur ausgeblendet und wird trotzdem gesendet.
-            cleaned["occurred_at"] = None
-        if is_paper_backfill:
-            if not occurred_at:
-                self.add_error("occurred_at", _("Für Nachträge von Papier muss ein Ereigniszeitpunkt angegeben werden."))
-            elif occurred_at > timezone.now():
-                self.add_error("occurred_at", _("Der Ereigniszeitpunkt darf nicht in der Zukunft liegen."))
-        return cleaned
+        return self.clean_paper_backfill(super().clean())
 
 
 ShiftHandoverForm = HandoverForm
 
 
-class HandoverEditForm(forms.ModelForm):
+class HandoverEditForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Inhalt korrigieren (Schichtleitung, Admin), auch Häkchen und Ereigniszeit.
+
+    Die Ereigniszeit liegt vor der Erfassung und höchstens 365 Tage davor.
+    """
+
     class Meta:
         model = HandoverEntry
-        fields = ["category", "priority", "title", "details"]
+        fields = ["category", "priority", "title", "details", "is_paper_backfill", "occurred_at"]
         widgets = {"details": forms.Textarea(attrs={"rows": 6})}
         labels = {
             "category": "Kategorie",
@@ -64,6 +64,13 @@ class HandoverEditForm(forms.ModelForm):
             "title": "Titel",
             "details": "Details",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup_paper_backfill(reference=self.instance.created_at if self.instance.pk else None)
+
+    def clean(self):
+        return self.clean_paper_backfill(super().clean())
 
 
 class HandoverStatusForm(forms.ModelForm):
@@ -408,6 +415,8 @@ class MembershipEditForm(forms.Form):
 
     def __init__(self, *args, membership, **kwargs):
         super().__init__(*args, **kwargs)
+        from .terminal import is_service_user
+
         self.fields["role"].initial = membership.role
         self.fields["is_mpg_lead"].initial = getattr(membership, "is_mpg_lead", False)
         self.fields["is_hygiene_lead"].initial = getattr(membership, "is_hygiene_lead", False)
@@ -415,6 +424,19 @@ class MembershipEditForm(forms.Form):
         self.fields["is_fleet_lead"].initial = getattr(membership, "is_fleet_lead", False)
         self.fields["is_safety_lead"].initial = getattr(membership, "is_safety_lead", False)
         self.fields["is_active"].initial = membership.is_active
+        # Das Dienstkonto des Wachenterminals übernimmt keine Funktion (AGENTS.md § 4).
+        self.service_account = is_service_user(membership.user)
+        if self.service_account:
+            for field in Membership.FUNCTION_FIELDS:
+                self.fields[field].disabled = True
+                self.fields[field].initial = False
+                self.fields[field].help_text = _("Das Wachenterminal-Konto kann keine Funktion übernehmen.")
+
+    def clean(self):
+        cleaned = super().clean()
+        if self.service_account and any(cleaned.get(field) for field in Membership.FUNCTION_FIELDS):
+            raise ValidationError(_("Das Wachenterminal-Konto kann keine Funktion übernehmen."))
+        return cleaned
 
 
 class TrafficConfigMixin:
@@ -487,6 +509,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "fleet_enabled",
             "display_enabled",
             "orga_enabled",
+            "sop_receipt_names_agreed",
             "traffic_enabled",
             "traffic_roads",
             "traffic_radius_km",
@@ -512,6 +535,7 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "fleet_enabled": _("Fuhrpark & Fahrzeuge"),
             "display_enabled": _("Wachen-Display"),
             "orga_enabled": _("Organisation & Desk"),
+            "sop_receipt_names_agreed": _("Namen bei Lesebestätigungen von Dienstanweisungen anzeigen"),
             "holidays_enabled": _("Feiertage im Kalender"),
             "holiday_state": _("Bundesland für Feiertage"),
             "weather_enabled": _("Wettervorhersage aktiviert (Open-Meteo)"),
@@ -533,6 +557,12 @@ class StationSettingsForm(TrafficConfigMixin, forms.ModelForm):
             "payment_note": _("Zahlungshinweis"),
         }
         help_texts = {
+            "sop_receipt_names_agreed": _(
+                "Nur einschalten, wenn eine Vereinbarung mit der Beschäftigtenvertretung (Betriebsrat, "
+                "Personalrat oder MAV) das erlaubt (Vorlage: docs/MITBESTIMMUNG-VORLAGE.md). Aus: Schichtleitung "
+                "und Master-Admin sehen nur Anzahl und Quote, keine Namen und keinen Export mit Namen; die "
+                "Erinnerung an offene Personen funktioniert trotzdem."
+            ),
             "holidays_enabled": _("Gesetzliche Feiertage des ausgewählten Bundeslandes im Kalender anzeigen."),
             "holiday_state": _("Bestimmt die gesetzlichen Feiertage für den Wachenkalender und ICS-Export."),
             "weather_enabled": _("5-Tage-Wetter am Wachenstandort über Open-Meteo abrufen. Erfordert eine hinterlegte Adresse."),

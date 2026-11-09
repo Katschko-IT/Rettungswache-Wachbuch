@@ -276,17 +276,24 @@ class RepositoryCatalogTests(SimpleTestCase):
             "OK": "Lehnwort, identisch",
             "Reserve": "Tankanzeige, im Englischen identisch",
             "Normal": "Lehnwort, identisch",
-            "Hosting": "Fachbegriff, identisch",
-            "Hygiene": "Lehnwort, im Englischen identisch",
             "AdBlue": "Markenname",
             "AdBlue (%)": "Markenname mit Einheit",
             "UDI-DI (GTIN):": "Normkennung",
             # Platzhalterzeile ohne uebersetzbaren Text
             "%(category)s &middot; Version %(version)s": "nur Platzhalter und Produktwort",
+            # Automatischer Mangeltitel aus Kategorie und Bezug (0.28)
+            "%(category)s: %(reference)s": "nur Platzhalter",
         }
         identical = set()
         for entry in parse_po(po):
             if not entry["msgid"]:
+                continue
+            if entry["plural"] is not None:
+                # Pluraleintrag (ngettext): beide Formen gefuellt, Einzahl nicht unuebersetzt.
+                for index in (0, 1):
+                    self.assertTrue(entry["msgstr_plural"].get(index, "").strip(), f"leer [{index}]: {entry['msgid']}")
+                if entry["msgstr_plural"][0] == entry["msgid"]:
+                    identical.add(entry["msgid"])
                 continue
             self.assertTrue(entry["msgstr"].strip(), f"leer: {entry['msgid']}")
             if entry["msgstr"] == entry["msgid"]:

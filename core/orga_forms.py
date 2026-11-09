@@ -9,13 +9,33 @@ from .models import Membership
 from .orga_models import SOPDocument, SOPRevision, StationContact
 
 
+def _target_role_choices():
+    # Auditoren bestätigen keine Dienstanweisungen (AGENTS.md § 4); nur Inhaltsrollen.
+    from .access import CONTENT_ROLES
+
+    return [("", _("Alle aktiven Mitglieder der Wache"))] + [
+        (value, label) for value, label in Membership.Role.choices if value in CONTENT_ROLES
+    ]
+
+
+def _target_function_choices():
+    return [("", _("Ohne Einschränkung nach Funktion"))] + [
+        (code, label) for code, _field, label in Membership.FUNCTIONS
+    ]
+
+
 class SOPDocumentForm(forms.ModelForm):
     target_role = forms.ChoiceField(
-        choices=[("", "Alle aktiven Mitglieder der Wache")]
-        + [choice for choice in Membership.Role.choices if choice[0] != Membership.Role.AUDITOR],
+        choices=_target_role_choices,
         required=False,
-        label="Zielgruppe (Rolle)",
-        help_text="Leer = alle aktiven Mitglieder der Wache",
+        label=_("Zielgruppe (Rolle)"),
+        help_text=_("Leer = alle aktiven Mitglieder der Wache"),
+    )
+    target_function = forms.ChoiceField(
+        choices=_target_function_choices,
+        required=False,
+        label=_("Zielgruppe (Funktion)"),
+        help_text=_("Optional zusätzlich zur Rolle, z. B. nur Hygiene / Desinfektor:in."),
     )
     initial_content = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 10, "placeholder": "# Indikation / Anwendungsbereich\n\n## 1. Handlungsalgorithmus\n\n## 2. Medikamentendosierung\n\n## 3. Dokumentation & Übergabe"}),
@@ -40,6 +60,7 @@ class SOPDocumentForm(forms.ModelForm):
             "review_due_date",
             "ack_due_date",
             "target_role",
+            "target_function",
             "requires_acknowledgment",
         ]
         widgets = {

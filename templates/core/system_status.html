@@ -46,6 +46,27 @@
 
 {% if host_health %}{% include "core/_system_operations.html" %}{% endif %}
 
+{% if reminder_schedule %}
+<section aria-labelledby="system-reminders-title">
+  <h2 id="system-reminders-title">{% translate "Fristen-Erinnerungen" %}</h2>
+  <p>{% translate "Der notify-worker versendet die Erinnerungen höchstens einmal je Stunde und die Wochenübersicht einmal je Kalenderwoche ab Montag 06:00 Uhr, beides nur zwischen 06:00 und 22:00 Uhr." %}</p>
+  <dl class="system-facts">
+    <dt>{% translate "Letzter Lauf" %}</dt>
+    <dd>{% if reminder_schedule.reminders.last_success_at %}{{ reminder_schedule.reminders.last_success_at|date:"d.m.Y H:i" }}{% else %}{% translate "noch keiner" %}{% endif %}</dd>
+    {% if reminder_schedule.reminders.error_at %}
+      <dt>{% translate "Letzter Fehler" %}</dt>
+      <dd>{{ reminder_schedule.reminders.error_at|date:"d.m.Y H:i" }}</dd>
+    {% endif %}
+    <dt>{% translate "Letzte Wochenübersicht" %}</dt>
+    <dd>{% if reminder_schedule.digest.week %}{{ reminder_schedule.digest.week }} · {{ reminder_schedule.digest.last_success_at|date:"d.m.Y H:i" }}{% else %}{% translate "noch keine" %}{% endif %}</dd>
+    {% if reminder_schedule.digest.error_at %}
+      <dt>{% translate "Letzter Fehler der Wochenübersicht" %}</dt>
+      <dd>{{ reminder_schedule.digest.error_at|date:"d.m.Y H:i" }}</dd>
+    {% endif %}
+  </dl>
+</section>
+{% endif %}
+
 <section aria-labelledby="system-diagnostics-title">
   <h2 id="system-diagnostics-title">{% translate "Diagnose" %}</h2>
   <p>{% translate "Bereinigte technische Fehlerereignisse und Supportbericht für diese Wache." %}</p>

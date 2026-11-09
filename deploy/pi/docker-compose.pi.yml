@@ -22,6 +22,8 @@ services:
       GUNICORN_THREADS: "4"
       GUNICORN_TIMEOUT: "60"
 
+  # Läuft auch auf dem Pi: Desinfektions-Hinweise, Kaffeekasse, Meldungen der
+  # Host-Überwachung, Fristen-Erinnerungen (stündlich) und Wochenübersicht.
   notify-worker:
     mem_limit: 256m
 

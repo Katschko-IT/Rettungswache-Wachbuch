@@ -88,9 +88,10 @@ EVIDENCE_NAME_SUFFIXES = (
     "Completion", "Ack", "Acknowledgement", "Cancellation", "Protocol", "Handover", "Entry", "Use",
 )
 
-# Wer außer Betrieb nimmt und wieder in Betrieb nimmt. Übergangsweise
-# Schichtleitung und Admin, bis das Funktionsmodell (0.28) die
-# MPG-Beauftragten und den Fuhrpark kennt.
+# Wer außer Betrieb nimmt und wieder in Betrieb nimmt: Schichtleitung und
+# Master-Admin. Die Funktionen aus 0.28 (MPG-Beauftragte/r, Fuhrpark) steuern
+# Fristen-Erinnerungen und Zuständigkeiten, geben aber keine zusätzlichen
+# Rechte; die Außerbetriebnahme bleibt eine Aufgabe der Leitung.
 RETIRE_ROLES = frozenset({Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN})
 
 VEHICLE_RETIRED_MESSAGE = _("Dieses Fahrzeug ist außer Betrieb genommen. Es nimmt keine neuen Einträge an.")

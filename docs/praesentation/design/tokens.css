@@ -61,8 +61,13 @@
   --stripe-red: #e2231a;
   --stripe-white: #ffffff;
 
+  /* Tastaturfokus: gelber Ring (--focus) auf einem Saum (--focus-halo), der
+     gegen jede Fläche mindestens 3:1 erreicht (WCAG 1.4.11). Gelb allein hat
+     auf Weiß nur 2:1. --focus-ring ist der Saum für Bausteine, die den Fokus
+     eines inneren Felds zeigen (Chips, Foto-Knöpfe). */
   --focus: #f2a900;
-  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 5px var(--focus);
+  --focus-halo: #0a3a85;
+  --focus-ring: 0 0 0 6px var(--focus-halo);
 
   --radius-sm: .5rem;
   --radius: .75rem;
@@ -148,7 +153,8 @@
     --violet-soft: #2a1f3d;
     --scrim: rgba(0, 0, 0, .65);
     --stripe-white: #c9d2d8;
-    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+    --focus-halo: #b3ccff;
+    --focus-ring: 0 0 0 6px var(--focus-halo);
     --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
   }
 }
@@ -184,6 +190,7 @@
   --violet-soft: #2a1f3d;
   --scrim: rgba(0, 0, 0, .65);
   --stripe-white: #c9d2d8;
-  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 5px var(--focus);
+  --focus-halo: #b3ccff;
+  --focus-ring: 0 0 0 6px var(--focus-halo);
   --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
 }

@@ -116,10 +116,10 @@
 
         <div class="cluster cluster-end">
           {% if sop.requires_acknowledgment and sop.latest_revision %}
-            {% if sop.id not in unack_ids %}
-              <span class="status-label status-done">{% translate "Quittiert" %}</span>
-            {% else %}
+            {% if sop.id in unack_ids %}
               <span class="status-label warning">{% translate "Quittierung nötig" %}</span>
+            {% elif sop.id in acked_ids %}
+              <span class="status-label status-done">{% translate "Quittiert" %}</span>
             {% endif %}
           {% endif %}
           <a href="{% url 'sop_detail' sop.slug %}" class="button secondary small">

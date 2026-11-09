@@ -281,7 +281,8 @@ Vertrauensgrenze in eine Richtung:
   Der Host bekommt keine Datenbankrechte und führt kein SQL aus. Fällt der
   notify-worker aus, startet der Host einmal je Störung denselben Befehl
   (`docker compose run notify-worker python manage.py notify_crew`) mit der
-  Datenbankrolle der Anwendung.
+  Datenbankrolle der Anwendung. Dieser einmalige Lauf ohne `--watch` stellt
+  nur Meldungen zu (Signal zuerst) und versendet keine Fristen-Erinnerungen.
 - Inhalt nur Codes (`bereich:art:wert`), Zeiten und Zahlen – keine Texte,
   Hostnamen, Adressen, Pfade oder Geheimnisse. Werte werden schon im Skript
   auf `[a-z_]` bzw. `[a-z0-9-]` gefiltert.

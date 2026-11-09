@@ -22,7 +22,7 @@ def _card(key, url_name, query, title, subtitle, value, *, attention=None, tone=
             "attention": bool(value) if attention is None else attention, "tone": tone}
 
 
-def module_attention_cards(station, user) -> list[dict]:
+def module_attention_cards(station, user, membership=None) -> list[dict]:
     cards = []
 
     if station.fleet_enabled:
@@ -108,11 +108,20 @@ def module_attention_cards(station, user) -> list[dict]:
                 ))
 
     if station.orga_enabled:
-        from .orga_models import SOPDocument
+        from .access import get_membership
+        from .orga_models import SOPDocument, in_reading_audience
 
-        sops = SOPDocument.list_with_ack_state(SOPDocument.objects.filter(
-            station=station, status=SOPDocument.Status.ACTIVE, requires_acknowledgment=True,
-        ), user)
+        # Nur Dienstanweisungen der eigenen Zielgruppe (Rolle und Funktion), wie
+        # in der Liste der Dienstanweisungen; nie für Auditor oder Wachenterminal.
+        membership = membership or get_membership(user)
+        sops = []
+        if membership is not None and membership.station_id == station.pk and in_reading_audience(membership):
+            sops = [
+                sop for sop in SOPDocument.list_with_ack_state(SOPDocument.objects.filter(
+                    station=station, status=SOPDocument.Status.ACTIVE, requires_acknowledgment=True,
+                ), user)
+                if sop.matches_target(membership)
+            ]
         if sops:
             pending = sum(1 for sop in sops if not sop.user_has_acknowledged(user))
             cards.append(_card(

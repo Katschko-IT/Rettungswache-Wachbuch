@@ -87,10 +87,30 @@ paths:
     get:
       summary: Active handovers
       responses:
-        "200": { description: Handover list }
+        "200":
+          description: Handover list (results are Handover objects without detail fields)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/Handover" }
         "403": { $ref: "#/components/responses/Error" }
     post:
       summary: Create handover
+      description: >-
+        Optional paper backfill (0.28): is_paper_backfill true plus occurred_at (event time
+        from the paper sheet, not in the future, at most 365 days ago, truncated to the minute).
+        occurred_at is ignored and stored as null without the flag. occurred_at must be a string
+        or null and is_paper_backfill a boolean; other JSON types give 422 with the field in
+        fields. A backfill sends no Web-Push. The Wachenterminal service account cannot create
+        a backfill (422).
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HandoverWrite" }
       responses:
         "201": { description: Handover created }
         "403": { $ref: "#/components/responses/Error" }
@@ -100,7 +120,11 @@ paths:
       summary: Handover detail
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       responses:
-        "200": { description: Handover detail }
+        "200":
+          description: Handover detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Handover" }
         "404": { $ref: "#/components/responses/Error" }
   /handovers/{id}/status/:
     post:
@@ -142,6 +166,14 @@ paths:
         - { in: query, name: status, schema: { type: string } }
         - { in: query, name: priority, schema: { type: string } }
         - { in: query, name: overdue, schema: { type: boolean } }
+        - { in: query, name: active, schema: { type: boolean }, description: "Only defects that are not done" }
+        - in: query
+          name: asset
+          schema: { type: string }
+          description: >-
+            Exact reference match, never a substring: a reference key (vehicle:<id>, device:<id>,
+            asset:<id>), a vehicle or device slug, an asset id, or the reference text compared
+            case-insensitively with collapsed whitespace. Alias: asset_ref.
       responses:
         "200":
           description: Defect list
@@ -317,22 +349,97 @@ paths:
         "422": { $ref: "#/components/responses/Error" }
   /checklisten/:
     get:
-      summary: Active checklists including recurring schedule state
+      summary: Active checklists with items, last final run, open draft and recurring schedule state
+      description: |
+        `items` keeps the item texts for older apps. `item_details` carries the item ids that
+        `item_results` must use, plus required flag, unit and limits. `last_completed_at` is the
+        time of the newest final run (the event time for a paper backfill); drafts never count.
+        `draft` is the station's shared draft of this checklist (or null).
       responses:
-        "200": { description: Checklist list }
+        "200":
+          description: Checklist list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/Checklist" }
+        "403": { $ref: "#/components/responses/Error" }
         "404": { $ref: "#/components/responses/Error" }
   /checklisten/{id}/erledigt/:
     post:
-      summary: Complete checklist and advance recurring due date
+      summary: Finalize a checklist run (or save the draft with is_draft true)
+      description: |
+        One shared validation for web and app. A final run needs item_results for the checklist's
+        items (missing or empty results are a 400), every required item rated, a reason for `na`,
+        and a value for measurement items rated `ok` or `not_ok`. On a final run a value outside
+        the limits turns the item into `not_ok` with an automatic reason; a draft keeps the status
+        and reason as sent. NaN, Infinity, values beyond
+        999999.99, unknown item ids, non-object entries and non-boolean flags are a 400.
+        A final run is stored once (append-only), deletes the shared draft, creates a defect for
+        each `not_ok` item unless an open defect of the same checklist item exists (then the
+        result links to it, see `defects_linked`), and advances the recurring due date. A paper
+        backfill advances it from its `occurred_at`, so `due_next` may stay in the past and
+        `overdue` stays true for later cycles without a run; a backfill older than the current
+        cycle leaves it unchanged. The terminal service account cannot finalize checklists with
+        `requires_personal_login` and cannot backfill.
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistRunWrite" }
       responses:
-        "201": { description: Completion recorded }
+        "200": { description: "Draft saved (is_draft true)", content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "201": { description: Final run recorded, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistRun" } } } }
+        "400": { description: "validation_error; `errors` lists every problem", content: { application/json: { schema: { $ref: "#/components/schemas/ValidationErrorResponse" } } } }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
   /checklisten/{id}/abschluss/:
     post:
       summary: Alias for /erledigt/
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChecklistRunWrite" }
       responses:
-        "201": { description: Completion recorded }
+        "200": { description: "Draft saved (is_draft true)" }
+        "201": { description: Final run recorded }
+        "400": { $ref: "#/components/responses/Error" }
+  /checklisten/{id}/zwischenstand/:
+    get:
+      summary: Read the station's shared draft of a checklist (null if none)
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Draft or null, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "404": { $ref: "#/components/responses/Error" }
+    post:
+      summary: Save (replace) the shared draft; same input rules as a run, without the completeness and limit checks
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_results: { $ref: "#/components/schemas/ChecklistItemResults" }
+                note: { type: string, maxLength: 300 }
+      responses:
+        "200": { description: Draft saved, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      summary: Same as POST
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Draft saved }
   /checklisten/{id}/schedule/:
     get:
       summary: Read recurring checklist schedule
@@ -349,6 +456,100 @@ paths:
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       responses:
         "200": { description: Schedule removed }
+  /benachrichtigungen/:
+    get:
+      summary: Own notification inbox (unread first, at most 50 unread and 20 read)
+      description: |
+        Personal notices (UserNotification) of the caller at the own station.
+        Scope read:me. Optional `kinds` limits the result to the given kinds so
+        the app only polls what it renders; unknown kinds are ignored.
+      parameters:
+        - in: query
+          name: kinds
+          required: false
+          description: Comma-separated kinds, e.g. vehicle_ready,coffee_due
+          schema:
+            type: string
+            example: vehicle_ready,coffee_due,deadline_due,sop_due
+      responses:
+        "200":
+          description: "Notifications: id, kind, key, title, body, url, created_at, read"
+        "403": { $ref: "#/components/responses/Error" }
+  /benachrichtigungen/gelesen/:
+    post:
+      summary: Mark all unread notifications of the given kinds as read
+      description: |
+        Scope read:me. Body `{"kinds": ["deadline_due", "sop_due"]}` or query
+        `?kinds=deadline_due,sop_due`. Without a known kind the request is
+        refused (no accidental "mark everything read").
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kinds:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200": { description: "ok, kinds, marked (number of notifications marked read)" }
+        "400": { $ref: "#/components/responses/Error" }
+  /benachrichtigungen/{id}/gelesen/:
+    post:
+      summary: Mark one own notification as read
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      responses:
+        "200": { description: Notification marked read }
+        "404": { $ref: "#/components/responses/Error" }
+  /dienstanweisungen/:
+    get:
+      summary: Work instructions the caller must read and acknowledge
+      description: |
+        Scope read:me. Only work instructions in force with a released text
+        that require acknowledgement and whose target group (role and
+        function) includes the caller. Each entry: id, doc_number, title,
+        revision {id, version}, ack_due_date, overdue, acknowledged,
+        acknowledged_at, in_target_group, url (web page of the document). No
+        names of other people and no quota. Auditors and the station terminal
+        service account get 403.
+      parameters:
+        - in: query
+          name: offen
+          required: false
+          description: "1 = only work instructions not yet acknowledged in the current version"
+          schema: { type: string, enum: ["1", "0"] }
+      responses:
+        "200": { description: List of own reading obligations }
+        "403": { $ref: "#/components/responses/Error" }
+  /dienstanweisungen/{id}/quittieren/:
+    post:
+      summary: Acknowledge the current version of a work instruction
+      description: |
+        Same rules as the web: own account of a content role (never the
+        station terminal), work instruction in force, released text. Outside
+        the target group the acknowledgement is voluntary and not counted in
+        the quota. Stores person, version and time only (no IP address, no
+        user agent). Idempotent. Optional body `{"revision": <id>}`: if a newer
+        version exists, 409 is returned so the app can show the new text first.
+        `revision` must be an integer (or a string of ASCII digits); floats,
+        booleans and other values return 400 validation_error.
+      parameters: [{$ref: "#/components/parameters/IntegerId"}]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                revision: { type: integer }
+      responses:
+        "201": { description: Acknowledgement recorded (created true) }
+        "200": { description: Already acknowledged (created false) }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
   /reports/:
     get:
       summary: Lightweight station Wachalltag report
@@ -430,6 +631,103 @@ components:
               enum: [validation_error, auth_required, forbidden, mfa_required, mfa_setup_required, not_found, conflict, payload_too_large, unsupported_media_type, rate_limit, server_error]
             message: { type: string }
             correlation_id: { type: string }
+    ValidationErrorResponse:
+      allOf:
+        - { $ref: "#/components/schemas/ErrorResponse" }
+        - type: object
+          properties:
+            errors: { type: array, items: { type: string } }
+    ChecklistItem:
+      type: object
+      properties:
+        id: { type: integer, description: "Key for item_results" }
+        text: { type: string }
+        position: { type: integer }
+        required: { type: boolean }
+        unit: { type: string }
+        min: { type: string, nullable: true, description: "Decimal as string, e.g. \"2.00\"; 0 is a real limit" }
+        max: { type: string, nullable: true }
+        measurement: { type: boolean, description: "Unit or limit set: ok/not_ok need a value" }
+    Checklist:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        items: { type: array, items: { type: string }, description: "Item texts (older apps)" }
+        item_details: { type: array, items: { $ref: "#/components/schemas/ChecklistItem" } }
+        requires_personal_login: { type: boolean }
+        last_completed_at: { type: string, format: date-time, nullable: true }
+        last_completed_by: { type: string, nullable: true }
+        last_completed_paper_backfill: { type: boolean }
+        draft: { allOf: [{ $ref: "#/components/schemas/ChecklistDraft" }], nullable: true }
+        interval: { type: string }
+        due_next: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
+    ChecklistItemResult:
+      type: object
+      properties:
+        status: { type: string, enum: ["", ok, not_ok, na] }
+        value: { oneOf: [{ type: number }, { type: string }], nullable: true, description: "Measurement; a string may use a decimal comma" }
+        reason: { type: string, maxLength: 500 }
+    ChecklistItemResults:
+      type: object
+      description: "Object keyed by item id (from item_details)"
+      additionalProperties: { $ref: "#/components/schemas/ChecklistItemResult" }
+    ChecklistStoredResult:
+      allOf:
+        - { $ref: "#/components/schemas/ChecklistItemResult" }
+        - type: object
+          description: "Stored with a copy of the item at the time of the run"
+          properties:
+            text: { type: string }
+            unit: { type: string }
+            min: { type: string, nullable: true }
+            max: { type: string, nullable: true }
+            required: { type: boolean }
+            position: { type: integer }
+            defect_id: { type: integer, nullable: true }
+            defect_linked: { type: boolean, description: "true: links to an open defect that already existed" }
+    ChecklistRunWrite:
+      type: object
+      properties:
+        item_results: { $ref: "#/components/schemas/ChecklistItemResults" }
+        note: { type: string, maxLength: 300 }
+        is_draft: { type: boolean, description: "true/false (also 1/0, \"true\"/\"false\"); anything else is a 400" }
+        is_paper_backfill: { type: boolean }
+        occurred_at: { type: string, format: date-time, description: "Event time of a paper backfill: not in the future, at most 365 days ago" }
+    ChecklistDraft:
+      type: object
+      properties:
+        id: { type: integer }
+        note: { type: string }
+        item_results: { type: object, additionalProperties: { $ref: "#/components/schemas/ChecklistStoredResult" } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        updated_by: { type: string }
+    ChecklistDraftResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        is_draft: { type: boolean }
+        checklist: { type: integer }
+        draft: { allOf: [{ $ref: "#/components/schemas/ChecklistDraft" }], nullable: true }
+    ChecklistRun:
+      type: object
+      properties:
+        ok: { type: boolean }
+        id: { type: integer }
+        checklist: { type: integer }
+        is_draft: { type: boolean, enum: [false] }
+        item_results: { type: object, additionalProperties: { $ref: "#/components/schemas/ChecklistStoredResult" } }
+        defects_created: { type: array, items: { type: integer } }
+        defects_linked: { type: array, items: { type: integer } }
+        created_at: { type: string, format: date-time }
+        occurred_at: { type: string, format: date-time, nullable: true }
+        is_paper_backfill: { type: boolean }
+        interval: { type: string }
+        due_next: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
     Defect:
       allOf:
         - { $ref: "#/components/schemas/DefectWrite" }
@@ -444,13 +742,42 @@ components:
     DefectWrite:
       type: object
       properties:
-        title: { type: string, maxLength: 160 }
+        title:
+          type: string
+          maxLength: 160
+          description: >-
+            Optional since 0.28. When empty, the server builds "<category>: <asset_ref>" in the station
+            language (as the web defect form does).
         description: { type: string, maxLength: 3000 }
         asset_ref: { type: string, maxLength: 160 }
         priority: { type: string, enum: [normal, important, urgent] }
         owner: { type: string, description: Username of an active station member }
         due_at: { type: string, format: date-time, nullable: true }
         category: { type: string, enum: [vehicle, material, safety, facility, key, device, task] }
+    Handover:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        category: { type: string, enum: [station, vehicle, material, task, safety] }
+        priority: { type: string, enum: [normal, important, urgent] }
+        status: { type: string, enum: [open, in_progress, done] }
+        updated_at: { type: string, format: date-time }
+        is_paper_backfill: { type: boolean, description: "Nachtrag vom Papierbogen (0.28)" }
+        occurred_at: { type: string, format: date-time, nullable: true, description: "Event time from the paper sheet; null unless is_paper_backfill" }
+        details: { type: string, description: detail only }
+        created_at: { type: string, format: date-time, description: "detail only; for a backfill the entry time" }
+        version: { type: integer, description: detail only }
+    HandoverWrite:
+      type: object
+      required: [category, title, details]
+      properties:
+        category: { type: string, enum: [station, vehicle, material, task, safety] }
+        priority: { type: string, enum: [normal, important, urgent] }
+        title: { type: string, maxLength: 160 }
+        details: { type: string, maxLength: 3000 }
+        is_paper_backfill: { type: boolean }
+        occurred_at: { type: string, format: date-time, nullable: true, description: "Required with is_paper_backfill: not in the future, at most 365 days ago; truncated to the minute" }
     HandoverAck:
       type: object
       required: [handover_id, by, at]
