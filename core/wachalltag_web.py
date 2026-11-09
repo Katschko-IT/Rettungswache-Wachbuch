@@ -286,7 +286,9 @@ def defect_create(request):
 @require_http_methods(["GET", "POST"])
 def defect_detail(request, pk):
     station = request.membership.station
-    item = get_object_or_404(Defect.objects.select_related("owner", "created_by"), pk=pk, station=station)
+    item = get_object_or_404(
+        Defect.objects.select_related("owner", "created_by", "source_checklist_run__checklist"), pk=pk, station=station,
+    )
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "status":
