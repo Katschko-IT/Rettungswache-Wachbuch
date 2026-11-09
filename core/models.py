@@ -1330,9 +1330,22 @@ class ChecklistItem(models.Model):
     def __str__(self):
         return self.text
 
+    @property
+    def has_measurement(self) -> bool:
+        """Messpunkt: Einheit oder Grenzwert gesetzt (0 ist ein echter Grenzwert)."""
+        return bool(self.measurement_unit) or self.min_value is not None or self.max_value is not None
+
 
 class ChecklistCompletion(models.Model):
-    """Append-only Abschluss einer Checkliste."""
+    """Append-only Abschluss einer Checkliste (Nachweis).
+
+    Ein Lauf entsteht mit genau einem INSERT und wird danach weder geändert
+    noch gelöscht (Anwendung und Datenbankrechte, siehe
+    ``grant_database_access``). Zwischenstände liegen in ``ChecklistDraft``.
+    ``item_results`` hält je Prüfpunkt Ergebnis, Messwert, Begründung und eine
+    Kopie des Prüfpunkts (Text, Einheit, Grenzwerte, Pflicht) zum Zeitpunkt
+    des Laufs.
+    """
 
     station = models.ForeignKey(
         Station, on_delete=models.PROTECT, related_name="checklist_completions"
@@ -1344,8 +1357,9 @@ class ChecklistCompletion(models.Model):
         User, on_delete=models.PROTECT, related_name="checklist_completions"
     )
     note = models.CharField(max_length=300, blank=True)
-    is_draft = models.BooleanField("Zwischenstand", default=False)
     item_results = models.JSONField("Ergebnisse je Prüfpunkt", default=dict, blank=True)
+    is_paper_backfill = models.BooleanField("Nachtrag vom Papierbogen", default=False)
+    occurred_at = models.DateTimeField("Ereigniszeitpunkt (Papierbogen)", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1356,23 +1370,63 @@ class ChecklistCompletion(models.Model):
         super().clean()
         if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
             raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+        if self.occurred_at is not None and not self.is_paper_backfill:
+            raise ValidationError("Ein Ereigniszeitpunkt gehört nur zu einem Nachtrag vom Papierbogen.")
+        if self.is_paper_backfill and self.occurred_at is None:
+            raise ValidationError("Ein Nachtrag vom Papierbogen braucht einen Ereigniszeitpunkt.")
+
+    @property
+    def effective_at(self):
+        """Zeitpunkt des Laufs: Ereigniszeit bei Nachträgen, sonst Erfassungszeit."""
+        return self.occurred_at or self.created_at
 
     def save(self, *args, **kwargs):
         if self.pk:
-            orig_is_draft = (
-                ChecklistCompletion.objects.filter(pk=self.pk)
-                .values_list("is_draft", flat=True)
-                .first()
-            )
-            if not orig_is_draft:
-                raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
+            raise ValidationError("Checklisten-Abschlüsse dürfen nicht verändert werden.")
         self.full_clean()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        if not self.is_draft:
-            raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
-        super().delete(*args, **kwargs)
+        raise ValidationError("Checklisten-Abschlüsse dürfen nicht gelöscht werden.")
+
+
+class ChecklistDraft(models.Model):
+    """Zwischenstand eines Checklisten-Laufs: veränderbar, kein Nachweis.
+
+    Je Wache und Checkliste gibt es höchstens einen Zwischenstand. Die
+    Besatzung teilt ihn, damit die nächste Person weitermachen kann. Der
+    Abschluss legt einen ``ChecklistCompletion`` an und löscht den
+    Zwischenstand; ``housekeeping`` löscht Zwischenstände, die 30 Tage nicht
+    geändert wurden.
+    """
+
+    RETENTION_DAYS = 30
+
+    station = models.ForeignKey(Station, on_delete=models.PROTECT, related_name="checklist_drafts")
+    checklist = models.ForeignKey(Checklist, on_delete=models.CASCADE, related_name="drafts")
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    updated_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    item_results = models.JSONField("Ergebnisse je Prüfpunkt", default=dict, blank=True)
+    note = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["station", "checklist"], name="checklist_draft_one_per_station"),
+        ]
+        indexes = [models.Index(fields=["updated_at"], name="checklist_draft_updated_idx")]
+
+    def clean(self):
+        super().clean()
+        if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
+            raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+
+    def save(self, *args, **kwargs):
+        if self.checklist_id and self.station_id and self.checklist.station_id != self.station_id:
+            raise ValidationError("Checkliste gehört nicht zu dieser Wache.")
+        super().save(*args, **kwargs)
 
 
 ChecklistTemplate = Checklist
