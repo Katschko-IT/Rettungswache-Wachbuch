@@ -68,7 +68,8 @@ Für reproduzierbare CI-Qualitätswerkzeuge gilt derselbe Fail-Closed-Grundsatz:
 aufgelöste Version und SHA256-Hashes. Der separate Audit-Scanner steht in
 `requirements-audit.in`/`requirements-audit.lock`, damit seine transitiven
 Werkzeuge die Produktions-/Lint-Umgebung nicht verändern. Die CI verwendet
-Ruff für den E4/E7/E9-Baseline-Gate und `pip-audit` für den reproduzierbaren
+Ruff für den Baseline-Gate (E4/E7/E9 sowie F63/F7/F82: fehlerhafte Vergleiche,
+Syntaxfehler und undefinierte Namen wie ein fehlender Import) und `pip-audit` für den reproduzierbaren
 Dependency-Vulnerability-Scan. Die vollständige Formatpruefung und eine
 breitere Regelmenge bleiben wegen des bestehenden Altbestands bewusst separate
 Folge-Schritte.
@@ -81,7 +82,7 @@ uv pip compile --generate-hashes --python-version 3.13 \
 pip install --require-hashes -r requirements.lock -r requirements-ci.lock
 pip install --require-hashes -r requirements-audit.lock  # in isolierter Audit-venv
 pip-audit --strict --requirement requirements.lock
-ruff check config core --select E4,E7,E9 --output-format=concise
+ruff check config core --select E4,E7,E9,F63,F7,F82 --output-format=concise
 ```
 
 Die CI verweigert die Installation, wenn ein Paket oder Hash in der Lock-Datei

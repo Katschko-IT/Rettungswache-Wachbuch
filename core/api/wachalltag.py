@@ -27,6 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from core.access import CONTENT_ROLES
+from core.defect_refs import filter_defects_by_reference
 from core.device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
 from core.models import Checklist, HandoverEntry, Membership
 from core.services import acknowledge_handover, audit
@@ -277,7 +278,6 @@ def api_root(request):
     return _json_response_from(response, data)
 
 
-@csrf_exempt
 def _station_modules(station_obj, existing_modules=None):
     existing = existing_modules or {}
     fleet = getattr(station_obj, "fleet_enabled", True) if station_obj else True
@@ -298,6 +298,7 @@ def _station_modules(station_obj, existing_modules=None):
     }
 
 
+@csrf_exempt
 @require_GET
 def me(request):
     response = base.me(request)
@@ -509,9 +510,11 @@ def defects_list(request):
             qs = qs.filter(due_at__lt=timezone.now()).exclude(status=Defect.Status.DONE)
         if request.GET.get("active") in {"1", "true", "yes"}:
             qs = qs.exclude(status=Defect.Status.DONE)
-        asset_filter = request.GET.get("asset") or request.GET.get("asset_ref")
+        asset_filter = (request.GET.get("asset") or request.GET.get("asset_ref") or "").strip()
         if asset_filter:
-            qs = qs.filter(Q(asset_ref__iexact=asset_filter) | Q(asset_ref__icontains=asset_filter))
+            # Exakt wie der Hinweis „bereits gemeldet“ im Browser: gleicher
+            # Schlüssel oder gleicher Text, nie Teilstrings („RTW 1“ ≠ „RTW 10“).
+            qs = filter_defects_by_reference(qs, station, asset_filter)
         limit = _int_param(request, "limit", default=100, minimum=1, maximum=200)
         offset = _int_param(request, "offset", default=0, minimum=0, maximum=10**6)
         total = qs.count()
