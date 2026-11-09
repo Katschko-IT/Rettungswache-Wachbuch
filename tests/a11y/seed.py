@@ -26,7 +26,7 @@ from django.contrib.auth.models import User  # noqa: E402
 
 from core.display_views import DEFAULT_DISPLAY_CONFIG, _hash  # noqa: E402
 from core.fleet_models import Vehicle  # noqa: E402
-from core.models import Checklist, DisplayToken, HandoverEntry, Station  # noqa: E402
+from core.models import Checklist, ChecklistCompletion, DisplayToken, HandoverEntry, Station  # noqa: E402
 from core.mpg_models import MedicalDevice  # noqa: E402
 from core.orga_models import SOPDocument  # noqa: E402
 from core.terminal import create_terminal_device, set_station_code  # noqa: E402
@@ -55,6 +55,7 @@ def main() -> None:
         "handover": first(HandoverEntry.objects, "pk"),
         "defect": first(Defect.objects, "pk"),
         "checklist": first(Checklist.objects, "pk"),
+        "run": first(ChecklistCompletion.objects, "pk"),
         "vehicle": first(Vehicle.objects, "slug"),
         "device": first(MedicalDevice.objects, "slug"),
         "sop": first(SOPDocument.objects, "slug"),

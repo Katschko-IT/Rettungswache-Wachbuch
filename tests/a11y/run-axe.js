@@ -68,6 +68,8 @@ function pagesFor(role) {
   const v = id('vehicle', 'demo-rtw-831');
   const m = id('device', 'demo-defi-rtw1');
   const s = id('sop', 'demo-sop-fahrzeugdesinfektion');
+  const c = id('checklist', 1);
+  const r = id('run', 1);
   if (role === 'anon') {
     return [
       ['landing', '/'],
@@ -94,6 +96,8 @@ function pagesFor(role) {
       ['defect-detail', `/maengel/${d}/`],
       ['checklists-run', '/checklisten/'],
       ['checklist-schedules', '/checklisten/intervalle/'],
+      ['checklist-history', `/checklisten/verlauf/${c}/`],
+      ['checklist-run-detail', `/checklisten/verlauf/lauf/${r}/`],
       ['tasks', '/aufgaben/'],
       ['fleet', '/fuhrpark/'],
       ['vehicle-detail', `/fuhrpark/v/${v}/`],
@@ -115,6 +119,7 @@ function pagesFor(role) {
       ['news', '/neuigkeiten/'],
       ['more', '/mehr/'],
       ['account', '/konto/'],
+      ['reminder-settings', '/konto/erinnerungen/'],
       ['paper', '/papier/'],
       ['audit-log', '/audit/'],
     ];
@@ -126,7 +131,9 @@ function pagesFor(role) {
       ['defect-form', '/maengel/neu/'],
       ['defect-form-phone', '/maengel/neu/', PHONE],
       ['checklists-run', '/checklisten/'],
+      ['checklist-history', `/checklisten/verlauf/${c}/`],
       ['sop-detail', `/orga/sop/${s}/`],
+      ['reminder-settings', '/konto/erinnerungen/'],
       ['coffee', '/kaffeekasse/'],
       ['calendar', '/kalender/'],
     ];
