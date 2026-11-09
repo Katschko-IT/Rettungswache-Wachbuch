@@ -483,11 +483,17 @@
    und bleibt in der Breite der Fußzeile (min-width: 0); display.js kürzt ihn
    auf die Titel, die hineinpassen. */
 [data-display-pinboard-news] {
-  flex: 1 1 auto;
   display: flex;
   justify-content: center;
+  align-items: center;
   min-width: 0;
   max-width: 100%;
+}
+
+/* Nur in der Fußzeile (Zeile) wächst der Ticker in die Breite; in eine Spalte
+   verschoben (Anordnung je Bildschirm) bleibt er so hoch wie sein Inhalt. */
+.display-footer [data-display-pinboard-news] {
+  flex: 1 1 auto;
 }
 
 [data-display-pinboard-news][hidden] {
