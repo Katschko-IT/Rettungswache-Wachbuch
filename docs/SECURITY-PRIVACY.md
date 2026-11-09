@@ -58,6 +58,13 @@ Dieses Dokument ist keine Rechtsberatung.
   Neudruck werden nur leere Blätter vernichtet; ausgefüllte Blätter sind
   Nachweise und bleiben als Original bei der Wachleitung (Aufbewahrung offen,
   docs/OFFLINE-BETRIEB.md § 7).
+- Nachtrag vom Papierbogen (0.28): Übergaben, Fahrzeugübernahmen,
+  Desinfektionen und Funktionskontrollen tragen dann Ereigniszeit laut Bogen
+  und Erfassungszeit und sind überall als Nachtrag gekennzeichnet. Nur mit
+  persönlichem Konto, nicht am Wachenterminal (Formular, Ansicht und
+  App-Schnittstelle). Das Audit nennt nur Häkchen und Ereigniszeit, keine
+  Freitexte. Die Sichtbarkeit von Stufe, Einwirkzeit und Bemerkung einer
+  Desinfektion bleibt wie in Entscheidung D2.
 
 ## Nachweise
 

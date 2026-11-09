@@ -143,7 +143,9 @@ Verlauf, Einzellauf und CSV-Export der Läufe (`/checklisten/verlauf/`).
 **Abwägung:** Ein gemeinsamer Code ist schneller als persönliche Anmeldungen, macht
 Einträge aber nicht einer Person zuordenbar. Für Übergaben, Aufgaben und Hinweise ist
 das auf Wunsch der Wache so gewollt; für alles mit persönlicher Verantwortung bleibt
-der Bereich am Terminal gesperrt.
+der Bereich am Terminal gesperrt. Dazu gehört der Nachtrag vom Papierbogen: Am
+Terminal fehlt er im Übergabeformular, und ein trotzdem gesendeter Nachtrag wird
+abgewiesen (docs/OFFLINE-BETRIEB.md, „Nachtrag vom Papierbogen“).
 
 ## 6. App im WLAN der Wache
 
