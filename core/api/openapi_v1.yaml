@@ -343,14 +343,17 @@ paths:
       description: |
         One shared validation for web and app. A final run needs item_results for the checklist's
         items (missing or empty results are a 400), every required item rated, a reason for `na`,
-        and a value for measurement items rated `ok` or `not_ok`. A value outside the limits turns
-        the item into `not_ok` with an automatic reason. NaN, Infinity, values beyond
+        and a value for measurement items rated `ok` or `not_ok`. On a final run a value outside
+        the limits turns the item into `not_ok` with an automatic reason; a draft keeps the status
+        and reason as sent. NaN, Infinity, values beyond
         999999.99, unknown item ids, non-object entries and non-boolean flags are a 400.
         A final run is stored once (append-only), deletes the shared draft, creates a defect for
         each `not_ok` item unless an open defect of the same checklist item exists (then the
-        result links to it, see `defects_linked`), and advances the recurring due date. The
-        terminal service account cannot finalize checklists with `requires_personal_login` and
-        cannot backfill.
+        result links to it, see `defects_linked`), and advances the recurring due date. A paper
+        backfill advances it from its `occurred_at`, so `due_next` may stay in the past and
+        `overdue` stays true for later cycles without a run; a backfill older than the current
+        cycle leaves it unchanged. The terminal service account cannot finalize checklists with
+        `requires_personal_login` and cannot backfill.
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       requestBody:
         required: true
@@ -384,7 +387,7 @@ paths:
         "200": { description: Draft or null, content: { application/json: { schema: { $ref: "#/components/schemas/ChecklistDraftResponse" } } } }
         "404": { $ref: "#/components/responses/Error" }
     post:
-      summary: Save (replace) the shared draft; same item rules as a run, without the completeness checks
+      summary: Save (replace) the shared draft; same input rules as a run, without the completeness and limit checks
       parameters: [{$ref: "#/components/parameters/IntegerId"}]
       requestBody:
         required: true
