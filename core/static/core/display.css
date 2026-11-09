@@ -128,6 +128,13 @@
     min-height: 0;
     overflow: hidden;
   }
+
+  /* Letzter Ausweg in sehr niedrigen Fenstern (display.js, fitRegions):
+     lieber scrollen als still abschneiden. */
+  .display-column.is-scrollable,
+  .display-traffic-strip.is-scrollable {
+    overflow-y: auto;
+  }
 }
 
 .display-header {
@@ -472,10 +479,19 @@
   outline-offset: 2px;
 }
 
-/* Der zentrierte Ticker bleibt in der Breite der Fußzeile; zu langer Text
-   wird im Ticker selbst abgeschnitten statt links aus dem Bild zu laufen. */
+/* Der Ticker nimmt den Platz zwischen dringenden Übergaben und Hinweis ein
+   und bleibt in der Breite der Fußzeile (min-width: 0); display.js kürzt ihn
+   auf die Titel, die hineinpassen. */
 [data-display-pinboard-news] {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
   max-width: 100%;
+}
+
+[data-display-pinboard-news][hidden] {
+  display: none;
 }
 
 /* Ohne Tastatur (Handy, Tablet) gibt es kein Esc. */
@@ -585,28 +601,53 @@ body.is-display-open {
   border: 0;
 }
 
-/* Ticker & Regionen im Wachen-Display */
+/* Ticker & Regionen im Wachen-Display.
+   Die Titel stehen in einem eigenen Block (.display-ticker-text), damit ein
+   zu langer einzelner Titel sichtbar mit „…“ endet; was nicht in die Zeile
+   passt, zählt display.js als „+N weitere“ (.display-ticker-more). */
 .display-ticker {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
   font-size: clamp(1rem, calc(1.3 * var(--vw, 1vw)), 1.4rem);
   color: var(--display-accent, #7fb2ff);
   background: rgba(11, 22, 34, 0.65);
   border: 1px solid var(--display-line);
   border-radius: 9999px;
   padding: 0.35rem 1.2rem;
-  max-width: 60%;
-  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.display-ticker-text {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.display-ticker-more {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--display-text, #f4f7fb);
+}
+
+.display-ticker-more[hidden] {
+  display: none;
 }
 
 /* Schmale Bildschirme: Ticker umbrechen statt die Seite zu verbreitern. */
 @media (max-width: 900px) {
   .display-ticker {
-    max-width: 100%;
-    white-space: normal;
+    flex-wrap: wrap;
     border-radius: 1rem;
+  }
+
+  .display-ticker-text {
+    white-space: normal;
   }
 }
 

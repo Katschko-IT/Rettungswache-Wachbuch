@@ -21,7 +21,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .access import CONTENT_ROLES, get_membership, membership_required
 from .models import Membership
-from .display import display_payload
+from .display import display_payload, strip_emoji, without_emoji
 from .display_models import DEFAULT_DISPLAY_CONFIG, DisplayToken
 
 COOKIE_NAME = "rwsth_display"
@@ -125,12 +125,20 @@ def display_home(request):
     return _harden(
         render(request, "core/display.html", {
             "display_station": station,
+            "display_station_name": strip_emoji(station.name),
             # Über die Sitzung geöffnet (Handy, PC, Vorschau): Rückweg anbieten.
             "display_via_session": token_record is None,
             # Demo-Besuch: nur Abfragen, kein Livestream (siehe display_stream).
             "display_poll_only": _is_demo_visit(request),
         })
     )
+
+
+def _layout_config(token_record):
+    """Anordnung des Bildschirms; Überschriften ohne Emojis (wie alle Texte)."""
+    if token_record and getattr(token_record, "layout_config", None):
+        return without_emoji(token_record.layout_config)
+    return DEFAULT_DISPLAY_CONFIG
 
 
 @require_GET
@@ -143,10 +151,7 @@ def display_data(request):
         )
     payload = display_payload(station)
     payload["app_version"] = _app_version()
-    if token_record and getattr(token_record, "layout_config", None):
-        payload["layout_config"] = token_record.layout_config
-    else:
-        payload["layout_config"] = DEFAULT_DISPLAY_CONFIG
+    payload["layout_config"] = _layout_config(token_record)
     return _harden(JsonResponse(payload))
 
 
@@ -255,10 +260,7 @@ def display_stream(request):
     def stream_generator():
         payload = display_payload(station)
         payload["app_version"] = _app_version()
-        if token_record and getattr(token_record, "layout_config", None):
-            payload["layout_config"] = token_record.layout_config
-        else:
-            payload["layout_config"] = DEFAULT_DISPLAY_CONFIG
+        payload["layout_config"] = _layout_config(token_record)
 
         yield f"event: update\ndata: {json.dumps(payload)}\n\n"
 
@@ -305,11 +307,7 @@ def display_stream(request):
                     return
                 payload = display_payload(station)
                 payload["app_version"] = _app_version()
-                payload["layout_config"] = (
-                    token_record.layout_config
-                    if (token_record and getattr(token_record, "layout_config", None))
-                    else DEFAULT_DISPLAY_CONFIG
-                )
+                payload["layout_config"] = _layout_config(token_record)
                 current_h = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
                 if got_redis_msg or current_h != last_hash:
                     last_hash = current_h

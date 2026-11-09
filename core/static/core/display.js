@@ -119,14 +119,11 @@
   function capList(list) {
     var max = parseInt(list.getAttribute("data-max-rows") || "0", 10);
     var rows = dataRows(list);
-    if (!max || rows.length <= max) {
-      setMore(list, 0);
-      return;
-    }
+    var limit = max && rows.length > max ? max : rows.length;
     rows.forEach(function (row, index) {
-      row.hidden = index >= max;
+      row.hidden = index >= limit;
     });
-    setMore(list, rows.length - max);
+    setMore(list, rows.length - limit);
   }
 
   function overflows(element) {
@@ -135,12 +132,19 @@
 
   /* Passt eine Spalte trotz Obergrenze nicht in ihre Rasterzeile (lange
    * Titel, kleiner Bildschirm), wird die längste Liste darin um je eine Zeile
-   * gekürzt, bis alles passt. Auf schmalen Bildschirmen scrollt die Seite. */
+   * gekürzt, bis alles passt. Reicht auch das nicht (sehr niedriges Fenster
+   * über die Sitzung), bleiben die Listen bei ihrer Obergrenze und die Spalte
+   * lässt sich scrollen (is-scrollable), statt still abzuschneiden. Im
+   * Kiosk-Rahmen prüft das die CI (Job a11y). Auf schmalen Bildschirmen
+   * scrollt die Seite. */
   function fitRegions(root) {
+    var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
+    Array.prototype.forEach.call(regions, function (region) {
+      region.classList.remove("is-scrollable");
+    });
     if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
       return;
     }
-    var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
     Array.prototype.forEach.call(regions, function (region) {
       var guard = 60;
       while (overflows(region) && guard > 0) {
@@ -168,6 +172,10 @@
         var shown = rows.filter(function (row) { return !row.hidden; });
         shown[shown.length - 1].hidden = true;
         setMore(best, rows.length - shown.length + 1);
+      }
+      if (overflows(region)) {
+        Array.prototype.forEach.call(region.querySelectorAll("[data-max-rows]"), capList);
+        region.classList.add("is-scrollable");
       }
     });
   }
@@ -468,25 +476,46 @@
     });
   }
 
+  /* Laufschrift aus Pinnwand und Neuigkeiten: höchstens data-max-items Titel
+   * und nur so viele, wie in die Zeile passen; der Rest steht als
+   * „+N weitere“ daneben. Ein einzelner zu langer Titel endet sichtbar mit
+   * „…“ (CSS). Abgeschnitten wird nie still. */
   function renderPinboardNews(root, pinboard, news) {
     var container = root.querySelector("[data-display-pinboard-news]");
     var textNode = root.querySelector("[data-display-ticker-text]");
     if (!container || !textNode) {
       return;
     }
+    var ticker = textNode.parentNode;
+    var moreNode = root.querySelector("[data-display-ticker-more]");
     var items = [];
-    (pinboard || []).forEach(function (p) {
-      items.push(p.title);
+    (pinboard || []).concat(news || []).forEach(function (entry) {
+      if (entry && entry.title) {
+        items.push(entry.title);
+      }
     });
-    (news || []).forEach(function (n) {
-      items.push(n.title);
-    });
-    if (!items.length) {
+    if (!items.length || container.hasAttribute("data-module-off")) {
       container.hidden = true;
       return;
     }
-    textNode.textContent = items.join("   ·   ");
     container.hidden = false;
+    var max = parseInt(ticker.getAttribute("data-max-items") || "0", 10) || items.length;
+    var shown = Math.min(items.length, max);
+
+    function paint(count) {
+      textNode.textContent = items.slice(0, count).join("   ·   ");
+      var rest = items.length - count;
+      if (moreNode) {
+        moreNode.textContent = rest ? "+" + rest + " " + moreLabel(ticker) : "";
+        moreNode.hidden = !rest;
+      }
+    }
+
+    paint(shown);
+    while (shown > 1 && textNode.scrollWidth > textNode.clientWidth + 1) {
+      shown -= 1;
+      paint(shown);
+    }
   }
 
   var audioCtx = null;

@@ -11,7 +11,7 @@
       <p class="display-date" data-display-date></p>
     </div>
     <div class="display-region region-top-center" data-region="top_center">
-      <p class="display-station">{{ display_station.name }}</p>
+      <p class="display-station">{{ display_station_name }}</p>
     </div>
     <div class="display-region region-top-right" data-region="top_right"></div>
   </header>
@@ -98,8 +98,9 @@
         <span class="display-urgent-label">{% translate "dringende Übergaben" %}</span>
       </p>
     </div>
+    {# Laufschrift: höchstens vier Titel, so viele wie in die Zeile passen, der Rest als „+N weitere“. #}
     <div data-module-container="pinboard_news" data-display-pinboard-news hidden>
-      <p class="display-ticker"><span data-display-ticker-text></span></p>
+      <p class="display-ticker" data-max-items="4"><span class="display-ticker-text" data-display-ticker-text></span><span class="display-ticker-more" data-display-ticker-more hidden></span></p>
     </div>
     <p class="display-hint" data-display-hint>{% translate "Esc beendet die Anzeige" %}</p>
   </footer>

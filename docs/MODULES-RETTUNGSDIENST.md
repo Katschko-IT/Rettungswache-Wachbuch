@@ -180,15 +180,22 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   Fahrzeuge 6, Gerätefristen und Material je 4, Geburtstage, Müllabfuhr, dringende
   Tagesaufgaben und Verkehr je 3). Was darüber hinausgeht oder nicht in die Spalte passt,
   steht als „+N weitere“ am Ende der Liste. Dringende Übergaben und Laufschrift stehen in
-  der Fußzeile und bleiben immer im Bild.
+  der Fußzeile und bleiben immer im Bild. Die Laufschrift (Pinnwand und Neuigkeiten)
+  zeigt höchstens vier Titel und nur so viele, wie in die Zeile passen; der Rest steht
+  als „+N weitere“ daneben, ein einzelner zu langer Titel endet mit „…“. Ist ein Fenster
+  über die Sitzung so niedrig, dass auch gekürzte Listen nicht passen, lässt sich die
+  Spalte scrollen, statt still abgeschnitten zu werden.
 - **Keine Emojis** auf dem Display; Zustand und Stufe stehen als Text, Farbe nur als
-  Randstreifen.
+  Randstreifen. Emojis in Titeln, die Nutzer eingeben (Kalender, Pinnwand, Neuigkeiten,
+  Modulüberschriften, Wachenname), entfernt der Server vor der Anzeige.
 - Die Leiste „Vollbild starten“ erscheint im Kiosk nur beim Start und kurz nach einer
   Bewegung oder Taste, damit sie die Fußzeile nicht dauerhaft verdeckt.
 - Geprüft im Browser durch den CI-Job `a11y` (`tests/a11y/run-axe.js`): bei 1920x1080 und
   1280x720 kein Scrollen, Raster 16:9 (Abweichung höchstens 0,02), kein sichtbares Element
-  außerhalb von Raster oder Bildschirm, keine abgeschnittene Spalte, keine Emojis;
-  Bildschirmfotos als Artefakt.
+  außerhalb von Raster oder Bildschirm, keine abgeschnittene Spalte, nichts seitlich ohne
+  sichtbares „…“ abgeschnitten (auch nicht die Laufschrift), keine Emojis; dazu die
+  Ansicht über die Sitzung bei 1366x600 (nichts still abgeschnitten). Bildschirmfotos als
+  Artefakt.
 
 ---
 

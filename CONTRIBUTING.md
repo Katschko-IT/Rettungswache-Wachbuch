@@ -101,7 +101,10 @@ axe-core und Playwright (gesperrt in `tests/a11y/package-lock.json`):
   jeder Fund der Schwere critical oder serious lässt den Job scheitern,
 - das Wand-Display über den Display-Link bei 1920x1080 und 1280x720 (kein
   Scrollen, Raster 16:9 auf 0,02 genau, kein sichtbares Element außerhalb von
-  Raster oder Bildschirm, keine abgeschnittene Spalte, keine Emojis),
+  Raster oder Bildschirm, keine abgeschnittene Spalte, nichts seitlich ohne
+  sichtbares „…“ abgeschnitten, auch nicht die Laufschrift, keine Emojis),
+- die Ansicht des Displays über die Sitzung in einem niedrigen Fenster
+  (1366x600): nichts still abgeschnitten, kein seitliches Scrollen,
 - das Mangelformular bei 390x844 ohne seitliches Scrollen.
 
 Bericht und Bildschirmfotos liegen als Artefakt `a11y-report` am Lauf. Lokal
@@ -109,13 +112,18 @@ Bericht und Bildschirmfotos liegen als Artefakt `a11y-report` am Lauf. Lokal
 die gehashten CSS-Dateien):
 
 ```bash
-export DJANGO_SECRET_KEY=test-only DJANGO_DEBUG=false DEMO_MODE=true   TERMINAL_ENABLED=true TERMINAL_CODE=1234 SECURE_COOKIES=false   BASE_URL=http://127.0.0.1:8765 DATABASE_URL=sqlite:////tmp/a11y/db.sqlite3
+mkdir -p /tmp/a11y
+export DJANGO_SECRET_KEY=test-only DJANGO_DEBUG=false DEMO_MODE=true \
+  TERMINAL_ENABLED=true TERMINAL_CODE=1234 SECURE_COOKIES=false \
+  BASE_URL=http://127.0.0.1:8765 DATABASE_URL=sqlite:////tmp/a11y/db.sqlite3
 python manage.py migrate --noinput && python manage.py load_demo_data
 python manage.py collectstatic --noinput
 python tests/a11y/seed.py > /tmp/a11y/seed.json
-GUNICORN_BIND=127.0.0.1:8765 gunicorn --config config/gunicorn.py --daemon   --pid /tmp/a11y/gunicorn.pid config.wsgi:application
+GUNICORN_BIND=127.0.0.1:8765 gunicorn --config config/gunicorn.py --daemon \
+  --pid /tmp/a11y/gunicorn.pid config.wsgi:application
 cd tests/a11y && npm ci --ignore-scripts && npx playwright install chromium
 SEED_JSON=/tmp/a11y/seed.json OUT_DIR=/tmp/a11y/out node run-axe.js
+kill "$(cat /tmp/a11y/gunicorn.pid)"
 ```
 
 `A11Y_ROLES` und `A11Y_THEMES` schränken einen lokalen Lauf ein (z. B.

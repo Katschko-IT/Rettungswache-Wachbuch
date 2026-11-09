@@ -5,9 +5,14 @@ Besucher sehen dürfte. Deshalb enthält dieser Baustein ausschließlich
 aggregierte Angaben und keine Freitexte aus Übergaben, keine Namen von
 Mitarbeitenden außer einem ausdrücklich freigegebenen Geburtstagsvornamen und
 keine Beträge oder Kontaktdaten.
+
+Auf dem Display stehen keine Emojis (ROADMAP 0.28): Auch Emojis aus Titeln,
+die Nutzer eingeben (Kalender, Pinnwand, Neuigkeiten, Modulüberschriften),
+entfernt ``without_emoji`` vor der Ausgabe.
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 
 from django.utils import timezone
@@ -15,6 +20,39 @@ from django.utils.translation import gettext as _
 
 from .models import BirthdayPreference, CalendarEvent, HandoverEntry, WasteCollection
 from .task_board import day_board
+
+
+# Emoji-Blöcke und ihre Bausteine (Varianten-Selektoren, Verbinder,
+# Tastenkappe, Flaggen-Tags). Pfeile, °, ₂, „“ und – bleiben erhalten.
+_EMOJI = re.compile(
+    "["
+    "\U0001F000-\U0001FAFF"  # Spielsteine, Karten, Symbole, Emoticons, Verkehr, Flaggen
+    "\u2600-\u27BF"  # Verschiedene Symbole, Dingbats
+    "\u2B00-\u2BFF"  # Symbole und Pfeile (Stern, Quadrate)
+    "\u231A\u231B\u23E9-\u23FA\u24C2\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE"
+    "\u2934\u2935\u3030\u303D\u3297\u3299"
+    "\u200D\u20E3\uFE0E\uFE0F"
+    "\U000E0020-\U000E007F"
+    "]+"
+)
+
+
+def strip_emoji(value: str) -> str:
+    """Text ohne Emojis; dabei entstehende doppelte Leerzeichen fallen weg."""
+    if not value or not _EMOJI.search(value):
+        return value
+    return " ".join(_EMOJI.sub(" ", value).split())
+
+
+def without_emoji(data):
+    """``strip_emoji`` für jeden Text in Listen und Wörterbüchern (Kopie)."""
+    if isinstance(data, str):
+        return strip_emoji(data)
+    if isinstance(data, dict):
+        return {key: without_emoji(value) for key, value in data.items()}
+    if isinstance(data, (list, tuple)):
+        return [without_emoji(value) for value in data]
+    return data
 
 
 def _local_today(station):
@@ -271,7 +309,7 @@ def display_payload(station) -> dict:
         except Exception:  # noqa: BLE001
             warehouse_alerts = []
 
-    return {
+    payload = without_emoji({
         "station": station.name,
         "date": day.isoformat(),
         "events": events,
@@ -286,4 +324,8 @@ def display_payload(station) -> dict:
         "mpg_alerts": mpg_alerts[:5],
         "fleet_vehicles": fleet_vehicles,
         "warehouse_alerts": warehouse_alerts,
-    }
+    })
+    # Ein Titel nur aus Emojis bleibt leer: nicht als leerer Eintrag zeigen.
+    for key in ("pinboard", "news"):
+        payload[key] = [entry for entry in payload[key] if entry.get("title")]
+    return payload

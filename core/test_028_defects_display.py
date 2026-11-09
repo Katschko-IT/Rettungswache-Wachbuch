@@ -39,12 +39,14 @@ from core.fleet_models import Vehicle
 from core.models import (
     ApiToken,
     AuditEvent,
+    CalendarEvent,
     HandoverAttachment,
     HandoverEntry,
     Membership,
     NewsAttachment,
     NewsPost,
     PinboardAttachment,
+    PinboardNote,
     Station,
 )
 from core.mpg_models import MedicalDevice
@@ -756,6 +758,85 @@ class WallDisplayKioskTests(TestCase):
         self.assertNotIn(".display-grid-16x9 {\n  aspect-ratio", css)
 
 
+    def test_ticker_shows_what_fits_and_counts_the_rest(self):
+        self.client.cookies[DISPLAY_COOKIE] = self.raw
+        html = self.client.get(reverse("display_home")).content.decode()
+        self.assertRegex(
+            html,
+            r'<p class="display-ticker" data-max-items="\d+"><span class="display-ticker-text" data-display-ticker-text>'
+            r'</span><span class="display-ticker-more" data-display-ticker-more hidden></span></p>',
+        )
+        css = (ROOT / "core/static/core/display.css").read_text(encoding="utf-8")
+        text_block = re.search(r"\n\.display-ticker-text \{(.*?)\}", css, re.S).group(1)
+        for rule in ("min-width: 0;", "overflow: hidden;", "text-overflow: ellipsis;", "white-space: nowrap;"):
+            self.assertIn(rule, text_block)
+        # Die Ellipse sitzt am Textblock, nicht am Flex-Container (dort wirkt sie nicht).
+        ticker_block = re.search(r"\n\.display-ticker \{(.*?)\}", css, re.S).group(1)
+        self.assertNotIn("text-overflow", ticker_block)
+        script = (ROOT / "core/static/core/display.js").read_text(encoding="utf-8")
+        self.assertIn("textNode.scrollWidth > textNode.clientWidth + 1", script)
+        self.assertIn('moreLabel(ticker)', script)
+        # Sitzungsansicht in sehr niedrigen Fenstern: scrollen statt still abschneiden.
+        self.assertIn('region.classList.add("is-scrollable")', script)
+        self.assertIn(".display-column.is-scrollable", css)
+
+
+class DisplayEmojiTests(TestCase):
+    """Keine Emojis auf dem Display, auch nicht aus Texten, die Nutzer eingeben."""
+
+    EMOJI = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B50\uFE0F]")
+
+    def setUp(self):
+        self.station = Station.objects.create(
+            name="Wache 🚑 Nord", slug="wache-emoji", display_enabled=True, calendar_enabled=True, pinboard_enabled=True,
+        )
+        self.user = User.objects.create_user("emoji", password="x-test-pass-123")
+        Membership.objects.create(user=self.user, station=self.station, role=Membership.Role.ADMIN)
+        self.raw = "display-token-for-p3-emoji-1234567890"
+        DisplayToken.objects.create(
+            station=self.station, label="Flur", token_hash=display_hash(self.raw), created_by=self.user,
+            layout_config={"modules": [{
+                "id": "events", "module": "events", "position": "middle_left", "enabled": True,
+                "header": "Heute 📅", "config": {},
+            }]},
+        )
+
+    def test_strip_emoji_keeps_ordinary_symbols(self):
+        from core.display import strip_emoji
+
+        self.assertEqual(strip_emoji("Grillen 🔥 heute"), "Grillen heute")
+        self.assertEqual(strip_emoji("👨‍👩‍👧 Familie 🇩🇪"), "Familie")
+        self.assertEqual(strip_emoji("Kaffee ☕️ ✅ fertig ⭐"), "Kaffee fertig")
+        self.assertEqual(strip_emoji("🔥🔥"), "")
+        plain = "O₂ 200 bar · 21 °C – „Übergabe“ → 1/2 … ©"
+        self.assertEqual(strip_emoji(plain), plain)
+
+    def test_payload_and_page_carry_no_user_emoji(self):
+        from core.display import _day_bounds, _local_today
+
+        day, tz = _local_today(self.station)
+        start, _end = _day_bounds(day, tz)
+        CalendarEvent.objects.create(
+            station=self.station, title="Grillen 🔥 heute", starts_at=start + timedelta(hours=12),
+            ends_at=start + timedelta(hours=13), created_by=self.user,
+        )
+        PinboardNote.objects.create(station=self.station, author=self.user, title="🔥🔥", body="x", is_pinned=True)
+        PinboardNote.objects.create(station=self.station, author=self.user, title="Dienstplan 📅 neu", body="x", is_pinned=True)
+        NewsPost.objects.create(station=self.station, title="Neu ✨", body="x", created_by=self.user)
+        self.client.cookies[DISPLAY_COOKIE] = self.raw
+        data = self.client.get(reverse("display_data")).json()
+        self.assertEqual([event["title"] for event in data["events"]], ["Grillen heute"])
+        self.assertEqual([note["title"] for note in data["pinboard"]], ["Dienstplan neu"])  # nur Emojis: weggelassen
+        self.assertEqual([post["title"] for post in data["news"]], ["Neu"])
+        self.assertEqual(data["station"], "Wache Nord")
+        self.assertEqual(data["layout_config"]["modules"][0]["header"], "Heute")
+        self.assertIsNone(self.EMOJI.search(json.dumps(data, ensure_ascii=False)))
+        html = self.client.get(reverse("display_home")).content.decode()
+        self.assertIn('<p class="display-station">Wache Nord</p>', html)
+        self.assertIsNone(self.EMOJI.search(html))
+        # Gespeichert bleibt, was eingegeben wurde; nur die Anzeige lässt Emojis weg.
+        self.assertTrue(CalendarEvent.objects.filter(title="Grillen 🔥 heute").exists())
+
 class AccessibilityTokenTests(TestCase):
     """Kontraste aus tokens.css, hell und dunkel (WCAG 1.4.3 und 1.4.11)."""
 
@@ -821,9 +902,21 @@ class A11yCiJobTests(TestCase):
         self.assertIn("const PHONE = { width: 390, height: 844 };", runner)
         self.assertIn("['defect-form-phone', '/maengel/neu/', PHONE]", runner)
         for check in ("document scrolls", "grid ratio", "elements outside the viewport", "elements clipped by the grid",
-                      "cut off inside the grid", "emoji in display text", "scrolls sideways"):
+                      "cut off inside the grid", "emoji in display text", "scrolls sideways",
+                      "cut off sideways without ellipsis", "need scrolling", "cut off silently"):
             self.assertIn(check, runner)
+        # Sitzungsansicht in einem niedrigen Fenster (fließend, ohne 16:9).
+        self.assertIn("const size = { width: 1366, height: 600 };", runner)
+        self.assertIn("${BASE}/display/", runner)
         self.assertIn("'critical,serious'", runner)
+
+    def test_local_recipe_creates_its_directory_and_keeps_line_breaks(self):
+        text = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        recipe = text[text.index("```bash\nmkdir -p /tmp/a11y\n"):]
+        recipe = recipe[: recipe.index("\n```", 8)]
+        self.assertIn("DATABASE_URL=sqlite:////tmp/a11y/db.sqlite3", recipe)
+        self.assertNotIn("   ", recipe)
+        self.assertIn("SECURE_COOKIES=false \\\n", recipe)
 
     def test_proxies_accept_a_photo_with_form_overhead(self):
         for path in ("deploy/pilot/nginx-https.conf.template", "deploy/pi/nginx.conf.template"):
