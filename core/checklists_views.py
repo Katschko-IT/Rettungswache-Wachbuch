@@ -45,6 +45,12 @@ from .wachalltag_models import Defect
 LEAD_ROLES = frozenset({Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN})
 LAST_RUN_SESSION_KEY = "checklist_last_run"
 EXPORT_DEFAULT_DAYS = 30
+# Grenzen des Export-Zeitraums: davor gibt es keine Läufe, danach keine (Läufe
+# liegen nie in der Zukunft); ein Jahr Spielraum für „bis Jahresende“. Auch
+# Datumswerte am Rand des Kalenders (0001-01-01, 9999-12-31) führen so zu
+# einer Meldung statt zu einem Fehler 500.
+EXPORT_EARLIEST = date(2000, 1, 1)
+EXPORT_LATEST_DAYS_AHEAD = 366
 
 TERMINAL_EVIDENCE_MESSAGE = gettext_lazy(
     "Checklisten mit Nachweischarakter sind am Wachenterminal gesperrt. "
@@ -255,6 +261,8 @@ def checklist_history(request, pk):
         "can_export": _is_lead(request.membership),
         "export_from": (today - timedelta(days=EXPORT_DEFAULT_DAYS)).isoformat(),
         "export_to": today.isoformat(),
+        "export_min": EXPORT_EARLIEST.isoformat(),
+        "export_max": (today + timedelta(days=EXPORT_LATEST_DAYS_AHEAD)).isoformat(),
     })
 
 
@@ -315,7 +323,8 @@ def checklist_runs_export(request, pk):
     today = timezone.localdate()
     start = _parse_day(request.GET.get("von")) if request.GET.get("von") else today - timedelta(days=EXPORT_DEFAULT_DAYS)
     end = _parse_day(request.GET.get("bis")) if request.GET.get("bis") else today
-    if start is None or end is None or start > end:
+    latest = today + timedelta(days=EXPORT_LATEST_DAYS_AHEAD)
+    if start is None or end is None or start > end or start < EXPORT_EARLIEST or end > latest:
         messages.error(request, _("Bitte einen gültigen Zeitraum angeben (von bis bis, als Datum)."))
         return redirect("checklist_history", pk=checklist.pk)
 

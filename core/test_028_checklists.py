@@ -533,9 +533,23 @@ class HistoryExportTests(ChecklistBase):
         self.assertEqual(self.export().status_code, 403)
         self.assertEqual(self.client.get(reverse("checklist_history", args=[self.checklist.pk])).status_code, 403)
         self.client.force_login(self.lead)
-        for params in ({"von": "kaputt"}, {"von": "2026-05-02", "bis": "2026-05-01"}):
+        today = timezone.localdate()
+        for params in (
+            {"von": "kaputt"},
+            {"von": "2026-05-02", "bis": "2026-05-01"},
+            # Ränder des Kalenders: Meldung statt Fehler 500.
+            {"von": "2026-01-01", "bis": "9999-12-31"},
+            {"von": "0001-01-01", "bis": "2026-01-01"},
+            {"von": "1999-12-31", "bis": "2026-01-01"},
+            {"von": "2026-01-01", "bis": (today + timedelta(days=367)).isoformat()},
+        ):
             with self.subTest(params=params):
-                self.assertEqual(self.export(**params).status_code, 302)
+                response = self.export(**params)
+                self.assertRedirects(
+                    response, reverse("checklist_history", args=[self.checklist.pk]), fetch_redirect_response=False,
+                )
+        # Innerhalb der Grenzen bleibt der Export möglich, auch „bis Jahresende“.
+        self.assertEqual(self.export(von="2000-01-01", bis=(today + timedelta(days=366)).isoformat()).status_code, 200)
 
     def test_quota_is_a_station_sum_for_leads_only(self):
         self.post_run(**{f"result_{self.item_opt.id}": "ok"})
