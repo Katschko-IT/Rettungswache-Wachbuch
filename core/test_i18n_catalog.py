@@ -286,6 +286,13 @@ class RepositoryCatalogTests(SimpleTestCase):
         for entry in parse_po(po):
             if not entry["msgid"]:
                 continue
+            if entry["plural"] is not None:
+                # Pluraleintrag (ngettext): beide Formen gefuellt, Einzahl nicht unuebersetzt.
+                for index in (0, 1):
+                    self.assertTrue(entry["msgstr_plural"].get(index, "").strip(), f"leer [{index}]: {entry['msgid']}")
+                if entry["msgstr_plural"][0] == entry["msgid"]:
+                    identical.add(entry["msgid"])
+                continue
             self.assertTrue(entry["msgstr"].strip(), f"leer: {entry['msgid']}")
             if entry["msgstr"] == entry["msgid"]:
                 identical.add(entry["msgid"])
