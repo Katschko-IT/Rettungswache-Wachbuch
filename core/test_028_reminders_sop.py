@@ -1021,9 +1021,19 @@ class SopAudienceTests(_StationMixin, TestCase):
     def test_draft_cannot_be_acknowledged(self):
         SOPDocument.objects.filter(pk=self.sop.pk).update(status=SOPDocument.Status.DRAFT)
         self.client.force_login(self.member)
+        # Die Zielgruppe wird bei einem Entwurf nicht zur Bestätigung aufgefordert.
+        page = self.client.get(reverse("sop_detail", args=[self.sop.slug]))
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, "Pflichtquittierung ausstehend")
+        self.assertNotContains(page, reverse("sop_acknowledge", args=[self.sop.slug]))
+        self.assertFalse(page.context["is_target"])
         response = self.client.post(reverse("sop_acknowledge", args=[self.sop.slug]), follow=True)
         self.assertContains(response, "noch ein Entwurf")
         self.assertFalse(SOPReceipt.objects.exists())
+        # In Kraft: dieselbe Person wird aufgefordert.
+        SOPDocument.objects.filter(pk=self.sop.pk).update(status=SOPDocument.Status.ACTIVE)
+        self.assertContains(self.client.get(reverse("sop_detail", args=[self.sop.slug])),
+                            "Pflichtquittierung ausstehend")
 
     def test_terminal_service_account_cannot_acknowledge(self):
         from core.orga_models import acknowledgement_refusal
@@ -1279,6 +1289,20 @@ class SopAppApiTests(_StationMixin, TestCase):
         self.assertEqual(self.client.post(f"/api/v1/dienstanweisungen/{foreign.pk}/quittieren/",
                                           **self.auth).status_code, 404)
         self.assertFalse(SOPReceipt.objects.exists())
+
+    def test_revision_must_be_a_whole_number(self):
+        url = f"/api/v1/dienstanweisungen/{self.sop.pk}/quittieren/"
+        for raw in ('{"revision": 1e999}', '{"revision": Infinity}', '{"revision": -Infinity}',
+                    '{"revision": NaN}', '{"revision": 1.5}', '{"revision": true}', '{"revision": "abc"}',
+                    '{"revision": "١٢"}', '{"revision": [1]}', '{"revision": "99999999999999999999999"}'):
+            with self.subTest(body=raw), self.assertLogs("django.request", "WARNING"):
+                response = self.client.post(url, data=raw, content_type="application/json", **self.auth)
+                self.assertEqual(response.status_code, 400, response.content)
+                self.assertEqual(response.json()["error"]["code"], "validation_error")
+        self.assertFalse(SOPReceipt.objects.exists())
+        text_id = self.client.post(url, data=json.dumps({"revision": f" {self.rev.pk} "}),
+                                   content_type="application/json", **self.auth)
+        self.assertEqual(text_id.status_code, 201)
 
     def test_auditor_is_refused(self):
         auditor = self.person(self.station, "a-auditor", Membership.Role.AUDITOR)

@@ -42,6 +42,23 @@ def _sop_json(sop, user, receipt, today, is_target: bool):
     }
 
 
+def _revision_id(value) -> int | None:
+    """Kennung der gelesenen Version: nur eine ganze Zahl oder Ziffern als Text.
+
+    ``1e999`` und ``Infinity`` liefert ``json.loads`` als ``float('inf')``;
+    Gleitkommazahlen und Wahrheitswerte gelten deshalb nie als Kennung.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if text.isascii() and text.isdigit() and len(text) <= 18:
+            return int(text)
+    return None
+
+
 def _refuse(request):
     if not base._scope_allowed(request.api_token, "read:me"):
         return base._json_error(request, "Scope read:me fehlt.", status=403)
@@ -109,9 +126,8 @@ def sop_ack(request, pk):
     expected = body.get("revision") if isinstance(body, dict) else None
     latest = sop.latest_revision
     if expected not in (None, ""):
-        try:
-            expected = int(expected)
-        except (TypeError, ValueError):
+        expected = _revision_id(expected)
+        if expected is None:
             return base._json_error(request, "revision muss eine Zahl sein.", status=400, code=ERROR_CODE_VALIDATION)
         if expected != latest.pk:
             # Inzwischen gibt es eine neue Version: erst lesen, dann bestätigen.

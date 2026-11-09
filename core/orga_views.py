@@ -138,9 +138,10 @@ def sop_detail(request, slug: str):
     recent_receipts = (
         sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20] if show_names else []
     )
-    # Nur die Zielgruppe wird zur Bestätigung aufgefordert; andere dürfen
-    # freiwillig bestätigen, das zählt aber nicht zur Quote.
-    is_target = sop.is_target_member(request.membership)
+    # Nur die Zielgruppe wird zur Bestätigung aufgefordert, und nur, solange
+    # die Dienstanweisung in Kraft ist (Entwürfe nehmen keine Bestätigung an);
+    # andere dürfen freiwillig bestätigen, das zählt aber nicht zur Quote.
+    is_target = sop.status == SOPDocument.Status.ACTIVE and sop.is_target_member(request.membership)
     can_acknowledge = acknowledgement_refusal(sop, request.membership) is None
 
     return render(
