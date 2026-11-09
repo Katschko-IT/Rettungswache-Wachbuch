@@ -567,6 +567,56 @@ class PaperBackfillTests(ChecklistBase):
         page = self.client.get(reverse("checklists"))
         self.assertNotContains(page, "Nachtrag von Papier (erfasst:")
 
+    def test_backfill_of_an_overdue_schedule_keeps_the_later_backlog_overdue(self):
+        # Täglich, seit fünf Tagen überfällig; nachgetragen wird nur der Bogen des ersten Tages.
+        due = timezone.now() - timedelta(days=5)
+        schedule = ChecklistSchedule.objects.create(
+            checklist=self.checklist, station=self.station, interval=ChecklistSchedule.Interval.DAILY, due_next=due,
+        )
+        sheet = timezone.localtime(due - timedelta(hours=1))
+        self.assertEqual(self.post_run(is_paper_backfill="1", occurred_at=sheet.strftime("%Y-%m-%dT%H:%M")).status_code, 302)
+        schedule.refresh_from_db()
+        # Ein Zyklus weiter, von der Ereigniszeit aus; die vier Tage danach bleiben offen.
+        self.assertEqual(schedule.due_next, due + timedelta(days=1))
+        self.assertLess(schedule.due_next, timezone.now())
+        # Ein Bogen aus einem späteren Zyklus schaltet bis hinter seine Ereigniszeit, nicht bis morgen.
+        later = timezone.localtime(due + timedelta(days=2, hours=1))
+        self.post_run(is_paper_backfill="1", occurred_at=later.strftime("%Y-%m-%dT%H:%M"))
+        schedule.refresh_from_db()
+        self.assertEqual(schedule.due_next, due + timedelta(days=3))
+        self.assertLess(schedule.due_next, timezone.now())
+        # Ein normaler Lauf jetzt beendet den Rückstand.
+        self.post_run()
+        schedule.refresh_from_db()
+        self.assertGreater(schedule.due_next, timezone.now())
+
+    def test_backfill_inside_the_current_cycle_advances_once(self):
+        due = timezone.now() + timedelta(hours=10)
+        schedule = ChecklistSchedule.objects.create(
+            checklist=self.checklist, station=self.station, interval=ChecklistSchedule.Interval.DAILY, due_next=due,
+        )
+        sheet = timezone.localtime(timezone.now() - timedelta(hours=2))
+        self.post_run(is_paper_backfill="1", occurred_at=sheet.strftime("%Y-%m-%dT%H:%M"))
+        schedule.refresh_from_db()
+        self.assertEqual(schedule.due_next, due + timedelta(days=1))
+
+    def test_api_backfill_of_an_overdue_schedule_reports_overdue(self):
+        due = timezone.now() - timedelta(days=5)
+        ChecklistSchedule.objects.create(
+            checklist=self.checklist, station=self.station, interval=ChecklistSchedule.Interval.DAILY, due_next=due,
+        )
+        response = self.api_post(reverse("api_v1_checkliste_erledigt", args=[self.checklist.id]), {
+            "item_results": {
+                str(self.item_temp.id): {"status": "ok", "value": "4,5"},
+                str(self.item_seal.id): {"status": "ok"},
+            },
+            "is_paper_backfill": True,
+            "occurred_at": (due - timedelta(hours=1)).isoformat(),
+        }, self.token())
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertTrue(response.json()["overdue"])
+        self.assertEqual(response.json()["due_next"], (due + timedelta(days=1)).isoformat())
+
     def test_backfill_shown_in_overview_with_event_and_entry_time(self):
         when = timezone.localtime() - timedelta(hours=5)
         self.post_run(is_paper_backfill="1", occurred_at=when.strftime("%Y-%m-%dT%H:%M"))

@@ -134,7 +134,7 @@ Fahrzeuge/Geräte besitzen einen operationalen Status (`ready`, `limited`, `work
 
 ### Quittierungen und Checklisten
 
-Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig. Ein Nachtrag vom Papierbogen, dessen Ereigniszeit vor dem laufenden Zyklus liegt, schreibt die Fälligkeit nicht fort.
+Eine Übergabe kann pro Benutzer einmal quittiert werden. Wiederkehrende Checklisten unterstützen täglich, wöchentlich und monatlich. Nach Abschluss wird die konfigurierte Kadenz bis zur ersten Fälligkeit in der Zukunft fortgeschrieben; lange Rückstände bleiben dadurch nicht künstlich weiter überfällig. Ein Nachtrag vom Papierbogen, dessen Ereigniszeit vor dem laufenden Zyklus liegt, schreibt die Fälligkeit nicht fort. Sonst rechnet der Nachtrag von seiner Ereigniszeit aus weiter, nicht von jetzt: Die Fälligkeit springt auf den ersten Termin nach dem Bogen und kann in der Vergangenheit liegen. Zyklen nach dem Bogen ohne eigenen Lauf bleiben so überfällig (`overdue: true`).
 
 Checklisten-Läufe (seit 0.28) prüfen Web und App mit derselben Logik (`core/checklists_service.py`):
 

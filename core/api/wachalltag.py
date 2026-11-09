@@ -397,11 +397,17 @@ def _step_schedule_back(value, interval):
     return _previous_month(value)
 
 
-def _advance_schedule(schedule):
-    """Advance exactly along the configured cadence to the first future due."""
-    now = timezone.now()
-    next_due = _step_schedule(schedule.due_next or now, schedule.interval)
-    while next_due <= now:
+def _advance_schedule(schedule, done_at=None):
+    """Advance exactly along the configured cadence to the first due after the run.
+
+    A normal run counts at ``now``, so the new due lies in the future. A paper
+    backfill counts at its event time ``done_at``: the due moves to the first
+    step after that time and may stay in the past, so cycles missed after the
+    paper sheet remain overdue.
+    """
+    reference = done_at or timezone.now()
+    next_due = _step_schedule(schedule.due_next or reference, schedule.interval)
+    while next_due <= reference:
         next_due = _step_schedule(next_due, schedule.interval)
     schedule.due_next = next_due
     schedule.save(update_fields=["due_next", "updated_at"])
@@ -412,14 +418,16 @@ def advance_checklist_schedule(checklist_id, done_at=None):
 
     ``done_at`` ist die Ereigniszeit eines Nachtrags vom Papierbogen. Liegt sie
     vor dem laufenden Zyklus (vor der Fälligkeit davor), gehört der Lauf zu
-    einem früheren Zyklus und die Fälligkeit bleibt stehen.
+    einem früheren Zyklus und die Fälligkeit bleibt stehen. Sonst rückt die
+    Fälligkeit von der Ereigniszeit aus weiter, nicht von jetzt: Zyklen nach
+    dem Papierbogen, für die noch kein Lauf vorliegt, bleiben überfällig.
     """
     schedule = ChecklistSchedule.objects.select_for_update().filter(checklist_id=checklist_id).first()
     if schedule is not None:
         if done_at is not None and schedule.due_next is not None:
             if done_at < _step_schedule_back(schedule.due_next, schedule.interval):
                 return schedule
-        _advance_schedule(schedule)
+        _advance_schedule(schedule, done_at=done_at)
     return schedule
 
 

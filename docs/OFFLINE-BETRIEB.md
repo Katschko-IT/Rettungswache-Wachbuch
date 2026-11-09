@@ -189,7 +189,10 @@ Hilfe (alle Rollen außer Auditor).
   Zeitpunkt laut Bogen erfassen (nicht in der Zukunft, höchstens 365 Tage
   zurück). Verlauf, Einzellauf und Export zeigen den Nachtrag mit
   Ereigniszeit und Eingabezeit; „Zuletzt erledigt“ und die Fälligkeit richten
-  sich nach der Ereigniszeit. Am Wachenterminal ist der Nachtrag gesperrt.
+  sich nach der Ereigniszeit. Die nächste Fälligkeit wird vom Zeitpunkt des
+  Bogens aus berechnet: Fehlen nach dem Bogen weitere Läufe, bleibt die
+  Checkliste überfällig, bis auch diese nachgetragen oder neu erledigt sind.
+  Am Wachenterminal ist der Nachtrag gesperrt.
 - **Offen:** Aufbewahrung und Vernichtung der ausgefüllten Blätter
   (handschriftliche Kürzel und Zeiten sind personenbezogene Daten) regelt das
   Löschkonzept (Datenschutzunterlagen 0.27, Entscheidung von Betreiber und
