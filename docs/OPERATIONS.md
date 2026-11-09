@@ -79,6 +79,11 @@ wache.example.org {
 ```
 
 Ein nginx-Beispiel steht in [DEPLOYMENT.md](DEPLOYMENT.md#eigener-proxy).
+Der Proxy muss Formulare mit einem Foto annehmen: höchstens 5 MiB je Datei plus
+Formulardaten. Die mitgelieferten nginx-Vorlagen (`deploy/pilot/`, `deploy/pi/`)
+setzen deshalb seit 0.28 `client_max_body_size 12M`, Caddy erlaubt 20 MB. Ein
+kleinerer Wert beantwortet „Mangel mit Foto“ mit 413, und alle Eingaben gehen
+verloren. Eigene Proxys bitte genauso einstellen.
 Hostname und HTTPS-Origin müssen in `ALLOWED_HOSTS` und
 `CSRF_TRUSTED_ORIGINS` stehen. Der Proxy muss `X-Forwarded-Proto` setzen und
 `X-Forwarded-For` überschreiben (nicht anhängen), wenn `TRUSTED_PROXY=true` gilt.
