@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
@@ -20,13 +20,24 @@ from django.views.decorators.http import require_http_methods
 
 from .access import CONTENT_ROLES, membership_required
 from .api.wachalltag import (
-    ALLOWED_ATTACHMENT_TYPES,
     MAX_ATTACHMENT_BYTES,
-    attachment_is_valid,
+    MAX_ATTACHMENT_TOTAL_BYTES,
+    MAX_ATTACHMENTS_PER_DEFECT,
     defect_attachment_limit_error,
 )
-from .attachments import normalize_image_to_jpeg, read_uploads
-from .device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
+from .attachments import read_upload, read_uploads
+from .defect_refs import (
+    ASSET_PREFIX,
+    CUSTOM_VALUE,
+    DEVICE_PREFIX,
+    VEHICLE_PREFIX,
+    build_reference_options,
+    duplicate_hint_data,
+    duplicates_for,
+    grouped_options,
+    resolve_reference,
+)
+from .device_status import IN_SERVICE, LOCKED_DEVICE_STATUSES, asset_locked_by_device, asset_release_blockers
 from .models import Checklist, Membership
 from .services import audit
 from .wachalltag_models import (
@@ -87,198 +98,201 @@ def defects(request):
     )
 
 
+DEFECT_FALLBACK_CATEGORY = Defect.Category.MATERIAL
+
+
+def _auto_defect_title(category, reference):
+    """Titel, wenn das Feld leer bleibt: „<Kategorie>: <Bezug>“ in Wachensprache."""
+    with translation.override(settings.LANGUAGE_CODE):
+        category_label = str(Defect.Category(category).label)
+        if reference:
+            return (_("%(category)s: %(reference)s") % {"category": category_label, "reference": reference})[:160]
+        return (_("%(category)s: ohne Bezug") % {"category": category_label})[:160]
+
+
+def _lock_device_for_defect(device, defect, actor, station):
+    """Wie die Meldung im Medizinproduktebuch: Ein gemeldeter Mangel sperrt das Gerät.
+
+    Freigeben darf danach nur Schichtleitung oder Admin im Medizinproduktebuch
+    (core/device_status.py). Ein bereits gesperrtes Gerät bleibt gesperrt.
+    """
+    from .mpg_models import MedicalDevice
+
+    locked = MedicalDevice.objects.select_for_update().get(pk=device.pk, station=station)
+    if locked.current_status in LOCKED_DEVICE_STATUSES:
+        return locked, False
+    previous = locked.current_status
+    locked.current_status = MedicalDevice.Status.OOB
+    with translation.override(settings.LANGUAGE_CODE):
+        locked.status_note = (_("Mangel #%(id)s gemeldet: %(title)s") % {"id": defect.pk, "title": defect.title})[:300]
+    locked.save(update_fields=["current_status", "status_note", "updated_at"])
+    audit(actor, station, "mpg.device_locked", locked, {"defect_id": defect.pk, "from": previous, "via": "defect_form"})
+    return locked, True
+
+
 @membership_required(allowed_roles=CONTENT_ROLES)
 @require_http_methods(["GET", "POST"])
 def defect_create(request):
+    """Mangel in drei Tipps.
+
+    Mit vorgewähltem Bezug (``?asset=`` von Fahrzeug, Gerät oder QR-Code)
+    genügen Foto, Auslösen und Speichern; Titel, Kategorie und Priorität sind
+    vorbelegt bzw. werden aus Kategorie und Bezug gebildet. Alle Bezüge werden
+    nur innerhalb der eigenen Wache aufgelöst (core/defect_refs.py).
+    """
+    from .demo_sandbox import tour_form_initial
+    from .terminal import is_service_user
+
     station = request.membership.station
-    assets = StationAsset.objects.filter(station=station).order_by("kind", "label")
-    open_defects = (
+    # Das Wachenterminal meldet keine Gerätemängel: Ein Gerätemangel sperrt das
+    # Medizinprodukt, und Medizingeräte bleiben persönlichen Konten vorbehalten.
+    options = build_reference_options(station, include_devices=not is_service_user(request.user))
+    open_defects = list(
         Defect.objects.filter(station=station)
         .exclude(status=Defect.Status.DONE)
         .select_related("owner", "created_by")
         .order_by(*DEFECT_WORKFLOW_ORDERING)
     )
-
-    from .demo_sandbox import tour_form_initial
-
     initial = tour_form_initial(request, "defect")
-
-    requested_ref = (
-        request.POST.get("asset_ref")
-        or request.POST.get("asset")
-        or request.GET.get("asset_ref")
-        or request.GET.get("asset")
-        or initial.get("asset_ref")
-        or initial.get("asset")
-        or ""
-    ).strip()
-
-    selected_asset = None
-    selected_asset_ref = requested_ref
-    if requested_ref:
-        for a in assets:
-            if (
-                str(a.pk) == requested_ref
-                or a.asset_id.lower() == requested_ref.lower()
-                or a.label.lower() == requested_ref.lower()
-            ):
-                selected_asset = a
-                selected_asset_ref = a.label
-                break
-
-    existing_open_defects_by_asset = {}
-    defects_by_asset_data = {}
-    for a in assets:
-        matching = [
-            d for d in open_defects
-            if (
-                d.asset_ref and (
-                    d.asset_ref.strip().lower() == a.label.strip().lower()
-                    or d.asset_ref.strip().lower() == a.asset_id.strip().lower()
-                    or a.label.strip().lower() in d.asset_ref.strip().lower()
-                    or d.asset_ref.strip().lower() in a.label.strip().lower()
-                )
-            )
-        ]
-        if matching:
-            existing_open_defects_by_asset[a.asset_id] = matching
-            existing_open_defects_by_asset[a.label] = matching
-            existing_open_defects_by_asset[str(a.pk)] = matching
-            defects_by_asset_data[a.label] = [
-                {
-                    "pk": d.pk,
-                    "title": d.title,
-                    "status": str(d.get_status_display()),
-                    "priority": str(d.get_priority_display()),
-                    "asset_ref": d.asset_ref,
-                    "url": reverse("defect_detail_web", args=[d.pk]),
-                }
-                for d in matching
-            ]
-            defects_by_asset_data[a.asset_id] = defects_by_asset_data[a.label]
-
-    already_reported_defects = []
-    if selected_asset:
-        already_reported_defects = existing_open_defects_by_asset.get(selected_asset.asset_id, [])
-    elif selected_asset_ref:
-        already_reported_defects = existing_open_defects_by_asset.get(
-            selected_asset_ref,
-            [
-                d for d in open_defects
-                if d.asset_ref and (
-                    d.asset_ref.strip().lower() == selected_asset_ref.strip().lower()
-                    or selected_asset_ref.strip().lower() in d.asset_ref.strip().lower()
-                    or d.asset_ref.strip().lower() in selected_asset_ref.strip().lower()
-                )
-            ]
-        )
+    errors = {}
 
     if request.method == "POST":
-        title = (request.POST.get("title") or "").strip()
-        if not title:
-            messages.error(request, _("Bitte einen Titel angeben."))
-        else:
-            priority = (
-                request.POST.get("priority")
-                or request.POST.get("priority_select")
-                or Defect.Priority.NORMAL
-            )
-            category = (
-                request.POST.get("category")
-                or request.POST.get("category_select")
-                or Defect.Category.TASK
-            )
-            if priority not in Defect.Priority.values or category not in Defect.Category.values:
-                messages.error(request, _("Priorität oder Kategorie ist ungültig."))
-            else:
-                owner = request.user if request.POST.get("owner_self") == "1" else None
-                due_at = _parse_local_datetime(request.POST.get("due_at"))
-                raw_files = (
-                    request.FILES.getlist("attachments")
-                    + request.FILES.getlist("photo")
-                    + request.FILES.getlist("camera")
-                )
-                uploads, upload_error = read_uploads(raw_files)
-                if upload_error:
-                    messages.error(request, upload_error)
-                    return redirect("defect_create_web")
-                asset_ref_val = (request.POST.get("asset_ref") or "").strip()
-                if asset_ref_val == "__custom__" or not asset_ref_val:
-                    asset_ref_val = (request.POST.get("asset_ref_custom") or "").strip()
-                for a in assets:
-                    if asset_ref_val == a.asset_id or asset_ref_val == str(a.pk):
-                        asset_ref_val = a.label
-                        break
+        posted_ref = (request.POST.get("asset_ref") or "").strip()
+        custom_text = (request.POST.get("asset_ref_custom") or "").strip()
+        selected = None
+        if posted_ref and posted_ref != CUSTOM_VALUE:
+            selected = resolve_reference(options, posted_ref)
+            if selected is None and posted_ref.startswith((VEHICLE_PREFIX, DEVICE_PREFIX, ASSET_PREFIX)):
+                errors["asset_ref"] = _("Dieser Bezug steht nicht zur Auswahl. Bitte neu wählen.")
+            elif selected is None:
+                # Älterer Client oder Vorlage: unbekannter Text bleibt freier Text.
+                custom_text, posted_ref = posted_ref, CUSTOM_VALUE
+        elif not posted_ref and custom_text:
+            # Ohne JavaScript: Freitext eingetragen, Auswahl nicht umgestellt.
+            posted_ref = CUSTOM_VALUE
+        selected_key = selected.key if selected else posted_ref
+        values = {
+            "title": (request.POST.get("title") or "").strip(),
+            "description": (request.POST.get("description") or "").strip(),
+            "due_at": request.POST.get("due_at") or "",
+            "priority": request.POST.get("priority") or request.POST.get("priority_select") or Defect.Priority.NORMAL,
+            "category": request.POST.get("category") or request.POST.get("category_select")
+            or (selected.category if selected else DEFECT_FALLBACK_CATEGORY),
+            "owner_self": request.POST.get("owner_self") == "1",
+        }
+    else:
+        requested = (
+            request.GET.get("asset") or request.GET.get("asset_ref")
+            or initial.get("asset_ref") or initial.get("asset") or ""
+        ).strip()
+        selected = resolve_reference(options, requested)
+        custom_text = "" if selected else requested
+        selected_key = selected.key if selected else (CUSTOM_VALUE if requested else "")
+        values = {
+            "title": initial.get("title", ""),
+            "description": initial.get("description", ""),
+            "due_at": initial.get("due_at", ""),
+            "priority": initial.get("priority") or Defect.Priority.NORMAL,
+            "category": initial.get("category") or (selected.category if selected else DEFECT_FALLBACK_CATEGORY),
+            "owner_self": True,
+        }
 
-                with transaction.atomic():
-                    item = Defect.objects.create(
+    if request.method == "POST":
+        if values["priority"] not in Defect.Priority.values or values["category"] not in Defect.Category.values:
+            errors["form"] = _("Priorität oder Kategorie ist ungültig.")
+        raw_files = (
+            request.FILES.getlist("attachments")
+            + request.FILES.getlist("photo")
+            + request.FILES.getlist("camera")
+        )
+        uploads, upload_error = read_uploads(raw_files, limit=MAX_ATTACHMENTS_PER_DEFECT)
+        if not upload_error and sum(upload.size for upload in uploads) > MAX_ATTACHMENT_TOTAL_BYTES:
+            upload_error = _("Alle Fotos zusammen dürfen höchstens 12 MiB groß sein.")
+        if upload_error:
+            errors["attachments"] = upload_error
+        reference_text = selected.label if selected else (custom_text if selected_key == CUSTOM_VALUE else "")
+        if not (values["title"] or reference_text or values["description"] or uploads or upload_error):
+            errors["title"] = _("Bitte einen Titel, einen Bezug, eine Beschreibung oder ein Foto angeben.")
+        if raw_files and errors and "attachments" not in errors:
+            errors["attachments"] = _("Das Foto wurde noch nicht gespeichert. Bitte erneut auswählen.")
+
+        if not errors:
+            title = values["title"][:160] or _auto_defect_title(values["category"], reference_text)
+            device = None
+            with transaction.atomic():
+                item = Defect.objects.create(
+                    station=station,
+                    title=title,
+                    description=values["description"][:3000],
+                    asset_ref=reference_text[:160],
+                    vehicle_id=selected.vehicle_id if selected else None,
+                    medical_device_id=selected.device_id if selected else None,
+                    priority=values["priority"],
+                    status=Defect.Status.OPEN,
+                    owner=request.user if values["owner_self"] else None,
+                    due_at=_parse_local_datetime(values["due_at"]),
+                    category=values["category"],
+                    created_by=request.user,
+                )
+                DefectEvent.objects.create(
+                    defect=item,
+                    station=station,
+                    kind=DefectEvent.Kind.CREATED,
+                    to_status=item.status,
+                    actor=request.user,
+                )
+                for upload in uploads:
+                    attachment = DefectAttachment.objects.create(
+                        defect=item,
                         station=station,
-                        title=title[:160],
-                        description=(request.POST.get("description") or "")[:3000],
-                        asset_ref=asset_ref_val[:160],
-                        priority=priority,
-                        status=Defect.Status.OPEN,
-                        owner=owner,
-                        due_at=due_at,
-                        category=category,
-                        created_by=request.user,
+                        filename=upload.name,
+                        content_type=upload.content_type,
+                        data=upload.data,
+                        size=upload.size,
+                        uploaded_by=request.user,
                     )
                     DefectEvent.objects.create(
                         defect=item,
                         station=station,
-                        kind=DefectEvent.Kind.CREATED,
-                        to_status=item.status,
+                        kind=DefectEvent.Kind.ATTACHMENT,
                         actor=request.user,
+                        metadata={"attachment_id": attachment.pk, "size": attachment.size, "size_bytes": attachment.size},
                     )
-                    for upload, raw in uploads:
-                        content_type = upload.content_type
-                        if content_type != "application/pdf":
-                            try:
-                                raw = normalize_image_to_jpeg(raw)
-                                content_type = "image/jpeg"
-                            except ValueError:
-                                pass
-                        attachment = DefectAttachment.objects.create(
-                            defect=item,
-                            station=station,
-                            filename=upload.name[:180],
-                            content_type=content_type,
-                            data=raw,
-                            size=len(raw),
-                            uploaded_by=request.user,
-                        )
-                        DefectEvent.objects.create(
-                            defect=item,
-                            station=station,
-                            kind=DefectEvent.Kind.ATTACHMENT,
-                            actor=request.user,
-                            metadata={"attachment_id": attachment.pk, "size": len(raw), "size_bytes": len(raw)},
-                        )
-                    audit(request.user, station, "defect.created", item, {"via": "web"})
-                messages.success(request, _("Mangel wurde angelegt."))
-                return redirect("defect_detail_web", pk=item.pk)
+                if item.medical_device_id:
+                    device, newly_locked = _lock_device_for_defect(item.medical_device, item, request.user, station)
+                audit(request.user, station, "defect.created", item, {
+                    "via": "web",
+                    "reference": selected.kind if selected else ("text" if reference_text else ""),
+                })
+            messages.success(request, _("Mangel wurde angelegt."))
+            if device is not None:
+                messages.warning(request, _(
+                    "„%(device)s“ ist gesperrt, bis der Mangel erledigt ist und die Schichtleitung "
+                    "das Gerät im Medizinproduktebuch freigibt."
+                ) % {"device": device.name})
+            return redirect("defect_detail_web", pk=item.pk)
 
-    initial_in_assets = any(
-        a.label == initial.get("asset_ref") for a in assets
-    ) if initial.get("asset_ref") else False
-
+    already_reported = duplicates_for(selected, open_defects, text=custom_text, options=options)
     return render(
         request,
         "core/defect_form.html",
         {
             "priorities": Defect.Priority.choices,
             "categories": Defect.Category.choices,
-            "assets": assets,
-            "existing_open_defects_by_asset": existing_open_defects_by_asset,
-            "already_reported_defects": already_reported_defects,
-            "already_reported_count": len(already_reported_defects),
-            "existing_defects": open_defects,
-            "selected_asset_ref": selected_asset_ref,
-            "selected_asset": selected_asset,
-            "defects_by_asset_data": defects_by_asset_data,
+            "reference_groups": grouped_options(options),
+            "selected_key": selected_key,
+            "selected_option": selected,
+            "custom_value": CUSTOM_VALUE,
+            "custom_text": custom_text,
+            "values": values,
+            "errors": errors,
+            "already_reported_defects": already_reported,
+            "already_reported_count": len(already_reported),
+            "defects_by_asset_data": duplicate_hint_data(options, open_defects),
             "initial": initial,
-            "initial_in_assets": initial_in_assets,
+            "max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024),
         },
+        status=200,
     )
 
 
@@ -323,50 +337,35 @@ def defect_detail(request, pk):
                     )
                 return redirect("defect_detail_web", pk=item.pk)
         elif action == "upload":
-            upload = request.FILES.get("attachment")
-            if upload is None:
-                messages.error(request, "Bitte ein Bild auswählen.")
-            elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
-                messages.error(request, "Erlaubt sind JPEG, PNG, WebP und PDF.")
-            elif upload.size > MAX_ATTACHMENT_BYTES:
-                messages.error(request, "Datei darf maximal 5 MiB groß sein.")
+            # Prüft Typ, Größe und Inhalt; Bilder ohne Metadaten oder gar nicht.
+            upload, upload_error = read_upload(request.FILES.get("attachment"))
+            if upload_error:
+                messages.error(request, upload_error)
             else:
-                raw = upload.read()
-                if not attachment_is_valid(raw, upload.content_type):
-                    messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
-                else:
-                    content_type = upload.content_type
-                    if content_type != "application/pdf":
-                        try:
-                            raw = normalize_image_to_jpeg(raw)
-                            content_type = "image/jpeg"
-                        except ValueError:
-                            messages.error(request, "Datei ist kein gültiges Bild und kein lesbares PDF.")
-                            return redirect("defect_detail_web", pk=item.pk)
-                    with transaction.atomic():
-                        locked = Defect.objects.select_for_update().get(pk=item.pk)
-                        if limit := defect_attachment_limit_error(locked, len(raw)):
-                            messages.error(request, limit[0])
-                            return redirect("defect_detail_web", pk=item.pk)
-                        attachment = DefectAttachment.objects.create(
-                            defect=item,
-                            station=station,
-                            filename=upload.name[:180],
-                            content_type=content_type,
-                            data=raw,
-                            size=len(raw),
-                            uploaded_by=request.user,
-                        )
-                        DefectEvent.objects.create(
-                            defect=item,
-                            station=station,
-                            kind=DefectEvent.Kind.ATTACHMENT,
-                            actor=request.user,
-                            metadata={"attachment_id": attachment.pk, "size": len(raw), "size_bytes": len(raw)},
-                        )
-                        audit(request.user, station, "defect.attachment_added", item, {"attachment_id": attachment.pk, "via": "web"})
-                    messages.success(request, "Foto wurde angehängt.")
-                    return redirect("defect_detail_web", pk=item.pk)
+                with transaction.atomic():
+                    locked = Defect.objects.select_for_update().get(pk=item.pk)
+                    if limit := defect_attachment_limit_error(locked, upload.size):
+                        messages.error(request, limit[0])
+                        return redirect("defect_detail_web", pk=item.pk)
+                    attachment = DefectAttachment.objects.create(
+                        defect=item,
+                        station=station,
+                        filename=upload.name,
+                        content_type=upload.content_type,
+                        data=upload.data,
+                        size=upload.size,
+                        uploaded_by=request.user,
+                    )
+                    DefectEvent.objects.create(
+                        defect=item,
+                        station=station,
+                        kind=DefectEvent.Kind.ATTACHMENT,
+                        actor=request.user,
+                        metadata={"attachment_id": attachment.pk, "size": attachment.size, "size_bytes": attachment.size},
+                    )
+                    audit(request.user, station, "defect.attachment_added", item, {"attachment_id": attachment.pk, "via": "web"})
+                messages.success(request, "Foto wurde angehängt.")
+                return redirect("defect_detail_web", pk=item.pk)
     return render(
         request,
         "core/defect_detail.html",
