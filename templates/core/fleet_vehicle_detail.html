@@ -278,8 +278,8 @@
       </div>
 
       {% translate "Beginn der Desinfektion laut Papierbogen." as when_hint %}
-      {% translate "Die Einwirkzeit zählt ab dem Beginn laut Bogen. Gesperrt wird das Fahrzeug nur, wenn sie noch läuft." as effect_hint %}
-      {% include "core/_paper_backfill_fields.html" with form=disinfection_form when_hint=when_hint effect_hint=effect_hint %}
+      {% translate "Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig. Die Einwirkzeit zählt ab dem Beginn laut Bogen bis „Frei ab“. Gesperrt wird das Fahrzeug nur, wenn sie noch läuft." as effect_hint %}
+      {% include "core/_paper_backfill_fields.html" with form=disinfection_form when_hint=when_hint effect_hint=effect_hint extra_field=disinfection_form.released_at %}
 
       <button type="submit" class="button secondary block">
         {% include "core/_icon.html" with name="check" %}{% translate "Desinfektion erfassen" %}
@@ -345,7 +345,7 @@
       {% for h in handovers %}
         <div class="list-row">
           <span class="row-content">
-            <strong>{{ h.event_at|date:"d.m.Y H:i" }} Uhr &middot; {{ h.crew_member.get_full_name|default:h.crew_member.username }}</strong>
+            <strong>{{ h.event_at|date:"d.m.Y H:i" }} Uhr &middot; {% include "core/_paper_backfill_person.html" with record=h person=h.crew_member %}</strong>
             {% include "core/_paper_backfill_badge.html" with record=h %}
             <small>
               {{ h.mileage }} km &middot; {% translate "Kraftstoff" %} {{ h.fuel_percent }} % &middot; O₂ {{ h.o2_pressure_bar }} bar{% if vehicle.has_adblue %} &middot; {% translate "AdBlue" %} {{ h.adblue_percent }} %{% endif %}
@@ -368,7 +368,7 @@
         <div class="list-row">
           {# Stufe, Einwirkzeit und Bemerkung nur für die durchführende Person, Schichtleitung und Admin #}
           <span class="row-content">
-            <strong>{{ d.event_at|date:"d.m.Y H:i" }} Uhr &middot; {{ d.performed_by.get_full_name|default:d.performed_by.username }}</strong>
+            <strong>{{ d.event_at|date:"d.m.Y H:i" }} Uhr &middot; {% include "core/_paper_backfill_person.html" with record=d person=d.performed_by %}</strong>
             {% include "core/_paper_backfill_badge.html" with record=d %}
             {% if d.show_details %}
               <small>{% if d.level %}{{ d.level.name }}{% else %}{% translate "Desinfektion" %}{% endif %} &middot; {% blocktranslate with name=d.disinfectant.name %}Desinfektionsmittel: {{ name }}{% endblocktranslate %} &middot; {% blocktranslate with minutes=d.exposure_minutes %}Einwirkzeit {{ minutes }} Min.{% endblocktranslate %}{% if not d.lock_timer_applied %} &middot; {% translate "ohne Sperre" %}{% endif %}</small>

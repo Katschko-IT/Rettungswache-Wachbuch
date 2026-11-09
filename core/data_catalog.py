@@ -372,6 +372,13 @@ BACKFILL_NOTE = (
     "und Ereigniszeit."
 )
 BACKFILL_TIME_NOTE = "Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung)"
+# Fahrzeugübernahme, Desinfektion und Funktionskontrolle: Die Person eines
+# Nachtrags ist, wer ihn erfasst, nicht das Kürzel laut Bogen.
+BACKFILL_PERSON_NOTE = (
+    "Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur "
+    "auf dem Original."
+)
+BACKFILL_PERSON_FIELD_NOTE = "bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat"
 
 MODULES = (
     ModuleSpec(
@@ -738,7 +745,9 @@ MODULES = (
             ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True,
-                      note=f"{BACKFILL_NOTE} Das 5-Minuten-Storno zählt ab der Erfassung."),
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag prüft deshalb keine Geräteeinweisung. "
+                           "Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. "
+                           "Das 5-Minuten-Storno zählt ab der Erfassung."),
         ),
     ),
     ModuleSpec(
@@ -797,10 +806,12 @@ MODULES = (
                       note="Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, "
                            "Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und "
                            "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. "
-                           f"{BACKFILL_NOTE} Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der Beginn laut Bogen steht "
-                           "in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2)."),
+                           f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der "
+                           "Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). "
+                           "Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus "
+                           "„Frei ab“ laut Bogen."),
             ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True,
-                      note=BACKFILL_NOTE),
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen."),
         ),
     ),
     ModuleSpec(
@@ -938,7 +949,10 @@ FIELD_OVERRIDES = {
     "axes.AccessLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
     "axes.AccessFailureLog.http_accept": ("Netzwerk/Gerät", ""),
     "axes.AccessFailureLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
-    "core.DisinfectionProtocol.level": (None, D2_NOTE),
+    "core.DisinfectionProtocol.level": (None, f"{D2_NOTE}; bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe)"),
+    "core.DisinfectionProtocol.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.VehicleHandover.crew_member": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.DeviceRoutineCheck.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
     "core.DisinfectionProtocol.exposure_minutes": (None, D2_NOTE),
     "core.DisinfectionProtocol.lock_timer_applied": (None, D2_NOTE),
     "core.DisinfectionProtocol.notes": (None, f"{D2_NOTE}; Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data`"),

@@ -6,7 +6,8 @@ davon erfährt.
 
 Besatzung eines Fahrzeugs sind alle aktiven Mitglieder der Wache, die es in den
 letzten 24 Stunden per Schichtübernahme übernommen haben, sowie die Person, die
-die Desinfektion erfasst hat.
+die Desinfektion erfasst hat. Eine nachgetragene Fahrzeugübernahme vom
+Papierbogen zählt nicht: Als Person steht dort, wer nachträgt.
 
 Zustellung: Jede Person erhält einen Eintrag im persönlichen Posteingang
 (``UserNotification``; Web und App lesen ihn). Zusätzlich werden Outbox-Zeilen
@@ -48,14 +49,15 @@ def crew_for_vehicle(vehicle, now=None):
 
     now = now or timezone.now()
     since = now - CREW_WINDOW
-    # Nach Ereigniszeit: Wer einen alten Papierbogen nachträgt, besetzt das
-    # Fahrzeug deshalb nicht.
+    # Ein Nachtrag vom Papierbogen macht niemanden zur Besatzung: Als Person
+    # steht dort, wer nachträgt, nicht die Besatzung laut Bogen.
     user_ids = set(
-        VehicleHandover.objects.filter(vehicle=vehicle)
-        .annotate(event_time=event_time("performed_at"))
-        .filter(event_time__gte=since)
+        VehicleHandover.objects.filter(vehicle=vehicle, is_paper_backfill=False, performed_at__gte=since)
         .values_list("crew_member_id", flat=True)
     )
+    # Die Person, die die neueste Desinfektion erfasst hat (nach Ereigniszeit;
+    # bei einem Nachtrag, dessen Einwirkzeit laut Bogen noch läuft, wer ihn
+    # erfasst hat: Sie kennt die Sperre).
     latest = (
         DisinfectionProtocol.objects.filter(vehicle=vehicle)
         .annotate(event_time=event_time("started_at"))

@@ -413,8 +413,10 @@ class DisinfectionProtocol(PaperBackfillRecord, models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name="disinfections")
     performed_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="disinfections")
     disinfectant = models.ForeignKey(DisinfectantMaster, on_delete=models.PROTECT, related_name="protocols")
-    # Leer nur bei programmatisch angelegten Protokollen: Das Formular verlangt
-    # eine Stufe, Migration 0069 hat allen Altprotokollen eine zugeordnet.
+    # Leer bei programmatisch angelegten Protokollen und bei einem Nachtrag vom
+    # Papierbogen ohne Stufe (der Bogen nennt keine, Entscheidung D2). Sonst
+    # verlangt das Formular eine Stufe; Migration 0069 hat allen
+    # Altprotokollen eine zugeordnet.
     level = models.ForeignKey(
         DisinfectionLevel, on_delete=models.PROTECT, null=True, blank=True, related_name="protocols",
         verbose_name=_("Stufe"),

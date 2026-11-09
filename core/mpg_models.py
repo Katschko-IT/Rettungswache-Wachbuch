@@ -356,6 +356,8 @@ class DeviceRoutineCheck(PaperBackfillRecord, models.Model):
         if self.pk:
             raise ValidationError("Funktionskontrollen dürfen nicht verändert werden.")
         _require_same_station(self.device, self.station_id, "Funktionskontrolle")
+        # Ob diese Kontrolle das Gerät gesperrt hat (für die Meldung in der Ansicht).
+        self.device_locked = False
         if not self.is_cancellation:
             # Bestanden ist eine Kontrolle nur, wenn jeder Prüfpunkt bestätigt ist.
             self.passed = bool(self.battery_ok and self.visual_ok and self.function_ok)
@@ -383,33 +385,43 @@ class DeviceRoutineCheck(PaperBackfillRecord, models.Model):
                     )
                     if not ok
                 ]
-                # Auch ein Nachtrag sperrt: Laut Bogen ist das Gerät nicht zu
-                # verwenden, bis die Schichtleitung es nach dem Mangel freigibt.
-                backfill_line = ""
+                # Ein Nachtrag sperrt nur, wenn er nach der Zeit laut Bogen die
+                # neueste gültige Kontrolle ist. Liegt eine neuere vor, gilt
+                # deren Ergebnis; der Mangel hält das „Nein“ vom Bogen trotzdem
+                # fest (Priorität „Wichtig“ statt „Dringend“).
+                superseded = self.is_paper_backfill and self._newer_valid_check_exists()
+                backfill_lines = ""
                 if self.is_paper_backfill:
                     from django.conf import settings
                     from django.utils import translation
+                    from django.utils.translation import gettext
 
                     # Gespeichert in der Wachensprache (wie andere Mangeltexte).
                     with translation.override(settings.LANGUAGE_CODE):
-                        backfill_line = f"{self.paper_backfill_label}\n"
+                        backfill_lines = f"{self.paper_backfill_label}\n"
+                        if superseded:
+                            backfill_lines += gettext(
+                                "Eine neuere Funktionskontrolle liegt vor; das Gerät wurde deshalb nicht gesperrt."
+                            ) + "\n"
                 Defect.objects.create(
                     station_id=self.station_id,
                     medical_device=self.device,
                     title=f"Funktionskontrolle nicht bestanden: {self.device.name}"[:160],
                     description=(
-                        f"{backfill_line}Nicht in Ordnung: {', '.join(failed)}\n"
+                        f"{backfill_lines}Nicht in Ordnung: {', '.join(failed)}\n"
                         f"Standort: {self.device.location}\n\n{self.notes}"
                     ).strip(),
                     asset_ref=f"{self.device.name} ({self.device.inventory_number or self.device.serial_number})"[:160],
-                    priority=Defect.Priority.URGENT,
+                    priority=Defect.Priority.IMPORTANT if superseded else Defect.Priority.URGENT,
                     status=Defect.Status.OPEN,
                     category=Defect.Category.DEVICE,
                     created_by=self.performed_by,
                 )
-                self.device.current_status = MedicalDevice.Status.OOB
-                self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
-                update_fields += ["current_status", "status_note"]
+                if not superseded:
+                    self.device.current_status = MedicalDevice.Status.OOB
+                    self.device.status_note = f"Funktionskontrolle nicht bestanden: {', '.join(failed)}"[:300]
+                    update_fields += ["current_status", "status_note"]
+                    self.device_locked = True
             self.device.save(update_fields=update_fields)
         else:
             # Storno-Eintrag: Letzte gültige Kontrolle ermitteln
@@ -426,6 +438,22 @@ class DeviceRoutineCheck(PaperBackfillRecord, models.Model):
             ).first()
             self.device.last_routine_check = last_valid.event_at if last_valid else None
             self.device.save(update_fields=["last_routine_check", "updated_at"])
+
+    def _newer_valid_check_exists(self) -> bool:
+        """Gibt es eine nicht stornierte Kontrolle, die nach Ereigniszeit neuer ist?"""
+        from .paper_backfill import event_time
+
+        cancelled_ids = DeviceRoutineCheck.objects.filter(
+            device_id=self.device_id, is_cancellation=True
+        ).values_list("cancels_check_id", flat=True)
+        return (
+            DeviceRoutineCheck.objects.filter(device_id=self.device_id, is_cancellation=False)
+            .exclude(pk=self.pk)
+            .exclude(id__in=cancelled_ids)
+            .annotate(event_time=event_time("checked_at"))
+            .filter(event_time__gt=self.event_at)
+            .exists()
+        )
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Funktionskontrollen dürfen nicht gelöscht werden.")

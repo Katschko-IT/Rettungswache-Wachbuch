@@ -2237,14 +2237,14 @@ Funktionskontrolle mit Person und Ergebnis
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Das 5-Minuten-Storno zählt ab der Erfassung.
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag prüft deshalb keine Geräteeinweisung. Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. Das 5-Minuten-Storno zählt ab der Erfassung.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `device` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
 | `checked_at` |  | Zeitpunkt | Erfassung im Wachbuch; danach richtet sich das 5-Minuten-Storno |
 | `passed` | Funktionskontrolle bestanden | Wert |  |
 | `battery_ok` | Akkus / Energieversorgung einsatzklar | Wert |  |
@@ -2577,16 +2577,16 @@ Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2).
+- Hinweis: Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus „Frei ab“ laut Bogen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `performed_by` |  | Person (Konto) |  |
+| `performed_by` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
 | `disinfectant` |  | Verweis |  |
-| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
+| `level` | Stufe | Verweis | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2); bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe) |
 | `started_at` | Beginn Desinfektion | Zeitpunkt | Erfassung im Wachbuch; bei einem Nachtrag steht der Beginn laut Bogen in der Ereigniszeit |
 | `exposure_minutes` | Einwirkzeit (Minuten) | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
 | `lock_timer_applied` | Einwirkzeit-Sperre angewendet | Wert | nur für die durchführende Person, Schichtleitung und Master-Admin sichtbar (Entscheidung D2) |
@@ -2646,14 +2646,14 @@ Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit.
+- Hinweis: Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens 365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen und Ereigniszeit. Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur auf dem Original. Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
 | `id` |  | Wert |  |
 | `station` |  | Verweis |  |
 | `vehicle` |  | Verweis |  |
-| `crew_member` |  | Person (Konto) |  |
+| `crew_member` |  | Person (Konto) | bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat |
 | `performed_at` |  | Zeitpunkt | Erfassung im Wachbuch |
 | `mileage` | Kilometerstand | Wert |  |
 | `fuel_percent` | Tankfüllstand (%) | Wert |  |

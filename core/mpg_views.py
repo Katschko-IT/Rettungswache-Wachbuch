@@ -356,13 +356,18 @@ def mpg_routine_check(request, slug: str):
     check.save()
     audit(request.user, station, "mpg.routine_check", device, {"passed": check.passed, **backfill_audit_metadata(check)})
 
-    if device.requires_training and station.mpg_training_required:
-        # Gültig am Tag der Kontrolle (bei einem Nachtrag laut Bogen).
-        check_day = timezone.localtime(check.event_at).date()
-        trainings = DeviceTrainingRecord.objects.filter(station=station, device=device, trainee=request.user)
-        if check.is_paper_backfill:
-            trainings = trainings.filter(trained_at__lte=check_day)
-        has_valid_training = trainings.filter(Q(valid_until__isnull=True) | Q(valid_until__gte=check_day)).exists()
+    # Ein Nachtrag vom Papierbogen prüft keine Einweisung: Als Person steht dort,
+    # wer nachträgt; geprüft hat die Person mit dem Kürzel auf dem Original.
+    if device.requires_training and station.mpg_training_required and not check.is_paper_backfill:
+        has_valid_training = (
+            DeviceTrainingRecord.objects.filter(
+                station=station,
+                device=device,
+                trainee=request.user,
+            )
+            .filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate()))
+            .exists()
+        )
         if not has_valid_training:
             messages.warning(
                 request,
@@ -396,7 +401,13 @@ def mpg_routine_check(request, slug: str):
                     },
                 )
 
-    if not check.passed:
+    if not check.passed and not check.device_locked:
+        # Nachtrag mit „Nein“, aber eine neuere Kontrolle liegt vor: keine Sperre.
+        messages.warning(request, _(
+            "Nachtrag vom Papierbogen gespeichert: laut Bogen nicht bestanden. Eine neuere Kontrolle liegt vor, "
+            "deshalb bleibt der Status von „%(name)s“ unverändert. Ein Mangel wurde angelegt."
+        ) % {"name": device.name})
+    elif not check.passed:
         messages.warning(
             request,
             f"Funktionskontrolle nicht bestanden. '{device.name}' ist gesperrt und ein Mangel wurde angelegt.",
@@ -821,7 +832,8 @@ def mpg_routine_check_storno(
                     note=f"5-Minuten-Storno der Funktionskontrolle #{check.pk}",
                 )
 
-            if not release_blockers(device):
+            # Nur eine Sperre aufheben (ein überholter Nachtrag hat nicht gesperrt).
+            if device.current_status == MedicalDevice.Status.OOB and not release_blockers(device):
                 device.current_status = MedicalDevice.Status.READY
                 device.status_note = ""
                 device.save(update_fields=["current_status", "status_note", "updated_at"])

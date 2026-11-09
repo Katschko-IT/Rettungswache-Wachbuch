@@ -1,8 +1,11 @@
 """Formulare für Fuhrpark, Fahrzeugverwaltung und RKI-Desinfektionsbuch."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.formats import number_format
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -102,13 +105,47 @@ class DisinfectionLevelSelect(forms.Select):
         return option
 
 
+# „Frei ab“ laut Papierbogen: höchstens so lange nach dem Beginn (fängt auch
+# Tippfehler wie „Frei ab“ vor dem Beginn ab).
+MAX_BACKFILL_RELEASE_MINUTES = 12 * 60
+
+
+def minutes_until_release(start: datetime, release_time) -> int | None:
+    """Minuten vom Beginn bis zur Uhrzeit „Frei ab“ (am selben oder am nächsten Tag).
+
+    ``None``, wenn „Frei ab“ nicht nach dem Beginn liegt oder mehr als
+    ``MAX_BACKFILL_RELEASE_MINUTES`` danach.
+    """
+    local_start = timezone.localtime(start)
+    tz = timezone.get_current_timezone()
+    release = timezone.make_aware(datetime.combine(local_start.date(), release_time), tz)
+    if release <= local_start:
+        release = timezone.make_aware(datetime.combine(local_start.date() + timedelta(days=1), release_time), tz)
+    minutes = int((release - start).total_seconds() // 60)
+    if minutes < 1 or minutes > MAX_BACKFILL_RELEASE_MINUTES:
+        return None
+    return minutes
+
+
 class DisinfectionProtocolForm(PaperBackfillFormMixin, forms.ModelForm):
     """Desinfektion erfassen: Stufe aus dem Plan der Wache, ohne Vorauswahl.
 
     Bis der Desinfektionsplan bestätigt ist, bleiben Mittel, Einwirkzeit und
     Sperre wie bisher im Formular. Optional als Nachtrag vom Papierbogen mit
-    dem Beginn laut Bogen (``core/paper_backfill.py``).
+    dem Beginn laut Bogen (``core/paper_backfill.py``). Der Bogen nennt keine
+    Stufe und keine Einwirkzeit (Entscheidung D2): Bei einem Nachtrag ist die
+    Stufe freiwillig, und „Frei ab“ laut Bogen ergibt die Einwirkzeit.
     """
+
+    released_at = forms.TimeField(
+        required=False,
+        label=_("Frei ab laut Papierbogen"),
+        help_text=_(
+            "Uhrzeit aus der Spalte „Frei ab“. Daraus ergibt sich die Einwirkzeit ab dem Beginn laut Bogen; "
+            "die Angabe geht der Einwirkzeit oben vor."
+        ),
+        widget=forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+    )
 
     class Meta:
         model = DisinfectionProtocol
@@ -130,11 +167,21 @@ class DisinfectionProtocolForm(PaperBackfillFormMixin, forms.ModelForm):
     def __init__(self, *args, station=None, allow_backfill=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.setup_paper_backfill(allow=allow_backfill)
+        if allow_backfill:
+            # Bei einem Nachtrag sind Stufe und Einwirkzeit freiwillig; der
+            # Browser kennt das Häkchen nicht und prüft deshalb keine Pflicht.
+            # Die Prüfung macht der Server, Eingaben bleiben dabei erhalten.
+            self.use_required_attribute = False
+        else:
+            self.fields.pop("released_at", None)
         level = self.fields["level"]
         level.required = True
         level.empty_label = _("Bitte Stufe wählen")
         level.error_messages["required"] = _("Bitte eine Stufe wählen.")
         level.widget = DisinfectionLevelSelect(choices=level.choices)
+        if allow_backfill and self.is_bound and self.is_backfill_requested:
+            level.required = False
+            self.fields["exposure_minutes"].required = False
         if station is None:
             # Ohne Wache keine Auswahl (jede Abfrage ist an eine Wache gebunden).
             level.queryset = DisinfectionLevel.objects.none()
@@ -174,7 +221,31 @@ class DisinfectionProtocolForm(PaperBackfillFormMixin, forms.ModelForm):
         cleaned_data = apply_level_defaults(cleaned_data, level)
         if not cleaned_data.get("disinfectant"):
             self.add_error("disinfectant", ValidationError(_("Bitte ein Desinfektionsmittel auswählen."), code="required"))
-        return self.clean_paper_backfill(cleaned_data)
+        cleaned_data = self.clean_paper_backfill(cleaned_data)
+        if self.backfill_allowed and cleaned_data.get("is_paper_backfill"):
+            self._clean_backfill_release(cleaned_data)
+        return cleaned_data
+
+    def _clean_backfill_release(self, cleaned_data: dict) -> None:
+        """Einwirkzeit eines Nachtrags aus „Frei ab“ laut Bogen (sonst wie eingetragen)."""
+        release_time = cleaned_data.get("released_at")
+        if release_time is None:
+            if not cleaned_data.get("exposure_minutes") and "exposure_minutes" not in self.errors:
+                self.add_error("exposure_minutes", ValidationError(
+                    _("Bitte „Frei ab“ laut Bogen oder die Einwirkzeit angeben."), code="required",
+                ))
+            return
+        start = cleaned_data.get("occurred_at")
+        if start is None or "occurred_at" in self.errors:
+            return  # Der Fehler steht an der Ereigniszeit.
+        minutes = minutes_until_release(start, release_time)
+        if minutes is None:
+            self.add_error("released_at", ValidationError(
+                _("„Frei ab“ muss nach dem Beginn laut Bogen liegen, höchstens 12 Stunden danach."), code="invalid",
+            ))
+            return
+        cleaned_data["exposure_minutes"] = minutes
+        cleaned_data["lock_timer_applied"] = True
 
 
 YES_NO_CHOICES = [("yes", _("Ja")), ("no", _("Nein"))]

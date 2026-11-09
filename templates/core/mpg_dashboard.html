@@ -207,7 +207,7 @@
         <div class="list-row">
           <span class="row-content">
             <strong>{{ c.device.name }}</strong>
-            <small>{{ c.event_at|date:"d.m.Y H:i" }} &middot; {{ c.performed_by.get_full_name|default:c.performed_by.username }} &middot; {% if c.passed %}<span class="text-success">Bestanden</span>{% else %}<span class="text-danger">Fehlgeschlagen</span>{% endif %}</small>
+            <small>{{ c.event_at|date:"d.m.Y H:i" }} &middot; {% include "core/_paper_backfill_person.html" with record=c person=c.performed_by %} &middot; {% if c.passed %}<span class="text-success">Bestanden</span>{% else %}<span class="text-danger">Fehlgeschlagen</span>{% endif %}</small>
             {% include "core/_paper_backfill_badge.html" with record=c %}
           </span>
         </div>
