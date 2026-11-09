@@ -194,6 +194,12 @@ Hilfe (alle Rollen außer Auditor).
   Löschkonzept (Datenschutzunterlagen 0.27, Entscheidung von Betreiber und
   Datenschutzbeauftragten). Bis dahin bleiben die Originale bei der
   Wachleitung.
+- Kategorien des Telefonbuchs, der Rhythmus einer Checkliste und der
+  Gerätestatus kommen aus Auswahlwerten ohne Übersetzung; sie erscheinen auch
+  in der englischen Oberfläche deutsch (siehe `docs/UX-PLAN.md`, B4).
+- Einmal geöffnete Seiten können im Seitencache des Service Workers mit ihrem
+  alten Stand liegen. Verlässlich ist nur der vorab gedruckte Ausdruck.
+
 ### Nachtrag vom Papierbogen
 
 Nachtragen lassen sich Übergaben, Fahrzeugübernahmen, Desinfektionen und
@@ -206,22 +212,29 @@ Zeiten: das Ereignis laut Bogen und die Erfassung im Wachbuch
 - **Regeln für alle Nachträge:**
   - Die Ereigniszeit liegt nicht in der Zukunft und höchstens 365 Tage zurück.
     Sie wird nur mit Häkchen gespeichert; ohne Häkchen bleibt sie leer (auch
-    als Bedingung in der Datenbank).
+    als Bedingung in der Datenbank). Sie gilt auf die Minute, wie auf dem
+    Bogen; Sekunden werden abgeschnitten.
   - Das Wachenterminal trägt nichts nach: Das Formular zeigt dort keinen
     Nachtrag, ein trotzdem gesendeter Nachtrag wird abgewiesen, auch über die
     App-Schnittstelle. Wer nachträgt, meldet sich persönlich an.
   - Das Audit nennt bei einem Nachtrag das Häkchen und die Ereigniszeit, sonst
     nichts davon. Fahrzeugübernahmen und Desinfektionen bekommen dafür eigene
     Audit-Einträge („… vom Papierbogen nachgetragen“).
+- **Person:** Als Person speichert ein Nachtrag, wer ihn erfasst; Listen
+  zeigen dort „erfasst von …“. Wer laut Bogen gehandelt hat (Kürzel), steht
+  nur auf dem Original bei der Wachleitung. Deshalb prüft ein Nachtrag keine
+  Geräteeinweisung (keine Nachricht an die MPG-Beauftragten), und eine
+  nachgetragene Fahrzeugübernahme macht niemanden zur Besatzung für
+  Benachrichtigungen. Stufe, Einwirkzeit und Bemerkung einer nachgetragenen
+  Desinfektion sieht die Person, die sie erfasst hat (Entscheidung D2).
 - **Kennzeichnung:** Überall, wo ein Nachtrag erscheint (Listen, Detail,
   Übersicht, Druck der Seite, Startseite des Wachenterminals), steht
   „Nachtrag vom Papierbogen · Ereignis … · erfasst …“. Die App erhält
   `is_paper_backfill` und `occurred_at` (docs/API.md).
 - **Was nach der Ereigniszeit rechnet:** Sortierung der Listen, „Letzte
-  Desinfektion“ am Fahrzeug, „Letzter Funktionscheck“ am Gerät und die
-  Besatzung eines Fahrzeugs für Benachrichtigungen. Ein älterer Nachtrag
-  schiebt „Letzte …“ nicht zurück. Das 5-Minuten-Storno einer
-  Funktionskontrolle zählt weiter ab der Erfassung.
+  Desinfektion“ am Fahrzeug und „Letzter Funktionscheck“ am Gerät. Ein
+  älterer Nachtrag schiebt „Letzte …“ nicht zurück. Das 5-Minuten-Storno
+  einer Funktionskontrolle zählt weiter ab der Erfassung.
 - **Übergabe:** Ein Nachtrag sendet keinen Web-Push, auch nicht, wenn er
   „Dringend“ ist, und zählt auf dem Wachen-Display und dem Sperrbildschirm
   nicht als neue dringende Übergabe (kein Gong). Schichtleitung und
@@ -233,17 +246,24 @@ Zeiten: das Ereignis laut Bogen und die Erfassung im Wachbuch
   Nachtrag nur, wenn er nach der Zeit laut Bogen die neueste Übernahme ist.
   Ein „Nein“ führt wie sonst zur Mangelmeldung; Warnungen zu niedrigem
   Sauerstoff oder Kraftstoff entfallen, weil der Stand Vergangenheit ist.
-- **Desinfektion:** Die Einwirkzeit zählt ab dem Beginn laut Bogen. Gesperrt
-  wird das Fahrzeug nur, wenn sie noch läuft und länger als eine bestehende
-  Sperre dauert; sonst ändert der Nachtrag den Fahrzeugzustand nicht (die
-  Freigabe steht auf dem Bogen). Stufe, Einwirkzeit und Bemerkung sehen wie
-  sonst nur die durchführende Person, Schichtleitung und Master-Admin
-  (Entscheidung D2).
-- **Funktionskontrolle:** Auch ein nachgetragenes „Nein“ sperrt das Gerät und
-  legt einen dringenden Mangel an (Zeile „Nachtrag vom Papierbogen · …“ in
-  der Beschreibung). Ist das Gerät inzwischen in Ordnung, schließt die
-  Schichtleitung den Mangel ab und gibt das Gerät frei. Die Prüfung der
-  Geräteeinweisung richtet sich nach dem Tag laut Bogen.
+- **Desinfektion:** Der Bogen nennt keine Stufe und keine Einwirkzeit
+  (Entscheidung D2). Bei einem Nachtrag ist die Stufe deshalb freiwillig; die
+  Uhrzeit aus „Frei ab“ kommt in das Feld „Frei ab laut Papierbogen“ und
+  ergibt die Einwirkzeit ab dem Beginn laut Bogen (höchstens 12 Stunden
+  danach, auch über Mitternacht). Ohne „Frei ab“ gilt die eingetragene
+  Einwirkzeit. Gesperrt wird das Fahrzeug nur, wenn die Einwirkzeit noch
+  läuft und länger als eine bestehende Sperre dauert; sonst ändert der
+  Nachtrag den Fahrzeugzustand nicht (die Freigabe steht auf dem Bogen).
+  Stufe, Einwirkzeit und Bemerkung sehen wie sonst nur die durchführende
+  Person, Schichtleitung und Master-Admin (Entscheidung D2).
+- **Funktionskontrolle:** Ein nachgetragenes „Nein“ legt immer einen Mangel
+  an (Zeile „Nachtrag vom Papierbogen · …“ in der Beschreibung). Ist der
+  Nachtrag nach der Zeit laut Bogen die neueste gültige Kontrolle, sperrt er
+  das Gerät, und der Mangel ist dringend; ist das Gerät inzwischen in
+  Ordnung, schließt die Schichtleitung den Mangel ab und gibt es frei. Liegt
+  eine neuere Kontrolle vor, gilt deren Ergebnis: Der Gerätestatus bleibt, der
+  Mangel bekommt die Priorität „Wichtig“ und den Hinweis, dass nicht gesperrt
+  wurde. Eine Geräteeinweisung prüft ein Nachtrag nicht (siehe „Person“).
 - **Nicht korrigierbar:** Fahrzeugübernahmen, Desinfektionen und
   Funktionskontrollen bleiben append-only. Eine falsch erfasste Zeit lässt
   sich dort nicht ändern; die Korrektur ist ein neuer Eintrag mit Bemerkung
@@ -251,12 +271,6 @@ Zeiten: das Ereignis laut Bogen und die Erfassung im Wachbuch
 - **Reihenfolge nach einem Ausfall:** zuerst die Blätter nachtragen, dann je
   Fahrzeug eine aktuelle Fahrzeugübernahme erfassen. Umgekehrt geht es auch:
   Ältere Nachträge ändern den aktuellen Stand am Fahrzeug nicht.
-
-- Kategorien des Telefonbuchs, der Rhythmus einer Checkliste und der
-  Gerätestatus kommen aus Auswahlwerten ohne Übersetzung; sie erscheinen auch
-  in der englischen Oberfläche deutsch (siehe `docs/UX-PLAN.md`, B4).
-- Einmal geöffnete Seiten können im Seitencache des Service Workers mit ihrem
-  alten Stand liegen. Verlässlich ist nur der vorab gedruckte Ausdruck.
 
 ## Raspberry Pi mit eigenem WLAN
 

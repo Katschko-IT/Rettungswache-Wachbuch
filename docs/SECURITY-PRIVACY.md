@@ -64,7 +64,10 @@ Dieses Dokument ist keine Rechtsberatung.
   persönlichem Konto, nicht am Wachenterminal (Formular, Ansicht und
   App-Schnittstelle). Das Audit nennt nur Häkchen und Ereigniszeit, keine
   Freitexte. Die Sichtbarkeit von Stufe, Einwirkzeit und Bemerkung einer
-  Desinfektion bleibt wie in Entscheidung D2.
+  Desinfektion bleibt wie in Entscheidung D2. Als Person steht bei einem
+  Nachtrag, wer ihn erfasst („erfasst von“); das Kürzel laut Bogen bleibt nur
+  auf dem Original. Ein Nachtrag schreibt deshalb niemandem eine fehlende
+  Geräteeinweisung zu und zählt niemanden zur Besatzung eines Fahrzeugs.
 
 ## Nachweise
 
