@@ -4,7 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 from django.contrib import messages
-from django.db import IntegrityError, transaction
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,7 +16,14 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from .access import CONTENT_ROLES, membership_required, station_module_required
 from .models import CalendarEvent, Membership, Station
 from .orga_forms import SOPDocumentForm, SOPRevisionForm, StationContactForm
-from .orga_models import SOPDocument, SOPReceipt, SOPRevision, StationContact
+from .orga_models import (
+    SOPDocument,
+    SOPRevision,
+    StationContact,
+    acknowledgement_refusal,
+    in_reading_audience,
+    record_acknowledgement,
+)
 from .services import audit
 from .wiki_models import WikiArticle
 
@@ -52,14 +59,17 @@ def orga_dashboard(request):
     sops_list = SOPDocument.list_with_ack_state(sops_qs, user)
     filter_mode = request.GET.get("filter", "all").strip()
 
-    # Berechne Quittierungsstatus
+    # Berechne Quittierungsstatus: offen nur für die Zielgruppe (Rolle und
+    # Funktion), nie für Auditor oder Wachenterminal.
+    in_audience = in_reading_audience(request.membership)
     unack_sops = []
     ack_sops = []
     for s in sops_list:
         if (
             s.status == SOPDocument.Status.ACTIVE
             and s.requires_acknowledgment
-            and (not s.target_role or s.target_role == request.membership.role)
+            and in_audience
+            and s.matches_target(request.membership)
             and not s.user_has_acknowledged(user)
         ):
             unack_sops.append(s)
@@ -90,6 +100,9 @@ def orga_dashboard(request):
             "all_sops_count": len(sops_list),
             "unack_count": len(unack_sops),
             "unack_ids": {s.id for s in unack_sops},
+            # Nur wirklich bestätigte zeigen „Quittiert“; Dienstanweisungen außerhalb
+            # der eigenen Zielgruppe bekommen kein Etikett.
+            "acked_ids": {s.id for s in sops_list if s.latest_revision and s.user_has_acknowledged(user)},
             "ack_count": len(ack_sops),
             "filter_mode": filter_mode,
             "query": query,
@@ -117,11 +130,18 @@ def sop_detail(request, slug: str):
 
     all_revisions = sop.revisions.select_related("approved_by").order_by("-created_at")
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
-    # Wer wann quittiert hat, sieht nur die Wachleitung (Nachweispflicht).
+    # Wer wann quittiert hat, sieht nur die Wachleitung (Nachweispflicht), und
+    # nur, wenn die Wache eine Vereinbarung dazu hat („Namen nur nach
+    # Vereinbarung“, Station.sop_receipt_names_agreed). Sonst Anzahl und Quote.
     # Mitglieder sehen ihren eigenen Stand, nicht den der Kolleginnen.
+    show_names = can_manage and station.sop_receipt_names_agreed
     recent_receipts = (
-        sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20] if can_manage else []
+        sop.receipts.select_related("user", "revision").order_by("-acknowledged_at")[:20] if show_names else []
     )
+    # Nur die Zielgruppe wird zur Bestätigung aufgefordert; andere dürfen
+    # freiwillig bestätigen, das zählt aber nicht zur Quote.
+    is_target = sop.is_target_member(request.membership)
+    can_acknowledge = acknowledgement_refusal(sop, request.membership) is None
 
     return render(
         request,
@@ -133,6 +153,9 @@ def sop_detail(request, slug: str):
             "all_revisions": all_revisions,
             "recent_receipts": recent_receipts,
             "can_manage": can_manage,
+            "show_names": show_names,
+            "is_target": is_target,
+            "can_acknowledge": can_acknowledge,
             "ack_progress": sop.ack_progress(),
         },
     )
@@ -145,32 +168,31 @@ def sop_acknowledge(request, slug: str):
     """Mitarbeiter quittiert Kenntnisnahme der aktuellen SOP-Version."""
     station = request.membership.station
     sop = get_object_or_404(SOPDocument, station=station, slug=slug)
-    latest_revision = sop.latest_revision
 
-    if not latest_revision:
-        messages.error(request, "Diese SOP hat noch keinen freigegebenen Textstand.")
-        return redirect("sop_detail", slug=sop.slug)
-    if sop.status == SOPDocument.Status.ARCHIVED:
-        # Außer Kraft: Versionen und Quittierungen bleiben, neue gibt es nicht.
-        messages.error(request, _("Diese Dienstanweisung ist außer Kraft und kann nicht mehr quittiert werden."))
+    # Dieselben Regeln wie in der App (core/api/sop.py): nur „In Kraft“, nur
+    # mit Textstand, nie mit dem Dienstkonto des Wachenterminals. Außer Kraft
+    # bleiben Versionen und Quittierungen, neue gibt es nicht.
+    refusal = acknowledgement_refusal(sop, request.membership)
+    if refusal:
+        code, text = refusal
+        if code == "forbidden":
+            raise PermissionDenied(text)
+        messages.error(request, text)
         return redirect("sop_detail", slug=sop.slug)
 
     # Datensparsam (ab 0.26.1): Für die Kenntnisnahme genügen Person, Version
     # und Zeitpunkt. IP-Adresse und Browser werden nicht mehr gespeichert;
     # Altbestände bleiben unverändert (append-only), werden aber nirgends
     # mehr angezeigt oder exportiert.
-    receipt, created = SOPReceipt.objects.get_or_create(
-        station=station,
-        sop=sop,
-        revision=latest_revision,
-        user=request.user,
-        defaults={"ip_address": None, "user_agent": "", "acknowledged_at": timezone.now()},
-    )
+    latest_revision = sop.latest_revision
+    receipt, created = record_acknowledgement(sop, request.user)
 
     if created:
-        messages.success(request, f"Kenntnisnahme für '{sop.doc_number} (v{latest_revision.version_label})' quittiert.")
+        messages.success(request, _("Kenntnisnahme für „%(doc)s“ (v%(version)s) bestätigt.") % {
+            "doc": sop.doc_number, "version": latest_revision.version_label,
+        })
     else:
-        messages.info(request, "Sie haben diese Version der Dienstanweisung bereits quittiert.")
+        messages.info(request, _("Du hast diese Version der Dienstanweisung bereits bestätigt."))
 
     return redirect("sop_detail", slug=sop.slug)
 
@@ -190,6 +212,10 @@ def sop_remind(request, slug: str):
     if sop.status == SOPDocument.Status.ARCHIVED:
         messages.error(request, _("Diese Dienstanweisung ist außer Kraft."))
         return redirect("sop_detail", slug=sop.slug)
+    if sop.status != SOPDocument.Status.ACTIVE:
+        # Ein Entwurf gilt noch nicht; niemand wird an ihn erinnert.
+        messages.error(request, _("Erinnerungen gibt es nur für Dienstanweisungen in Kraft."))
+        return redirect("sop_detail", slug=sop.slug)
 
     if not sop.requires_acknowledgment or not sop.latest_revision:
         messages.info(request, _("Für diese Dienstanweisung ist keine Pflichtquittierung aktiv."))
@@ -200,11 +226,12 @@ def sop_remind(request, slug: str):
         messages.info(request, _("Alle Zielpersonen haben diese Version bereits quittiert."))
         return redirect("sop_detail", slug=sop.slug)
 
+    from .deadline_reminders import create_notification, send_reminder_emails
     from .notification_models import UserNotification
-    from .crew_notifications import _enqueue_channels
 
     today = timezone.localdate()
     sent_count = 0
+    created_notes: dict = {}
     url = reverse("sop_detail", args=[sop.slug])
 
     title = _("Dienstanweisung lesen: %(doc)s") % {"doc": sop.doc_number}
@@ -220,32 +247,12 @@ def sop_remind(request, slug: str):
 
     for user in unacknowledged:
         dedupe_key = f"sop_manual_remind:{sop.pk}:{sop.latest_revision.pk}:{user.pk}:{today.isoformat()}"
-        try:
-            with transaction.atomic():
-                note, created = UserNotification.objects.get_or_create(
-                    user=user,
-                    dedupe_key=dedupe_key,
-                    defaults={
-                        "station": station,
-                        "kind": UserNotification.Kind.SOP_DUE,
-                        "title": title[:120],
-                        "body": body[:300],
-                        "url": url,
-                    },
-                )
-                if created:
-                    _enqueue_channels(
-                        note,
-                        {
-                            "title": note.title,
-                            "body": note.body,
-                            "url": note.url,
-                            "notification_id": note.pk,
-                        },
-                    )
-                    sent_count += 1
-        except IntegrityError:
-            continue
+        note = create_notification(user, station, dedupe_key, UserNotification.Kind.SOP_DUE, title, body, url)
+        if note is not None:
+            created_notes.setdefault(user.pk, []).append(note)
+            sent_count += 1
+    # E-Mail nur an Personen, die Erinnerungen per E-Mail selbst eingeschaltet haben.
+    send_reminder_emails(created_notes)
 
     if sent_count > 0:
         messages.success(
@@ -433,6 +440,32 @@ def export_sop_receipts_csv(request, slug: str):
     response["Content-Disposition"] = f'attachment; filename="QM_Audit_{sop.doc_number}_{timezone.localdate().isoformat()}.csv"'
 
     writer = csv.writer(response, delimiter=";")
+    if not station.sop_receipt_names_agreed:
+        # „Namen nur nach Vereinbarung“: ohne Vereinbarung nur Anzahlen je
+        # Version, keine Personen (Station.sop_receipt_names_agreed).
+        target_ids = sop.target_user_ids()
+        writer.writerow([
+            _("SOP-Nummer"),
+            _("Titel"),
+            _("Version"),
+            _("SHA-256-Prüfsumme"),
+            _("Lesebestätigungen"),
+            _("davon aus der heutigen Zielgruppe"),
+            _("Zielgruppe (Personen)"),
+        ])
+        for revision in sop.revisions.order_by("-created_at", "-pk"):
+            user_ids = set(revision.receipts.values_list("user_id", flat=True))
+            writer.writerow([
+                sop.doc_number,
+                sop.title,
+                revision.version_label,
+                revision.content_hash,
+                len(user_ids),
+                len(user_ids & target_ids),
+                len(target_ids),
+            ])
+        return response
+
     writer.writerow([
         _("SOP-Nummer"),
         _("Titel"),
