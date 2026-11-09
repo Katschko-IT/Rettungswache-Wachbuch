@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Build: dependencies + collectstatic ---
-FROM python:3.14.9-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS builder
+FROM python:3.15.0-slim-trixie@sha256:f5b92f2a669a4c347044f29367f31983280b648250ca94dea66f98c53bc87e58 AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -26,7 +26,7 @@ RUN SECRET_KEY=build-only-secret-key-not-used-at-runtime \
     python manage.py collectstatic --noinput
 
 # --- Runtime: slim image ---
-FROM python:3.14.9-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS runtime
+FROM python:3.15.0-slim-trixie@sha256:f5b92f2a669a4c347044f29367f31983280b648250ca94dea66f98c53bc87e58 AS runtime
 # Patch OS packages so the runtime image does not ship known HIGH/CRITICAL CVEs
 # (security fixes land in trixie-security before the next image rebuild).
 RUN apt-get update \
