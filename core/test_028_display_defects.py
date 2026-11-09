@@ -4,7 +4,10 @@ Requirements from docs/ROADMAP.md (lines 84 & 88):
 1. „Mangel in drei Tipps“: Foto aufnehmen, Kategorie und Priorität als Chips,
    Bezug als Auswahl, Hinweis „bereits gemeldet“.
 2. Wand-Display als festes 16:9-Raster nur im Kiosk über den Display-Link,
-   ohne Emojis; Screenshot-Test 1920x1080 und 1280x720.
+   ohne Emojis. Der Screenshot- und Geometrietest bei 1920x1080 und 1280x720
+   läuft im Browser im CI-Job „a11y“ (.github/workflows/ci.yml,
+   tests/a11y/run-axe.js, Funktion checkDisplay); hier stehen nur die
+   serverseitigen Voraussetzungen. Weitere Tests: core/test_028_defects_display.py.
 """
 
 from __future__ import annotations
@@ -229,12 +232,23 @@ class WallDisplay16x9AndEmojiTests(TestCase):
             f"Display JSON payload contains emojis: {found_emojis}",
         )
 
-    def test_css_16x9_viewport_grid_spec(self):
-        """display.css defines fixed 16:9 aspect-ratio, max-height 100vh, overflow hidden."""
-        css_path = Path(__file__).resolve().parent / "static" / "core" / "display.css"
-        css_text = css_path.read_text(encoding="utf-8")
+    def test_16x9_geometry_is_checked_in_the_browser_by_ci(self):
+        """Kein Ersatz-Screenshot per Textsuche: Der CI-Job „a11y“ rendert das Display.
 
+        Früher prüfte dieser Test nur Zeichenketten in display.css und blieb grün,
+        obwohl Fußzeile und Laufschrift außerhalb des Rahmens lagen. Die Geometrie
+        (kein Scrollen, Raster 16:9, nichts außerhalb von Raster oder Bildschirm,
+        keine abgeschnittene Spalte, keine Emojis) prüft jetzt run-axe.js im
+        Browser; hier bleibt nur, dass es den Rahmen gibt und der Job ihn prüft.
+        """
+        root = Path(__file__).resolve().parent.parent
+        css_text = (root / "core" / "static" / "core" / "display.css").read_text(encoding="utf-8")
         self.assertIn(".display-grid-16x9", css_text)
         self.assertIn("aspect-ratio: 16 / 9;", css_text)
-        self.assertIn("max-height: 100vh;", css_text)
-        self.assertIn("overflow: hidden;", css_text)
+
+        workflow = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("\n  a11y:", workflow)
+        runner = (root / "tests" / "a11y" / "run-axe.js").read_text(encoding="utf-8")
+        self.assertIn("async function checkDisplay(", runner)
+        self.assertIn("{ width: 1920, height: 1080 }, { width: 1280, height: 720 }", runner)
+        self.assertIn("display-${size.width}x${size.height}-${themeName}.png", runner)

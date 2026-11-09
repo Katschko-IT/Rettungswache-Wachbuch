@@ -16,11 +16,13 @@ from django.utils.translation import gettext, gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .access import CONTENT_ROLES, membership_required, station_module_required
+from .defect_refs import open_defects_for_vehicle
 from .disinfection_plan import can_confirm_disinfection, ensure_default_levels
 from .evidence import vehicle_must_be_active
 from .fleet_forms import DisinfectionLevelRuleForm, DisinfectionProtocolForm, VehicleForm, VehicleHandoverForm
 from .fleet_models import DisinfectantMaster, DisinfectionLevel, DisinfectionProtocol, Vehicle, VehicleHandover
 from .models import Membership, Station
+from .paper_backfill import backfill_audit_metadata, can_backfill, newest_event_first
 from .services import audit
 from .wachalltag_models import Defect, DefectEvent, StationAsset
 
@@ -144,8 +146,10 @@ def fleet_dashboard(request):
         status__in=[Defect.Status.OPEN, Defect.Status.IN_PROGRESS, Defect.Status.WAITING],
     ).order_by("-priority", "created_at")[:5]
 
-    recent_disinfections = DisinfectionProtocol.objects.filter(station=station).select_related(
-        "vehicle", "performed_by", "disinfectant"
+    # Nach Beginn laut Bogen (Nachtrag) bzw. Erfassung, neueste zuerst.
+    recent_disinfections = newest_event_first(
+        DisinfectionProtocol.objects.filter(station=station).select_related("vehicle", "performed_by", "disinfectant"),
+        "started_at",
     )[:5]
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
@@ -254,29 +258,33 @@ def _defect_suggestion(request, vehicle):
 
 def _detail_context(request, vehicle, handover_form=None, disinfection_form=None) -> dict:
     station = request.membership.station
-    handovers = vehicle.handovers.select_related("crew_member").order_by("-performed_at")[:10]
+    # Reihenfolge nach Ereigniszeit: Nachträge vom Papierbogen stehen dort,
+    # wo sie laut Bogen hingehören.
+    handovers = newest_event_first(vehicle.handovers.select_related("crew_member"), "performed_at")[:10]
     disinfections = list(
-        vehicle.disinfections.select_related("performed_by", "disinfectant", "level").order_by("-started_at")[:10]
+        newest_event_first(vehicle.disinfections.select_related("performed_by", "disinfectant", "level"), "started_at")[:10]
     )
     # Stufe, Einwirkzeit und Bemerkung nur für die durchführende Person,
     # Schichtleitung und Admin; alle anderen sehen „Desinfektion“.
     for protocol in disinfections:
         protocol.show_details = protocol.details_visible_to(request.membership)
-    defects = Defect.objects.filter(
-        station=station,
-        category=Defect.Category.VEHICLE,
-        asset_ref__icontains=vehicle.license_plate,
-    ).order_by("-created_at")[:5]
+    # Offene Mängel: verknüpft (Defect.vehicle, seit 0.28) oder ältere
+    # Meldungen ohne Verknüpfung, deren Bezug exakt ein Name des Fahrzeugs ist
+    # (nie ein Teilstring des Kennzeichens; siehe core/defect_refs.py).
+    defects = open_defects_for_vehicle(vehicle).order_by("-created_at")[:5]
 
     can_manage = request.membership.role in {Membership.Role.SHIFT_LEAD, Membership.Role.ADMIN}
 
     # Übernahme ohne Vorauswahl: kein km-Stand, kein Füllstand, kein „Ja“.
+    allow_backfill = can_backfill(request.user)
     if handover_form is None:
-        handover_form = VehicleHandoverForm(auto_id="handover_%s", vehicle=vehicle)
+        handover_form = VehicleHandoverForm(auto_id="handover_%s", vehicle=vehicle, allow_backfill=allow_backfill)
     ensure_default_disinfectant(station)
     ensure_default_levels(station)
     if disinfection_form is None:
-        disinfection_form = DisinfectionProtocolForm(station=station, auto_id="disinfection_%s")
+        disinfection_form = DisinfectionProtocolForm(
+            station=station, auto_id="disinfection_%s", allow_backfill=allow_backfill,
+        )
 
     vehicle_qr_url = request.build_absolute_uri(reverse("fleet_vehicle_qr", args=[vehicle.slug]))
 
@@ -380,7 +388,9 @@ def vehicle_disinfection_create(request, slug: str):
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
     ensure_default_levels(station)
-    form = DisinfectionProtocolForm(request.POST, station=station, auto_id="disinfection_%s")
+    form = DisinfectionProtocolForm(
+        request.POST, station=station, auto_id="disinfection_%s", allow_backfill=can_backfill(request.user),
+    )
     if not form.is_valid():
         # Eingaben bleiben erhalten; Fehler stehen am jeweiligen Feld.
         messages.error(request, _("Desinfektionsprotokoll nicht gespeichert. Bitte die markierten Angaben prüfen."))
@@ -394,7 +404,21 @@ def vehicle_disinfection_create(request, slug: str):
     protocol.performed_by = request.user
     protocol.save()
 
-    if protocol.lock_timer_applied and protocol.exposure_minutes > 0:
+    if protocol.is_paper_backfill:
+        # Nur Häkchen und Ereigniszeit, nie Stufe oder Einwirkzeit (Entscheidung D2).
+        audit(request.user, station, "fleet.disinfection_backfilled", vehicle, {
+            "disinfection_id": protocol.pk, **backfill_audit_metadata(protocol),
+        })
+        if vehicle.is_disinfection_locked and vehicle.disinfection_locked_until == protocol.lock_until:
+            messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
+                "vehicle": vehicle.call_sign,
+                "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
+            })
+        else:
+            messages.success(request, _("Nachtrag vom Papierbogen gespeichert (Ereignis %(time)s).") % {
+                "time": timezone.localtime(protocol.occurred_at).strftime("%d.%m.%Y %H:%M"),
+            })
+    elif protocol.lock_timer_applied and protocol.exposure_minutes > 0:
         messages.warning(request, _("Desinfektion erfasst: %(vehicle)s ist bis %(time)s Uhr gesperrt (Einwirkzeit).") % {
             "vehicle": vehicle.call_sign,
             "time": timezone.localtime(vehicle.disinfection_locked_until).strftime("%H:%M"),
@@ -414,7 +438,9 @@ def vehicle_handover_create(request, slug: str):
     station = request.membership.station
     vehicle = get_object_or_404(Vehicle, station=station, slug=slug)
 
-    form = VehicleHandoverForm(request.POST, auto_id="handover_%s", vehicle=vehicle)
+    form = VehicleHandoverForm(
+        request.POST, auto_id="handover_%s", vehicle=vehicle, allow_backfill=can_backfill(request.user),
+    )
     if not form.is_valid():
         # Eingaben bleiben erhalten; Fehler stehen am jeweiligen Feld.
         messages.error(request, _("Schichtübernahme nicht gespeichert. Bitte die markierten Angaben prüfen."))
@@ -427,11 +453,17 @@ def vehicle_handover_create(request, slug: str):
     handover.save()
 
     # Automatische Warnung bei kritischem Sauerstoff- oder Kraftstoffstand
+    # (nicht bei einem Nachtrag: Der Stand vom Papierbogen ist Vergangenheit).
     warnings = []
-    if handover.o2_pressure_bar < 100:
-        warnings.append(_("Sauerstoffvorrat niedrig (%(bar)s bar).") % {"bar": handover.o2_pressure_bar})
-    if handover.fuel_percent < 30:
-        warnings.append(_("Kraftstoffstand niedrig (%(percent)s %%).") % {"percent": handover.fuel_percent})
+    if handover.is_paper_backfill:
+        audit(request.user, station, "fleet.vehicle_handover_backfilled", vehicle, {
+            "vehicle_handover_id": handover.pk, **backfill_audit_metadata(handover),
+        })
+    else:
+        if handover.o2_pressure_bar < 100:
+            warnings.append(_("Sauerstoffvorrat niedrig (%(bar)s bar).") % {"bar": handover.o2_pressure_bar})
+        if handover.fuel_percent < 30:
+            warnings.append(_("Kraftstoffstand niedrig (%(percent)s %%).") % {"percent": handover.fuel_percent})
 
     failed = handover.failed_checkpoints
     if failed:
@@ -443,7 +475,11 @@ def vehicle_handover_create(request, slug: str):
         url = reverse("fleet_vehicle_detail", args=[vehicle.slug])
         return redirect(f"{url}?{urlencode({'mangel': ','.join(failed)})}#fleet-defect")
 
-    if warnings:
+    if handover.is_paper_backfill:
+        messages.success(request, _("Nachtrag vom Papierbogen gespeichert (Ereignis %(time)s).") % {
+            "time": timezone.localtime(handover.occurred_at).strftime("%d.%m.%Y %H:%M"),
+        })
+    elif warnings:
         messages.warning(request, " ".join([_("Schichtübernahme gespeichert. Bitte beachten:"), *warnings]))
     else:
         messages.success(request, _("Schichtübernahme für %(vehicle)s bestätigt.") % {"vehicle": vehicle.call_sign})
@@ -469,6 +505,7 @@ def vehicle_defect_report(request, slug: str):
         title=title[:160],
         description=f"Fahrzeug: {vehicle.call_sign} ({vehicle.license_plate})\nkm-Stand: {vehicle.current_mileage}\n\n{description}".strip(),
         asset_ref=f"{vehicle.call_sign} ({vehicle.license_plate})",
+        vehicle=vehicle,
         priority=priority,
         status=Defect.Status.OPEN,
         category=Defect.Category.VEHICLE,

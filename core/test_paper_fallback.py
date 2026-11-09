@@ -232,13 +232,14 @@ class PaperFormTests(PaperBase):
             self.assertContains(response, "data-print", msg_prefix=name)
             self.assertContains(response, "paper-view", msg_prefix=name)
 
-    def test_cover_sheet_does_not_ask_for_backdated_entries(self):
+    def test_cover_sheet_asks_for_paper_backfill_with_event_time(self):
+        # Seit 0.28 (P4) gibt es den Nachtrag vom Papierbogen mit Ereigniszeit;
+        # Schritt 5 verweist darauf statt auf „nur den aktuellen Stand“.
         response = self.get("paper_hub")
         self.assertContains(
             response,
-            "Läuft das Wachbuch wieder: nur den aktuellen Stand erfassen (je Fahrzeug eine neue "
-            "Fahrzeugübernahme, offene Mängel). Die ausgefüllten Blätter sind der Nachweis für die "
-            "Ausfallzeit und bleiben bei der Wachleitung, bis Nachträge mit Ereigniszeit möglich sind.",
+            "Läuft das Wachbuch wieder: die ausgefüllten Blätter als Nachtrag vom Papierbogen mit der Zeit "
+            "laut Bogen erfassen, offene Mängel melden. Die Blätter bleiben als Original bei der Wachleitung.",
         )
         self.assertContains(response, "Keine Patienten- oder Einsatzangaben eintragen.")
         self.assertNotContains(response, "Einträge nachtragen")

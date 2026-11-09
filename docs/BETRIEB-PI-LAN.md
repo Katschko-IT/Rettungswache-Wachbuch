@@ -15,6 +15,15 @@ Voraussetzung ist, dass `web`, `proxy` und die Datenbank laufen. Ob auch deren
 Ausfall ohne Internet gemeldet werden muss, haben die Betreiber noch nicht
 entschieden (siehe [Offene Fragen](#offene-fragen)).
 
+Fristen-Erinnerungen (30, 7 und 0 Tage vor einer Frist) und die Wochenübersicht
+plant der notify-worker selbst, ohne Cron und ohne Internet: Erinnerungen
+höchstens einmal je Stunde, die Wochenübersicht einmal je Kalenderwoche ab
+Montag 06:00, beides nur zwischen 06:00 und 22:00 Uhr. War der Pi am Montag
+oder an einem Fälligkeitstag aus, holt der nächste Lauf das nach. Den letzten Lauf zeigt die Seite **System**; Einzelheiten
+in [`OPERATIONS.md`](OPERATIONS.md#fristen-erinnerungen-und-wochenübersicht).
+Fällt der notify-worker länger aus, meldet das die Überwachung wie bei jedem
+anderen Dienst.
+
 ## 1. Überblick
 
 Alle 5 Minuten prüft `wachwerk-health` auf dem Gerät selbst (systemd-Timer, als

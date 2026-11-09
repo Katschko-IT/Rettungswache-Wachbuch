@@ -54,7 +54,7 @@
         <li class="coffee-month is-{{ month.status }}">
           <span class="coffee-month-name">{{ month.period|date:"F" }}</span>
           <span class="coffee-month-state">
-            {% if month.status == "paid" %}✓ {% translate "bezahlt" %}{% elif month.status == "open" %}{% blocktranslate with amount=month.remaining_euros|floatformat:2 %}offen {{ amount }} €{% endblocktranslate %}{% elif month.status == "waived" %}{% translate "befreit" %}{% elif month.status == "future" %}{% translate "kommt noch" %}{% else %}–{% endif %}
+            {% if month.status == "paid" %}✓ {% translate "bezahlt" %}{% elif month.status == "open" %}{% blocktranslate with amount=month.remaining_euros|floatformat:2 %}offen {{ amount }} €{% endblocktranslate %}{% elif month.status == "waived" %}{% translate "befreit" %}{% elif month.status == "future" %}{% translate "kommt noch" %}{% else %}{% translate "kein Beitrag" %}{% endif %}
           </span>
         </li>
       {% endfor %}

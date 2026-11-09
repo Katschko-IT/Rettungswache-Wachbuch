@@ -252,7 +252,7 @@ Neben der viergliedrigen Fachnavigation (`Uebersicht`, `Uebergaben`, `Kalender`,
 - **Zweck:** Bereitstellung von Links zu öffentlichen Seiten (`Vorfuehrung`, `Datenschutz`), die auch ohne Anmeldung und ohne JavaScript sofort erreichbar sind.
 - **Sichtbarkeit:** Persistent im Header auf allen Seiten (Desktop, Tablet, Mobile, Login, Vorführung, Demo).
 - **Entkopplung:** Die 4-Punkte-Fachnavigation (`app-nav`) für angemeldete Wachenmitglieder bleibt unberührt und wird nicht durch zusätzliche Menuepunkte überfrachtet.
-- **Barrierefreiheit & Touch-Ziele:** Mindestzielgroesse von **48 x 48 CSS-Pixeln** (`--touch`), sichtbarer Fokusring (`:focus-visible` mit Token `#f0b429`), Kennzeichnung der aktiven Seite via `aria-current="page"`.
+- **Barrierefreiheit & Touch-Ziele:** Mindestzielgroesse von **48 x 48 CSS-Pixeln** (`--touch`), sichtbarer Fokusring (`:focus-visible` mit `--focus` und Saum `--focus-ring`, siehe „Barrierefreiheit“), Kennzeichnung der aktiven Seite via `aria-current="page"`.
 - **Mobiles Verhalten:** Im Viewport unter 48rem bricht `.public-nav` sauber um (kein horizontales Scrollen bei 320 CSS-Pixeln) und überdeckt niemals die fixe mobile `app-nav` am unteren Bildschirmrand.
 
 
@@ -327,6 +327,31 @@ semantische Tabellen, permanente Feldlabels, Erhalt fehlerhafter Eingaben, Text
 plus Farbe für Status und `prefers-reduced-motion`-freundliche Darstellung ohne
 notwendige Animation. `prefers-contrast: more` schaltet auf Schwarz/Weiß wie
 die Flutter-HighContrast-Themes.
+
+Regeln seit 0.28 (geprüft durch den CI-Job `a11y` mit axe-core, hell und
+dunkel, sowie `core/test_028_defects_display.py`):
+
+- **Fokusring:** Gelb (`--focus`) auf einem Saum `--focus-halo` (hell
+  `#0a3a85`, dunkel `#b3ccff`). Gelb allein erreicht auf Weiß nur 2:1; der Saum
+  erreicht gegen `--surface`, `--bg` und `--surface-soft` in beiden Modi
+  mindestens 3:1 (WCAG 1.4.11). `--focus-ring` ist der Saum als `box-shadow`
+  für Bausteine, die den Fokus eines inneren Felds zeigen (Chips mit
+  `:has(input:focus-visible)`, Knöpfe „Foto aufnehmen“ und „Datei wählen“).
+  Kein Fokusring mit Tokens anderer Bereiche (z. B. `--display-accent`).
+- **Ausgewählte Chips** nutzen dasselbe Farbpaar wie `.button.primary`:
+  `--brand` mit `--on-primary` (hell und dunkel mindestens 4,5:1), nie fest
+  `#ffffff`.
+- **Gedämpfte Einträge** (z. B. Monate ohne Beitrag in der Kaffeekasse) nie
+  über `opacity`: Text in `--muted` bei voller Deckkraft (mindestens 4,5:1),
+  dazu ein Textlabel („kein Beitrag“, „kommt noch“) und eine gestrichelte Kante.
+- **Versteckte Felder** (`.visually-hidden`) setzen Breite, Höhe, Polster und
+  Mindesthöhe mit `!important` auf das Clip-Muster und liegen in einem Baustein
+  mit `position: relative`; sonst verbreitern Formularregeln die Seite auf dem
+  Handy. Der CI-Job prüft das Mangelformular bei 390x844 auf seitliches
+  Scrollen.
+- **Feldlabels:** Jedes `<label>` gehört zu einem Feld (`for` oder
+  verschachtelt). Gruppen (Foto, Kategorie, Priorität) sind `<fieldset>` mit
+  `<legend>`; keine internen Begriffe wie „Tipp 1“ in sichtbaren Texten.
 
 Referenzen:
 

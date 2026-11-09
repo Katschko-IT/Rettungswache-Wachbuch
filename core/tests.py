@@ -2257,15 +2257,24 @@ class ApiUnifiedContractTests(PilotTestCase):
         checklist = Checklist.objects.create(
             station=self.station, title="Fahrzeugcheck", description="Täglich"
         )
-        ChecklistItem.objects.create(checklist=checklist, text="Reifen", position=0)
+        tyres = ChecklistItem.objects.create(checklist=checklist, text="Reifen", position=0)
         listed = self.client.get(reverse("api_v1_checklisten"), **self._auth(raw))
         self.assertEqual(listed.status_code, 200)
         self.assertEqual(listed.json()["results"][0]["title"], "Fahrzeugcheck")
         self.assertEqual(listed.json()["results"][0]["items"], ["Reifen"])
+        self.assertEqual(listed.json()["results"][0]["item_details"][0]["id"], tyres.pk)
 
-        done = self.client.post(
+        # Seit 0.28 braucht ein Abschluss das Ergebnis je Prüfpunkt (ohne: 400).
+        missing = self.client.post(
             reverse("api_v1_checkliste_erledigt", args=[checklist.pk]),
             data=json.dumps({"note": "Erledigt"}),
+            content_type="application/json",
+            **self._auth(raw),
+        )
+        self.assertEqual(missing.status_code, 400)
+        done = self.client.post(
+            reverse("api_v1_checkliste_erledigt", args=[checklist.pk]),
+            data=json.dumps({"note": "Erledigt", "item_results": {str(tyres.pk): {"status": "ok"}}}),
             content_type="application/json",
             **self._auth(raw),
         )
@@ -2287,11 +2296,12 @@ class ApiUnifiedContractTests(PilotTestCase):
             title="Wachbuch-Client-Test",
             is_active=True,
         )
-        ChecklistItem.objects.create(checklist=checklist, text="Item", position=0)
+        item = ChecklistItem.objects.create(checklist=checklist, text="Item", position=0)
+        results = {str(item.pk): {"status": "ok"}}
 
         done = self.client.post(
             reverse("api_v1_checkliste_abschluss", args=[checklist.pk]),
-            data=json.dumps({"note": "Via /abschluss/ Alias"}),
+            data=json.dumps({"note": "Via /abschluss/ Alias", "item_results": results}),
             content_type="application/json",
             **self._auth(raw),
         )
@@ -2301,7 +2311,7 @@ class ApiUnifiedContractTests(PilotTestCase):
         erledigt_count = ChecklistCompletion.objects.filter(checklist=checklist).count()
         erledigt = self.client.post(
             reverse("api_v1_checkliste_erledigt", args=[checklist.pk]),
-            data=json.dumps({"note": "Via /erledigt/"}),
+            data=json.dumps({"note": "Via /erledigt/", "item_results": results}),
             content_type="application/json",
             **self._auth(raw),
         )

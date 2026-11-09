@@ -42,6 +42,7 @@ from core.models import (
     CalendarEvent,
     Checklist,
     ChecklistCompletion,
+    ChecklistDraft,
     CoffeeEntry,
     HandoverEntry,
     Membership,
@@ -764,6 +765,7 @@ class ApiPersonListTests(TestCase):
         CoffeeEntry.objects.create(station=station, member=erika, amount_cents=500, reason="Einzahlung", created_by=erika)
         checklist = Checklist.objects.create(station=station, title="Fahrzeugcheck")
         ChecklistCompletion.objects.create(station=station, checklist=checklist, completed_by=erika)
+        ChecklistDraft.objects.create(station=station, checklist=checklist, created_by=erika, updated_by=erika)
         PinboardNote.objects.create(station=station, title="Aushang", body="Text", author=erika)
         CalendarEvent.objects.create(
             station=station, title="Termin", starts_at=now + timedelta(days=1), ends_at=now + timedelta(days=1, hours=1),
@@ -782,6 +784,7 @@ class ApiPersonListTests(TestCase):
             "api_v1_defect_detail": [defect.pk],
             "api_v1_defect_attachments": [defect.pk],
             "api_v1_checkliste_schedule": [checklist.pk],
+            "api_v1_checkliste_zwischenstand": [checklist.pk],
         }
 
     def _shows_other_person(self, name) -> bool | None:

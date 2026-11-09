@@ -254,8 +254,8 @@ class ChecklistAdmin(admin.ModelAdmin):
 
 @admin.register(ChecklistCompletion)
 class ChecklistCompletionAdmin(ReadOnlyAdmin):
-    list_display = ("checklist", "station", "completed_by", "is_draft", "created_at")
-    list_filter = ("station", "is_draft")
+    list_display = ("checklist", "station", "completed_by", "is_paper_backfill", "occurred_at", "created_at")
+    list_filter = ("station", "is_paper_backfill")
 
 
 @admin.register(AuditEvent)

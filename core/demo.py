@@ -482,13 +482,21 @@ def _seed_content(station: Station, users: dict[str, User], *, marker: str = DEM
         for index, text in enumerate(texts, start=1)
     ])
     shift_start = local_time(today, 7, 15) if local_time(today, 7, 15) < now else local_time(today, 7, 15) - timedelta(days=1)
+    from .checklists_service import STATUS_OK, validate_results
+
+    def all_ok(checklist):
+        # Ergebnis je Punkt wie bei einem echten Lauf (mit Kopie der Prüfpunkte).
+        items = list(checklist.items.all())
+        results, _errors = validate_results(items, {str(item.pk): {"status": STATUS_OK} for item in items}, final=True)
+        return results
+
     for checklist, person, when, note in (
         (vehicle_check, member, shift_start, "RTW 83-1 ohne Befund"),
         (vehicle_check, jonas, shift_start - timedelta(hours=12), "RTW 83-2 ohne Befund"),
         (round_check, tim, shift_start - timedelta(hours=10, minutes=30), ""),
     ):
         insert_at(ChecklistCompletion(station=station, checklist=checklist, completed_by=person,
-                                      note=label(note) if note else ""), when)
+                                      note=label(note) if note else "", item_results=all_ok(checklist)), when)
 
     # --- Tagesaufgaben: heute schon erledigt ------------------------------
     daily = list(StationTask.objects.filter(station=station, band=StationTask.Band.DAILY, is_active=True)

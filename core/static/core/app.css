@@ -70,14 +70,23 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border-radius: var(--radius);
 }
 .skip-link:focus { top: calc(1rem + var(--safe-top)); }
+/* Nur für Screenreader. !important, weil Formularregeln wie
+   „.form-card input“ sonst Breite und Polster zurücksetzen und ein
+   verstecktes Feld die Seite auf dem Handy seitlich verbreitert. Der
+   Elternbaustein braucht position: relative (z. B. .photo-capture-btn). */
 .visually-hidden {
   position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* —— App shell: official service header —— */
@@ -2272,7 +2281,11 @@ dialog::backdrop { background: var(--scrim); }
   margin: 0 0 .75rem;
 }
 .year-switch h2, .year-switch h3 { margin: 0; text-align: center; font-size: var(--fs-lg); }
-.coffee-month.is-future, .coffee-month.is-none { opacity: .55; }
+/* Ohne Beitrag oder noch nicht fällig: gestrichelter Rand und Text in
+   --muted bei voller Deckkraft (≥ 4,5:1 hell und dunkel), der Zustand steht
+   als Text daneben. Keine Deckkraft auf Text. */
+.coffee-month.is-future, .coffee-month.is-none { border-style: dashed; background: transparent; }
+.coffee-month.is-future .coffee-month-name, .coffee-month.is-none .coffee-month-name { color: var(--muted); }
 .coffee-book th.is-current, .coffee-book td.is-current { background: var(--primary-container); }
 .coffee-book tfoot th, .coffee-book tfoot td { font-weight: 700; border-top: 2px solid var(--line-strong); }
 .coffee-book th[scope="row"] small { display: block; color: var(--muted); font-weight: 400; }
@@ -2443,7 +2456,13 @@ button.text-action {
 .demo-stats-days summary { display: flex; align-items: center; min-height: var(--touch); font-weight: 600; cursor: pointer; }
 
 /* Mangel in drei Tipps: Duplikat-Hinweis „Bereits gemeldet“, Foto-Knöpfe & Segment-Chips */
-/* Aussehen kommt von .alert.warning (eine Hinweis-Komponente); hier nichts überschreiben. */
+.already-reported-banner {
+  margin: 0.75rem 0 0;
+  border-left: 4px solid var(--warning-accent);
+  background: var(--warning-soft);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 0.5rem);
+}
 .already-reported-banner[hidden] { display: none !important; }
 .already-reported-banner .alert-heading {
   display: flex;
@@ -2455,7 +2474,7 @@ button.text-action {
 .already-reported-intro {
   margin: 0.25rem 0 0.5rem;
   font-size: var(--fs-sm);
-  color: var(--muted);
+  color: var(--text);
 }
 .already-reported-list {
   margin: 0.5rem 0 0;
@@ -2485,6 +2504,8 @@ button.text-action {
 }
 .photo-capture-btn,
 .photo-upload-btn {
+  /* Hält das versteckte Dateifeld im Knopf (siehe .visually-hidden). */
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2503,6 +2524,14 @@ button.text-action {
   gap: 0.5rem;
   margin-top: 0.35rem;
 }
+/* Das Dateifeld selbst ist versteckt: Der Knopf zeigt seinen Tastaturfokus. */
+.photo-capture-btn:has(input:focus-visible),
+.photo-upload-btn:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
 .chip-pill {
   display: inline-flex;
   align-items: center;
@@ -2518,7 +2547,7 @@ button.text-action {
   font-weight: 600;
   cursor: pointer;
   box-sizing: border-box;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   user-select: none;
 }
 .chip-pill input[type="radio"] {
@@ -2530,18 +2559,60 @@ button.text-action {
   pointer-events: none;
 }
 .chip-pill:hover {
-  border-color: var(--brand, #0d47a1);
-  background: rgba(13, 71, 161, 0.05);
+  border-color: var(--brand);
+  background: var(--accent-soft);
 }
+/* Ausgewählt: dasselbe Farbpaar wie .button.primary (hell 9:1, dunkel 8:1). */
 .chip-pill:has(input[type="radio"]:checked),
 .chip-pill.is-selected {
-  background: var(--brand, #0d47a1);
-  border-color: var(--brand, #0d47a1);
-  color: #ffffff;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-primary);
 }
 .chip-pill:has(input[type="radio"]:focus-visible) {
-  outline: 3px solid var(--display-accent, #7fb2ff);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-pill { transition: none; }
+}
+
+/* Mangel melden: Gruppen ohne Rahmen, Freitext, Hinweise und Speichern. */
+fieldset.photo-capture-field,
+fieldset.chip-fieldset {
+  min-width: 0;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+}
+fieldset.photo-capture-field > legend,
+fieldset.chip-fieldset > legend {
+  padding: 0;
+  margin-bottom: .35rem;
+  font-weight: 700;
+}
+.custom-reference { margin-top: .75rem; }
+.custom-reference label { font-weight: 600; }
+.device-lock-hint { margin-top: .5rem; }
+@media (max-width: 48rem) {
+  /* Speichern bleibt über der unteren Leiste erreichbar. */
+  .defect-form-actions {
+    position: sticky;
+    bottom: calc(var(--nav-height) + var(--safe-bottom));
+    z-index: 5;
+    margin: 0 -1rem;
+    padding: .75rem 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    flex-direction: row;
+  }
+  .defect-form-actions .button { width: auto; flex: 1 1 0; }
+}
+.heading-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+@media (max-width: 48rem) {
+  .heading-actions { flex-direction: column; }
+  .heading-actions .button { width: 100%; }
 }
 
 

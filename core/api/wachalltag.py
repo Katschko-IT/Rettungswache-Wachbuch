@@ -18,7 +18,7 @@ from urllib.parse import quote
 
 from PIL import Image, UnidentifiedImageError
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -27,6 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from core.access import CONTENT_ROLES
+from core.defect_refs import filter_defects_by_reference
 from core.device_status import IN_SERVICE, asset_locked_by_device, asset_release_blockers
 from core.models import Checklist, HandoverEntry, Membership
 from core.services import acknowledge_handover, audit
@@ -269,13 +270,14 @@ def api_root(request):
         "handover_ack": True,
         "defect_attachments": True,
         "checklist_schedules": True,
+        "checklist_item_results": True,
+        "checklist_drafts": True,
         "reports": True,
         "offline_safe_reads": True,
     }
     return _json_response_from(response, data)
 
 
-@csrf_exempt
 def _station_modules(station_obj, existing_modules=None):
     existing = existing_modules or {}
     fleet = getattr(station_obj, "fleet_enabled", True) if station_obj else True
@@ -296,6 +298,7 @@ def _station_modules(station_obj, existing_modules=None):
     }
 
 
+@csrf_exempt
 @require_GET
 def me(request):
     response = base.me(request)
@@ -369,6 +372,16 @@ def _next_month(value):
     return value.replace(year=year, month=month, day=day)
 
 
+def _previous_month(value):
+    month = value.month - 1
+    year = value.year
+    if month == 0:
+        month = 12
+        year -= 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return value.replace(year=year, month=month, day=day)
+
+
 def _step_schedule(value, interval):
     if interval == ChecklistSchedule.Interval.DAILY:
         return value + timedelta(days=1)
@@ -377,21 +390,45 @@ def _step_schedule(value, interval):
     return _next_month(value)
 
 
-def _advance_schedule(schedule):
-    """Advance exactly along the configured cadence to the first future due."""
-    now = timezone.now()
-    next_due = _step_schedule(schedule.due_next or now, schedule.interval)
-    while next_due <= now:
+def _step_schedule_back(value, interval):
+    if interval == ChecklistSchedule.Interval.DAILY:
+        return value - timedelta(days=1)
+    if interval == ChecklistSchedule.Interval.WEEKLY:
+        return value - timedelta(days=7)
+    return _previous_month(value)
+
+
+def _advance_schedule(schedule, done_at=None):
+    """Advance exactly along the configured cadence to the first due after the run.
+
+    A normal run counts at ``now``, so the new due lies in the future. A paper
+    backfill counts at its event time ``done_at``: the due moves to the first
+    step after that time and may stay in the past, so cycles missed after the
+    paper sheet remain overdue.
+    """
+    reference = done_at or timezone.now()
+    next_due = _step_schedule(schedule.due_next or reference, schedule.interval)
+    while next_due <= reference:
         next_due = _step_schedule(next_due, schedule.interval)
     schedule.due_next = next_due
     schedule.save(update_fields=["due_next", "updated_at"])
 
 
-def advance_checklist_schedule(checklist_id):
-    """Nach einem Abschluss das Prüfintervall weiterschalten (Web und API)."""
+def advance_checklist_schedule(checklist_id, done_at=None):
+    """Nach einem Abschluss das Prüfintervall weiterschalten (Web und API).
+
+    ``done_at`` ist die Ereigniszeit eines Nachtrags vom Papierbogen. Liegt sie
+    vor dem laufenden Zyklus (vor der Fälligkeit davor), gehört der Lauf zu
+    einem früheren Zyklus und die Fälligkeit bleibt stehen. Sonst rückt die
+    Fälligkeit von der Ereigniszeit aus weiter, nicht von jetzt: Zyklen nach
+    dem Papierbogen, für die noch kein Lauf vorliegt, bleiben überfällig.
+    """
     schedule = ChecklistSchedule.objects.select_for_update().filter(checklist_id=checklist_id).first()
     if schedule is not None:
-        _advance_schedule(schedule)
+        if done_at is not None and schedule.due_next is not None:
+            if done_at < _step_schedule_back(schedule.due_next, schedule.interval):
+                return schedule
+        _advance_schedule(schedule, done_at=done_at)
     return schedule
 
 
@@ -415,16 +452,17 @@ def defect_attachment_limit_error(locked_defect, size):
 @csrf_exempt
 @require_POST
 def checklist_complete_api(request, pk):
+    # Das Prüfintervall schreibt der Abschluss selbst fort (core/checklists_service.py,
+    # in derselben Transaktion); hier kommt nur der neue Stand in die Antwort.
     response = base.checklist_complete_api(request, pk)
-    if response.status_code in {200, 201}:
+    if response.status_code == 201:
         data = _payload(response)
         if not data.get("is_draft"):
-            with transaction.atomic():
-                schedule = advance_checklist_schedule(pk)
+            schedule = ChecklistSchedule.objects.filter(checklist_id=pk).first()
             if schedule is not None:
                 data["interval"] = schedule.interval
                 data["due_next"] = schedule.due_next.isoformat() if schedule.due_next else None
-                data["overdue"] = False
+                data["overdue"] = bool(schedule.due_next and schedule.due_next < timezone.now())
                 response = _json_response_from(response, data)
     return response
 
@@ -472,9 +510,11 @@ def defects_list(request):
             qs = qs.filter(due_at__lt=timezone.now()).exclude(status=Defect.Status.DONE)
         if request.GET.get("active") in {"1", "true", "yes"}:
             qs = qs.exclude(status=Defect.Status.DONE)
-        asset_filter = request.GET.get("asset") or request.GET.get("asset_ref")
+        asset_filter = (request.GET.get("asset") or request.GET.get("asset_ref") or "").strip()
         if asset_filter:
-            qs = qs.filter(Q(asset_ref__iexact=asset_filter) | Q(asset_ref__icontains=asset_filter))
+            # Exakt wie der Hinweis „bereits gemeldet“ im Browser: gleicher
+            # Schlüssel oder gleicher Text, nie Teilstrings („RTW 1“ ≠ „RTW 10“).
+            qs = filter_defects_by_reference(qs, station, asset_filter)
         limit = _int_param(request, "limit", default=100, minimum=1, maximum=200)
         offset = _int_param(request, "offset", default=0, minimum=0, maximum=10**6)
         total = qs.count()
@@ -493,8 +533,8 @@ def defects_list(request):
     if body is None:
         return base._json_error(request, "JSON-Koerper erwartet.", status=400)
     title = str(body.get("title") or "").strip()
-    if not title or len(title) > 160:
-        return base._json_error(request, "Titel ist erforderlich (max. 160 Zeichen).", status=422)
+    if len(title) > 160:
+        return base._json_error(request, "Titel ist zu lang (max. 160 Zeichen).", status=422)
     priority = str(body.get("priority") or Defect.Priority.NORMAL)
     category = str(body.get("category") or Defect.Category.TASK)
     if priority not in Defect.Priority.values or category not in Defect.Category.values:
@@ -506,6 +546,11 @@ def defects_list(request):
         return base._json_error(request, str(exc), status=422)
     description = str(body.get("description") or "")[:3000]
     asset_ref = str(body.get("asset_ref") or "")[:160]
+    if not title:
+        # Wie im Mangelformular (0.28): ohne Titel „<Kategorie>: <Bezug>“ in Wachensprache.
+        from core.wachalltag_web import _auto_defect_title
+
+        title = _auto_defect_title(category, asset_ref.strip())
     with transaction.atomic():
         item = Defect.objects.create(
             station=station,

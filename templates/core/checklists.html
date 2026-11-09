@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% translate "Checklisten" %} | {{ app_name }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{% url 'more' %}">{% translate "Zurück zu Mehr" %}</a>
@@ -7,12 +7,36 @@
   <p class="context-line">{% translate "Wachalltag" %}</p>
   <h1>{% translate "Checklisten" %}</h1>
   <p class="lead">{% translate "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren." %}</p>
+  {% if show_quota %}
+  <p class="context-line checklist-quota">
+    {% if quota %}
+      <strong>{% blocktranslate with percent=quota.percent %}Läufe mit Ergebnis je Punkt (30 Tage): {{ percent }} %{% endblocktranslate %}</strong>
+      <small>{% blocktranslate with complete=quota.complete total=quota.total %}{{ complete }} von {{ total }} Läufen, Summe der Wache{% endblocktranslate %}</small>
+    {% else %}
+      {% translate "Läufe mit Ergebnis je Punkt (30 Tage): noch keine Läufe" %}
+    {% endif %}
+  </p>
+  {% endif %}
 </header>
+
+{% if last_run %}
+<div class="callout warning checklist-last-run" role="status">
+  <p><strong>{% blocktranslate with title=last_run.run.checklist.title %}Mängel aus dem Lauf „{{ title }}“{% endblocktranslate %}</strong></p>
+  <p>{% translate "Ein Foto lässt sich beim jeweiligen Mangel hinzufügen." %}</p>
+  <ul>
+    {% for entry in last_run.entries %}
+    <li><a href="{% url 'defect_detail_web' entry.defect.pk %}">#{{ entry.defect.pk }} {{ entry.defect.title }}</a>{% if entry.row.defect_linked %} · {% translate "war bereits offen gemeldet" %}{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% if not terminal_open_mode %}<p><a href="{% url 'checklist_run_detail' last_run.run.pk %}">{% translate "Lauf ansehen" %}</a></p>{% endif %}
+</div>
+{% endif %}
+
 {% if not checklists %}
 <p>{% translate "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an." %}</p>
 {% endif %}
 {% for checklist in checklists %}
-<section class="form-card checklist-card">
+<section class="form-card checklist-card" id="checkliste-{{ checklist.id }}">
   <h2>{{ checklist.title }}</h2>
   {% if checklist.description %}<p class="lead">{{ checklist.description }}</p>{% endif %}
 
@@ -28,99 +52,135 @@
   {% endif %}
   {% endif %}
 
-  {% if checklist.latest_completion %}
+  {% if checklist.latest_completion %}{% with run=checklist.latest_completion %}
   <p class="context-line">{% translate "Zuletzt erledigt am" %}
-    {{ checklist.latest_completion.created_at|date:"d.m.Y H:i" }}
-    {% translate "von" %} {{ checklist.latest_completion.completed_by.first_name|default:checklist.latest_completion.completed_by.username }}</p>
+    {{ run.effective_at|date:"d.m.Y H:i" }}
+    {% translate "von" %} {{ run.completed_by.first_name|default:run.completed_by.username }}
+    {% if run.is_paper_backfill %}<span class="status-label warning">{% blocktranslate with created=run.created_at|date:"d.m.Y H:i" %}Nachtrag von Papier (erfasst: {{ created }}){% endblocktranslate %}</span>{% endif %}
+  </p>
+  {% endwith %}{% endif %}
+  {% if not terminal_open_mode %}
+  <p class="context-line"><a href="{% url 'checklist_history' checklist.id %}">{% translate "Verlauf der Läufe" %}</a></p>
   {% endif %}
 
   {% if checklist.active_draft %}
   <div class="callout info">
     <p><strong>{% translate "Zwischenstand vorhanden:" %}</strong>
-      {% translate "Gespeichert am" %} {{ checklist.active_draft.created_at|date:"d.m.Y H:i" }}
-      {% translate "von" %} {{ checklist.active_draft.completed_by.first_name|default:checklist.active_draft.completed_by.username }}.
+      {% translate "Gespeichert am" %} {{ checklist.active_draft.updated_at|date:"d.m.Y H:i" }}
+      {% translate "von" %} {{ checklist.active_draft.updated_by.first_name|default:checklist.active_draft.updated_by.username }}.
+      {% translate "Die gespeicherten Angaben sind unten eingetragen und lassen sich fortsetzen." %}
       {% if checklist.active_draft.note %}<br><em>{{ checklist.active_draft.note }}</em>{% endif %}
     </p>
   </div>
   {% endif %}
 
-  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-submit-once data-checklist-progress>
+  {% if checklist.form_errors %}
+  <div class="callout warning" role="alert" id="checkliste-{{ checklist.id }}-fehler">
+    <p><strong>{% translate "Bitte prüfen:" %}</strong></p>
+    <ul class="errorlist">{% for error in checklist.form_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'checklist_complete' checklist.id %}" class="checklist-form" data-checklist-form data-submit-once data-checklist-progress
+        data-all-ok-done="{% translate 'Offene Punkte ohne Messwert sind auf „in Ordnung“ gesetzt.' %}"
+        data-all-ok-none="{% translate 'Es gibt keine offenen Punkte ohne Messwert.' %}">
     {% csrf_token %}
 
     <div class="checklist-progress" data-progress-box hidden>
-      <progress max="{{ checklist.items.count }}" value="0" data-progress-bar aria-labelledby="progress-text-{{ checklist.id }}"></progress>
-      <span id="progress-text-{{ checklist.id }}" data-progress-text data-progress-template="{% translate '%(done)s von %(total)s Prüfpunkten beantwortet' %}">{% blocktranslate with done=0 total=checklist.items.count %}{{ done }} von {{ total }} Prüfpunkten beantwortet{% endblocktranslate %}</span>
+      <progress max="{{ checklist.item_rows|length }}" value="0" data-progress-bar aria-labelledby="progress-text-{{ checklist.id }}"></progress>
+      <span id="progress-text-{{ checklist.id }}" data-progress-text data-progress-template="{% translate '%(done)s von %(total)s Prüfpunkten beantwortet' %}">{% blocktranslate with done=0 total=checklist.item_rows|length %}{{ done }} von {{ total }} Prüfpunkten beantwortet{% endblocktranslate %}</span>
     </div>
 
     <fieldset class="checklist-items">
       <legend class="visually-hidden">{% translate "Prüfpunkte" %}</legend>
       <div class="stack-list">
-        {% for item in checklist.items.all %}
-        <div class="checklist-item-row" data-item-id="{{ item.id }}">
+        {% for row in checklist.item_rows %}{% with item=row.item %}
+        <div class="checklist-item-row" data-item-id="{{ item.id }}"{% if item.has_measurement %} data-measurement{% endif %}>
           <div class="item-header">
-            <strong>{{ item.text }}</strong>
+            <strong id="item-{{ item.id }}-label">{{ item.text }}</strong>
             {% if item.is_required %}<span class="badge">{% translate "Pflicht" %}</span>{% endif %}
-            {% if item.min_value is not None or item.max_value is not None or item.measurement_unit %}
+            {% if item.has_measurement %}
             <span class="badge badge-info">
-              {% translate "Soll:" %}
-              {% if item.min_value is not None %}{{ item.min_value }}{% endif %}
-              {% if item.min_value is not None and item.max_value is not None %}–{% endif %}
-              {% if item.max_value is not None %}{{ item.max_value }}{% endif %}
+              {% if item.min_value is not None or item.max_value is not None %}
+                {% translate "Soll:" %}
+                {% if item.min_value is not None and item.max_value is not None %}{{ item.min_value }}–{{ item.max_value }}{% elif item.min_value is not None %}≥ {{ item.min_value }}{% else %}≤ {{ item.max_value }}{% endif %}
+              {% else %}
+                {% translate "Messwert" %}
+              {% endif %}
               {{ item.measurement_unit }}
             </span>
             {% endif %}
           </div>
 
-          <fieldset class="item-controls cluster">
-            <legend class="visually-hidden">{% blocktranslate with text=item.text %}Ergebnis für: {{ text }}{% endblocktranslate %}</legend>
+          <div class="item-controls cluster" role="radiogroup" aria-labelledby="item-{{ item.id }}-label">
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="ok"{% if item.prefill.status == 'ok' %} checked{% endif %}>
+              <input type="radio" name="result_{{ item.id }}" value="ok"{% if row.status == "ok" %} checked{% endif %}>
               <span>{% translate "in Ordnung" %}</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="not_ok"{% if item.prefill.status == 'not_ok' %} checked{% endif %}>
+              <input type="radio" name="result_{{ item.id }}" value="not_ok"{% if row.status == "not_ok" %} checked{% endif %}>
               <span>{% translate "nicht in Ordnung" %}</span>
             </label>
             <label class="radio-label">
-              <input type="radio" name="result_{{ item.id }}" value="na"{% if item.prefill.status == 'na' %} checked{% endif %}>
+              <input type="radio" name="result_{{ item.id }}" value="na"{% if row.status == "na" %} checked{% endif %}>
               <span>{% translate "entfällt" %}</span>
             </label>
 
-            {% if item.min_value is not None or item.max_value is not None or item.measurement_unit %}
-            <label class="visually-hidden" for="value_{{ item.id }}">{% blocktranslate with text=item.text %}Messwert für: {{ text }}{% endblocktranslate %}</label>
-            <input type="text" inputmode="decimal" id="value_{{ item.id }}" name="value_{{ item.id }}" value="{{ item.prefill.value }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
+            {% if item.has_measurement %}
+            <label class="visually-hidden" for="value-{{ item.id }}">{% blocktranslate with item=item.text %}Messwert für {{ item }}{% endblocktranslate %}</label>
+            <input id="value-{{ item.id }}" type="text" inputmode="decimal" maxlength="20" name="value_{{ item.id }}" value="{{ row.value }}" class="measurement-input" placeholder="{% if item.measurement_unit %}{{ item.measurement_unit }}{% else %}{% translate 'Messwert' %}{% endif %}">
             {% endif %}
 
-            <label class="visually-hidden" for="reason_{{ item.id }}">{% blocktranslate with text=item.text %}Grund oder Bemerkung zu: {{ text }}{% endblocktranslate %}</label>
-            <input type="text" id="reason_{{ item.id }}" name="reason_{{ item.id }}" value="{{ item.prefill.reason }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
-          </fieldset>
+            <label class="visually-hidden" for="reason-{{ item.id }}">{% blocktranslate with item=item.text %}Grund oder Bemerkung zu {{ item }}{% endblocktranslate %}</label>
+            <input id="reason-{{ item.id }}" type="text" name="reason_{{ item.id }}" value="{{ row.reason }}" class="reason-input" maxlength="500" placeholder="{% translate 'Grund / Bemerkung' %}">
+          </div>
         </div>
-        {% endfor %}
+        {% endwith %}{% endfor %}
       </div>
     </fieldset>
 
+    {% if checklist.has_quick_action and not checklist.locked_here %}
+    <div class="checklist-quick-action cluster">
+      <button class="button secondary" type="button" data-checklist-all-ok hidden>{% translate "Alle übrigen Punkte in Ordnung" %}</button>
+      <small class="context-line" data-checklist-all-ok-hint hidden>{% translate "Setzt nur noch offene Punkte ohne Messwert auf „in Ordnung“. Messpunkte bleiben unverändert." %}</small>
+      <span class="context-line" data-checklist-all-ok-status aria-live="polite"></span>
+    </div>
+    {% endif %}
+
     <p class="context-line checklist-defect-hint">
-      {% translate "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an." %}
+      {% translate "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an. Ist für den Prüfpunkt schon ein offener Mangel gemeldet, entsteht kein zweiter." %}
     </p>
 
     <div class="form-group">
-      <label class="visually-hidden" for="note_{{ checklist.id }}">{% translate "Gesamtnotiz (optional)" %}</label>
-      <input type="text" id="note_{{ checklist.id }}" name="note" maxlength="300" value="{{ checklist.prefill_note|default_if_none:'' }}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
+      <label class="visually-hidden" for="note-{{ checklist.id }}">{% translate "Gesamtnotiz (optional)" %}</label>
+      <input id="note-{{ checklist.id }}" type="text" name="note" maxlength="300" value="{{ checklist.form_note }}" placeholder="{% translate 'Gesamtnotiz (optional)' %}">
     </div>
 
-    {% if checklist.requires_personal_login and terminal_open_mode %}
-    <p class="context-line" id="checklist-login-{{ checklist.id }}">{% translate "Diese Checkliste hat Nachweischarakter und lässt sich am Wachenterminal nicht abschließen. Bitte persönlich anmelden." %}</p>
+    {% if not terminal_open_mode %}
+    <details class="checklist-backfill"{% if checklist.form_backfill %} open{% endif %}>
+      <summary>{% translate "Papierbogen nachtragen" %}</summary>
+      <div class="field">
+        <label class="checkbox-field" for="backfill-{{ checklist.id }}"><input type="checkbox" id="backfill-{{ checklist.id }}" name="is_paper_backfill" value="1"{% if checklist.form_backfill %} checked{% endif %}> {% translate "Nachtrag vom Papierbogen" %}</label>
+        <p class="field-hint">{% translate "Aktivieren, wenn ein ausgefüllter Papierbogen nachträglich übertragen wird. Gespeichert werden der Zeitpunkt laut Bogen und der Zeitpunkt der Eingabe. Höchstens 365 Tage zurück." %}</p>
+      </div>
+      <div class="field">
+        <label for="occurred-{{ checklist.id }}">{% translate "Ereigniszeitpunkt (Papierbogen)" %}</label>
+        <input type="datetime-local" id="occurred-{{ checklist.id }}" name="occurred_at" value="{{ checklist.form_occurred_at }}" min="{{ backfill_min }}" max="{{ backfill_max }}">
+      </div>
+    </details>
     {% endif %}
+
     <div class="form-actions cluster">
-      <button class="button primary" type="submit" name="action" value="complete" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true" aria-describedby="checklist-login-{{ checklist.id }}"{% endif %}>
+      <button class="button primary" type="submit" name="action" value="complete"{% if checklist.locked_here %} disabled aria-disabled="true"{% endif %}>
         {% include "core/_icon.html" with name="check" %}
         {% translate "Als erledigt vermerken" %}
       </button>
-      <button class="button secondary" type="submit" name="action" value="draft" {% if checklist.requires_personal_login and terminal_open_mode %}disabled aria-disabled="true" aria-describedby="checklist-login-{{ checklist.id }}"{% endif %}>
+      <button class="button secondary" type="submit" name="action" value="draft"{% if checklist.locked_here %} disabled aria-disabled="true"{% endif %}>
         {% translate "Zwischenstand speichern" %}
       </button>
     </div>
   </form>
 </section>
 {% endfor %}
+<script src="{% static 'core/checklists.js' %}" defer></script>
 {% endblock %}

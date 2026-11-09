@@ -37,10 +37,13 @@ ACTION_LABELS = {
     "fleet.vehicle_retired": _("Fahrzeug außer Betrieb genommen"),
     "fleet.vehicle_reactivated": _("Fahrzeug wieder in Betrieb genommen"),
     "fleet.disinfection_level_confirmed": _("Desinfektionsstufe bestätigt"),
+    "fleet.vehicle_handover_backfilled": _("Fahrzeugübernahme vom Papierbogen nachgetragen"),
+    "fleet.disinfection_backfilled": _("Desinfektion vom Papierbogen nachgetragen"),
     "orga.sop_status_changed": _("Status einer Dienstanweisung geändert"),
     "fleet.disinfection_crew_notified": _("Besatzung über Desinfektion benachrichtigt"),
     "checklist.completed": _("Checkliste abgeschlossen"),
     "checklist.draft_saved": _("Checklisten-Zwischenstand gespeichert"),
+    "checklist.exported": _("Checklisten-Läufe exportiert"),
     "checklist.schedule_updated": _("Checklisten-Rhythmus geändert"),
     "checklist.schedule_removed": _("Checklisten-Rhythmus entfernt"),
     "calendar.created": _("Termin angelegt"),
@@ -69,6 +72,7 @@ ACTION_LABELS = {
     "news.created": _("Neuigkeit veröffentlicht"),
     "membership.user_created": _("Konto angelegt"),
     "membership.updated": _("Rolle oder Zugang geändert"),
+    "membership.reminders_updated": _("Einstellungen der Erinnerungen geändert"),
     "mfa.reset": _("Zwei-Faktor-Anmeldung zurückgesetzt"),
     "station.settings_updated": _("Einstellungen der Wache geändert"),
     "birthday.preference_changed": _("Geburtstagsanzeige geändert"),
@@ -137,6 +141,7 @@ OBJECT_LABELS = {
     "Vehicle": _("Fahrzeug"),
     "SOPDocument": _("Dienstanweisung"),
     "ChecklistCompletion": _("Checklisten-Abschluss"),
+    "ChecklistDraft": _("Checklisten-Zwischenstand"),
     "Checklist": _("Checkliste"),
     "CalendarEvent": _("Termin"),
     "StationTask": _("Wachaufgabe"),
@@ -296,4 +301,14 @@ def annotate(events) -> list:
         fields = metadata.get("fields")
         event.field_labels = [field_label(model, str(name)) for name in fields] if isinstance(fields, list) else []
         event.change_rows = _change_rows(model, metadata)
+        # Nachtrag vom Papierbogen: Häkchen und Ereigniszeit (core/paper_backfill.py).
+        event.backfill_note = ""
+        if metadata.get("paper_backfill") is True:
+            from django.utils.dateparse import parse_datetime
+
+            from .paper_backfill import paper_backfill_label
+
+            raw = metadata.get("occurred_at")
+            occurred = parse_datetime(raw) if isinstance(raw, str) else None
+            event.backfill_note = paper_backfill_label(occurred, event.created_at)
     return events

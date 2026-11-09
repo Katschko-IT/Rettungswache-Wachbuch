@@ -116,3 +116,29 @@ class SignalOutbox(models.Model):
 
     def __str__(self) -> str:
         return f"Signal → {self.recipient[:12]}…"
+
+
+class WorkerJobState(models.Model):
+    """Letzter Lauf eines zeitgesteuerten Schritts im notify-worker.
+
+    Ohne Cron auf dem Host plant der notify-worker selbst: Fristen-Erinnerungen
+    höchstens einmal je Stunde, die Wochenübersicht einmal je ISO-Kalenderwoche.
+    Der Stand liegt in der Datenbank, damit ein Neustart des Dienstes nicht
+    sofort einen neuen Lauf auslöst. Keine Personen, nur Zeiten und Zahlen.
+    """
+
+    name = models.CharField(max_length=40, unique=True)
+    # Beginn des letzten Laufs (auch eines fehlgeschlagenen); sperrt den
+    # nächsten Lauf bis zum Ablauf des Abstands.
+    last_started_at = models.DateTimeField(null=True, blank=True)
+    last_finished_at = models.DateTimeField(null=True, blank=True)
+    last_failed_at = models.DateTimeField(null=True, blank=True)
+    # Zeitraum des letzten Laufs, z. B. „2026-W46“ für die Wochenübersicht.
+    last_period = models.CharField(max_length=10, blank=True, default="")
+    last_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name

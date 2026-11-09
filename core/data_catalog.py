@@ -211,6 +211,11 @@ RETENTION_RULES = {
             automatic=True,
         ),
         RetentionRule(
+            "checklist_draft", "Checklisten-Zwischenstand",
+            "der Abschluss des Laufs löscht ihn; sonst nach 30 Tagen ohne Änderung (`housekeeping`)",
+            automatic=True,
+        ),
+        RetentionRule(
             "rate_limit", "Rate-Limit-Zähler",
             "abgelaufene Zähler stündlich (`housekeeping`); gespeichert ist nur ein Hash",
             automatic=True,
@@ -359,6 +364,22 @@ GATES = {
 C = CONTENT
 CS = ("shift_lead", "admin")
 
+# Nachtrag vom Papierbogen (0.28, core/paper_backfill.py): an Übergabe,
+# Fahrzeugübernahme, Desinfektion und Funktionskontrolle.
+BACKFILL_NOTE = (
+    "Nachtrag vom Papierbogen: „Ereigniszeitpunkt (Papierbogen)“ nur mit Häkchen, nicht in der Zukunft und höchstens "
+    "365 Tage zurück; das bisherige Zeitfeld bleibt die Erfassung. Nicht am Wachenterminal. Das Audit nennt nur Häkchen "
+    "und Ereigniszeit."
+)
+BACKFILL_TIME_NOTE = "Zeit laut Papierbogen, nur bei einem Nachtrag gesetzt (Datenbank-Bedingung)"
+# Fahrzeugübernahme, Desinfektion und Funktionskontrolle: Die Person eines
+# Nachtrags ist, wer ihn erfasst, nicht das Kürzel laut Bogen.
+BACKFILL_PERSON_NOTE = (
+    "Als Person speichert ein Nachtrag, wer ihn erfasst (Anzeige „erfasst von …“); das Kürzel laut Bogen steht nur "
+    "auf dem Original."
+)
+BACKFILL_PERSON_FIELD_NOTE = "bei einem Nachtrag vom Papierbogen die Person, die ihn erfasst hat"
+
 MODULES = (
     ModuleSpec(
         "konto", "Konten, Anmeldung und Rollen",
@@ -377,8 +398,11 @@ MODULES = (
             ModelSpec("auth.Permission", "Django-Rechte für den Django-Admin", ("superuser",), ("system",), (), "technical"),
             ModelSpec("core.UserProfile", "Sprache und Profilbild", ("self", "member", "shift_lead", "cashier", "admin", "terminal"), ("self",), ("web", "app", "terminal"), "account",
                       note="Profilbilder sehen Inhaltsrollen derselben Wache und das Wachenterminal (nur Anzeige)."),
-            ModelSpec("core.Membership", "Rolle einer Person in einer Wache", ("self", "admin"), ("admin",), ("web", "app"), "account",
-                      note="Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin."),
+            ModelSpec("core.Membership", "Rolle einer Person in einer Wache, Funktionen, Abo der Fristen-Erinnerungen", ("self", "admin"), ("self", "admin"), ("web", "app"), "account",
+                      note="Die eigene Rolle sieht jede Person; die Teamliste nur der Master-Admin. Rolle, Zugang und Funktionen "
+                           "setzt der Master-Admin; das Wachenterminal-Konto bekommt keine Funktion. Welche Bereiche der "
+                           "Fristen-Erinnerungen eine Person bekommt und ob zusätzlich per E-Mail (Standard aus), stellt nur "
+                           "die Person selbst unter Mein Konto → Erinnerungen ein."),
             ModelSpec("core.TotpDevice", "Zwei-Faktor-Schlüssel (TOTP), verschlüsselt gespeichert", ("self",), ("self", "admin"), ("web",), "account",
                       note="Der Master-Admin kann den zweiten Faktor zurücksetzen, aber nicht lesen."),
             ModelSpec("core.WebAuthnCredential", "Passkeys (öffentlicher Schlüssel, Gerätename)", ("self",), ("self",), ("web",), "account"),
@@ -411,7 +435,9 @@ MODULES = (
              "(docs/STAMMDATEN-IMPORT.md).",
         models=(
             ModelSpec("core.Station", "Wache: Name, Adresse, Modulschalter, Zahlungsangaben der Kaffeekasse", C + ("superuser",), ("admin", "superuser"), ("web", "app", "display"), "config",
-                      note="Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse."),
+                      note="Der Auditor sieht nur den Namen der Wache. Zahlungsangaben (IBAN, BIC, Verwendungszweck) sehen Inhaltsrollen auf der Seite Kaffeekasse. "
+                           "„Namen bei Lesebestätigungen anzeigen“ (Standard aus) schaltet nur der Master-Admin, wenn eine "
+                           "Vereinbarung mit der Beschäftigtenvertretung das erlaubt; die Änderung steht im Audit."),
             ModelSpec("core.SiteProfile", "Betreiberangaben für Impressum und Datenschutzinformation", ("public",), ("admin",), ("public", "terminal"), "config"),
             ModelSpec("core.DataProtectionOfficer", "Kontakt der Datenschutzbeauftragten", ("public", "admin", "superuser"), ("admin", "superuser"), ("public", "terminal"), "config",
                       note="Öffentlich nur, wenn „in der Datenschutzinformation veröffentlichen“ gesetzt ist; interne Notizen nie."),
@@ -452,10 +478,11 @@ MODULES = (
         models=(
             ModelSpec("core.HandoverEntry", "Übergabe: Titel, Text, Kategorie, Priorität, Status, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"),
                       "evidence", evidence=True,
-                      note="Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; "
-                           "jede Änderung bleibt als Version in core.HandoverRevision erhalten."),
+                      note="Display: nur die Zahl dringender offener Übergaben, ohne Nachträge vom Papierbogen. Status und Bearbeitung: "
+                           "Schichtleitung und Master-Admin; jede Änderung bleibt als Version in core.HandoverRevision erhalten. "
+                           f"{BACKFILL_NOTE}"),
             ModelSpec("core.HandoverRevision", "Versionen einer Übergabe (Schnappschuss, Person)", C, ("system",), ("web",), "evidence", evidence=True),
-            ModelSpec("core.HandoverAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.HandoverAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
             ModelSpec("core.HandoverAck", "Lesebestätigung: Person und Zeit", C + ("terminal",), C, ("web", "app", "terminal"), "evidence", evidence=True),
         ),
     ),
@@ -471,7 +498,7 @@ MODULES = (
             ModelSpec("core.NewsPost", "Neuigkeit: Titel, Text, Autor", C + ("terminal", "display"), CS, ("web", "terminal", "display")),
             ModelSpec("core.NewsAcknowledgement", "Quittierung: Person und Zeit", ("self",), ("self",), ("web",),
                       note="Lesestatus, kein Nachweis. Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren."),
-            ModelSpec("core.NewsAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.NewsAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
@@ -498,8 +525,10 @@ MODULES = (
             EvaluationSpec("api_v1_defect_attachments", "Anhänge eines Mangels mit Benutzername der hochladenden Person (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
-                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent."),
+            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person, Bezug (Text, Fahrzeug oder Medizingerät)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
+                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent. "
+                      "Der Bezug verweist auf ein Fahrzeug oder Medizingerät der Wache (keine Personen); ein Gerätemangel sperrt das Gerät. "
+                      "Das Wachenterminal wählt keine Medizingeräte."),
             ModelSpec("core.DefectEvent", "Verlauf: Statuswechsel mit Person", C + ("terminal",), ("system",), ("web", "app", "terminal"), "evidence", evidence=True),
             ModelSpec("core.DefectAttachment", "Fotos zum Mangel (Metadaten entfernt)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
         ),
@@ -600,16 +629,27 @@ MODULES = (
         "Checklisten mit Abschluss und Fälligkeit.",
         flag="checklists_enabled", web_prefixes=("/checklisten/",), entry_url="checklists",
         evaluations=(
-            EvaluationSpec("checklists", "Letzter Abschluss je Checkliste mit Vorname und Zeit", C + ("terminal",), True),
-            EvaluationSpec("api_v1_checklisten", "Letzter Abschluss je Checkliste mit vollem Namen und Zeit (App)", C, True),
+            EvaluationSpec("checklists", "Letzter Lauf und offener Zwischenstand je Checkliste mit Vorname und Zeit", C + ("terminal",), True,
+                           "Schichtleitung und Master-Admin sehen dazu den Anteil der Läufe mit Ergebnis je Punkt (30 Tage, Summe der Wache, keine Werte je Person)"),
+            EvaluationSpec("api_v1_checklisten", "Letzter Lauf und offener Zwischenstand je Checkliste mit vollem Namen und Zeit (App)", C, True),
+            EvaluationSpec("api_v1_checkliste_zwischenstand", "Zwischenstand einer Checkliste mit vollem Namen der letzten Bearbeitung (App)", C, True),
+            EvaluationSpec("checklist_history", "Verlauf der Läufe einer Checkliste mit Vorname, Zeit und Zahl der Ergebnisse", C, True,
+                           "nicht am Wachenterminal"),
+            EvaluationSpec("checklist_run_detail", "Ein Lauf mit Vorname, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt", C, True,
+                           "nicht am Wachenterminal"),
+            EvaluationSpec("checklist_runs_export", "Läufe eines Zeitraums als CSV mit vollem Namen, Ergebnis, Messwert, Grenzwerten und Begründung je Prüfpunkt (z. B. Temperaturprotokoll)", CS, True,
+                           "Zellen, die mit = + - @ oder Tab/Zeilenumbruch beginnen, bekommen ein Apostroph vorangestellt"),
         ),
         models=(
             ModelSpec("core.Checklist", "Checkliste mit Beschreibung", C + ("terminal",), ("superuser",), ("web", "app", "terminal", "export"),
-                      note="Anlegen und Bearbeiten nur im Django-Admin; Web und App zeigen Checklisten nur an."),
+                      note="Anlegen und Bearbeiten (auch „Erfordert persönliche Anmeldung“) nur im Django-Admin; Web und App zeigen Checklisten nur an."),
             ModelSpec("core.ChecklistItem", "Punkte einer Checkliste", C + ("terminal",), ("superuser",), ("web", "app", "terminal", "export"),
-                      note="Anlegen und Bearbeiten nur im Django-Admin."),
-            ModelSpec("core.ChecklistCompletion", "Abschluss: Person, Zeit, Notiz", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "evidence", evidence=True,
-                      note="Append-only."),
+                      note="Anlegen und Bearbeiten nur im Django-Admin. Jeder Lauf speichert eine Kopie von Text, Einheit, Grenzwerten und Pflicht."),
+            ModelSpec("core.ChecklistCompletion", "Lauf: Person, Zeit, Notiz, Ergebnis und Messwert je Prüfpunkt mit Begründung", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal", "export"), "evidence", evidence=True,
+                      note="Append-only: ein Lauf entsteht mit einem INSERT. Nachtrag vom Papierbogen mit Ereigniszeit und Eingabezeit. "
+                           "Läufe mit Nachweischarakter und Nachträge nicht über das Dienstkonto Wachenterminal; Verlauf, Einzellauf und Export nicht am Wachenterminal."),
+            ModelSpec("core.ChecklistDraft", "Zwischenstand: Ergebnisse je Prüfpunkt, Notiz, wer ihn angelegt und zuletzt bearbeitet hat", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "checklist_draft",
+                      note="Kein Nachweis und veränderbar: höchstens einer je Checkliste und Wache, die Besatzung setzt ihn gemeinsam fort."),
             ModelSpec("core.ChecklistSchedule", "Prüfintervall und nächste Fälligkeit", C + ("terminal",), CS, ("web", "app", "terminal"),
                       note="Die Seite /checklisten/intervalle/ hängt nicht am Modulschalter."),
         ),
@@ -630,7 +670,7 @@ MODULES = (
         models=(
             ModelSpec("core.PinboardNote", "Aushang: Titel, Text, Kategorie, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"), "gap",
                       note="Anpinnen: Schichtleitung und Master-Admin. Archivierte Aushänge bleiben gespeichert. Display: nur Titel angepinnter Aushänge."),
-            ModelSpec("core.PinboardAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.PinboardAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
@@ -659,13 +699,21 @@ MODULES = (
         web_prefixes=("/benachrichtigungen/", "/hinweise/"), entry_url="push_settings",
         models=(
             ModelSpec("core.UserNotification", "Persönlicher Hinweis: Titel, Text, Link, gelesen", ("self",), ("system",), ("web", "app", "push", "signal", "email"), "gap",
-                      note="Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
+                      note="Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, "
+                           "Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen "
+                           "Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, "
+                           "Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. "
+                           "Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). "
+                           "Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
                            "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an "
                            "bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an "
                            "HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md)."),
             ModelSpec("core.MobilePushDevice", "App-Gerät für Push (Plattform, Geräte-Token, App-Version)", ("self",), ("self",), ("app",), "device_unregister"),
             ModelSpec("core.PushSubscription", "Browser-Push-Abo (Adresse beim Browserhersteller, Schlüssel, Browser)", ("self",), ("self",), ("web",), "device_unregister"),
             ModelSpec("core.PushOutbox", "Warteschlange für Push-Nachrichten", ("system",), ("system",), ("push",), "push_outbox"),
+            ModelSpec("core.WorkerJobState", "Zeitplan des notify-workers: letzter Lauf der Fristen-Erinnerungen, Woche der letzten Wochenübersicht", ("admin",), ("system",), ("web",), "technical",
+                      note="Nur Zeitpunkte und Anzahlen, keine Personen; der Master-Admin echter Wachen sieht den Stand "
+                           "unter System (ohne Anzahl, nicht in der öffentlichen Demo)."),
         ),
     ),
     ModuleSpec(
@@ -696,7 +744,10 @@ MODULES = (
                            "Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und Master-Admin); die Nachweise bleiben."),
             ModelSpec("core.MaintenanceLog", "STK/MTK/DGUV-Prüfung mit prüfender Stelle", C, CS, ("web",), "evidence", evidence=True),
             ModelSpec("core.DeviceTrainingRecord", "Einweisung: Person, einweisende Person, Datum", C, CS, ("web",), "evidence", evidence=True),
-            ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True),
+            ModelSpec("core.DeviceRoutineCheck", "Funktionskontrolle mit Person und Ergebnis", C, C, ("web",), "evidence", evidence=True,
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag prüft deshalb keine Geräteeinweisung. "
+                           "Ein nachgetragenes „Nein“ sperrt das Gerät nur, wenn keine neuere Kontrolle vorliegt. "
+                           "Das 5-Minuten-Storno zählt ab der Erfassung."),
         ),
     ),
     ModuleSpec(
@@ -754,8 +805,13 @@ MODULES = (
             ModelSpec("core.DisinfectionProtocol", "Desinfektion: Fahrzeug, Mittel, Stufe, Person, Beginn, Einwirkzeit", C, C, ("web",), "evidence", evidence=True,
                       note="Entscheidung D2: Stufe, Einwirkzeit, Sperre und Bemerkung sehen nur die durchführende Person, "
                            "Schichtleitung und Master-Admin; alle anderen Inhaltsrollen sehen „Desinfektion“ mit Datum, Mittel und "
-                           "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe."),
-            ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True),
+                           "Person. Display, Sperrbildschirm, Wachenterminal, App und CSV nennen nie eine Stufe. "
+                           f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Bei einem Nachtrag ist „Beginn Desinfektion“ die Erfassung; der "
+                           "Beginn laut Bogen steht in der Ereigniszeit, und für Nachträge gilt dieselbe Sichtbarkeit (Entscheidung D2). "
+                           "Der Bogen nennt keine Stufe: Bei einem Nachtrag ist sie freiwillig, die Einwirkzeit ergibt sich aus "
+                           "„Frei ab“ laut Bogen."),
+            ModelSpec("core.VehicleHandover", "Fahrzeugübernahme: Person, Kilometerstand, Füllstände, Prüfpunkte", C, C, ("web",), "evidence", evidence=True,
+                      note=f"{BACKFILL_NOTE} {BACKFILL_PERSON_NOTE} Ein Nachtrag zählt niemanden zur Besatzung für Benachrichtigungen."),
         ),
     ),
     ModuleSpec(
@@ -763,16 +819,21 @@ MODULES = (
         "Dienstanweisungen mit Version und Lesequittung, Telefonbuch der Wache.",
         flag="orga_enabled", web_prefixes=("/orga/",), entry_url="orga_dashboard",
         evaluations=(
-            EvaluationSpec("sop_detail", "Quittierungsliste einer Dienstanweisung mit Namen", CS, True),
-            EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True),
+            EvaluationSpec("sop_detail", "Quittierungsliste einer Dienstanweisung mit Namen", CS, True,
+                           "Namen nur mit Vereinbarung (Station: „Namen bei Lesebestätigungen anzeigen“, Standard aus); "
+                           "ohne Vereinbarung nur Anzahl und Quote der Zielgruppe. Bei einer Zielgruppe von ein oder zwei "
+                           "Personen lässt auch die Quote auf Einzelne schließen (docs/MITBESTIMMUNG-VORLAGE.md)"),
+            EvaluationSpec("sop_export_audit", "Quittierungsnachweis als CSV mit Namen", CS, True,
+                           "Namen nur mit Vereinbarung; ohne Vereinbarung nur Anzahl der Lesebestätigungen je Version"),
         ),
         models=(
-            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen", C, CS, ("web", "export"),
+            ModelSpec("core.SOPDocument", "Dienstanweisung: Nummer, Titel, Status, Fristen, Zielgruppe nach Rolle und Funktion", C, CS, ("web", "app", "export"),
                       note="Stammdaten, Bearbeitung möglich; die Texte stehen versioniert in core.SOPRevision. Nicht löschen, "
                            "sondern außer Kraft setzen; Versionen und Quittierungen bleiben."),
             ModelSpec("core.SOPRevision", "Version mit Text, Prüfsumme und Freigabe", C, CS, ("web",), "evidence", evidence=True),
-            ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "export"), "evidence", evidence=True,
-                      note="Mitglieder sehen nur ihren eigenen Stand."),
+            ModelSpec("core.SOPReceipt", "Lesequittung: Person, Version, Zeit", ("self",) + CS, ("self",), ("web", "app", "export"), "evidence", evidence=True,
+                      note="Mitglieder sehen nur ihren eigenen Stand (auch in der App). Namen sieht die Leitung nur mit Vereinbarung. "
+                           "Nicht am Wachenterminal und nicht für Auditoren."),
             ModelSpec("core.StationContact", "Telefonbuch: Einrichtung, Ansprechperson, Nummern", C, CS, ("web", "export")),
         ),
     ),
@@ -888,7 +949,10 @@ FIELD_OVERRIDES = {
     "axes.AccessLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
     "axes.AccessFailureLog.http_accept": ("Netzwerk/Gerät", ""),
     "axes.AccessFailureLog.path_info": ("Wert", "aufgerufene Anmeldeadresse"),
-    "core.DisinfectionProtocol.level": (None, D2_NOTE),
+    "core.DisinfectionProtocol.level": (None, f"{D2_NOTE}; bei einem Nachtrag vom Papierbogen freiwillig (der Bogen nennt keine Stufe)"),
+    "core.DisinfectionProtocol.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.VehicleHandover.crew_member": (None, BACKFILL_PERSON_FIELD_NOTE),
+    "core.DeviceRoutineCheck.performed_by": (None, BACKFILL_PERSON_FIELD_NOTE),
     "core.DisinfectionProtocol.exposure_minutes": (None, D2_NOTE),
     "core.DisinfectionProtocol.lock_timer_applied": (None, D2_NOTE),
     "core.DisinfectionProtocol.notes": (None, f"{D2_NOTE}; Bemerkungen von vor Migration 0067 (Feld „Transportgrund“) leert der einmalige Befehl `cleanup_legacy_data`"),
@@ -898,6 +962,19 @@ FIELD_OVERRIDES = {
     "core.MedicalDevice.legacy_imported_at": (None, "nur beim Stammdaten-Import gesetzt; frühere Prüfungen liegen auf Papier"),
     "core.MedicalDevice.decommissioned_at": (None, "Datum der Außerbetriebnahme; das Gerät bleibt mit seinen Nachweisen erhalten"),
     "core.Vehicle.is_active": (None, "aus: außer Betrieb genommen; Übernahmen und Desinfektionen bleiben erhalten"),
+    "core.ChecklistCompletion.item_results": ("Freitext", "Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts"),
+    "core.ChecklistDraft.item_results": ("Freitext", "Ergebnis und Messwert je Prüfpunkt mit Begründung (Freitext bis 500 Zeichen) und Kopie des Prüfpunkts"),
+    "core.Defect.source_checklist_run": (None, "Lauf, der den Mangel angelegt hat"),
+    "core.Defect.source_item_text": (None, "Kopie des Prüfpunkts aus der Checkliste, kein Eintrag der Person"),
+    "core.Vehicle.last_disinfection": (None, "nach Beginn laut Bogen, wenn die neueste Desinfektion ein Nachtrag ist"),
+    "core.MedicalDevice.last_routine_check": (None, "nach Zeit laut Bogen, wenn die neueste Kontrolle ein Nachtrag ist"),
+    "core.HandoverEntry.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.VehicleHandover.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.VehicleHandover.performed_at": (None, "Erfassung im Wachbuch"),
+    "core.DisinfectionProtocol.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.DisinfectionProtocol.started_at": (None, "Erfassung im Wachbuch; bei einem Nachtrag steht der Beginn laut Bogen in der Ereigniszeit"),
+    "core.DeviceRoutineCheck.occurred_at": (None, BACKFILL_TIME_NOTE),
+    "core.DeviceRoutineCheck.checked_at": (None, "Erfassung im Wachbuch; danach richtet sich das 5-Minuten-Storno"),
     "admin.LogEntry.object_repr": ("Freitext", "Bezeichnung des geänderten Objekts"),
     "admin.LogEntry.change_message": ("Freitext", "Beschreibung der Änderung im Django-Admin"),
 }
@@ -1054,7 +1131,8 @@ NOT_EVALUATIONS = {
 PERSON_LIST_VIEWS = (
     "handover_detail", "api_v1_handover_acks", "sop_detail", "sop_export_audit",
     "coffee_book", "coffee_ledger", "coffee_participants", "coffee_export", "api_v1_kaffeekasse",
-    "tasks_today", "tasks_week", "checklists", "api_v1_checklisten", "birthdays", "team", "team_invites", "audit_log",
+    "tasks_today", "tasks_week", "checklists", "api_v1_checklisten", "api_v1_checkliste_zwischenstand",
+    "checklist_history", "checklist_run_detail", "checklist_runs_export", "birthdays", "team", "team_invites", "audit_log",
     "assets_inventory_web", "api_v1_inventory", "wiki_detail",
     "defects_web", "defect_detail_web", "api_v1_defects", "api_v1_defect_detail", "api_v1_defect_attachments",
     "mpg_dashboard", "mpg_device_detail", "mpg_geraetepass",

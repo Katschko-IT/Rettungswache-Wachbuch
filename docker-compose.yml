@@ -297,6 +297,9 @@ services:
     logging: *default-logging
     # Prüft abgelaufene Desinfektions-Einwirkzeiten und benachrichtigt die
     # Besatzung (kein automatischer Statuswechsel). Kein HTTP-Listener.
+    # Plant außerdem ohne Cron auf dem Host die Fristen-Erinnerungen
+    # (höchstens stündlich) und die Wochenübersicht (je ISO-Woche ab Montag
+    # 06:00 Ortszeit); der letzte Lauf steht in der Datenbank.
     # Nach jedem erfolgreichen Durchlauf wird die Heartbeat-Datei erneuert;
     # nach 10 Fehlversuchen in Folge beendet sich der Befehl mit Fehler und
     # Docker startet ihn neu.

@@ -42,7 +42,7 @@
       {% for item in handovers %}
         <a class="list-row handover-list-row" href="{% url 'handover_detail' item.pk %}">
           <span class="status-label priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
-          <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small></span>
+          <span class="row-content"><strong>{{ item.title }}</strong><small>{{ item.get_category_display }} &middot; {{ item.get_status_display }}</small>{% include "core/_paper_backfill_badge.html" with record=item %}</span>
           <time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:"d.m. H:i" }}</time>
         </a>
       {% empty %}

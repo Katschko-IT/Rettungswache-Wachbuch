@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import Membership
 from .mpg_models import DeviceRoutineCheck, DeviceTrainingRecord, MaintenanceLog, MedicalDevice
+from .paper_backfill import PaperBackfillFormMixin
 
 
 class MedicalDeviceForm(forms.ModelForm):
@@ -138,7 +139,9 @@ def _yes_no_field(label):
     )
 
 
-class DeviceRoutineCheckForm(forms.ModelForm):
+class DeviceRoutineCheckForm(PaperBackfillFormMixin, forms.ModelForm):
+    """Funktionskontrolle, optional als Nachtrag vom Papierbogen (``core/paper_backfill.py``)."""
+
     battery_ok = _yes_no_field(_("Energieversorgung / Akkus geladen"))
     visual_ok = _yes_no_field(_("Sichtprüfung & Vollständigkeit (Kabel, Sensoren)"))
     function_ok = _yes_no_field(_("Selbsttest / Gerätestart fehlerfrei"))
@@ -160,18 +163,24 @@ class DeviceRoutineCheckForm(forms.ModelForm):
             "visual_ok",
             "function_ok",
             "notes",
+            "is_paper_backfill",
+            "occurred_at",
         ]
         widgets = {
             "notes": forms.TextInput(attrs={"placeholder": "Bemerkung (optional bei Mängeln oder Auffälligkeiten)"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, allow_backfill=True, **kwargs):
         super().__init__(*args, **kwargs)
         # Das Modell setzt die Prüfpunkte auf True; im Formular darf davon
         # nichts als Vorauswahl ankommen.
         for name in self.CHECK_POINTS:
             self.initial.pop(name, None)
             self.fields[name].initial = None
+        self.setup_paper_backfill(allow=allow_backfill)
+
+    def clean(self):
+        return self.clean_paper_backfill(super().clean())
 
     @property
     def check_points(self):

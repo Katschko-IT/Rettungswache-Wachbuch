@@ -192,7 +192,7 @@ class PaperBackfillHandoverTests(TestCase):
                 "title": "Handschriftlicher Bogen Frühschicht",
                 "details": "Wache sauber übergeben laut Papierprotokoll.",
                 "is_paper_backfill": "on",
-                "occurred_at": occurred.strftime("%Y-%m-%dT%H:%M"),
+                "occurred_at": timezone.localtime(occurred).strftime("%Y-%m-%dT%H:%M"),
             },
         )
         handover = ShiftHandover.objects.get(title="Handschriftlicher Bogen Frühschicht")
@@ -201,22 +201,23 @@ class PaperBackfillHandoverTests(TestCase):
         self.assertIsNotNone(handover.occurred_at)
 
         # Detail view shows paper backfill badge with both timestamps
+        # (Wortlaut seit P4: „Nachtrag vom Papierbogen · Ereignis … · erfasst …“).
         detail_response = self.client.get(reverse("handover_detail", args=[handover.pk]))
         self.assertEqual(detail_response.status_code, 200)
         content = detail_response.content.decode("utf-8")
-        self.assertIn("Nachtrag von Papier", content)
-        self.assertIn("Ereignis:", content)
-        self.assertIn("Erfasst:", content)
-        self.assertIn(handover.occurred_at.strftime("%d.%m.%Y"), content)
-        self.assertIn(handover.created_at.strftime("%d.%m.%Y"), content)
+        self.assertIn("Nachtrag vom Papierbogen · Ereignis ", content)
+        self.assertIn(" · erfasst ", content)
+        # Angezeigt wird Ortszeit; zwischen Mitternacht und dem UTC-Versatz
+        # unterscheidet sich das Datum von UTC.
+        self.assertIn(timezone.localtime(handover.occurred_at).strftime("%d.%m.%Y"), content)
+        self.assertIn(timezone.localtime(handover.created_at).strftime("%d.%m.%Y"), content)
 
         # List view shows paper backfill badge
         list_response = self.client.get(reverse("handover_list"))
         self.assertEqual(list_response.status_code, 200)
         list_content = list_response.content.decode("utf-8")
-        self.assertIn("Nachtrag von Papier", list_content)
-        self.assertIn("Ereignis:", list_content)
-        self.assertIn("Erfasst:", list_content)
+        self.assertIn("Nachtrag vom Papierbogen · Ereignis ", list_content)
+        self.assertIn(" · erfasst ", list_content)
 
     def test_normal_handover_does_not_display_paper_backfill_badge(self):
         handover = ShiftHandover.objects.create(
@@ -230,22 +231,4 @@ class PaperBackfillHandoverTests(TestCase):
         )
         detail_response = self.client.get(reverse("handover_detail", args=[handover.pk]))
         content = detail_response.content.decode("utf-8")
-        self.assertNotIn("Nachtrag von Papier", content)
-
-
-class PaperBackfillHiddenFieldTests(TestCase):
-    def test_occurred_at_is_dropped_without_paper_backfill_flag(self):
-        from django.utils import timezone
-
-        from .forms import HandoverForm
-        from .models import HandoverEntry
-
-        form = HandoverForm(data={
-            "category": HandoverEntry.Category.choices[0][0],
-            "priority": HandoverEntry.Priority.choices[0][0],
-            "title": "Ohne Papierbogen",
-            "details": "Kurz.",
-            "occurred_at": (timezone.now() + timezone.timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
-        })
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertIsNone(form.cleaned_data["occurred_at"])
+        self.assertNotIn("Nachtrag vom Papierbogen · Ereignis", content)

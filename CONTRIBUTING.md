@@ -68,7 +68,8 @@ Für reproduzierbare CI-Qualitätswerkzeuge gilt derselbe Fail-Closed-Grundsatz:
 aufgelöste Version und SHA256-Hashes. Der separate Audit-Scanner steht in
 `requirements-audit.in`/`requirements-audit.lock`, damit seine transitiven
 Werkzeuge die Produktions-/Lint-Umgebung nicht verändern. Die CI verwendet
-Ruff für den E4/E7/E9-Baseline-Gate und `pip-audit` für den reproduzierbaren
+Ruff für den Baseline-Gate (E4/E7/E9 sowie F63/F7/F82: fehlerhafte Vergleiche,
+Syntaxfehler und undefinierte Namen wie ein fehlender Import) und `pip-audit` für den reproduzierbaren
 Dependency-Vulnerability-Scan. Die vollständige Formatpruefung und eine
 breitere Regelmenge bleiben wegen des bestehenden Altbestands bewusst separate
 Folge-Schritte.
@@ -81,13 +82,52 @@ uv pip compile --generate-hashes --python-version 3.13 \
 pip install --require-hashes -r requirements.lock -r requirements-ci.lock
 pip install --require-hashes -r requirements-audit.lock  # in isolierter Audit-venv
 pip-audit --strict --requirement requirements.lock
-ruff check config core --select E4,E7,E9 --output-format=concise
+ruff check config core --select E4,E7,E9,F63,F7,F82 --output-format=concise
 ```
 
 Die CI verweigert die Installation, wenn ein Paket oder Hash in der Lock-Datei
 fehlt oder nicht zum heruntergeladenen Artefakt passt. Bei jeder Änderung an
 `requirements.txt` die Lock-Datei neu erzeugen, die Hash-Verifikation lokal
 prüfen und beide Dateien committen.
+
+## Barrierefreiheit und Wand-Display prüfen (Job `a11y`)
+
+Der CI-Job `a11y` startet die App wie im Container (DEBUG aus, Gunicorn mit
+WhiteNoise nach `collectstatic`, echte CSP) mit Musterdaten und prüft mit
+axe-core und Playwright (gesperrt in `tests/a11y/package-lock.json`):
+
+- die Hauptseiten jeder Rolle (auch Wachenterminal) in vier Darstellungen:
+  System hell und dunkel sowie der Umschalter der App gegen das System;
+  jeder Fund der Schwere critical oder serious lässt den Job scheitern,
+- das Wand-Display über den Display-Link bei 1920x1080 und 1280x720 (kein
+  Scrollen, Raster 16:9 auf 0,02 genau, kein sichtbares Element außerhalb von
+  Raster oder Bildschirm, keine abgeschnittene Spalte, nichts seitlich ohne
+  sichtbares „…“ abgeschnitten, auch nicht die Laufschrift, keine Emojis),
+- die Ansicht des Displays über die Sitzung in einem niedrigen Fenster
+  (1366x600): nichts still abgeschnitten, kein seitliches Scrollen,
+- das Mangelformular bei 390x844 ohne seitliches Scrollen.
+
+Bericht und Bildschirmfotos liegen als Artefakt `a11y-report` am Lauf. Lokal
+(SQLite in einem eigenen Verzeichnis, nie `runserver --insecure`, sonst fehlen
+die gehashten CSS-Dateien):
+
+```bash
+mkdir -p /tmp/a11y
+export DJANGO_SECRET_KEY=test-only DJANGO_DEBUG=false DEMO_MODE=true \
+  TERMINAL_ENABLED=true TERMINAL_CODE=1234 SECURE_COOKIES=false \
+  BASE_URL=http://127.0.0.1:8765 DATABASE_URL=sqlite:////tmp/a11y/db.sqlite3
+python manage.py migrate --noinput && python manage.py load_demo_data
+python manage.py collectstatic --noinput
+python tests/a11y/seed.py > /tmp/a11y/seed.json
+GUNICORN_BIND=127.0.0.1:8765 gunicorn --config config/gunicorn.py --daemon \
+  --pid /tmp/a11y/gunicorn.pid config.wsgi:application
+cd tests/a11y && npm ci --ignore-scripts && npx playwright install chromium
+SEED_JSON=/tmp/a11y/seed.json OUT_DIR=/tmp/a11y/out node run-axe.js
+kill "$(cat /tmp/a11y/gunicorn.pid)"
+```
+
+`A11Y_ROLES` und `A11Y_THEMES` schränken einen lokalen Lauf ein (z. B.
+`A11Y_ROLES=none` prüft nur das Wand-Display).
 
 ## Datenschutz
 

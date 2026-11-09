@@ -707,7 +707,20 @@ body.has-open-modal { overflow: hidden; }
 .checklist-item-row .measurement-input { width: 7rem; }
 .checklist-item-row .reason-input { flex: 1; min-width: 12rem; }
 .checklist-defect-hint { font-size: var(--fs-sm); color: var(--muted); margin-top: var(--space-3); }
+.checklist-quick-action { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin: var(--space-2) 0; }
+.checklist-backfill { margin: var(--space-3) 0; }
+.checklist-backfill summary { cursor: pointer; font-weight: 600; }
+.checklist-backfill .field { margin-top: var(--space-2); }
+.checklist-quota small { display: block; }
+.checklist-last-run ul { margin: var(--space-2) 0; padding-left: 1.25rem; }
 
+
+/* Ehemalige Inline-Stile (CSP ohne unsafe-inline) */
+.custom-asset-input { margin-top: .5rem; }
+.backfill-label { margin-top: .25rem; }
+.paper-backfill-fields .field { margin: var(--space-3) 1rem; }
+.member-functions { margin-top: .15rem; }
+.row-actions-inline { display: flex; align-items: center; gap: .5rem; }
 
 /* Windows-Kontrastmodus: Der gewählte Chip braucht mehr als eine Hintergrundfarbe. */
 @media (forced-colors: active) {

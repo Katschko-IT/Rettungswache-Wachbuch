@@ -131,9 +131,15 @@ def help_article(request: HttpRequest, slug: str) -> HttpResponse:
 def system_status(request: HttpRequest) -> HttpResponse:
     from .host_health import host_health_visible, read_host_health
 
-    host_health = read_host_health() if host_health_visible(request.membership) else None
+    from .deadline_reminders import schedule_status
+
+    # Server-Zustand (Host-Überwachung, Zeitplan des notify-workers) nur für
+    # echte Wachen; nie in der öffentlichen Demo oder einer Demo-Wache.
+    server_visible = host_health_visible(request.membership)
+    host_health = read_host_health() if server_visible else None
     return render(request, "core/system_status.html", {
         "host_health": host_health,
+        "reminder_schedule": schedule_status() if server_visible else None,
         "host_health_stale": bool(host_health and host_health.is_stale()),
         "app_version": settings.APP_VERSION,
         "build_commit": build_commit(),
