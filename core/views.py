@@ -81,6 +81,7 @@ from .api.wachalltag import (
 from .attachments import read_uploads
 from .wachalltag_models import ChecklistSchedule, Defect, HandoverAck, InventoryItem, StationAsset
 from .waste_sync import store_station_waste
+from .checklists_views import checklist_complete, checklists  # noqa: F401 (urls nutzen views.*)
 from .mfa import (
     confirm_device,
     pending_device,
@@ -1066,8 +1067,6 @@ def task_edit(request, pk):
         "task": task,
     })
 
-
-from .checklists_views import checklist_complete, checklists
 
 
 @membership_required(CONTENT_ROLES)

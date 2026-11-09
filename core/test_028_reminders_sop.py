@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import io
+from unittest import mock
 from datetime import date, datetime, time, timedelta
 
 from django.contrib.auth.models import User
@@ -196,23 +197,27 @@ class DeadlineRemindersTests(TestCase):
 
         # Management Command dry-run & regulärer Aufruf
         out = io.StringIO()
-        call_command(
-            "send_deadline_reminders",
-            station=self.station.slug,
-            thresholds="3",
-            dry_run=True,
-            stdout=out,
-        )
+        with mock.patch("django.utils.timezone.localdate", return_value=self.today):
+            call_command(
+                "send_deadline_reminders",
+                station=self.station.slug,
+                thresholds="3",
+                dry_run=True,
+                stdout=out,
+            )
         self.assertIn("Dry-Run:", out.getvalue())
 
         out_live = io.StringIO()
-        call_command(
-            "send_deadline_reminders",
-            station=self.station.slug,
-            thresholds="3",
-            weekly_digest=True,
-            stdout=out_live,
-        )
+        # Der Befehl rechnet mit dem heutigen Datum; der Test legt es fest,
+        # sonst hängt das Ergebnis vom Tag des Testlaufs ab.
+        with mock.patch("django.utils.timezone.localdate", return_value=self.today):
+            call_command(
+                "send_deadline_reminders",
+                station=self.station.slug,
+                thresholds="3",
+                weekly_digest=True,
+                stdout=out_live,
+            )
         self.assertIn("Fristen-Erinnerungen: 1 Benachrichtigung(en) erstellt.", out_live.getvalue())
 
 
