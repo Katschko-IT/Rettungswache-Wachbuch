@@ -46,8 +46,10 @@ server {
     ssl_session_timeout 1d;
     ssl_session_tickets off;
 
-    # Maximale Request-Body-Größe analog Django DATA_UPLOAD_MAX_MEMORY_SIZE
-    client_max_body_size 5M;
+    # Maximale Request-Body-Größe: ein Foto bis 5 MiB je Datei plus mehrteilige
+    # Formulardaten (Mangel mit Foto, Übergabe mit Anhang). Kleiner als 12M
+    # beantwortet nginx solche Formulare mit 413 und alle Eingaben gehen verloren.
+    client_max_body_size 12M;
 
     # Statische Assets (Pfad beim Erzeugen setzen; nicht Teil des Repositories)
     location /static/ {

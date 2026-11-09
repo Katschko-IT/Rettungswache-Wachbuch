@@ -283,6 +283,16 @@
   <section id="fleet-defect" class="section-block">
     <h2>{% translate "Werkstattmangel melden" %}</h2>
     <p class="muted">{% translate "Eskaliert sofort in das Wachen-Mängelboard und meldet bei Dringlichkeit Werkstatt." %}</p>
+    {# Mangel in drei Tipps: Formular mit diesem Fahrzeug als Bezug (Foto, Speichern). #}
+    <p><a class="button secondary" href="{% url 'defect_create_web' %}?asset=vehicle:{{ vehicle.pk }}">{% include "core/_icon.html" with name="camera" %}{% translate "Mangel mit Foto melden" %}</a></p>
+    {% if defects %}
+      <h3>{% translate "Offene Mängel an diesem Fahrzeug" %}</h3>
+      <ul>
+        {% for defect in defects %}
+          <li><a href="{% url 'defect_detail_web' defect.pk %}">#{{ defect.pk }} {{ defect.title }}</a> · {{ defect.get_status_display }} · {{ defect.get_priority_display }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% if defect_suggestion %}
       <div class="alert warning" role="status">
         <p><strong>{% translate "Bei der Übernahme mit „Nein“ beantwortet:" %}</strong> {{ defect_suggestion.points|join:", " }}</p>

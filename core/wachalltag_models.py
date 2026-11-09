@@ -89,6 +89,16 @@ class Defect(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    # Fahrzeug aus dem Fuhrpark, wenn der Bezug in der Auswahl gewählt wurde
+    # (0.28). Der Text in asset_ref bleibt die lesbare Form. PROTECT wie bei
+    # medical_device: Fahrzeuge werden außer Betrieb genommen, nicht gelöscht.
+    vehicle = models.ForeignKey(
+        "core.Vehicle",
+        on_delete=models.PROTECT,
+        related_name="defects",
+        null=True,
+        blank=True,
+    )
     # Gesperrtes Medizinprodukt: Solange der Mangel offen ist, bleibt das Gerät
     # gesperrt (siehe core/device_status.py). PROTECT: Ein gerätebezogener Mangel
     # ist eine Funktionsstörung im Medizinproduktebuch und bleibt mit dem Gerät

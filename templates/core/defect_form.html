@@ -9,147 +9,159 @@
   <p class="lead">{% translate "Nur Informationen zur Wachenorganisation, zu Material, Fahrzeugen oder Gebäuden." %}</p>
 </header>
 
-{% if already_reported_defects %}
-<div class="alert warning already-reported-banner" id="already-reported-banner" role="alert" data-already-reported-banner>
-  <div class="alert-heading">
-    <strong>{% translate "Bereits gemeldet" %}</strong>
-    {% if already_reported_count %}<span class="badge warning-badge" data-already-reported-count>{{ already_reported_count }}</span>{% endif %}
-  </div>
-  <p class="already-reported-intro">
-    {% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}
-  </p>
-  <ul class="already-reported-list" data-already-reported-list>
-    {% for defect in already_reported_defects %}
-      <li>
-        <a href="{% url 'defect_detail_web' defect.pk %}" target="_blank" rel="noopener">
-          <strong>#{{ defect.pk }} {{ defect.title }}</strong>
-        </a>
-        <span class="badge">{{ defect.get_status_display }}</span>
-        <span class="badge">{{ defect.get_priority_display }}</span>
-        {% if defect.asset_ref %}<small class="muted">({{ defect.asset_ref }})</small>{% endif %}
-      </li>
-    {% endfor %}
+{% if errors %}
+<div class="error-summary" role="alert" id="defect-form-errors">
+  <h2>{% translate "Der Mangel wurde noch nicht gespeichert." %}</h2>
+  <ul class="errorlist">
+    {% for message in errors.values %}<li>{{ message }}</li>{% endfor %}
   </ul>
-</div>
-{% else %}
-<div class="alert warning already-reported-banner" id="already-reported-banner" role="alert" data-already-reported-banner hidden>
-  <div class="alert-heading">
-    <strong>{% translate "Bereits gemeldet" %}</strong>
-    <span class="badge warning-badge" data-already-reported-count>0</span>
-  </div>
-  <p class="already-reported-intro">
-    {% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}
-  </p>
-  <ul class="already-reported-list" data-already-reported-list></ul>
 </div>
 {% endif %}
 
-<form method="post" enctype="multipart/form-data" class="form-card">
+{# Mangel in drei Tipps: Formular öffnen, Foto, Speichern (Bezug vorgewählt über ?asset=). #}
+<form method="post" enctype="multipart/form-data" class="form-card defect-quick-form" data-defect-form>
   {% csrf_token %}
 
-  {# Tipp 1: Foto aufnehmen oder Datei anhängen #}
-  <div class="field photo-capture-field">
-    <label class="field-label">{% translate "Foto aufnehmen (Tipp 1)" %}</label>
+  <fieldset class="field photo-capture-field">
+    <legend class="field-label">{% translate "Foto" %}</legend>
     <div class="photo-capture-actions">
       <label for="id_camera" class="button secondary photo-capture-btn">
         {% include "core/_icon.html" with name="camera" %}
         <span>{% translate "Foto aufnehmen" %}</span>
-        <input id="id_camera" type="file" name="attachments" accept="image/*" capture="environment" class="visually-hidden photo-input">
+        <input id="id_camera" type="file" name="attachments" accept="image/*" capture="environment" class="visually-hidden photo-input" aria-describedby="photo-file-hint" data-photo-input>
       </label>
       <label for="id_attachments" class="button secondary photo-upload-btn">
         {% include "core/_icon.html" with name="upload" %}
         <span>{% translate "Datei wählen" %}</span>
-        <input id="id_attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="visually-hidden file-input">
+        <input id="id_attachments" type="file" name="attachments" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="visually-hidden file-input" aria-describedby="photo-file-hint" data-photo-input>
       </label>
     </div>
-    <p class="field-hint" id="photo-file-hint" data-selected-label="{% translate 'Ausgewählt:' %}">{% translate "Bilder oder PDFs, maximal 5 MB je Datei." %}</p>
-  </div>
+    <p class="field-hint" id="photo-file-hint" aria-live="polite"
+       data-selected-label="{% translate 'Ausgewählt:' %}"
+       data-shrinking-label="{% translate 'Foto wird verkleinert …' %}"
+       data-shrunk-label="{% translate 'verkleinert' %}">{% blocktranslate %}Bilder oder PDFs, maximal {{ max_upload_mb }} MB je Datei. Große Fotos werden vor dem Hochladen verkleinert.{% endblocktranslate %}</p>
+    {% if errors.attachments %}<p class="field-error">{{ errors.attachments }}</p>{% endif %}
+  </fieldset>
 
-  <div class="field">
-    <label for="id_title">{% translate "Titel" %}</label>
-    <input id="id_title" name="title" maxlength="160" required value="{% if request.POST %}{{ request.POST.title }}{% else %}{{ initial.title }}{% endif %}">
-  </div>
-
-  {# Tipp 2: Kategorie und Priorität als Chips #}
-  <div class="field">
-    <label class="field-label" id="label_priority">{% translate "Priorität" %}</label>
-    <div class="chip-group priority-chips" role="radiogroup" aria-labelledby="label_priority">
-      {% for value,label in priorities %}
-        <label class="chip-pill{% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %} is-selected{% endif %}" for="prio_{{ value }}">
-          <input type="radio" id="prio_{{ value }}" name="priority" value="{{ value }}"
-            {% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %}checked{% endif %}>
-          <span>{{ label }}</span>
-        </label>
+  <div class="field reference-field">
+    <label for="id_asset_ref">{% translate "Bezug (z. B. Fahrzeug, Gerät, Raum)" %}</label>
+    <select id="id_asset_ref" name="asset_ref" class="form-select asset-select" data-asset-select aria-describedby="defect-duplicates">
+      <option value="">{% translate "— Kein bestimmtes Bezugsobjekt —" %}</option>
+      {% for group, items in reference_groups %}
+        <optgroup label="{{ group }}">
+          {% for option in items %}
+            <option value="{{ option.key }}" data-category="{{ option.category }}" data-kind="{{ option.kind }}"{% if option.key == selected_key %} selected{% endif %}>{{ option.display }}</option>
+          {% endfor %}
+        </optgroup>
       {% endfor %}
-    </div>
-    <select id="id_priority" name="priority_select" class="visually-hidden chip-select" tabindex="-1" aria-hidden="true" hidden>
-      {% for value,label in priorities %}
-        <option value="{{ value }}"{% if request.POST.priority == value or not request.POST and initial.priority == value or not request.POST and not initial.priority and value == 'normal' %} selected{% endif %}>{{ label }}</option>
-      {% endfor %}
+      <option value="{{ custom_value }}"{% if selected_key == custom_value %} selected{% endif %}>{% translate "Anderer Bezug (Freitext)..." %}</option>
     </select>
+    {% if errors.asset_ref %}<p class="field-error">{{ errors.asset_ref }}</p>{% endif %}
+    {# Ohne JavaScript sichtbar; defect_form.js blendet es nur ohne Freitext-Wahl aus. #}
+    <div class="custom-reference" data-custom-reference>
+      <label for="id_asset_ref_custom">{% translate "Bezug als Freitext" %}</label>
+      <input id="id_asset_ref_custom" name="asset_ref_custom" maxlength="160" value="{{ custom_text }}" placeholder="{% translate 'Eigener Bezug...' %}" class="custom-asset-input" autocomplete="off" aria-describedby="defect-duplicates">
+    </div>
+    <p class="field-hint device-lock-hint" data-device-hint{% if not selected_option or selected_option.kind != "device" %} hidden{% endif %}>
+      {% translate "Ein Mangel an einem Medizingerät sperrt das Gerät, bis er erledigt ist und die Schichtleitung es im Medizinproduktebuch freigibt." %}
+    </p>
+    <div class="duplicate-hint" id="defect-duplicates" aria-live="polite" data-duplicate-hint>
+      {% if already_reported_defects %}
+      <div class="alert warning already-reported-banner" data-already-reported-banner>
+        <p class="alert-heading">
+          <strong>{% translate "Bereits gemeldet" %}</strong>
+          <span class="badge warning-badge" data-already-reported-count>{{ already_reported_count }}</span>
+        </p>
+        <p class="already-reported-intro">{% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}</p>
+        <ul class="already-reported-list" data-already-reported-list>
+          {% for defect in already_reported_defects %}
+            <li>
+              <a href="{% url 'defect_detail_web' defect.pk %}" target="_blank" rel="noopener"><strong>#{{ defect.pk }} {{ defect.title }}</strong></a>
+              <span class="badge">{{ defect.get_status_display }}</span>
+              <span class="badge">{{ defect.get_priority_display }}</span>
+              {% if defect.asset_ref %}<small class="muted">({{ defect.asset_ref }})</small>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="field">
-    <label class="field-label" id="label_category">{% translate "Kategorie" %}</label>
-    <div class="chip-group category-chips" role="radiogroup" aria-labelledby="label_category">
-      {% for value,label in categories %}
-        <label class="chip-pill{% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %} is-selected{% endif %}" for="cat_{{ value }}">
-          <input type="radio" id="cat_{{ value }}" name="category" value="{{ value }}"
-            {% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %}checked{% endif %}>
+  <fieldset class="field chip-fieldset">
+    <legend class="field-label" id="legend_category">{% translate "Kategorie" %}</legend>
+    <div class="chip-group category-chips" role="radiogroup" aria-labelledby="legend_category">
+      {% for value, label in categories %}
+        <label class="chip-pill{% if values.category == value %} is-selected{% endif %}" for="cat_{{ value }}">
+          <input type="radio" id="cat_{{ value }}" name="category" value="{{ value }}"{% if values.category == value %} checked{% endif %} data-category-choice>
           <span>{{ label }}</span>
         </label>
       {% endfor %}
     </div>
     <select id="id_category" name="category_select" class="visually-hidden chip-select" tabindex="-1" aria-hidden="true" hidden>
-      {% for value,label in categories %}
-        <option value="{{ value }}"{% if request.POST.category == value or not request.POST and initial.category == value or not request.POST and not initial.category and value == 'task' %} selected{% endif %}>{{ label }}</option>
+      {% for value, label in categories %}
+        <option value="{{ value }}"{% if values.category == value %} selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-  </div>
+  </fieldset>
 
-  {# Tipp 3: Bezug als Auswahl #}
-  <div class="field">
-    <label for="id_asset_ref">{% translate "Bezug (z. B. Fahrzeug, Gerät, Raum)" %}</label>
-    <select id="id_asset_ref" name="asset_ref" class="form-select asset-select" data-asset-select>
-      <option value="">{% translate "— Kein bestimmtes Bezugsobjekt —" %}</option>
-      {% regroup assets by get_kind_display as asset_groups %}
-      {% for group in asset_groups %}
-        <optgroup label="{{ group.grouper }}">
-          {% for asset in group.list %}
-            <option value="{{ asset.label }}" data-asset-id="{{ asset.asset_id }}" data-asset-pk="{{ asset.pk }}"
-              {% if selected_asset_ref == asset.label or selected_asset_ref == asset.asset_id or initial.asset_ref == asset.label %} selected{% endif %}>
-              {{ asset.label }}{% if asset.status != 'ready' %} ({{ asset.get_status_display }}){% endif %}
-            </option>
-          {% endfor %}
-        </optgroup>
+  <fieldset class="field chip-fieldset">
+    <legend class="field-label" id="legend_priority">{% translate "Priorität" %}</legend>
+    <div class="chip-group priority-chips" role="radiogroup" aria-labelledby="legend_priority">
+      {% for value, label in priorities %}
+        <label class="chip-pill{% if values.priority == value %} is-selected{% endif %}" for="prio_{{ value }}">
+          <input type="radio" id="prio_{{ value }}" name="priority" value="{{ value }}"{% if values.priority == value %} checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
       {% endfor %}
-      {% if initial.asset_ref and not initial_in_assets %}
-        <option value="{{ initial.asset_ref }}" selected>{{ initial.asset_ref }}</option>
-      {% endif %}
-      <option value="__custom__">{% translate "Anderer Bezug (Freitext)..." %}</option>
+    </div>
+    <select id="id_priority" name="priority_select" class="visually-hidden chip-select" tabindex="-1" aria-hidden="true" hidden>
+      {% for value, label in priorities %}
+        <option value="{{ value }}"{% if values.priority == value %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
     </select>
-    <input id="id_asset_ref_custom" name="asset_ref_custom" maxlength="160" placeholder="{% translate 'Eigener Bezug...' %}" class="custom-asset-input" hidden>
+  </fieldset>
+
+  <div class="field">
+    <label for="id_title">{% translate "Titel (optional)" %}</label>
+    <input id="id_title" name="title" maxlength="160" value="{{ values.title }}" aria-describedby="title-hint">
+    <p class="field-hint" id="title-hint">{% translate "Leer lassen: Der Titel wird aus Kategorie und Bezug gebildet." %}</p>
+    {% if errors.title %}<p class="field-error">{{ errors.title }}</p>{% endif %}
   </div>
 
   <div class="field">
     <label for="id_description">{% translate "Beschreibung" %}</label>
-    <textarea id="id_description" name="description" maxlength="3000" rows="5">{% if request.POST %}{{ request.POST.description }}{% else %}{{ initial.description }}{% endif %}</textarea>
+    <textarea id="id_description" name="description" maxlength="3000" rows="5">{{ values.description }}</textarea>
   </div>
 
   <div class="field">
     <label for="id_due_at">{% translate "Frist (optional)" %}</label>
-    <input id="id_due_at" name="due_at" type="datetime-local" value="{% if request.POST %}{{ request.POST.due_at }}{% else %}{{ initial.due_at }}{% endif %}">
+    <input id="id_due_at" name="due_at" type="datetime-local" value="{{ values.due_at }}">
   </div>
 
   <div class="field checkbox-field">
-    <label><input type="checkbox" name="owner_self" value="1" checked> {% translate "Mir zuordnen" %}</label>
+    <label><input type="checkbox" name="owner_self" value="1"{% if values.owner_self %} checked{% endif %}> {% translate "Mir zuordnen" %}</label>
   </div>
 
-  <div class="form-actions">
+  {% if errors.form %}<p class="field-error">{{ errors.form }}</p>{% endif %}
+
+  <div class="form-actions defect-form-actions">
     <button class="button primary" type="submit">{% translate "Mangel speichern" %}</button>
     <a class="button secondary" href="{% url 'defects_web' %}">{% translate "Abbrechen" %}</a>
   </div>
 </form>
+
+{# Vorlage für den Hinweis „bereits gemeldet“; defect_form.js füllt sie nur über textContent. #}
+<template id="duplicate-hint-template">
+  <div class="alert warning already-reported-banner" data-already-reported-banner>
+    <p class="alert-heading">
+      <strong>{% translate "Bereits gemeldet" %}</strong>
+      <span class="badge warning-badge" data-already-reported-count></span>
+    </p>
+    <p class="already-reported-intro">{% translate "Für dieses Objekt gibt es bereits offene Meldungen. Bitte prüfe, ob der Mangel schon erfasst ist:" %}</p>
+    <ul class="already-reported-list" data-already-reported-list></ul>
+  </div>
+</template>
 
 {{ defects_by_asset_data|json_script:"defects-data" }}
 <script src="{% static 'core/defect_form.js' %}" defer></script>

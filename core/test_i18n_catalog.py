@@ -281,6 +281,8 @@ class RepositoryCatalogTests(SimpleTestCase):
             "UDI-DI (GTIN):": "Normkennung",
             # Platzhalterzeile ohne uebersetzbaren Text
             "%(category)s &middot; Version %(version)s": "nur Platzhalter und Produktwort",
+            # Automatischer Mangeltitel aus Kategorie und Bezug (0.28)
+            "%(category)s: %(reference)s": "nur Platzhalter",
         }
         identical = set()
         for entry in parse_po(po):

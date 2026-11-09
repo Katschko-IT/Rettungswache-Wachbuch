@@ -15,11 +15,10 @@ from urllib.parse import quote
 
 from .access import CONTENT_ROLES, membership_required
 from .api.wachalltag import (
-    ALLOWED_ATTACHMENT_TYPES,
     MAX_ATTACHMENT_BYTES,
     MAX_ATTACHMENTS_PER_HANDOVER,
-    attachment_is_valid,
 )
+from .attachments import read_upload
 from .models import NewsAcknowledgement, NewsAttachment, NewsPost
 from .news import (
     acknowledge,
@@ -84,28 +83,22 @@ def news_detail(request, pk):
                 messages.success(request, _("Als gelesen quittiert."))
             return redirect("news_detail", pk=pk)
         if request.POST.get("action") == "upload" and request.membership.role in EDITOR_ROLES:
-            upload = request.FILES.get("attachment")
-            if upload is None:
-                messages.error(request, _("Bitte eine Datei auswählen."))
-            elif upload.content_type not in ALLOWED_ATTACHMENT_TYPES:
-                messages.error(request, _("Erlaubt sind JPEG, PNG, WebP und PDF."))
-            elif upload.size > MAX_ATTACHMENT_BYTES:
-                messages.error(request, _("Datei darf maximal 5 MiB groß sein."))
-            elif post.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
+            if post.attachments.count() >= MAX_ATTACHMENTS_PER_HANDOVER:
                 messages.error(request, _("Mehr Anhänge sind nicht möglich."))
             else:
-                raw = upload.read()
-                if not attachment_is_valid(raw, upload.content_type):
-                    messages.error(request, _("Datei ist kein gültiges Bild und kein lesbares PDF."))
+                # Prüft Typ, Größe und Inhalt; Bilder ohne Metadaten (EXIF, GPS).
+                upload, upload_error = read_upload(request.FILES.get("attachment"))
+                if upload_error:
+                    messages.error(request, upload_error)
                 else:
                     with transaction.atomic():
                         NewsAttachment.objects.create(
                             post=post,
                             station=station,
-                            filename=upload.name[:180],
+                            filename=upload.name,
                             content_type=upload.content_type,
-                            data=raw,
-                            size=len(raw),
+                            data=upload.data,
+                            size=upload.size,
                             uploaded_by=request.user,
                         )
                     messages.success(request, _("Anhang wurde hinzugefügt."))
@@ -131,8 +124,15 @@ def news_create(request):
     if request.method == "POST":
         title = (request.POST.get("title") or "").strip()
         body = (request.POST.get("body") or "").strip()
+        upload, upload_error = None, None
+        if request.FILES.get("attachment") is not None:
+            # Vor dem Veröffentlichen prüfen: Ein abgelehnter Anhang verschwindet
+            # nicht still, Titel und Text bleiben im Formular stehen.
+            upload, upload_error = read_upload(request.FILES.get("attachment"))
         if not title or not body:
             messages.error(request, _("Bitte Titel und Text ausfüllen."))
+        elif upload_error:
+            messages.error(request, upload_error)
         else:
             with transaction.atomic():
                 post = NewsPost.objects.create(
@@ -142,19 +142,16 @@ def news_create(request):
                     created_by=request.user,
                 )
                 audit(request.user, station, "news.created", post, {"fields": ["title"]})
-                upload = request.FILES.get("attachment")
-                if upload and upload.content_type in ALLOWED_ATTACHMENT_TYPES and upload.size <= MAX_ATTACHMENT_BYTES:
-                    raw = upload.read()
-                    if attachment_is_valid(raw, upload.content_type):
-                        NewsAttachment.objects.create(
-                            post=post,
-                            station=station,
-                            filename=upload.name[:180],
-                            content_type=upload.content_type,
-                            data=raw,
-                            size=len(raw),
-                            uploaded_by=request.user,
-                        )
+                if upload is not None:
+                    NewsAttachment.objects.create(
+                        post=post,
+                        station=station,
+                        filename=upload.name,
+                        content_type=upload.content_type,
+                        data=upload.data,
+                        size=upload.size,
+                        uploaded_by=request.user,
+                    )
             messages.success(request, _("Neuigkeit wurde veröffentlicht."))
             return redirect("news_detail", pk=post.pk)
     return render(request, "core/news_form.html", {"max_upload_mb": MAX_ATTACHMENT_BYTES // (1024 * 1024)})

@@ -110,6 +110,7 @@ Liste ist paginiert:
 | `offset` | Startposition, Standard 0 |
 | `active=1` | erledigte Mängel ausblenden |
 | `status`, `priority`, `overdue=1` | Filter wie bisher |
+| `asset` (auch `asset_ref`) | Mängel zu genau einem Bezug (seit 0.28): Schlüssel `vehicle:<id>`, `device:<id>`, `asset:<id>`, Kurzname eines Fahrzeugs oder Geräts, `asset_id` aus „Geräte & Fahrzeuge“ oder der Bezug als Text. Text zählt nur bei exakt gleichem Wortlaut (Groß-/Kleinschreibung und Leerraum egal), nie als Teilstring: „RTW 1“ findet nicht „RTW 10“. Verknüpfte Mängel (`vehicle`, `medical_device`) zählen unabhängig vom Text. Ist der Text exakt ein Name eines Fahrzeugs oder Geräts (etwa der Rufname allein, wenn er eindeutig ist), zählen auch dessen verknüpfte Mängel, wie beim Hinweis „bereits gemeldet“ im Mangelformular. Immer nur die eigene Wache. |
 
 Antwort: `{"ok": true, "count": <Gesamtzahl>, "results": [...], "next": <Pfad oder null>, "previous": <Pfad oder null>}`.
 `next`/`previous` sind relative Pfade mit allen Filtern; Clients folgen ihnen,
@@ -117,7 +118,7 @@ statt selbst Offsets zu berechnen.
 
 ### Fotos
 
-Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG, WebP und PDF. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit, bevor Daten persistiert werden. Grenzen (Web und API gleich):
+Mängelfotos sind authentifiziert und stationsisoliert. Erlaubt sind JPEG, PNG, WebP und PDF. Der Server prüft MIME/Format, Signatur und die tatsächliche Decodierbarkeit, bevor Daten persistiert werden. Jedes Bild wird aus den Bildpunkten neu als JPEG geschrieben, ohne EXIF, GPS, Kameradaten, XMP oder Kommentare; lässt es sich nicht neu schreiben, wird es abgelehnt (415) statt im Original gespeichert. Das gilt seit 0.28 auch für Anhänge an Übergaben, Pinnwand und Neuigkeiten im Web. Grenzen (Web und API gleich):
 
 - maximal **5 MiB je Datei** (Server); der offizielle Client verkleinert Fotos vorab auf höchstens 2 MiB
 - maximal **25 Megapixel je Bild**
@@ -189,7 +190,7 @@ Maßgeblich ist [`CLIENT-OFFLINE-CONTRACT.md`](CLIENT-OFFLINE-CONTRACT.md): Der 
 - TLS vor dem App-Port
 - Authorization-Header nicht loggen
 - Korrelations-ID für Support/Fehleranalyse verwenden
-- Reverse Proxy für Mängelfoto-Uploads auf mindestens 3 MiB Request-Body konfigurieren
+- Reverse Proxy für Uploads auf mindestens 12 MiB Request-Body konfigurieren (Foto bis 5 MiB plus Formular; die mitgelieferten nginx-Vorlagen setzen `client_max_body_size 12M`, Caddy 20 MB)
 - Push-Endpunkte folgen der serverseitigen HTTPS-/Port-/Host-Allowlist
 - `/healthz/` bleibt außerhalb der Produkt-API
 - Backup/Restore vor Pilot-/Produktivbetrieb testen

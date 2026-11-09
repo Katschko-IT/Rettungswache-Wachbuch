@@ -465,7 +465,7 @@ MODULES = (
                       note="Display: nur die Zahl dringender offener Übergaben. Status und Bearbeitung: Schichtleitung und Master-Admin; "
                            "jede Änderung bleibt als Version in core.HandoverRevision erhalten."),
             ModelSpec("core.HandoverRevision", "Versionen einer Übergabe (Schnappschuss, Person)", C, ("system",), ("web",), "evidence", evidence=True),
-            ModelSpec("core.HandoverAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.HandoverAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
             ModelSpec("core.HandoverAck", "Lesebestätigung: Person und Zeit", C + ("terminal",), C, ("web", "app", "terminal"), "evidence", evidence=True),
         ),
     ),
@@ -481,7 +481,7 @@ MODULES = (
             ModelSpec("core.NewsPost", "Neuigkeit: Titel, Text, Autor", C + ("terminal", "display"), CS, ("web", "terminal", "display")),
             ModelSpec("core.NewsAcknowledgement", "Quittierung: Person und Zeit", ("self",), ("self",), ("web",),
                       note="Lesestatus, kein Nachweis. Andere sehen nur die Anzahl. Das Wachenterminal kann nicht quittieren."),
-            ModelSpec("core.NewsAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.NewsAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), CS, ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(
@@ -508,8 +508,10 @@ MODULES = (
             EvaluationSpec("api_v1_defect_attachments", "Anhänge eines Mangels mit Benutzername der hochladenden Person (App)", C, True),
         ),
         models=(
-            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
-                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent."),
+            ModelSpec("core.Defect", "Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person, Bezug (Text, Fahrzeug oder Medizingerät)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"),
+                      "evidence", evidence=True, note="Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent. "
+                      "Der Bezug verweist auf ein Fahrzeug oder Medizingerät der Wache (keine Personen); ein Gerätemangel sperrt das Gerät. "
+                      "Das Wachenterminal wählt keine Medizingeräte."),
             ModelSpec("core.DefectEvent", "Verlauf: Statuswechsel mit Person", C + ("terminal",), ("system",), ("web", "app", "terminal"), "evidence", evidence=True),
             ModelSpec("core.DefectAttachment", "Fotos zum Mangel (Metadaten entfernt)", C + ("terminal",), C + ("terminal",), ("web", "app", "terminal"), "attachment", evidence=True),
         ),
@@ -651,7 +653,7 @@ MODULES = (
         models=(
             ModelSpec("core.PinboardNote", "Aushang: Titel, Text, Kategorie, Autor", C + ("terminal", "display"), C + ("terminal",), ("web", "app", "terminal", "display"), "gap",
                       note="Anpinnen: Schichtleitung und Master-Admin. Archivierte Aushänge bleiben gespeichert. Display: nur Titel angepinnter Aushänge."),
-            ModelSpec("core.PinboardAttachment", "Anhänge (Bild oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment", evidence=True),
+            ModelSpec("core.PinboardAttachment", "Anhänge (Bild ohne Metadaten oder PDF)", C + ("terminal",), C + ("terminal",), ("web", "terminal"), "attachment", evidence=True),
         ),
     ),
     ModuleSpec(

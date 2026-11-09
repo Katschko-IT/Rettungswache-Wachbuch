@@ -55,6 +55,13 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     bleiben sichtbar. „Wieder in Betrieb nehmen“ setzt es auf „Außer Dienst“, bis die
     Besatzung es einsatzbereit meldet. Liste: `/fuhrpark/ausser-betrieb/`; Audit
     `fleet.vehicle_retired` / `fleet.vehicle_reactivated`; CSV-Spalte „In Betrieb“.
+    Auch ein Eintrag unter „Geräte & Fahrzeuge“, der das Fahrzeug spiegelt, steht dann
+    nicht mehr in der Bezugsauswahl der Mangelmeldung (ebenso bei außer Betrieb
+    genommenen Medizingeräten).
+- **Offene Mängel an diesem Fahrzeug** (Fahrzeugseite, seit 0.28): mit dem Fahrzeug
+  verknüpfte Mängel und ältere Meldungen ohne Verknüpfung, deren Bezug exakt ein Name des
+  Fahrzeugs ist (Rufname mit Kennzeichen, der Rufname allein nur, wenn er eindeutig ist).
+  Nie über Teilstrings: Das Kennzeichen „M-RK 1“ findet nicht die Mängel von „M-RK 12“.
   - Desinfektionsmittel werden im Django-Admin über „In Gebrauch“ aus dem Protokoll
     genommen, nicht gelöscht. Mindestens ein Mittel der Wache bleibt in Gebrauch.
     Ebenso Stufen des Desinfektionsplans: Protokolle hängen per `PROTECT` an ihrer
@@ -98,7 +105,9 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
     Kontrollen falsch als bestanden eintragen.
 - **Sperre und Freigabe** (`core/device_status.py`):
   - „Mangel melden“ und eine nicht bestandene Kontrolle sperren das Gerät und legen einen mit
-    dem Gerät verknüpften Mangel an.
+    dem Gerät verknüpften Mangel an. Dasselbe gilt für „Mangel in drei Tipps“
+    (`/maengel/neu/`), wenn das Gerät als Bezug gewählt ist; das Wachenterminal bietet dort
+    keine Medizingeräte an.
   - Eine bestandene Kontrolle hebt keine Sperre auf. Freigeben darf nur Schichtleitung oder
     Admin, erst wenn alle verknüpften Mängel erledigt sind; die Freigabe wird als
     Funktionskontrolle dokumentiert (Audit `mpg.device_released`).
@@ -161,6 +170,32 @@ Dieses Dokument beschreibt die Architektur, Datenmodelle, gesetzlichen Normen un
   - Fahrzeugzustand aller Fahrzeuge der Wache (einsatzbereit, eingeschränkt, Desinfektion, Werkstatt, außer Dienst) – ohne Einsatzphasen und ohne Stufe der Desinfektion.
   - MPG-Prüfungs- und Mängelwarnungen.
   - Verkehrslage und MoWaS-Warnungen (sofern konfiguriert).
+- **Festes 16:9-Raster nur im Kiosk** (seit 0.28): Über den Display-Link
+  (`/display/start/<token>/`) zeigt der Bildschirm einen festen 16:9-Rahmen, so groß wie
+  möglich und mittig; auf Bildschirmen, die nicht 16:9 sind, bleibt ein dunkler Rand
+  (Letterbox). Schriften und Abstände richten sich nach der Rahmenbreite, der Rahmen sieht
+  deshalb bei 1920x1080 und 1280x720 gleich aus. Über die Sitzung (PC, Vorschau, Handy)
+  bleibt die Anzeige fließend.
+- **Nichts wird still abgeschnitten**: Jede Liste hat eine feste Zeilenzahl (Termine 5,
+  Fahrzeuge 6, Gerätefristen und Material je 4, Geburtstage, Müllabfuhr, dringende
+  Tagesaufgaben und Verkehr je 3). Was darüber hinausgeht oder nicht in die Spalte passt,
+  steht als „+N weitere“ am Ende der Liste. Dringende Übergaben und Laufschrift stehen in
+  der Fußzeile und bleiben immer im Bild. Die Laufschrift (Pinnwand und Neuigkeiten)
+  zeigt höchstens vier Titel und nur so viele, wie in die Zeile passen; der Rest steht
+  als „+N weitere“ daneben, ein einzelner zu langer Titel endet mit „…“. Ist ein Fenster
+  über die Sitzung so niedrig, dass auch gekürzte Listen nicht passen, lässt sich die
+  Spalte scrollen, statt still abgeschnitten zu werden.
+- **Keine Emojis** auf dem Display; Zustand und Stufe stehen als Text, Farbe nur als
+  Randstreifen. Emojis in Titeln, die Nutzer eingeben (Kalender, Pinnwand, Neuigkeiten,
+  Modulüberschriften, Wachenname), entfernt der Server vor der Anzeige.
+- Die Leiste „Vollbild starten“ erscheint im Kiosk nur beim Start und kurz nach einer
+  Bewegung oder Taste, damit sie die Fußzeile nicht dauerhaft verdeckt.
+- Geprüft im Browser durch den CI-Job `a11y` (`tests/a11y/run-axe.js`): bei 1920x1080 und
+  1280x720 kein Scrollen, Raster 16:9 (Abweichung höchstens 0,02), kein sichtbares Element
+  außerhalb von Raster oder Bildschirm, keine abgeschnittene Spalte, nichts seitlich ohne
+  sichtbares „…“ abgeschnitten (auch nicht die Laufschrift), keine Emojis; dazu die
+  Ansicht über die Sitzung bei 1366x600 (nichts still abgeschnitten). Bildschirmfotos als
+  Artefakt.
 
 ---
 

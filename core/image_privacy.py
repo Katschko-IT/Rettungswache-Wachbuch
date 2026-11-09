@@ -6,6 +6,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+from .models import HandoverAttachment, NewsAttachment, PinboardAttachment
 from .wachalltag_models import DefectAttachment
 
 MAX_SANITIZED_BYTES = 2 * 1024 * 1024
@@ -77,3 +78,36 @@ def sanitize_defect_attachment(sender, instance: DefectAttachment, **kwargs):
     instance.data = sanitized
     instance.size = len(sanitized)
     instance.content_type = "image/jpeg"
+
+
+def _strip_metadata_before_save(instance) -> None:
+    """Zweite Sicherung für Anhänge, die nicht über ``read_upload`` kommen.
+
+    Die Ansichten schreiben Bilder schon beim Annehmen neu (core/attachments.py).
+    Trägt ein lesbares Bild beim Speichern trotzdem Metadaten (anderer
+    Codepfad, Import), wird es hier neu geschrieben; geht das nicht, schlägt
+    das Speichern fehl, statt das Original abzulegen. Nicht lesbare Daten
+    tragen keine lesbaren Metadaten und bleiben unverändert.
+    """
+    from .attachments import image_has_metadata, normalize_image_to_jpeg
+
+    if not instance.data or instance.content_type == "application/pdf":
+        return
+    raw = bytes(instance.data)
+    if not image_has_metadata(raw):
+        return
+    clean = normalize_image_to_jpeg(raw)
+    instance.data = clean
+    instance.size = len(clean)
+    instance.content_type = "image/jpeg"
+    # Model.save() hat die Endung schon aus dem alten Typ gebildet (läuft vor
+    # diesem Signal); der Inhalt ist jetzt JPEG, also auch der Name.
+    stem = (instance.filename or "anhang").rsplit(".", 1)[0].strip(" .") or "anhang"
+    instance.filename = f"{stem[:170]}.jpg"
+
+
+@receiver(pre_save, sender=HandoverAttachment, dispatch_uid="strip_handover_attachment_metadata")
+@receiver(pre_save, sender=PinboardAttachment, dispatch_uid="strip_pinboard_attachment_metadata")
+@receiver(pre_save, sender=NewsAttachment, dispatch_uid="strip_news_attachment_metadata")
+def strip_attachment_metadata(sender, instance, **kwargs):
+    _strip_metadata_before_save(instance)

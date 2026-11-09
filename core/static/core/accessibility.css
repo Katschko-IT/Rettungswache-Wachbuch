@@ -4,7 +4,7 @@
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--brand-deep);
+  box-shadow: var(--focus-ring);
 }
 
 .chat-tabs a,
@@ -119,6 +119,7 @@ main .list-row a:not(.button) {
     --priority-normal: #000000;
     --priority-done: #000000;
     --focus: #000000;
+    --focus-halo: #000000;
   }
 
   .button.primary {

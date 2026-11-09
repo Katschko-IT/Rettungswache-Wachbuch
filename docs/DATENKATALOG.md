@@ -825,7 +825,7 @@ Lesebestätigung: Person und Zeit
 
 ### core.HandoverAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -934,7 +934,7 @@ Quittierung: Person und Zeit
 
 ### core.NewsAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Schichtleitung, Master-Admin
@@ -1060,7 +1060,7 @@ Mängel an Fahrzeugen, Geräten und Gebäude mit Frist und Verlauf.
 
 ### core.Defect
 
-Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
+Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person, Bezug (Text, Fahrzeug oder Medizingerät)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)
@@ -1069,7 +1069,7 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 - Löschschutz: verknüpfte Einträge lassen sich nicht löschen, solange dieser Nachweis besteht (PROTECT)
 - Frist technisch: keine automatische Löschung; Web und App bieten kein Löschen an; Aufbewahrung laut Löschkonzept
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent.
+- Hinweis: Bearbeitung möglich; Statuswechsel stehen im Verlauf core.DefectEvent. Der Bezug verweist auf ein Fahrzeug oder Medizingerät der Wache (keine Personen); ein Gerätemangel sperrt das Gerät. Das Wachenterminal wählt keine Medizingeräte.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -1087,6 +1087,7 @@ Mangel: Titel, Beschreibung, Priorität, Status, zuständige Person
 | `created_at` |  | Zeitpunkt |  |
 | `updated_at` |  | Zeitpunkt |  |
 | `closed_at` |  | Zeitpunkt |  |
+| `vehicle` |  | Verweis |  |
 | `medical_device` |  | Verweis |  |
 | `source_checklist_run` | Aus Checklisten-Lauf | Verweis | Lauf, der den Mangel angelegt hat |
 | `source_item_id` | Prüfpunkt (Kennung) | Wert |  |
@@ -1776,7 +1777,7 @@ Aushänge der Wache.
 
 ### core.PinboardAttachment
 
-Anhänge (Bild oder PDF)
+Anhänge (Bild ohne Metadaten oder PDF)
 
 - Lesen: Inhaltsrollen, Wachenterminal (Dienstkonto)
 - Schreiben: Inhaltsrollen, Wachenterminal (Dienstkonto)

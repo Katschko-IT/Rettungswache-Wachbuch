@@ -25,7 +25,9 @@ server {
     ssl_session_cache shared:SSL:5m;
     ssl_session_tickets off;
 
-    client_max_body_size 6M;
+    # Foto bis 5 MiB je Datei plus mehrteilige Formulardaten; kleiner beantwortet
+    # nginx ein Formular mit Foto mit 413 und alle Eingaben gehen verloren.
+    client_max_body_size 12M;
     server_tokens off;
 
     proxy_set_header Host $host;

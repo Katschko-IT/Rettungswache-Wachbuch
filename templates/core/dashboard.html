@@ -7,7 +7,11 @@
     <p class="context-line">{{ current_membership.station.name }} · {% now "l, j. F" %}</p>
     <h1>{% with count=attention_items|length %}{% if count == 1 %}{% translate "1 Punkt braucht Aufmerksamkeit" %}{% elif count %}{% blocktranslate with count=count %}{{ count }} Punkte brauchen Aufmerksamkeit{% endblocktranslate %}{% else %}{% translate "Nichts Dringendes offen" %}{% endif %}{% endwith %}</h1>
   </div>
-  <a class="button primary" href="{% url 'handover_create' %}">{% include "core/_icon.html" with name="plus" %}{% translate "Übergabe anlegen" %}</a>
+  <div class="heading-actions">
+    <a class="button primary" href="{% url 'handover_create' %}">{% include "core/_icon.html" with name="plus" %}{% translate "Übergabe anlegen" %}</a>
+    {# Ein Tipp vom Startbildschirm zu „Mangel in drei Tipps“ (wie die Kachel am Wachenterminal). #}
+    <a class="button secondary" href="{% url 'defect_create_web' %}">{% include "core/_icon.html" with name="camera" %}{% translate "Mangel melden" %}</a>
+  </div>
 </header>
 
 {% if my_notifications %}

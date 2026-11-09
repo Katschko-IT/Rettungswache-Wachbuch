@@ -162,6 +162,10 @@
   <button type="button" class="button danger" data-modal-open="defect-modal">
     {% include "core/_icon.html" with name="alert" %}{% translate "Mangel melden / Sperren" %}
   </button>
+  {# Mangel in drei Tipps mit Foto: sperrt das Gerät genauso wie der Dialog. #}
+  <a class="button secondary" href="{% url 'defect_create_web' %}?asset=device:{{ device.pk }}">
+    {% include "core/_icon.html" with name="camera" %}{% translate "Mangel mit Foto melden" %}
+  </a>
 
   {% if can_manage %}
     <button type="button" class="button secondary" data-modal-open="maint-modal">

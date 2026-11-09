@@ -42,7 +42,7 @@ jobs:
           "$RUNNER_TEMP/pip-audit-venv/bin/pip-audit" --strict --format=columns \
             --requirement requirements.lock
       - name: Run Ruff baseline lint
-        run: ruff check config core --select E4,E7,E9 --output-format=concise
+        run: ruff check config core --select E4,E7,E9,F63,F7,F82 --output-format=concise
       - name: Check JavaScript syntax
         run: |
           # Alle App-Skripte, auch neue; den gerenderten Service Worker prüft
@@ -296,3 +296,101 @@ jobs:
           if [ -x "$RUNNER_TEMP/wachbuch/wachbuch" ]; then
             "$RUNNER_TEMP/wachbuch/wachbuch" uninstall --purge --yes
           fi
+
+  a11y:
+    # ROADMAP 0.28: axe-core (Playwright) ohne Funde der Schwere critical oder
+    # serious, hell und dunkel (Gerät und Umschalter der App), dazu die
+    # Geometrie des Wand-Displays bei 1920x1080 und 1280x720 (kein Scrollen,
+    # Raster 16:9, nichts außerhalb des Rasters, nichts abgeschnitten, keine
+    # Emojis) und kein seitliches Scrollen des Mangelformulars bei 390x844.
+    # Wie im Container: DEBUG aus, Gunicorn mit WhiteNoise nach collectstatic,
+    # echte CSP ohne unsafe-inline. Nie runserver --insecure (ohne gehashte
+    # Dateinamen liefen alle Seiten ohne CSS durch die Prüfung).
+    name: Accessibility (axe-core, wall display 16:9)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      REDIS_URL: ""
+      REDIS_HOST: ""
+      DJANGO_SECRET_KEY: ci-only-secret
+      DJANGO_DEBUG: "false"
+      # Musterkonten mit Passwort-Anmeldung: DEMO_MODE (nicht DEMO_SANDBOX)
+      # schaltet MFA_REQUIRED aus, damit die Prüfung sich per Formular anmeldet.
+      DEMO_MODE: "true"
+      TERMINAL_ENABLED: "true"
+      TERMINAL_CODE: "1234"
+      # Nur HTTP auf Loopback in der CI.
+      SECURE_COOKIES: "false"
+      BASE_URL: http://127.0.0.1:8765
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - name: Isolated Python environment
+        run: |
+          uv venv --seed --managed-python --python 3.14 "$RUNNER_TEMP/wachbuch-venv"
+          echo "$RUNNER_TEMP/wachbuch-venv/bin" >> "$GITHUB_PATH"
+          echo "DATABASE_URL=sqlite:///$RUNNER_TEMP/wachbuch-a11y-$GITHUB_RUN_ID.sqlite3" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/a11y/package-lock.json
+      - name: Install locked Python dependencies with hash verification
+        run: pip install --require-hashes -r requirements.lock
+      - name: Database, demo data, static files, terminal and display link
+        run: |
+          python manage.py migrate --noinput
+          python manage.py load_demo_data
+          python manage.py collectstatic --noinput
+          python tests/a11y/seed.py > "$RUNNER_TEMP/a11y-seed.json"
+          # Geheimnisse einer Wegwerf-Datenbank; trotzdem im Log maskieren.
+          for key in terminal display; do
+            value=$(python -c "import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$RUNNER_TEMP/a11y-seed.json" "$key")
+            echo "::add-mask::$value"
+          done
+          echo "SEED_JSON=$RUNNER_TEMP/a11y-seed.json" >> "$GITHUB_ENV"
+      - name: Start the app with Gunicorn (as in the container)
+        run: |
+          GUNICORN_BIND=127.0.0.1:8765 GUNICORN_ACCESSLOG="$RUNNER_TEMP/gunicorn-access.log" \
+            GUNICORN_ERRORLOG="$RUNNER_TEMP/gunicorn-error.log" \
+            gunicorn --config config/gunicorn.py --daemon --pid "$RUNNER_TEMP/gunicorn.pid" config.wsgi:application
+          for _ in $(seq 60); do
+            curl --fail --silent --output /dev/null "$BASE_URL/healthz/" && break
+            sleep 1
+          done
+          curl --fail --silent --show-error --output /dev/null "$BASE_URL/healthz/"
+          # Statische Dateien kommen gehasht von WhiteNoise, nicht als 404.
+          css=$(curl --fail --silent "$BASE_URL/anmelden/" | grep -o '/static/core/app\.[0-9a-f]*\.css' | head -n 1)
+          test -n "$css"
+          curl --fail --silent --show-error --output /dev/null "$BASE_URL$css"
+          # Echte CSP ohne unsafe-inline.
+          csp=$(curl --fail --silent --show-error --head "$BASE_URL/anmelden/" | grep -i '^content-security-policy:')
+          echo "$csp"
+          echo "$csp" | grep -q "script-src 'self'"
+          if echo "$csp" | grep -q "unsafe-inline"; then
+            echo "::error::CSP erlaubt unsafe-inline"
+            exit 1
+          fi
+      - name: Install axe-core and Playwright (locked)
+        working-directory: tests/a11y
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: axe-core (light, dark, app toggle) and wall display 1920x1080 / 1280x720
+        working-directory: tests/a11y
+        env:
+          OUT_DIR: ${{ runner.temp }}/a11y-out
+        run: node run-axe.js
+      - name: Upload report and screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: a11y-report
+          path: ${{ runner.temp }}/a11y-out
+          retention-days: 14
+      - name: Server log after failure
+        if: failure()
+        run: tail -n 200 "$RUNNER_TEMP/gunicorn-error.log" || true
+      - name: Stop the app
+        if: always()
+        run: kill "$(cat "$RUNNER_TEMP/gunicorn.pid")" 2>/dev/null || true
