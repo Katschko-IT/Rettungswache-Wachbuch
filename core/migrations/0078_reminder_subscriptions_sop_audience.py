@@ -39,7 +39,7 @@ def clear_terminal_functions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0076_sop_deadlines_and_reminders'),
+        ('core', '0077_checklist_drafts_paper_backfill'),
     ]
 
     operations = [
