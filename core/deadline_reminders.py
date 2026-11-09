@@ -661,6 +661,14 @@ class _DigestRecipient:
     categories: set[str] = field(default_factory=set)
 
 
+def _digest_row_reaches(person: _DigestRecipient, row: DigestRow) -> bool:
+    """Abo des Bereichs und dieselbe Funktionsprüfung wie bei der Erinnerung zur Zeile."""
+    membership = person.membership
+    return row.category in person.categories and (
+        is_lead(membership) or any(getattr(membership, flag, False) for flag in row.functions)
+    )
+
+
 def _digest_rows(station: Station, today: date) -> list[DigestRow]:
     until = today + timedelta(days=DIGEST_DAYS)
     rows = [
@@ -688,25 +696,25 @@ def send_weekly_digest(station: Station | None = None, today: date | None = None
                 subscribed = {category.code for category in CATEGORIES if is_subscribed(membership, category)}
                 if subscribed:
                     people.append(_DigestRecipient(membership, subscribed))
-            # Bereiche mit Fristen, die niemand abonniert hat, gehen an die Leitung.
-            covered = set().union(*(person.categories for person in people)) if people else set()
-            orphaned = {row.category for row in rows} - covered
-            if orphaned:
-                lead_ids = {membership.user_id for membership in recipients.leads}
-                known = {person.membership.user_id for person in people}
-                for person in people:
-                    if person.membership.user_id in lead_ids:
-                        person.categories |= orphaned
-                people += [_DigestRecipient(m, set(orphaned)) for m in recipients.leads if m.user_id not in known]
+            # Je Zeile wie bei den Erinnerungen (StationRecipients.for_item):
+            # Erreicht eine Frist niemanden mit Abo und passender Funktion,
+            # steht sie bei der ganzen Leitung (z. B. HU, wenn nur Sicherheit /
+            # Arbeitsschutz den Bereich Fahrzeuge abonniert hat).
+            selected = {person.membership.user_id: [] for person in people}
+            by_user = {person.membership.user_id: person.membership for person in people}
+            for index, row in enumerate(rows):
+                reached = [person for person in people if _digest_row_reaches(person, row)]
+                for person in reached:
+                    selected[person.membership.user_id].append(index)
+                if not reached:
+                    for membership in recipients.leads:
+                        by_user.setdefault(membership.user_id, membership)
+                        selected.setdefault(membership.user_id, []).append(index)
             url = reverse("paper_deadlines")
             key = f"deadline_weekly_digest:{st.pk}:{week}"
-            for person in people:
-                membership = person.membership
-                mine = [
-                    row for row in rows
-                    if row.category in person.categories
-                    and (is_lead(membership) or any(getattr(membership, flag, False) for flag in row.functions))
-                ]
+            for user_id, indexes in selected.items():
+                membership = by_user[user_id]
+                mine = [rows[index] for index in sorted(set(indexes))]
                 if not mine:
                     continue
                 lines = [row.line(today) for row in mine]

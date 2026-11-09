@@ -746,6 +746,32 @@ class WeeklyDigestTests(_StationMixin, TestCase):
         self.assertIn("RTW 9", self.digest(self.lead).body)
         self.assertIsNone(self.digest(self.fleet))
 
+    def test_rows_nobody_with_the_function_receives_go_to_the_leads(self):
+        """Nur Sicherheit / Arbeitsschutz hat Fahrzeuge abonniert: HU und SP bleiben bei der Leitung."""
+        station = self.make_station(slug="rw-p2-safety")
+        lead = self.person(station, "s-lead", Membership.Role.SHIFT_LEAD, remind_fleet=False)
+        admin = self.person(station, "s-admin", Membership.Role.ADMIN, remind_fleet=False)
+        safety = self.person(station, "s-safety", is_safety_lead=True)
+        Vehicle.objects.create(station=station, slug="rtw", call_sign="RTW 3", license_plate="RW-3",
+                               next_hu_date=self.today + timedelta(days=3),
+                               next_sp_date=self.today - timedelta(days=1),
+                               next_uvv_date=self.today + timedelta(days=4))
+        send_weekly_digest(station=station, today=self.today)
+        lead_body = self.digest(lead).body
+        self.assertIn("HU: RTW 3", lead_body)
+        self.assertIn("überfällig – SP: RTW 3", lead_body)
+        self.assertNotIn("UVV", lead_body)
+        self.assertEqual(self.digest(admin).body, lead_body)
+        safety_body = self.digest(safety).body
+        self.assertIn("UVV-Prüfung: RTW 3", safety_body)
+        self.assertNotIn("HU", safety_body)
+        # Dieselbe Verteilung wie bei den Erinnerungen zu derselben Frist.
+        send_deadline_reminders(station=station, today=self.today)
+        hu = UserNotification.objects.filter(title__startswith="HU fällig")
+        self.assertEqual({note.user.username for note in hu}, {"s-lead", "s-admin"})
+        uvv = UserNotification.objects.filter(title__startswith="UVV-Prüfung fällig")
+        self.assertEqual({note.user.username for note in uvv}, {"s-safety"})
+
 
 class ScheduledWorkerStepTests(_StationMixin, TestCase):
     """Entscheidung 1: stündlich, Wochenübersicht ab Montag 06:00, Nachholen, Neustart."""
