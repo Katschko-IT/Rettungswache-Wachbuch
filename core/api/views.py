@@ -711,8 +711,13 @@ def handover_create(request):
     body = _parse_json(request)
     if body is None:
         return _json_error(request, "JSON-Körper erwartet.")
-    from ..paper_backfill import can_backfill
+    from ..paper_backfill import can_backfill, json_backfill_type_errors
 
+    # Falsche JSON-Typen (Zahl, Liste, Objekt) gibt das Formular nicht sauber
+    # zurück; sie werden vorher mit 422 und Feldfehler abgewiesen.
+    type_errors = json_backfill_type_errors(body)
+    if type_errors:
+        return _json_error(request, "Eingaben sind ungültig.", status=422, fields=type_errors)
     # Das Dienstkonto des Wachenterminals trägt nichts nach (422 mit Hinweis).
     form = HandoverForm(body, allow_backfill=can_backfill(request.user))
     if not form.is_valid():

@@ -7,6 +7,7 @@
 <form method="post" enctype="multipart/form-data" class="form-card narrow">
   {% csrf_token %}
   {% include "core/form_errors.html" %}
+  {{ form.non_field_errors }}
   <div class="field">{{ form.category.errors }}<label for="{{ form.category.id_for_label }}">{% translate "Kategorie" %}</label>{{ form.category }}</div>
   <div class="field">{{ form.priority.errors }}<label for="{{ form.priority.id_for_label }}">{% translate "Priorität" %}</label>{{ form.priority }}</div>
   <div class="field">{{ form.title.errors }}<label for="{{ form.title.id_for_label }}">{% translate "Titel" %}</label>{{ form.title }}</div>

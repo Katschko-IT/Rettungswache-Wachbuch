@@ -102,9 +102,11 @@ paths:
       summary: Create handover
       description: >-
         Optional paper backfill (0.28): is_paper_backfill true plus occurred_at (event time
-        from the paper sheet, not in the future, at most 365 days ago). occurred_at is ignored
-        and stored as null without the flag. A backfill sends no Web-Push. The Wachenterminal
-        service account cannot create a backfill (422).
+        from the paper sheet, not in the future, at most 365 days ago, truncated to the minute).
+        occurred_at is ignored and stored as null without the flag. occurred_at must be a string
+        or null and is_paper_backfill a boolean; other JSON types give 422 with the field in
+        fields. A backfill sends no Web-Push. The Wachenterminal service account cannot create
+        a backfill (422).
       requestBody:
         content:
           application/json:
@@ -770,7 +772,7 @@ components:
         title: { type: string, maxLength: 160 }
         details: { type: string, maxLength: 3000 }
         is_paper_backfill: { type: boolean }
-        occurred_at: { type: string, format: date-time, description: "Required with is_paper_backfill: not in the future, at most 365 days ago" }
+        occurred_at: { type: string, format: date-time, nullable: true, description: "Required with is_paper_backfill: not in the future, at most 365 days ago; truncated to the minute" }
     HandoverAck:
       type: object
       required: [handover_id, by, at]

@@ -78,6 +78,30 @@ def backfill_time_errors(occurred_at: datetime | None, *, reference: datetime | 
     return []
 
 
+def json_backfill_type_errors(body: dict) -> dict:
+    """Feldfehler für falsche JSON-Typen von Häkchen und Ereigniszeit (App-Schnittstelle).
+
+    ``occurred_at`` ist Text (ISO 8601) oder ``null``, ``is_paper_backfill`` ein
+    Wahrheitswert, Text oder ``null``. Andere Typen ließen die Formularprüfung
+    mit einem Serverfehler abbrechen.
+    """
+    errors = {}
+    occurred = body.get("occurred_at")
+    if occurred is not None and not isinstance(occurred, str):
+        errors["occurred_at"] = [gettext("Bitte Datum und Uhrzeit als Text im Format ISO 8601 angeben.")]
+    flag = body.get("is_paper_backfill")
+    if flag is not None and not isinstance(flag, (bool, str)):
+        errors["is_paper_backfill"] = [gettext("Bitte true oder false angeben.")]
+    return errors
+
+
+def truncate_to_minute(value: datetime | None) -> datetime | None:
+    """Ereigniszeiten gelten auf die Minute (wie im Formular und auf dem Bogen)."""
+    if value is None:
+        return None
+    return value.replace(second=0, microsecond=0)
+
+
 def backfill_requested(data, files=None, name: str = "is_paper_backfill") -> bool:
     """Ob die Rohdaten (Formular oder JSON) einen Nachtrag verlangen."""
     if not data:
@@ -130,6 +154,9 @@ class PaperBackfillFormMixin:
                 self.add_error(None, TERMINAL_REFUSAL)
             return cleaned
         if cleaned.get("is_paper_backfill"):
+            # Auf die Minute: Das Formularfeld zeigt keine Sekunden, eine
+            # Korrektur änderte sonst unbemerkt die Zeit.
+            cleaned["occurred_at"] = truncate_to_minute(cleaned.get("occurred_at"))
             if "occurred_at" not in self.errors:
                 for message in backfill_time_errors(cleaned.get("occurred_at"), reference=self.backfill_reference):
                     self.add_error("occurred_at", message)

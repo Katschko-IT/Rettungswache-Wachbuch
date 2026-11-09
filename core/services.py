@@ -13,7 +13,7 @@ from .models import (
     HandoverRevision,
     PinboardNote,
 )
-from .paper_backfill import backfill_audit_metadata, iso_utc
+from .paper_backfill import backfill_audit_metadata, iso_utc, truncate_to_minute
 from .push import notify_urgent_handover
 
 
@@ -130,7 +130,14 @@ def update_handover_content(handover, cleaned_data, membership):
     }
     field_names = []
     for field in ("category", "priority", "title", "details", "is_paper_backfill", "occurred_at"):
-        if field in cleaned_data and getattr(locked, field) != cleaned_data[field]:
+        if field not in cleaned_data:
+            continue
+        old_value, new_value = getattr(locked, field), cleaned_data[field]
+        if field == "occurred_at":
+            # Die Ereigniszeit gilt auf die Minute; Sekunden aus der
+            # App-Schnittstelle (vor 0.28) sind keine Änderung.
+            old_value, new_value = truncate_to_minute(old_value), truncate_to_minute(new_value)
+        if old_value != new_value:
             setattr(locked, field, cleaned_data[field])
             field_names.append(field)
     if not field_names:

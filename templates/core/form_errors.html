@@ -3,6 +3,5 @@
 <div class="error-summary" role="alert" tabindex="-1">
   <h2>{% translate "Bitte Eingaben prüfen" %}</h2>
   <p>{% translate "Mindestens eine Angabe fehlt oder ist ungültig." %}</p>
-  {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
 </div>
 {% endif %}

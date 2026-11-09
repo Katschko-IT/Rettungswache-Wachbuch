@@ -108,6 +108,11 @@ Wachbuch. Clients zeigen einen Nachtrag gekennzeichnet an, etwa
 
 - `occurred_at` ist mit `is_paper_backfill: true` Pflicht, liegt nicht in der
   Zukunft und höchstens 365 Tage zurück; sonst 422 mit `fields.occurred_at`.
+- `occurred_at` ist Text (ISO 8601) oder `null`, `is_paper_backfill` ein
+  Wahrheitswert. Andere JSON-Typen (Zahl, Liste, Objekt) ergeben ebenfalls 422
+  mit dem Feld in `fields`.
+- Die Ereigniszeit gilt auf die Minute; Sekunden werden abgeschnitten (wie im
+  Formular der Weboberfläche).
 - Ohne `is_paper_backfill` wird `occurred_at` nicht gespeichert.
 - Ein Nachtrag löst keinen Web-Push aus.
 - Das Dienstkonto des Wachenterminals kann keinen Nachtrag anlegen (422 mit
