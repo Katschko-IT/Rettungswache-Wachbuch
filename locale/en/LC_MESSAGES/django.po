@@ -23,6 +23,16 @@ msgstr "%(app_name)s runs on a server your station operates itself. This page su
 msgid "%(category)s &middot; Version %(version)s"
 msgstr "%(category)s &middot; Version %(version)s"
 
+#: templates/core/checklists.html:14
+msgid "%(complete)s von %(total)s Läufen, Summe der Wache"
+msgstr "%(complete)s of %(total)s runs, station total"
+
+#: core/checklists_views.py:224
+msgid "%(count)d Prüfpunkt ist bereits als offener Mangel erfasst; es wurde kein weiterer Mangel angelegt."
+msgid_plural "%(count)d Prüfpunkte sind bereits als offene Mängel erfasst; es wurden keine weiteren Mängel angelegt."
+msgstr[0] "%(count)d item is already recorded as an open defect; no further defect was created."
+msgstr[1] "%(count)d items are already recorded as open defects; no further defects were created."
+
 #: templates/core/dashboard.html:8
 msgid "%(count)s Punkte brauchen Aufmerksamkeit"
 msgstr "%(count)s items need attention"
@@ -67,6 +77,11 @@ msgstr "%(name)s is free software (AGPL-3.0). The provider named above is respon
 #: templates/base.html:115
 msgid "%(nav_urgent_count)s dringend"
 msgstr "%(nav_urgent_count)s urgent"
+
+#: templates/core/checklist_history.html:34
+#: templates/core/checklist_run_detail.html:25
+msgid "%(ok)s in Ordnung · %(not_ok)s nicht in Ordnung · %(na)s entfällt · %(open)s ohne Ergebnis"
+msgstr "%(ok)s OK · %(not_ok)s not OK · %(na)s not applicable · %(open)s without result"
 
 #: templates/core/coffee.html:122
 msgid "%(paid)s von %(total)s bezahlt"
@@ -137,6 +152,10 @@ msgstr "(+%(count)s more)"
 #: templates/core/privacy.html:143
 msgid "(Name:"
 msgstr "(Name:"
+
+#: templates/core/checklist_run_detail.html:54
+msgid "(bereits offen gemeldet)"
+msgstr "(already reported as open)"
 
 #: templates/core/private_chat_home.html:44
 msgid "(ohne Schlüssel)"
@@ -432,6 +451,10 @@ msgstr "Retrieved on %(date)s (age: %(age)s minutes)."
 msgid "Abgeschaltete externe Dienste"
 msgstr "Disabled external services"
 
+#: templates/core/checklist_run_detail.html:23
+msgid "Abgeschlossen am"
+msgstr "Completed on"
+
 #: templates/core/team.html:32
 #: templates/registration/qr_confirm.html:83
 msgid "Ablehnen"
@@ -529,7 +552,7 @@ msgstr "Action"
 msgid "Aktionen und strukturierte Vorher/Nachher-Werte, ohne fachliche Freitexte."
 msgstr "Actions and structured before/after values, without operational free text."
 
-#: core/audit_labels.py:185
+#: core/audit_labels.py:187
 #: templates/core/defects.html:15
 #: templates/core/display_token_config.html:23
 #: templates/core/display_tokens.html:41
@@ -555,6 +578,10 @@ msgstr "Active external data flows"
 msgid "Aktivieren"
 msgstr "Activate"
 
+#: templates/core/checklists.html:159
+msgid "Aktivieren, wenn ein ausgefüllter Papierbogen nachträglich übertragen wird. Gespeichert werden der Zeitpunkt laut Bogen und der Zeitpunkt der Eingabe. Höchstens 365 Tage zurück."
+msgstr "Tick this when a completed paper sheet is transferred afterwards. Both the time on the sheet and the time of entry are stored. At most 365 days back."
+
 #: templates/core/handover_form.html:22
 msgid "Aktivieren, wenn ein handschriftlicher Papierbogen nachträglich ins Wachbuch übertragen wird."
 msgstr "Enable when a handwritten paper sheet is entered into the log afterwards."
@@ -579,7 +606,7 @@ msgstr "Activation link was revoked."
 msgid "Aktualisieren"
 msgstr "Update"
 
-#: templates/core/defect_detail.html:18
+#: templates/core/defect_detail.html:21
 #: templates/core/handover_detail.html:40
 msgid "Aktualisiert"
 msgstr "Updated"
@@ -695,6 +722,10 @@ msgstr "All devices"
 msgid "Alle Kategorien"
 msgstr "All categories"
 
+#: templates/core/checklist_history.html:15
+msgid "Alle Läufe eines Zeitraums mit Ergebnis, Messwert und Grenzwerten je Prüfpunkt, zum Beispiel als Temperaturprotokoll."
+msgstr "All runs of a period with result, measured value and limits per item, for example as a temperature log."
+
 #: templates/core/more.html:12
 msgid "Alle Module und Einstellungen dieser Wache. Häufig genutzte Bereiche lassen sich in die Leiste holen."
 msgstr "All modules and settings of this station. Frequently used areas can be pinned to the bar."
@@ -751,6 +782,10 @@ msgstr "Disable all second factors"
 #: core/views.py:524
 msgid "Alle Übergaben"
 msgstr "All handovers"
+
+#: templates/core/checklists.html:139
+msgid "Alle übrigen Punkte in Ordnung"
+msgstr "All remaining items OK"
 
 #: core/coffee_views.py:195
 msgid "Alles Offene"
@@ -814,7 +849,7 @@ msgstr "Continue as master admin: team, settings, display"
 msgid "Als Mitarbeiter im Rettungsdienst sind Sie verpflichtet, neue heilkundliche und organisatorische Dienstanweisungen zur Kenntnis zu nehmen."
 msgstr "As an EMS employee, you are required to take note of new medical and organizational work instructions."
 
-#: templates/core/checklists.html:108
+#: templates/core/checklists.html:171
 msgid "Als erledigt vermerken"
 msgstr "Mark as completed"
 
@@ -833,11 +868,11 @@ msgstr "Mark as “%(label)s”"
 msgid "Altbestand"
 msgstr "Carried over"
 
-#: core/audit_labels.py:124
+#: core/audit_labels.py:125
 msgid "Altbestand ins Lager übernommen"
 msgstr "Existing stock carried over into the warehouse"
 
-#: core/audit_labels.py:120
+#: core/audit_labels.py:121
 msgid "Altdaten einmalig bereinigt"
 msgstr "Legacy data cleaned once"
 
@@ -925,7 +960,7 @@ msgstr "Applied migrations"
 msgid "Anhang (optional)"
 msgstr "Attachment (optional)"
 
-#: templates/core/defect_detail.html:45
+#: templates/core/defect_detail.html:48
 msgid "Anhang hinzufügen"
 msgstr "Add attachment"
 
@@ -938,7 +973,7 @@ msgstr "Attachment added."
 msgid "Anhang zu einer Übergabe hinzugefügt"
 msgstr "Attachment added to a handover"
 
-#: templates/core/defect_detail.html:31
+#: templates/core/defect_detail.html:34
 #: templates/core/handover_detail.html:58
 #: templates/core/news_detail.html:20
 msgid "Anhänge"
@@ -1022,27 +1057,27 @@ msgstr "Sign-in could not be completed."
 msgid "Anmeldung mit manuellem Code"
 msgstr "Login with manual code"
 
-#: core/audit_labels.py:160
+#: core/audit_labels.py:162
 msgid "Anmeldung per QR-Code"
 msgstr "QR code sign-in"
 
-#: core/audit_labels.py:101
+#: core/audit_labels.py:102
 msgid "Anmeldung per QR-Code abgelehnt"
 msgstr "QR code sign-in denied"
 
-#: core/audit_labels.py:102
+#: core/audit_labels.py:103
 msgid "Anmeldung per QR-Code abgeschlossen"
 msgstr "QR code sign-in completed"
 
-#: core/audit_labels.py:99
+#: core/audit_labels.py:100
 msgid "Anmeldung per QR-Code angefordert"
 msgstr "QR code sign-in requested"
 
-#: core/audit_labels.py:100
+#: core/audit_labels.py:101
 msgid "Anmeldung per QR-Code bestätigt"
 msgstr "QR code sign-in approved"
 
-#: core/audit_labels.py:103
+#: core/audit_labels.py:104
 msgid "Anmeldung per QR-Code widerrufen"
 msgstr "QR code sign-in revoked"
 
@@ -1145,19 +1180,19 @@ msgstr "App tokens"
 msgid "App-Tokens / API"
 msgstr "App tokens / API"
 
-#: core/audit_labels.py:158
+#: core/audit_labels.py:160
 msgid "App-Zugang"
 msgstr "App access"
 
-#: core/audit_labels.py:95
+#: core/audit_labels.py:96
 msgid "App-Zugang erstellt"
 msgstr "App access created"
 
-#: core/audit_labels.py:96
+#: core/audit_labels.py:97
 msgid "App-Zugang widerrufen"
 msgstr "App access revoked"
 
-#: core/audit_labels.py:97
+#: core/audit_labels.py:98
 msgid "App-Zugänge nach Passwortänderung widerrufen"
 msgstr "App access revoked after password change"
 
@@ -1206,7 +1241,7 @@ msgstr "Type of storage location. Empty: other storage location."
 msgid "Artikel"
 msgstr "Article"
 
-#: core/audit_labels.py:123
+#: core/audit_labels.py:124
 msgid "Artikel importiert"
 msgstr "Articles imported"
 
@@ -1261,11 +1296,11 @@ msgstr "Even a demonstration with fictional operational content processes real c
 msgid "Audit"
 msgstr "Audit"
 
-#: core/audit_labels.py:200
+#: core/audit_labels.py:202
 msgid "Audit-Einträge mit früheren Einsatzphasen (neutralisiert)"
 msgstr "Audit entries with former mission phases (neutralised)"
 
-#: core/audit_labels.py:201
+#: core/audit_labels.py:203
 msgid "Audit-Einträge nur mit Wechsel der Einsatzphase (gelöscht)"
 msgstr "Audit entries with only a mission phase change (deleted)"
 
@@ -1394,6 +1429,14 @@ msgstr "Carried over from existing records on"
 msgid "Aus Altbestand übernommen am %(date)s. Frühere Prüfungen und Einweisungen sind in den Papierunterlagen dokumentiert."
 msgstr "Carried over from existing records on %(date)s. Earlier inspections and trainings are documented in the paper records."
 
+#: templates/core/defect_detail.html:17
+msgid "Aus Checkliste %(name)s vom %(date)s"
+msgstr "From checklist %(name)s on %(date)s"
+
+#: core/checklists_service.py:386
+msgid "Aus dem Checklisten-Lauf vom %(date)s."
+msgstr "From the checklist run on %(date)s."
+
 #: templates/core/feedback_inbox.html:8
 msgid "Aus dem öffentlichen Feedback-Formular. Einträge werden nach %(days)s Tagen automatisch gelöscht."
 msgstr "From the public feedback form. Entries are deleted automatically after %(days)s days."
@@ -1426,15 +1469,15 @@ msgstr "Switched off"
 msgid "Ausgewählt:"
 msgstr "Selected:"
 
-#: core/audit_labels.py:149
+#: core/audit_labels.py:151
 msgid "Aushang"
 msgstr "Notice"
 
-#: core/audit_labels.py:67
+#: core/audit_labels.py:68
 msgid "Aushang angeheftet"
 msgstr "Notice pinned"
 
-#: core/audit_labels.py:65
+#: core/audit_labels.py:66
 msgid "Aushang angelegt"
 msgstr "Notice created"
 
@@ -1443,11 +1486,11 @@ msgstr "Notice created"
 msgid "Aushang anlegen"
 msgstr "Create notice"
 
-#: core/audit_labels.py:68
+#: core/audit_labels.py:69
 msgid "Aushang archiviert"
 msgstr "Notice archived"
 
-#: core/audit_labels.py:66
+#: core/audit_labels.py:67
 msgid "Aushang bearbeitet"
 msgstr "Notice edited"
 
@@ -1471,7 +1514,7 @@ msgstr "Notices"
 msgid "Aussagekräftiger Titel des Eintrags (max. 160 Zeichen)."
 msgstr "Descriptive title of the entry (max. 160 characters)."
 
-#: core/audit_labels.py:134
+#: core/audit_labels.py:135
 #: core/views.py:578
 msgid "Ausstattung"
 msgstr "Equipment"
@@ -1558,7 +1601,7 @@ msgstr "Decommissioned medical devices"
 msgid "Außer Betrieb nehmen"
 msgstr "Decommission"
 
-#: core/audit_labels.py:215
+#: core/audit_labels.py:217
 #: core/fleet_models.py:52
 #: templates/core/fleet_vehicle_detail.html:102
 msgid "Außer Dienst"
@@ -1711,6 +1754,11 @@ msgstr "Qualification valid in digital device passport"
 #: templates/core/paper_disinfection.html:16
 msgid "Beginn (Uhrzeit)"
 msgstr "Start (time)"
+
+#: core/checklists_views.py:348
+#: templates/core/checklist_run_detail.html:40
+msgid "Begründung"
+msgstr "Reason"
 
 #: templates/core/feeds.html:6
 msgid "Behördenmeldungen"
@@ -2052,7 +2100,7 @@ msgstr "Confirmed by"
 msgid "Bestätigungscode"
 msgstr "Confirmation code"
 
-#: core/audit_labels.py:186
+#: core/audit_labels.py:188
 #: templates/core/coffee.html:103
 #: templates/core/coffee.html:146
 #: templates/core/coffee.html:152
@@ -2369,6 +2417,15 @@ msgstr "Please enter a title."
 msgid "Bitte einen aussagekräftigen Wachennamen angeben."
 msgstr "Please enter a meaningful station name."
 
+#: core/api/views.py:1159
+#: core/checklists_views.py:187
+msgid "Bitte einen gültigen Ereigniszeitpunkt angeben."
+msgstr "Please enter a valid event time."
+
+#: core/checklists_views.py:328
+msgid "Bitte einen gültigen Zeitraum angeben (von bis bis, als Datum)."
+msgstr "Please enter a valid period (from and to, as dates)."
+
 #: templates/core/privacy.html:104
 msgid "Bitte geben Sie keine echten Beschäftigten-, Patienten-, Einsatz- oder sonstigen vertraulichen Daten ein. Die Anwendung ist kein System für Patienten-, Diagnose-, Einsatz- oder Leistungsdaten."
 msgstr "Please do not enter any real employee, patient, operational, or other confidential data. The application is not a system for patient, diagnostic, operational, or performance data."
@@ -2408,6 +2465,10 @@ msgstr "Please read and acknowledge the instruction “%(title)s”."
 #: core/masterdata_import.py:839
 msgid "Bitte ohne „→“ oder „>“ (Trennzeichen für Pfade)."
 msgstr "Please do not use “→” or “>” (path separators)."
+
+#: templates/core/checklists.html:79
+msgid "Bitte prüfen:"
+msgstr "Please check:"
 
 #: templates/core/activate_account.html:17
 msgid "Bitte wende dich an den Master-Admin deiner Wache, um einen neuen Link zu erhalten."
@@ -2467,7 +2528,7 @@ msgstr "Browser · app · terminal · monitor"
 msgid "Buchstaben"
 msgstr "Letters"
 
-#: core/audit_labels.py:53
+#: core/audit_labels.py:54
 msgid "Buchung der Kaffeekasse korrigiert"
 msgstr "Coffee fund entry corrected"
 
@@ -2479,7 +2540,7 @@ msgstr "Coffee fund entry corrected"
 msgid "Buchung erfassen"
 msgstr "Record transaction"
 
-#: core/audit_labels.py:52
+#: core/audit_labels.py:53
 msgid "Buchung in der Kaffeekasse"
 msgstr "Coffee fund entry"
 
@@ -2519,6 +2580,10 @@ msgstr "CE marking number:"
 #: templates/core/privacy.html:138
 msgid "CSRF-Schutz (sitzungsbasiert)"
 msgstr "CSRF protection (session-based)"
+
+#: templates/core/checklist_history.html:21
+msgid "CSV herunterladen"
+msgstr "Download CSV"
 
 #: core/masterdata_import_views.py:44
 #: templates/core/_masterdata_import_upload.html:5
@@ -2577,7 +2642,7 @@ msgstr "Batch number (lot):"
 msgid "Chargennummer wie auf der Packung."
 msgstr "Batch number as printed on the package."
 
-#: core/audit_labels.py:193
+#: core/audit_labels.py:195
 msgid "Chat"
 msgstr "Chat"
 
@@ -2603,27 +2668,28 @@ msgstr "Chat key (E2EE)"
 msgid "Chat-Schlüssel einrichten"
 msgstr "Set up chat key"
 
-#: core/audit_labels.py:162
+#: core/audit_labels.py:164
 msgid "Chatgruppe"
 msgstr "Chat group"
 
-#: core/audit_labels.py:107
+#: core/audit_labels.py:108
 msgid "Chatgruppe angelegt"
 msgstr "Chat group created"
 
-#: core/audit_labels.py:148
+#: core/audit_labels.py:150
 msgid "Chatnachricht"
 msgstr "Chat message"
 
-#: core/audit_labels.py:64
+#: core/audit_labels.py:65
 msgid "Chatnachricht ausgeblendet"
 msgstr "Chat message hidden"
 
-#: core/audit_labels.py:63
+#: core/audit_labels.py:64
 msgid "Chatnachricht gesendet"
 msgstr "Chat message sent"
 
-#: core/audit_labels.py:140
+#: core/audit_labels.py:142
+#: core/checklists_views.py:346
 #: core/views.py:589
 msgid "Checkliste"
 msgstr "checklist"
@@ -2632,19 +2698,27 @@ msgstr "checklist"
 msgid "Checkliste abgeschlossen"
 msgstr "Checklist completed"
 
-#: core/checklists_views.py:214
-msgid "Checkliste abgeschlossen. %(count)d Mangel automatisch angelegt."
-msgstr "Checklist completed. %(count)d defect(s) created automatically."
+#: core/checklists_views.py:216
+msgid "Checkliste abgeschlossen. %(count)d Mangel wurde angelegt."
+msgid_plural "Checkliste abgeschlossen. %(count)d Mängel wurden angelegt."
+msgstr[0] "Checklist completed. %(count)d defect was created."
+msgstr[1] "Checklist completed. %(count)d defects were created."
 
-#: core/checklists_views.py:218
+#: core/checklists_views.py:222
 msgid "Checkliste wurde als erledigt vermerkt."
 msgstr "Checklist was marked as completed."
 
-#: core/audit_labels.py:192
+#: core/checklists_service.py:376
+#: core/checklists_service.py:444
+msgid "Checkliste: %(checklist)s"
+msgstr "Checklist: %(checklist)s"
+
+#: core/audit_labels.py:194
 #: core/navigation.py:31
 #: core/navigation.py:58
 #: core/paper_views.py:89
 #: core/views.py:589
+#: templates/core/checklist_history.html:7
 #: templates/core/checklist_schedules.html:7
 #: templates/core/checklists.html:3
 #: templates/core/checklists.html:8
@@ -2654,26 +2728,39 @@ msgstr "Checklist was marked as completed."
 msgid "Checklisten"
 msgstr "Checklists"
 
-#: core/checklists_views.py:69
-#: core/checklists_views.py:75
+#: core/api/views.py:1046
+#: core/checklists_views.py:55
 msgid "Checklisten mit Nachweischarakter sind am Wachenterminal gesperrt. Bitte persönlich anmelden."
 msgstr "Checklists that serve as records are locked on the station terminal. Please sign in personally."
 
-#: core/audit_labels.py:139
+#: core/audit_labels.py:140
 msgid "Checklisten-Abschluss"
 msgstr "Checklist completion"
 
-#: core/audit_labels.py:155
+#: templates/core/checklist_run_detail.html:3
+#: templates/core/checklist_run_detail.html:7
+msgid "Checklisten-Lauf"
+msgstr "Checklist run"
+
+#: core/audit_labels.py:44
+msgid "Checklisten-Läufe exportiert"
+msgstr "Checklist runs exported"
+
+#: core/audit_labels.py:157
 msgid "Checklisten-Rhythmus"
 msgstr "Checklist schedule"
 
-#: core/audit_labels.py:45
+#: core/audit_labels.py:46
 msgid "Checklisten-Rhythmus entfernt"
 msgstr "Checklist schedule removed"
 
-#: core/audit_labels.py:44
+#: core/audit_labels.py:45
 msgid "Checklisten-Rhythmus geändert"
 msgstr "Checklist schedule changed"
+
+#: core/audit_labels.py:141
+msgid "Checklisten-Zwischenstand"
+msgstr "Checklist draft"
 
 #: core/audit_labels.py:43
 msgid "Checklisten-Zwischenstand gespeichert"
@@ -2821,6 +2908,10 @@ msgstr "Layout: order of sections"
 msgid "Das Desinfektionsmittel gehört zu einer anderen Wache."
 msgstr "The disinfectant belongs to another station."
 
+#: core/checklists_service.py:183
+msgid "Das Ergebnis für „%(item)s“ muss ein Objekt sein."
+msgstr "The result for \"%(item)s\" must be an object."
+
 #: templates/core/fleet_vehicle_detail.html:54
 msgid "Das Fahrzeug ist gem. RKI/VAH-Vorgabe bis <strong>%(until)s Uhr</strong> gesperrt. Vor Ablauf der Einwirkzeit kann es weder einsatzbereit noch eingeschränkt gemeldet werden."
 msgstr "Per RKI/VAH guidance the vehicle is locked until <strong>%(until)s</strong>. It cannot be reported ready for service or restricted before the contact time has elapsed."
@@ -2845,7 +2936,7 @@ msgstr "The form came from an older view – for example another tab, after a ne
 msgid "Das Geburtsjahr wird nicht erhoben."
 msgstr "The year of birth is not collected."
 
-#: core/wachalltag_web.py:420
+#: core/wachalltag_web.py:422
 msgid "Das Gerät ist im Medizinproduktebuch gesperrt oder außer Betrieb genommen. Freigeben kann die Schichtleitung es nur dort, mit einer Funktionskontrolle."
 msgstr "The device is locked or decommissioned in the medical device log. Shift leads can only release it there, with a function check."
 
@@ -3226,6 +3317,10 @@ msgstr "Demos in 7 days"
 msgid "Den Einrichtungscode noch einmal anzeigen."
 msgstr "Show the setup code again."
 
+#: core/checklists_views.py:321
+msgid "Den Export der Checklisten-Läufe erstellen Schichtleitung und Master-Admin."
+msgstr "Shift leads and master admins create the export of checklist runs."
+
 #: core/orga_views.py:429
 msgid "Den Quittierungsnachweis exportiert die Wachleitung."
 msgstr "The acknowledgement record is exported by station management."
@@ -3306,6 +3401,11 @@ msgstr "The setup wizard guides you through name, modules and the first admin ac
 msgid "Der Einrichtungscode stimmt nicht. Bitte noch einmal genau abtippen."
 msgstr "The setup code is not correct. Please type it again carefully."
 
+#: core/checklists_service.py:287
+msgid "Der Ereigniszeitpunkt darf höchstens 365 Tage zurückliegen."
+msgstr "The event time must not be more than 365 days ago."
+
+#: core/checklists_service.py:285
 #: core/forms.py:46
 msgid "Der Ereigniszeitpunkt darf nicht in der Zukunft liegen."
 msgstr "The event time must not be in the future."
@@ -3318,6 +3418,10 @@ msgstr "The note could not be created because of a simultaneous write conflict. 
 #: templates/core/wiki_form.html:15
 msgid "Der Hinweis wurde zwischenzeitlich geändert (aktuell Revision %(rev)s). Ihre Eingabe wurde nicht gespeichert. Bitte prüfen und erneut speichern."
 msgstr "The note was modified in the meantime (currently revision %(rev)s). Your input was not saved. Please check and save again."
+
+#: core/api/views.py:1093
+msgid "Der Inhalt muss ein JSON-Objekt sein."
+msgstr "The body must be a JSON object."
 
 #: templates/core/install_guide.html:200
 msgid "Der Installer meldet einen belegten Port."
@@ -3334,6 +3438,10 @@ msgstr "The link to the Signal group is stored in the settings and applies to al
 #: core/forms.py:580
 msgid "Der Längengrad muss zwischen -180 und 180 liegen."
 msgstr "Longitude must be between -180 and 180."
+
+#: core/checklists_service.py:244
+msgid "Der Messwert für „%(item)s“ liegt außerhalb des zulässigen Bereichs."
+msgstr "The measured value for \"%(item)s\" is outside the permitted range."
 
 #: core/forms.py:373
 msgid "Der Nutzer sollte das Passwort danach unter Mein Konto ändern."
@@ -3489,7 +3597,7 @@ msgstr "Disinfections are not imported"
 msgid "Desinfektions-Einwirkzeit läuft"
 msgstr "Disinfection contact time running"
 
-#: core/audit_labels.py:203
+#: core/audit_labels.py:205
 msgid "Desinfektionsbemerkungen aus der Zeit vor 0.26.1"
 msgstr "Disinfection notes from before 0.26.1"
 
@@ -3558,7 +3666,7 @@ msgstr "Disinfection levels"
 msgid "Desinfektor / Personal"
 msgstr "Disinfector / staff"
 
-#: core/audit_labels.py:179
+#: core/audit_labels.py:181
 #: templates/core/_host_health_banner.html:12
 #: templates/core/mpg_dashboard.html:168
 #: templates/core/warehouse_reorder.html:67
@@ -3613,6 +3721,10 @@ msgstr "The evaluation shows station statuses and open work. It is not intended 
 msgid "Die BIC hat 8 oder 11 Zeichen."
 msgstr "The BIC has 8 or 11 characters."
 
+#: core/checklists_service.py:195
+msgid "Die Begründung für „%(item)s“ muss Text sein."
+msgstr "The reason for \"%(item)s\" must be text."
+
 #: templates/core/setup_done.html:35
 msgid "Die Besatzung verbindet die App über das WLAN der Wache: QR-Code „App verbinden“ auf dem Sperrbildschirm scannen, danach mit dem eigenen Konto anmelden oder koppeln."
 msgstr "The crew connects the app via the station Wi-Fi: scan the “Connect app” QR code on the lock screen, then sign in with their own account or pair."
@@ -3628,6 +3740,10 @@ msgstr "The batch already exists with a different expiry date (%(date)s)."
 #: core/masterdata_import.py:1189
 msgid "Die Charge ist vorhanden; ihr Datum bleibt unverändert."
 msgstr "The batch already exists; its date stays unchanged."
+
+#: core/checklists_views.py:190
+msgid "Die Checkliste wurde nicht gespeichert. Bitte die markierten Angaben prüfen."
+msgstr "The checklist was not saved. Please check the marked entries."
 
 #: core/masterdata_import.py:294
 msgid "Die Datei enthält doppelt umgewandelte Umlaute (z. B. „Ã¼“ statt „ü“). Bitte die Originaldatei erneut als „CSV UTF-8“ speichern."
@@ -3802,6 +3918,10 @@ msgstr "Open the address shown in your browser, enter the setup code and follow 
 msgid "Die formale Betreiberidentität und ladungsfähige Anschrift sind noch nicht durch den Betreiber freigegeben (Veröffentlichungsblocker). Es werden keine behördlichen Stellen als Betreiber vorgegeben, solange kein entsprechender Auftrag vorliegt."
 msgstr "The formal operator identity and serviceable address have not yet been approved by the operator (release blocker). No public authorities are specified as operators as long as no corresponding order exists."
 
+#: templates/core/checklists.html:71
+msgid "Die gespeicherten Angaben sind unten eingetragen und lassen sich fortsetzen."
+msgstr "The saved entries are filled in below and can be continued."
+
 #: core/host_health.py:98
 msgid "Die letzte Kopie außer Haus liegt %(param)s Stunden zurück."
 msgstr "The last off-site copy was %(param)s hours ago."
@@ -3870,7 +3990,7 @@ msgstr "Service “%(param)s” was not responding and has been restarted."
 msgid "Dienst „%(param)s“ startet ständig neu."
 msgstr "Service “%(param)s” keeps restarting."
 
-#: core/audit_labels.py:138
+#: core/audit_labels.py:139
 #: core/deadline_reminders.py:580
 #: core/module_overview.py:120
 #: core/paper.py:204
@@ -3967,7 +4087,7 @@ msgstr "This entry has already been corrected."
 msgid "Diese Charge ist gesperrt (Rückruf)."
 msgstr "This batch is blocked (recall)."
 
-#: templates/core/checklists.html:26
+#: templates/core/checklists.html:50
 msgid "Diese Checkliste hat Nachweischarakter und kann am gemeinsamen Wachenterminal nicht abgeschlossen werden. Bitte melde dich mit deinem persönlichen Konto an."
 msgstr "This checklist serves as a record and cannot be completed on the shared station terminal. Please sign in with your personal account."
 
@@ -4126,6 +4246,10 @@ msgstr "This note is archived and not visible to regular members."
 msgid "Dieser Lagerort steht schon in Zeile %(line)s."
 msgstr "This storage location is already in row %(line)s."
 
+#: templates/core/checklist_run_detail.html:63
+msgid "Dieser Lauf wurde ohne Ergebnis je Punkt abgeschlossen."
+msgstr "This run was completed without a result per item."
+
 #: templates/core/team_invite.html:11
 msgid "Dieser Link und der QR-Code werden"
 msgstr "This link and the QR code will be"
@@ -4215,7 +4339,7 @@ msgstr "Right here on the screen"
 msgid "Direkte Teamabsprachen und optionale Signal-Gruppen-Anbindung."
 msgstr "Direct team coordination and optional Signal group integration."
 
-#: core/audit_labels.py:164
+#: core/audit_labels.py:166
 msgid "Direktnachricht"
 msgstr "Direct message"
 
@@ -4283,7 +4407,7 @@ msgstr "Urgent handovers"
 msgid "Dringender Mangel #%(id)s: %(title)s"
 msgstr "Urgent defect #%(id)s: %(title)s"
 
-#: core/audit_labels.py:176
+#: core/audit_labels.py:178
 #: templates/core/fleet_vehicle_detail.html:301
 msgid "Dringlichkeit"
 msgstr "Urgency"
@@ -4427,6 +4551,10 @@ msgstr "An article with the same name and no PZN/GTIN exists. Please add the PZN
 msgid "Ein Backup wiederherstellen (mit Rückfrage)."
 msgstr "Restore a backup (asks for confirmation)."
 
+#: templates/core/checklists.html:25
+msgid "Ein Foto lässt sich beim jeweiligen Mangel hinzufügen."
+msgstr "A photo can be added to each defect."
+
 #: core/masterdata_import.py:916
 msgid "Ein Lagerort kann nicht sich selbst übergeordnet sein."
 msgstr "A storage location cannot be its own parent."
@@ -4554,6 +4682,7 @@ msgstr "Instructed on:"
 msgid "Eingewiesenes Personal gem. § 11 MPBetreibV"
 msgstr "Instructed staff per § 11 MPBetreibV"
 
+#: core/checklists_views.py:347
 #: templates/core/warehouse_reorder.html:47
 msgid "Einheit"
 msgstr "Unit"
@@ -4562,7 +4691,7 @@ msgstr "Unit"
 msgid "Einkauf"
 msgstr "Purchase"
 
-#: core/audit_labels.py:55
+#: core/audit_labels.py:56
 msgid "Einkauf aus der Kaffeekasse"
 msgstr "Purchase from the coffee fund"
 
@@ -4577,19 +4706,19 @@ msgstr "Purchase recorded. Please put the receipt in the cash box."
 msgid "Einkauf eintragen"
 msgstr "Record purchase"
 
-#: core/audit_labels.py:157
+#: core/audit_labels.py:159
 msgid "Einladung"
 msgstr "Invitation"
 
-#: core/audit_labels.py:89
+#: core/audit_labels.py:90
 msgid "Einladung angenommen, Konto aktiviert"
 msgstr "Invitation accepted, account activated"
 
-#: core/audit_labels.py:88
+#: core/audit_labels.py:89
 msgid "Einladung erstellt"
 msgstr "Invitation created"
 
-#: core/audit_labels.py:90
+#: core/audit_labels.py:91
 msgid "Einladung widerrufen"
 msgstr "Invitation revoked"
 
@@ -4597,7 +4726,7 @@ msgstr "Invitation revoked"
 msgid "Einladungen"
 msgstr "Invitations"
 
-#: core/audit_labels.py:127
+#: core/audit_labels.py:128
 msgid "Einladungen importiert"
 msgstr "Invitations imported"
 
@@ -4651,10 +4780,10 @@ msgstr "Setup code"
 msgid "Einrichtungscode eingeben"
 msgstr "Enter setup code"
 
-#: core/audit_labels.py:211
-#: core/audit_labels.py:212
 #: core/audit_labels.py:213
 #: core/audit_labels.py:214
+#: core/audit_labels.py:215
+#: core/audit_labels.py:216
 #: core/fleet_models.py:48
 #: templates/core/fleet_dashboard.html:39
 #: templates/core/fleet_dashboard.html:66
@@ -4699,11 +4828,11 @@ msgstr "Settings"
 msgid "Einstellungen der Kaffeekasse gespeichert."
 msgstr "Coffee fund settings saved."
 
-#: core/audit_labels.py:59
+#: core/audit_labels.py:60
 msgid "Einstellungen der Kaffeekasse geändert"
 msgstr "Coffee fund settings changed"
 
-#: core/audit_labels.py:73
+#: core/audit_labels.py:74
 msgid "Einstellungen der Wache geändert"
 msgstr "Station settings changed"
 
@@ -4837,6 +4966,10 @@ msgstr "Recipient and text are required."
 msgid "Empfänger:"
 msgstr "Recipient:"
 
+#: templates/core/checklist_history.html:9
+msgid "Endgültig abgeschlossene Läufe, neueste zuerst. Nachträge vom Papierbogen stehen mit dem Zeitpunkt laut Bogen."
+msgstr "Finally completed runs, newest first. Paper backfills are listed with the time on the sheet."
+
 #: core/mpg_forms.py:142
 #: templates/core/mpg_device_detail.html:368
 msgid "Energieversorgung / Akkus geladen"
@@ -4879,10 +5012,12 @@ msgstr "Unlocking failed."
 msgid "Entspricht dem laminerten Bogen an der Wand. Keine Dienstplanung und keine Patientendaten."
 msgstr "Corresponds to the laminated sheet on the wall. No duty scheduling and no patient data."
 
+#: templates/core/checklist_run_detail.html:20
 #: templates/core/handover_detail.html:35
 msgid "Ereignis (Papier)"
 msgstr "Event (paper)"
 
+#: templates/core/checklists.html:162
 #: templates/core/handover_form.html:26
 msgid "Ereigniszeitpunkt (Papierbogen)"
 msgstr "Event time (paper sheet)"
@@ -4891,6 +5026,11 @@ msgstr "Event time (paper sheet)"
 msgid "Erfasse alle Pflichtangaben gem. MPBetreibV § 13 & § 14 für dieses aktive Medizinprodukt."
 msgstr "Record all mandatory information per MPBetreibV § 13 & § 14 for this active medical device."
 
+#: core/checklists_views.py:346
+msgid "Erfasst am"
+msgstr "Recorded on"
+
+#: templates/core/checklist_run_detail.html:21
 #: templates/core/handover_detail.html:36
 msgid "Erfasst im Wachbuch"
 msgstr "Entered in the log"
@@ -4907,14 +5047,21 @@ msgstr "Recorded by"
 msgid "Erforderlich bei Freigabe nach Einwirkzeit."
 msgstr "Required for release after contact time."
 
-#: templates/core/checklists.html:22
+#: templates/core/checklists.html:46
 msgid "Erfordert persönliche Anmeldung"
 msgstr "Requires personal sign-in"
 
+#: core/checklists_views.py:347
 #: core/mpg_forms.py:93
 #: templates/core/_masterdata_import_rows.html:8
+#: templates/core/checklist_run_detail.html:25
+#: templates/core/checklist_run_detail.html:37
 msgid "Ergebnis"
 msgstr "Result"
+
+#: templates/core/checklist_run_detail.html:13
+msgid "Ergebnis je Punkt vollständig"
+msgstr "Result per item complete"
 
 #: templates/core/mpg_device_detail.html:440
 msgid "Ergebnis:"
@@ -4998,17 +5145,25 @@ msgstr "Done"
 msgid "Erledigt am, Kürzel"
 msgstr "Done on, initials"
 
+#: templates/core/checklist_run_detail.html:18
+msgid "Erledigt von"
+msgstr "Done by"
+
 #: templates/core/paper_deadlines.html:26
 msgid "Erledigte Prüfungen im Wachbuch eintragen. Erst dann verschiebt sich die nächste Frist."
 msgstr "Record completed checks in the station log. Only then does the next deadline move."
 
-#: core/audit_labels.py:143
+#: core/audit_labels.py:145
 msgid "Erledigte Wachaufgabe"
 msgstr "Completed station task"
 
 #: templates/core/warehouse_reorder.html:14
 msgid "Ermittelt automatisch alle Artikel unter Mindestbestand und berechnet die Nachbestellmenge bis zum Sollbestand."
 msgstr "Automatically finds all items below minimum stock and calculates the reorder quantity up to target stock."
+
+#: core/checklists_service.py:481
+msgid "Erneut festgestellt im Checklisten-Lauf"
+msgstr "Found again in a checklist run"
 
 #: templates/registration/qr_wait.html:39
 msgid "Erneut versuchen"
@@ -5038,7 +5193,7 @@ msgstr "Look around without logging in first: open the presentation"
 msgid "Erste Übernahme: bitte den km-Stand vom Tacho eintragen."
 msgstr "First handover: please enter the mileage from the odometer."
 
-#: core/audit_labels.py:93
+#: core/audit_labels.py:94
 msgid "Ersteinrichtung abgeschlossen"
 msgstr "Initial setup completed"
 
@@ -5101,6 +5256,10 @@ msgstr "Creates a personal QR code that is valid for 2 minutes."
 msgid "Erzeugt sofort einen Mangel im Wachbuch und sperrt dieses Gerät. Freigegeben wird es erst, wenn der Mangel erledigt ist."
 msgstr "Immediately creates a defect in the log and locks this device. It is released only once the defect is closed."
 
+#: templates/core/checklists.html:86
+msgid "Es gibt keine offenen Punkte ohne Messwert."
+msgstr "There are no open items without a measurement."
+
 #: core/host_health.py:99
 msgid "Es gibt keine verschlüsselte Kopie für außer Haus."
 msgstr "There is no encrypted copy for off-site storage."
@@ -5125,7 +5284,7 @@ msgstr "It doesn’t have to be a Raspberry Pi. Any energy-efficient 64-bit comp
 msgid "Es sind keine aktiven Checklisten hinterlegt."
 msgstr "There are no active checklists."
 
-#: templates/core/checklists.html:12
+#: templates/core/checklists.html:36
 msgid "Es sind keine aktiven Checklisten hinterlegt. Technische Administratoren legen Checklisten unter der Verwaltung an."
 msgstr "No active checklists are configured. Technical administrators create checklists under administration."
 
@@ -5178,6 +5337,10 @@ msgstr "Something not working in the demo? Report it to us with the correlation 
 msgid "Export (CSV)"
 msgstr "Export (CSV)"
 
+#: templates/core/checklist_history.html:14
+msgid "Export als CSV"
+msgstr "Export as CSV"
+
 #: templates/core/vorfuehrung.html:149
 msgid "Externe Abnahmen, Datenschutzfolgenabschätzung beim Betreiber und eine unabhängige Sicherheitsprüfung stehen noch aus."
 msgstr "External acceptance tests, the operator's data protection impact assessment and an independent security review are still outstanding."
@@ -5219,7 +5382,7 @@ msgstr "Chassis / base vehicle, at most 120 characters."
 msgid "Fahrgestell-Hersteller"
 msgstr "Chassis manufacturer"
 
-#: core/audit_labels.py:137
+#: core/audit_labels.py:138
 #: core/module_overview.py:50
 #: core/module_overview.py:56
 #: core/paper.py:182
@@ -5320,7 +5483,7 @@ msgstr "Vehicles & hygiene"
 msgid "Fahrzeuge gesamt"
 msgstr "Total vehicles"
 
-#: core/audit_labels.py:126
+#: core/audit_labels.py:127
 msgid "Fahrzeuge importiert"
 msgstr "Vehicles imported"
 
@@ -5373,7 +5536,7 @@ msgstr "Vehicle master data & identification"
 msgid "Fahrzeugtyp"
 msgstr "Vehicle type"
 
-#: core/audit_labels.py:182
+#: core/audit_labels.py:184
 #: core/display_views.py:386
 #: core/fleet_models.py:77
 #: core/models.py:244
@@ -5409,7 +5572,7 @@ msgstr "Record vehicle takeover, disinfection, function checks and checklists on
 msgid "Fahrzeugübernahme, Desinfektionsprotokoll mit Einwirkzeit sowie Fristen für HU und UVV."
 msgstr "Vehicle check, disinfection log with contact time and deadlines for MOT and UVV."
 
-#: core/audit_labels.py:76
+#: core/audit_labels.py:77
 msgid "Falscher Wachen-Code am Terminal"
 msgstr "Wrong station code at the terminal"
 
@@ -5485,6 +5648,10 @@ msgstr "Done: the app is signed in with your account."
 #: templates/core/more.html:421
 msgid "Festlegen, welche Bereiche in der Leiste stehen und in welcher Reihenfolge."
 msgstr "Choose which areas appear in the bar and in which order."
+
+#: core/checklists_service.py:377
+msgid "Feststellung: %(reason)s"
+msgstr "Finding: %(reason)s"
 
 #: core/forms.py:992
 #: core/views.py:506
@@ -5630,9 +5797,9 @@ msgstr "Voluntary display"
 msgid "Freiwillige Teamfunktion"
 msgstr "Voluntary team feature"
 
-#: core/audit_labels.py:181
+#: core/audit_labels.py:183
 #: core/deadline_reminders.py:588
-#: templates/core/defect_detail.html:17
+#: templates/core/defect_detail.html:20
 #: templates/core/task_row.html:16
 msgid "Frist"
 msgstr "Deadline"
@@ -5830,6 +5997,7 @@ msgstr "For IT and data protection"
 msgid "Für IT und Datenschutz: so ist Wachwerk gebaut"
 msgstr "For IT and data protection: how Wachwerk is built"
 
+#: core/checklists_service.py:283
 #: core/forms.py:44
 msgid "Für Nachträge von Papier muss ein Ereigniszeitpunkt angegeben werden."
 msgstr "Entries from paper need an event time."
@@ -5903,6 +6071,10 @@ msgstr "For the next shift"
 msgid "Für die nächste Übergabe"
 msgstr "For the next handover"
 
+#: templates/core/checklist_history.html:46
+msgid "Für diese Checkliste gibt es noch keine abgeschlossenen Läufe."
+msgstr "There are no completed runs for this checklist yet."
+
 #: core/orga_views.py:195
 msgid "Für diese Dienstanweisung ist keine Pflichtquittierung aktiv."
 msgstr "No mandatory acknowledgement is active for this instruction."
@@ -5939,6 +6111,10 @@ msgstr "No Signal group has been configured for this station yet. The admin adds
 msgid "Für diese Woche sind keine Fristen eingetragen."
 msgstr "No deadlines are recorded for this week."
 
+#: core/checklists_service.py:274
+msgid "Für diesen Abschluss fehlen die Ergebnisse je Prüfpunkt. Bitte jeden Prüfpunkt bewerten."
+msgstr "The results per item are missing for this completion. Please rate every item."
+
 #: templates/core/defects.html:32
 msgid "Für diesen Filter gibt es keine Mängel."
 msgstr "There are no defects for this filter."
@@ -5958,7 +6134,7 @@ msgstr "A public legal notice requires an email address."
 msgid "Für ein öffentliches Impressum ist eine vollständige Anschrift Pflicht."
 msgstr "A public legal notice requires a complete address."
 
-#: core/checklists_forms.py:86
+#: core/checklists_service.py:262
 msgid "Für entfallenen Punkt „%(item)s“ ist eine Begründung erforderlich."
 msgstr "A reason is required for the skipped item “%(item)s”."
 
@@ -6034,15 +6210,15 @@ msgstr "Set birthday"
 msgid "Geburtstage"
 msgstr "Birthdays"
 
-#: core/audit_labels.py:152
+#: core/audit_labels.py:154
 msgid "Geburtstagsanzeige"
 msgstr "Birthday display"
 
-#: core/audit_labels.py:106
+#: core/audit_labels.py:107
 msgid "Geburtstagsanzeige beim Austritt entfernt"
 msgstr "Birthday display removed on leaving"
 
-#: core/audit_labels.py:74
+#: core/audit_labels.py:75
 msgid "Geburtstagsanzeige geändert"
 msgstr "Birthday display changed"
 
@@ -6225,7 +6401,7 @@ msgstr "Device passport & training"
 msgid "Gerätestammdaten & Identifikation"
 msgstr "Device master data & identification"
 
-#: core/audit_labels.py:183
+#: core/audit_labels.py:185
 msgid "Gerätestatus"
 msgstr "Device status"
 
@@ -6237,7 +6413,8 @@ msgstr "Total station stock:"
 msgid "Gesamten Kalender als ICS"
 msgstr "Entire calendar as ICS"
 
-#: templates/core/checklists.html:102
+#: templates/core/checklists.html:150
+#: templates/core/checklists.html:151
 msgid "Gesamtnotiz (optional)"
 msgstr "Overall note (optional)"
 
@@ -6278,7 +6455,7 @@ msgstr "Statutory inspection deadlines (STK / MTK / DGUV V3)"
 msgid "Gespeichert"
 msgstr "Stored"
 
-#: templates/core/checklists.html:40
+#: templates/core/checklists.html:69
 msgid "Gespeichert am"
 msgstr "Saved on"
 
@@ -6382,6 +6559,10 @@ msgstr "Limit"
 msgid "Grenzen des Vertrauensmodells:"
 msgstr "Limits of the trust model:"
 
+#: templates/core/checklist_run_detail.html:39
+msgid "Grenzwerte"
+msgstr "Limits"
+
 #: templates/core/setup_token.html:25
 msgid "Groß- und Kleinschreibung, Leerzeichen und Bindestriche spielen keine Rolle."
 msgstr "Upper/lower case, spaces and hyphens do not matter."
@@ -6404,9 +6585,13 @@ msgstr "Large digital clock, weekday, formatted date and station name."
 msgid "Grund"
 msgstr "Reason"
 
-#: templates/core/checklists.html:90
+#: templates/core/checklists.html:130
 msgid "Grund / Bemerkung"
 msgstr "Reason / note"
+
+#: templates/core/checklists.html:129
+msgid "Grund oder Bemerkung zu %(item)s"
+msgstr "Reason or remark for %(item)s"
 
 #: templates/core/warehouse_item_detail.html:239
 #: templates/core/warehouse_recall.html:56
@@ -6425,7 +6610,7 @@ msgstr "Instruct group"
 msgid "Gruppe für Kaffeekasse und Hinweise"
 msgstr "Group for coffee fund and notices"
 
-#: core/audit_labels.py:163
+#: core/audit_labels.py:165
 msgid "Gruppennachricht"
 msgstr "Group message"
 
@@ -6555,7 +6740,7 @@ msgstr "Lost or changed your phone? An admin can reset two-factor sign-in under 
 msgid "Handy verloren oder gewechselt? Nach dem Zurücksetzen richtet die Person bei der nächsten Anmeldung eine Authenticator-App neu ein."
 msgstr "Lost or changed phone? After the reset the person sets up an authenticator app again at the next sign-in."
 
-#: core/audit_labels.py:81
+#: core/audit_labels.py:82
 msgid "Handy-Kopplung für eine Person erstellt"
 msgstr "Phone pairing created for a person"
 
@@ -6605,6 +6790,10 @@ msgstr "Bright in the vehicle bay, calm on night shift."
 #: templates/base.html:45
 msgid "Hell oder dunkel umschalten"
 msgstr "Switch light or dark"
+
+#: templates/core/defect_detail.html:17
+msgid "Herkunft"
+msgstr "Origin"
 
 #: templates/core/warehouse_item_detail.html:158
 msgid "Hersteller-MHD:"
@@ -6711,9 +6900,9 @@ msgstr "Payment note"
 msgid "Hinweis zum Kontakt"
 msgstr "Note"
 
-#: templates/core/checklists.html:98
-msgid "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an."
-msgstr "Note: items marked “not OK” or with measurements outside the limits automatically create a linked defect on completion."
+#: templates/core/checklists.html:146
+msgid "Hinweis: Prüfpunkte mit „nicht in Ordnung“ oder Messwerten außerhalb der Grenzwerte legen beim Abschluss automatisch einen Mangel mit Rückverweis an. Ist für den Prüfpunkt schon ein offener Mangel gemeldet, entsteht kein zweiter."
+msgstr "Note: items rated \"not OK\" or with values outside the limits automatically create a defect with a back reference on completion. If an open defect is already reported for the item, no second one is created."
 
 #: templates/core/_masterdata_import_rows.html:9
 #: templates/core/wiki_index.html:43
@@ -6938,11 +7127,11 @@ msgstr "Legal notice (provider)"
 msgid "Impressum ansehen"
 msgstr "View legal notice"
 
-#: core/audit_labels.py:161
+#: core/audit_labels.py:163
 msgid "Impressum und Datenschutz"
 msgstr "Legal notice and privacy"
 
-#: core/audit_labels.py:94
+#: core/audit_labels.py:95
 msgid "Impressum und Datenschutz geändert"
 msgstr "Legal notice and privacy changed"
 
@@ -7192,7 +7381,7 @@ msgstr "Actual stock"
 msgid "JPEG, PNG oder WebP, max. 2 MB. Wird auf 192×192 verkleinert."
 msgstr "JPEG, PNG or WebP, max. 2 MB. Will be resized to 192×192."
 
-#: templates/core/defect_detail.html:43
+#: templates/core/defect_detail.html:46
 msgid "JPEG, PNG, WebP oder PDF · max. 5 MiB"
 msgstr "JPEG, PNG, WebP or PDF · max. 5 MiB"
 
@@ -7263,9 +7452,9 @@ msgstr "CW %(week)s"
 msgid "KW %(week)s · %(start)s bis %(end)s"
 msgstr "Week %(week)s · %(start)s to %(end)s"
 
-#: core/audit_labels.py:144
 #: core/audit_labels.py:146
-#: core/audit_labels.py:191
+#: core/audit_labels.py:148
+#: core/audit_labels.py:193
 #: core/coffee_models.py:52
 #: core/navigation.py:28
 #: core/navigation.py:56
@@ -7300,7 +7489,7 @@ msgstr "Coffee fund %(station)s: payment details"
 msgid "Kaffeekasse bezahlen"
 msgstr "Pay into the coffee fund"
 
-#: core/audit_labels.py:62
+#: core/audit_labels.py:63
 msgid "Kaffeekasse exportiert"
 msgstr "Coffee fund exported"
 
@@ -7329,7 +7518,7 @@ msgstr "Coffee fund: fees and payments of the participants."
 msgid "Kaffeekassen"
 msgstr "Coffee funds"
 
-#: core/audit_labels.py:190
+#: core/audit_labels.py:192
 #: core/navigation.py:15
 #: templates/core/calendar.html:3
 #: templates/core/calendar.html:6
@@ -7402,7 +7591,7 @@ msgstr "Cash box was correct."
 msgid "Kasse verwalten"
 msgstr "Manage fund"
 
-#: core/audit_labels.py:145
+#: core/audit_labels.py:147
 msgid "Kassenbewegung"
 msgstr "Cash movement"
 
@@ -7415,7 +7604,7 @@ msgstr "Cash movement recorded."
 msgid "Kassenbewegung eintragen"
 msgstr "Record cash movement"
 
-#: core/audit_labels.py:56
+#: core/audit_labels.py:57
 msgid "Kassenbewegung gebucht"
 msgstr "Cash movement recorded"
 
@@ -7423,7 +7612,7 @@ msgstr "Cash movement recorded"
 msgid "Kassenbewegung korrigieren"
 msgstr "Correct cash movement"
 
-#: core/audit_labels.py:57
+#: core/audit_labels.py:58
 msgid "Kassenbewegung korrigiert"
 msgstr "Cash movement corrected"
 
@@ -7453,7 +7642,7 @@ msgstr "Cash log entries"
 msgid "Kassenstand, Einzahlungen und Buchungen der Gemeinschaftskasse."
 msgstr "Balance, deposits and entries of the shared fund."
 
-#: core/audit_labels.py:58
+#: core/audit_labels.py:59
 #: core/coffee_models.py:102
 #: core/coffee_views.py:614
 #: core/coffee_views.py:632
@@ -7482,7 +7671,7 @@ msgstr "Cash count result to the Signal group"
 msgid "Kassenwart"
 msgstr "Cashier"
 
-#: core/audit_labels.py:177
+#: core/audit_labels.py:179
 #: templates/core/defect_form.html:93
 #: templates/core/handover_form.html:10
 #: templates/core/mpg_dashboard.html:69
@@ -7929,7 +8118,7 @@ msgstr "Create and approve accounts and assign roles."
 msgid "Konten: Name, Benutzername, Rolle je Wache, optional ein kleines Profilbild."
 msgstr "Accounts: name, username, role per station, optionally a small profile picture."
 
-#: core/audit_labels.py:156
+#: core/audit_labels.py:158
 #: core/coffee_models.py:97
 #: templates/core/signal_account.html:7
 #: templates/registration/mfa_manage.html:6
@@ -7946,7 +8135,7 @@ msgstr "Activate account"
 msgid "Konto aktiviert. Bitte jetzt mit dem neuen Passwort anmelden."
 msgstr "Account activated. Please sign in now with the new password."
 
-#: core/audit_labels.py:70
+#: core/audit_labels.py:71
 msgid "Konto angelegt"
 msgstr "Account created"
 
@@ -8142,7 +8331,7 @@ msgstr "Storage locations"
 msgid "Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an."
 msgstr "Please import storage locations before the warehouse is opened for the first time; otherwise Wachwerk creates three sample storage locations there."
 
-#: core/audit_labels.py:122
+#: core/audit_labels.py:123
 msgid "Lagerorte importiert"
 msgstr "Storage locations imported"
 
@@ -8157,6 +8346,14 @@ msgstr "Import storage locations, articles, stock, medical devices and vehicles 
 #: core/site_profile.py:34
 msgid "Land"
 msgstr "Country"
+
+#: core/checklists_views.py:346
+msgid "Lauf"
+msgstr "Run"
+
+#: templates/core/checklists.html:31
+msgid "Lauf ansehen"
+msgstr "View run"
 
 #: core/display_views.py:424
 msgid "Laufband im Fußbereich für aktuelle Wachenaushänge und Neuigkeiten."
@@ -8242,7 +8439,7 @@ msgstr "Dispatch center & dispatching"
 msgid "Lenovo ThinkCentre M720q / M920q Tiny, gebraucht (Mini-PC)"
 msgstr "Lenovo ThinkCentre M720q / M920q Tiny, used (mini PC)"
 
-#: core/audit_labels.py:202
+#: core/audit_labels.py:204
 msgid "Lesebestätigungen mit IP-Adresse oder Browser"
 msgstr "Read confirmations with IP address or browser"
 
@@ -8381,6 +8578,14 @@ msgstr "Detach"
 msgid "Längengrad der Wache"
 msgstr "Station longitude"
 
+#: templates/core/checklists.html:13
+msgid "Läufe mit Ergebnis je Punkt (30 Tage): %(percent)s %%"
+msgstr "Runs with a result per item (30 days): %(percent)s %%"
+
+#: templates/core/checklists.html:16
+msgid "Läufe mit Ergebnis je Punkt (30 Tage): noch keine Läufe"
+msgstr "Runs with a result per item (30 days): no runs yet"
+
 #: templates/core/install_guide.html:175
 msgid "Läuft alles?"
 msgstr "Is everything running?"
@@ -8466,9 +8671,11 @@ msgstr "MTK required. Empty: no."
 msgid "Mail nicht entschlüsselbar."
 msgstr "Email cannot be decrypted."
 
-#: core/audit_labels.py:133
+#: core/audit_labels.py:134
+#: core/checklists_views.py:348
 #: core/deadline_reminders.py:588
 #: core/views.py:581
+#: templates/core/checklist_run_detail.html:41
 #: templates/core/defect_detail.html:7
 msgid "Mangel"
 msgstr "Defect"
@@ -8495,6 +8702,10 @@ msgstr "Defect on %(vehicle)s"
 #: templates/core/defects.html:12
 msgid "Mangel anlegen"
 msgstr "Create defect"
+
+#: core/checklists_service.py:373
+msgid "Mangel aus Checkliste „%(checklist)s“: %(item)s"
+msgstr "Defect from checklist \"%(checklist)s\": %(item)s"
 
 #: core/audit_labels.py:22
 msgid "Mangel bearbeitet"
@@ -8628,7 +8839,7 @@ msgstr "Max."
 msgid "Max. Tage ungekühlt bei Raumtemperatur (z. B. auf dem RTW):"
 msgstr "Max. days unrefrigerated at room temperature (e.g. on the RTW):"
 
-#: core/audit_labels.py:136
+#: core/audit_labels.py:137
 #: core/module_overview.py:80
 #: core/paper.py:199
 msgid "Medizingerät"
@@ -8660,7 +8871,7 @@ msgstr "Medical device returned to service"
 msgid "Medizingeräte"
 msgstr "Medical devices"
 
-#: core/audit_labels.py:125
+#: core/audit_labels.py:126
 msgid "Medizingeräte importiert (Altbestand)"
 msgstr "Medical devices imported (carried over)"
 
@@ -8799,13 +9010,28 @@ msgstr "Quantity:"
 msgid "Messtechnische Kontrolle (Jahresende: %(date)s) für „%(name)s“."
 msgstr "Metrological check (end of year: %(date)s) for “%(name)s”."
 
-#: templates/core/checklists.html:87
+#: core/checklists_views.py:347
+#: templates/core/checklist_run_detail.html:38
+#: templates/core/checklists.html:103
+#: templates/core/checklists.html:126
 msgid "Messwert"
 msgstr "Measurement"
 
-#: core/checklists_forms.py:72
+#: core/checklists_service.py:252
 msgid "Messwert %(val)s%(unit)s außerhalb Grenzwert %(bounds)s"
 msgstr "Measurement %(val)s%(unit)s outside limit %(bounds)s"
+
+#: templates/core/checklists.html:125
+msgid "Messwert für %(item)s"
+msgstr "Measured value for %(item)s"
+
+#: core/checklists_service.py:270
+msgid "Messwert für „%(item)s“ fehlt."
+msgstr "Measured value for \"%(item)s\" is missing."
+
+#: core/checklists_service.py:381
+msgid "Messwert: %(value)s%(unit)s (Grenzwerte: %(bounds)s)"
+msgstr "Measured value: %(value)s%(unit)s (limits: %(bounds)s)"
 
 #: templates/core/sop_form.html:27
 msgid "Metadaten & Gültigkeit"
@@ -8940,19 +9166,19 @@ msgstr "Member"
 msgid "Mitglied bearbeiten"
 msgstr "Edit member"
 
-#: core/audit_labels.py:108
+#: core/audit_labels.py:109
 msgid "Mitglieder einer Chatgruppe geändert"
 msgstr "Chat group members changed"
 
-#: core/audit_labels.py:151
+#: core/audit_labels.py:153
 msgid "Mitgliedschaft"
 msgstr "Membership"
 
-#: core/audit_labels.py:87
+#: core/audit_labels.py:88
 msgid "Mitgliedschaft erneut freigegeben"
 msgstr "Membership approved again"
 
-#: core/audit_labels.py:86
+#: core/audit_labels.py:87
 msgid "Mitgliedschaft freigegeben"
 msgstr "Membership approved"
 
@@ -9028,7 +9254,7 @@ msgstr "Modular components & screen zones"
 msgid "Modulare Vollbild-Anzeige für Wandmonitore und Einsatzdisplays nach MagicMirror²-Architektur. Alle Bausteine, Zonen und Inhalte lassen sich frei zusammenstellen."
 msgstr "Modular full-screen display for wall monitors and mission displays based on the MagicMirror² architecture. All components, zones and content can be freely combined."
 
-#: core/audit_labels.py:198
+#: core/audit_labels.py:200
 msgid "Module"
 msgstr "Modules"
 
@@ -9102,7 +9328,7 @@ msgstr "Monthly fee %(month)s"
 msgid "Monatsbeitrag bar erhalten"
 msgstr "Monthly fee received in cash"
 
-#: core/audit_labels.py:54
+#: core/audit_labels.py:55
 msgid "Monatsbeitrag erlassen"
 msgstr "Monthly fee waived"
 
@@ -9134,10 +9360,11 @@ msgstr "Music"
 msgid "Musterdaten zum Testen – nicht für den Echtbetrieb."
 msgstr "Sample data for testing – not for production use."
 
-#: core/audit_labels.py:197
+#: core/audit_labels.py:199
 #: core/navigation.py:20
 #: core/navigation.py:50
 #: core/views.py:581
+#: templates/core/checklist_history.html:43
 #: templates/core/defect_detail.html:3
 #: templates/core/defects.html:3
 #: templates/core/defects.html:9
@@ -9151,6 +9378,10 @@ msgstr "Defects & equipment"
 #: templates/core/more.html:143
 msgid "Mängel & Werkstatt"
 msgstr "Defects & workshop"
+
+#: templates/core/checklists.html:24
+msgid "Mängel aus dem Lauf „%(title)s“"
+msgstr "Defects from the run \"%(title)s\""
 
 #: templates/core/defects.html:14
 msgid "Mängel filtern"
@@ -9284,7 +9515,7 @@ msgstr "Last name of the person."
 msgid "Nachricht"
 msgstr "Message"
 
-#: core/audit_labels.py:109
+#: core/audit_labels.py:110
 msgid "Nachricht in einer Chatgruppe gesendet"
 msgstr "Message sent in a chat group"
 
@@ -9299,14 +9530,26 @@ msgstr "Messages are encrypted in the browser; the database stores only cipherte
 msgid "Nachrichtenbereiche"
 msgstr "Message areas"
 
+#: core/checklists_views.py:346
+#: templates/core/checklists.html:158
 #: templates/core/handover_form.html:21
 msgid "Nachtrag vom Papierbogen"
 msgstr "Entry from paper sheet"
 
+#: templates/core/checklist_history.html:40
+#: templates/core/checklist_run_detail.html:11
 #: templates/core/handover_detail.html:14
 #: templates/core/handover_list.html:25
 msgid "Nachtrag von Papier (Ereignis: %(event)s · Erfasst: %(created)s)"
 msgstr "Entry from paper (event: %(event)s · entered: %(created)s)"
+
+#: templates/core/checklists.html:59
+msgid "Nachtrag von Papier (erfasst: %(created)s)"
+msgstr "Paper backfill (recorded: %(created)s)"
+
+#: core/checklists_views.py:177
+msgid "Nachträge vom Papierbogen sind am Wachenterminal nicht möglich. Bitte persönlich anmelden."
+msgstr "Paper backfills are not possible on the station terminal. Please sign in personally."
 
 #: templates/core/paper_phonebook.html:19
 msgid "Nachträge von Hand"
@@ -9337,7 +9580,7 @@ msgstr "Traceable audit log for auditors and QM"
 msgid "Nachvollziehbarkeit"
 msgstr "Traceability"
 
-#: templates/core/checklists.html:21
+#: templates/core/checklists.html:45
 msgid "Nachweischarakter"
 msgstr "Serves as a record"
 
@@ -9554,7 +9797,7 @@ msgstr "Newest encrypted copy:"
 msgid "Neuestes Backup"
 msgstr "Newest backup"
 
-#: core/audit_labels.py:150
+#: core/audit_labels.py:152
 msgid "Neuigkeit"
 msgstr "News item"
 
@@ -9564,7 +9807,7 @@ msgstr "News item"
 msgid "Neuigkeit anlegen"
 msgstr "Create news item"
 
-#: core/audit_labels.py:69
+#: core/audit_labels.py:70
 msgid "Neuigkeit veröffentlicht"
 msgstr "News item published"
 
@@ -9572,7 +9815,7 @@ msgstr "News item published"
 msgid "Neuigkeit wurde veröffentlicht."
 msgstr "News item published."
 
-#: core/audit_labels.py:194
+#: core/audit_labels.py:196
 #: core/navigation.py:17
 #: core/navigation.py:61
 #: templates/core/more.html:285
@@ -9658,7 +9901,7 @@ msgstr "No published privacy contact provided yet."
 msgid "Noch keine Abo-Links."
 msgstr "No subscription links yet."
 
-#: templates/core/defect_detail.html:39
+#: templates/core/defect_detail.html:42
 #: templates/core/handover_detail.html:69
 msgid "Noch keine Anhänge."
 msgstr "No attachments yet."
@@ -9708,7 +9951,7 @@ msgstr "No function checks yet. Record one with “Check” in the device list."
 msgid "Noch keine Hinweise. Als Wachenadmin können Sie den ersten Hinweis anlegen."
 msgstr "No notes yet. As a station admin, you can create the first note."
 
-#: templates/core/defect_detail.html:53
+#: templates/core/defect_detail.html:56
 msgid "Noch keine Historie."
 msgstr "No history yet."
 
@@ -9810,6 +10053,11 @@ msgstr "Emergency speed dial"
 msgid "Notfall-Schnellwahl & Wichtige Kontakte"
 msgstr "Emergency speed dial & important contacts"
 
+#: core/checklists_views.py:348
+#: templates/core/checklist_run_detail.html:26
+msgid "Notiz"
+msgstr "Note"
+
 #: core/forms.py:213
 #: core/forms.py:342
 msgid "Notiz (optional)"
@@ -9844,7 +10092,7 @@ msgstr "Only identifiers such as A2, A33 or B61 (at most %(max)s), separated by 
 msgid "Nur Teilnehmer"
 msgstr "Participants only"
 
-#: templates/core/defect_detail.html:32
+#: templates/core/defect_detail.html:35
 msgid "Nur Zustandsbilder des Mangels. Keine Patienten, Kennzeichen mit Personenbezug oder Einsatzunterlagen hochladen."
 msgstr "Only condition photos of the defect. Do not upload patients, personally identifiable license plates, or incident documentation."
 
@@ -9972,6 +10220,10 @@ msgstr "At the top you see what the shift needs to know: urgent handovers, due d
 msgid "Obere Leiste"
 msgstr "Top bar"
 
+#: core/checklists_views.py:348
+msgid "Obergrenze"
+msgstr "Upper limit"
+
 #: templates/core/audit_log.html:6
 msgid "Objekt"
 msgstr "Object"
@@ -10065,6 +10317,10 @@ msgstr "Remind open persons"
 #: templates/core/defects.html:10
 msgid "Offene Punkte mit Priorität, Zuständigkeit und Frist. Keine Patienten- oder Einsatzdaten."
 msgstr "Open items with priority, responsibility, and deadline. No patient or incident data."
+
+#: templates/core/checklists.html:85
+msgid "Offene Punkte ohne Messwert sind auf „in Ordnung“ gesetzt."
+msgstr "Open items without a measurement are set to \"OK\"."
 
 #: templates/core/team.html:21
 msgid "Offene Registrierungen"
@@ -10233,7 +10489,11 @@ msgstr "Pack / counting unit:"
 msgid "Papier-Rückfall"
 msgstr "Paper fallback"
 
-#: core/audit_labels.py:159
+#: templates/core/checklists.html:156
+msgid "Papierbogen nachtragen"
+msgstr "Backfill paper sheet"
+
+#: core/audit_labels.py:161
 #: templates/registration/mfa_setup.html:44
 msgid "Passkey"
 msgstr "Passkey"
@@ -10251,7 +10511,7 @@ msgstr "Passkey successfully verified. Please submit approval."
 msgid "Passkey hinzufügen"
 msgstr "Add passkey"
 
-#: core/audit_labels.py:98
+#: core/audit_labels.py:99
 msgid "Passkey registriert"
 msgstr "Passkey registered"
 
@@ -10400,7 +10660,8 @@ msgstr "\\\"PayPal.me link\\\""
 msgid "PayPal.me-Links müssen mit https:// beginnen."
 msgstr "PayPal.me links must start with https://."
 
-#: core/audit_labels.py:188
+#: core/audit_labels.py:190
+#: core/checklists_views.py:346
 #: core/coffee_views.py:685
 #: core/coffee_views.py:691
 #: core/forms.py:290
@@ -10471,7 +10732,8 @@ msgstr "Personal pairing QR code"
 msgid "Persönlicher Zugang"
 msgstr "Personal access"
 
-#: templates/core/checklists.html:60
+#: templates/core/checklist_run_detail.html:47
+#: templates/core/checklists.html:96
 #: templates/core/masterdata_import_kind.html:42
 msgid "Pflicht"
 msgstr "Required"
@@ -10485,7 +10747,11 @@ msgstr "Required: I, IIa, IIb or III."
 msgid "Pflichtfeld ist leer."
 msgstr "Required field is empty."
 
-#: core/checklists_forms.py:82
+#: core/checklists_views.py:347
+msgid "Pflichtpunkt"
+msgstr "Required item"
+
+#: core/checklists_service.py:259
 msgid "Pflichtpunkt „%(item)s“ ist nicht ausgefüllt."
 msgstr "Required item “%(item)s” is not filled in."
 
@@ -10505,7 +10771,7 @@ msgstr "Required column missing: %(headers)s."
 msgid "Pharmazentralnummer; fehlende führende Nullen werden ergänzt."
 msgstr "Pharmacy product number (PZN); missing leading zeros are added."
 
-#: core/audit_labels.py:195
+#: core/audit_labels.py:197
 #: core/navigation.py:19
 #: core/navigation.py:60
 #: templates/core/more.html:232
@@ -10525,7 +10791,7 @@ msgstr "Police"
 msgid "Pool-/Schlüsselobjekt anlegen"
 msgstr "Create pool/key object"
 
-#: core/audit_labels.py:135
+#: core/audit_labels.py:136
 msgid "Poolartikel"
 msgstr "Pool item"
 
@@ -10645,11 +10911,11 @@ msgstr "Profile picture"
 msgid "Profilbild entfernen"
 msgstr "Remove profile picture"
 
-#: core/audit_labels.py:105
+#: core/audit_labels.py:106
 msgid "Profilbild entfernt"
 msgstr "Profile picture removed"
 
-#: core/audit_labels.py:104
+#: core/audit_labels.py:105
 msgid "Profilbild geändert"
 msgstr "Profile picture changed"
 
@@ -10700,11 +10966,22 @@ msgstr "Inspection intervals"
 msgid "Prüfprotokolle (STK / MTK / DGUV)"
 msgstr "Inspection reports (STK / MTK / DGUV)"
 
+#: core/checklists_views.py:347
+#: templates/core/checklist_run_detail.html:36
 #: templates/core/paper_checklists.html:18
 msgid "Prüfpunkt"
 msgstr "Check item"
 
-#: templates/core/checklists.html:54
+#: core/checklists_service.py:542
+msgid "Prüfpunkt %(id)s"
+msgstr "Item %(id)s"
+
+#: core/checklists_service.py:375
+msgid "Prüfpunkt: %(item)s"
+msgstr "Item: %(item)s"
+
+#: templates/core/checklist_run_detail.html:30
+#: templates/core/checklists.html:90
 msgid "Prüfpunkte"
 msgstr "Check items"
 
@@ -10761,11 +11038,11 @@ msgstr "Push could not be activated."
 msgid "Push konnte nicht deaktiviert werden."
 msgstr "Push could not be deactivated."
 
-#: core/audit_labels.py:169
+#: core/audit_labels.py:171
 msgid "Push-Benachrichtigung"
 msgstr "Push notification"
 
-#: core/audit_labels.py:119
+#: core/audit_labels.py:120
 msgid "Push-Benachrichtigung nicht zustellbar"
 msgstr "Push notification undeliverable"
 
@@ -11053,7 +11330,7 @@ msgstr "Register"
 msgid "Registrierte Terminals"
 msgstr "Registered terminals"
 
-#: core/audit_labels.py:91
+#: core/audit_labels.py:92
 msgid "Registrierung angefragt"
 msgstr "Registration requested"
 
@@ -11061,7 +11338,7 @@ msgstr "Registration requested"
 msgid "Registrierung:"
 msgstr "Registration:"
 
-#: core/audit_labels.py:92
+#: core/audit_labels.py:93
 msgid "Registrierungsanfrage abgelehnt"
 msgstr "Registration request rejected"
 
@@ -11142,7 +11419,7 @@ msgstr "Interval: %(interval)s"
 msgid "Risikoklasse gem. EU-MDR:"
 msgstr "Risk class per EU MDR:"
 
-#: core/audit_labels.py:184
+#: core/audit_labels.py:186
 #: core/forms.py:354
 #: core/forms.py:376
 #: core/forms.py:398
@@ -11154,7 +11431,7 @@ msgstr "Role"
 msgid "Rolle ansehen als"
 msgstr "View as role"
 
-#: core/audit_labels.py:71
+#: core/audit_labels.py:72
 msgid "Rolle oder Zugang geändert"
 msgstr "Role or access changed"
 
@@ -11213,7 +11490,7 @@ msgstr "Tour: step %(number)s of %(total)s done. Next: %(next)s – continue in 
 msgid "Rückfahrkamera RTW 83-1 zeigt kein Bild"
 msgstr "Reversing camera RTW 83-1 shows no picture"
 
-#: core/audit_labels.py:168
+#: core/audit_labels.py:170
 msgid "Rückmeldung"
 msgstr "Feedback"
 
@@ -11221,7 +11498,7 @@ msgstr "Feedback"
 msgid "Rückmeldung endgültig löschen?"
 msgstr "Delete this feedback permanently?"
 
-#: core/audit_labels.py:118
+#: core/audit_labels.py:119
 msgid "Rückmeldung gelöscht"
 msgstr "Feedback deleted"
 
@@ -11403,11 +11680,11 @@ msgstr "Unlock key"
 msgid "Schlüssel entsperrt."
 msgstr "Keys unlocked."
 
-#: core/audit_labels.py:166
+#: core/audit_labels.py:168
 msgid "Schlüssel für verschlüsselte Nachrichten"
 msgstr "Keys for encrypted messages"
 
-#: core/audit_labels.py:112
+#: core/audit_labels.py:113
 msgid "Schlüssel für verschlüsselte Nachrichten hinterlegt"
 msgstr "Keys for encrypted messages stored"
 
@@ -11614,6 +11891,10 @@ msgstr "Server error."
 msgid "Serverstandort"
 msgstr "Server location"
 
+#: templates/core/checklists.html:140
+msgid "Setzt nur noch offene Punkte ohne Messwert auf „in Ordnung“. Messpunkte bleiben unverändert."
+msgstr "Sets only items that are still open and have no measurement to \"OK\". Measurement items stay unchanged."
+
 #: templates/core/more.html:377
 msgid "Sichere Zugangs-Links für Wachenmonitore und Wand-TVs erzeugen und widerrufen."
 msgstr "Generate and revoke secure access links for station monitors and wall TVs."
@@ -11726,7 +12007,7 @@ msgstr "Signal group removed."
 msgid "Signal-Gruppe gespeichert."
 msgstr "Signal group saved."
 
-#: core/audit_labels.py:116
+#: core/audit_labels.py:117
 msgid "Signal-Gruppe geändert"
 msgstr "Signal group changed"
 
@@ -11738,15 +12019,15 @@ msgstr "Signal group or internal chat"
 msgid "Signal-Gruppe öffnen"
 msgstr "Open Signal group"
 
-#: core/audit_labels.py:167
+#: core/audit_labels.py:169
 msgid "Signal-Kontakt"
 msgstr "Signal contact"
 
-#: core/audit_labels.py:114
+#: core/audit_labels.py:115
 msgid "Signal-Kontakt bestätigt"
 msgstr "Signal contact verified"
 
-#: core/audit_labels.py:115
+#: core/audit_labels.py:116
 msgid "Signal-Kontakt entfernt"
 msgstr "Signal contact removed"
 
@@ -11798,7 +12079,7 @@ msgstr "Software version"
 msgid "Soll"
 msgstr "Expected"
 
-#: templates/core/checklists.html:63
+#: templates/core/checklists.html:100
 msgid "Soll:"
 msgstr "Target:"
 
@@ -11849,7 +12130,7 @@ msgstr "Storage"
 #: templates/core/assets_inventory.html:23
 #: templates/core/checklist_schedules.html:22
 #: templates/core/coffee_settings.html:19
-#: templates/core/defect_detail.html:27
+#: templates/core/defect_detail.html:30
 #: templates/core/legal_settings.html:46
 #: templates/core/mpg_device_detail.html:343
 #: templates/core/pinboard_form.html:20
@@ -11872,7 +12153,7 @@ msgstr "Lock screen with photo of the day, vehicle condition and round keypad �
 msgid "Sperre aufheben"
 msgstr "Lift lock"
 
-#: core/audit_labels.py:80
+#: core/audit_labels.py:81
 msgid "Sperre eines Wachenterminals aufgehoben"
 msgstr "Station terminal lock lifted"
 
@@ -11985,10 +12266,10 @@ msgstr "Station phone book"
 msgid "Stationsübersicht"
 msgstr "Station overview"
 
-#: core/audit_labels.py:175
+#: core/audit_labels.py:177
 #: templates/core/assets_inventory.html:20
 #: templates/core/defect_detail.html:14
-#: templates/core/defect_detail.html:25
+#: templates/core/defect_detail.html:28
 #: templates/core/fleet_disinfection_levels.html:31
 #: templates/core/handover_detail.html:31
 #: templates/core/sop_form.html:55
@@ -12007,7 +12288,7 @@ msgstr "Equipment status changed"
 msgid "Status einer Dienstanweisung geändert"
 msgstr "Status of a work instruction changed"
 
-#: core/audit_labels.py:117
+#: core/audit_labels.py:118
 msgid "Status einer Rückmeldung geändert"
 msgstr "Feedback status changed"
 
@@ -12027,7 +12308,7 @@ msgstr "Status for this demonstration:"
 msgid "Status konnte nicht aktualisiert werden."
 msgstr "Status could not be updated."
 
-#: templates/core/defect_detail.html:22
+#: templates/core/defect_detail.html:25
 msgid "Status setzen"
 msgstr "Set status"
 
@@ -12282,15 +12563,15 @@ msgstr "Technical and organisational measures"
 msgid "Technischer Fahrzeugcheck"
 msgstr "Technical vehicle check"
 
-#: core/audit_labels.py:147
+#: core/audit_labels.py:149
 msgid "Teilnahme Kaffeekasse"
 msgstr "Coffee fund membership"
 
-#: core/audit_labels.py:60
+#: core/audit_labels.py:61
 msgid "Teilnahme an der Kaffeekasse begonnen"
 msgstr "Joined the coffee fund"
 
-#: core/audit_labels.py:61
+#: core/audit_labels.py:62
 msgid "Teilnahme an der Kaffeekasse geändert"
 msgstr "Coffee fund membership changed"
 
@@ -12331,11 +12612,11 @@ msgstr "Phone book"
 msgid "Telefonbucheinträge"
 msgstr "Phone book entries"
 
-#: core/audit_labels.py:141
+#: core/audit_labels.py:143
 msgid "Termin"
 msgstr "Appointment"
 
-#: core/audit_labels.py:46
+#: core/audit_labels.py:47
 msgid "Termin angelegt"
 msgstr "Appointment created"
 
@@ -12410,7 +12691,7 @@ msgstr "Deep cleaning / weekly closing"
 msgid "Tipps für gebrauchte Thin Clients und Mini-PCs"
 msgstr "Tips for used thin clients and mini PCs"
 
-#: core/audit_labels.py:178
+#: core/audit_labels.py:180
 #: core/orga_views.py:438
 #: core/wiki_forms.py:15
 #: core/wiki_models.py:38
@@ -12596,15 +12877,20 @@ msgstr "VAT identification number"
 msgid "Umschalttaste"
 msgstr "Shift"
 
+#: core/checklists_service.py:181
+msgid "Unbekannter Prüfpunkt: %(id)s"
+msgstr "Unknown item: %(id)s"
+
 #: core/errors.py:59
 msgid "Ungültige Anfrage."
 msgstr "Invalid request."
 
-#: core/checklists_forms.py:54
+#: core/checklists_service.py:239
 msgid "Ungültiger Messwert für „%(item)s“: %(value)s"
 msgstr "Invalid measurement for “%(item)s”: %(value)s"
 
-#: core/checklists_forms.py:91
+#: core/checklists_service.py:189
+#: core/checklists_service.py:230
 msgid "Ungültiger Status für „%(item)s“: %(status)s"
 msgstr "Invalid status for “%(item)s”: %(status)s"
 
@@ -12636,6 +12922,10 @@ msgstr "Below minimum stock (%(stock)s of %(minimum)s)"
 msgid "Unter Team → Wachenterminal den Touch-Bildschirm einrichten."
 msgstr "Set up the touch screen under Team → Station terminal."
 
+#: core/checklists_views.py:347
+msgid "Untergrenze"
+msgstr "Lower limit"
+
 #: templates/core/private_chat_home.html:19
 msgid "Unterhaltungen"
 msgstr "Conversations"
@@ -12660,7 +12950,7 @@ msgstr "User-Agent (browser type, operating system) and Referrer-URL (if transmi
 msgid "Validierung"
 msgstr "Validation"
 
-#: core/audit_labels.py:180
+#: core/audit_labels.py:182
 msgid "Verantwortlich"
 msgstr "Responsible"
 
@@ -12741,9 +13031,14 @@ msgstr "Show traffic situation (roadworks and closures)"
 msgid "Verkehrslage (optional)"
 msgstr "Traffic situation (optional)"
 
-#: templates/core/defect_detail.html:49
+#: templates/core/defect_detail.html:52
 msgid "Verlauf"
 msgstr "History"
+
+#: templates/core/checklist_history.html:3
+#: templates/core/checklists.html:63
+msgid "Verlauf der Läufe"
+msgstr "Run history"
 
 #: templates/core/privacy.html:129
 msgid "Verlängerung oder abweichende Laufzeiten einzelner Sitzungen sind möglich."
@@ -12763,15 +13058,15 @@ msgstr "Send encrypted"
 msgid "Verschlüsselt – nicht entschlüsselbar (fehlende Schlüssel)."
 msgstr "Encrypted – cannot be decrypted (missing keys)."
 
-#: core/audit_labels.py:110
+#: core/audit_labels.py:111
 msgid "Verschlüsselte Direktnachricht gesendet"
 msgstr "Encrypted direct message sent"
 
-#: core/audit_labels.py:165
+#: core/audit_labels.py:167
 msgid "Verschlüsselte Nachricht"
 msgstr "Encrypted message"
 
-#: core/audit_labels.py:111
+#: core/audit_labels.py:112
 msgid "Verschlüsselte Nachricht gesendet"
 msgstr "Encrypted message sent"
 
@@ -13076,23 +13371,23 @@ msgstr "Daily watch routine"
 msgid "Wachalltag: Übergaben, Mängel, Aufgaben, Checklisten und Termine mit Zeitstempel und Autor."
 msgstr "Everyday station work: handovers, defects, tasks, checklists and appointments with timestamp and author."
 
-#: core/audit_labels.py:142
+#: core/audit_labels.py:144
 msgid "Wachaufgabe"
 msgstr "Station task"
 
-#: core/audit_labels.py:47
+#: core/audit_labels.py:48
 msgid "Wachaufgabe angelegt"
 msgstr "Station task created"
 
-#: core/audit_labels.py:49
+#: core/audit_labels.py:50
 msgid "Wachaufgabe erledigt"
 msgstr "Station task completed"
 
-#: core/audit_labels.py:48
+#: core/audit_labels.py:49
 msgid "Wachaufgabe geändert"
 msgstr "Station task changed"
 
-#: core/audit_labels.py:50
+#: core/audit_labels.py:51
 msgid "Wachaufgabe wieder geöffnet"
 msgstr "Station task reopened"
 
@@ -13124,7 +13419,7 @@ msgstr "Watch log demonstration"
 msgid "Wachdienst-Aufgaben"
 msgstr "Watch duty tasks"
 
-#: core/audit_labels.py:131
+#: core/audit_labels.py:132
 #: core/models.py:243
 #: core/wiki_models.py:30
 #: templates/core/chat.html:11
@@ -13176,7 +13471,7 @@ msgstr "Station code (4 digits)"
 msgid "Wachen-Code eingeben"
 msgstr "Enter station code"
 
-#: core/audit_labels.py:77
+#: core/audit_labels.py:78
 msgid "Wachen-Code geändert"
 msgstr "Station code changed"
 
@@ -13248,7 +13543,7 @@ msgstr "Station calendar"
 msgid "Wachenorganisation"
 msgstr "Station organization"
 
-#: core/audit_labels.py:153
+#: core/audit_labels.py:155
 #: templates/base.html:81
 #: templates/core/setup_done.html:29
 #: templates/core/team.html:15
@@ -13265,7 +13560,7 @@ msgstr "Station terminal"
 msgid "Wachenterminal (Touch-Bildschirm)"
 msgstr "Station terminal (touch screen)"
 
-#: core/audit_labels.py:78
+#: core/audit_labels.py:79
 msgid "Wachenterminal angelegt"
 msgstr "Station terminal created"
 
@@ -13273,11 +13568,11 @@ msgstr "Station terminal created"
 msgid "Wachenterminal einrichten"
 msgstr "Set up station terminal"
 
-#: core/audit_labels.py:75
+#: core/audit_labels.py:76
 msgid "Wachenterminal mit Wachen-Code entsperrt"
 msgstr "Station terminal unlocked with the station code"
 
-#: core/audit_labels.py:79
+#: core/audit_labels.py:80
 msgid "Wachenterminal widerrufen"
 msgstr "Station terminal revoked"
 
@@ -13747,30 +14042,30 @@ msgstr "Schedule recurring checks daily, weekly or monthly."
 msgid "Wiederkehrende Prüfungen im Wachbetrieb abarbeiten und dokumentieren."
 msgstr "Process and document recurring checks in station operations."
 
-#: core/audit_labels.py:196
+#: core/audit_labels.py:198
 #: core/navigation.py:18
 msgid "Wiki"
 msgstr "Wiki"
 
-#: core/audit_labels.py:154
+#: core/audit_labels.py:156
 #: core/wiki_models.py:83
 #: core/wiki_models.py:84
 msgid "Wiki-Artikel"
 msgstr "Wiki article"
 
-#: core/audit_labels.py:82
+#: core/audit_labels.py:83
 msgid "Wiki-Artikel angelegt"
 msgstr "Wiki article created"
 
-#: core/audit_labels.py:84
+#: core/audit_labels.py:85
 msgid "Wiki-Artikel archiviert"
 msgstr "Wiki article archived"
 
-#: core/audit_labels.py:83
+#: core/audit_labels.py:84
 msgid "Wiki-Artikel bearbeitet"
 msgstr "Wiki article edited"
 
-#: core/audit_labels.py:85
+#: core/audit_labels.py:86
 msgid "Wiki-Artikel wiederhergestellt"
 msgstr "Wiki article restored"
 
@@ -13887,11 +14182,11 @@ msgstr "Wishes, suggestions, praise or a bug – every piece of feedback helps m
 msgid "Zahlung eintragen"
 msgstr "Record payment"
 
-#: core/audit_labels.py:51
+#: core/audit_labels.py:52
 msgid "Zahlung in der Kaffeekasse gemeldet"
 msgstr "Payment reported in the coffee fund"
 
-#: core/audit_labels.py:113
+#: core/audit_labels.py:114
 msgid "Zahlungserinnerung der Kaffeekasse per E-Mail gesendet"
 msgstr "Coffee fund payment reminder sent by email"
 
@@ -13899,7 +14194,7 @@ msgstr "Coffee fund payment reminder sent by email"
 msgid "Zahlungshinweis"
 msgstr "\\\"Payment note\\\""
 
-#: core/audit_labels.py:187
+#: core/audit_labels.py:189
 #: core/forms.py:160
 msgid "Zahlungsweg"
 msgstr "Payment method"
@@ -13931,6 +14226,10 @@ msgstr "Rows with errors or notes"
 
 #: templates/core/audit_log.html:6
 msgid "Zeit"
+msgstr "Time"
+
+#: core/checklists_views.py:346
+msgid "Zeitpunkt"
 msgstr "Time"
 
 #: core/forms.py:1017
@@ -14040,7 +14339,7 @@ msgstr "Access denied."
 msgid "Zuletzt aktualisiert"
 msgstr "Last updated"
 
-#: templates/core/checklists.html:32
+#: templates/core/checklists.html:56
 msgid "Zuletzt erledigt am"
 msgstr "Last completed on"
 
@@ -14150,6 +14449,7 @@ msgstr "Back"
 msgid "Zurück in den Betrieb nur über „Wieder in Betrieb nehmen“ auf der Geräteseite."
 msgstr "Back into service only with “Return to service” on the device page."
 
+#: templates/core/checklist_history.html:5
 #: templates/core/checklist_schedules.html:5
 msgid "Zurück zu Checklisten"
 msgstr "Back to checklists"
@@ -14244,6 +14544,10 @@ msgstr "Back to the tour"
 #: templates/core/team_user_create.html:5
 msgid "Zurück zum Team"
 msgstr "Back to team"
+
+#: templates/core/checklist_run_detail.html:5
+msgid "Zurück zum Verlauf"
+msgstr "Back to history"
 
 #: templates/core/terminal_home.html:83
 msgid "Zurück zur Demo"
@@ -14365,7 +14669,7 @@ msgstr "Server state"
 msgid "Zustand je Fahrzeug mit Kraftstoff, Sauerstoff und Desinfektionssperre (nur mit Fuhrpark)."
 msgstr "Condition per vehicle with fuel, oxygen and disinfection lock (fleet module only)."
 
-#: templates/core/defect_detail.html:16
+#: templates/core/defect_detail.html:19
 msgid "Zuständig"
 msgstr "Responsible"
 
@@ -14460,7 +14764,7 @@ msgstr "Two-factor authentication must be set up first."
 msgid "Zwei-Faktor-Anmeldung wurde zurückgesetzt."
 msgstr "Two-factor sign-in has been reset."
 
-#: core/audit_labels.py:72
+#: core/audit_labels.py:73
 msgid "Zwei-Faktor-Anmeldung zurückgesetzt"
 msgstr "Two-factor sign-in reset"
 
@@ -14489,15 +14793,15 @@ msgstr "Cached from %(date)s – age: %(age)s minutes; please treat as outdated.
 msgid "Zwischenspeicher"
 msgstr "Cache"
 
-#: core/checklists_views.py:193
+#: core/checklists_views.py:208
 msgid "Zwischenstand der Checkliste wurde gespeichert."
 msgstr "Checklist progress was saved."
 
-#: templates/core/checklists.html:111
+#: templates/core/checklists.html:174
 msgid "Zwischenstand speichern"
 msgstr "Save progress"
 
-#: templates/core/checklists.html:39
+#: templates/core/checklists.html:68
 msgid "Zwischenstand vorhanden:"
 msgstr "Saved progress:"
 
@@ -14585,6 +14889,7 @@ msgstr "already effective employee privacy notice:"
 msgid "bezahlt"
 msgstr "paid"
 
+#: templates/core/checklist_history.html:19
 #: templates/core/feeds.html:7
 msgid "bis"
 msgstr "to"
@@ -14638,7 +14943,8 @@ msgstr "usable with restrictions"
 msgid "endet spätestens %(time)s Uhr"
 msgstr "ends at %(time)s at the latest"
 
-#: templates/core/checklists.html:83
+#: core/checklists_service.py:507
+#: templates/core/checklists.html:121
 msgid "entfällt"
 msgstr "not applicable"
 
@@ -14709,7 +15015,8 @@ msgstr "here are the payment details for the coffee fund of %(station)s (monthly
 msgid "immer oben"
 msgstr "always in the bar"
 
-#: templates/core/checklists.html:75
+#: core/checklists_service.py:505
+#: templates/core/checklists.html:113
 #: templates/core/paper_checklists.html:19
 msgid "in Ordnung"
 msgstr "OK"
@@ -14723,7 +15030,9 @@ msgstr "€%(amount)s is outstanding in the coffee fund of %(station)s."
 msgid "ist angegeben, aber Anlage 2 (MTK) steht auf Nein."
 msgstr "is given, but Annex 2 (MTK) is set to no."
 
-#: core/audit_labels.py:257
+#: core/audit_labels.py:259
+#: core/checklists_views.py:356
+#: core/checklists_views.py:366
 #: templates/core/system_status.html:40
 msgid "ja"
 msgstr "yes"
@@ -14790,7 +15099,9 @@ msgstr "counted with"
 msgid "nach Fehlversuchen gesperrt bis"
 msgstr "locked after failed attempts until"
 
-#: core/audit_labels.py:259
+#: core/audit_labels.py:261
+#: core/checklists_views.py:356
+#: core/checklists_views.py:366
 #: templates/core/system_status.html:40
 msgid "nein"
 msgstr "no"
@@ -14798,6 +15109,10 @@ msgstr "no"
 #: core/views.py:585
 msgid "nicht bereit"
 msgstr "not ready"
+
+#: core/checklists_service.py:509
+msgid "nicht bewertet"
+msgstr "not rated"
 
 #: templates/core/_system_operations.html:57
 msgid "nicht eingerichtet"
@@ -14820,7 +15135,9 @@ msgstr "unreachable"
 msgid "nicht hinterlegt"
 msgstr "not provided"
 
-#: templates/core/checklists.html:79
+#: core/checklists_service.py:506
+#: core/checklists_service.py:377
+#: templates/core/checklists.html:117
 #: templates/core/paper_checklists.html:20
 msgid "nicht in Ordnung"
 msgstr "not OK"
@@ -14877,6 +15194,10 @@ msgstr "€%(amount)s open"
 #: templates/core/wachalltag_reports.html:10
 msgid "offene Mängel"
 msgstr "open defects"
+
+#: templates/core/checklist_history.html:36
+msgid "ohne Ergebnis je Punkt"
+msgstr "without a result per item"
 
 #: templates/core/fleet_vehicle_detail.html:354
 msgid "ohne Sperre"
@@ -14947,8 +15268,13 @@ msgstr "represented by"
 msgid "viel Reserve, auch für mehrere Wachen"
 msgstr "plenty of headroom, also for several stations"
 
-#: templates/core/checklists.html:34
-#: templates/core/checklists.html:41
+#: templates/core/checklist_history.html:43
+msgid "vollständig"
+msgstr "complete"
+
+#: templates/core/checklist_history.html:17
+#: templates/core/checklists.html:58
+#: templates/core/checklists.html:70
 #: templates/core/fleet_disinfection_levels.html:53
 #: templates/core/task_row.html:23
 msgid "von"
@@ -14957,6 +15283,10 @@ msgstr "from"
 #: core/module_overview.py:121
 msgid "von dir noch nicht quittiert"
 msgstr "not yet acknowledged by you"
+
+#: templates/core/checklists.html:28
+msgid "war bereits offen gemeldet"
+msgstr "was already reported as open"
 
 #: templates/core/_demo_tour.html:42
 msgid "was gespeichert wird, wo es liegt und wie es geschützt ist"
@@ -15155,7 +15485,7 @@ msgstr "Via https with a free Let’s Encrypt certificate."
 msgid "Überfällig / OOB"
 msgstr "Overdue / OOB"
 
-#: core/audit_labels.py:132
+#: core/audit_labels.py:133
 msgid "Übergabe"
 msgstr "Handover"
 
@@ -15214,7 +15544,7 @@ msgstr "Handover log"
 msgid "Übergabeliste"
 msgstr "Handover list"
 
-#: core/audit_labels.py:189
+#: core/audit_labels.py:191
 #: core/navigation.py:14
 #: templates/core/handover_list.html:3
 #: templates/core/handover_list.html:6
@@ -15338,6 +15668,10 @@ msgstr "“%(name)s” has been decommissioned. Inspections, checks and instruct
 msgid "„%(name)s“ ist wieder in Betrieb und bleibt gesperrt, bis die Schichtleitung es nach einer Kontrolle freigibt."
 msgstr "“%(name)s” is back in service and stays locked until a shift lead releases it after a check."
 
+#: core/checklists_service.py:120
+msgid "„%(name)s“ muss true oder false sein."
+msgstr "\"%(name)s\" must be true or false."
+
 #: templates/core/mpg_dashboard.html:158
 msgid "„%(name)s“: Akku, Sichtprüfung und Selbsttest geprüft und in Ordnung?"
 msgstr "“%(name)s”: battery, visual check and self-test checked and fine?"
@@ -15411,6 +15745,14 @@ msgstr "Tap “Set up this device as terminal”. The lock screen appears afterw
 #: core/demo_sandbox.py:776
 msgid "„Ich habe bezahlt“ antippen – der offene Monat ist sofort abgehakt, ganz ohne Zettel."
 msgstr "Tap “I have paid” – the open month is ticked off right away, no paper needed."
+
+#: core/checklists_service.py:174
+msgid "„item_results“ muss ein Objekt mit den Kennungen der Prüfpunkte sein."
+msgstr "\"item_results\" must be an object keyed by item ids."
+
+#: core/api/views.py:1102
+msgid "„note“ muss Text sein."
+msgstr "\"note\" must be text."
 
 #: templates/core/install_guide.html:197
 msgid "„sudo /opt/wachbuch/wachbuch setup-code“ ausführen (macOS: ~/wachbuch/wachbuch setup-code). Nach abgeschlossener Einrichtung gibt es keinen Code mehr – dann ist das auch richtig so."
