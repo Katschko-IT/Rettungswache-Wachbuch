@@ -16,7 +16,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0076_sop_deadlines_and_reminders"),
+        ("core", "0078_reminder_subscriptions_sop_audience"),
     ]
 
     operations = [
