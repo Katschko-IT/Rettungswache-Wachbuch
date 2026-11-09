@@ -31,7 +31,7 @@ STRICT = models.Q(models.Q(("is_paper_backfill", False), ("occurred_at__isnull",
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0076_sop_deadlines_and_reminders"),
+        ("core", "0079_defect_vehicle"),
     ]
 
     operations = [
