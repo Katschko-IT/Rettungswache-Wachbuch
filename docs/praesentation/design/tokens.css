@@ -15,30 +15,32 @@
   color-scheme: light;
 
   /* Flächen: Unterlage, Blatt, Einzug */
-  --bg: #e6ece6;
-  --bg-accent: #dce4dc;
-  --surface: #f8fbf6;
-  --surface-soft: #eef3ec;
-  --surface-raised: #fcfefb;
+  --bg: #e9eee8;
+  --bg-accent: #dfe6de;
+  --surface: #ffffff;
+  --surface-soft: #f3f6f2;
+  --surface-raised: #ffffff;
 
   /* Tinte und Linierung. --line ist dekorativ (Zeilenlinie), --line-strong
      begrenzt Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11),
      --margin-rule ist die senkrechte Randlinie der Randspalte. */
-  --text: #13212a;
-  --muted: #4a5a5e;
-  --line: #c9d4cb;
+  --text: #14212b;
+  --muted: #3b4f5c;
+  --line: #c9d2cb;
   --line-strong: #66766f;
-  --margin-rule: #8fb5ba;
+  --margin-rule: #9aa9a1;
 
   /* Bedienung: Petroltinte. Trägt nie eine Bedeutung. */
-  --brand: #0b5563;
-  --brand-deep: #073f4a;
-  --brand-ink: #13212a;
-  --accent: #0b5563;
-  --accent-dark: #073f4a;
-  --accent-soft: #dcebec;
-  --primary-container: #dcebec;
+  --brand: #14212b;
+  --brand-deep: #0a1218;
+  --brand-ink: #14212b;
+  --accent: #14212b;
+  --accent-dark: #0a1218;
+  --accent-soft: #e1e8e3;
+  --primary-container: #e1e8e3;
   --on-primary: #ffffff;
+  --signal: #c8e63c;
+  --on-signal: #14212b;
 
   /* Stempelfarben. Textfarben ≥ 4,5:1 auf --surface und auf ihrer
      -soft-Fläche; --warning-accent ≥ 3:1 als Rand. */
@@ -124,24 +126,24 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #100f0c;
-    --bg-accent: #171511;
-    --surface: #1b1915;
-    --surface-soft: #25221c;
-    --surface-raised: #25221c;
-    --text: #ece5d5;
-    --muted: #b0a794;
-    --line: #36322a;
-    --line-strong: #857c6b;
-    --margin-rule: #3e5e61;
-    --brand: #7cc6ce;
-    --brand-deep: #a5dbe0;
-    --brand-ink: #ece5d5;
-    --accent: #7cc6ce;
-    --accent-dark: #a5dbe0;
-    --accent-soft: #14302f;
-    --primary-container: #14302f;
-    --on-primary: #06262b;
+    --bg: #0d151b;
+    --bg-accent: #111b22;
+    --surface: #14212b;
+    --surface-soft: #1b2b37;
+    --surface-raised: #1b2b37;
+    --text: #e9eee8;
+    --muted: #a9b7b4;
+    --line: #263642;
+    --line-strong: #7c8e95;
+    --margin-rule: #3a4f5c;
+    --brand: #e9eee8;
+    --brand-deep: #ffffff;
+    --brand-ink: #e9eee8;
+    --accent: #e9eee8;
+    --accent-dark: #ffffff;
+    --accent-soft: #1b2b37;
+    --primary-container: #1b2b37;
+    --on-primary: #14212b;
     --danger: #ff9282;
     --danger-soft: #3a1712;
     --on-danger: #2a0a06;
@@ -157,31 +159,31 @@
     --scrim: rgba(0, 0, 0, .65);
     --stripe-white: #d9d2c2;
     --focus: #a9c1ff;
-    --focus-halo: #ece5d5;
+    --focus-halo: #e9eee8;
     --focus-ring: 0 0 0 6px var(--focus-halo);
     --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .55);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #100f0c;
-  --bg-accent: #171511;
-  --surface: #1b1915;
-  --surface-soft: #25221c;
-  --surface-raised: #25221c;
-  --text: #ece5d5;
-  --muted: #b0a794;
-  --line: #36322a;
-  --line-strong: #857c6b;
-  --margin-rule: #3e5e61;
-  --brand: #7cc6ce;
-  --brand-deep: #a5dbe0;
-  --brand-ink: #ece5d5;
-  --accent: #7cc6ce;
-  --accent-dark: #a5dbe0;
-  --accent-soft: #14302f;
-  --primary-container: #14302f;
-  --on-primary: #06262b;
+  --bg: #0d151b;
+  --bg-accent: #111b22;
+  --surface: #14212b;
+  --surface-soft: #1b2b37;
+  --surface-raised: #1b2b37;
+  --text: #e9eee8;
+  --muted: #a9b7b4;
+  --line: #263642;
+  --line-strong: #7c8e95;
+  --margin-rule: #3a4f5c;
+  --brand: #e9eee8;
+  --brand-deep: #ffffff;
+  --brand-ink: #e9eee8;
+  --accent: #e9eee8;
+  --accent-dark: #ffffff;
+  --accent-soft: #1b2b37;
+  --primary-container: #1b2b37;
+  --on-primary: #14212b;
   --danger: #ff9282;
   --danger-soft: #3a1712;
   --on-danger: #2a0a06;
@@ -197,7 +199,7 @@
   --scrim: rgba(0, 0, 0, .65);
   --stripe-white: #d9d2c2;
   --focus: #a9c1ff;
-  --focus-halo: #ece5d5;
+  --focus-halo: #e9eee8;
   --focus-ring: 0 0 0 6px var(--focus-halo);
   --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .55);
 }

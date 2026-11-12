@@ -1,23 +1,23 @@
 /* Wachen-Display: ruhige, kontrastreiche Vollbildanzeige für Monitor und TV.
-   Nacht-Palette des Schichtbuchs (warme, blauarme Flächen, Schrift in
-   Papierfarbe). Status sind Stempel: rechteckig, Randform als zweites Signal
+   Nacht-Palette des Markencodes (Tinte-Flächen, Schrift in Papierfarbe,
+   Lime nur als Stab im Schichtband). Status sind Stempel: rechteckig, Randform als zweites Signal
    (durchgezogen = bereit, gestrichelt = fällig, doppelt = gesperrt, gefüllt =
    dringend). Das Display lädt tokens.css nicht; die festen Werte stehen nur
    in diesem Block. */
 
 .display-root {
-  --display-text: #ece5d5;
-  --display-dim: rgba(236, 229, 213, 0.74);
-  --display-line: rgba(236, 229, 213, 0.2);
-  --display-rule: rgba(236, 229, 213, 0.5);
-  --display-accent: #7cc6ce;
+  --display-text: #e9eee8;
+  --display-dim: rgba(233, 238, 232, 0.74);
+  --display-line: rgba(233, 238, 232, 0.2);
+  --display-rule: rgba(233, 238, 232, 0.5);
+  --display-accent: #b9c9c4;
   --display-warn: #ff9282;
   --display-on-warn: #2a0a06;
   --display-due: #f2b84b;
   --display-locked: #c3adf5;
   --display-ok: #9ad07a;
-  --display-bg: #100f0c;
-  --display-panel: rgba(27, 25, 21, 0.82);
+  --display-bg: #0d151b;
+  --display-panel: rgba(20, 33, 43, 0.82);
   background: var(--display-bg);
   height: 100%;
 }
@@ -208,7 +208,7 @@
   width: 100%;
   height: clamp(1.6rem, calc(2.6 * var(--vw, 1vw)), 3rem);
   background: var(--display-panel);
-  border: 1px solid rgba(236, 229, 213, 0.5);
+  border: 1px solid rgba(233, 238, 232, 0.5);
   border-radius: 0.125rem;
   box-sizing: border-box;
 }
@@ -218,14 +218,16 @@
   vector-effect: non-scaling-stroke;
 }
 
-.sb-past { fill: rgba(236, 229, 213, 0.14); }
+.sb-past { fill: rgba(233, 238, 232, 0.14); }
 .sb-rule { stroke: var(--display-line); stroke-width: 1; }
-.sb-hour { stroke: rgba(236, 229, 213, 0.5); stroke-width: 1; stroke-dasharray: 2 4; }
+.sb-hour { stroke: rgba(233, 238, 232, 0.5); stroke-width: 1; stroke-dasharray: 2 4; }
 .sb-event { fill: rgba(124, 198, 206, 0.25); stroke: var(--display-accent); stroke-width: 1.5; }
 .sb-lock { fill: rgba(195, 173, 245, 0.25); }
 .sb-lock-rule { stroke: var(--display-locked); stroke-width: 2; }
-.sb-now { stroke: var(--display-text); stroke-width: 2; }
-.sb-now-head { stroke: var(--display-text); stroke-width: 8; }
+/* Der Stab: Jetzt-Marke mit Tinte-Rand und Signal-Kern (Lime nie allein, immer mit Tinte). */
+.sb-now { stroke: var(--display-text); stroke-width: 10; }
+.sb-now-head { stroke: var(--display-text); stroke-width: 14; }
+.sb-now-core { stroke: var(--signal, #c8e63c); stroke-width: 4; }
 
 .display-band-hours {
   display: flex;
@@ -329,7 +331,7 @@
 .display-progress {
   height: 0.45rem;
   border-radius: 0.125rem;
-  background: rgba(236, 229, 213, 0.16);
+  background: rgba(233, 238, 232, 0.16);
   overflow: hidden;
 }
 
@@ -601,7 +603,7 @@
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: var(--display-bg, #100f0c);
+  background: var(--display-bg, #0d151b);
   overflow: hidden;
 }
 
@@ -614,7 +616,7 @@
   height: 100%;
   min-height: 100%;
   overflow: hidden;
-  color: var(--display-text, #ece5d5);
+  color: var(--display-text, #e9eee8);
 }
 
 .display-surface .display-grid {
@@ -633,7 +635,7 @@ body.is-display-open {
   justify-content: center;
   gap: 0.35rem;
   background: transparent;
-  border: 1px solid var(--line-strong, rgba(236, 229, 213, 0.5));
+  border: 1px solid var(--line-strong, rgba(233, 238, 232, 0.5));
   border-radius: 4px;
   color: inherit;
   cursor: pointer;
@@ -644,7 +646,7 @@ body.is-display-open {
 .nav-display-toggle:hover,
 .nav-display-toggle:focus-visible {
   background: var(--surface-soft, rgba(124, 198, 206, 0.16));
-  outline: 2px solid var(--brand, #7cc6ce);
+  outline: 2px solid var(--brand, #b9c9c4);
   outline-offset: 2px;
 }
 
@@ -681,7 +683,7 @@ body.is-display-open {
   max-width: 100%;
   margin: 0;
   font-size: clamp(1rem, calc(1.3 * var(--vw, 1vw)), 1.4rem);
-  color: var(--display-accent, #7cc6ce);
+  color: var(--display-accent, #b9c9c4);
   background: var(--display-panel);
   border: 1px solid var(--display-rule);
   border-radius: 0.125rem;
@@ -700,7 +702,7 @@ body.is-display-open {
 .display-ticker-more {
   flex: 0 0 auto;
   white-space: nowrap;
-  color: var(--display-text, #ece5d5);
+  color: var(--display-text, #e9eee8);
 }
 
 .display-ticker-more[hidden] {

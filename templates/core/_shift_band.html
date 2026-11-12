@@ -22,6 +22,7 @@
     {% for mark in band.due %}<line class="sb-due" x1="{{ mark.x }}" y1="34" x2="{{ mark.x }}" y2="46"/>{% endfor %}
     <line class="sb-now" data-shift-now-line x1="{{ band.now_x }}" y1="0" x2="{{ band.now_x }}" y2="48"/>
     <line class="sb-now-head" data-shift-now-line x1="{{ band.now_x }}" y1="0" x2="{{ band.now_x }}" y2="7"/>
+    <line class="sb-now-core" data-shift-now-line x1="{{ band.now_x }}" y1="0" x2="{{ band.now_x }}" y2="48"/>
   </svg>
   <ol class="shift-band-hours" aria-hidden="true"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
   {% if band.legend %}

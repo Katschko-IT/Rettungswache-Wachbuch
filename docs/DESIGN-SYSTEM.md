@@ -1,3 +1,37 @@
+# Markencode Staffeta
+
+Staffeta ist ein Übergabe-Produkt: ein Stab wird von Schicht zu Schicht weitergereicht. Der Markencode ist so gebaut, dass man ihn an einem Merkmal erkennt, auch ohne Namen.
+
+## Die Regel in einem Satz
+
+Tinte trägt das Buch, und pro Bildschirm bekommt genau eine Stelle den Stab in Signal-Lime.
+
+## Farben
+
+| Name | Wert | Verwendung |
+|---|---|---|
+| Tinte | `#14212b` | Text, Linien, Bedienung (Schaltflächen), Zeichen |
+| Signal-Lime | `#c8e63c` | nur der Stab: Jetzt-Marke im Schichtband, Wortmarke, Zeichen |
+| Papier | `#e9eee8` | Grundfläche hell |
+| Blatt | `#ffffff` | Karten und Zeilen hell |
+| Nacht | `#0d151b` / `#14212b` | Grund und Blatt dunkel; Text `#e9eee8` |
+
+Gerechnet: Tinte auf Papier 13,9:1, Tinte auf Lime 11,6:1, Lime auf Papier nur 1,2:1 und auf Weiß 1,4:1. Lime trägt deshalb nie allein Text, einen dünnen Rand oder eine Information. Es ist immer Füllung neben oder unter Tinte, und der Stab hat einen Tinte-Rand.
+
+## Zeichen und Wortmarke
+
+- Der Stab: zwei gekippte Hälften (24°), gegeneinander versetzt. Links die Schicht, die geht (Tinte, auf Dunkel Weiß), rechts die, die kommt (Lime). Auf Lime-Grund nur einfarbig.
+- Wortmarke: Das Doppel-f in Sta**ff**eta liegt auf einem um 14° geschnittenen Lime-Feld.
+- Das Schichtband zeigt „jetzt“ als Stab: Lime-Kern mit Tinte-Rand (`.sb-now`, `.sb-now-core`).
+
+## Grenzen
+
+- Lime ist kein Status. Rot, Bernstein, Grün, Violett und der Fokus-Ring bleiben den Bedeutungen vorbehalten.
+- Kein Magenta (Telekom), kein Blau-Violett-Verlauf, keine Schlagschatten-Karten.
+- Neue Lime-Flächen nur nach dieser Regel; im Logo und in der Wortmarke ist sie die Ausnahme.
+
+---
+
 # Schichtbuch – Designsystem
 
 Stand: 12. November 2026 (Branch `design/schichtbuch-0.29`). Ersetzt

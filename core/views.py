@@ -279,8 +279,8 @@ def web_manifest(request):
         "display": "standalone",
         "orientation": "any",
         # Unterlage und Blatt des Tag-Themas (core/static/core/tokens.css).
-        "background_color": "#e6ece6",
-        "theme_color": "#f8fbf6",
+        "background_color": "#e9eee8",
+        "theme_color": "#ffffff",
         "icons": icons,
         "shortcuts": shortcuts,
         "categories": ["productivity", "utilities"],

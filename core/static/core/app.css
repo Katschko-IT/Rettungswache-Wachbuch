@@ -2220,8 +2220,10 @@ dialog::backdrop { background: var(--scrim); }
 .sb-lock { fill: var(--violet-soft); }
 .sb-lock-rule { stroke: var(--violet); stroke-width: 2; }
 .sb-due { stroke: var(--warning-accent); stroke-width: 3; stroke-dasharray: 3 3; }
-.sb-now { stroke: var(--text); stroke-width: 2; }
-.sb-now-head { stroke: var(--text); stroke-width: 8; }
+/* Der Stab: Jetzt-Marke mit Tinte-Rand und Signal-Kern (Lime nie allein, immer mit Tinte). */
+.sb-now { stroke: var(--text); stroke-width: 10; }
+.sb-now-head { stroke: var(--text); stroke-width: 14; }
+.sb-now-core { stroke: var(--signal, #c8e63c); stroke-width: 4; }
 .shift-band-hours {
   display: flex;
   justify-content: space-between;
