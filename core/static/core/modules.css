@@ -224,6 +224,8 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .section-block .summary-list > div { padding-inline: 0; }
 .section-block .card { padding: 0; }
 .section-block .item-list { margin-inline: -1.25rem; }
+/* Ohne Innenabstand (flush) gibt es nichts auszugleichen: sonst ragt die Liste 20 px über den Rand. */
+.section-block.flush .item-list { margin-inline: 0; }
 .section-block .item-list .list-row { padding-inline: 1.25rem; }
 /* Leerer Zustand innerhalb eines Abschnitts: kein zweiter Rahmen. */
 .section-block .empty-state {

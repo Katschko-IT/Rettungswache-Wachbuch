@@ -575,7 +575,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 /* Logbuch: Zeilen mit Zeilenlinie. Hat eine Zeile eine Uhrzeit (time als
    direktes Kind), steht sie links in der Randspalte, daneben die Randlinie,
    rechts der Inhalt und ganz rechts der Stempel. */
-.item-list { display: grid; }
+.item-list { display: grid; grid-template-columns: minmax(0, 1fr); }
 .list-row {
   min-height: 4.75rem;
   display: grid;
@@ -786,8 +786,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .form-card textarea, .field textarea { min-height: 9rem; resize: vertical; }
 .form-card input[type="checkbox"] {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-right: .5rem;
   vertical-align: middle;
 }
@@ -1363,6 +1363,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .list-row .status-label { grid-column: 1; grid-row: 1; }
   .list-row .row-content { grid-column: 1 / -1; grid-row: 2; }
   .list-row time { grid-column: 2; grid-row: 1; }
+  /* Zeilen mit Randspalte: auf dem Handy Uhrzeit und Stempel in einer Kopfzeile,
+     der Inhalt darunter (sonst sprengt die Randspalte die Zeilenbreite). */
+  .list-row:has(> time) { grid-template-columns: minmax(0, 1fr) auto; gap: .35rem .75rem; padding: .85rem; align-items: center; }
+  .list-row:has(> time) > time { grid-column: 1; grid-row: 1; padding: 0; border-right: 0; white-space: nowrap; font-size: .85rem; }
+  .list-row:has(> time) > .status-label { grid-column: 2; grid-row: 1; }
+  .list-row:has(> time) > .row-content { grid-column: 1 / -1; grid-row: 2; padding-block: 0; }
   .agenda-row { grid-template-columns: 4.2rem minmax(0, 1fr); padding-inline: .85rem; }
   .summary-list > div { grid-template-columns: 1fr; gap: .15rem; }
   .inline-form { align-items: stretch; flex-direction: column; }
@@ -2789,3 +2795,6 @@ fieldset.chip-fieldset > legend {
   .shift-band-svg { height: 2.75rem; }
 }
 
+
+/* Keine einzelnen Wörter in der letzten Zeile (Impeccable: straggler). */
+p, .row-content small, .lead { text-wrap: pretty; }
