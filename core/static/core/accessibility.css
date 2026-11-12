@@ -219,3 +219,17 @@ main .list-row a:not(.button) {
     --focus-halo: #ffffff;
   }
 }
+
+/* WCAG 2.2, Ziel 2.5.8: Links, die allein in Absatz, Listenpunkt oder Legende stehen,
+   sind echte Bedienziele und brauchen mindestens 24 x 24 px. Links mitten im Satz sind
+   ausgenommen und bleiben unverändert. */
+p > a:only-child,
+li > a:first-child,
+.shift-band-legend a,
+.calm-line a,
+.context-line a {
+  display: inline-block;
+  min-height: 1.5rem;
+  padding-block: .1rem;
+  line-height: 1.3;
+}
