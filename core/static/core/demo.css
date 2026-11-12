@@ -1,8 +1,10 @@
-/* Vorführung (/vorfuehrung/) – Wachbuch Klar 2.
+/* Vorführung (/vorfuehrung/) – Schichtbuch.
    Bausteine (.device, .boundary, .code-block, .steps, .facts, .pub-button)
    kommen aus public.css, Farben aus tokens.css. Hier nur die Folienbühne:
    Kopf der App oben, Folie in der Mitte, Steuerleiste fest unten – zusammen
-   genau ein Bildschirm. Keine Inline-Styles; Verhalten in app.js. */
+   genau ein Bildschirm. Formensprache wie public.css: 4 px Radius, Kopflinie
+   in Tinte, Doppellinie zwischen Folien, Datumszeile unter der Überschrift,
+   keine Seitenstreifen, keine Pillen. Keine Inline-Styles; Verhalten in app.js. */
 
 .demo-noscript-hint {
   width: min(42rem, calc(100% - 2rem));
@@ -41,7 +43,7 @@ body.demo-deck-active .site-footer { display: none; }
 }
 .demo-deck:not(.is-js) .demo-slide {
   padding: clamp(2rem, 5vw, 4rem) 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 3px double var(--line-strong);
 }
 .demo-deck-bar { display: none; }
 
@@ -90,15 +92,32 @@ body.demo-deck-active .site-footer { display: none; }
 }
 .demo-split-even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
-.demo-kicker { margin: 0 0 1rem; color: var(--muted); font-weight: 600; }
+/* Datumszeile unter der Überschrift (Reihenfolge per CSS), darunter die Kopflinie. */
+.demo-copy,
+.demo-slide .boundary { display: flex; flex-direction: column; }
+.demo-copy > *,
+.demo-slide .boundary > * { min-width: 0; }
+.demo-copy > h2,
+.demo-slide .boundary > h2 { order: -2; }
+.demo-kicker {
+  order: -1;
+  margin: .25rem 0 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--text);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
 .demo-slide h2 {
-  margin: 0 0 1.25rem;
+  margin: 0;
   max-width: 15ch;
   color: var(--text);
-  font-size: clamp(2rem, min(4.2vw, 7cqh), 3.6rem);
-  line-height: 1.05;
-  letter-spacing: -.03em;
+  font-size: clamp(2rem, min(4.2vw, 7cqh), 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -.025em;
   font-weight: 700;
+  overflow-wrap: break-word;
 }
 .demo-lead {
   margin: 0;
@@ -132,7 +151,7 @@ body.demo-deck-active .site-footer { display: none; }
 /* Ein Desktop */
 .demo-media-desktop { max-width: 136cqh; }
 
-/* Grenze: einzige Fläche mit Warnrahmen */
+/* Grenze: einzige Fläche mit Doppelrahmen */
 .demo-slide .boundary { padding-block: clamp(1.5rem, 5cqh, 3rem); }
 .demo-slide .boundary h2 { max-width: none; }
 .demo-slide .boundary-list { margin-top: 2rem; gap: 1.5rem 3rem; }
@@ -167,7 +186,7 @@ body.demo-deck-active .site-footer { display: none; }
   gap: .75rem;
   padding: .75rem max(var(--demo-gutter), (100% - var(--content)) / 2) calc(.75rem + var(--safe-bottom));
   background: var(--surface);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--text);
 }
 .demo-deck-bar > [data-demo-prev] { justify-self: start; }
 .demo-deck-bar-end { justify-self: end; display: flex; gap: .5rem; }
@@ -179,10 +198,12 @@ body.demo-deck-active .site-footer { display: none; }
   height: 3px;
   background: transparent;
 }
+/* Fortschritt: eckiger Balken in Tinte, Zähler „1 / 8“ in Tabellenziffern. */
 .demo-progress-fill {
   display: block;
   height: 100%;
   width: 12.5%;
+  border-radius: 0;
   background: var(--brand);
 }
 .demo-deck[data-demo-index="0"] .demo-progress-fill { width: 12.5%; }
@@ -209,7 +230,7 @@ body.demo-deck-active .site-footer { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .demo-deck.is-js .demo-slide,
-  .demo-progress-fill { transition: none !important; }
+  .demo-progress-fill { transition: none; }
 }
 
 /* —— Tablet / Hochformat: Bild unter den Text —— */
@@ -217,9 +238,9 @@ body.demo-deck-active .site-footer { display: none; }
   .demo-deck.is-js .demo-slide { align-content: start; }
   .demo-split,
   .demo-split-even { grid-template-columns: 1fr; gap: 1.75rem; }
-  .demo-slide h2 { max-width: 20ch; font-size: clamp(1.75rem, 6vw, 2.5rem); margin-bottom: .9rem; }
+  .demo-slide h2 { max-width: 20ch; font-size: clamp(1.75rem, 6vw, 2.5rem); }
   .demo-lead { font-size: 1.05rem; line-height: 1.5; }
-  .demo-kicker { margin-bottom: .6rem; }
+  .demo-kicker { margin-bottom: .75rem; padding-bottom: .5rem; }
   .demo-media { justify-self: start; }
   .demo-media-duo { max-width: 34rem; }
   .demo-media-pair { max-width: 34rem; }
@@ -237,8 +258,7 @@ body.demo-deck-active .site-footer { display: none; }
   .demo-steps li::before { width: 2rem; height: 2rem; font-size: .9rem; }
   .demo-steps p { font-size: .92rem; }
   .demo-single > .demo-copy { margin-bottom: 1.25rem; }
-  .demo-slide .boundary { padding: 1.25rem 1.25rem 1.25rem 2.5rem; }
-  .demo-slide .boundary::before { width: .75rem; }
+  .demo-slide .boundary { padding: 1.25rem; }
   .demo-slide .boundary-list { margin-top: 1rem; gap: .75rem; }
   .demo-slide .boundary-list strong { font-size: 1.05rem; overflow-wrap: anywhere; }
   .demo-slide .boundary-list span { font-size: .95rem; }

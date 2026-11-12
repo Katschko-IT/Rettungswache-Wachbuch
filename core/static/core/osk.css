@@ -31,7 +31,7 @@
   flex: 1 1 0;
   min-width: 0;
   min-height: 3.4rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
@@ -40,6 +40,10 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+.osk-key:hover {
+  background: var(--surface-soft);
 }
 
 .osk-key:active {
@@ -98,8 +102,8 @@
   bottom: 1rem;
   width: 3.6rem;
   height: 3.6rem;
-  border: 0;
-  border-radius: 50%;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius);
   background: var(--brand);
   color: var(--on-primary);
   font-size: 1.7rem;

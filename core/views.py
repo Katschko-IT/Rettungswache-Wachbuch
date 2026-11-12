@@ -278,8 +278,9 @@ def web_manifest(request):
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
-        "background_color": "#f5f7f6",
-        "theme_color": "#ffffff",
+        # Unterlage und Blatt des Tag-Themas (core/static/core/tokens.css).
+        "background_color": "#e6ece6",
+        "theme_color": "#f8fbf6",
         "icons": icons,
         "shortcuts": shortcuts,
         "categories": ["productivity", "utilities"],
@@ -604,8 +605,15 @@ def dashboard(request):
     # Fachmodule (Fahrzeuge, Medizingeräte, Material, Dienstanweisungen) melden
     # ihren Handlungsbedarf hier, damit die Übersicht das ganze Lagebild zeigt.
     from .module_overview import module_attention_cards
+    from .shift_band import dashboard_band, unacknowledged_handovers, vehicle_readiness
 
-    cards.extend(module_attention_cards(station, request.user, request.membership))
+    # Eine Fahrzeugliste für Karte, Schichtband und Bereitschaftszeilen.
+    vehicles = None
+    if station.fleet_enabled:
+        from .fleet_models import Vehicle
+
+        vehicles = list(Vehicle.objects.filter(station=station, is_active=True))
+    cards.extend(module_attention_cards(station, request.user, request.membership, vehicles=vehicles))
     attention_items = []
     if urgent_count:
         attention_items.append({
@@ -616,10 +624,28 @@ def dashboard(request):
             "value": urgent_count,
             "tone": "danger",
         })
+    # Übergaben anderer, die diese Person noch nicht als gelesen quittiert hat:
+    # der Kern des Schichtwechsels, bisher nur auf der Detailseite sichtbar.
+    unacknowledged = unacknowledged_handovers(station, request.user)
+    if unacknowledged:
+        cards.insert(0, {
+            "key": "handover_acks",
+            "href": reverse("handover_list"),
+            "title": _("Übergabe") if unacknowledged == 1 else _("Übergaben"),
+            "subtitle": _("von dir noch nicht quittiert"),
+            "value": unacknowledged,
+            "attention": True,
+            "tone": "warning",
+        })
     attention_items += sorted(
         (card for card in cards if card["attention"]),
         key=lambda card: 0 if card["tone"] == "danger" else 1,
     )
+    # Der Ton als Wort für den Stempel (Status nie nur über Farbe).
+    for item in attention_items:
+        item["tone_label"] = (
+            HandoverEntry.Priority.URGENT.label if item["tone"] == "danger" else HandoverEntry.Priority.IMPORTANT.label
+        )
     calm_items = [card for card in cards if not card["attention"]]
     from .notification_models import UserNotification
 
@@ -631,6 +657,8 @@ def dashboard(request):
         "dashboard_profile": profile,
         "attention_items": attention_items,
         "calm_items": calm_items,
+        "shift_band": dashboard_band(station, now=now, vehicles=vehicles),
+        "vehicle_readiness": vehicle_readiness(vehicles) if vehicles else [],
         "open_handovers": active[:5],
         "open_count": active.count(),
         "urgent_count": urgent_count,

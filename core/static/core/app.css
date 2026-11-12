@@ -1,6 +1,7 @@
-/* Wachbuch Klar 2 – Web-PWA
-   Ruhige Flächen, Farbe nur für Zustand. Ein Markenelement: die
-   Warnmarkierung (Schrägstreifen wie am Heck eines Rettungswagens).
+/* Schichtbuch – Web-PWA (Regeln: docs/DESIGN-SYSTEM.md)
+   Ein Buch, das 24 Stunden offen liegt: Blätter mit Linierung statt Karten,
+   Randspalte mit Uhrzeit, Stempel für Zustände, Petroltinte für Bedienung.
+   Signaturelement ist das Schichtband (.shift-band).
    Offline-fähig: lokale Atkinson Hyperlegible Next, keine CDN-Abhängigkeiten.
    Tokens gleichnamig in clients/Wachbuch-Client lib/theme/design_tokens.dart. */
 
@@ -31,29 +32,38 @@ body {
 }
 h1, h2, h3 {
   overflow-wrap: anywhere;
-  letter-spacing: -.01em;
+  letter-spacing: -.015em;
   color: var(--brand-ink);
   font-weight: 700;
   line-height: 1.2;
 }
 /* Uhrzeiten, Beträge und Zähler stehen spaltengenau untereinander. */
 time, .amount, .kpi-value, .nav-badge, td, .tabular { font-variant-numeric: tabular-nums; }
-a { color: var(--accent-dark); text-underline-offset: .18em; }
+a { color: var(--accent-dark); text-underline-offset: .18em; text-decoration-thickness: .08em; }
+a:hover { text-decoration-thickness: .14em; }
 button, input, select, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
+/* Fokus: Kobaltring mit Abstand – auf Blatt, Unterlage und gefüllten
+   Knöpfen gleich gut zu sehen und nie mit einem Stempel zu verwechseln. */
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
+/* Bewegung nur bei Zustandswechsel: Farbwechsel beim Überfahren und Drücken,
+   und eine Meldung „setzt auf“ wie ein Stempel. */
 @media (prefers-reduced-motion: no-preference) {
   .app-nav a,
   .button,
   .list-row,
   .more-list a,
+  .more-card-item,
+  .attention-row,
   .quick-actions a {
-    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    transition: background-color .12s ease, border-color .12s ease, color .12s ease;
   }
+  .button:active { transform: translateY(1px); }
+  .messages .message { animation: stamp-set .16s ease-out both; }
 }
-@keyframes rise {
-  from { opacity: 0; transform: translateY(.25rem); }
+@keyframes stamp-set {
+  from { opacity: 0; transform: scale(1.03); }
   to { opacity: 1; transform: none; }
 }
 
@@ -308,7 +318,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: .55rem .75rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: grab;
 }
 
@@ -360,9 +370,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: 0 .35rem;
   color: var(--on-strong);
   background: var(--danger);
-  border-radius: 999px;
-  font-size: .72rem;
-  font-weight: 800;
+  border-radius: var(--radius-sm);
+  font-size: .75rem;
+  font-weight: 700;
 }
 
 .page-shell {
@@ -395,33 +405,44 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: .85rem 1rem;
   color: var(--text);
   background: var(--info-soft);
-  border-left: 4px solid var(--info);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border: 1.5px solid var(--info);
+  border-radius: var(--radius);
 }
 .message + .message { margin-top: .5rem; }
 .message.error { background: var(--danger-soft); border-color: var(--danger); }
 
+/* Seitenkopf: Überschrift zuerst, Ort und Datum als Datumszeile darunter –
+   keine Kleinzeile über der Überschrift. Die Reihenfolge entsteht per order,
+   das Markup bleibt (Kontextzeile, h1, Einleitung). */
 .page-heading { max-width: 48rem; margin-bottom: 1.75rem; }
+.page-heading,
+.page-heading > div:first-child:has(> .context-line) {
+  display: flex;
+  flex-direction: column;
+}
+.page-heading h1 { order: -2; }
+.page-heading .context-line { order: -1; }
+.page-heading > div:first-child { min-width: 0; }
 .page-heading.narrow, .narrow { max-width: 42rem; }
 .heading-with-action {
   max-width: none;
-  display: flex;
+  flex-direction: row;
   align-items: flex-end;
   justify-content: space-between;
   gap: 2rem;
 }
 .page-heading h1 {
-  margin: .15rem 0 .5rem;
+  margin: 0 0 .35rem;
   font-size: clamp(1.85rem, 3.5vw, 2.5rem);
   line-height: 1.12;
 }
-.page-heading .lead { margin-top: .35rem; }
+.page-heading .lead { margin-top: .5rem; }
 .context-line {
   margin: 0;
   color: var(--muted);
-  font-size: .9rem;
-  font-weight: 650;
-  letter-spacing: .01em;
+  font-size: .95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .lead { max-width: 65ch; margin: 0; color: var(--muted); font-size: 1.05rem; }
 .status-summary { display: flex; flex-wrap: wrap; gap: .55rem; margin: .9rem 0 0; }
@@ -433,16 +454,16 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: .35rem .85rem;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: .625rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
   text-decoration: none;
-  font-weight: 650;
+  font-weight: 600;
 }
 .status-pill strong { font-size: 1.05rem; }
 .status-pill.danger {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--on-danger);
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 .quick-actions {
@@ -461,13 +482,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--brand);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   text-decoration: none;
 }
 .quick-actions a:hover {
-  border-color: var(--brand);
-  border-left-color: var(--brand);
+  border-color: var(--line-strong);
   background: var(--surface-soft);
 }
 .quick-actions strong, .quick-actions span { display: block; }
@@ -480,7 +499,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   justify-content: center;
   padding: .7rem 1.15rem;
   border: 2px solid transparent;
-  border-radius: .75rem;
+  border-radius: var(--radius);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -553,6 +572,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .hint { margin: 0; color: var(--muted); font-size: .9rem; }
 
+/* Logbuch: Zeilen mit Zeilenlinie. Hat eine Zeile eine Uhrzeit (time als
+   direktes Kind), steht sie links in der Randspalte, daneben die Randlinie,
+   rechts der Inhalt und ganz rechts der Stempel. */
 .item-list { display: grid; }
 .list-row {
   min-height: 4.75rem;
@@ -572,6 +594,35 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .row-content strong { overflow-wrap: anywhere; }
 .row-content small, .list-row time { color: var(--muted); font-size: .85rem; }
 .list-row time { white-space: nowrap; }
+.list-row:has(> time) {
+  grid-template-columns: var(--rail) minmax(0, 1fr) auto;
+  grid-auto-flow: dense;
+  align-items: stretch;
+  padding-block: 0;
+}
+.list-row:has(> time) > time {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  padding: .85rem .75rem .85rem 0;
+  color: var(--text);
+  font-size: .9rem;
+  font-weight: 600;
+  white-space: normal;
+  border-right: 1px solid var(--margin-rule);
+}
+.list-row:has(> time) > .row-content {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  padding-block: .85rem;
+}
+.list-row:has(> time) > .status-label {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+}
 
 .status-label {
   width: fit-content;
@@ -583,9 +634,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--text);
   background: var(--surface-soft);
   border: 1px solid var(--line);
-  border-radius: .5rem;
-  font-size: .78rem;
-  font-weight: 750;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 .status-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
@@ -599,8 +650,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border-bottom: 1px solid var(--line);
 }
 .agenda-row:last-child { border-bottom: 0; }
-.agenda-row > time { color: var(--brand); }
+.agenda-row > time {
+  color: var(--text);
+  border-right: 1px solid var(--margin-rule);
+}
 .agenda-row > time strong, .agenda-row > time span { display: block; }
+.agenda-row > time span { color: var(--muted); font-size: .9rem; }
 .agenda-row > div { min-width: 0; }
 .agenda-row h2, .agenda-row div > strong {
   margin: 0;
@@ -611,11 +666,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .agenda-row small { color: var(--muted); }
 .compact-agenda .agenda-row { padding-inline: 0; font-size: .9375rem; }
 .compact-agenda .agenda-row p { font-size: .875rem; }
-.compact-agenda .agenda-row[class*="agenda-holiday"],
-.compact-agenda .agenda-row[class*="agenda-waste"],
-.compact-agenda .agenda-row[class*="agenda-birthday"] {
-  padding-left: .85rem;
-}
 
 .filter-nav {
   display: flex;
@@ -724,7 +774,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--text);
   background: var(--surface);
   border: 2px solid var(--line);
-  border-radius: .75rem;
+  border-radius: var(--radius);
 }
 .form-card input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-card select:focus,
@@ -888,8 +938,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   max-width: 70ch;
   padding: .75rem 1rem;
   background: var(--warning-soft);
-  border-left: 4px solid var(--warning);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border: 1.5px dashed var(--warning-accent);
+  border-radius: var(--radius);
 }
 .sources { margin-top: 1rem; }
 .sources > div {
@@ -922,7 +972,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .more-list strong, .more-list span { display: block; }
 .more-list span { color: var(--muted); font-size: .9rem; }
 
-/* Modern Wachen-Zentrale Hub / More Menu UI */
+/* „Mehr“: Inhaltsverzeichnis des Buchs. Kapitel mit Kopflinie, Bereiche als
+   Zeilen mit Führungspunkten – keine Kachelwand, keine Symbol-Kacheln. */
 .more-hub-container {
   display: flex;
   flex-direction: column;
@@ -953,60 +1004,67 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--text);
   outline: none;
 }
-.more-category-block { display: flex; flex-direction: column; gap: .75rem; }
+.more-category-block {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem .25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
 .more-category-header {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: .25rem 1rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--text);
 }
 .more-category-title { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text); }
 .more-category-count { color: var(--muted); font-size: .875rem; font-weight: 600; }
+/* Zwei Spalten wie ein Register, sobald der Platz reicht. */
 .more-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
-  gap: .75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  column-gap: 2.5rem;
 }
-/* Karte: Symbol, Titel, kurzer Text. Ruhig – kein Anheben beim Überfahren. */
+/* Zeile: Symbol frei in Tinte, Titel, darunter kurzer Text; rechts „In
+   Leiste“ als Stempel. Die Zeilenlinie trennt, nicht ein Rahmen. */
 .more-card-item {
-  min-height: 5.5rem;
+  min-height: 4.25rem;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: .25rem .9rem;
-  padding: 1rem;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 .85rem;
+  padding: .7rem .25rem;
   color: var(--text);
   text-decoration: none;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-bottom: 1px solid var(--line);
 }
-.more-card-item:hover { background: var(--surface-soft); border-color: var(--line-strong); }
+.more-card-item:hover { background: var(--surface-soft); }
+.more-card-item:hover .more-card-title { text-decoration: underline; text-underline-offset: .18em; }
 .more-card-top { display: contents; }
 .more-card-icon {
-  grid-row: span 2;
-  width: 2.75rem;
-  height: 2.75rem;
+  grid-column: 1;
   display: grid;
   place-items: center;
-  color: var(--brand);
-  background: var(--accent-soft);
-  border-radius: var(--radius);
+  color: var(--text);
 }
 .more-card-icon .icon { width: 1.5rem; height: 1.5rem; }
+.more-card-item > div:not(.more-card-top) { grid-column: 2; grid-row: 1; min-width: 0; }
 .more-card-tag {
-  grid-column: 2;
-  grid-row: 3;
-  justify-self: start;
-  padding: .1rem .5rem;
+  grid-column: 3;
+  grid-row: 1;
+  padding: .1rem .45rem;
   color: var(--muted);
-  border: 1px solid var(--line);
+  border: 1px dotted var(--line-strong);
   border-radius: var(--radius-sm);
   font-size: .75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
-.more-card-title { display: block; margin-bottom: .2rem; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.more-card-title { display: block; font-size: 1.05rem; font-weight: 700; color: var(--text); }
 .more-card-desc { display: block; font-size: .9rem; color: var(--muted); line-height: 1.4; }
 
 .member-list-clean article {
@@ -1037,8 +1095,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: 1.75rem 1.5rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 4px solid var(--brand);
-  border-radius: var(--radius-lg);
+  border-top: 3px double var(--text);
+  border-radius: var(--radius);
 }
 .access-panel h1 {
   margin: .25rem 0 .75rem;
@@ -1070,9 +1128,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   display: inline-flex;
   align-items: center;
   padding: .2rem .65rem;
-  border-radius: .5rem;
-  font-size: .78rem;
-  font-weight: 750;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 700;
 }
 .legend-chip.band-daily,
 .status-label.band-daily,
@@ -1089,22 +1147,23 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .legend-chip {
   color: var(--band);
   background: var(--band-soft);
-  border: 1px solid color-mix(in srgb, var(--band) 28%, transparent);
+  border: 1.5px solid var(--band);
 }
 .status-label.band-daily,
 .status-label.band-weekday,
 .status-label.band-extra {
   color: var(--band);
   background: var(--band-soft);
-  border-color: color-mix(in srgb, var(--band) 28%, transparent);
+  border-color: var(--band);
 }
 
+/* Aufgabenblock der Wandtafel: getönte Kopfzeile mit Linie in der Farbe des
+   Blocks – kein farbiger Seitenstreifen. */
 .task-band {
   margin-bottom: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-left: 6px solid var(--band);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 .task-band-head {
@@ -1115,6 +1174,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   gap: .5rem 1rem;
   padding: .85rem 1rem;
   background: var(--band-soft);
+  border-bottom: 1.5px solid var(--band);
 }
 .task-band-head h2 { margin: 0; font-size: 1.15rem; }
 .task-band-head span { color: var(--band); font-size: .9rem; font-weight: 700; }
@@ -1135,56 +1195,51 @@ button, a { -webkit-tap-highlight-color: transparent; }
   min-width: 48px;
 }
 .task-row.is-done { background: var(--surface-soft); }
-/* Zeile: nur der Randstreifen (Zustand); die Pillenfläche gehört zu .urgency-pill. */
-.task-row.urgency-overdue { border-left: 4px solid var(--danger); }
-.task-row.urgency-critical { border-left: 4px solid var(--danger); }
-.task-row.urgency-warning { border-left: 4px solid var(--warning-accent); }
-.task-row.urgency-ok { border-left: 4px solid var(--success); }
+/* Der Zustand einer Zeile steht im Stempel (.urgency-pill), nicht in einem
+   Randstreifen; überfällige Zeilen bekommen zusätzlich eine getönte Fläche. */
+.task-row.urgency-overdue { background: var(--danger-soft); }
 
+/* Stempel für Fristen: Randform als zweites Signal (siehe .status-label). */
 .urgency-pill {
   display: inline-flex;
   align-items: center;
   gap: .35rem;
   padding: .2rem .55rem;
-  border-radius: .5rem;
-  font-size: .78rem;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
   font-weight: 700;
   white-space: nowrap;
-  border: 1px solid transparent;
+  border: 1.5px solid var(--line-strong);
 }
-.urgency-dot {
-  width: .55rem;
-  height: .55rem;
-  border-radius: 50%;
-  display: inline-block;
-  background: currentColor;
-}
+/* Der frühere Farbpunkt entfällt: Die Randform trägt den Zustand. */
+.urgency-dot { display: none; }
 :is(.urgency-pill, .legend-chip).urgency-ok {
   color: var(--success);
-  background: var(--success-soft);
-  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  background: transparent;
+  border-color: var(--success);
 }
 :is(.urgency-pill, .legend-chip).urgency-warning {
   color: var(--warning);
-  background: var(--warning-soft);
-  border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent);
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--warning-accent);
 }
-:is(.urgency-pill, .legend-chip).urgency-warning .urgency-dot { background: var(--warning-accent); }
 :is(.urgency-pill, .legend-chip).urgency-critical {
   color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  background: transparent;
+  border-width: 2px;
+  border-color: var(--danger);
 }
 :is(.urgency-pill, .legend-chip).urgency-overdue {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
-  font-weight: 800;
+  color: var(--on-danger);
+  background: var(--danger);
+  border-color: var(--danger);
 }
 :is(.urgency-pill, .legend-chip).urgency-done {
   color: var(--muted);
-  background: var(--surface-soft);
-  border-color: var(--line);
+  background: transparent;
+  border-style: dotted;
+  border-color: var(--line-strong);
 }
 .task-main {
   display: flex;
@@ -1211,12 +1266,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
   padding: .75rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
 }
-.week-day.is-today {
-  border-color: var(--brand);
-  box-shadow: inset 0 0 0 1px var(--brand);
-}
+/* Heute: Doppelrahmen in Tinte (Form statt Farbe). */
+.week-day.is-today { border: 3px double var(--text); }
 .week-day > header strong,
 .week-day > header span,
 .week-day > header small { display: block; }
@@ -1232,12 +1285,18 @@ button, a { -webkit-tap-highlight-color: transparent; }
   text-align: left;
   color: var(--text);
   background: var(--band-soft);
-  border: 1px solid color-mix(in srgb, var(--band) 22%, transparent);
-  border-left: 4px solid var(--band);
-  border-radius: .5rem;
+  border: 1.5px solid var(--band);
+  border-radius: var(--radius);
   cursor: pointer;
 }
-.week-task.is-done button { opacity: .72; }
+/* Erledigt: durchgestrichen und gepunkteter Rand, volle Deckkraft. */
+.week-task.is-done button {
+  color: var(--muted);
+  background: transparent;
+  border-style: dotted;
+  border-color: var(--line-strong);
+  text-decoration: line-through;
+}
 .week-task button strong { font-size: .9rem; line-height: 1.25; }
 
 @media (display-mode: standalone) {
@@ -1460,47 +1519,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 /* Kalenderquellen auf einen Blick unterscheidbar: Feiertag, Müll, Geburtstag.
    Der Balken liegt als Rahmen AUSSERHALB des Inhalts, sonst überdeckt er die
    Datumszahlen in der ersten Spalte. */
-/* Sonderzeilen leise: nur eine schmale Kante in der Kategoriefarbe – Feiertage
-   sind Information, keine Warnung, und dürfen nicht lauter sein als diese. */
-.agenda-holiday, .agenda-waste, .agenda-birthday { border-left: 3px solid var(--line-strong); }
-.agenda-holiday { border-left-color: var(--danger); }
-.agenda-waste { border-left-color: var(--success); }
-.agenda-birthday { border-left-color: var(--violet); }
+/* Sonderzeilen (Feiertag, Müll, Geburtstag) tragen ihr Etikett als Text im
+   Eintrag; eine farbige Kante gibt es nicht mehr. Sie sind Information und
+   stehen deshalb in gedämpfter Datumsfarbe. */
+.agenda-holiday > time, .agenda-waste > time, .agenda-birthday > time { color: var(--muted); }
 
-/* Organisationsprofile: gleiche Informationsarchitektur, eigene Aktionsfarbe.
-   Jede Farbe hat eine Nachtvariante; Rettungsdienst nutzt die Grund-Tokens. */
-.profile-fire {
-  --brand: #9f1d20;
-  --brand-deep: #7a1518;
-  --accent: #9f1d20;
-  --accent-dark: #7a1518;
-  --accent-soft: #fbe9e6;
-  --primary-container: #fbe9e6;
-}
-.profile-police {
-  --brand: #17506b;
-  --brand-deep: #103b50;
-  --accent: #17506b;
-  --accent-dark: #103b50;
-  --accent-soft: #e1eff3;
-  --primary-container: #e1eff3;
-}
-.profile-general {
-  --brand: #3f4f61;
-  --brand-deep: #2c3846;
-  --accent: #3f4f61;
-  --accent-dark: #2c3846;
-  --accent-soft: #e8edf2;
-  --primary-container: #e8edf2;
-}
-:root[data-theme="dark"] .profile-fire { --brand: #ff9e8f; --brand-deep: #ffbcb2; --accent: #ff9e8f; --accent-dark: #ffbcb2; --accent-soft: #3d1a17; --primary-container: #3d1a17; }
-:root[data-theme="dark"] .profile-police { --brand: #8fd0e2; --brand-deep: #b5e1ed; --accent: #8fd0e2; --accent-dark: #b5e1ed; --accent-soft: #13313d; --primary-container: #13313d; }
-:root[data-theme="dark"] .profile-general { --brand: #b9c6d3; --brand-deep: #d3dce5; --accent: #b9c6d3; --accent-dark: #d3dce5; --accent-soft: #222d38; --primary-container: #222d38; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .profile-fire { --brand: #ff9e8f; --brand-deep: #ffbcb2; --accent: #ff9e8f; --accent-dark: #ffbcb2; --accent-soft: #3d1a17; --primary-container: #3d1a17; }
-  :root:not([data-theme="light"]) .profile-police { --brand: #8fd0e2; --brand-deep: #b5e1ed; --accent: #8fd0e2; --accent-dark: #b5e1ed; --accent-soft: #13313d; --primary-container: #13313d; }
-  :root:not([data-theme="light"]) .profile-general { --brand: #b9c6d3; --brand-deep: #d3dce5; --accent: #b9c6d3; --accent-dark: #d3dce5; --accent-soft: #222d38; --primary-container: #222d38; }
-}
+/* Organisationsprofile (.profile-fire, -police, -general) ändern nur
+   Begriffe, nicht die Tinte: Bedienung ist in jeder Wache Petrol, Rot bleibt
+   den dringenden Stempeln vorbehalten (docs/DESIGN-SYSTEM.md, Regel 10). */
 
 /* —— Public navigation & privacy section styles —— */
 .public-nav {
@@ -1637,9 +1663,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .setup-steps li { line-height: 1.5; }
 
 /* ==========================================================================
-   Wachbuch Klar 2 – App-Rahmen und Basiskomponenten
-   Steht bewusst am Ende von app.css: ersetzt ältere Regeln gleicher
-   Spezifität. Farben ausschließlich über Tokens (hell und Nachtdienst).
+   Schichtbuch – App-Rahmen und Basiskomponenten
+   Steht bewusst nach den Seitenbausteinen: ersetzt ältere Regeln gleicher
+   Spezifität. Farben ausschließlich über Tokens (Tag und Nacht).
    ========================================================================== */
 
 /* —— Icons (Sprite core/static/core/icons.svg, Partial core/_icon.html) —— */
@@ -1655,12 +1681,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
   vertical-align: middle;
 }
 
-/* —— Kopfleiste —— */
+/* —— Kopfleiste: schließt mit einer Doppellinie wie der Kopf einer Buchseite —— */
 .app-header {
   position: relative;
   color: var(--text);
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 3px double var(--text);
 }
 .header-inner { min-height: 3.75rem; }
 .brand {
@@ -1708,7 +1734,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   :root:not([data-theme="light"]) .theme-toggle .icon-light { display: inline; }
 }
 
-/* —— Hauptnavigation —— */
+/* —— Hauptnavigation: Registerreiter. Die aktuelle Seite ist fett und trägt
+   einen Tintenbalken (zweites Signal neben der Farbe). —— */
 .app-nav {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -1720,8 +1747,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .app-nav a:hover { background: var(--surface-soft); color: var(--text); }
 .app-nav a[aria-current="page"] {
-  color: var(--brand);
-  border-color: var(--brand);
+  color: var(--text);
+  border-color: var(--text);
   font-weight: 700;
 }
 .nav-badge {
@@ -1736,23 +1763,23 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .identity span { color: var(--muted); }
   .app-nav {
     background: var(--surface);
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--text);
     box-shadow: none;
   }
   .app-nav a {
     gap: .25rem;
-    border-top: 0;
-    font-size: .78rem;
+    border-top: 3px solid transparent;
+    font-size: .8rem;
     font-weight: 600;
   }
   .app-nav a .icon {
-    width: 3.25rem;
-    height: 1.9rem;
-    padding: .3rem 0;
-    border-radius: 999px;
+    width: 1.5rem;
+    height: 1.5rem;
   }
-  .app-nav a[aria-current="page"] { background: transparent; }
-  .app-nav a[aria-current="page"] .icon { background: var(--accent-soft); }
+  .app-nav a[aria-current="page"] {
+    background: transparent;
+    border-top-color: var(--text);
+  }
   .logout-form .logout-label { display: none; }
 }
 
@@ -1778,16 +1805,19 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border-color: var(--brand);
 }
 .button.primary:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+/* Nebenknopf: Blatt mit Tintenrand – wie ein vorgedrucktes Formularfeld. */
 .button.secondary {
-  color: var(--brand);
+  color: var(--text);
   background: var(--surface);
-  border-color: var(--line-strong);
+  border-color: var(--text);
 }
-.button.secondary:hover { background: var(--accent-soft); border-color: var(--brand); }
+.button.secondary:hover { background: var(--surface-soft); border-color: var(--text); }
 .button.ghost {
   color: var(--brand);
   background: transparent;
   border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: .18em;
 }
 .button.ghost:hover { background: var(--accent-soft); }
 .button.danger {
@@ -1798,7 +1828,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button.danger:hover { background: var(--danger-soft); }
 .button[disabled], .button[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
 
-/* —— Flächen —— */
+/* —— Blätter: Fläche, feine Linie, 4 px Radius, kein Schatten —— */
 .section-block,
 .card,
 .form-card,
@@ -1808,61 +1838,62 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .install-banner {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
 }
-.card { border-radius: var(--radius-lg); }
+.card { border-radius: var(--radius); }
+/* Abschnitt = Buchabschnitt: Kopfzeile mit Tintenlinie darunter. */
+.section-heading {
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--text);
+}
+.section-block > h2:first-child {
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--text);
+}
 
-/* Kennzahlen: Zahl groß, Bedeutung darunter; Farbe nur bei Handlungsbedarf. */
-.kpi-card {
-  border-left-width: 1px;
-  border-left-color: var(--line);
-}
-.kpi-card.border-danger { border-left: 4px solid var(--danger); }
-.kpi-card.border-warning { border-left: 4px solid var(--warning-accent); }
-.kpi-card.border-success { border-left-color: var(--line); }
+/* Kennzahlen: Zahl groß, Bedeutung darunter. Handlungsbedarf zeigt die
+   Randform (durchgezogen = dringend, gestrichelt = fällig) und die Farbe der
+   Zahl – kein Seitenstreifen. */
+.kpi-card { border-radius: var(--radius); }
+.kpi-card.border-danger { border: 2px solid var(--danger); }
+.kpi-card.border-danger .kpi-value { color: var(--danger); }
+.kpi-card.border-warning { border: 1.5px dashed var(--warning-accent); }
+.kpi-card.border-warning .kpi-value { color: var(--warning); }
 .kpi-value { font-weight: 700; letter-spacing: -.02em; }
 
-/* Übersichtskacheln: Rand nur, wenn wirklich etwas zu tun ist. */
-.quick-actions a {
-  border-left: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-}
+/* Übersichtskacheln: gestrichelter Rand nur, wenn wirklich etwas zu tun ist. */
+.quick-actions a { border-radius: var(--radius); }
 .quick-actions a:hover { border-color: var(--line-strong); background: var(--surface-soft); }
 .quick-actions a.has-attention,
 .operations-summary .quick-actions a.has-attention {
-  border-left: 4px solid var(--warning-accent);
+  border: 1.5px dashed var(--warning-accent);
 }
 .quick-actions strong { font-size: 1.05rem; }
 
 .status-pill { border-radius: var(--radius); font-weight: 600; }
 .status-pill.danger {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--on-danger);
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
-/* —— Etiketten: Text in Lesefarbe, Zustand als Punkt und Rand —— */
+/* —— Stempel: Zustand als ausgeschriebenes Wort im Rechteck. Die Randform
+   ist das zweite Signal neben der Farbe (docs/DESIGN-SYSTEM.md, „Stempel“):
+   gefüllt = dringend, gestrichelt = fällig, doppelt = gesperrt,
+   durchgezogen mit Haken = erledigt, durchgezogen = offen, gepunktet = wartend.
+   Stempel sind nie klickbar. —— */
 .status-label,
 .badge {
   min-height: 1.75rem;
-  gap: .4rem;
+  gap: .35rem;
   padding: .15rem .55rem;
   color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   font-size: .8rem;
   font-weight: 700;
-}
-.status-label::before,
-.badge-pass::before,
-.badge-fail::before {
-  content: "";
-  width: .5rem;
-  height: .5rem;
-  flex: none;
-  border-radius: 50%;
-  background: var(--line-strong);
+  line-height: 1.3;
 }
 /* Zuordnung wie in der Flutter-App: dringend = danger, offen = info,
    in Arbeit = warning, wartend = neutral, erledigt = success. Die Klassen
@@ -1871,23 +1902,17 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .status-label.priority-urgent,
 .status-label.danger,
 .badge-fail {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--on-danger);
+  background: var(--danger);
+  border-color: var(--danger);
 }
-.status-label.priority-urgent::before,
-.status-label.danger::before,
-.badge-fail::before { background: var(--danger); }
 .status-label.priority-important,
 .status-label.warning,
 .status-label.status-in_progress {
   color: var(--warning);
-  background: var(--warning-soft);
-  border-color: color-mix(in srgb, var(--warning-accent) 55%, transparent);
+  border-style: dashed;
+  border-color: var(--warning-accent);
 }
-.status-label.priority-important::before,
-.status-label.warning::before,
-.status-label.status-in_progress::before { background: var(--warning-accent); }
 .status-label.priority-normal,
 .status-label.priority-info,
 .status-label.priority-event,
@@ -1895,50 +1920,66 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .status-label.info,
 .status-label.status-open {
   color: var(--text);
-  background: var(--surface);
-  border-color: var(--line);
+  border-color: var(--line-strong);
 }
-.status-label.priority-normal::before,
-.status-label.priority-info::before,
-.status-label.priority-event::before,
-.status-label.neutral::before,
-.status-label.info::before,
-.status-label.status-open::before { background: var(--brand); }
 .status-label.status-waiting {
-  color: var(--text);
-  background: var(--surface);
-  border-color: var(--line);
+  color: var(--muted);
+  border-style: dotted;
+  border-color: var(--line-strong);
 }
-.status-label.status-waiting::before { background: var(--line-strong); }
 .status-label.success,
 .status-label.status-done,
 .badge-pass {
   color: var(--success);
-  background: var(--success-soft);
-  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  border-color: var(--success);
 }
 .status-label.success::before,
 .status-label.status-done::before,
-.badge-pass::before { background: var(--success); }
+.badge-pass::before {
+  content: "\2713";
+  content: "\2713" / "";
+  font-weight: 700;
+}
+.status-label.locked,
+.status-label.violet,
+.badge-locked {
+  padding-block: .05rem;
+  color: var(--violet);
+  border: 3px double var(--violet);
+}
 
-/* —— Hinweise —— */
+/* —— Hinweise: ganzer Rand in der Farbe des Tons, Randform wie beim
+   Stempel (Warnung gestrichelt, Fehler kräftig). Kein Seitenstreifen. —— */
 .message,
 .notice,
 .alert,
 .callout {
   color: var(--text);
   background: var(--info-soft);
-  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
-  border-left: 4px solid var(--info);
+  border: 1.5px solid var(--info);
   border-radius: var(--radius);
 }
-.message.success, .alert-success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
-.message.warning, .alert-warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
-.message.error, .alert-danger, .alert-error { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
+.message.success, .alert-success { background: var(--success-soft); border-color: var(--success); }
+.message.warning, .alert-warning, .notice { background: var(--warning-soft); border-style: dashed; border-color: var(--warning-accent); }
+.message.error, .alert-danger, .alert-error { background: var(--danger-soft); border-width: 2px; border-color: var(--danger); }
+/* Verbindungsbanner: bleibt oben stehen, solange der Server nicht erreichbar
+   ist, und nennt den Weg zum Papier-Rückfall. */
 .connection-chip {
-  color: var(--warning);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem 1rem;
+  color: var(--text);
   background: var(--warning-soft);
-  border-bottom: 1px solid color-mix(in srgb, var(--warning-accent) 45%, transparent);
+  border-bottom: 1.5px dashed var(--warning-accent);
+}
+.connection-chip a {
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  font-weight: 700;
 }
 
 /* —— Formulare —— */
@@ -2077,6 +2118,8 @@ dialog::backdrop { background: var(--scrim); }
    ========================================================================== */
 .dashboard-head h1 { font-size: clamp(1.75rem, 3.2vw, 2.4rem); }
 
+/* „Jetzt“: Die Zahl steht in der Randspalte, daneben die Randlinie, rechts
+   der Stempel mit dem Ton als Wort. Kein Seitenstreifen. */
 .attention-board { margin: 0 0 1rem; }
 .attention-board ul {
   margin: 0;
@@ -2084,36 +2127,40 @@ dialog::backdrop { background: var(--scrim); }
   list-style: none;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 .attention-board li + li { border-top: 1px solid var(--line); }
 .attention-row {
   min-height: 4.25rem;
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: .25rem 1rem;
-  padding: .75rem 1rem .75rem 0;
+  grid-template-columns: var(--rail) minmax(0, 1fr) auto auto;
+  align-items: stretch;
+  gap: 0 1rem;
+  padding: 0 1rem;
   color: var(--text);
   text-decoration: none;
-  border-left: 4px solid var(--warning-accent);
 }
-.attention-row.tone-danger { border-left-color: var(--danger); }
 .attention-row:hover { background: var(--surface-soft); }
 .attention-value {
-  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: .9rem;
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: -.02em;
+  border-right: 1px solid var(--margin-rule);
 }
 .tone-danger .attention-value { color: var(--danger); }
 .tone-warning .attention-value { color: var(--warning); }
-.attention-text strong { display: block; font-size: 1.05rem; }
+.attention-text { align-self: center; min-width: 0; padding-block: .75rem; }
+.attention-text strong { display: block; font-size: 1.05rem; overflow-wrap: anywhere; }
 .attention-text small { display: block; color: var(--muted); }
-.attention-chevron { color: var(--muted); }
+.attention-row > .status-label { align-self: center; }
+.attention-chevron { align-self: center; color: var(--muted); }
 
 .calm-line {
   display: flex;
@@ -2125,6 +2172,98 @@ dialog::backdrop { background: var(--scrim); }
 .calm-line .icon { margin-top: .15rem; color: var(--success); }
 .calm-line a { color: inherit; text-decoration-color: var(--line-strong); }
 .calm-line a:hover { color: var(--text); }
+
+/* —— Schichtband: der Tag als 24-Stunden-Leiste (docs/DESIGN-SYSTEM.md).
+   Drei Bahnen: oben Termine, in der Mitte geschriebene Einträge, unten
+   Sperrzeiten und fällige Prüfungen. Links von der Jetzt-Marke ist der Tag
+   getönt (geschrieben), rechts offen. Positionen sind SVG-Attribute – kein
+   style-Attribut, funktioniert ohne JavaScript. —— */
+.shift-band {
+  margin: 0 0 1.5rem;
+}
+.shift-band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .25rem 1rem;
+  margin: 0 0 .5rem;
+}
+.shift-band-head h2 { margin: 0; font-size: 1.05rem; }
+.shift-band-now {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.shift-band-svg {
+  display: block;
+  width: 100%;
+  height: 3rem;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+.shift-band-svg line, .shift-band-svg rect { vector-effect: non-scaling-stroke; }
+.sb-past { fill: var(--bg-accent); }
+.sb-rule { stroke: var(--line); stroke-width: 1; }
+.sb-hour { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 4; }
+.sb-event { fill: var(--accent-soft); stroke: var(--brand); stroke-width: 1.5; }
+.sb-entry { stroke: var(--text); stroke-width: 2; }
+.sb-entry.sb-urgent { stroke: var(--danger); stroke-width: 5; }
+.sb-lock { fill: var(--violet-soft); }
+.sb-lock-rule { stroke: var(--violet); stroke-width: 2; }
+.sb-due { stroke: var(--warning-accent); stroke-width: 3; stroke-dasharray: 3 3; }
+.sb-now { stroke: var(--text); stroke-width: 2; }
+.sb-now-head { stroke: var(--text); stroke-width: 8; }
+.shift-band-hours {
+  display: flex;
+  justify-content: space-between;
+  margin: .25rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Jede Marke steht darunter noch einmal als Text: Uhrzeit, Stempel, Inhalt. */
+.shift-band-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 0 2rem;
+  margin: .5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.shift-band-legend li {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: .25rem .75rem;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.shift-band-legend time { font-weight: 600; }
+.shift-band-legend span { min-width: 0; overflow-wrap: anywhere; }
+.shift-band-legend small { color: var(--muted); }
+.shift-band-legend a { color: inherit; }
+.shift-band-legend .status-label { margin-right: .35rem; vertical-align: .05em; }
+
+/* —— Bereitschaft je Fahrzeug: eine Zeile, ein Stempel —— */
+.readiness-list { margin: 0; padding: 0; list-style: none; }
+.readiness-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem .75rem;
+  min-height: var(--touch);
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.readiness-list li:last-child { border-bottom: 0; }
+.readiness-list a { color: var(--text); font-weight: 700; }
+.readiness-list small { flex: 1 0 100%; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .overview-aside { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
 .task-progress {
@@ -2141,14 +2280,14 @@ dialog::backdrop { background: var(--scrim); }
   width: 100%;
   height: .5rem;
   appearance: none;
-  border: 0;
-  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--surface-soft);
 }
 .task-progress progress::-webkit-progress-bar { background: var(--surface-soft); }
-.task-progress progress::-webkit-progress-value { background: var(--success); border-radius: 999px; }
-.task-progress progress::-moz-progress-bar { background: var(--success); border-radius: 999px; }
+.task-progress progress::-webkit-progress-value { background: var(--success); }
+.task-progress progress::-moz-progress-bar { background: var(--success); }
 
 /* Zwei-Faktor-Einrichtung und Impressum */
 .mfa-steps { display: grid; gap: 1rem; padding-left: 1.4rem; }
@@ -2218,13 +2357,13 @@ dialog::backdrop { background: var(--scrim); }
   gap: .6rem;
   min-height: var(--touch);
   padding: .75rem .9rem;
-  border: 2px solid var(--line);
-  border-radius: .75rem;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
   background: var(--surface);
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
 }
-.choice-tile:has(input:checked) { border-color: var(--brand); background: var(--primary-container); }
+.choice-tile:has(input:checked) { border: 2px solid var(--brand); background: var(--primary-container); }
 .choice-tile input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--brand); }
 .quick-amounts { display: flex; flex-wrap: wrap; gap: .5rem; margin: -.5rem 0 1.25rem; }
 .quick-amounts a {
@@ -2234,31 +2373,33 @@ dialog::backdrop { background: var(--scrim); }
   color: var(--text);
   text-decoration: none;
   padding: .4rem .9rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
   background: var(--surface);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
-.quick-amounts a[aria-current="true"] { border-color: var(--brand); background: var(--primary-container); }
+.quick-amounts a[aria-current="true"] { border: 2px solid var(--brand); background: var(--primary-container); }
 .coffee-book th, .coffee-book td { white-space: nowrap; }
 .coffee-book td.coffee-cell { text-align: center; }
 .coffee-cell .coffee-badge {
   display: inline-block;
   min-width: 4.5rem;
   padding: .2rem .45rem;
-  border-radius: .5rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
   font-size: .85rem;
   font-weight: 700;
 }
-.coffee-badge.is-paid { color: var(--success); background: var(--success-soft); }
-.coffee-badge.is-open { color: var(--warning); background: var(--warning-soft); }
-.coffee-badge.is-waived { color: var(--info); background: var(--info-soft); }
+.coffee-badge.is-paid { color: var(--success); border-color: var(--success); }
+.coffee-badge.is-open { color: var(--warning); border-style: dashed; border-color: var(--warning-accent); }
+.coffee-badge.is-waived { color: var(--text); border-style: dotted; border-color: var(--line-strong); }
 .coffee-badge.is-none { color: var(--muted); }
 .coffee-row-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
 .coffee-row-actions form { margin: 0; }
 .coffee-waive summary { cursor: pointer; color: var(--accent-dark); font-weight: 700; font-size: .85rem; }
 .coffee-waive form { display: flex; flex-direction: column; gap: .35rem; margin-top: .35rem; }
-.coffee-waive input { min-height: 2.5rem; padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: .5rem; }
+.coffee-waive input { min-height: 2.75rem; padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: var(--radius); }
 @media (max-width: 40rem) {
   .coffee-section .balance-row > div, .balance-row.coffee-pots > div { min-width: 0; flex: 1 1 calc(50% - .5rem); }
   .coffee-section .balance-row strong { font-size: 1.3rem; }
@@ -2302,7 +2443,7 @@ button.text-action {
 /* Öffentliche Demo: Banner mit Ablaufzeit und Rollenwechsel (docs/DEMO.md) */
 .demo-bar {
   background: var(--warning-soft);
-  border-bottom: 1px solid color-mix(in srgb, var(--warning-accent) 55%, transparent);
+  border-bottom: 1.5px dashed var(--warning-accent);
   color: var(--text);
 }
 .demo-bar-inner {
@@ -2341,10 +2482,12 @@ button.text-action {
 }
 
 /* Demo-Rundgang „Dein erster Schichtwechsel“ */
+/* Der Rundgang ist eine Randnotiz im Buch: gestrichelter Rahmen wie eine
+   eingelegte Notiz, Schritte als Zeilen mit Nummer in der Randspalte. */
 .demo-tour {
   margin: 0 0 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
   background: var(--surface);
   scroll-margin-top: 1rem;
 }
@@ -2360,32 +2503,33 @@ button.text-action {
 .demo-tour-title { font-size: 1.15rem; font-weight: 700; }
 .demo-tour-count { color: var(--muted); }
 .demo-tour-progress { display: block; width: calc(100% - 2.5rem); margin: 0 1.25rem .75rem; height: .5rem; accent-color: var(--success); }
-.demo-tour-steps { list-style: none; margin: 0; padding: 0 1.25rem 1rem; display: grid; gap: .5rem; }
+.demo-tour-steps { list-style: none; margin: 0; padding: 0 1.25rem 1rem; display: grid; }
 .demo-tour-step {
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr) auto;
   align-items: center;
   gap: .75rem;
-  padding: .6rem .75rem;
-  border-radius: var(--radius);
-  background: var(--surface-soft);
+  padding: .6rem .25rem;
+  border-top: 1px solid var(--line);
 }
 .demo-tour-step form { margin: 0; }
 .demo-tour-step.is-next { background: var(--accent-soft); }
-.demo-tour-step.is-done { opacity: .75; }
+/* Erledigt: gedämpfte Schrift bei voller Deckkraft, Haken-Feld in Grün. */
+.demo-tour-step.is-done .demo-tour-copy strong { color: var(--muted); }
 .demo-tour-mark {
   display: grid;
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: var(--radius-sm);
   background: var(--surface);
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--text);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
-.demo-tour-step.is-done .demo-tour-mark { background: var(--success); border-color: var(--success); color: var(--on-strong); }
+.demo-tour-step.is-done .demo-tour-mark { background: transparent; border-color: var(--success); color: var(--success); }
 .demo-tour-copy p { margin: .15rem 0 0; color: var(--muted); }
-.demo-tour.is-complete { border-color: var(--success); }
+.demo-tour.is-complete { border-style: solid; border-color: var(--success); }
 .demo-tour-finish {
   display: grid;
   gap: .6rem;
@@ -2393,7 +2537,7 @@ button.text-action {
   padding: 1rem 1.25rem;
   border-radius: var(--radius);
   background: var(--success-soft);
-  border-left: 4px solid var(--success);
+  border: 1.5px solid var(--success);
 }
 .demo-tour-finish p { margin: 0; }
 .demo-tour-finish-title { font-size: 1.1rem; }
@@ -2408,20 +2552,23 @@ button.text-action {
 
 /* Demo: Beispielnachrichten der Signal-Gruppe */
 .signal-preview { display: grid; gap: .5rem; margin: .75rem 0 1rem; padding: 1rem; border-radius: var(--radius-lg); background: var(--surface-soft); }
-.signal-bubble { justify-self: start; max-width: 32rem; margin: 0; padding: .6rem .9rem; border-radius: 1rem 1rem 1rem .25rem; background: var(--surface); border: 1px solid var(--line); }
+.signal-bubble { justify-self: start; max-width: 32rem; margin: 0; padding: .6rem .9rem; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); }
 
-/* Lesebestätigungen einer Übergabe */
+/* Lesebestätigungen einer Übergabe: Unterschriftenzeile wie im Wachbuch –
+   Name über der Linie, Uhrzeit daneben. */
 .handover-ack-action { margin: 1rem 0; }
 .handover-ack-action .button { min-height: 48px; }
-.ack-list { list-style: none; margin: .5rem 0 .75rem; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
-.ack-list li { display: inline-flex; align-items: baseline; gap: .4rem; padding: .3rem .75rem; border-radius: 999px; background: var(--success-soft); }
-.ack-list time { color: var(--muted); font-size: .85rem; }
+.ack-list { list-style: none; margin: .5rem 0 .75rem; padding: 0; display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; }
+.ack-list li { display: inline-flex; align-items: baseline; gap: .5rem; min-width: 9rem; padding: .3rem .25rem .2rem; font-weight: 600; border-bottom: 1px solid var(--text); }
+.ack-list li::before { content: "\2713"; content: "\2713" / ""; color: var(--success); font-weight: 700; }
+.ack-list time { margin-left: auto; color: var(--muted); font-size: .85rem; font-weight: 400; }
 
 /* Posteingang für Rückmeldungen */
 .feedback-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .75rem; }
-.feedback-entry { padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
-.feedback-entry.status-new { border-left: 4px solid var(--accent); }
-.feedback-entry.status-done { opacity: .75; }
+.feedback-entry { padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+/* Neu: kräftiger Tintenrand. Erledigt: Einzugsfläche, volle Deckkraft. */
+.feedback-entry.status-new { border: 1.5px solid var(--text); }
+.feedback-entry.status-done { background: var(--surface-soft); }
 .feedback-meta { margin: 0 0 .5rem; color: var(--muted); }
 .feedback-meta strong { color: var(--text); }
 .feedback-message { margin: 0 0 .75rem; white-space: normal; overflow-wrap: anywhere; }
@@ -2448,10 +2595,10 @@ button.text-action {
 /* Mangel in drei Tipps: Duplikat-Hinweis „Bereits gemeldet“, Foto-Knöpfe & Segment-Chips */
 .already-reported-banner {
   margin: 0.75rem 0 0;
-  border-left: 4px solid var(--warning-accent);
+  border: 1.5px dashed var(--warning-accent);
   background: var(--warning-soft);
   padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg, 0.5rem);
+  border-radius: var(--radius);
 }
 .already-reported-banner[hidden] { display: none !important; }
 .already-reported-banner .alert-heading {
@@ -2504,7 +2651,7 @@ button.text-action {
   min-width: var(--touch, 48px);
   padding: 0.6rem 1.25rem;
   cursor: pointer;
-  border-radius: var(--radius-lg, 0.5rem);
+  border-radius: var(--radius);
   box-sizing: border-box;
 }
 
@@ -2529,10 +2676,10 @@ button.text-action {
   min-height: var(--touch, 48px);
   min-width: var(--touch, 48px);
   padding: 0.5rem 1rem;
-  border: 2px solid var(--line, rgba(148, 163, 184, 0.4));
-  border-radius: 9999px;
-  background: var(--surface, #ffffff);
-  color: var(--text, #1e293b);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -2603,5 +2750,42 @@ fieldset.chip-fieldset > legend {
 @media (max-width: 48rem) {
   .heading-actions { flex-direction: column; }
   .heading-actions .button { width: 100%; }
+
+  /* Handy: Randspalte schmal (Datum über Uhrzeit), der Stempel rückt unter
+     den Inhalt, damit der Titel die Zeile bekommt. */
+  .list-row:has(> time) {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0 .75rem;
+    padding: 0 .85rem;
+  }
+  .list-row:has(> time) > time {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    padding-right: .5rem;
+    font-size: .8rem;
+    overflow-wrap: anywhere;
+  }
+  .list-row:has(> time) > .row-content {
+    grid-column: 2;
+    grid-row: 1;
+    padding-block: .75rem .3rem;
+  }
+  .list-row:has(> time) > .status-label {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin-bottom: .75rem;
+  }
+  .attention-row {
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    gap: 0 .75rem;
+    padding: 0 .85rem 0 .5rem;
+  }
+  .attention-value { grid-row: 1 / span 2; padding-right: .6rem; }
+  .attention-text { grid-column: 2; grid-row: 1; padding-block: .7rem .3rem; }
+  .attention-row > .status-label { grid-column: 2; grid-row: 2; justify-self: start; margin-bottom: .7rem; }
+  .attention-chevron { grid-column: 3; grid-row: 1 / span 2; }
+  .more-category-block { padding-inline: .85rem; }
+  .shift-band-svg { height: 2.75rem; }
 }
 

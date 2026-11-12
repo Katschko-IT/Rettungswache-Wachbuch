@@ -1,0 +1,34 @@
+{% load i18n %}{% comment %}
+  Schichtband: 24-Stunden-Leiste des laufenden Tags (core/shift_band.py).
+  Positionen sind Minuten seit Mitternacht als SVG-Attribute, lesbar ohne
+  JavaScript; ui.js rückt die Jetzt-Marke nach. Jede Marke steht in der Liste
+  darunter noch einmal als Text.
+{% endcomment %}
+<section class="shift-band" aria-labelledby="shift-band-title" data-shift-band data-now="{{ band.now_x }}">
+  <div class="shift-band-head">
+    <h2 id="shift-band-title">{% translate "Heute" %}</h2>
+    <p class="shift-band-now"><time datetime="{{ band.now_iso }}" data-shift-now>{{ band.now_label }}</time></p>
+  </div>
+  <svg class="shift-band-svg" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <rect class="sb-past" data-shift-past x="0" y="0" width="{{ band.now_x }}" height="48"/>
+    <line class="sb-rule" x1="0" y1="16" x2="1440" y2="16"/>
+    <line class="sb-rule" x1="0" y1="32" x2="1440" y2="32"/>
+    <line class="sb-hour" x1="360" y1="0" x2="360" y2="48"/>
+    <line class="sb-hour" x1="720" y1="0" x2="720" y2="48"/>
+    <line class="sb-hour" x1="1080" y1="0" x2="1080" y2="48"/>
+    {% for mark in band.events %}<rect class="sb-event" x="{{ mark.x }}" y="3" width="{{ mark.w }}" height="10"/>{% endfor %}
+    {% for mark in band.entries %}<line class="sb-entry{% if mark.urgent %} sb-urgent{% endif %}" x1="{{ mark.x }}" y1="{% if mark.urgent %}17{% else %}19{% endif %}" x2="{{ mark.x }}" y2="{% if mark.urgent %}31{% else %}29{% endif %}"/>{% endfor %}
+    {% for mark in band.locks %}<rect class="sb-lock" x="{{ mark.x }}" y="35" width="{{ mark.w }}" height="10"/><line class="sb-lock-rule" x1="{{ mark.x }}" y1="35" x2="{{ mark.x|add:mark.w }}" y2="35"/><line class="sb-lock-rule" x1="{{ mark.x }}" y1="45" x2="{{ mark.x|add:mark.w }}" y2="45"/>{% endfor %}
+    {% for mark in band.due %}<line class="sb-due" x1="{{ mark.x }}" y1="34" x2="{{ mark.x }}" y2="46"/>{% endfor %}
+    <line class="sb-now" data-shift-now-line x1="{{ band.now_x }}" y1="0" x2="{{ band.now_x }}" y2="48"/>
+    <line class="sb-now-head" data-shift-now-line x1="{{ band.now_x }}" y1="0" x2="{{ band.now_x }}" y2="7"/>
+  </svg>
+  <ol class="shift-band-hours" aria-hidden="true"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
+  {% if band.legend %}
+  <ul class="shift-band-legend">
+    {% for item in band.legend %}
+      <li><time datetime="{{ item.iso }}">{{ item.time }}</time><span><span class="status-label {{ item.tone }}">{{ item.label }}</span><a href="{{ item.href }}">{{ item.text }}</a>{% if item.note %} <small>{{ item.note }}</small>{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>

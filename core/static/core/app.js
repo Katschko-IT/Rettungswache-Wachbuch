@@ -178,18 +178,44 @@
     window.location.reload();
   }
 
+  // Verbindungsbanner: steht, solange das Gerät offline ist ODER der Server
+  // der Wache nicht antwortet (WLAN da, Server aus). Das zweite merkt
+  // navigator.onLine nicht, deshalb fragt probeServer() eine kleine statische
+  // Datei am Service Worker vorbei ab (HEAD, ohne Cache).
+  let serverReachable = true;
+
   function setOnlineState() {
-    root.dataset.connection = navigator.onLine ? "online" : "offline";
+    const online = navigator.onLine && serverReachable;
+    root.dataset.connection = online ? "online" : "offline";
     const chip = doc.querySelector("[data-connection-chip]");
     if (!chip) {
       return;
     }
-    chip.hidden = navigator.onLine;
-    chip.textContent = wbT("offline_banner", "Offline – angezeigte Daten können veraltet sein");
+    chip.hidden = online;
+    const text = chip.querySelector("[data-connection-text]") || chip;
+    text.textContent = wbT("offline_banner", "Offline – angezeigte Daten können veraltet sein");
   }
 
-  window.addEventListener("online", setOnlineState);
+  function probeServer() {
+    const chip = doc.querySelector("[data-connection-chip]");
+    const url = chip && chip.getAttribute("data-probe-url");
+    if (!url || !navigator.onLine || typeof fetch !== "function") {
+      return;
+    }
+    fetch(url, { method: "HEAD", cache: "no-store", credentials: "same-origin" })
+      .then((response) => { serverReachable = response.ok || response.status < 500; })
+      .catch(() => { serverReachable = false; })
+      .then(setOnlineState);
+  }
+
+  window.addEventListener("online", () => { setOnlineState(); probeServer(); });
   window.addEventListener("offline", setOnlineState);
+  window.addEventListener("load", probeServer);
+  doc.addEventListener("visibilitychange", () => {
+    if (!doc.hidden) {
+      probeServer();
+    }
+  });
   setOnlineState();
 
   if ("serviceWorker" in navigator) {

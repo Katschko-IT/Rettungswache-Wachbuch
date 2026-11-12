@@ -110,10 +110,19 @@ main .list-row a:not(.button) {
     --accent-soft: #ffffff;
     --primary-container: #ffffff;
     --on-primary: #ffffff;
+    --margin-rule: #000000;
     --danger: #b91c1c;
+    --danger-soft: #ffffff;
+    --on-danger: #ffffff;
     --warning: #000000;
+    --warning-soft: #ffffff;
+    --warning-accent: #000000;
     --success: #000000;
+    --success-soft: #ffffff;
     --info: #000000;
+    --info-soft: #ffffff;
+    --violet: #000000;
+    --violet-soft: #ffffff;
     --priority-urgent: #b91c1c;
     --priority-important: #000000;
     --priority-normal: #000000;
@@ -131,5 +140,81 @@ main .list-row a:not(.button) {
     background: var(--surface);
     color: var(--text);
     border: 2px solid var(--text);
+  }
+}
+
+/* Dunkles Thema mit erhöhtem Kontrast: Weiß auf Schwarz. Die Nacht-Tokens in
+   tokens.css haben die Spezifität (0,2,0); diese Blöcke stehen danach. */
+@media (prefers-contrast: more) {
+  :root[data-theme="dark"] {
+    --bg: #000000;
+    --bg-accent: #000000;
+    --surface: #000000;
+    --surface-soft: #000000;
+    --surface-raised: #000000;
+    --text: #ffffff;
+    --muted: #ffffff;
+    --line: #ffffff;
+    --line-strong: #ffffff;
+    --margin-rule: #ffffff;
+    --brand: #ffffff;
+    --brand-deep: #ffffff;
+    --brand-ink: #ffffff;
+    --accent: #ffffff;
+    --accent-dark: #ffffff;
+    --accent-soft: #000000;
+    --primary-container: #000000;
+    --on-primary: #000000;
+    --danger: #ff9a9a;
+    --danger-soft: #000000;
+    --on-danger: #000000;
+    --warning: #ffffff;
+    --warning-soft: #000000;
+    --warning-accent: #ffffff;
+    --success: #ffffff;
+    --success-soft: #000000;
+    --info: #ffffff;
+    --info-soft: #000000;
+    --violet: #ffffff;
+    --violet-soft: #000000;
+    --focus: #ffffff;
+    --focus-halo: #ffffff;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --bg-accent: #000000;
+    --surface: #000000;
+    --surface-soft: #000000;
+    --surface-raised: #000000;
+    --text: #ffffff;
+    --muted: #ffffff;
+    --line: #ffffff;
+    --line-strong: #ffffff;
+    --margin-rule: #ffffff;
+    --brand: #ffffff;
+    --brand-deep: #ffffff;
+    --brand-ink: #ffffff;
+    --accent: #ffffff;
+    --accent-dark: #ffffff;
+    --accent-soft: #000000;
+    --primary-container: #000000;
+    --on-primary: #000000;
+    --danger: #ff9a9a;
+    --danger-soft: #000000;
+    --on-danger: #000000;
+    --warning: #ffffff;
+    --warning-soft: #000000;
+    --warning-accent: #ffffff;
+    --success: #ffffff;
+    --success-soft: #000000;
+    --info: #ffffff;
+    --info-soft: #000000;
+    --violet: #ffffff;
+    --violet-soft: #000000;
+    --focus: #ffffff;
+    --focus-halo: #ffffff;
   }
 }

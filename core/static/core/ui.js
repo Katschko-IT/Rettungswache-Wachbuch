@@ -9,6 +9,7 @@
  *   data-order="3"                 CSS-Reihenfolge (Leiste, „Mehr“)
  *   data-band="#aabbcc"            Farbband einer Aufgabe (--band)
  *   data-bar="42"                  Füllstand 0–100 % eines Balkens
+ *   data-shift-band data-now="875" Schichtband: Jetzt-Marke rückt im Minutentakt
  *   data-modal-open="id"           öffnet <div class="wb-modal" id="id" hidden>
  *     data-modal-action="/pfad/"   … und setzt action des [data-modal-form]
  *     data-modal-label="Text"      … und den Text von [data-modal-label-target]
@@ -483,8 +484,40 @@
     });
   }
 
+  // Schichtband: Die Jetzt-Marke rückt im Minutentakt nach. Ausgangspunkt ist
+  // die Serverzeit der Wache (data-now, Minuten seit Mitternacht), gezählt
+  // wird die seither vergangene Zeit – unabhängig von der Zeitzone des Geräts.
+  // Nach Mitternacht bleibt die Marke am Tagesende stehen, bis neu geladen wird.
+  function setupShiftBand(band) {
+    var base = parseInt(band.getAttribute("data-now"), 10);
+    if (isNaN(base)) {
+      return;
+    }
+    var loaded = Date.now();
+    var label = band.querySelector("[data-shift-now]");
+    var past = band.querySelector("[data-shift-past]");
+    function pad(value) {
+      return value < 10 ? "0" + value : String(value);
+    }
+    function tick() {
+      var minutes = Math.min(1440, base + Math.floor((Date.now() - loaded) / 60000));
+      each("[data-shift-now-line]", band, function (line) {
+        line.setAttribute("x1", String(minutes));
+        line.setAttribute("x2", String(minutes));
+      });
+      if (past) {
+        past.setAttribute("width", String(minutes));
+      }
+      if (label && minutes < 1440) {
+        label.textContent = pad(Math.floor(minutes / 60)) + ":" + pad(minutes % 60);
+      }
+    }
+    window.setInterval(tick, 20000);
+  }
+
   function init() {
     applyLayoutHints(document);
+    each("[data-shift-band]", document, setupShiftBand);
     each("[data-theme-toggle]", document, setupThemeToggle);
     each("[data-scanner]", document, setupScanner);
     each("[data-filter-input]", document, setupFilter);

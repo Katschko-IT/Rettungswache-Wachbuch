@@ -1,4 +1,4 @@
-/* Wachbuch Klar 2 – Fachmodule (MPG, Lager, Fuhrpark, Orga, Display, Mehr)
+/* Schichtbuch – Fachmodule (MPG, Lager, Fuhrpark, Orga, Display, Mehr)
    Lädt nach app.css. Farben ausschließlich über Tokens aus app.css, damit
    hell und Nachtdienst gleich funktionieren. Basiskomponenten (.button,
    .status-label, .badge, .kpi-card, .section-block, .card, .empty-state,
@@ -54,42 +54,42 @@
 .text-muted, .subtitle { color: var(--muted); }
 .inline { display: inline; margin: 0; }
 
-/* Zustandspunkt vor einer Aussage (statt farbiger Emojis). */
+/* Zustandsmarke vor einer Aussage: kleines Quadrat, dessen Form den Zustand
+   mitträgt (gefüllt = dringend, gestrichelt = fällig, Rahmen = sonst) –
+   der Text daneben nennt ihn immer. */
 .dot {
   display: inline-block;
-  width: .625rem;
-  height: .625rem;
+  width: .7rem;
+  height: .7rem;
   flex: none;
   margin-right: .4rem;
-  border-radius: 50%;
-  background: var(--line-strong);
-  vertical-align: .05em;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 1px;
+  background: transparent;
+  vertical-align: -.02em;
 }
-.dot-danger { background: var(--danger); }
-.dot-warning { background: var(--warning-accent); }
-.dot-success { background: var(--success); }
-.dot-info { background: var(--brand); }
+.dot-danger { border-color: var(--danger); background: var(--danger); }
+.dot-warning { border-style: dashed; border-color: var(--warning-accent); }
+.dot-success { border-color: var(--success); background: var(--success); }
+.dot-info { border-color: var(--brand); }
 
-/* Aussage mit Zustand: Text in Zustandsfarbe, Punkt davor. */
+/* Aussage mit Zustand: ein Stempel wie .status-label (app.css). */
 .state {
   display: inline-flex;
   align-items: center;
+  gap: .35rem;
+  padding: .15rem .55rem;
+  color: var(--text);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
   font-weight: 700;
 }
-.state::before {
-  content: "";
-  width: .625rem;
-  height: .625rem;
-  flex: none;
-  margin-right: .5rem;
-  border-radius: 50%;
-  background: currentColor;
-}
-.state.danger { color: var(--danger); }
-.state.warning { color: var(--warning); }
-.state.warning::before { background: var(--warning-accent); }
-.state.success { color: var(--success); }
-.state.info { color: var(--brand); }
+.state.danger { color: var(--on-danger); background: var(--danger); border-color: var(--danger); }
+.state.warning { color: var(--warning); border-style: dashed; border-color: var(--warning-accent); }
+.state.success { color: var(--success); border-color: var(--success); }
+.state.success::before { content: "\2713"; content: "\2713" / ""; }
+.state.info { color: var(--text); border-color: var(--line-strong); }
+.state.locked { padding-block: .05rem; color: var(--violet); border: 3px double var(--violet); }
 .state.large { font-size: 1.25rem; }
 
 /* —— Navigation, Kopf und Aktionen ——————————————————————————————— */
@@ -152,12 +152,14 @@
 }
 .filter-tabs a:hover,
 .filter-tabs button:hover { background: var(--surface-soft); }
+/* Gewählt: Tintenrand doppelt so stark und getönte Fläche (Form + Farbe). */
 .filter-tabs [aria-current="page"],
 .filter-tabs [aria-pressed="true"],
 .filter-tabs .is-active {
-  color: var(--brand);
+  color: var(--text);
   background: var(--accent-soft);
-  border-color: var(--brand);
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
   font-weight: 700;
 }
 .filter-tabs .count { color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -182,18 +184,19 @@
   text-decoration: none;
 }
 a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-strong); }
-.kpi-card.border-danger { border-left: 4px solid var(--danger); }
-.kpi-card.border-warning { border-left: 4px solid var(--warning-accent); }
-.kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+/* Handlungsbedarf: Randform und Farbe der Zahl (app.css), kein Seitenstreifen. */
+.kpi-card.border-danger { border: 2px solid var(--danger); }
+.kpi-card.border-warning { border: 1.5px dashed var(--warning-accent); }
+.kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .kpi-label { color: var(--muted); font-size: .875rem; font-weight: 600; }
 .kpi-note { color: var(--muted); font-size: .875rem; }
 
 /* —— Hinweise und Karten (Farben in app.css) ————————————————————— */
 .card { padding: 1.25rem; }
 .alert, .callout { margin: 0 0 var(--space-4); padding: .85rem 1rem; }
-.alert.warning { background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning-accent) 45%, transparent); border-left-color: var(--warning-accent); }
-.alert.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); border-left-color: var(--danger); }
-.alert.success { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, transparent); border-left-color: var(--success); }
+.alert.warning { background: var(--warning-soft); border-style: dashed; border-color: var(--warning-accent); }
+.alert.danger { background: var(--danger-soft); border-width: 2px; border-color: var(--danger); }
+.alert.success { background: var(--success-soft); border-color: var(--success); }
 .alert > :last-child, .callout > :last-child { margin-bottom: 0; }
 
 /* —— Abschnitte und Listen ——————————————————————————————————————— */
@@ -245,9 +248,10 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
   padding: .85rem 1rem;
   border-bottom: 1px solid var(--line);
 }
-.module-row-overdue { border-left: 4px solid var(--danger); background: color-mix(in srgb, var(--danger-soft) 60%, transparent); }
-.module-row-critical { border-left: 4px solid var(--warning-accent); }
-.module-row-warning { border-left: 4px solid var(--warning-accent); }
+/* Überfällig tönt die Zeile; den Zustand selbst nennt der Stempel in der
+   Zeile (.state, .urgency-pill). Kein Seitenstreifen. */
+.module-row-overdue { background: var(--danger-soft); }
+.module-row-critical, .module-row-warning { background: transparent; }
 
 /* Notiz-/Hinweisfläche innerhalb eines Abschnitts (keine eigene Karte). */
 .note-box {
@@ -298,8 +302,8 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
   align-items: center;
   white-space: nowrap;
 }
-.badge-neutral { background: var(--surface-soft); }
-.badge-info { color: var(--brand); background: var(--accent-soft); border-color: color-mix(in srgb, var(--brand) 35%, transparent); }
+.badge-neutral { background: transparent; }
+.badge-info { color: var(--text); border-color: var(--line-strong); }
 
 /* Bestandsanzeige im Lager. */
 .stock-figure { font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
@@ -311,8 +315,8 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
   height: .5rem;
   overflow: hidden;
   background: var(--surface-soft);
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 .gauge-fill { height: 100%; width: 0; background: var(--brand); }
 .gauge-red { background: var(--danger); }
@@ -681,7 +685,7 @@ body.has-open-modal { overflow: hidden; }
 .checklist-item-row .radio-label { display: inline-flex; align-items: center; gap: var(--space-1); cursor: pointer; font-size: 0.95rem; }
 .checklist-item-row .measurement-input { width: 7rem; }
 .checklist-item-row .reason-input { flex: 1; min-width: 12rem; }
-.checklist-defect-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: var(--space-3); }
+.checklist-defect-hint { font-size: 0.85rem; color: var(--muted); margin-top: var(--space-3); }
 .checklist-quick-action { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin: var(--space-2) 0; }
 .checklist-backfill { margin: var(--space-3) 0; }
 .checklist-backfill summary { cursor: pointer; font-weight: 600; }

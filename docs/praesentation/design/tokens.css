@@ -1,78 +1,96 @@
-/* Wachbuch Klar 2 – Design-Tokens (hell und Nachtdienst).
+/* Schichtbuch – Design-Tokens (Tag und Nacht).
    Einzige Quelle für App, Projektseite (site/) und Folien (docs/praesentation/);
    die Kopien dort erzeugt scripts/sync_design_assets.py, ein Test prüft sie.
-   Gleichnamig in Wachbuch-Client lib/theme/design_tokens.dart. */
+   Regeln und Kontrastwerte: docs/DESIGN-SYSTEM.md.
+
+   Tag:   Hauptbuchpapier – ein kühles, leicht grünes Weiß, wie es für
+          Journale und Kontenbücher gegen Blendung verwendet wird. Bewusst
+          kein Creme und kein Beige.
+   Nacht: dasselbe Buch unter der Lampe – warme, blauarme Flächen, Schrift in
+          Papierfarbe statt in reinem Weiß.
+   Tinte: Petrol für Bedienung. Farbe mit Bedeutung gehört allein den
+          Stempeln (dringend, fällig, gesperrt, erledigt). */
 
 :root {
   color-scheme: light;
 
-  /* Flächen */
-  --bg: #f5f7f6;
-  --bg-accent: #e9eeec;
-  --surface: #ffffff;
-  --surface-soft: #eef2f1;
-  --surface-raised: #ffffff;
+  /* Flächen: Unterlage, Blatt, Einzug */
+  --bg: #e6ece6;
+  --bg-accent: #dce4dc;
+  --surface: #f8fbf6;
+  --surface-soft: #eef3ec;
+  --surface-raised: #fcfefb;
 
-  /* Text und Linien. --line ist dekorativ, --line-strong begrenzt
-     Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11). */
-  --text: #14212b;
-  --muted: #4d5b66;
-  --line: #d7dde1;
-  --line-strong: #6f7d88;
+  /* Tinte und Linierung. --line ist dekorativ (Zeilenlinie), --line-strong
+     begrenzt Bedienelemente (≥ 3:1 gegen --surface, WCAG 1.4.11),
+     --margin-rule ist die senkrechte Randlinie der Randspalte. */
+  --text: #13212a;
+  --muted: #4a5a5e;
+  --line: #c9d4cb;
+  --line-strong: #66766f;
+  --margin-rule: #8fb5ba;
 
-  /* Aktion: Blaulicht. Nur für Bedienung, Auswahl und aktive Navigation. */
-  --brand: #0e4aa8;
-  --brand-deep: #0a3a85;
-  --brand-ink: #14212b;
-  --accent: #0e4aa8;
-  --accent-dark: #0a3a85;
-  --accent-soft: #e3ecfa;
-  --primary-container: #e3ecfa;
+  /* Bedienung: Petroltinte. Trägt nie eine Bedeutung. */
+  --brand: #0b5563;
+  --brand-deep: #073f4a;
+  --brand-ink: #13212a;
+  --accent: #0b5563;
+  --accent-dark: #073f4a;
+  --accent-soft: #dcebec;
+  --primary-container: #dcebec;
   --on-primary: #ffffff;
 
-  /* Zustand. Textfarben ≥ 4,5:1 auf --surface und auf ihrer -soft-Fläche. */
-  --danger: #b81d18;
-  --danger-soft: #fcebea;
-  --warning: #8a4b00;
-  --warning-soft: #fdf2df;
-  --warning-accent: #f2a900;
-  --success: #136b3a;
-  --success-soft: #e5f4ea;
-  --info: #0e4aa8;
-  --info-soft: #e3ecfa;
-  --violet: #6a3fb0;
-  --violet-soft: #f1ebfa;
+  /* Stempelfarben. Textfarben ≥ 4,5:1 auf --surface und auf ihrer
+     -soft-Fläche; --warning-accent ≥ 3:1 als Rand. */
+  --danger: #a3231b;
+  --danger-soft: #f8e4e0;
+  --on-danger: #ffffff;
+  --warning: #7a4a00;
+  --warning-soft: #f8eccf;
+  --warning-accent: #b37400;
+  --success: #2a6418;
+  --success-soft: #e4f0dc;
+  --info: #0b5563;
+  --info-soft: #dcebec;
+  --violet: #5a3d99;
+  --violet-soft: #ece6f6;
+  --locked: var(--violet);
+  --locked-soft: var(--violet-soft);
 
   /* Feste Flächen: Text auf kräftiger Signalfläche, Abdunklung hinter
      Dialogen und Druck-/QR-Papier (bleibt in jedem Modus hell). */
   --on-strong: #ffffff;
-  --scrim: rgba(13, 20, 26, .55);
+  --scrim: rgba(19, 33, 42, .55);
   --paper: #ffffff;
-  --paper-ink: #14212b;
+  --paper-ink: #13212a;
 
   --priority-urgent: var(--danger);
   --priority-important: var(--warning-accent);
   --priority-normal: var(--brand);
   --priority-done: var(--success);
 
-  /* Warnmarkierung: Leuchtrot und Weiß (RAL 3024 / 9016, angenähert). */
-  --stripe-red: #e2231a;
+  /* Signalrot für Zähler auf der Leiste (Weiß darauf 5,7:1). */
+  --stripe-red: #c4281c;
   --stripe-white: #ffffff;
 
-  /* Tastaturfokus: gelber Ring (--focus) auf einem Saum (--focus-halo), der
-     gegen jede Fläche mindestens 3:1 erreicht (WCAG 1.4.11). Gelb allein hat
-     auf Weiß nur 2:1. --focus-ring ist der Saum für Bausteine, die den Fokus
-     eines inneren Felds zeigen (Chips, Foto-Knöpfe). */
-  --focus: #f2a900;
-  --focus-halo: #0a3a85;
+  /* Tastaturfokus: Kobaltblau (--focus) – die einzige Farbe, die sonst
+     nirgends vorkommt, also nie mit „fällig“ (Ocker) zu verwechseln.
+     --focus-halo ist der Tintensaum für Bausteine, die den Fokus eines
+     inneren Felds zeigen (Chips, Foto-Knöpfe); beide erreichen gegen jede
+     Fläche mindestens 3:1 (WCAG 1.4.11). */
+  --focus: #1846d6;
+  --focus-halo: #13212a;
   --focus-ring: 0 0 0 6px var(--focus-halo);
 
-  --radius-sm: .375rem;
-  --radius: .625rem;
-  --radius-lg: .875rem;
+  /* Formen: Papier hat Kanten. 2 px für Stempel, 4 px für Blätter und
+     Knöpfe, 6 px nur für schwebende Flächen (Dialoge). Keine Schatten auf
+     Blättern. */
+  --radius-sm: .125rem;
+  --radius: .25rem;
+  --radius-lg: .375rem;
   --shadow: none;
   --shadow-soft: none;
-  --shadow-overlay: 0 12px 32px rgba(20, 33, 43, .18);
+  --shadow-overlay: 0 12px 32px rgba(19, 33, 42, .2);
 
   --space-1: .25rem;
   --space-2: .5rem;
@@ -83,6 +101,8 @@
   --space-7: 3rem;
 
   --content: 72rem;
+  /* Randspalte des Logbuchs: Uhrzeit links, Inhalt rechts. */
+  --rail: 5.75rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -99,79 +119,85 @@
   line-height: 1.5;
 }
 
-/* Nachtdienst: dunkle Flächen, gedämpfte Signale, gelber Fokus. Folgt dem
-   Gerät, solange niemand ausdrücklich „hell“ gewählt hat. */
+/* Nacht: das Buch unter der Lampe. Folgt dem Gerät, solange niemand
+   ausdrücklich „hell“ gewählt hat. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0d141a;
-    --bg-accent: #121b22;
-    --surface: #151e26;
-    --surface-soft: #1c2731;
-    --surface-raised: #1c2731;
-    --text: #e7ecef;
-    --muted: #a6b3bd;
-    --line: #2b3843;
-    --line-strong: #6d7c88;
-    --brand: #8db4ff;
-    --brand-deep: #b3ccff;
-    --brand-ink: #e7ecef;
-    --accent: #8db4ff;
-    --accent-dark: #b3ccff;
-    --accent-soft: #1b2d4a;
-    --primary-container: #1b2d4a;
-    --on-primary: #0a1a33;
-    --danger: #ff8f86;
-    --danger-soft: #3a1714;
-    --warning: #ffc966;
-    --warning-soft: #33260c;
-    --warning-accent: #f2a900;
-    --success: #6fd49a;
-    --success-soft: #11301f;
-    --info: #8db4ff;
-    --info-soft: #1b2d4a;
-    --violet: #c7a8f5;
-    --violet-soft: #2a1f3d;
+    --bg: #100f0c;
+    --bg-accent: #171511;
+    --surface: #1b1915;
+    --surface-soft: #25221c;
+    --surface-raised: #25221c;
+    --text: #ece5d5;
+    --muted: #b0a794;
+    --line: #36322a;
+    --line-strong: #857c6b;
+    --margin-rule: #3e5e61;
+    --brand: #7cc6ce;
+    --brand-deep: #a5dbe0;
+    --brand-ink: #ece5d5;
+    --accent: #7cc6ce;
+    --accent-dark: #a5dbe0;
+    --accent-soft: #14302f;
+    --primary-container: #14302f;
+    --on-primary: #06262b;
+    --danger: #ff9282;
+    --danger-soft: #3a1712;
+    --on-danger: #2a0a06;
+    --warning: #f2b84b;
+    --warning-soft: #33260a;
+    --warning-accent: #f2b84b;
+    --success: #9ad07a;
+    --success-soft: #1b2e12;
+    --info: #7cc6ce;
+    --info-soft: #14302f;
+    --violet: #c3adf5;
+    --violet-soft: #2a2140;
     --scrim: rgba(0, 0, 0, .65);
-    --stripe-white: #c9d2d8;
-    --focus-halo: #b3ccff;
+    --stripe-white: #d9d2c2;
+    --focus: #a9c1ff;
+    --focus-halo: #ece5d5;
     --focus-ring: 0 0 0 6px var(--focus-halo);
-    --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+    --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .55);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d141a;
-  --bg-accent: #121b22;
-  --surface: #151e26;
-  --surface-soft: #1c2731;
-  --surface-raised: #1c2731;
-  --text: #e7ecef;
-  --muted: #a6b3bd;
-  --line: #2b3843;
-  --line-strong: #6d7c88;
-  --brand: #8db4ff;
-  --brand-deep: #b3ccff;
-  --brand-ink: #e7ecef;
-  --accent: #8db4ff;
-  --accent-dark: #b3ccff;
-  --accent-soft: #1b2d4a;
-  --primary-container: #1b2d4a;
-  --on-primary: #0a1a33;
-  --danger: #ff8f86;
-  --danger-soft: #3a1714;
-  --warning: #ffc966;
-  --warning-soft: #33260c;
-  --warning-accent: #f2a900;
-  --success: #6fd49a;
-  --success-soft: #11301f;
-  --info: #8db4ff;
-  --info-soft: #1b2d4a;
-  --violet: #c7a8f5;
-  --violet-soft: #2a1f3d;
+  --bg: #100f0c;
+  --bg-accent: #171511;
+  --surface: #1b1915;
+  --surface-soft: #25221c;
+  --surface-raised: #25221c;
+  --text: #ece5d5;
+  --muted: #b0a794;
+  --line: #36322a;
+  --line-strong: #857c6b;
+  --margin-rule: #3e5e61;
+  --brand: #7cc6ce;
+  --brand-deep: #a5dbe0;
+  --brand-ink: #ece5d5;
+  --accent: #7cc6ce;
+  --accent-dark: #a5dbe0;
+  --accent-soft: #14302f;
+  --primary-container: #14302f;
+  --on-primary: #06262b;
+  --danger: #ff9282;
+  --danger-soft: #3a1712;
+  --on-danger: #2a0a06;
+  --warning: #f2b84b;
+  --warning-soft: #33260a;
+  --warning-accent: #f2b84b;
+  --success: #9ad07a;
+  --success-soft: #1b2e12;
+  --info: #7cc6ce;
+  --info-soft: #14302f;
+  --violet: #c3adf5;
+  --violet-soft: #2a2140;
   --scrim: rgba(0, 0, 0, .65);
-  --stripe-white: #c9d2d8;
-  --focus-halo: #b3ccff;
+  --stripe-white: #d9d2c2;
+  --focus: #a9c1ff;
+  --focus-halo: #ece5d5;
   --focus-ring: 0 0 0 6px var(--focus-halo);
-  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .5);
+  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, .55);
 }

@@ -3,6 +3,8 @@
  * Farben, Schrift und Bausteine kommen aus assets/design/ (tokens.css,
  * fonts.css, public.css) – dieselben Dateien wie in der App, verteilt durch
  * scripts/sync_design_assets.py. Kein JavaScript, keine externen Ressourcen.
+ * Formensprache wie in der App: 4 px Radius, Tintenrand, Doppellinie am
+ * Kopf und Fuß der Seite, Fokusring in Kobalt.
  */
 
 :root {
@@ -18,10 +20,15 @@ section[id] { scroll-margin-top: 1rem; }
   left: 1rem;
   top: -4rem;
   z-index: 10;
-  padding: .75rem 1rem;
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
   color: var(--on-primary);
   background: var(--brand);
+  border: 1.5px solid var(--text);
   border-radius: var(--radius);
+  font-weight: 700;
 }
 .skip-link:focus { top: 1rem; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
@@ -38,9 +45,15 @@ section[id] { scroll-margin-top: 1rem; }
   border: 0;
 }
 
+/* Kopf und Fuß: Ziele mindestens 48 px hoch. */
+.pub-brand { min-height: var(--touch); }
+.pub-footer a { display: inline-flex; align-items: center; min-height: var(--touch); }
+.pub-footer p { margin: 0; max-width: 60ch; }
+
+/* Sprachumschalter: ein Bedienelement mit Tintenrand. */
 .lang-switch {
   display: inline-flex;
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--text);
   border-radius: var(--radius);
   overflow: hidden;
   font-weight: 700;
@@ -53,15 +66,16 @@ section[id] { scroll-margin-top: 1rem; }
   padding: 0 .75rem;
 }
 .lang-switch span[aria-current="true"] { color: var(--on-primary); background: var(--brand); }
-.lang-switch a { color: var(--brand); text-decoration: none; }
-.lang-switch a:hover { background: var(--accent-soft); }
+.lang-switch a { color: var(--brand); background: var(--surface); text-decoration: none; }
+.lang-switch a:hover { background: var(--surface-soft); }
+.lang-switch :focus-visible { outline-offset: -3px; }
 
 /* Hinweis unter dem Knopf zur öffentlichen Live-Version */
 .pub-live-note { margin: .85rem 0 0; max-width: 34rem; color: var(--muted); font-size: .95rem; }
 .pub-live-note strong { color: var(--text); }
 
 code { font-family: var(--mono); font-size: .92em; }
-:not(pre) > code { padding: .1em .35em; background: var(--surface-soft); border-radius: var(--radius-sm); }
+:not(pre) > code { padding: .1em .35em; background: var(--surface-soft); border-radius: var(--radius-sm); overflow-wrap: anywhere; }
 
 @media (max-width: 46rem) {
   body { font-size: 1rem; }

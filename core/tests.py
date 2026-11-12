@@ -103,13 +103,14 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_and_manifest_use_bos_theme_tokens(self):
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
-        self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
+        # Schichtbuch (0.29): Blattfarbe Tag/Nacht und Petroltinte, docs/DESIGN-SYSTEM.md.
+        self.assertContains(response, 'name="theme-color" content="#f8fbf6" media="(prefers-color-scheme: light)"')
+        self.assertContains(response, 'name="theme-color" content="#1b1915" media="(prefers-color-scheme: dark)"')
         self.assertContains(response, 'class="brand-logo"', html=False)
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "tokens.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("--brand: #0e4aa8", css)
+        self.assertIn("--brand: #0b5563", css)
         self.assertIn("--priority-urgent: var(--danger)", css)
         self.assertIn("--touch: 3rem", css)
         self.assertIn("prefers-color-scheme: dark", css)
@@ -121,8 +122,8 @@ class ProgressiveWebAppTests(PilotTestCase):
         )
         self.assertTrue(font.is_file())
         manifest = self.client.get(reverse("web_manifest")).json()
-        self.assertEqual(manifest["theme_color"], "#ffffff")
-        self.assertEqual(manifest["background_color"], "#f5f7f6")
+        self.assertEqual(manifest["theme_color"], "#f8fbf6")
+        self.assertEqual(manifest["background_color"], "#e6ece6")
         self.assertNotIn("medical", manifest.get("categories", []))
 
     def test_landing_uses_public_service_copy(self):
