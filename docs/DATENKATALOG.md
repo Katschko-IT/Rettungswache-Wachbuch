@@ -82,7 +82,7 @@ Die Art leitet sich aus dem Datenmodell ab. „Person (Konto)“ ist ein Verweis
 
 ## Nachweis und Löschschutz
 
-„Nachweis: ja“ heißt: Die Tabelle belegt, wer wann was getan, geprüft oder quittiert hat. Wie lange sie bleibt und ob Wachwerk selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Wachwerk verweigert jede Änderung und jedes Löschen einer Zeile, Korrekturen sind neue Einträge. „und Datenbankrechte“: zusätzlich darf die Datenbankrolle der App die Tabelle weder ändern noch löschen (PostgreSQL nach `grant_database_access`). „Löschschutz“ sagt, was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird, etwa ein Gerät im Django-Admin.
+„Nachweis: ja“ heißt: Die Tabelle belegt, wer wann was getan, geprüft oder quittiert hat. Wie lange sie bleibt und ob Staffeta selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Staffeta verweigert jede Änderung und jedes Löschen einer Zeile, Korrekturen sind neue Einträge. „und Datenbankrechte“: zusätzlich darf die Datenbankrolle der App die Tabelle weder ändern noch löschen (PostgreSQL nach `grant_database_access`). „Löschschutz“ sagt, was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird, etwa ein Gerät im Django-Admin.
 
 <a id="modul-konto"></a>
 
@@ -102,7 +102,7 @@ Anmeldung, Zwei-Faktor-Schutz, Rollen je Wache und App-Zugänge.
 
 ### auth.Group
 
-Django-Gruppen (in Wachwerk ungenutzt)
+Django-Gruppen (in Staffeta ungenutzt)
 
 - Lesen: Superuser (Django-Admin)
 - Schreiben: Superuser (Django-Admin)
@@ -1240,7 +1240,7 @@ Gerät mit Status und Notiz
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Wachwerk den Status aus dem Modul Medizinprodukte.
+- Hinweis: Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Staffeta den Status aus dem Modul Medizinprodukte.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2117,7 +2117,7 @@ Persönlicher Hinweis: Titel, Text, Link, gelesen
 - Nachweis: nein
 - Frist technisch: keine technische Löschung (siehe docs/LOESCHKONZEPT.md, Lücken)
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
+- Hinweis: Fristen-Erinnerungen und Wochenübersicht (Arten deadline_due, sop_due) gehen an Schichtleitung, Master-Admin und Personen mit passender Funktion nach eigenem Abo, Lesefristen persönlich an die offenen Personen der Zielgruppe; nie an Auditor oder Wachenterminal. Sie nennen Gerät, Fahrzeug, Charge, Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Staffeta. Neben Posteingang und Push gehen sie an bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md).
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2486,7 +2486,7 @@ Lagerort
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den Stammdaten-Import (Master-Admin). Eine Oberfläche zum Bearbeiten gibt es nicht.
+- Hinweis: Die Standardlagerorte legt Staffeta beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den Stammdaten-Import (Master-Admin). Eine Oberfläche zum Bearbeiten gibt es nicht.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2527,7 +2527,7 @@ Desinfektionsmittel
 - Nachweis: nein
 - Frist technisch: solange die Installation besteht; Änderung durch Master-Admin
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. Nicht löschen, sondern „In Gebrauch“ abwählen; ein Mittel bleibt immer in Gebrauch.
+- Hinweis: Das Standardmittel legt Staffeta beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. Nicht löschen, sondern „In Gebrauch“ abwählen; ein Mittel bleibt immer in Gebrauch.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
@@ -2550,7 +2550,7 @@ Stufe des Desinfektionsplans: Name, Mittel, Freigaberegel, Einwirkzeit, Bestäti
 - Nachweis: nein
 - Frist technisch: keine automatische Löschung; bleibt, bis die Wache den Eintrag nicht mehr braucht
 - Frist festgelegt: laut freigegebenem Löschkonzept: [festlegen]
-- Hinweis: Kein Nachweis. Die Standardstufen legt Wachwerk an (Migration und erster Aufruf des Fuhrparks); eine Oberfläche zum Bearbeiten des Plans gibt es noch nicht. Die Namen der Stufen sehen alle Inhaltsrollen in der Auswahl des Protokolls; welche Stufe eine Desinfektion hatte, sehen nur die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2). Nicht löschen, sondern „In Verwendung“ abwählen.
+- Hinweis: Kein Nachweis. Die Standardstufen legt Staffeta an (Migration und erster Aufruf des Fuhrparks); eine Oberfläche zum Bearbeiten des Plans gibt es noch nicht. Die Namen der Stufen sehen alle Inhaltsrollen in der Auswahl des Protokolls; welche Stufe eine Desinfektion hatte, sehen nur die durchführende Person, Schichtleitung und Master-Admin (Entscheidung D2). Nicht löschen, sondern „In Verwendung“ abwählen.
 
 | Feld | Bezeichnung | Art | Hinweis |
 | --- | --- | --- | --- |
