@@ -16,12 +16,12 @@ Tinte trägt das Buch, und pro Bildschirm bekommt genau eine Stelle den Stab in 
 | Blatt | `#ffffff` | Karten und Zeilen hell |
 | Nacht | `#0d151b` / `#14212b` | Grund und Blatt dunkel; Text `#e9eee8` |
 
-Gerechnet: Tinte auf Papier 13,9:1, Tinte auf Lime 11,6:1, Lime auf Papier nur 1,2:1 und auf Weiß 1,4:1. Lime trägt deshalb nie allein Text, einen dünnen Rand oder eine Information. Es ist immer Füllung neben oder unter Tinte, und der Stab hat einen Tinte-Rand.
+Gerechnet: Tinte auf Papier 13,9:1, Tinte auf Lime 11,6:1, Lime auf Papier nur 1,2:1 und auf Weiß 1,4:1. Lime trägt deshalb nie allein Text, einen dünnen Rand oder eine Information. Einzige Ausnahme: das „ff“ im Logo. Es ist immer Füllung neben oder unter Tinte, und der Stab hat einen Tinte-Rand.
 
 ## Zeichen und Wortmarke
 
 - Der Stab: zwei gekippte Hälften (24°), gegeneinander versetzt. Links die Schicht, die geht (Tinte, auf Dunkel Weiß), rechts die, die kommt (Lime). Auf Lime-Grund nur einfarbig.
-- Wortmarke: Das Doppel-f in Sta**ff**eta liegt auf einem um 14° geschnittenen Lime-Feld.
+- Wortmarke: Das kursive Doppel-f in Sta*ff*eta ist die einzige Lime-Schrift. Sie steht nur im Logo, nie im Fließtext. Das „ff“ hat Abstand zu „a“ und „e“.
 - Das Schichtband zeigt „jetzt“ als Stab: Lime-Kern mit Tinte-Rand (`.sb-now`, `.sb-now-core`).
 
 ## Grenzen
