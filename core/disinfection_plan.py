@@ -31,7 +31,7 @@ def ensure_default_levels(station) -> None:
 
     Namen in der Wachensprache; Mittel und Einwirkzeit vom ersten Mittel der
     Wache, Freigabe „Nach Einwirkzeit“ und unbestätigt – also das bisherige
-    Verhalten. Wachwerk macht damit keine fachliche Vorgabe: Die Wache passt
+    Verhalten. Staffeta macht damit keine fachliche Vorgabe: Die Wache passt
     den Plan mit ihren Hygienebeauftragten an.
     """
     if DisinfectionLevel.objects.filter(station=station).exists():

@@ -474,7 +474,7 @@ def _remind_open_fees(now=None) -> int:
                 continue
             months = len(status.open_months)
             title = _("Kaffeekasse: Beitrag offen")
-            body = _("Offen: %(amount)s (%(months)s Monat(e)). Bar in die Kasse oder per Überweisung, danach in Wachwerk abhaken.") % {
+            body = _("Offen: %(amount)s (%(months)s Monat(e)). Bar in die Kasse oder per Überweisung, danach in Staffeta abhaken.") % {
                 "amount": euro(status.open_cents), "months": months,
             }
             url = reverse("coffee")
@@ -506,7 +506,7 @@ def _remind_group(fund, today: dt.date) -> bool:
     station = fund.station
     month = month_start(today)
     summary = month_summary(station, month)
-    text = _("☕ Kaffeekasse: Der Beitrag für %(month)s (%(fee)s) ist fällig. Bar in die Kasse oder per Überweisung, danach in Wachwerk abhaken.") % {
+    text = _("☕ Kaffeekasse: Der Beitrag für %(month)s (%(fee)s) ist fällig. Bar in die Kasse oder per Überweisung, danach in Staffeta abhaken.") % {
         "month": formats.date_format(month, "F"), "fee": euro(fund.monthly_fee_cents),
     }
     if summary["total"]:

@@ -1,6 +1,6 @@
 """Benachrichtigungen per Signal über signal-cli-rest-api (docs/SIGNAL.md).
 
-Signal hat keine offizielle Bot-Schnittstelle. Wachwerk spricht deshalb mit
+Signal hat keine offizielle Bot-Schnittstelle. Staffeta spricht deshalb mit
 einem ``signal-cli-rest-api``-Container im internen Docker-Netz, der als
 verknüpftes Gerät eines Signal-Kontos der Wache läuft (wie Signal Desktop).
 
@@ -108,7 +108,7 @@ def groups() -> list[dict]:
     return sorted(result, key=lambda g: g["name"].casefold())
 
 
-def link_qr_png(device_name: str = "Wachwerk") -> bytes:
+def link_qr_png(device_name: str = "Staffeta") -> bytes:
     query = urllib.parse.urlencode({"device_name": device_name})
     return _request("GET", f"/v1/qrcodelink?{query}", raw=True)
 
@@ -196,7 +196,7 @@ def start_verification(user, number: str):
     from .notification_models import SignalContact
 
     code = f"{secrets.randbelow(10 ** 6):06d}"
-    send([number], f"Wachwerk: Dein Bestätigungscode für Signal-Benachrichtigungen lautet {code}. "
+    send([number], f"Staffeta: Dein Bestätigungscode für Signal-Benachrichtigungen lautet {code}. "
                    "Hast du das nicht angefordert, ignoriere diese Nachricht.")
     contact, _ = SignalContact.objects.update_or_create(user=user, defaults={
         "number": number, "verified_at": None, "code_hash": _code_hash(user.pk, number, code),

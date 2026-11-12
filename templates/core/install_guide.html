@@ -8,7 +8,7 @@
 <section class="pub-section install-hero" aria-labelledby="install-title">
   <div class="pub-wrap">
     <p class="pub-kicker">{% translate "Anleitung" %}</p>
-    <h1 id="install-title">{% translate "Wachwerk auf deiner Wache betreiben" %}</h1>
+    <h1 id="install-title">{% translate "Staffeta auf deiner Wache betreiben" %}</h1>
     <p class="pub-lead">{% translate "Die Installation selbst dauert etwa fünf Minuten. Mit Einrichtung, Team-Einladung und Backup-Stick solltest du eine Stunde einplanen. Du brauchst kein Informatikstudium – aber du solltest einen Befehl in ein Terminal kopieren können." %}</p>
     <div class="pub-actions">
       <a class="pub-button primary" href="#weg">{% translate "Los geht’s" %}</a>
@@ -43,7 +43,7 @@
       <div class="feature-group">
         <h3>{% include "core/_icon.html" with name="display" %}{% translate "Erst mal testen" %}</h3>
         <ul class="feature-list">
-          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer Wachwerk in Ruhe auf dem eigenen Rechner ansehen möchte." %}</span></li>
+          <li><strong>{% translate "Für wen" %}</strong><span>{% translate "Wer Staffeta in Ruhe auf dem eigenen Rechner ansehen möchte." %}</span></li>
           <li><strong>{% translate "Hardware" %}</strong><span>{% translate "Ein Linux-Rechner oder Mac mit Docker." %}</span></li>
           <li><strong>{% translate "Zugriff" %}</strong><span>{% translate "Nur auf diesem Rechner unter http://localhost:8090." %}</span></li>
         </ul>
@@ -158,7 +158,7 @@ sudo sh install.sh</code></pre>
     </div>
     <pre class="code-block"><code>git clone https://github.com/Katschko-IT/Rettungswache-Wachbuch.git
 cd Rettungswache-Wachbuch
-sudo WLAN_SSID="Wachwerk RW1" deploy/pi/setup-pi.sh
+sudo WLAN_SSID="Staffeta RW1" deploy/pi/setup-pi.sh
 sudo reboot</code></pre>
     <p class="pub-muted">{% translate "Nach dem Neustart öffnet der Touch-Bildschirm direkt die Ersteinrichtung. Das Skript spannt ein eigenes WLAN auf, erzeugt ein Zertifikat und zeigt den Einrichtungscode an. Ausführlich mit Abhak-Liste:" %} <a href="{{ source_url }}/blob/main/docs/PI-WACHENTERMINAL.md" rel="noopener noreferrer">docs/PI-WACHENTERMINAL.md</a></p>
   </div>
@@ -190,7 +190,7 @@ sudo reboot</code></pre>
     <div class="faq-list">
       <details>
         <summary>{% translate "Der Browser warnt vor dem Zertifikat (Betriebsart „lan“)." %}</summary>
-        <p>{% translate "Im Wachen-Netz stellt Wachwerk ein eigenes Zertifikat aus. Das Stammzertifikat einmal auf jedem Gerät als vertrauenswürdig installieren. Der Installer zeigt den Befehl, mit dem du die Datei wachbuch-ca.crt erhältst." %}</p>
+        <p>{% translate "Im Wachen-Netz stellt Staffeta ein eigenes Zertifikat aus. Das Stammzertifikat einmal auf jedem Gerät als vertrauenswürdig installieren. Der Installer zeigt den Befehl, mit dem du die Datei wachbuch-ca.crt erhältst." %}</p>
       </details>
       <details>
         <summary>{% translate "Ich habe den Einrichtungscode nicht mehr." %}</summary>
@@ -206,7 +206,7 @@ sudo reboot</code></pre>
       </details>
       <details>
         <summary>{% translate "Was passiert, wenn der Rechner kaputtgeht?" %}</summary>
-        <p>{% translate "Wachwerk auf neuer Hardware installieren, die gesicherte .env zurückkopieren und das letzte Backup wiederherstellen. Darum gehören .env und Backups auf einen Stick außerhalb des Rechners." %}</p>
+        <p>{% translate "Staffeta auf neuer Hardware installieren, die gesicherte .env zurückkopieren und das letzte Backup wiederherstellen. Darum gehören .env und Backups auf einen Stick außerhalb des Rechners." %}</p>
       </details>
     </div>
     <p class="pub-muted">{% translate "Weitere Fragen oder ein Fehler? Ausführliche Anleitung:" %} <a href="{{ source_url }}/blob/main/docs/DEPLOYMENT.md" rel="noopener noreferrer">docs/DEPLOYMENT.md</a> · <a href="{{ source_url }}/issues" rel="noopener noreferrer">{% translate "Frage oder Fehler melden" %}</a></p>

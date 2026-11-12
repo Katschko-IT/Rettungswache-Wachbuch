@@ -1079,9 +1079,9 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
 
     # Betreiber und Impressum (§ 5 DDG). Leere Felder übernehmen die Angaben der Wache.
     public_site = forms.BooleanField(
-        label=_("Wachwerk ist öffentlich im Internet erreichbar (eigene Domain)"),
+        label=_("Staffeta ist öffentlich im Internet erreichbar (eigene Domain)"),
         required=False,
-        help_text=_("Dann zeigt Wachwerk ein Impressum; Anbieter, Anschrift und E-Mail sind Pflicht."),
+        help_text=_("Dann zeigt Staffeta ein Impressum; Anbieter, Anschrift und E-Mail sind Pflicht."),
     )
     operator_name = forms.CharField(
         label=_("Anbieter (Träger, Verein oder Person)"), max_length=200, required=False,
@@ -1127,7 +1127,7 @@ class SetupWizardForm(TrafficConfigMixin, forms.Form):
     mfa_required = forms.BooleanField(
         label=_("Zwei-Faktor-Anmeldung für alle Konten verpflichtend"),
         required=False,
-        help_text=_("Empfohlen, sobald Wachwerk aus dem Internet erreichbar ist. Bei der nächsten Anmeldung "
+        help_text=_("Empfohlen, sobald Staffeta aus dem Internet erreichbar ist. Bei der nächsten Anmeldung "
                     "richtet jede Person eine Authenticator-App ein (Google Authenticator, Microsoft "
                     "Authenticator, Aegis, 2FAS oder die Passwörter-App des iPhones)."),
     )

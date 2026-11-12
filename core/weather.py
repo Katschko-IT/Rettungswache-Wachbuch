@@ -89,7 +89,7 @@ def _fetch_json(url: str, params: dict) -> dict | list:
     full = f"{url}?{urllib.parse.urlencode(params)}"
     request = urllib.request.Request(
         full,
-        headers={"User-Agent": "Wachwerk-Rettungswache/1.0 (https://github.com/Katschko-IT/Rettungswache-Wachbuch)"},
+        headers={"User-Agent": "Staffeta-Rettungswache/1.0 (https://github.com/Katschko-IT/Rettungswache-Wachbuch)"},
     )
     try:
         with _urlopen(request, TIMEOUT_SECONDS) as response:

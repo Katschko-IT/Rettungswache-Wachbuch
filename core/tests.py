@@ -58,8 +58,8 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["display"], "standalone")
-        self.assertEqual(payload["name"], "Wachwerk")
-        self.assertEqual(payload["short_name"], "Wachwerk")
+        self.assertEqual(payload["name"], "Staffeta")
+        self.assertEqual(payload["short_name"], "Staffeta")
         self.assertEqual(payload["start_url"], reverse("dashboard"))
         self.assertTrue(payload["icons"])
         self.assertTrue(any(item["name"] == "Tagesaufgaben" for item in payload["shortcuts"]))
@@ -69,9 +69,9 @@ class ProgressiveWebAppTests(PilotTestCase):
         # Eigenes Wachwerk-Logo statt Text-Marke.
         self.assertContains(response, 'class="brand-logo"', html=False)
         self.assertContains(response, 'core/brand-wachwerk', html=False)
-        self.assertContains(response, 'alt="Wachwerk"', html=False)
+        self.assertContains(response, 'alt="Staffeta"', html=False)
         self.assertContains(response, self.station.name)
-        self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
+        self.assertContains(response, 'name="apple-mobile-web-app-title" content="Staffeta"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
 
     def test_service_worker_and_offline_page_are_available(self):
@@ -278,7 +278,7 @@ class SecurityAndAccessTests(PilotTestCase):
         self.client.logout()
         response = self.client.get(reverse("landing"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Wachwerk")
+        self.assertContains(response, "Staffeta")
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("vorfuehrung"))
         self.assertContains(response, "In drei Schritten startklar")

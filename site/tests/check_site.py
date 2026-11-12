@@ -326,7 +326,7 @@ class TestSiteIntegrity(unittest.TestCase):
         logo = logos[0]
         self.assertEqual(logo.get("src"), "assets/design/brand-wachwerk.png")
         self.assertTrue((SITE_DIR / logo["src"]).is_file(), "Logo-Datei fehlt")
-        self.assertEqual(logo.get("alt"), "Wachwerk")
+        self.assertEqual(logo.get("alt"), "Staffeta")
         self.assertTrue(logo.get("width", "").isdigit() and logo.get("height", "").isdigit())
 
     def test_live_demo_link(self):

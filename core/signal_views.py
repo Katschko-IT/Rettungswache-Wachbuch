@@ -92,7 +92,7 @@ def signal_admin(request):
             return redirect("signal_admin")
         if action == "test" and station.signal_group_id:
             try:
-                signal.send([station.signal_group_id], _("Wachwerk: Testnachricht – die Signal-Benachrichtigungen funktionieren."))
+                signal.send([station.signal_group_id], _("Staffeta: Testnachricht – die Signal-Benachrichtigungen funktionieren."))
             except signal.SignalError as exc:
                 messages.error(request, _("Senden fehlgeschlagen: %(error)s") % {"error": exc})
             else:
@@ -101,7 +101,7 @@ def signal_admin(request):
     link_qr, link_error = "", ""
     if enabled and not linked:
         try:
-            link_qr = "data:image/png;base64," + base64.b64encode(signal.link_qr_png("Wachwerk")).decode("ascii")
+            link_qr = "data:image/png;base64," + base64.b64encode(signal.link_qr_png("Staffeta")).decode("ascii")
         except signal.SignalError as exc:
             link_error = str(exc)
     suggested = ""

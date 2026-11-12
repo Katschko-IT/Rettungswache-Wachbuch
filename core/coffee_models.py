@@ -27,7 +27,7 @@ class CoffeeFund(models.Model):
     )
     reminder_day = models.PositiveSmallIntegerField(
         _("Erinnerung ab Tag"), default=10,
-        help_text=_("Ab diesem Tag des Monats erinnert Wachwerk an einen offenen Beitrag. 0 = keine Erinnerung."),
+        help_text=_("Ab diesem Tag des Monats erinnert Staffeta an einen offenen Beitrag. 0 = keine Erinnerung."),
     )
     account_holder = models.CharField(
         _("Kontoinhaber für Überweisungen"), max_length=70, blank=True, default="",

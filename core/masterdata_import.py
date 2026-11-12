@@ -1791,7 +1791,7 @@ KINDS = {
         title=gettext_lazy("Medizingeräte"),
         description=gettext_lazy(
             "Bestandsverzeichnis nach § 14 MPBetreibV mit Prüffristen. Importierte Geräte sind als Altbestand "
-            "gekennzeichnet, bis die erste Prüfung in Wachwerk eingetragen ist."
+            "gekennzeichnet, bis die erste Prüfung in Staffeta eingetragen ist."
         ),
         module_flag="mpg_enabled",
         audit_action="import.medical_devices",

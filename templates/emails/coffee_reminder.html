@@ -9,7 +9,7 @@
 {% else %}
   <p>{% blocktranslate with fee=fee_euros|floatformat:2 station=station.name %}hier die Zahlungsangaben der Kaffeekasse der {{ station }} (Monatsbeitrag {{ fee }} €).{% endblocktranslate %}</p>
 {% endif %}
-<p>{% translate "Bar: einfach in die Kasse legen und danach in Wachwerk unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}</p>
+<p>{% translate "Bar: einfach in die Kasse legen und danach in Staffeta unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}</p>
 {% if transfer %}
   <h2>{% translate "Überweisung" %}</h2>
   <p><img src="cid:girocode" width="200" height="200" alt="{% translate 'Überweisungs-QR-Code (GiroCode)' %}"><br>{% translate "Mit der Banking-App scannen" %}</p>
@@ -25,7 +25,7 @@
   <p>{% if paypal_url %}<a href="{{ paypal_url }}">{% translate "PayPal.me öffnen" %}</a>{% endif %}{% if paypal_url and wero_url %} · {% endif %}{% if wero_url %}<a href="{{ wero_url }}">{% translate "Wero öffnen" %}</a>{% endif %}</p>
 {% endif %}
 {% if note %}<p>{{ note|linebreaksbr }}</p>{% endif %}
-{% if coffee_url %}<p><a href="{{ coffee_url }}">{% translate "Zur Kaffeekasse in Wachwerk" %}</a></p>{% endif %}
+{% if coffee_url %}<p><a href="{{ coffee_url }}">{% translate "Zur Kaffeekasse in Staffeta" %}</a></p>{% endif %}
 <p><small>{% blocktranslate with app=app_name %}Diese Erinnerung kommt automatisch von {{ app }}. Abbestellen: Kaffeekasse → „E-Mail-Erinnerung abbestellen“.{% endblocktranslate %}</small></p>
 </body>
 </html>

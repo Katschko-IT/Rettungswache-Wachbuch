@@ -44,7 +44,7 @@ class FeedbackForm(forms.ModelForm):
     RATING_CHOICES = [("", gettext_lazy("Keine Angabe"))] + [(str(n), str(n)) for n in range(1, 6)]
 
     rating = forms.TypedChoiceField(
-        label=gettext_lazy("Wie gut gefällt dir Wachwerk? (1 = gar nicht, 5 = sehr)"),
+        label=gettext_lazy("Wie gut gefällt dir Staffeta? (1 = gar nicht, 5 = sehr)"),
         choices=RATING_CHOICES, coerce=int, empty_value=None, required=False,
         widget=forms.RadioSelect,
     )

@@ -15,7 +15,7 @@
 {% if report.rows_with_messages %}
   <section class="section-block">
     <h2>{% translate "Bitte nacharbeiten" %}</h2>
-    <p>{% translate "Diese Zeilen hatten Hinweise. Die Angaben bitte in Wachwerk prüfen." %}</p>
+    <p>{% translate "Diese Zeilen hatten Hinweise. Die Angaben bitte in Staffeta prüfen." %}</p>
     {% include "core/_masterdata_import_rows.html" with rows=report.rows_with_messages %}
   </section>
 {% endif %}
@@ -23,7 +23,7 @@
 <section class="section-block">
   <h2>{% translate "Wie geht es weiter?" %}</h2>
   {% if locations_missing %}
-    <p>{% translate "Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Wachwerk dort drei Beispiel-Lagerorte an." %}</p>
+    <p>{% translate "Lagerorte bitte importieren, bevor das Lager zum ersten Mal geöffnet wird; sonst legt Staffeta dort drei Beispiel-Lagerorte an." %}</p>
   {% endif %}
   <div class="form-actions">
     {% if locations_kind %}
