@@ -1361,6 +1361,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .page-heading h1 { font-size: 1.85rem; }
   .list-row { grid-template-columns: 1fr auto; gap: .35rem .75rem; padding: .85rem; }
   .list-row .status-label { grid-column: 1; grid-row: 1; }
+  /* Mängelzeilen haben Status vorn und Priorität hinten: die Priorität rückt in
+     die rechte Zelle der Kopfzeile, sonst liegen beide Labels übereinander. */
+  .list-row > .status-label:first-child ~ .row-content ~ .status-label { grid-column: 2; grid-row: 1; }
   .list-row .row-content { grid-column: 1 / -1; grid-row: 2; }
   .list-row time { grid-column: 2; grid-row: 1; }
   /* Zeilen mit Randspalte: auf dem Handy Uhrzeit und Stempel in einer Kopfzeile,
@@ -2762,7 +2765,9 @@ fieldset.chip-fieldset > legend {
   /* Handy: Randspalte schmal (Datum über Uhrzeit), der Stempel rückt unter
      den Inhalt, damit der Titel die Zeile bekommt. */
   .list-row:has(> time) {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    /* Die Randspalte wächst nur so weit, wie das Datum (längstes Wort) braucht;
+       sonst läuft „15.11.2026“ in den Inhalt. */
+    grid-template-columns: fit-content(5rem) minmax(0, 1fr);
     gap: 0 .75rem;
     padding: 0 .85rem;
   }
@@ -2771,7 +2776,6 @@ fieldset.chip-fieldset > legend {
     grid-row: 1 / span 2;
     padding-right: .5rem;
     font-size: .8rem;
-    overflow-wrap: anywhere;
   }
   .list-row:has(> time) > .row-content {
     grid-column: 2;

@@ -504,6 +504,8 @@ body.has-open-modal { overflow: hidden; }
 
 /* Geräte-/Artikel-/Fahrzeugzeilen in Modullisten: Inhalt, Frist, Aktionen. */
 .module-row .row-main { flex: 2 1 14rem; min-width: 0; }
+/* Lange Kategorienamen brechen um, statt in die Bestandsspalte zu laufen. */
+.module-row .row-main .badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .module-row .row-due { flex: 1.5 1 11rem; }
 .module-row .row-actions { flex: 0 1 auto; justify-content: flex-end; }
 .module-row .row-main small,

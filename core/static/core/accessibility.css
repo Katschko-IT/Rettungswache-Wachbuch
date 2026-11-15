@@ -222,12 +222,10 @@ main .list-row a:not(.button) {
 
 /* WCAG 2.2, Ziel 2.5.8: Links, die allein in Absatz, Listenpunkt oder Legende stehen,
    sind echte Bedienziele und brauchen mindestens 24 x 24 px. Links mitten im Satz sind
-   ausgenommen und bleiben unverändert. */
-p > a:only-child,
-li > a:first-child,
-.shift-band-legend a,
-.calm-line a,
-.context-line a {
+   ausgenommen und bleiben unverändert.
+   :where() hält die Spezifität bei 0: Das ist nur der Grundwert. Eigene Klassenregeln
+   (z. B. .attention-row als Grid, .text-action als inline-flex) gewinnen sonst nicht. */
+:where(p > a:only-child, li > a:first-child, .shift-band-legend a, .calm-line a, .context-line a) {
   display: inline-block;
   min-height: 1.5rem;
   padding-block: .1rem;

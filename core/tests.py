@@ -147,6 +147,19 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertIn(".header-login:hover { background: var(--accent-soft) !important; }", css)
         self.assertNotIn("rgba(255, 255, 255, .55)", css)
 
+    def test_tap_target_rule_does_not_override_component_layouts(self):
+        # Regression: Die 24-px-Regel für Einzel-Links hatte Spezifität 0,1,2 und schaltete
+        # dadurch .attention-row (Grid), .text-action und .help-list a (inline-flex) aus.
+        # Zahl und Titel lagen untereinander. Die Liste muss in :where() stehen.
+        base = Path(settings.BASE_DIR) / "core" / "static" / "core"
+        access = (base / "accessibility.css").read_text(encoding="utf-8")
+        self.assertIn(":where(p > a:only-child, li > a:first-child,", access)
+        app = (base / "app.css").read_text(encoding="utf-8")
+        # Mängelzeile (Status vorn, Priorität hinten): zwei Labels dürfen nie in dieselbe Zelle.
+        self.assertIn(".list-row > .status-label:first-child ~ .row-content ~ .status-label", app)
+        # Handy-Randspalte wächst mit dem Datum, statt es in den Inhalt laufen zu lassen.
+        self.assertIn("grid-template-columns: fit-content(5rem) minmax(0, 1fr);", app)
+
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))
