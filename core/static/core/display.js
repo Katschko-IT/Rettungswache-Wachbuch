@@ -239,6 +239,7 @@
     var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
     Array.prototype.forEach.call(regions, function (region) {
       region.classList.remove("is-scrollable");
+      region.removeAttribute("tabindex");
     });
     if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
       return;
@@ -274,6 +275,9 @@
       if (overflows(region)) {
         Array.prototype.forEach.call(region.querySelectorAll("[data-max-rows]"), capList);
         region.classList.add("is-scrollable");
+        // WCAG 2.1.1 / axe scrollable-region-focusable: Was scrollt, muss per Tastatur
+        // erreichbar sein (Pfeiltasten wirken erst nach dem Fokus).
+        region.setAttribute("tabindex", "0");
       }
     });
   }

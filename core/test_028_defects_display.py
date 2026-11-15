@@ -821,6 +821,10 @@ class WallDisplayKioskTests(TestCase):
         self.assertIn('moreLabel(ticker)', script)
         # Sitzungsansicht in sehr niedrigen Fenstern: scrollen statt still abschneiden.
         self.assertIn('region.classList.add("is-scrollable")', script)
+        # axe scrollable-region-focusable: Eine scrollende Spalte ist per Tastatur erreichbar
+        # und verliert den Tabstopp wieder, sobald sie nicht mehr scrollt.
+        self.assertIn('region.setAttribute("tabindex", "0")', script)
+        self.assertIn('region.removeAttribute("tabindex")', script)
         self.assertIn(".display-column.is-scrollable", css)
 
 
