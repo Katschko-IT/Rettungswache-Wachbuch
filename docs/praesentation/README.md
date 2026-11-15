@@ -1,4 +1,4 @@
-# Wachwerk-Vorführung (Folien)
+# Staffeta-Vorführung (Folien)
 
 Die Vorführung in der Web-App liegt unter **`/vorfuehrung/`** (CSP-konform,
 Musik nur nach Klick). Dieses Verzeichnis ist die eigenständige Fassung
