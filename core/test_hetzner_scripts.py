@@ -516,7 +516,7 @@ class HealthStatusFileTests(SimpleTestCase):
         self.box.status_dir.write_text("kein Ordner")
         result = self.box.run()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Zustand für Wachwerk nicht geschrieben", result.stderr)
+        self.assertIn("Zustand für Staffeta nicht geschrieben", result.stderr)
         self.assertEqual([p["url"] for p in self.box.pings()], [PING])
         self.box.reset_calls()
         result = self.box.run("--test")
@@ -694,7 +694,7 @@ class HealthAppDeliveryTests(SimpleTestCase):
         self.assertEqual(len(fails), 1, self.box.pings())
         self.assertIn("notify-worker", fails[0]["body"])
         self.assertEqual(self.deliveries(), [NOTIFY_RUN])
-        self.assertIn("Meldung in Wachwerk nicht zugestellt", result.stderr)
+        self.assertIn("Meldung in Staffeta nicht zugestellt", result.stderr)
         # Reihenfolge der Aufrufe: erst der Ping, dann der eigene Lauf.
         order = Path(f"{self.box.state_path}.order").read_text(encoding="utf-8").splitlines()
         self.assertLess(order.index(f"curl {PING}/fail"), order.index("docker compose run"), order)

@@ -112,7 +112,7 @@
     if (past) {
       past.setAttribute("width", String(nowMinute));
     }
-    ["[data-band-now]", "[data-band-now-head]"].forEach(function (selector) {
+    ["[data-band-now]", "[data-band-now-core]", "[data-band-now-head]"].forEach(function (selector) {
       var mark = band.querySelector(selector);
       if (mark) {
         mark.setAttribute("x1", String(nowMinute));
