@@ -1,5 +1,5 @@
 dialog.crypto-unlock {
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   max-width: 28rem;
@@ -15,7 +15,8 @@ dialog.crypto-unlock::backdrop {
 dialog.crypto-unlock h2 {
   margin: 0 0 8px;
   font-size: 1.15rem;
-  color: var(--brand-ink);
+  font-weight: 700;
+  color: var(--text);
 }
 
 dialog.crypto-unlock p {
@@ -47,7 +48,7 @@ dialog.crypto-unlock input:focus-visible {
 }
 
 dialog.crypto-unlock input[aria-invalid="true"] {
-  border-color: var(--danger);
+  border: 2px solid var(--danger);
 }
 
 dialog.crypto-unlock .crypto-unlock-error {
@@ -61,4 +62,8 @@ dialog.crypto-unlock .crypto-unlock-actions {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 20px;
+}
+
+dialog.crypto-unlock .crypto-unlock-actions .button {
+  min-height: var(--touch);
 }

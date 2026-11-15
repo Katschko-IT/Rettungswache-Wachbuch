@@ -17,7 +17,7 @@
   {% else %}
   <aside class="privacy-blocker-warning" role="alert" aria-label="{% translate 'Veröffentlichungsblocker' %}">
     <p class="blocker-title"><strong>{% translate "Veröffentlichungsblocker: Technische Information unvollständig bis Betreiberfreigabe" %}</strong></p>
-    <p>{% translate "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Wachwerk und stellt" %} <strong>{% translate "keine" %}</strong> {% translate "rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden." %}</p>
+    <p>{% translate "Diese Dokumentation ist eine rein technische Vorab-Information für die Demonstrationsumgebung von Staffeta und stellt" %} <strong>{% translate "keine" %}</strong> {% translate "rechtsverbindliche oder vollständige Datenschutzerklärung nach Art. 13/14 DSGVO dar. Verbindliche Betreiberidentität, vertragliche Rechtsgrundlagen, Auftragsverarbeitungsverträge (AVV) und ein freigegebenes Löschkonzept müssen vor einer etwaigen Veröffentlichung durch den Betreiber festgelegt und freigegeben werden." %}</p>
   </aside>
   {% endif %}
 
@@ -41,7 +41,7 @@
 <div class="content-flow narrow prose">
   <section id="verantwortung" class="privacy-section">
     <h2>{% translate "1. Verantwortung und Kontakt" %}</h2>
-    <p>{% translate "Wachwerk ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Wachwerk-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen." %}</p>
+    <p>{% translate "Staffeta ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Staffeta-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen." %}</p>
     {% if site_profile.is_configured %}
       <h3>{% translate "Verantwortlicher" %}</h3>
       <p>
@@ -170,7 +170,7 @@
     {% if signal_enabled %}<p>{% translate "Signal (optional): Diese Installation verschickt Benachrichtigungen über ein Signal-Konto der Wache. In die Wachengruppe gehen nur Hinweise ohne Namen; persönliche Nachrichten nur an Personen, die ihre Handynummer selbst hinterlegt und bestätigt haben. Die Übertragung ist Ende-zu-Ende-verschlüsselt; die Nummer wird beim Abschalten gelöscht, gesendete Nachrichten nach 30 Tagen." %}</p>{% endif %}
 
     <h3>{% translate "Externe Datenflüsse dieser Installation" %}</h3>
-    <p>{% translate "Wachwerk arbeitet nach dem Grundsatz des Inselbetriebs. Externe Dienste sind standardmäßig abgeschaltet. Die folgende Übersicht zeigt die für diese Installation erkannten externen Datenflüsse im aktuellen Betriebszustand:" %}</p>
+    <p>{% translate "Staffeta arbeitet nach dem Grundsatz des Inselbetriebs. Externe Dienste sind standardmäßig abgeschaltet. Die folgende Übersicht zeigt die für diese Installation erkannten externen Datenflüsse im aktuellen Betriebszustand:" %}</p>
 
     {% if active_data_flows %}
       <div class="data-flows-block">
@@ -219,7 +219,7 @@
 
   <section id="loeschung" class="privacy-section">
     <h2>{% translate "7. Speicherdauer, Reset und Löschung" %}</h2>
-    <p>{% translate "Wachwerk stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen." %}</p>
+    <p>{% translate "Staffeta stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen." %}</p>
     <p>{% translate "Ein kontrollierter Neuaufbau der getrennten Demo ist vorgesehen; ein automatischer Reset, seine Häufigkeit und seine Wirksamkeit sind noch nicht nachgewiesen. Das erneute Einspielen von Seed-Daten allein beweist keine Löschung vorhandener Eingaben. Fachliche Revisions-, Kassen- und Auditzeilen bleiben append-only; Korrekturen erfolgen durch neue Buchungs- oder Revisionssätze. Für versehentlich eingegebene Echtdaten sind Sperrung, Kontaktkette, Vorfallbewertung und kontrollierte Entfernung einschließlich geschützter Log- und Sicherungsreste vor Start festzulegen. Ein serverseitiger Reset entfernt keine lokalen Browser-Caches auf fremden Endgeräten." %}</p>
   </section>
 

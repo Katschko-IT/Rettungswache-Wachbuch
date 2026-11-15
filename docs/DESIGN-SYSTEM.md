@@ -1,23 +1,85 @@
-# Wachbuch Klar - Designregeln
+# Markencode Staffeta
 
-Stand: 30. Oktober 2026
+Staffeta ist ein Übergabe-Produkt: ein Stab wird von Schicht zu Schicht weitergereicht. Der Markencode ist so gebaut, dass man ihn an einem Merkmal erkennt, auch ohne Namen.
 
-## Entscheidung
+## Die Regel in einem Satz
 
-Die Webapp verwendet kein vollständiges Admin-Template. Tabler und vergleichbare
-Dashboard-Vorlagen bringen für diesen Anwendungsfall zu viele Karten,
-Kennzahlen, Icons und Bootstrap-Abhängigkeiten mit. Pico CSS ist leicht, bildet
-aber komplexere Rollen-, Fehler- und Prüfprozesse nicht ausreichend ab.
+Tinte trägt das Buch, und pro Bildschirm bekommt genau eine Stelle den Stab in Signal-Lime.
 
-`Wachbuch Klar` ist deshalb eine kleine projektspezifische Oberfläche. Die
-Web-PWA teilt die kanonischen Design-Tokens mit dem Flutter-Client
-(`clients/wachbuch-mobile`, siehe dort `docs/DESIGN-SYSTEM.md` und
-`lib/theme/`). Visuelle Richtung: **öffentlicher Dienst / BOS**
-(Rettungsdienst, Feuerwehr, Polizei) – feldlesbar, hoher Kontrast, ruhiges Blau,
-keine Marketing-Ästhetik.
+## Farben
 
-Übernommen werden erprobte, nicht markengebundene Muster aus offenen
-Designsystemen:
+| Name | Wert | Verwendung |
+|---|---|---|
+| Tinte | `#14212b` | Text, Linien, Bedienung (Schaltflächen), Zeichen |
+| Signal-Lime | `#c8e63c` | nur der Stab: Jetzt-Marke im Schichtband, Wortmarke, Zeichen |
+| Papier | `#e9eee8` | Grundfläche hell |
+| Blatt | `#ffffff` | Karten und Zeilen hell |
+| Nacht | `#0d151b` / `#14212b` | Grund und Blatt dunkel; Text `#e9eee8` |
+
+Gerechnet: Tinte auf Papier 13,9:1, Tinte auf Lime 11,6:1, Lime auf Papier nur 1,2:1 und auf Weiß 1,4:1. Lime trägt deshalb nie allein Text, einen dünnen Rand oder eine Information. Einzige Ausnahme: das „ff“ im Logo. Es ist immer Füllung neben oder unter Tinte, und der Stab hat einen Tinte-Rand.
+
+## Zeichen und Wortmarke
+
+- Der Stab: zwei gekippte Hälften (24°), gegeneinander versetzt. Links die Schicht, die geht (Tinte, auf Dunkel Weiß), rechts die, die kommt (Lime). Auf Lime-Grund nur einfarbig.
+- Wortmarke: Das kursive Doppel-f in Sta*ff*eta ist die einzige Lime-Schrift. Sie steht nur im Logo, nie im Fließtext. Das „ff“ hat Abstand zu „a“ und „e“.
+- Das Schichtband zeigt „jetzt“ als Stab: Lime-Kern mit Tinte-Rand (`.sb-now`, `.sb-now-core`).
+
+## Grenzen
+
+- Lime ist kein Status. Rot, Bernstein, Grün, Violett und der Fokus-Ring bleiben den Bedeutungen vorbehalten.
+- Kein Magenta (Telekom), kein Blau-Violett-Verlauf, keine Schlagschatten-Karten.
+- Neue Lime-Flächen nur nach dieser Regel; im Logo und in der Wortmarke ist sie die Ausnahme.
+
+---
+
+# Schichtbuch – Designsystem
+
+Stand: 12. November 2026 (Branch `design/schichtbuch-0.29`). Ersetzt
+„Wachbuch Klar 2“ vollständig; frühere Stilvorgaben gelten nicht mehr.
+Der Produktname ist ein Arbeitsname: Er steht nur im Logo und im Text, nie in
+Formen, Mustern oder Farbnamen.
+
+## Konzept: ein Buch, das 24 Stunden offen liegt
+
+Das Produkt ist das gemeinsame Gedächtnis einer Wache über den Schichtwechsel
+hinweg. Es ist kein Einsatz-, Alarm- oder Leitstellensystem und soll auch nicht
+so aussehen: kein Blaulicht-Cockpit, keine Kachelwand mit Großzahlen, keine
+Warnstreifen. Es sieht aus wie das, was es ersetzt – ein sorgfältig geführtes
+Wachbuch – und zeigt das, was es wirklich verwaltet: Zeit.
+
+Daraus folgen fünf Entscheidungen. Jede ist an einer Stelle im Code zu finden.
+
+1. **Papier mit eigener Farbe.** Tag ist Hauptbuchpapier: ein kühles, leicht
+   grünes Weiß (`--surface` `#f8fbf6` auf der Unterlage `--bg` `#e6ece6`).
+   Journale und Kontenbücher werden so getönt, damit die Seite unter
+   Leuchtstoffröhren nicht blendet. Bewusst **kein** Creme und kein Beige: Die
+   warme Standardfläche wirkt beliebig und passt nicht in eine Fahrzeughalle.
+2. **Nacht ist dasselbe Buch unter der Lampe.** Warme, blauarme Flächen
+   (`#1b1915` auf `#100f0c`), Schrift in Papierfarbe (`#ece5d5`), nie reines
+   Weiß auf Schwarz. Wer um drei Uhr nachts vom Fahrzeug kommt, wird nicht
+   geblendet.
+3. **Tinte bedient, Stempel bedeuten.** Bedienung, Links und Auswahl sind
+   Petroltinte (`--brand`). Sie trägt nie eine Bedeutung. Farbe mit Bedeutung
+   gehört allein den vier Stempeln: dringend, fällig, gesperrt, erledigt.
+4. **Logbuch statt Karten.** Einträge stehen wie im Buch: links die
+   Randspalte mit der Uhrzeit, daneben die Randlinie (`--margin-rule`), rechts
+   der Inhalt, darunter eine feine Zeilenlinie. Abschnitte haben eine
+   Kopflinie in Tinte. Keine Schatten, keine farbigen Seitenstreifen, keine
+   Symbol-Kacheln, keine Zeile über der Überschrift.
+5. **Das Schichtband.** Eine waagerechte 24-Stunden-Leiste mit Jetzt-Marke,
+   geschriebenen Einträgen, Terminen, fälligen Prüfungen und Sperrzeiten
+   (Einwirkzeit nach Desinfektion). Es steht oben auf der Übersicht und über
+   die volle Breite des Wachen-Displays. Links von der Jetzt-Marke ist der Tag
+   „geschrieben“ (getönt), rechts ist er offen (liniert).
+
+Verworfen wurden: das Blaulicht-/Leitstellen-Cockpit (Verwechslung mit
+Einsatzsystemen, Dauer-Alarm stumpft ab), der ruhig-amtliche Stil nach
+GOV.UK/NHS (solide, aber austauschbar – die Regeln bleiben, der Stil nicht)
+und das SaaS-Dashboard mit Kacheln (zerlegt einen zeitlichen Ablauf in
+Kästchen).
+
+Die Webapp verwendet weiterhin kein Admin-Template und kein CSS-Framework.
+Übernommen werden nur Regeln, keine Optik, aus offenen Designsystemen:
 
 | Quelle | Lizenz | Uebernommenes Muster |
 |---|---|---|
@@ -26,49 +88,204 @@ Designsystemen:
 | [USWDS](https://github.com/uswds/uswds) | Public Domain/CC0 mit dokumentierten Dritt-Lizenzen | Responsive, semantische Tabellen |
 | [Tabler](https://github.com/tabler/tabler) | MIT | Nur Referenz fuer App-Shells; bewusst nicht eingebunden |
 | [Pico CSS](https://github.com/picocss/pico) | MIT | Semantisches HTML als Referenz; bewusst nicht eingebunden |
-| [Source Sans 3](https://github.com/adobe-fonts/source-sans) | SIL OFL 1.1 | Lokale Webfonts (`core/static/core/fonts/`), offline-faehig |
+| [Atlassian Design](https://atlassian.design/foundations/color) | – | Akzentfarbe trägt nie Bedeutung; Auswahl braucht ein zweites Signal |
+| [Stripe Apps](https://docs.stripe.com/stripe-apps/patterns/communicating-state.md) | – | Flüchtiges als Meldung, Dauerhaftes als Banner; Leerzustand nennt den nächsten Schritt |
+| [Atkinson Hyperlegible Next](https://www.brailleinstitute.org/freefont/) | SIL OFL 1.1 | Einzige Schrift, lokal in `core/static/core/fonts/` (Lizenzdatei liegt dabei) |
 
-Es wurden keine fremden Logos, Markenfarben oder kopierten Komponentenpakete
-eingebunden. Kopfleiste und Startseite zeigen das eigene Wachwerk-Logo
-(`core/static/core/brand-wachwerk.png`); rot-weiße Warnstreifen werden bewusst
-nicht als Schmuck verwendet. Die eigene CSS-Schicht bleibt klein, lokal und offline-fähig.
-Minimales JavaScript dient ausschließlich der installierbaren PWA
-(Service-Worker, Installationshinweis, Online-Status) und ist keine
-Voraussetzung für die Kernabläufe.
+Es wurden keine fremden Logos, Markenfarben oder Komponentenpakete eingebunden
+und keine weitere Schrift. Die CSS-Schicht bleibt klein, lokal und
+offline-fähig; es gibt keine externen Ressourcen.
 
-## Kanonische Tokens (Web = Client)
+## Tokens (`core/static/core/tokens.css`)
 
-| Rolle | Hex | Verwendung |
+`tokens.css` ist die einzige Quelle für Farben, Radien und Maße.
+`scripts/sync_design_assets.py` kopiert sie nach `site/` und
+`docs/praesentation/`. Die Flutter-App (`clients/wachbuch-mobile`,
+`lib/theme/design_tokens.dart`) nutzt dieselben Namen; ihre Werte sind noch
+auf dem alten Stand und müssen nachgezogen werden.
+
+| Rolle | Token | Tag | Nacht |
+|---|---|---|---|
+| Unterlage | `--bg` | `#e6ece6` | `#100f0c` |
+| Blatt | `--surface` | `#f8fbf6` | `#1b1915` |
+| Einzug, Tabellenkopf | `--surface-soft` | `#eef3ec` | `#25221c` |
+| Tinte (Text) | `--text` | `#13212a` | `#ece5d5` |
+| Gedämpft | `--muted` | `#4a5a5e` | `#b0a794` |
+| Zeilenlinie (dekorativ) | `--line` | `#c9d4cb` | `#36322a` |
+| Rand von Bedienelementen | `--line-strong` | `#66766f` | `#857c6b` |
+| Randlinie der Randspalte | `--margin-rule` | `#8fb5ba` | `#3e5e61` |
+| Petroltinte (Bedienung) | `--brand` | `#0b5563` | `#7cc6ce` |
+| Schrift auf Petrol | `--on-primary` | `#ffffff` | `#06262b` |
+| Dringend | `--danger` / `--on-danger` | `#a3231b` / `#ffffff` | `#ff9282` / `#2a0a06` |
+| Fällig, wichtig | `--warning` (Rand `--warning-accent`) | `#7a4a00` (`#b37400`) | `#f2b84b` |
+| Gesperrt | `--violet` (= `--locked`) | `#5a3d99` | `#c3adf5` |
+| Erledigt, bereit | `--success` | `#2a6418` | `#9ad07a` |
+| Tastaturfokus | `--focus` / `--focus-halo` | `#1846d6` / `#13212a` | `#a9c1ff` / `#ece5d5` |
+
+### Kontrast (WCAG 2.2, relative Leuchtdichte, von Hand gerechnet)
+
+Die Werte sind mit der WCAG-Formel aus den Hex-Werten gerechnet und auf eine
+Stelle gerundet; `core/test_028_defects_display.py` prüft einen Teil davon
+automatisch, der CI-Job `a11y` (axe-core) misst im Browser nach.
+
+| Paar | Tag | Nacht | Soll |
+|---|---|---|---|
+| Text auf Blatt / Unterlage | 15,7 / 13,7 | 14,0 / 15,3 | 4,5 |
+| Gedämpft auf Blatt / Unterlage / Einzug | 6,9 / 6,0 / 6,4 | 7,4 / 8,0 / 6,6 | 4,5 |
+| Petrol auf Blatt | 8,1 | 9,1 | 4,5 |
+| Schrift auf Petrol (Hauptknopf) | 8,4 | 8,2 | 4,5 |
+| Dringend auf Blatt / auf eigener Tönung | 7,2 / 6,1 | 8,1 / 7,4 | 4,5 |
+| Schrift auf gefülltem Dringend-Stempel | 7,5 | 8,5 | 4,5 |
+| Fällig auf Blatt / auf eigener Tönung | 7,2 / 6,4 | 9,8 / 8,3 | 4,5 |
+| Gesperrt auf Blatt / auf eigener Tönung | 7,9 / 6,7 | 8,9 / 7,6 | 4,5 |
+| Erledigt auf Blatt / auf eigener Tönung | 6,9 / 6,1 | 9,8 / 8,1 | 4,5 |
+| Rand von Bedienelementen auf Blatt / Unterlage | 4,6 / 4,0 | 4,3 / 4,7 | 3,0 |
+| Rand „fällig“ (`--warning-accent`) auf Blatt | 3,7 | 9,8 | 3,0 |
+| Fokusring auf Blatt / Unterlage | 7,0 / 6,1 | 9,8 / 10,7 | 3,0 |
+
+## Typografie
+
+Eine Schrift: Atkinson Hyperlegible Next (400, 600, 700), lokal gebündelt.
+Unverwechselbar wird die Oberfläche durch Satz und Raster, nicht durch eine
+zweite Schrift.
+
+- Überschriften in Satzschreibung, 700, leicht enger gesetzt. Keine Versalien,
+  keine gesperrten Kleinzeilen über der Überschrift: Ort und Datum stehen als
+  Datumszeile **unter** der `h1` (`.context-line`).
+- Uhrzeiten, Zähler und Beträge immer in Tabellenziffern
+  (`font-variant-numeric: tabular-nums`).
+- Randspalte 600, Inhalt 400, Titel eines Eintrags 700.
+- Fließtext höchstens 65 bis 70 Zeichen je Zeile.
+
+## Formen
+
+- Blätter (`.section-block`, `.form-card`, `.summary-list`): Fläche
+  `--surface`, 1 px Linie, 4 px Radius, kein Schatten.
+- Abschnitt = Kopfzeile mit 1 px Tintenlinie darunter, Zeilen mit
+  Zeilenlinien. Die Kopfleiste der App schließt mit einer Doppellinie wie der
+  Kopf einer Buchseite.
+- Logbuchzeile (`.list-row` mit `time`): Randspalte `--rail` mit Uhrzeit,
+  Randlinie `--margin-rule` (1 px), Inhalt, Stempel rechts.
+- Knöpfe: 4 px Radius, mindestens 48 px hoch. Hauptknopf gefüllt in Petrol,
+  Nebenknopf Blatt mit Tintenrand. Kein Farbverlauf, kein Schatten.
+- Nicht verwenden: farbige Seitenstreifen an Flächen (`border-left` in
+  Signalfarbe), Symbol auf getönter Kachel, Pillen mit vollem Radius für
+  Status, Schatten auf Blättern.
+
+## Stempel (Status)
+
+Jeder Status ist ein Stempel: ausgeschriebenes Adjektiv in Satzschreibung,
+rechteckig (2 px Radius), nie klickbar. Die **Randform** ist das zweite
+Signal neben der Farbe – sie bleibt auch in Graustufen und bei
+Farbfehlsichtigkeit lesbar.
+
+| Bedeutung | Klassen (`.status-label`, `.badge`, `.urgency-pill`, `.state`) | Form | Farbe |
+|---|---|---|---|
+| Dringend, überfällig, nicht bestanden | `.priority-urgent`, `.danger`, `.badge-fail`, `.urgency-overdue` | **gefüllte Fläche** | `--danger` mit `--on-danger` |
+| Kritisch | `.urgency-critical` | 2 px durchgezogen | `--danger` |
+| Fällig, wichtig, in Arbeit | `.priority-important`, `.warning`, `.status-in_progress`, `.urgency-warning` | **gestrichelter Rand** | `--warning` |
+| Gesperrt | `.locked`, `.violet` | **doppelter Rand** | `--violet` |
+| Erledigt, bereit, bestanden | `.success`, `.status-done`, `.badge-pass`, `.urgency-ok` | durchgezogen mit Haken | `--success` |
+| Offen, normal, Hinweis | `.status-open`, `.priority-normal`, `.neutral`, `.info` | durchgezogen | `--text` |
+| Wartend | `.status-waiting` | gepunktet | `--muted` |
+
+„Dringend“ ist der einzige Stempel mit gefüllter Fläche. „Gesperrt“ hat eine
+eigene Farbe, weil eine Sperre kein Alarm ist, sondern ein fester Zustand
+(Einwirkzeit, offener Mangel am Medizingerät, Rückruf einer Charge).
+
+## Schichtband (`.shift-band`)
+
+Datenquelle: `core/shift_band.py`. Das Band nutzt nur vorhandene Zeitdaten
+und legt nichts an.
+
+- Achse: 00 bis 24 Uhr der Wachenzeit, Stundenmarken alle 6 Stunden.
+- Jetzt-Marke: senkrechte Tintenlinie mit Dreieck. Links davon ist das Band
+  getönt („geschrieben“), rechts liniert („offen“).
+- Marken: Übergaben des Tages (Strich, dringende gefüllt), Termine mit Uhrzeit
+  (Raute), fällige Checklisten (gestrichelter Strich), Einwirkzeit je Fahrzeug
+  (schraffierte Spanne in `--violet`).
+- Unter dem Band steht jede Marke noch einmal als Text mit Uhrzeit: Das Band
+  ist nie die einzige Quelle einer Information.
+- Schichtgrenzen zeigt das Band **nicht**: Die Wache speichert bisher keine
+  Schichtzeiten (`core/models.py`, `Station`). Sobald es sie gibt, werden sie
+  als senkrechte Doppellinie ergänzt.
+- Technik: Inline-SVG mit Attributen (kein `style=`, CSP-fest), funktioniert
+  ohne JavaScript. `ui.js` rückt die Jetzt-Marke im Minutentakt nach.
+- Display: dieselbe Leiste über die volle Breite, aufgebaut von `display.js`
+  aus den vorhandenen Feldern `events[].time` und
+  `fleet_vehicles[].locked_until`.
+- Zeichenerklärung: Die Startseite und die Projektseite zeigen unter dem Band
+  eine Legende (`templates/core/_shift_band_key.html`, `.shift-band-key`) mit
+  Übergabe, Dringend, Termin, Gerät gesperrt, Frist fällig und Jetzt. Das Band
+  selbst bleibt `aria-hidden`; die Legende steht außerhalb davon.
+- Jetzt-Marke („Stab“): Tinte-Rand (`--on-signal`, im Display fest `#14212b`)
+  mit Lime-Kern `--signal`. Lime steht nie allein, weil es auf hellem Papier
+  keinen Kontrast hat.
+
+### Wandmonitor: Schriftgrößen nach Lesedistanz
+
+Maßstab ist DIN 1450 (Mittellänge in cm = Lesedistanz in cm / 250; für helle
+Schrift auf dunklem Grund +10 %). Gerechnet für ein 43-Zoll-Gerät mit 1080p
+(0,496 mm je Pixel), Versalien-Stempel mit Versalhöhe ≈ 0,7 em, gemischte
+Schrift mit Mittellänge ≈ 0,5 em:
+
+| Element | Größe vorher → jetzt (1920 px) | Lesedistanz vorher → jetzt |
 |---|---|---|
-| `brand` / Primary | `#0D47A1` | Header, Primaeraktion, aktive Navigation |
-| `brandDeep` | `#082E63` | Hover/Pressed, dunkle Flaechen |
-| `brandInk` | `#17343D` | Ueberschriften |
-| `accent` | `#2563EB` | Links, Info, Prioritaet normal |
-| `bg` | `#F7F9FC` | Seitenhintergrund |
-| `surface` | `#FFFFFF` | Flaechen mit Rand `#DCE4EF` |
-| `urgent` | `#DC2626` | Dringend / Fehler (nur semantisch) |
-| `important` | `#F59E0B` | Wichtig / Warnung |
-| `done` / success | `#16A34A` | Erledigt / Erfolg |
-| `focus` | `#F0B429` | Tastaturfokus und Service-Akzentstreifen |
+| Fahrzeug-Stempel (Versalien) | 24 → 28,8 px | 1,9 → 2,3 m |
+| Skala unter dem Band | 24 → 28,8 px | – |
+| Quellenangabe Verkehr | 19,2 → 24 px | 1,1 → 1,4 m |
+| Meta-Zeile Verkehr | 22 → 25,9 px | 1,2 → 1,5 m |
+| Termine und Listen | 33,6 → 42,2 px (1,75 → 2,2 vw) | 1,7 → 2,4 m |
+| Fahrzeugname | 30,7 → 38,4 px (1,6 → 2 vw) | 1,5 → 2,2 m |
+| Titel Verkehr | 25,9 → 32,6 px (1,35 → 1,7 vw) | 1,4 → 1,8 m |
 
-Flächen nutzen Rand statt schwerer Schatten. Touch-Ziele: mindestens **48 x 48
-CSS-Pixel** (Client und WCAG 2.5.5).
+Das sind Rechenwerte, keine Messung vor Ort. Auf **55 Zoll** tragen Termine
+und Listen jetzt bis ca. 3,0 m, der Fahrzeugname bis 2,8 m und der Stempel bis
+2,9 m. Auf **43 Zoll** reicht es für 3 m nicht: Termine bis 2,4 m, Fahrzeugname
+bis 2,2 m (für 3 m bräuchte die Hauptschrift dort rund 2,8 vw). Wer ein
+kleineres Gerät hat, sitzt näher dran oder nimmt ein größeres. Größere Schrift
+heißt weniger Zeilen: Was nicht passt, kürzt `display.js` auf „+N weitere“
+oder macht die Spalte scrollbar. Die Werte stehen in `display.css`
+(`--vw`-Skalierung) und gelten für den Kiosk-Rahmen 16:9.
+
+## Bewegung
+
+Bewegung gibt es nur bei einem Zustandswechsel, nie als Schmuck:
+
+- Eine Meldung nach einer Aktion „setzt auf“ wie ein Stempel (160 ms).
+- Farbwechsel beim Überfahren und Drücken (120 ms).
+- Die Jetzt-Marke rückt im Minutentakt, ohne Animation.
+- `prefers-reduced-motion: reduce` schaltet alles ab.
+
+## Geräte
+
+- **Handy:** einspaltig, Randspalte schmal (Datum über Uhrzeit), Schichtband
+  oben, Hauptaktion über der unteren Leiste in Daumenreichweite.
+- **Desktop:** Logbuch links, Seitenspalte rechts (Fahrzeuge, Aufgaben,
+  Termine).
+- **Wachen-Display:** immer Nacht-Palette (blendet in der Halle nicht), Uhr
+  und Schichtband über die volle Breite, Fahrzeuge mit Stempeln, keine
+  Bewegung außer dem Minutentakt.
+- **Druck und QR:** bleiben hell (`--paper`, `--paper-ink`).
 
 ## Zehn verbindliche Regeln
 
 1. Jede Seite hat genau eine Hauptaufgabe und genau eine `h1`.
-2. Pro Ansicht gibt es höchstens eine hervorgehobene Primaeraktion.
-3. Das Dashboard zeigt Status der aktiven Übergaben, einen kurzen Schnellzugriff
-   auf Schichtaufgaben sowie die nächsten drei Termine.
+2. Pro Ansicht gibt es höchstens eine gefüllte Hauptaktion.
+3. Die Übersicht zeigt zuerst das Schichtband, dann was Aufmerksamkeit
+   braucht, dann die Übergaben für die nächste Schicht.
 4. Kritische Informationen stehen offen sichtbar, nie in einem geschlossenen
    Accordion oder nur hinter Farbe.
-5. Status und Priorität werden immer ausgeschrieben. Farbe ist nur zusätzlich.
-6. Jedes interaktive Ziel ist mindestens 48 x 48 CSS-Pixel groß.
+5. Status und Priorität werden immer ausgeschrieben. Farbe und Randform sind
+   nur zusätzlich.
+6. Jedes interaktive Ziel ist mindestens 48 x 48 CSS-Pixel groß (kleine
+   Knöpfe in dichten Listen mindestens 44 x 44).
 7. Mobile beginnt einspaltig; weitere Spalten entstehen erst ab ausreichendem
    Inhaltsplatz, nicht anhand bestimmter Gerätemodelle.
 8. Fließtext bleibt auf ungefähr 65 bis 70 Zeichen pro Zeile begrenzt.
 9. Listen und Schreibformulare liegen auf getrennten URLs.
-10. Rot ist für dringende Zustände und Fehler reserviert, nicht für Dekoration.
+10. Rot ist für dringende Zustände und Fehler reserviert, Petrol für
+    Bedienung. Keine Farbe ist Dekoration.
 
 ## Glossar
 
@@ -216,14 +433,17 @@ Komponenten aus `app.css` und ein kleines Vokabular in `modules.css`:
 
 - Layout: `.stack`, `.cluster`, `.split`, `.grid-auto`, `.grid-2`,
   `.muted`, `.text-small`, `.mono`.
-- Bausteine: `.filter-tabs`, `.state`/`.dot` (Zustand als Punkt + Text),
+- Bausteine: `.filter-tabs`, `.state` (Zustand als Stempel) und `.dot`
+  (kleine Formmarke vor einem Filter; der Text daneben nennt den Zustand),
   `.module-row` mit `.row-main`/`.row-due`/`.row-actions`, `.note-box`,
   `.modal-panel`, `.field-row`, `.check-list`/`.checkbox-field`,
   `.scanner-view`, `.qr-sticker` (QR und Druck bleiben hell).
 - Keine Hash-Klassen, kein `!important`, keine festen Farben: Farben nur
   über Tokens, damit hell und Nachtdienst gleich funktionieren. Feste
   Werte stehen ausschließlich in Token-Blöcken (`:root`, `--lock-*` für den
-  bewusst dunklen Sperrbildschirm, `--hero-*` für die Startseiten-Bühne).
+  bewusst dunklen Sperrbildschirm, `--display-*` für das Wachen-Display).
+  Beide nutzen die Werte der Nacht-Palette. Ausnahme in `public.css`: die
+  Terminalfläche `.code-block` und der Geräterahmen der Bildschirmfotos.
 - Symbole aus `core/static/core/icons.svg` (`core/_icon.html`), keine Emojis.
 
 Statusfarben (gleich wie in der Flutter-App): dringend = danger, offen =
@@ -259,7 +479,12 @@ oder Wachenterminal installiert werden:
 - Offline-Hinweisseite; keine Offline-Schreibwarteschlange
 - Safe-Area- und Standalone-Anpassungen für Notch und Home-Indicator
 - ICS-Export einzelner Wachentermine für den Gerätekalender
-- `theme_color` `#0D47A1`, `background_color` `#F7F9FC`
+- `theme_color` `#f8fbf6` (Blatt), `background_color` `#e6ece6` (Unterlage);
+  die `theme-color`-Metas in `base.html` nennen Blatt hell und Blatt Nacht
+  (`#1b1915`)
+- Verbindungsbanner (`.connection-chip`): erscheint, sobald das Gerät offline
+  ist oder der Server der Wache nicht antwortet (`app.js`, `probeServer`),
+  bleibt stehen und nennt den Weg zum Papier-Rückfall
 
 ## Responsive Verhalten
 
@@ -284,12 +509,16 @@ die Flutter-HighContrast-Themes.
 Regeln seit 0.28 (geprüft durch den CI-Job `a11y` mit axe-core, hell und
 dunkel, sowie `core/test_028_defects_display.py`):
 
-- **Fokusring:** Gelb (`--focus`) auf einem Saum `--focus-halo` (hell
-  `#0a3a85`, dunkel `#b3ccff`). Gelb allein erreicht auf Weiß nur 2:1; der Saum
-  erreicht gegen `--surface`, `--bg` und `--surface-soft` in beiden Modi
-  mindestens 3:1 (WCAG 1.4.11). `--focus-ring` ist der Saum als `box-shadow`
-  für Bausteine, die den Fokus eines inneren Felds zeigen (Chips mit
-  `:has(input:focus-visible)`, Knöpfe „Foto aufnehmen“ und „Datei wählen“).
+- **Fokusring:** 3 px Kobaltblau (`--focus`, Tag `#1846d6`, Nacht `#a9c1ff`)
+  mit 3 px Abstand. Kobalt kommt sonst nirgends vor und ist deshalb nie mit
+  dem Ocker von „fällig“ zu verwechseln; es erreicht gegen `--surface`,
+  `--bg` und `--surface-soft` in beiden Modi mindestens 6:1. Durch den
+  Abstand steht der Ring auch um gefüllte Knöpfe immer auf dem Blatt.
+  `--focus-halo` (Tinte, Tag `#13212a`, Nacht `#ece5d5`) und `--focus-ring`
+  sind der zusätzliche Saum als `box-shadow` für Bausteine, die den Fokus
+  eines inneren Felds zeigen (Chips mit `:has(input:focus-visible)`, Knöpfe
+  „Foto aufnehmen“ und „Datei wählen“); der Saum erreicht gegen die drei
+  Flächen mindestens 3:1 (WCAG 1.4.11).
   Kein Fokusring mit Tokens anderer Bereiche (z. B. `--display-accent`).
 - **Ausgewählte Chips** nutzen dasselbe Farbpaar wie `.button.primary`:
   `--brand` mit `--on-primary` (hell und dunkel mindestens 4,5:1), nie fest

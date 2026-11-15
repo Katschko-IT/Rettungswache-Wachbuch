@@ -139,15 +139,39 @@ def nav_config(station) -> dict:
     return {"entries": entries, "options": options, "sequence": primary}
 
 
-def more_config(station) -> dict:
-    """CSS-Reihenfolge der Bausteine unter 'Mehr'."""
-    default = {key: index for index, (key, _label) in enumerate(MORE_ITEMS)}
-    if station is None:
-        return default
-    order = parse_order_more(getattr(station, "more_order", ""))
-    if not order:
-        return default
-    result = dict(default)
-    for index, key in enumerate(order):
-        result[key] = index
+# Funktion einer Person (Membership.is_*_lead) → Bereiche, die für sie unter
+# „Mehr“ vorn stehen. Hygiene führt zum Fuhrpark: Dort liegen Desinfektion
+# und Einwirkzeit.
+FUNCTION_AREAS = (
+    ("is_mpg_lead", ("mpg",)),
+    ("is_material_lead", ("warehouse",)),
+    ("is_fleet_lead", ("fleet",)),
+    ("is_hygiene_lead", ("fleet",)),
+    ("is_safety_lead", ("defects", "checklists")),
+)
+
+
+def function_areas(membership) -> list[str]:
+    """Bereiche der eigenen Funktionen in fester Reihenfolge, ohne Doppelte."""
+    areas = []
+    for flag, keys in FUNCTION_AREAS:
+        if membership is not None and getattr(membership, flag, False):
+            areas.extend(key for key in keys if key not in areas)
+    return areas
+
+
+def more_config(station, membership=None) -> dict:
+    """CSS-Reihenfolge der Bausteine unter 'Mehr'.
+
+    Die Wache legt die Reihenfolge fest; die Bereiche der eigenen Funktion
+    (z. B. MPG-Beauftragte/r → Medizingeräte) rücken für diese Person in ihrem
+    Kapitel nach vorn (negative Werte, kleinster zuerst).
+    """
+    result = {key: index for index, (key, _label) in enumerate(MORE_ITEMS)}
+    if station is not None:
+        for index, key in enumerate(parse_order_more(getattr(station, "more_order", ""))):
+            result[key] = index
+    areas = function_areas(membership)
+    for index, key in enumerate(areas):
+        result[key] = index - len(areas)
     return result

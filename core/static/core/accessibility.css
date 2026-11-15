@@ -40,8 +40,9 @@ main select {
 
 main input[type="checkbox"],
 main input[type="radio"] {
-  width: 1.35rem;
-  height: 1.35rem;
+  /* WCAG 2.2 Target Size (Minimum): mindestens 24 x 24 px. */
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 /* Die ganze Zeile mit Kästchen ist die Trefferfläche. */
@@ -110,10 +111,19 @@ main .list-row a:not(.button) {
     --accent-soft: #ffffff;
     --primary-container: #ffffff;
     --on-primary: #ffffff;
+    --margin-rule: #000000;
     --danger: #b91c1c;
+    --danger-soft: #ffffff;
+    --on-danger: #ffffff;
     --warning: #000000;
+    --warning-soft: #ffffff;
+    --warning-accent: #000000;
     --success: #000000;
+    --success-soft: #ffffff;
     --info: #000000;
+    --info-soft: #ffffff;
+    --violet: #000000;
+    --violet-soft: #ffffff;
     --priority-urgent: #b91c1c;
     --priority-important: #000000;
     --priority-normal: #000000;
@@ -133,3 +143,94 @@ main .list-row a:not(.button) {
     border: 2px solid var(--text);
   }
 }
+
+/* Dunkles Thema mit erhöhtem Kontrast: Weiß auf Schwarz. Die Nacht-Tokens in
+   tokens.css haben die Spezifität (0,2,0); diese Blöcke stehen danach. */
+@media (prefers-contrast: more) {
+  :root[data-theme="dark"] {
+    --bg: #000000;
+    --bg-accent: #000000;
+    --surface: #000000;
+    --surface-soft: #000000;
+    --surface-raised: #000000;
+    --text: #ffffff;
+    --muted: #ffffff;
+    --line: #ffffff;
+    --line-strong: #ffffff;
+    --margin-rule: #ffffff;
+    --brand: #ffffff;
+    --brand-deep: #ffffff;
+    --brand-ink: #ffffff;
+    --accent: #ffffff;
+    --accent-dark: #ffffff;
+    --accent-soft: #000000;
+    --primary-container: #000000;
+    --on-primary: #000000;
+    --danger: #ff9a9a;
+    --danger-soft: #000000;
+    --on-danger: #000000;
+    --warning: #ffffff;
+    --warning-soft: #000000;
+    --warning-accent: #ffffff;
+    --success: #ffffff;
+    --success-soft: #000000;
+    --info: #ffffff;
+    --info-soft: #000000;
+    --violet: #ffffff;
+    --violet-soft: #000000;
+    --focus: #ffffff;
+    --focus-halo: #ffffff;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --bg-accent: #000000;
+    --surface: #000000;
+    --surface-soft: #000000;
+    --surface-raised: #000000;
+    --text: #ffffff;
+    --muted: #ffffff;
+    --line: #ffffff;
+    --line-strong: #ffffff;
+    --margin-rule: #ffffff;
+    --brand: #ffffff;
+    --brand-deep: #ffffff;
+    --brand-ink: #ffffff;
+    --accent: #ffffff;
+    --accent-dark: #ffffff;
+    --accent-soft: #000000;
+    --primary-container: #000000;
+    --on-primary: #000000;
+    --danger: #ff9a9a;
+    --danger-soft: #000000;
+    --on-danger: #000000;
+    --warning: #ffffff;
+    --warning-soft: #000000;
+    --warning-accent: #ffffff;
+    --success: #ffffff;
+    --success-soft: #000000;
+    --info: #ffffff;
+    --info-soft: #000000;
+    --violet: #ffffff;
+    --violet-soft: #000000;
+    --focus: #ffffff;
+    --focus-halo: #ffffff;
+  }
+}
+
+/* WCAG 2.2, Ziel 2.5.8: Links, die allein in Absatz, Listenpunkt oder Legende stehen,
+   sind echte Bedienziele und brauchen mindestens 24 x 24 px. Links mitten im Satz sind
+   ausgenommen und bleiben unverändert.
+   :where() hält die Spezifität bei 0: Das ist nur der Grundwert. Eigene Klassenregeln
+   (z. B. .attention-row als Grid, .text-action als inline-flex) gewinnen sonst nicht. */
+:where(p > a:only-child, li > a:first-child, .shift-band-legend a, .calm-line a, .context-line a) {
+  display: inline-block;
+  min-height: 1.5rem;
+  padding-block: .1rem;
+  line-height: 1.3;
+}
+
+/* Rechtsfuß der Vorführung: eigenständige Links, kein Satzbestandteil. */
+.demo-legal a { display: inline-block; min-height: 1.5rem; padding-block: .1rem; line-height: 1.3; }

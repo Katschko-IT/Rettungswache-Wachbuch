@@ -1,4 +1,4 @@
-"""Datenkatalog: welche Daten Wachwerk speichert, wer sie sieht und wie lange.
+"""Datenkatalog: welche Daten Staffeta speichert, wer sie sieht und wie lange.
 
 Grundlage für Datenschutz (VVT, DSFA, Art.-13-Information) und Mitbestimmung
 (Anlage 1 einer Betriebs- oder Dienstvereinbarung). Aufbau:
@@ -394,7 +394,7 @@ MODULES = (
             ModelSpec("auth.User", "Benutzerkonto: Anmeldename, Name, E-Mail, Passwort-Hash", ("self", "admin", "auditor", "display", "superuser"), ("self", "admin", "superuser"), ("web", "app", "display"), "account",
                       note="Andere Inhaltsrollen sehen Vor- und Nachnamen dort, wo Einträge einer Person zugeordnet sind; der Auditor sieht Namen im Audit-Protokoll; "
                            "Display und Sperrbildschirm zeigen am Geburtstag Vorname und Anfangsbuchstaben (nur mit Einwilligung)."),
-            ModelSpec("auth.Group", "Django-Gruppen (in Wachwerk ungenutzt)", ("superuser",), ("superuser",), (), "technical"),
+            ModelSpec("auth.Group", "Django-Gruppen (in Staffeta ungenutzt)", ("superuser",), ("superuser",), (), "technical"),
             ModelSpec("auth.Permission", "Django-Rechte für den Django-Admin", ("superuser",), ("system",), (), "technical"),
             ModelSpec("core.UserProfile", "Sprache und Profilbild", ("self", "member", "shift_lead", "cashier", "admin", "terminal"), ("self",), ("web", "app", "terminal"), "account",
                       note="Profilbilder sehen Inhaltsrollen derselben Wache und das Wachenterminal (nur Anzeige)."),
@@ -545,7 +545,7 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.StationAsset", "Gerät mit Status und Notiz", C, CS + ("system",), ("web", "app"),
-                      note="Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Wachwerk den Status aus dem Modul Medizinprodukte."),
+                      note="Anlegen und Statuswechsel: Schichtleitung und Master-Admin. Bei Medizingeräten übernimmt Staffeta den Status aus dem Modul Medizinprodukte."),
             ModelSpec("core.AssetEvent", "Statusverlauf mit Person", C, ("system",), ("web",), "evidence", evidence=True),
             ModelSpec("core.InventoryItem", "Ausgabegegenstand mit aktueller Inhaberin oder aktuellem Inhaber", C, CS, ("web", "app"),
                       note="Anlegen: Schichtleitung und Master-Admin. Ausgabe und Rückgabe (Inhaberin oder Inhaber) tragen alle Inhaltsrollen ein."),
@@ -705,7 +705,7 @@ MODULES = (
                            "Mangel oder Dienstanweisung, aber keine anderen Personen. Per E-Mail nur nach eigener Wahl der Person. "
                            "Zeitgesteuert nur zwischen 06:00 und 22:00 Uhr (Ruhezeit). "
                            "Technische Hinweise zum Server (Art system_health, Host-Überwachung) erhalten nur Master-Admins echter Wachen: "
-                           "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Wachwerk. Neben Posteingang und Push gehen sie an "
+                           "übersetzte Codes, Zeiten und Zahlen, keine Inhalte aus Staffeta. Neben Posteingang und Push gehen sie an "
                            "bestätigte Signal-Nummern und, wenn E-Mail eingerichtet ist, an die E-Mail-Adresse der Master-Admins und an "
                            "HEALTH_ALERT_EMAIL (docs/BETRIEB-PI-LAN.md)."),
             ModelSpec("core.MobilePushDevice", "App-Gerät für Push (Plattform, Geräte-Token, App-Version)", ("self",), ("self",), ("app",), "device_unregister"),
@@ -762,7 +762,7 @@ MODULES = (
         ),
         models=(
             ModelSpec("core.StorageLocation", "Lagerort", C, ("system", "admin"), ("web", "export"),
-                      note="Die Standardlagerorte legt Wachwerk beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den "
+                      note="Die Standardlagerorte legt Staffeta beim ersten Aufruf des Lagers an; weitere Lagerorte nur über den "
                            "Stammdaten-Import (Master-Admin). Eine Oberfläche zum Bearbeiten gibt es nicht."),
             ModelSpec("core.MedicalItem", "Artikel mit Mindestbestand", C + ("display",), CS, ("web", "display", "export"),
                       note="Anlegen: Schichtleitung und Master-Admin, auch über den Stammdaten-Import (Master-Admin)."),
@@ -794,11 +794,11 @@ MODULES = (
                            "Desinfektion und Mängelmeldung. Nicht löschen, sondern außer Betrieb nehmen (Schichtleitung und "
                            "Master-Admin); Übernahmen und Desinfektionen bleiben."),
             ModelSpec("core.DisinfectantMaster", "Desinfektionsmittel", C, ("system", "superuser"), ("web", "export"), "config",
-                      note="Das Standardmittel legt Wachwerk beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. "
+                      note="Das Standardmittel legt Staffeta beim ersten Aufruf des Fuhrparks an; weitere Mittel nur im Django-Admin. "
                            "Nicht löschen, sondern „In Gebrauch“ abwählen; ein Mittel bleibt immer in Gebrauch."),
             ModelSpec("core.DisinfectionLevel", "Stufe des Desinfektionsplans: Name, Mittel, Freigaberegel, Einwirkzeit, Bestätigung",
                       C, ("system",), ("web",),
-                      note="Kein Nachweis. Die Standardstufen legt Wachwerk an (Migration und erster Aufruf des Fuhrparks); eine "
+                      note="Kein Nachweis. Die Standardstufen legt Staffeta an (Migration und erster Aufruf des Fuhrparks); eine "
                            "Oberfläche zum Bearbeiten des Plans gibt es noch nicht. Die Namen der Stufen sehen alle Inhaltsrollen in "
                            "der Auswahl des Protokolls; welche Stufe eine Desinfektion hatte, sehen nur die durchführende Person, "
                            "Schichtleitung und Master-Admin (Entscheidung D2). Nicht löschen, sondern „In Verwendung“ abwählen."),
@@ -1471,7 +1471,7 @@ def _legend() -> list[str]:
         "## Nachweis und Löschschutz",
         "",
         "„Nachweis: ja“ heißt: Die Tabelle belegt, wer wann was getan, geprüft oder quittiert hat. Wie lange sie bleibt "
-        "und ob Wachwerk selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Wachwerk verweigert "
+        "und ob Staffeta selbst etwas löscht, steht in „Frist technisch“. „append-only (Anwendung)“: Staffeta verweigert "
         "jede Änderung und jedes Löschen einer Zeile, Korrekturen sind neue Einträge. „und Datenbankrechte“: zusätzlich "
         "darf die Datenbankrolle der App die Tabelle weder ändern noch löschen (PostgreSQL nach `grant_database_access`). "
         "„Löschschutz“ sagt, was mit dem Nachweis geschieht, wenn ein verknüpfter Eintrag gelöscht wird, etwa ein Gerät "
@@ -1541,7 +1541,7 @@ def station_markdown(station) -> str:
         lines = [
             f"# Datenkatalog – {station.name}",
             "",
-            f"Stand: {timezone.localdate().strftime('%d.%m.%Y')} · Wachwerk {getattr(settings, 'APP_VERSION', '')}",
+            f"Stand: {timezone.localdate().strftime('%d.%m.%Y')} · Staffeta {getattr(settings, 'APP_VERSION', '')}",
             "",
             "Erzeugt mit `python manage.py data_catalog --station`. Der Katalog enthält nur Metadaten und "
             "Einstellungen, keine Inhalte. Aufgeführt sind die Module, die in dieser Wache eingeschaltet sind, "

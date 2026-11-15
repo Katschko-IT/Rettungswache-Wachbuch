@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#14212b" media="(prefers-color-scheme: dark)">
   <meta name="application-name" content="{{ app_name }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -74,7 +74,8 @@
     </div>
   </header>
 
-  <div class="connection-chip" data-connection-chip hidden role="status"></div>
+  {# Verbindungsbanner: bleibt stehen, solange der Server nicht erreichbar ist, und nennt den Weg zum Papier (app.js). #}
+  <div class="connection-chip" data-connection-chip data-probe-url="{% static 'core/icons/icon-192.png' %}" hidden role="status"><span data-connection-text></span>{% if current_membership and current_membership.role != 'auditor' and not terminal_session %} <a href="{% url 'paper_hub' %}">{% translate "Papier-Rückfall" %}</a>{% endif %}</div>
 
   {% if terminal_session %}
     <div class="terminal-session-bar" role="status">

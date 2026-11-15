@@ -39,7 +39,8 @@ def current_membership(request):
         # „Mehr“ gilt als aktiv, wenn die aktuelle Seite zu einem Bereich
         # gehört, der nicht in der Leiste steht.
         "more_active": _more_tab_is_active(request, nav_keys),
-        "more_order": more_config(station),
+        # Bereiche der eigenen Funktion stehen unter „Mehr“ vorn.
+        "more_order": more_config(station, membership),
         "display_station": station,
         # Host-Überwachung: nur Master-Admins echter Wachen, ohne Abfrage
         # (base.html blendet es am Wachenterminal aus).

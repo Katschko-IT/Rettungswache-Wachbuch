@@ -6,7 +6,7 @@
   <p class="context-line">{% translate "Konto" %}</p>
   <h1>{% translate "Zwei-Faktor einrichten" %}</h1>
   {% if mfa_required %}<div class="alert" role="status">{% translate "Für diese Wache ist die Zwei-Faktor-Anmeldung verpflichtend. Bitte jetzt einmal einrichten." %}</div>{% endif %}
-  <p class="lead">{% translate "Bei jeder Anmeldung fragt Wachwerk zusätzlich nach einem sechsstelligen Code aus einer Authenticator-App auf deinem Handy." %}</p>
+  <p class="lead">{% translate "Bei jeder Anmeldung fragt Staffeta zusätzlich nach einem sechsstelligen Code aus einer Authenticator-App auf deinem Handy." %}</p>
 
   <ol class="mfa-steps">
     <li>
@@ -21,7 +21,7 @@
       </figure>
       <details class="mfa-secret">
         <summary>{% translate "Scannen geht nicht? Schlüssel von Hand eingeben" %}</summary>
-        <p>{% translate "In der App „Schlüssel eingeben“ wählen, als Kontoname Wachwerk und diesen Schlüssel eintragen (zeitbasiert):" %}</p>
+        <p>{% translate "In der App „Schlüssel eingeben“ wählen, als Kontoname Staffeta und diesen Schlüssel eintragen (zeitbasiert):" %}</p>
         <code class="mfa-key">{% for group in secret_groups %}{{ group }}{% if not forloop.last %} {% endif %}{% endfor %}</code>
       </details>
     </li>

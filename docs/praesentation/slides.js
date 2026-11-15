@@ -1,4 +1,4 @@
-/* Folien „Wachwerk“: Blättern per Pfeiltasten, Leertaste oder Klick.
+/* Folien „Staffeta“: Blättern per Pfeiltasten, Leertaste oder Klick.
    URL-Parameter: ?autoplay=1 blättert automatisch, ?record=1 blendet die
    Leiste aus (Video), ?theme=dark|light erzwingt Nacht/Tag, #3 öffnet Folie 3. */
 (() => {
@@ -31,7 +31,7 @@
     });
     count.textContent = `${index + 1} / ${slides.length}`;
     progress.style.width = `${((index + 1) / slides.length) * 100}%`;
-    document.title = `Wachwerk – ${slides[index].dataset.title || "Vorführung"}`;
+    document.title = `Staffeta – ${slides[index].dataset.title || "Vorführung"}`;
   }
 
   function armAuto() {

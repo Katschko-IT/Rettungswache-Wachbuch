@@ -53,11 +53,109 @@
     return hours + ":" + minutes;
   }
 
+  var lastBandMinute = -1;
+  var lastPayload = null;
+
   function tickClock() {
     var now = new Date();
     roots.forEach(function (root) {
       text(root, "[data-display-clock]", formatClock(now));
       text(root, "[data-display-date]", formatDate(now));
+    });
+    // Jetzt-Marke des Schichtbands: nur beim Minutenwechsel nachrücken.
+    var minute = now.getHours() * 60 + now.getMinutes();
+    if (minute !== lastBandMinute) {
+      lastBandMinute = minute;
+      roots.forEach(function (root) {
+        renderBand(root, lastPayload);
+      });
+    }
+  }
+
+  /* Schichtband: x-Achse = Minuten seit Mitternacht (0 bis 1440) in der Zeit,
+   * die die Uhr anzeigt. Alles per setAttribute und createElementNS, nie über
+   * innerHTML oder style. */
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var DAY_MINUTES = 1440;
+
+  function minutesOf(value) {
+    var match = /^(\d{1,2}):(\d{2})$/.exec(String(value || ""));
+    if (!match) {
+      return null;
+    }
+    var hours = parseInt(match[1], 10);
+    var minutes = parseInt(match[2], 10);
+    if (hours > 23 || minutes > 59) {
+      return null;
+    }
+    return hours * 60 + minutes;
+  }
+
+  function svgNode(tag, className, attrs) {
+    var node = document.createElementNS(SVG_NS, tag);
+    node.setAttribute("class", className);
+    Object.keys(attrs).forEach(function (name) {
+      node.setAttribute(name, String(attrs[name]));
+    });
+    return node;
+  }
+
+  function renderBand(root, payload) {
+    var band = root.querySelector("[data-display-band]");
+    if (!band) {
+      return;
+    }
+    var clock = new Date();
+    var nowMinute = clock.getHours() * 60 + clock.getMinutes();
+
+    var past = band.querySelector("[data-band-past]");
+    if (past) {
+      past.setAttribute("width", String(nowMinute));
+    }
+    ["[data-band-now]", "[data-band-now-core]", "[data-band-now-head]"].forEach(function (selector) {
+      var mark = band.querySelector(selector);
+      if (mark) {
+        mark.setAttribute("x1", String(nowMinute));
+        mark.setAttribute("x2", String(nowMinute));
+      }
+    });
+
+    var marks = band.querySelector("[data-band-marks]");
+    if (!marks || !payload) {
+      return;
+    }
+    while (marks.firstChild) {
+      marks.removeChild(marks.firstChild);
+    }
+
+    (payload.events || []).forEach(function (event) {
+      var start = minutesOf(event && event.time);
+      if (start === null) {
+        return;
+      }
+      marks.appendChild(svgNode("rect", "sb-event", {
+        x: Math.min(start, DAY_MINUTES - 30), y: 3, width: 30, height: 10
+      }));
+    });
+
+    (payload.fleet_vehicles || []).forEach(function (vehicle) {
+      if (!vehicle || vehicle.is_locked !== true) {
+        return;
+      }
+      var until = minutesOf(vehicle.locked_until);
+      if (until === null) {
+        return;
+      }
+      // Liegt das Ende vor „jetzt“ (Tageswechsel), bis zum Tagesende zeichnen.
+      var end = until < nowMinute ? DAY_MINUTES : until;
+      var width = end - nowMinute;
+      if (width <= 0) {
+        return;
+      }
+      marks.appendChild(svgNode("rect", "sb-lock", { x: nowMinute, y: 35, width: width, height: 10 }));
+      [35, 45].forEach(function (y) {
+        marks.appendChild(svgNode("line", "sb-lock-rule", { x1: nowMinute, y1: y, x2: end, y2: y }));
+      });
     });
   }
 
@@ -141,6 +239,11 @@
     var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
     Array.prototype.forEach.call(regions, function (region) {
       region.classList.remove("is-scrollable");
+      // Der Tastaturfokus bleibt erhalten, wenn die Spalte ihn gerade hat: Sonst
+      // springt er bei jedem Datenabruf auf die Seite zurück.
+      if (region !== document.activeElement) {
+        region.removeAttribute("tabindex");
+      }
     });
     if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
       return;
@@ -176,6 +279,9 @@
       if (overflows(region)) {
         Array.prototype.forEach.call(region.querySelectorAll("[data-max-rows]"), capList);
         region.classList.add("is-scrollable");
+        // WCAG 2.1.1 / axe scrollable-region-focusable: Was scrollt, muss per Tastatur
+        // erreichbar sein (Pfeiltasten wirken erst nach dem Fokus).
+        region.setAttribute("tabindex", "0");
       }
     });
   }
@@ -554,8 +660,6 @@
     } catch (e) {}
   }
 
-  var lastPayload = null;
-
   function apply(payload) {
     lastPayload = payload;
     if (typeof payload.urgent_handovers === "number") {
@@ -575,6 +679,7 @@
       renderUrgent(root, payload.urgent_handovers);
       renderPinboardNews(root, payload.pinboard, payload.news);
       renderFleet(root, payload.fleet_vehicles);
+      renderBand(root, payload);
       renderAlerts(root, "[data-display-mpg]", payload.mpg_alerts);
       renderAlerts(root, "[data-display-warehouse]", payload.warehouse_alerts);
       fitRegions(root);

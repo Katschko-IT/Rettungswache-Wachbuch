@@ -14,6 +14,22 @@
       <p class="display-station">{{ display_station_name }}</p>
     </div>
     <div class="display-region region-top-right" data-region="top_right"></div>
+    {# Schichtband: 24 Stunden, Jetzt-Marke, Termine und Einwirkzeit (display.js, renderBand). #}
+    <div class="display-band" data-display-band aria-hidden="true">
+      <svg class="display-band-svg" viewBox="0 0 1440 48" preserveAspectRatio="none" focusable="false">
+        <rect class="sb-past" data-band-past x="0" y="0" width="0" height="48"/>
+        <line class="sb-rule" x1="0" y1="16" x2="1440" y2="16"/>
+        <line class="sb-rule" x1="0" y1="32" x2="1440" y2="32"/>
+        <line class="sb-hour" x1="360" y1="0" x2="360" y2="48"/>
+        <line class="sb-hour" x1="720" y1="0" x2="720" y2="48"/>
+        <line class="sb-hour" x1="1080" y1="0" x2="1080" y2="48"/>
+        <g data-band-marks></g>
+        <line class="sb-now" data-band-now x1="0" y1="0" x2="0" y2="48"/>
+        <line class="sb-now-core" data-band-now-core x1="0" y1="0" x2="0" y2="48"/>
+        <line class="sb-now-head" data-band-now-head x1="0" y1="0" x2="0" y2="7"/>
+      </svg>
+      <ol class="display-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
+    </div>
   </header>
 
   {# Region Middle-Left #}

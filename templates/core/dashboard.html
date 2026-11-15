@@ -14,6 +14,9 @@
   </div>
 </header>
 
+{# Schichtband: der Tag als 24-Stunden-Leiste (core/shift_band.py, docs/DESIGN-SYSTEM.md). #}
+{% include "core/_shift_band.html" with band=shift_band %}
+
 {% if my_notifications %}
 <section class="section-block notification-inbox" aria-labelledby="my-notifications">
   <div class="section-heading">
@@ -43,6 +46,7 @@
         <a class="attention-row tone-{{ item.tone }}" href="{{ item.href }}">
           <span class="attention-value">{{ item.value }}</span>
           <span class="attention-text"><strong>{{ item.title }}</strong><small>{{ item.subtitle }}</small></span>
+          <span class="status-label {% if item.tone == 'danger' %}priority-urgent{% else %}priority-important{% endif %}">{{ item.tone_label }}</span>
           {% include "core/_icon.html" with name="chevron" class="attention-chevron" %}
         </a>
       </li>
@@ -76,6 +80,20 @@
   </section>
 
   <div class="overview-aside">
+  {# Bereitschaft je Fahrzeug: Zustand als Stempel, Einwirkzeit als Uhrzeit. #}
+  {% if vehicle_readiness %}
+  <section class="section-block" aria-labelledby="vehicle-readiness">
+    <div class="section-heading">
+      <h2 id="vehicle-readiness">{% translate "Fahrzeuge" %}</h2>
+      <a href="{% url 'fleet_dashboard' %}">{% translate "Zum Fuhrpark" %}</a>
+    </div>
+    <ul class="readiness-list">
+      {% for vehicle in vehicle_readiness %}
+        <li><a href="{{ vehicle.href }}">{{ vehicle.name }}</a><span class="status-label {{ vehicle.tone }}">{{ vehicle.label }}</span>{% if vehicle.note %}<small>{{ vehicle.note }}</small>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
   {% if tasks_enabled and task_progress %}
   <a class="section-block task-progress" href="{% url 'tasks_today' %}">
     <span class="task-progress-head"><strong>{{ dashboard_profile.task_label }}</strong><span class="tabular">{{ task_progress.done_count }}/{{ task_progress.total }}</span></span>

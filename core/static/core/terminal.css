@@ -2,19 +2,32 @@
    Der Sperrbildschirm ist bewusst dunkel (Foto + Glas, wie lockscreen.css) und
    hat eigene Tokens; der Alltagsmodus nutzt die Tokens aus app.css. */
 
+/* Warme Nacht-Palette (wie --surface/--text im Nachtmodus von tokens.css).
+   Hier stehen die einzigen festen Farbwerte des Sperrbildschirms. */
 .terminal-root,
 .lock-body {
-  --lock-bg: #0b1622;
-  --lock-ink: #f4f7fb;
-  --lock-ink-dim: rgba(244, 247, 251, 0.85);
-  --lock-ink-soft: rgba(244, 247, 251, 0.7);
-  --lock-glass: rgba(255, 255, 255, 0.12);
-  --lock-glass-strong: rgba(255, 255, 255, 0.16);
-  --lock-glass-active: rgba(255, 255, 255, 0.45);
-  --lock-glass-line: rgba(255, 255, 255, 0.22);
-  --lock-scrim: rgba(6, 14, 24, 0.55);
-  --lock-error: #ffb4ab;
-  --lock-focus: #f2a900;
+  --lock-bg: #0d151b;
+  --lock-surface: #14212b;
+  --lock-ink: #e9eee8;
+  --lock-ink-dim: rgba(233, 238, 232, 0.74);
+  --lock-ink-soft: rgba(233, 238, 232, 0.74);
+  --lock-line: rgba(233, 238, 232, 0.2);
+  --lock-glass: rgba(20, 33, 43, 0.72);
+  --lock-glass-strong: rgba(20, 33, 43, 0.82);
+  --lock-glass-hover: rgba(58, 54, 46, 0.88);
+  --lock-glass-line: rgba(233, 238, 232, 0.2);
+  --lock-control-line: rgba(233, 238, 232, 0.62);
+  --lock-scrim: rgba(16, 15, 12, 0.68);
+  --lock-accent: #b9c9c4;
+  --lock-on-accent: #14212b;
+  --lock-urgent: #ff9282;
+  --lock-on-urgent: #2a0a06;
+  --lock-due: #f2b84b;
+  --lock-locked: #c3adf5;
+  --lock-ok: #9ad07a;
+  --lock-error: var(--lock-urgent);
+  --lock-focus: #a9c1ff;
+  /* QR-Codes brauchen eine helle Fläche, damit Kameras sie lesen. */
   --lock-paper: #ffffff;
 }
 
@@ -42,19 +55,23 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  min-width: 3rem;
+  min-height: 3rem;
   padding: 0.9rem 1.8rem;
-  border: 1px solid var(--lock-glass-line);
-  border-radius: 999px;
-  background: var(--lock-glass);
+  border: 2px solid var(--lock-control-line);
+  border-radius: var(--radius, 0.25rem);
+  background: var(--lock-glass-strong);
   color: var(--lock-ink);
   font: inherit;
   font-size: 1.15rem;
-  letter-spacing: 0.02em;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   white-space: nowrap;
   cursor: pointer;
-  animation: terminal-breathe 3.2s ease-in-out infinite;
+}
+
+.terminal-unlock-hint:hover {
+  background: var(--lock-glass-hover);
 }
 
 /* Der Sperrbildschirm lädt app.css nicht: Ohne eigene Regel wäre das
@@ -70,12 +87,8 @@
   stroke-linejoin: round;
 }
 
-@keyframes terminal-breathe {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
-}
-
-/* Oben rechts: dort ist neben Uhr und Wachenname immer Platz, auch auf 14″. */
+/* Oben rechts: dort ist neben Uhr und Wachenname immer Platz, auch auf 14″.
+   Die Glasfläche hält den Text vor dem Foto lesbar. */
 .terminal-app-qr {
   position: fixed;
   z-index: 10;
@@ -84,7 +97,11 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  color: var(--lock-ink-dim);
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--lock-line);
+  border-radius: var(--radius-lg, 0.375rem);
+  background: var(--lock-glass);
+  color: var(--lock-ink);
   font-size: 0.8rem;
   line-height: 1.25;
   text-align: center;
@@ -101,7 +118,7 @@
 .terminal-app-qr img {
   background: var(--lock-paper);
   padding: 0.3rem;
-  border-radius: 0.6rem;
+  border-radius: var(--radius, 0.25rem);
 }
 
 .terminal-app-qr strong {
@@ -110,8 +127,8 @@
   width: 1.2rem;
   height: 1.2rem;
   margin-right: 0.2rem;
-  border-radius: 50%;
-  background: var(--lock-ink-dim);
+  border-radius: var(--radius-sm, 0.125rem);
+  background: var(--lock-ink);
   color: var(--lock-bg);
   font-size: 0.75rem;
 }
@@ -156,7 +173,7 @@
 .terminal-unlock h1 {
   margin: 0;
   font-size: 1.6rem;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .terminal-dots {
@@ -169,8 +186,8 @@
 .terminal-dots span {
   width: 1rem;
   height: 1rem;
-  border: 2px solid var(--lock-ink-dim);
-  border-radius: 50%;
+  border: 2px solid var(--lock-ink);
+  border-radius: var(--radius-sm, 0.125rem);
   transition: background 0.12s ease;
 }
 
@@ -204,8 +221,8 @@
   right: 1.25rem;
   max-width: min(22rem, calc(100vw - 2.5rem));
   padding: 0.9rem 1.1rem;
-  border: 1px solid var(--lock-glass-line);
-  border-radius: 1rem;
+  border: 1px solid var(--lock-line);
+  border-radius: var(--radius-lg, 0.375rem);
   background: var(--lock-glass-strong);
   color: var(--lock-ink);
   font-size: 0.92rem;
@@ -220,6 +237,9 @@
 }
 
 .terminal-preview-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   color: var(--lock-ink);
   font-weight: 700;
   text-underline-offset: 0.2em;
@@ -279,28 +299,33 @@
 .terminal-keypad button {
   width: 5.4rem;
   height: 5.4rem;
-  border: 0;
-  border-radius: 50%;
+  border: 2px solid var(--lock-control-line);
+  border-radius: var(--radius, 0.25rem);
   background: var(--lock-glass-strong);
   color: var(--lock-ink);
   font: inherit;
   font-size: 2.2rem;
   font-weight: 400;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: background 0.1s ease, transform 0.1s ease;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
+.terminal-keypad button:hover {
+  background: var(--lock-glass-hover);
+}
+
 .terminal-keypad button:active {
-  background: var(--lock-glass-active);
-  transform: scale(0.94);
+  border-color: var(--lock-accent);
+  background: var(--lock-accent);
+  color: var(--lock-on-accent);
 }
 
 .terminal-keypad .terminal-key-text {
-  background: transparent;
   font-size: 1.7rem;
 }
 
@@ -309,14 +334,21 @@
 }
 
 .terminal-unlock-cancel {
+  min-width: 3rem;
+  min-height: 3rem;
   margin-top: 0.4rem;
   padding: 0.6rem 1.4rem;
-  border: 0;
-  background: transparent;
-  color: var(--lock-ink-dim);
+  border: 2px solid var(--lock-control-line);
+  border-radius: var(--radius, 0.25rem);
+  background: var(--lock-glass);
+  color: var(--lock-ink);
   font: inherit;
   font-size: 1.05rem;
   cursor: pointer;
+}
+
+.terminal-unlock-cancel:hover {
+  background: var(--lock-glass-hover);
 }
 
 .terminal-keypad button:focus-visible,
@@ -327,10 +359,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .terminal-unlock-hint,
   .terminal-unlock,
   .terminal-unlock.has-error .terminal-dots {
     animation: none;
+  }
+  .terminal-dots span,
+  .terminal-keypad button {
+    transition: none;
   }
 }
 
@@ -389,12 +424,14 @@
   display: grid;
   justify-items: end;
   padding: 0.6rem 1rem;
-  border-radius: var(--radius-lg);
-  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .terminal-weather strong {
   font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .terminal-tiles {
@@ -404,7 +441,7 @@
   margin-bottom: 1.5rem;
 }
 
-/* Kacheln: ruhige Fläche, Symbol in Aktionsfarbe – lesbar hell und nachts. */
+/* Kacheln: ruhige Fläche mit Tintenrand, Symbol frei in Textfarbe. */
 .terminal-tile {
   display: flex;
   flex-direction: column;
@@ -414,7 +451,7 @@
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   font-size: 1.1rem;
   font-weight: 700;
   text-decoration: none;
@@ -425,18 +462,20 @@
 .terminal-tile .icon {
   width: 2rem;
   height: 2rem;
-  color: var(--brand);
+  color: var(--text);
 }
 
+/* Stempel „dringend“: gefüllt. */
 .terminal-tile-badge {
   width: fit-content;
   padding: 0.1rem 0.5rem;
-  color: var(--danger);
-  background: var(--danger-soft);
-  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--on-danger);
+  background: var(--danger);
+  border: 2px solid var(--danger);
   border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-style: normal;
+  font-weight: 700;
 }
 
 .terminal-tile:focus-visible {
@@ -497,11 +536,22 @@
   display: grid;
   justify-items: center;
   gap: 0.2rem;
+  min-height: var(--touch, 3rem);
   padding: 0.6rem 0.2rem;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface-soft);
   color: inherit;
   text-decoration: none;
+}
+
+.terminal-week a:hover {
+  border-color: var(--brand);
+}
+
+.terminal-week a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .terminal-week .is-today a {
@@ -529,4 +579,5 @@
 .terminal-pin-reveal {
   font-size: 2.2rem;
   letter-spacing: 0.4em;
+  font-variant-numeric: tabular-nums;
 }

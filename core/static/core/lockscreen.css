@@ -5,8 +5,8 @@
   margin: 0;
   min-height: 100vh;
   overflow: hidden;
-  background: #0b1622;
-  color: #fff;
+  background: var(--lock-bg);
+  color: var(--lock-ink);
   font-family: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -15,26 +15,21 @@
 .lock-bg {
   position: fixed;
   inset: -3%;
-  background-color: #0b1622;
+  background-color: var(--lock-bg);
   background-position: center;
   background-size: cover;
-  /* Leicht unscharf: Motiv erkennbar, Schrift bleibt ruhig lesbar. */
+  /* Leicht unscharf: Motiv erkennbar, Schrift bleibt ruhig lesbar.
+     Das Foto steht still (keine Dauerbewegung). */
   filter: blur(5px) saturate(1.05) brightness(0.92);
   transform: scale(1.04);
-  animation: lock-drift 90s ease-in-out infinite alternate;
-}
-
-@keyframes lock-drift {
-  from { transform: scale(1.04) translate3d(0, 0, 0); }
-  to { transform: scale(1.1) translate3d(-1.5%, -1%, 0); }
 }
 
 .lock-scrim {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 22%, rgba(5, 12, 20, 0.35), transparent 60%),
-    linear-gradient(180deg, rgba(5, 12, 20, 0.5) 0%, rgba(5, 12, 20, 0.12) 38%, rgba(5, 12, 20, 0.7) 100%);
+    radial-gradient(ellipse at 50% 22%, rgba(16, 15, 12, 0.35), transparent 60%),
+    linear-gradient(180deg, rgba(16, 15, 12, 0.5) 0%, rgba(16, 15, 12, 0.12) 38%, rgba(16, 15, 12, 0.7) 100%);
 }
 
 .lock-layout {
@@ -50,15 +45,14 @@
 
 .lock-time {
   text-align: center;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 24px rgba(16, 15, 12, 0.5);
 }
 
 .lock-station {
   margin: 0;
-  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  opacity: 0.85;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 600;
+  color: var(--lock-ink-dim);
 }
 
 .lock-clock {
@@ -95,21 +89,18 @@
 .lock-card {
   min-height: 7.5rem;
   padding: 1rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 1.4rem;
-  background: rgba(255, 255, 255, 0.13);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--lock-line);
+  border-radius: var(--radius-lg, 0.375rem);
+  background: var(--lock-glass);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
 
 .lock-card h2 {
   margin: 0 0 0.45rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.8;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--lock-ink-dim);
 }
 
 .lock-card p {
@@ -126,16 +117,19 @@
 .lock-big small {
   font-size: 1rem;
   font-weight: 400;
-  opacity: 0.85;
+  color: var(--lock-ink-dim);
 }
 
+/* Stempel „dringend“: als einziger gefüllt. */
 .lock-alert {
   display: inline-block;
   margin-top: 0.4rem !important;
   padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(211, 47, 47, 0.85);
-  font-weight: 600;
+  border: 2px solid var(--lock-urgent);
+  border-radius: var(--radius-sm, 0.125rem);
+  background: var(--lock-urgent);
+  color: var(--lock-on-urgent);
+  font-weight: 700;
 }
 
 .lock-alert[hidden] {
@@ -145,8 +139,8 @@
 .lock-progress {
   height: 0.4rem;
   margin: 0.55rem 0 0.35rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-sm, 0.125rem);
+  background: var(--lock-line);
   overflow: hidden;
 }
 
@@ -155,7 +149,7 @@
   width: 0;
   height: 100%;
   border-radius: inherit;
-  background: #8fe3a8;
+  background: var(--lock-ok);
   transition: width 0.6s ease;
 }
 
@@ -175,7 +169,7 @@
 }
 
 .lock-empty {
-  opacity: 0.72;
+  color: var(--lock-ink-soft);
 }
 
 .lock-when-empty,
@@ -198,21 +192,26 @@
   list-style: none;
 }
 
+/* Stempel: rechteckig, Satzschreibung. Die Randform ist das zweite Signal
+   neben der Farbe: bereit durchgezogen, eingeschränkt gestrichelt,
+   Desinfektion doppelt, außer Dienst gepunktet. */
 .lock-chip {
   padding: 0.4rem 0.9rem;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  border: 2px solid var(--lock-ink-soft);
+  border-radius: var(--radius-sm, 0.125rem);
+  background: var(--lock-glass-strong);
+  color: var(--lock-ink);
   font-size: 0.95rem;
 }
 
-.lock-status-ready { background: rgba(46, 160, 87, 0.75); }
-.lock-status-limited { background: rgba(196, 128, 20, 0.8); }
-.lock-status-disinfection { background: rgba(126, 87, 194, 0.8); }
+.lock-status-ready { border: 2px solid var(--lock-ok); }
+.lock-status-limited { border: 2px dashed var(--lock-due); }
+.lock-status-disinfection { border: 3px double var(--lock-locked); }
 .lock-status-out_of_service,
-.lock-status-workshop { background: rgba(120, 130, 140, 0.75); }
-.lock-chip-more { background: rgba(255, 255, 255, 0.22); font-weight: 600; }
+.lock-status-workshop { border: 2px dotted var(--lock-ink-soft); }
+.lock-chip-more { border: 2px solid var(--lock-ink-soft); font-weight: 600; }
 
 .lock-credit {
   position: fixed;
@@ -222,8 +221,8 @@
   max-width: 38vw;
   margin: 0;
   font-size: 0.68rem;
-  opacity: 0.6;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  color: var(--lock-ink-dim);
+  text-shadow: 0 1px 4px rgba(16, 15, 12, 0.8);
 }
 
 @media (max-height: 860px) {
@@ -265,8 +264,7 @@
     margin: 0;
   }
   .lock-station {
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
+    font-size: 0.85rem;
     margin: 0;
   }
   .lock-clock {
@@ -283,10 +281,10 @@
   .lock-card {
     min-height: auto;
     padding: 0.35rem 0.6rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius, 0.25rem);
   }
   .lock-card h2 {
-    font-size: 0.68rem;
+    font-size: 0.8rem;
     margin: 0 0 0.15rem;
   }
   .lock-big {
@@ -357,8 +355,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lock-bg {
-    animation: none;
+  .lock-progress span {
+    transition: none;
   }
 }
 

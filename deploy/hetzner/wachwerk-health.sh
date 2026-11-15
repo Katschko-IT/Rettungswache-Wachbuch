@@ -118,7 +118,7 @@ if [ ! -e "$WACHWERK_DIR/.env" ]; then
     if [ "$TEST" -eq 0 ]; then
         # Kein Ping: der Check bei healthchecks.io bleibt "new" statt "down".
         if [ "$VERBOSE" -eq 1 ] || [ "$MODE" != check ]; then
-            echo "Wachwerk ist in $WACHWERK_DIR noch nicht installiert – nichts zu prüfen."
+            echo "Staffeta ist in $WACHWERK_DIR noch nicht installiert – nichts zu prüfen."
         fi
         exit 0
     fi
@@ -682,14 +682,14 @@ status_json() {  # $1 Zustand ok|problem
 write_status() {  # $1 Zustand ok|problem
     if ! install -d -m 0755 "$STATUS_DIR" 2>/dev/null \
         || ! tmp=$(mktemp "$STATUS_DIR/.status.XXXXXX" 2>/dev/null); then
-        echo "Hinweis: Zustand für Wachwerk nicht geschrieben ($STATUS_DIR)." >&2
+        echo "Hinweis: Zustand für Staffeta nicht geschrieben ($STATUS_DIR)." >&2
         return 0
     fi
     if status_json "$1" >"$tmp" && chmod 0644 "$tmp" && mv -f "$tmp" "$STATUS_DIR/status.json"; then
         return 0
     fi
     rm -f "$tmp"
-    echo "Hinweis: Zustand für Wachwerk nicht geschrieben ($STATUS_DIR)." >&2
+    echo "Hinweis: Zustand für Staffeta nicht geschrieben ($STATUS_DIR)." >&2
 }
 
 # Läuft der notify-worker nicht (fehlt, beendet, startet neu, unhealthy),
@@ -710,9 +710,9 @@ deliver_via_app() {
     echo "Hinweis: notify-worker läuft nicht – die Meldung wird einmal über einen eigenen Lauf zugestellt."
     if (cd "$WACHWERK_DIR" && timeout "$DELIVERY_TIMEOUT" docker compose run --rm --no-deps -T notify-worker \
         python manage.py notify_crew) >/dev/null 2>&1; then
-        echo "Meldung an die Master-Admins in Wachwerk zugestellt."
+        echo "Meldung an die Master-Admins in Staffeta zugestellt."
     else
-        echo "Hinweis: Meldung in Wachwerk nicht zugestellt (Datenbank erreichbar?)." >&2
+        echo "Hinweis: Meldung in Staffeta nicht zugestellt (Datenbank erreichbar?)." >&2
     fi
 }
 
@@ -731,7 +731,7 @@ if [ -z "$PROBLEMS" ]; then
     rm -f "$fails_file" "$since_file" "$alert_file" 2>/dev/null
     write_status ok
     body=""
-    [ -z "$NOTES" ] || body=$(printf 'Wachwerk auf %s hat sich selbst geholfen:\n%s' "$host_label" "$NOTES")
+    [ -z "$NOTES" ] || body=$(printf 'Staffeta auf %s hat sich selbst geholfen:\n%s' "$host_label" "$NOTES")
     [ -z "$PING_URL" ] || send_ping "$PING_URL" "$body" || true
     exit 0
 fi
@@ -779,7 +779,7 @@ fi
 # Datenbank, kommt der Ping sonst erst nach DELIVERY_TIMEOUT.
 if [ -z "$PING_URL" ]; then
     [ "$VERBOSE" -eq 0 ] || echo "Hinweis: PING_URL ist nicht gesetzt ($CONF_DIR/health.env) – keine Meldung nach außen." >&2
-elif send_ping "$PING_URL/fail" "$(printf 'Wachwerk auf %s:\n%s%s' "$host_label" "$PROBLEMS" "$NOTES")"; then
+elif send_ping "$PING_URL/fail" "$(printf 'Staffeta auf %s:\n%s%s' "$host_label" "$PROBLEMS" "$NOTES")"; then
     [ "$VERBOSE" -eq 0 ] || echo "Meldung an $PING_URL/fail gesendet."
 else
     echo "Meldung an $PING_URL/fail konnte nicht gesendet werden." >&2

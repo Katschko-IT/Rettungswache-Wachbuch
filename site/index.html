@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wachwerk – das Wachbuch für Rettungswachen, selbst gehostet</title>
-<meta name="description" content="Wachwerk ist ein quelloffenes Wachbuch für Rettungswachen: Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Aufgaben – auf einem Server in der eigenen Wache, mit einem Befehl installiert.">
+<title>Staffeta – das Wachbuch für Rettungswachen, selbst gehostet</title>
+<meta name="description" content="Staffeta ist ein quelloffenes Wachbuch für Rettungswachen: Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Aufgaben – auf einem Server in der eigenen Wache, mit einem Befehl installiert.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Wachwerk – das Wachbuch für Rettungswachen">
+<meta name="theme-color" content="#14212b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Staffeta – das Wachbuch für Rettungswachen">
 <meta property="og:description" content="Was die Schicht wissen muss, auf einen Blick: Übergaben, Mängel, Fahrzeuge, Medizingeräte und Material. Selbst gehostet, quelloffen, mit Tag- und Nachtansicht.">
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="de" href="https://katschko-it.github.io/Rettungswache-Wachbuch/">
@@ -26,7 +26,7 @@
 
 <header class="pub-header">
   <div class="pub-wrap pub-header-inner">
-    <a class="pub-brand" href="#top"><img class="pub-brand-logo" src="assets/design/brand-wachwerk.png" alt="Wachwerk" width="480" height="176"></a>
+    <a class="pub-brand" href="#top"><img class="pub-brand-logo" src="assets/design/brand-wachwerk.png" alt="Staffeta" width="480" height="176"></a>
     <nav class="pub-nav" aria-label="Hauptnavigation">
       <a href="#einblicke">Einblicke</a>
       <a href="#funktionen">Funktionen</a>
@@ -44,7 +44,7 @@
     <div>
       <p class="pub-kicker">Quelloffenes Wachbuch für Rettungswachen</p>
       <h1>Was die Schicht wissen muss. Auf einen Blick.</h1>
-      <p class="pub-lead">Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Tagesaufgaben an einem Ort. Wachwerk läuft auf einem Server in der eigenen Wache und ist mit einem Befehl installiert. Ohne Cloud-Konto, ohne externe Skripte.</p>
+      <p class="pub-lead">Übergaben, Mängel, Fahrzeuge, Medizingeräte, Material und Tagesaufgaben an einem Ort. Staffeta läuft auf einem Server in der eigenen Wache und ist mit einem Befehl installiert. Ohne Cloud-Konto, ohne externe Skripte.</p>
       <div class="pub-actions">
         <a class="pub-button primary pub-live" href="https://demo.rwsth.de/">Live-Demo ausprobieren</a>
         <a class="pub-button" href="#installation">In 5 Minuten installieren</a>
@@ -54,12 +54,46 @@
     </div>
     <div class="pub-devices">
       <figure class="device">
-        <img src="assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: oben die Zeile „5 Punkte brauchen Aufmerksamkeit“, darunter eine dringende Übergabe, fällige Fahrzeugfristen, Medizingeräte, ein Artikel unter Mindestbestand und eine offene Dienstanweisung.">
+        <img src="assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: oben die Zeile „7 Punkte brauchen Aufmerksamkeit“, darunter zwei dringende Übergaben, drei offene Mängel, zwei nicht einsatzbereite Fahrzeuge, nicht quittierte Übergaben, Ausstattung, Medizingeräte und Artikel unter Mindestbestand.">
       </figure>
       <figure class="device device-phone">
         <img src="assets/design/screens/overview-phone-dark.webp" width="390" height="844" alt="Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus.">
       </figure>
     </div>
+  </div>
+  <div class="pub-wrap pub-band">
+    <div class="shift-band shift-band-art" aria-hidden="true">
+      <svg class="shift-band-svg" viewBox="0 0 1440 48" preserveAspectRatio="none" focusable="false">
+        <rect class="sb-past" x="0" y="0" width="875" height="48"/>
+        <line class="sb-rule" x1="0" y1="16" x2="1440" y2="16"/>
+        <line class="sb-rule" x1="0" y1="32" x2="1440" y2="32"/>
+        <line class="sb-hour" x1="360" y1="0" x2="360" y2="48"/>
+        <line class="sb-hour" x1="720" y1="0" x2="720" y2="48"/>
+        <line class="sb-hour" x1="1080" y1="0" x2="1080" y2="48"/>
+        <rect class="sb-event" x="540" y="3" width="90" height="10"/>
+        <rect class="sb-event" x="1140" y="3" width="60" height="10"/>
+        <line class="sb-entry" x1="395" y1="19" x2="395" y2="29"/>
+        <line class="sb-entry" x1="431" y1="19" x2="431" y2="29"/>
+        <line class="sb-entry sb-urgent" x1="668" y1="17" x2="668" y2="31"/>
+        <line class="sb-entry" x1="802" y1="19" x2="802" y2="29"/>
+        <rect class="sb-lock" x="820" y="35" width="105" height="10"/>
+        <line class="sb-lock-rule" x1="820" y1="35" x2="925" y2="35"/>
+        <line class="sb-lock-rule" x1="820" y1="45" x2="925" y2="45"/>
+        <line class="sb-due" x1="1020" y1="34" x2="1020" y2="46"/>
+        <line class="sb-now" x1="875" y1="0" x2="875" y2="48"/>
+        <line class="sb-now-core" x1="875" y1="0" x2="875" y2="48"/>
+        <line class="sb-now-head" x1="875" y1="0" x2="875" y2="7"/>
+      </svg>
+      <ol class="shift-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
+    </div>
+    <ul class="shift-band-key" aria-label="Zeichen im Zeitstab">
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry" x1="14" y1="2" x2="14" y2="12"/></svg>Übergabe</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry sb-urgent" x1="14" y1="1" x2="14" y2="13"/></svg>Dringend</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-event" x="4" y="3" width="20" height="8"/></svg>Termin</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-lock" x="4" y="2" width="20" height="10"/><line class="sb-lock-rule" x1="4" y1="2" x2="24" y2="2"/><line class="sb-lock-rule" x1="4" y1="12" x2="24" y2="12"/></svg>Gerät gesperrt</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-due" x1="14" y1="1" x2="14" y2="13"/></svg>Frist fällig</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-now" x1="14" y1="0" x2="14" y2="14"/><line class="sb-now-core" x1="14" y1="0" x2="14" y2="14"/></svg>Jetzt</li>
+    </ul>
   </div>
 </section>
 
@@ -109,7 +143,7 @@
 <section id="funktionen" class="pub-section">
   <div class="pub-wrap">
     <div class="pub-section-head">
-      <h2>Was Wachwerk tatsächlich kann</h2>
+      <h2>Was Staffeta tatsächlich kann</h2>
       <p class="pub-muted">Alle genannten Bereiche sind im Repository umgesetzt und durch die Testsuite abgedeckt. Sie organisieren den Betrieb einer Wache – nicht den Einsatz.</p>
     </div>
     <div class="feature-groups">
@@ -151,7 +185,7 @@
   <div class="pub-wrap">
     <div class="boundary">
       <h2>Was bewusst nicht hineingehört</h2>
-      <p class="pub-muted">Wachwerk ist ein organisatorisches Wachbuch. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach.</p>
+      <p class="pub-muted">Staffeta ist ein organisatorisches Wachbuch. Die Grenze ist Absicht: Sie hält den Datenschutz überschaubar und die Bedienung einfach.</p>
       <ul class="boundary-list">
         <li><strong>Kein Einsatzleitsystem</strong><span>Keine Alarmierung, keine Einsatzführung, keine Leitstellenanbindung.</span></li>
         <li><strong>Kein Patientendokumentationssystem</strong><span>Kein Feld für Patienten-, Diagnose- oder Einsatzdaten – solche Inhalte gehören nicht hinein.</span></li>
@@ -166,7 +200,7 @@
   <div class="pub-wrap">
     <div class="pub-section-head">
       <h2>In 5 Minuten installiert</h2>
-      <p class="pub-muted">Voraussetzung ist ein 64-Bit-Rechner mit Docker und Compose v2 – ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles, erzeugt sämtliche Schlüssel selbst und startet Wachwerk.</p>
+      <p class="pub-muted">Voraussetzung ist ein 64-Bit-Rechner mit Docker und Compose v2 – ein kleiner Server, ein Raspberry Pi 5 oder ein Mac. Der Installer prüft alles, erzeugt sämtliche Schlüssel selbst und startet Staffeta.</p>
     </div>
     <pre class="code-block"><code>curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh | sh</code></pre>
     <ol class="steps">
@@ -251,7 +285,7 @@
         <p>Ja, im Browser als installierbare Web-App und als quelloffene App für iOS und Android. Schreiben braucht eine Verbindung zum Wachenserver.</p>
       </details>
       <details>
-        <summary>Was kostet Wachwerk?</summary>
+        <summary>Was kostet Staffeta?</summary>
         <p>Nichts. Der Quellcode steht unter der AGPL-3.0. Kosten entstehen nur für eigene Hardware und Betrieb.</p>
       </details>
     </div>
@@ -261,7 +295,7 @@
 
 <footer class="pub-footer">
   <div class="pub-wrap pub-footer-inner">
-    <p>Wachwerk – selbst gehostetes Wachbuch für die interne Organisation einer Rettungswache. Kein Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.</p>
+    <p>Staffeta – selbst gehostetes Wachbuch für die interne Organisation einer Rettungswache. Kein Einsatzleit-, Alarmierungs-, Dienstplanungs- oder Patientendokumentationssystem.</p>
     <p><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Quellcode</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/GO-LIVE-CHECKLIST.md">Go-live-Checkliste</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/LICENSE">Lizenz (AGPL-3.0)</a></p>
   </div>
 </footer>

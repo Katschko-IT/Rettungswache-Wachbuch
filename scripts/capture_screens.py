@@ -52,7 +52,10 @@ def main() -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
         for name, path, viewport, scheme in SHOTS:
-            context = browser.new_context(viewport=viewport, color_scheme=scheme, device_scale_factor=2)
+            # Sprache festlegen: Ohne locale hängt die Oberfläche (de/en) vom Rechner ab.
+            context = browser.new_context(
+                viewport=viewport, color_scheme=scheme, device_scale_factor=2, locale="de-DE"
+            )
             page = context.new_page()
             page.goto(BASE + "/anmelden/")
             page.fill("input[name=username]", LOGIN[0])

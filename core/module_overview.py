@@ -22,14 +22,17 @@ def _card(key, url_name, query, title, subtitle, value, *, attention=None, tone=
             "attention": bool(value) if attention is None else attention, "tone": tone}
 
 
-def module_attention_cards(station, user, membership=None) -> list[dict]:
+def module_attention_cards(station, user, membership=None, vehicles=None) -> list[dict]:
+    """``vehicles``: bereits geladene aktive Fahrzeuge der Wache (die Übersicht
+    nutzt dieselbe Liste für Schichtband und Bereitschaftszeilen)."""
     cards = []
 
     if station.fleet_enabled:
         from .fleet_models import Vehicle
 
         available = set(Vehicle.AVAILABLE_STATUSES)
-        vehicles = list(Vehicle.objects.filter(station=station, is_active=True))
+        if vehicles is None:
+            vehicles = list(Vehicle.objects.filter(station=station, is_active=True))
         if vehicles:
             # „Eingeschränkt“ ist fahrbereit: eigene Karte, kein „nicht einsatzbereit“.
             not_ready = sum(1 for v in vehicles if v.tactical_status not in available or v.is_disinfection_locked)

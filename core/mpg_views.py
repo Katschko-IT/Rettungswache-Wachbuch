@@ -266,7 +266,7 @@ def mpg_device_detail(request, slug: str):
     blocking_defects = release_blockers(device) if device.current_status == MedicalDevice.Status.OOB else []
     is_retired = is_device_retired(device)
     # Altbestand aus dem CSV-Import: Kennzeichen je Prüfart, bis die erste
-    # bestandene Prüfung mit neuer Frist in Wachwerk eingetragen ist.
+    # bestandene Prüfung mit neuer Frist in Staffeta eingetragen ist.
     legacy_open = set()
     if device.legacy_imported_at:
         done = set(

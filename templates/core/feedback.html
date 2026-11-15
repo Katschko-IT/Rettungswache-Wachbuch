@@ -8,7 +8,7 @@
 <section class="pub-section install-hero" aria-labelledby="feedback-title">
   <div class="pub-wrap feedback-wrap">
     <p class="pub-kicker">{% translate "Feedback" %}</p>
-    <h1 id="feedback-title">{% translate "Was wünschst du dir von Wachwerk?" %}</h1>
+    <h1 id="feedback-title">{% translate "Was wünschst du dir von Staffeta?" %}</h1>
     {% if sent %}
       <p class="message success" role="status">{% translate "Danke! Deine Rückmeldung ist angekommen." %}</p>
       <p class="pub-actions">
@@ -16,7 +16,7 @@
         <a class="pub-button" href="{% url 'landing' %}">{% translate "Zur Startseite" %}</a>
       </p>
     {% else %}
-      <p class="pub-lead">{% translate "Wünsche, Anregungen, Lob oder ein Fehler – jede Rückmeldung hilft, Wachwerk für den Wachalltag besser zu machen. Name und E-Mail sind freiwillig." %}</p>
+      <p class="pub-lead">{% translate "Wünsche, Anregungen, Lob oder ein Fehler – jede Rückmeldung hilft, Staffeta für den Wachalltag besser zu machen. Name und E-Mail sind freiwillig." %}</p>
       <form method="post" class="form-card feedback-form" novalidate>
         {% csrf_token %}
         {% include "core/form_errors.html" %}

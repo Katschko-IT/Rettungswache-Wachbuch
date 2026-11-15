@@ -58,8 +58,8 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["display"], "standalone")
-        self.assertEqual(payload["name"], "Wachwerk")
-        self.assertEqual(payload["short_name"], "Wachwerk")
+        self.assertEqual(payload["name"], "Staffeta")
+        self.assertEqual(payload["short_name"], "Staffeta")
         self.assertEqual(payload["start_url"], reverse("dashboard"))
         self.assertTrue(payload["icons"])
         self.assertTrue(any(item["name"] == "Tagesaufgaben" for item in payload["shortcuts"]))
@@ -69,9 +69,9 @@ class ProgressiveWebAppTests(PilotTestCase):
         # Eigenes Wachwerk-Logo statt Text-Marke.
         self.assertContains(response, 'class="brand-logo"', html=False)
         self.assertContains(response, 'core/brand-wachwerk', html=False)
-        self.assertContains(response, 'alt="Wachwerk"', html=False)
+        self.assertContains(response, 'alt="Staffeta"', html=False)
         self.assertContains(response, self.station.name)
-        self.assertContains(response, 'name="apple-mobile-web-app-title" content="Wachwerk"')
+        self.assertContains(response, 'name="apple-mobile-web-app-title" content="Staffeta"')
         self.assertNotContains(response, "<small>Rettungswache</small>")
 
     def test_service_worker_and_offline_page_are_available(self):
@@ -103,13 +103,14 @@ class ProgressiveWebAppTests(PilotTestCase):
 
     def test_shell_and_manifest_use_bos_theme_tokens(self):
         response = self.client.get(reverse("dashboard"))
+        # Schichtbuch (0.29): Markencode: Blattfarbe Tag/Nacht und Tinte, docs/DESIGN-SYSTEM.md.
         self.assertContains(response, 'name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"')
-        self.assertContains(response, 'name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)"')
+        self.assertContains(response, 'name="theme-color" content="#14212b" media="(prefers-color-scheme: dark)"')
         self.assertContains(response, 'class="brand-logo"', html=False)
         css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "tokens.css").read_text(
             encoding="utf-8"
         )
-        self.assertIn("--brand: #0e4aa8", css)
+        self.assertIn("--brand: #14212b", css)
         self.assertIn("--priority-urgent: var(--danger)", css)
         self.assertIn("--touch: 3rem", css)
         self.assertIn("prefers-color-scheme: dark", css)
@@ -122,7 +123,7 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertTrue(font.is_file())
         manifest = self.client.get(reverse("web_manifest")).json()
         self.assertEqual(manifest["theme_color"], "#ffffff")
-        self.assertEqual(manifest["background_color"], "#f5f7f6")
+        self.assertEqual(manifest["background_color"], "#e9eee8")
         self.assertNotIn("medical", manifest.get("categories", []))
 
     def test_landing_uses_public_service_copy(self):
@@ -145,6 +146,46 @@ class ProgressiveWebAppTests(PilotTestCase):
         self.assertIn("border-color: var(--brand) !important;", css)
         self.assertIn(".header-login:hover { background: var(--accent-soft) !important; }", css)
         self.assertNotIn("rgba(255, 255, 255, .55)", css)
+
+    def test_tap_target_rule_does_not_override_component_layouts(self):
+        # Regression: Die 24-px-Regel für Einzel-Links hatte Spezifität 0,1,2 und schaltete
+        # dadurch .attention-row (Grid), .text-action und .help-list a (inline-flex) aus.
+        # Zahl und Titel lagen untereinander. Die Liste muss in :where() stehen.
+        base = Path(settings.BASE_DIR) / "core" / "static" / "core"
+        access = (base / "accessibility.css").read_text(encoding="utf-8")
+        self.assertIn(":where(p > a:only-child, li > a:first-child,", access)
+        app = (base / "app.css").read_text(encoding="utf-8")
+        # Mängelzeile (Status vorn, Priorität hinten): zwei Labels dürfen nie in dieselbe Zelle.
+        self.assertIn(".list-row > .status-label:first-child ~ .row-content ~ .status-label", app)
+        # Handy-Randspalte wächst mit dem Datum, statt es in den Inhalt laufen zu lassen.
+        self.assertIn("grid-template-columns: fit-content(5rem) minmax(0, 1fr);", app)
+
+    def test_row_content_first_grid_rule_excludes_rows_with_time(self):
+        # Regression (Prüfer-Fund, im Browser nachgemessen): Die Regel für Zeilen „Inhalt zuerst“
+        # hatte höhere Spezifität als die Zeit-Spalte und quetschte die Zeit auf 8 px (Handy).
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "modules.css").read_text(encoding="utf-8")
+        self.assertIn(".list-row:has(> .row-content:first-child):not(:has(> time)) {", css)
+
+    def test_env_example_uses_current_product_name(self):
+        # Neue Installationen (setup-pi.sh kopiert .env.example) dürfen nicht „Wachwerk“ heißen.
+        text = (Path(settings.BASE_DIR) / ".env.example").read_text(encoding="utf-8")
+        self.assertIn("APP_NAME=Staffeta\n", text)
+
+    def test_hero_shows_phone_image_large_on_narrow_screens(self):
+        # Gemessen: Das Desktop-Bild wäre auf 390 px nur 0,22-fach (Schrift ca. 3,6 px). Unter
+        # 46rem steht stattdessen das Handy-Bild groß (0,63-fach) und mittig.
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "public.css").read_text(encoding="utf-8")
+        self.assertIn(".pub-devices > .device:not(.device-phone) { display: none; }", css)
+        self.assertIn(".pub-devices > .device-phone { position: static; width: min(72%, 19rem); margin-inline: auto; }", css)
+
+    def test_landing_explains_the_time_bar_marks(self):
+        # Prüfer-Fund: Das Band zeigte fünf Markenarten ohne Erklärung (aria-hidden). Die Legende
+        # steht außerhalb des versteckten Bandes und nennt nur Begriffe aus der App.
+        self.client.logout()
+        response = self.client.get(reverse("landing"))
+        self.assertContains(response, 'class="shift-band-key"', count=1)
+        for word in ("Übergabe", "Dringend", "Termin", "Gerät gesperrt", "Frist fällig", "Jetzt"):
+            self.assertContains(response, word)
 
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
@@ -277,7 +318,7 @@ class SecurityAndAccessTests(PilotTestCase):
         self.client.logout()
         response = self.client.get(reverse("landing"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Wachwerk")
+        self.assertContains(response, "Staffeta")
         self.assertContains(response, reverse("login"))
         self.assertContains(response, reverse("vorfuehrung"))
         self.assertContains(response, "In drei Schritten startklar")

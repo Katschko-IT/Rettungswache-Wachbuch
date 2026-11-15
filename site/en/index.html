@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wachwerk – the self-hosted station logbook for ambulance stations</title>
-<meta name="description" content="Wachwerk is an open-source station logbook for ambulance stations: handovers, defects, vehicles, medical devices, supplies and tasks – on a server in your own station, installed with one command.">
+<title>Staffeta – the self-hosted station logbook for ambulance stations</title>
+<meta name="description" content="Staffeta is an open-source station logbook for ambulance stations: handovers, defects, vehicles, medical devices, supplies and tasks – on a server in your own station, installed with one command.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#151e26" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Wachwerk – the station logbook for ambulance stations">
+<meta name="theme-color" content="#14212b" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Staffeta – the station logbook for ambulance stations">
 <meta property="og:description" content="What the shift needs to know, at a glance: handovers, defects, vehicles, medical devices and supplies. Self-hosted, open source, with day and night views.">
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="de" href="https://katschko-it.github.io/Rettungswache-Wachbuch/">
@@ -26,7 +26,7 @@
 
 <header class="pub-header">
   <div class="pub-wrap pub-header-inner">
-    <a class="pub-brand" href="#top"><img class="pub-brand-logo" src="../assets/design/brand-wachwerk.png" alt="Wachwerk" width="480" height="176"></a>
+    <a class="pub-brand" href="#top"><img class="pub-brand-logo" src="../assets/design/brand-wachwerk.png" alt="Staffeta" width="480" height="176"></a>
     <nav class="pub-nav" aria-label="Main navigation">
       <a href="#einblicke">Screens</a>
       <a href="#funktionen">Features</a>
@@ -44,7 +44,7 @@
     <div>
       <p class="pub-kicker">Open-source station logbook for ambulance stations · German-language interface</p>
       <h1>What the shift needs to know. At a glance.</h1>
-      <p class="pub-lead">Handovers, defects, vehicles, medical devices, supplies and daily tasks in one place. Wachwerk runs on a server in your own station and installs with one command. No cloud account, no external scripts.</p>
+      <p class="pub-lead">Handovers, defects, vehicles, medical devices, supplies and daily tasks in one place. Staffeta runs on a server in your own station and installs with one command. No cloud account, no external scripts.</p>
       <div class="pub-actions">
         <a class="pub-button primary pub-live" href="https://demo.rwsth.de/">Try the live demo</a>
         <a class="pub-button" href="#installation">Install in 5 minutes</a>
@@ -54,12 +54,46 @@
     </div>
     <div class="pub-devices">
       <figure class="device">
-        <img src="../assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Station overview on a desktop: the heading says five items need attention, followed by an urgent handover, due vehicle inspections, medical devices, an item below minimum stock and an open instruction.">
+        <img src="../assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Station overview on a desktop: the heading says seven items need attention, including two urgent handovers, three open defects, two vehicles not ready, unacknowledged handovers, equipment, medical devices and items below minimum stock.">
       </figure>
       <figure class="device device-phone">
         <img src="../assets/design/screens/overview-phone-dark.webp" width="390" height="844" alt="The same overview on a phone in the dark night-shift mode.">
       </figure>
     </div>
+  </div>
+  <div class="pub-wrap pub-band">
+    <div class="shift-band shift-band-art" aria-hidden="true">
+      <svg class="shift-band-svg" viewBox="0 0 1440 48" preserveAspectRatio="none" focusable="false">
+        <rect class="sb-past" x="0" y="0" width="875" height="48"/>
+        <line class="sb-rule" x1="0" y1="16" x2="1440" y2="16"/>
+        <line class="sb-rule" x1="0" y1="32" x2="1440" y2="32"/>
+        <line class="sb-hour" x1="360" y1="0" x2="360" y2="48"/>
+        <line class="sb-hour" x1="720" y1="0" x2="720" y2="48"/>
+        <line class="sb-hour" x1="1080" y1="0" x2="1080" y2="48"/>
+        <rect class="sb-event" x="540" y="3" width="90" height="10"/>
+        <rect class="sb-event" x="1140" y="3" width="60" height="10"/>
+        <line class="sb-entry" x1="395" y1="19" x2="395" y2="29"/>
+        <line class="sb-entry" x1="431" y1="19" x2="431" y2="29"/>
+        <line class="sb-entry sb-urgent" x1="668" y1="17" x2="668" y2="31"/>
+        <line class="sb-entry" x1="802" y1="19" x2="802" y2="29"/>
+        <rect class="sb-lock" x="820" y="35" width="105" height="10"/>
+        <line class="sb-lock-rule" x1="820" y1="35" x2="925" y2="35"/>
+        <line class="sb-lock-rule" x1="820" y1="45" x2="925" y2="45"/>
+        <line class="sb-due" x1="1020" y1="34" x2="1020" y2="46"/>
+        <line class="sb-now" x1="875" y1="0" x2="875" y2="48"/>
+        <line class="sb-now-core" x1="875" y1="0" x2="875" y2="48"/>
+        <line class="sb-now-head" x1="875" y1="0" x2="875" y2="7"/>
+      </svg>
+      <ol class="shift-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
+    </div>
+    <ul class="shift-band-key" aria-label="Marks in the time bar">
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry" x1="14" y1="2" x2="14" y2="12"/></svg>Handover</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry sb-urgent" x1="14" y1="1" x2="14" y2="13"/></svg>Urgent</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-event" x="4" y="3" width="20" height="8"/></svg>Appointment</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-lock" x="4" y="2" width="20" height="10"/><line class="sb-lock-rule" x1="4" y1="2" x2="24" y2="2"/><line class="sb-lock-rule" x1="4" y1="12" x2="24" y2="12"/></svg>Device locked</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-due" x1="14" y1="1" x2="14" y2="13"/></svg>Deadline due</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-now" x1="14" y1="0" x2="14" y2="14"/><line class="sb-now-core" x1="14" y1="0" x2="14" y2="14"/></svg>Now</li>
+    </ul>
   </div>
 </section>
 
@@ -109,7 +143,7 @@
 <section id="funktionen" class="pub-section">
   <div class="pub-wrap">
     <div class="pub-section-head">
-      <h2>What Wachwerk actually does</h2>
+      <h2>What Staffeta actually does</h2>
       <p class="pub-muted">Every area listed is implemented in the repository and covered by the test suite. They organise how a station runs – not the emergency response.</p>
     </div>
     <div class="feature-groups">
@@ -151,7 +185,7 @@
   <div class="pub-wrap">
     <div class="boundary">
       <h2>What deliberately stays out</h2>
-      <p class="pub-muted">Wachwerk is an organisational logbook. The boundary is intentional: it keeps data protection manageable and the interface simple.</p>
+      <p class="pub-muted">Staffeta is an organisational logbook. The boundary is intentional: it keeps data protection manageable and the interface simple.</p>
       <ul class="boundary-list">
         <li><strong>No incident command system</strong><span>No alerting, no incident management, no dispatch centre link.</span></li>
         <li><strong>No patient documentation system</strong><span>No field for patient, diagnosis or incident data – such content does not belong here.</span></li>
@@ -166,7 +200,7 @@
   <div class="pub-wrap">
     <div class="pub-section-head">
       <h2>Installed in 5 minutes</h2>
-      <p class="pub-muted">All you need is a 64-bit machine with Docker and Compose v2 – a small server, a Raspberry Pi 5 or a Mac. The installer checks everything, generates all keys itself and starts Wachwerk.</p>
+      <p class="pub-muted">All you need is a 64-bit machine with Docker and Compose v2 – a small server, a Raspberry Pi 5 or a Mac. The installer checks everything, generates all keys itself and starts Staffeta.</p>
     </div>
     <pre class="code-block"><code>curl -fsSL https://raw.githubusercontent.com/Katschko-IT/Rettungswache-Wachbuch/main/install.sh | sh</code></pre>
     <ol class="steps">
@@ -251,7 +285,7 @@
         <p>Yes, as an installable web app in the browser and as an open-source app for iOS and Android. Writing needs a connection to the station server.</p>
       </details>
       <details>
-        <summary>What does Wachwerk cost?</summary>
+        <summary>What does Staffeta cost?</summary>
         <p>Nothing. The source code is licensed under the AGPL-3.0. Costs only arise for your own hardware and operation.</p>
       </details>
     </div>
@@ -261,7 +295,7 @@
 
 <footer class="pub-footer">
   <div class="pub-wrap pub-footer-inner">
-    <p>Wachwerk – a self-hosted station logbook for the internal organisation of an ambulance station. Not an incident command, alerting, duty scheduling or patient documentation system.</p>
+    <p>Staffeta – a self-hosted station logbook for the internal organisation of an ambulance station. Not an incident command, alerting, duty scheduling or patient documentation system.</p>
     <p><a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch">Source code</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/docs/GO-LIVE-CHECKLIST.md">Go-live checklist (German)</a> · <a href="https://github.com/Katschko-IT/Rettungswache-Wachbuch/blob/main/LICENSE">Licence (AGPL-3.0)</a></p>
   </div>
 </footer>

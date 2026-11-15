@@ -4,7 +4,7 @@
 {% if open_months %}{% translate "Offene Monate" %}: {{ open_months|join:", " }}
 {% endif %}{% else %}{% blocktranslate with fee=fee_euros|floatformat:2 station=station.name %}hier die Zahlungsangaben der Kaffeekasse der {{ station }} (Monatsbeitrag {{ fee }} €).{% endblocktranslate %}
 {% endif %}
-{% translate "Bar: einfach in die Kasse legen und danach in Wachwerk unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}
+{% translate "Bar: einfach in die Kasse legen und danach in Staffeta unter Kaffeekasse → „Ich habe bezahlt“ abhaken." %}
 {% if transfer %}
 {% translate "Überweisung" %}:
   {% translate "Empfänger" %}: {{ transfer.name }}

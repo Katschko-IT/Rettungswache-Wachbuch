@@ -459,7 +459,7 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         rows = list(self.notes().order_by("user_id"))
         self.assertEqual([row.user for row in rows], [self.admin, second])
         for row in rows:
-            self.assertEqual(row.title, "Wachwerk: technische Störung")
+            self.assertEqual(row.title, "Staffeta: technische Störung")
             self.assertIn("Dienst „backup“ läuft nicht.", row.body)
             self.assertIn("Details unter System.", row.body)
             self.assertEqual(row.url, reverse("system_status"))
@@ -514,7 +514,7 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.assertEqual(row.station, self.station)
         self.assertFalse(self.notes(user=user, station=older).exists())
         self.client.force_login(user)
-        self.assertContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+        self.assertContains(self.client.get(reverse("dashboard")), "Staffeta: technische Störung")
 
     def allow_second_active_membership(self, user, station):
         """Zweite aktive Mitgliedschaft trotz ``unique_active_membership``.
@@ -559,11 +559,11 @@ class NotificationTests(HostHealthPageMixin, TestCase):
 
         # Wache A: Übersicht und API zeigen die Nachricht.
         self.client.force_login(user)
-        self.assertContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+        self.assertContains(self.client.get(reverse("dashboard")), "Staffeta: technische Störung")
         self.assertEqual(inbox_ids(), [row.pk])
         # Wache B (A ruht): weder Übersicht noch API zeigen sie.
         Membership.objects.filter(user=user, station=station_a).update(is_active=False)
-        self.assertNotContains(self.client.get(reverse("dashboard")), "Wachwerk: technische Störung")
+        self.assertNotContains(self.client.get(reverse("dashboard")), "Staffeta: technische Störung")
         self.assertEqual(inbox_ids(), [])
         # Wieder Wache A: die API zeigt sie wieder.
         Membership.objects.filter(user=user, station=station_b).update(is_active=False)
@@ -578,10 +578,10 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(message.to, ["chefin@example.org"])
-        self.assertEqual(message.subject, "Wachwerk: technische Störung")
+        self.assertEqual(message.subject, "Staffeta: technische Störung")
         self.assertIn("Dienst „backup“ läuft nicht.", message.body)
         self.assertIn("https://wache.example/system/", message.body)
-        self.assertIn("keine Inhalte aus Wachwerk", message.body)
+        self.assertIn("keine Inhalte aus Staffeta", message.body)
 
     def test_no_email_without_email_host(self):
         self.write(alerting())
@@ -603,7 +603,7 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.write(alerting())
         self.notify()
         self.assertEqual(list(SignalOutbox.objects.values_list("recipient", flat=True)), ["+4915199999999"])
-        self.assertIn("Wachwerk: technische Störung", SignalOutbox.objects.get().message)
+        self.assertIn("Staffeta: technische Störung", SignalOutbox.objects.get().message)
 
     @override_settings(EMAIL_HOST="smtp.example.org")
     def test_email_failure_keeps_inbox_entry(self):
@@ -621,7 +621,7 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.assertEqual(self.notify(), 1)
         recovery = self.notes(dedupe_key=f"host_health:{ALERT}:ok").get()
         self.assertEqual(recovery.user, self.admin)
-        self.assertEqual(recovery.title, "Wachwerk: Störung behoben")
+        self.assertEqual(recovery.title, "Staffeta: Störung behoben")
         self.assertIn("wieder alles in Ordnung", recovery.body)
         self.assertIsNotNone(self.notes().get(dedupe_key=f"host_health:{ALERT}").read_at)
         self.assertFalse(self.notes(user=later).exists())
@@ -638,7 +638,7 @@ class NotificationTests(HostHealthPageMixin, TestCase):
         self.assertEqual(self.notify(allow_stale_alert=False), 0)
         self.assertEqual(self.notify(allow_stale_alert=True), 1)
         row = self.notes().get()
-        self.assertEqual(row.title, "Wachwerk: Überwachung meldet sich nicht")
+        self.assertEqual(row.title, "Staffeta: Überwachung meldet sich nicht")
         self.assertIn("sudo wachwerk-health --verbose", row.body)
         self.assertTrue(row.dedupe_key.startswith("host_health_stale:"))
 

@@ -1,11 +1,11 @@
-"""Zustand der Host-Überwachung (``wachwerk-health``) in Wachwerk.
+"""Zustand der Host-Überwachung (``wachwerk-health``) in Staffeta.
 
 Vertrauensgrenze: Der Host (root) schreibt ``status.json`` (Schema 1) in einen
 Ordner, den Compose nur lesend in ``web`` und ``notify-worker`` einbindet
 (``/run/wachwerk-health``, siehe ``WACHWERK_HEALTH_DIR``). Die Datei enthält
 nur Codes, Zeiten und Zahlen – keine Texte, Hostnamen, Pfade oder Geheimnisse.
-Wachwerk liest sie streng: keine Symlinks, höchstens 64 KiB, jedes Feld wird
-einzeln geprüft und bei Fehlern verworfen. Die Codes übersetzt Wachwerk selbst
+Staffeta liest sie streng: keine Symlinks, höchstens 64 KiB, jedes Feld wird
+einzeln geprüft und bei Fehlern verworfen. Die Codes übersetzt Staffeta selbst
 (``PROBLEM_TEXTS``); unbekannte Codes erscheinen nur als allgemeiner Text, nie
 im Wortlaut. Die Datei dient nur der Anzeige und den Meldungen, nie als
 Auslöser für Aktionen. Der Host bekommt keine Datenbankrechte.
@@ -70,7 +70,7 @@ PROBLEM_TEXTS = {
     ("update", "never"): gettext_lazy("Das automatische Update lief noch nie."),
     ("update", "failed"): gettext_lazy("Das letzte automatische Update ist fehlgeschlagen."),
     ("update", "stale"): gettext_lazy("Das automatische Update lief zuletzt vor %(param)s Stunden."),
-    ("web", "unreachable"): gettext_lazy("Wachwerk ist über die Adresse der Wache nicht erreichbar."),
+    ("web", "unreachable"): gettext_lazy("Staffeta ist über die Adresse der Wache nicht erreichbar."),
     ("config", "hostname"): gettext_lazy("Der Überwachung fehlt die Adresse, die sie prüfen soll."),
     ("config", "services"): gettext_lazy(
         "Die Liste der zu prüfenden Dienste ist ungültig; geprüft wird die Grundliste."
@@ -88,7 +88,7 @@ PROBLEM_TEXTS = {
     ("service", "missing"): gettext_lazy("Dienst „%(param)s“ fehlt."),
     ("service", "stopped"): gettext_lazy("Dienst „%(param)s“ läuft nicht."),
     ("service", "restarting"): gettext_lazy("Dienst „%(param)s“ startet ständig neu."),
-    ("containers", "missing"): gettext_lazy("Es laufen keine Dienste von Wachwerk."),
+    ("containers", "missing"): gettext_lazy("Es laufen keine Dienste von Staffeta."),
     ("containers", "unreadable"): gettext_lazy("Der Zustand der Dienste ist nicht lesbar."),
     ("errors", "server"): gettext_lazy("%(param)s Serverfehler in den letzten 15 Minuten."),
     ("backup", "volume_missing"): gettext_lazy("Der Speicherort der Backups fehlt."),
@@ -556,8 +556,8 @@ def _send_emails(outbox: list) -> None:
     site = getattr(settings, "SITE_URL", "")
     link = f"{site}{reverse('system_status')}" if site else ""
     footer = _(
-        "Diese Nachricht geht an die Master-Admins dieser Wachwerk-Installation. "
-        "Sie enthält keine Inhalte aus Wachwerk, nur den technischen Zustand des Servers."
+        "Diese Nachricht geht an die Master-Admins dieser Staffeta-Installation. "
+        "Sie enthält keine Inhalte aus Staffeta, nur den technischen Zustand des Servers."
     )
     try:
         connection = get_connection()
@@ -587,7 +587,7 @@ def _notify(health: HostHealth, now: datetime, stale: bool, allow_stale_alert: b
     outbox: list = []
     created = 0
     if health.alerting:
-        created += _deliver(recipients, f"host_health:{health.alert}", _("Wachwerk: technische Störung"),
+        created += _deliver(recipients, f"host_health:{health.alert}", _("Staffeta: technische Störung"),
                             _alert_body(health, now), outbox)
     if health.recovered:
         alert_key = f"host_health:{health.last_alert}"
@@ -598,14 +598,14 @@ def _notify(health: HostHealth, now: datetime, stale: bool, allow_stale_alert: b
             body = _("Die Überwachung meldet seit %(time)s Uhr wieder alles in Ordnung.") % {
                 "time": _clock(health.checked_at, now)}
             created += _deliver([m for m in recipients if m.user_id in alerted], f"{alert_key}:ok",
-                                _("Wachwerk: Störung behoben"), body, outbox)
+                                _("Staffeta: Störung behoben"), body, outbox)
             UserNotification.objects.filter(kind=kind, dedupe_key=alert_key, read_at__isnull=True).update(
                 read_at=now)
     if stale and allow_stale_alert:
         body = _("Letzte Prüfung um %(time)s Uhr. Bitte den Server prüfen (sudo wachwerk-health --verbose).") % {
             "time": _clock(health.checked_at, now)}
         created += _deliver(recipients, f"host_health_stale:{_compact(health.checked_at)}",
-                            _("Wachwerk: Überwachung meldet sich nicht"), body, outbox)
+                            _("Staffeta: Überwachung meldet sich nicht"), body, outbox)
     elif not stale:
         # Die Überwachung meldet sich wieder: offene Hinweise darauf sind erledigt.
         UserNotification.objects.filter(

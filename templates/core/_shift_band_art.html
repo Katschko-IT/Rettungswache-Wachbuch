@@ -1,0 +1,28 @@
+{% comment %}
+  Schichtband als Bild (Startseite): fester Beispieltag, rein dekorativ.
+  Aufbau wie core/_shift_band.html; Erklärung in docs/DESIGN-SYSTEM.md.
+{% endcomment %}
+<div class="shift-band shift-band-art" aria-hidden="true">
+  <svg class="shift-band-svg" viewBox="0 0 1440 48" preserveAspectRatio="none" focusable="false">
+    <rect class="sb-past" x="0" y="0" width="875" height="48"/>
+    <line class="sb-rule" x1="0" y1="16" x2="1440" y2="16"/>
+    <line class="sb-rule" x1="0" y1="32" x2="1440" y2="32"/>
+    <line class="sb-hour" x1="360" y1="0" x2="360" y2="48"/>
+    <line class="sb-hour" x1="720" y1="0" x2="720" y2="48"/>
+    <line class="sb-hour" x1="1080" y1="0" x2="1080" y2="48"/>
+    <rect class="sb-event" x="540" y="3" width="90" height="10"/>
+    <rect class="sb-event" x="1140" y="3" width="60" height="10"/>
+    <line class="sb-entry" x1="395" y1="19" x2="395" y2="29"/>
+    <line class="sb-entry" x1="431" y1="19" x2="431" y2="29"/>
+    <line class="sb-entry sb-urgent" x1="668" y1="17" x2="668" y2="31"/>
+    <line class="sb-entry" x1="802" y1="19" x2="802" y2="29"/>
+    <rect class="sb-lock" x="820" y="35" width="105" height="10"/>
+    <line class="sb-lock-rule" x1="820" y1="35" x2="925" y2="35"/>
+    <line class="sb-lock-rule" x1="820" y1="45" x2="925" y2="45"/>
+    <line class="sb-due" x1="1020" y1="34" x2="1020" y2="46"/>
+    <line class="sb-now" x1="875" y1="0" x2="875" y2="48"/>
+    <line class="sb-now-core" x1="875" y1="0" x2="875" y2="48"/>
+    <line class="sb-now-head" x1="875" y1="0" x2="875" y2="7"/>
+  </svg>
+  <ol class="shift-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
+</div>

@@ -1,4 +1,4 @@
-# Statische Projektwebseite – Rettungswache-Wachbuch (Wachwerk)
+# Statische Projektwebseite – Rettungswache-Wachbuch (Staffeta)
 
 Quelldateien der öffentlichen Projektseite. Die Seite beschreibt den tatsächlichen
 Funktionsstand, die Betriebsgrenzen und die Installation. Sie ist keine
