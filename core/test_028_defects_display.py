@@ -826,6 +826,9 @@ class WallDisplayKioskTests(TestCase):
         self.assertIn('region.setAttribute("tabindex", "0")', script)
         self.assertIn('region.removeAttribute("tabindex")', script)
         self.assertIn(".display-column.is-scrollable", css)
+        # Der Fokus darf bei jedem Datenabruf nicht verloren gehen: Der Tabstopp bleibt,
+        # solange die Spalte den Fokus hat.
+        self.assertIn("region !== document.activeElement", script)
 
 
 class DisplayEmojiTests(TestCase):

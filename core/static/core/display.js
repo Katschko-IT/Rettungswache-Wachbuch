@@ -239,7 +239,11 @@
     var regions = root.querySelectorAll(".display-column, .display-traffic-strip");
     Array.prototype.forEach.call(regions, function (region) {
       region.classList.remove("is-scrollable");
-      region.removeAttribute("tabindex");
+      // Der Tastaturfokus bleibt erhalten, wenn die Spalte ihn gerade hat: Sonst
+      // springt er bei jedem Datenabruf auf die Seite zurück.
+      if (region !== document.activeElement) {
+        region.removeAttribute("tabindex");
+      }
     });
     if (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
       return;

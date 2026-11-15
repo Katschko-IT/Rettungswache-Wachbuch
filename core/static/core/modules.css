@@ -238,7 +238,7 @@ a.kpi-card:hover { background: var(--surface-soft); border-color: var(--line-str
 .legend-chip { gap: .4rem; }
 
 /* Listenzeilen ohne Statusetikett: Inhalt nimmt die volle Breite ein. */
-.list-row:has(> .row-content:first-child) { grid-template-columns: minmax(0, 1fr) auto; }
+.list-row:has(> .row-content:first-child):not(:has(> time)) { grid-template-columns: minmax(0, 1fr) auto; }
 .row-content .row-note { display: block; margin-top: var(--space-1); color: var(--text); font-size: .9rem; }
 
 /* Listenzeilen mit Fristenampel: Kante nur bei Handlungsbedarf. */

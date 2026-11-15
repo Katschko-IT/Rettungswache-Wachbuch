@@ -160,6 +160,17 @@ class ProgressiveWebAppTests(PilotTestCase):
         # Handy-Randspalte wächst mit dem Datum, statt es in den Inhalt laufen zu lassen.
         self.assertIn("grid-template-columns: fit-content(5rem) minmax(0, 1fr);", app)
 
+    def test_row_content_first_grid_rule_excludes_rows_with_time(self):
+        # Regression (Prüfer-Fund, im Browser nachgemessen): Die Regel für Zeilen „Inhalt zuerst“
+        # hatte höhere Spezifität als die Zeit-Spalte und quetschte die Zeit auf 8 px (Handy).
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "modules.css").read_text(encoding="utf-8")
+        self.assertIn(".list-row:has(> .row-content:first-child):not(:has(> time)) {", css)
+
+    def test_env_example_uses_current_product_name(self):
+        # Neue Installationen (setup-pi.sh kopiert .env.example) dürfen nicht „Wachwerk“ heißen.
+        text = (Path(settings.BASE_DIR) / ".env.example").read_text(encoding="utf-8")
+        self.assertIn("APP_NAME=Staffeta\n", text)
+
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))

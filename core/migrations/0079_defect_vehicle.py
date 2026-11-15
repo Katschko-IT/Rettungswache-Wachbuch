@@ -5,8 +5,8 @@
 # ihren Bezug als Text in asset_ref und werden weiterhin über den exakten Text
 # zugeordnet (core/defect_refs.py).
 #
-# Rückweg: ``python manage.py migrate core 0076`` (bzw. die Vorgängermigration
-# nach dem Umhängen durch die Integration) entfernt die Spalte wieder. Dabei
+# Rückweg: ``python manage.py migrate core 0078`` (die Vorgängermigration)
+# entfernt die Spalte wieder. Dabei
 # geht nur die Verknüpfung verloren; der Bezug als Text bleibt erhalten.
 
 import django.db.models.deletion
