@@ -113,10 +113,12 @@
 .pub-hero { padding: clamp(2.5rem, 7vw, 5.5rem) 0 clamp(2rem, 5vw, 4rem); }
 .pub-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.45fr);
   gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
 }
+/* Nur die Bühne ist breiter: Das Desktop-Bild soll lesbar sein (Maßstab ab ca. 0,5). */
+.pub-hero > .pub-wrap { --pub-width: 84rem; }
 .pub-hero h1 {
   margin: 0 0 1.25rem;
   font-size: clamp(2.1rem, 4.6vw, 3.4rem);
@@ -149,9 +151,13 @@
 .sb-lock-rule { stroke: var(--violet); stroke-width: 2; }
 .sb-due { stroke: var(--warning-accent); stroke-width: 3; stroke-dasharray: 3 3; }
 /* Der Stab: Jetzt-Marke mit Tinte-Rand und Signal-Kern (Lime nie allein, immer mit Tinte). */
-.sb-now { stroke: var(--text); stroke-width: 10; }
+.sb-now { stroke: var(--on-signal, #14212b); stroke-width: 10; }
 .sb-now-head { stroke: var(--text); stroke-width: 14; }
 .sb-now-core { stroke: var(--signal, #c8e63c); stroke-width: 4; }
+/* Zeichenerklärung unter dem Zeitstab der Startseite. */
+.shift-band-key { display: flex; flex-wrap: wrap; gap: .35rem 1.4rem; margin: .6rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .85rem; }
+.shift-band-key li { display: inline-flex; align-items: center; gap: .4rem; }
+.shift-band-key svg { width: 1.75rem; height: .875rem; flex: none; overflow: visible; }
 .shift-band-hours { display: flex; justify-content: space-between; margin: .25rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 
 /* Geräte: Desktop hell, Handy im Nachtdienst davor – Tag und Nacht, groß und
@@ -165,14 +171,14 @@
   overflow: hidden;
   box-shadow: 6px 6px 0 var(--bg-accent);
 }
-/* Das Handy liegt rechts unten über der Seitenspalte – die Aufmerksamkeitsliste
-   links bleibt sichtbar. */
-.pub-devices { padding: 0 6% 3rem 0; }
+/* Das Handy liegt rechts unten über dem Rand des Desktop-Bildes (Knöpfe und Stempel
+   bleiben sichtbar, es deckt etwa ein Achtel). */
+.pub-devices { padding: 0 10% 3rem 0; }
 .device-phone {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 30%;
+  width: 22%;
   border-radius: 1.6rem;
   border: 6px solid #0d151b;
 }
@@ -345,6 +351,9 @@
 
 @media (max-width: 60rem) {
   .pub-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Einspaltig bleibt das Handy groß genug, um erkannt zu werden. */
+  .pub-devices { padding-right: 6%; }
+  .device-phone { width: 30%; }
   .pub-devices { margin-inline: 4% 0; }
   .feature-groups, .split, .boundary-list { grid-template-columns: minmax(0, 1fr); }
   .shot.half { grid-column: span 12; }

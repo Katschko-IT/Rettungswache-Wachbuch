@@ -171,6 +171,15 @@ class ProgressiveWebAppTests(PilotTestCase):
         text = (Path(settings.BASE_DIR) / ".env.example").read_text(encoding="utf-8")
         self.assertIn("APP_NAME=Staffeta\n", text)
 
+    def test_landing_explains_the_time_bar_marks(self):
+        # Prüfer-Fund: Das Band zeigte fünf Markenarten ohne Erklärung (aria-hidden). Die Legende
+        # steht außerhalb des versteckten Bandes und nennt nur Begriffe aus der App.
+        self.client.logout()
+        response = self.client.get(reverse("landing"))
+        self.assertContains(response, 'class="shift-band-key"', count=1)
+        for word in ("Übergabe", "Dringend", "Termin", "Gerät gesperrt", "Frist fällig", "Jetzt"):
+            self.assertContains(response, word)
+
     def test_landing_shows_name_once_with_hero_art_and_webapp_copy(self):
         self.client.logout()
         response = self.client.get(reverse("landing"))

@@ -1726,7 +1726,7 @@ msgstr "Year of manufacture:"
 msgid "Baustein / Modul"
 msgstr "Module / component"
 
-#: templates/core/_display_surface.html:102
+#: templates/core/_display_surface.html:103
 msgid "Baustellen und Sperrungen"
 msgstr "Roadworks and closures"
 
@@ -3673,7 +3673,7 @@ msgstr "Disinfection"
 msgid "Desinfektion (gesperrt)"
 msgstr "Disinfection (locked)"
 
-#: templates/core/_display_surface.html:63
+#: templates/core/_display_surface.html:64
 msgid "Desinfektion bis"
 msgstr "Disinfection until"
 
@@ -4494,6 +4494,7 @@ msgstr "Set the four-digit station code there as well."
 
 #: core/models.py:294
 #: core/wachalltag_models.py:52
+#: templates/core/_shift_band_key.html:5
 #: templates/core/handover_list.html:12
 msgid "Dringend"
 msgstr "Urgent"
@@ -5476,7 +5477,7 @@ msgstr "No medical devices have been added yet."
 msgid "Es werden keine externen Content Delivery Networks (CDNs), Tracking-Dienstleister oder extern gehostete Schriftarten (Fonts) eingebunden. Alle Schriftdateien (Atkinson Hyperlegible Next) und Stylesheets werden lokal vom selben Server ausgeliefert."
 msgstr "No external content delivery networks (CDNs), tracking providers, or externally hosted fonts are integrated. All font files (Atkinson Hyperlegible Next) and stylesheets are served locally from the same server."
 
-#: templates/core/_display_surface.html:120
+#: templates/core/_display_surface.html:121
 msgid "Esc beendet die Anzeige"
 msgstr "Esc closes the display"
 
@@ -5641,7 +5642,7 @@ msgstr "Vehicle data is edited by shift leads and admins."
 #: core/masterdata_import.py:1862
 #: core/module_overview.py:53
 #: core/module_overview.py:59
-#: templates/core/_display_surface.html:62
+#: templates/core/_display_surface.html:63
 #: templates/core/dashboard.html:87
 #: templates/core/terminal_home.html:67
 msgid "Fahrzeuge"
@@ -5859,7 +5860,7 @@ msgstr "The following contacts were provided for publication by the respective o
 msgid "Formulare, Fristenliste und Telefonbuch zum Ausdrucken"
 msgstr "Forms, deadline list and phone book to print"
 
-#: templates/core/_display_surface.html:53
+#: templates/core/_display_surface.html:54
 msgid "Fortschritt der Tagesaufgaben"
 msgstr "Progress of daily tasks"
 
@@ -5912,7 +5913,7 @@ msgstr "Freely usable for one-time station tasks without patient data."
 msgid "Freigabe"
 msgstr "Release"
 
-#: templates/core/_display_surface.html:63
+#: templates/core/_display_surface.html:64
 msgid "Freigabe durch die Besatzung offen"
 msgstr "Awaiting release by the crew"
 
@@ -5991,6 +5992,10 @@ msgstr "Deadline"
 #: templates/core/defect_form.html:138
 msgid "Frist (optional)"
 msgstr "Deadline (optional)"
+
+#: templates/core/_shift_band_key.html:8
+msgid "Frist fällig"
+msgstr "Deadline due"
 
 #: templates/core/fleet_dashboard.html:171
 msgid "Fristen & Prüfungen"
@@ -6398,7 +6403,7 @@ msgstr "Areas for public warnings"
 msgid "Gebraucht kosten sie oft nur einen zweistelligen Euro-Betrag – die Angebote schwanken stark, Preise vergleichen lohnt sich."
 msgstr "Used, they often cost only a two-digit euro amount – offers vary widely, so compare prices."
 
-#: templates/core/_display_surface.html:82
+#: templates/core/_display_surface.html:83
 #: templates/core/account.html:76
 #: templates/core/calendar.html:21
 #: templates/core/calendar.html:29
@@ -6536,6 +6541,10 @@ msgstr "Permanently decommission this device? It disappears from the overview, t
 msgid "Gerät freigeben"
 msgstr "Release device"
 
+#: templates/core/_shift_band_key.html:7
+msgid "Gerät gesperrt"
+msgstr "Device locked"
+
 #: core/demo_sandbox.py:759
 msgid "Gerät prüfen"
 msgstr "Check device"
@@ -6593,7 +6602,7 @@ msgid "Gerätebuch, Prüffristen (STK/MTK), Funktionskontrollen und Einweisungen
 msgstr "Device log, inspection deadlines (STK/MTK), function checks and instructions."
 
 #: core/display_views.py:391
-#: templates/core/_display_surface.html:86
+#: templates/core/_display_surface.html:87
 msgid "Gerätefristen"
 msgstr "Device deadlines"
 
@@ -6679,7 +6688,7 @@ msgstr "Only what you enter is stored, no IP address. The feedback is deleted af
 msgid "Gespeicherter Schlüsselumschlag ist beschädigt."
 msgstr "Saved key envelope is corrupted."
 
-#: templates/core/_display_surface.html:103
+#: templates/core/_display_surface.html:104
 #: templates/core/mpg_dashboard.html:62
 #: templates/core/mpg_dashboard.html:153
 #: templates/core/mpg_device_detail.html:79
@@ -7020,7 +7029,7 @@ msgstr "Manufacturer:"
 msgid "Hetzner Storage Box"
 msgstr "Hetzner Storage Box"
 
-#: templates/core/_display_surface.html:37
+#: templates/core/_display_surface.html:38
 #: templates/core/_shift_band.html:9
 #: templates/core/tasks_today.html:25
 #: templates/core/terminal_home.html:48
@@ -7650,6 +7659,10 @@ msgstr "Each station enables only the modules it actually uses, which keeps the 
 msgid "Jede Übergabe trägt Priorität, Status und Verlauf. Die nächste Schicht sieht sofort, was dringend ist, und quittiert, was sie gelesen hat."
 msgstr "Every handover carries priority, status and history. The next shift sees at once what is urgent and acknowledges what it has read."
 
+#: templates/core/_shift_band_key.html:9
+msgid "Jetzt"
+msgstr "Now"
+
 #: templates/core/setup_done.html:48
 msgid "Jetzt anmelden"
 msgstr "Sign in now"
@@ -8132,8 +8145,8 @@ msgstr "No speed-dial contacts stored."
 msgid "Keine Telemetrie, keine Tracker"
 msgstr "No telemetry, no trackers"
 
-#: templates/core/_display_surface.html:38
 #: templates/core/_display_surface.html:39
+#: templates/core/_display_surface.html:40
 #: templates/core/terminal_home.html:49
 #: templates/core/terminal_home.html:50
 msgid "Keine Termine"
@@ -8431,7 +8444,7 @@ msgid "Kosten"
 msgstr "Costs"
 
 #: core/fleet_forms.py:299
-#: templates/core/_display_surface.html:63
+#: templates/core/_display_surface.html:64
 #: templates/core/fleet_dashboard.html:143
 #: templates/core/fleet_vehicle_detail.html:114
 #: templates/core/fleet_vehicle_detail.html:351
@@ -9062,7 +9075,7 @@ msgstr "Master admin, shift lead, treasurer, member and auditor – each per sta
 #: core/models.py:287
 #: core/paper.py:232
 #: core/wachalltag_models.py:62
-#: templates/core/_display_surface.html:92
+#: templates/core/_display_surface.html:93
 #: templates/core/warehouse_dashboard.html:8
 msgid "Material"
 msgstr "Supplies"
@@ -12514,13 +12527,25 @@ msgstr "Later"
 msgid "Später im Wachbuch als Nachtrag vom Papierbogen erfassen."
 msgstr "Later enter this in the station log as a paper backfill."
 
+#: templates/core/privacy.html:173
+msgid "Staffeta arbeitet nach dem Grundsatz des Inselbetriebs. Externe Dienste sind standardmäßig abgeschaltet. Die folgende Übersicht zeigt die für diese Installation erkannten externen Datenflüsse im aktuellen Betriebszustand:"
+msgstr "Staffeta follows the principle of isolated operation. External services are switched off by default. The following overview shows the external data flows detected for this installation in its current state:"
+
 #: templates/core/install_guide.html:11
 msgid "Staffeta auf deiner Wache betreiben"
 msgstr "Run Staffeta at your station"
 
+#: templates/core/it_privacy.html:10
+msgid "Staffeta auf einer Seite: Aufbau, Daten, Schutz."
+msgstr "Staffeta on one page: architecture, data, protection."
+
 #: templates/core/install_guide.html:209
 msgid "Staffeta auf neuer Hardware installieren, die gesicherte .env zurückkopieren und das letzte Backup wiederherstellen. Darum gehören .env und Backups auf einen Stick außerhalb des Rechners."
 msgstr "Install Staffeta on new hardware, copy back the saved .env and restore the latest backup. That is why .env and backups belong on a stick outside the computer."
+
+#: templates/core/privacy.html:44
+msgid "Staffeta ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Staffeta-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen."
+msgstr "Staffeta is a self-hosted organizational application. The controller within the meaning of the GDPR is generally the entity that operates the respective Staffeta server for its organization and decides on the purposes and means of processing. In particular, the operator must define its identity, contact details, legal bases, recipients, retention periods, and data subject rights in its own privacy notice."
 
 #: core/forms.py:1082
 msgid "Staffeta ist öffentlich im Internet erreichbar (eigene Domain)"
@@ -12538,6 +12563,10 @@ msgstr "Run Staffeta yourself"
 #: templates/core/masterdata_import.html:57
 msgid "Staffeta speichert die Datei nicht. Sie wird nur im Arbeitsspeicher gelesen; Zwischenpuffer des Proxys werden nach der Anfrage verworfen. Im Audit-Log stehen nur Anzahl und Prüfsumme."
 msgstr "Staffeta does not store the file. It is only read in memory; temporary buffers of the proxy are discarded after the request. The audit log only holds counts and the checksum."
+
+#: templates/core/privacy.html:222
+msgid "Staffeta stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen."
+msgstr "Staffeta provides technical deletion and cleanup mechanisms, but does not determine legally permissible periods across the board. Prior to production operations, the operator must define an approved deletion and retention concept for each data class."
 
 #: templates/core/signal_admin.html:9
 msgid "Staffeta verschickt Erinnerungen und Hinweise über ein Signal-Konto der Wache – in die Wachengruppe (ohne Namen) und an Personen, die ihre Nummer selbst bestätigt haben."
@@ -12856,7 +12885,7 @@ msgid "Tage"
 msgstr "Days"
 
 #: core/navigation.py:53
-#: templates/core/_display_surface.html:51
+#: templates/core/_display_surface.html:52
 #: templates/core/more.html:168
 #: templates/core/task_form.html:7
 #: templates/core/tasks_today.html:3
@@ -12992,6 +13021,7 @@ msgstr "Phone book entries"
 
 #: core/audit_labels.py:146
 #: core/shift_band.py:151
+#: templates/core/_shift_band_key.html:6
 msgid "Termin"
 msgstr "Appointment"
 
@@ -13982,22 +14012,6 @@ msgstr "Station management or practical instructor"
 msgid "Wachtermine & Schreibtisch"
 msgstr "Station appointments & desk"
 
-#: templates/core/privacy.html:173
-msgid "Staffeta arbeitet nach dem Grundsatz des Inselbetriebs. Externe Dienste sind standardmäßig abgeschaltet. Die folgende Übersicht zeigt die für diese Installation erkannten externen Datenflüsse im aktuellen Betriebszustand:"
-msgstr "Staffeta follows the principle of isolated operation. External services are switched off by default. The following overview shows the external data flows detected for this installation in its current state:"
-
-#: templates/core/it_privacy.html:10
-msgid "Staffeta auf einer Seite: Aufbau, Daten, Schutz."
-msgstr "Staffeta on one page: architecture, data, protection."
-
-#: templates/core/privacy.html:44
-msgid "Staffeta ist eine selbst gehostete Organisationsanwendung. Verantwortlicher im Sinne der DSGVO ist grundsätzlich die Stelle, die den jeweiligen Staffeta-Server für ihre Organisation betreibt und über Zwecke und Mittel der Verarbeitung entscheidet. Der Betreiber muss insbesondere seine Identität, Kontaktdaten, Rechtsgrundlagen, Empfänger, Aufbewahrungsfristen und Betroffenenrechte in einer eigenen Betroffeneninformation festlegen."
-msgstr "Staffeta is a self-hosted organizational application. The controller within the meaning of the GDPR is generally the entity that operates the respective Staffeta server for its organization and decides on the purposes and means of processing. In particular, the operator must define its identity, contact details, legal bases, recipients, retention periods, and data subject rights in its own privacy notice."
-
-#: templates/core/privacy.html:222
-msgid "Staffeta stellt technische Lösch- und Bereinigungsmechanismen bereit, bestimmt aber nicht pauschal die rechtlich zulässigen Fristen. Der Betreiber muss vor einem Produktivbetrieb ein freigegebenes Lösch- und Aufbewahrungskonzept je Datenklasse festlegen."
-msgstr "Staffeta provides technical deletion and cleanup mechanisms, but does not determine legally permissible periods across the board. Prior to production operations, the operator must define an approved deletion and retention concept for each data class."
-
 #: templates/core/_demo_tour.html:41
 msgid "Wand-Display"
 msgstr "Wall display"
@@ -14237,7 +14251,7 @@ msgid "Wero-Links müssen mit https:// beginnen."
 msgstr "Wero links must start with https://."
 
 #: core/data_flows.py:209
-#: templates/core/_display_surface.html:72
+#: templates/core/_display_surface.html:73
 #: templates/core/terminal_home.html:22
 msgid "Wetter"
 msgstr "Weather"
@@ -14258,7 +14272,7 @@ msgstr "\\\"Weather could not be activated: %(error)s\\\""
 msgid "Wetter konnte nicht geladen werden (%(error)s). Die Installation ist davon nicht betroffen und kann ohne Wetter fortgesetzt werden."
 msgstr "Weather could not be loaded (%(error)s). The installation is unaffected and can proceed without weather."
 
-#: templates/core/_display_surface.html:78
+#: templates/core/_display_surface.html:79
 msgid "Wetter nicht aktiviert"
 msgstr "Weather not enabled"
 
@@ -14563,6 +14577,10 @@ msgstr "Payment method/pot"
 #: templates/core/coffee_settings.html:15
 msgid "Zahlungswege"
 msgstr "Payment methods"
+
+#: templates/core/_shift_band_key.html:3
+msgid "Zeichen im Zeitstab"
+msgstr "Marks in the time bar"
 
 #: templates/core/_masterdata_import_rows.html:6
 msgid "Zeile"
@@ -15295,7 +15313,7 @@ msgstr "the monitoring is silent"
 msgid "dringend"
 msgstr "urgent"
 
-#: templates/core/_display_surface.html:113
+#: templates/core/_display_surface.html:114
 msgid "dringende Übergaben"
 msgstr "urgent handovers"
 
@@ -15577,7 +15595,7 @@ msgid "nächste Fälligkeit"
 msgstr "next due date"
 
 #: core/views.py:580
-#: templates/core/_display_surface.html:52
+#: templates/core/_display_surface.html:53
 #: templates/core/coffee_book.html:47
 #: templates/core/tasks_today.html:12
 #: templates/core/terminal_home.html:31
@@ -15897,6 +15915,7 @@ msgstr "Overdue / OOB"
 
 #: core/audit_labels.py:136
 #: core/views.py:634
+#: templates/core/_shift_band_key.html:4
 msgid "Übergabe"
 msgstr "Handover"
 
@@ -16017,8 +16036,8 @@ msgid "Übersicht der dokumentierten Anwender- und Multiplikatoreneinweisungen d
 msgstr "Overview of the documented user and multiplier instructions of the station team."
 
 #: templates/core/vorfuehrung.html:28
-msgid "Übersicht einer Wache am Desktop: fünf Punkte brauchen Aufmerksamkeit, darunter eine dringende Übergabe und fällige Fahrzeugfristen."
-msgstr "A station's overview on desktop: five items need attention, including an urgent handover and due vehicle deadlines."
+msgid "Übersicht einer Wache am Desktop: sieben Punkte brauchen Aufmerksamkeit, darunter zwei dringende Übergaben und fällige Fahrzeugfristen."
+msgstr "A station's overview on desktop: seven items need attention, including two urgent handovers and due vehicle deadlines."
 
 #: templates/core/landing.html:57
 msgid "Übersicht einer Wache: oben steht, wie viele Punkte Aufmerksamkeit brauchen, darunter dringende Übergaben, fällige Fristen und offene Dienstanweisungen."

@@ -1,5 +1,48 @@
 # Changelog
 
+## Unreleased - Staffeta: neuer Markencode
+
+Der Produktname in allen sichtbaren Texten ist jetzt **Staffeta** (vorher
+„Wachwerk“). Repository, Dienst-, Datei- und Variablennamen (zum Beispiel
+`WACHWERK_HEALTH_DIR`, `wachwerk-health.service`) bleiben unverändert, damit
+bestehende Installationen und Skripte weiterlaufen. Die Versionsnummer ist
+noch nicht vergeben; `core/version.py` steht weiter auf 0.28.0.
+
+**Upgrade-Hinweise:**
+
+- Eine zusätzliche Migration (`0081`) ändert nur einen Hilfetext der
+  Kaffeekasse. Sie läuft vorwärts und rückwärts ohne Datenverlust.
+- Neue Installationen setzen `APP_NAME=Staffeta` (`.env.example`).
+  Bestehende `.env`-Dateien behalten ihren Wert; wer „Wachwerk“ noch sieht,
+  setzt `APP_NAME=Staffeta`.
+- Meldungen des Server-Wächters an Admins heißen jetzt „Staffeta: …“.
+  Bereits gespeicherte Meldungen behalten ihren alten Titel.
+
+**Design:**
+
+- Markencode: Tinte `#14212B`, Signal-Lime `#C8E63C`, kursives „ff“ im Logo,
+  neue App-Icons, Farbwerte für hell und dunkel (`docs/DESIGN-SYSTEM.md`).
+- Zeitstab mit Lime-Kern in der Jetzt-Marke (App, Wandmonitor, Projektseite)
+  und mit Zeichenerklärung auf der Startseite und der Projektseite.
+- Wandmonitor: größere Stempel, Skala und Quellenangaben, dickerer
+  Fortschrittsbalken, Farben der Nacht-Palette; auf einem 43-Zoll-Gerät
+  rechnerisch nach DIN 1450 lesbar bis ca. 2,3 m statt 1,9 m (Stempel; Rechnung
+  in `docs/DESIGN-SYSTEM.md`, keine Messung vor Ort).
+- Projektseite: breitere Bühne, das Desktop-Bild ist größer und wird weniger
+  vom Handybild verdeckt.
+- Produktbilder und Sperrbildschirm-Aufnahme neu erzeugt (Musterdaten).
+
+**Behoben:**
+
+- Handy: Datum und Inhalt in Listenzeilen überlappten sich (Übergaben,
+  Mängel, Fuhrpark, Lager); die 24-px-Zielgröße überschrieb Layouts.
+- Zeilen „Inhalt, dann Zeit“ (Mängel-Anhänge) bekamen eine 8 px breite
+  Zeitspalte.
+- Wandmonitor: scrollende Spalten sind per Tastatur erreichbar (axe
+  `scrollable-region-focusable`), der Fokus geht bei Aktualisierung nicht
+  verloren.
+- Rückweg-Hinweis der Migration 0079 nannte die falsche Zielmigration.
+
 ## [0.28.0] - 2026-11-09
 
 „Prüfen“: Prüfungen haben ein Ergebnis je Punkt, Mängel entstehen ohne

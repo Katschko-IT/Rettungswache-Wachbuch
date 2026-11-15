@@ -54,7 +54,7 @@
     </div>
     <div class="pub-devices">
       <figure class="device">
-        <img src="../assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Station overview on a desktop: the heading says five items need attention, followed by an urgent handover, due vehicle inspections, medical devices, an item below minimum stock and an open instruction.">
+        <img src="../assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Station overview on a desktop: the heading says seven items need attention, including two urgent handovers, three open defects, two vehicles not ready, unacknowledged handovers, equipment, medical devices and items below minimum stock.">
       </figure>
       <figure class="device device-phone">
         <img src="../assets/design/screens/overview-phone-dark.webp" width="390" height="844" alt="The same overview on a phone in the dark night-shift mode.">
@@ -86,6 +86,14 @@
       </svg>
       <ol class="shift-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
     </div>
+    <ul class="shift-band-key" aria-label="Marks in the time bar">
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry" x1="14" y1="2" x2="14" y2="12"/></svg>Handover</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry sb-urgent" x1="14" y1="1" x2="14" y2="13"/></svg>Urgent</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-event" x="4" y="3" width="20" height="8"/></svg>Appointment</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-lock" x="4" y="2" width="20" height="10"/><line class="sb-lock-rule" x1="4" y1="2" x2="24" y2="2"/><line class="sb-lock-rule" x1="4" y1="12" x2="24" y2="12"/></svg>Device locked</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-due" x1="14" y1="1" x2="14" y2="13"/></svg>Deadline due</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-now" x1="14" y1="0" x2="14" y2="14"/><line class="sb-now-core" x1="14" y1="0" x2="14" y2="14"/></svg>Now</li>
+    </ul>
   </div>
 </section>
 

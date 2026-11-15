@@ -1,0 +1,10 @@
+{% load i18n %}
+{# Zeichenerklärung zum Zeitstab der Startseite: nur Zeichen und Wörter aus der App, keine neuen Begriffe. #}
+<ul class="shift-band-key" aria-label="{% translate 'Zeichen im Zeitstab' %}">
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry" x1="14" y1="2" x2="14" y2="12"/></svg>{% translate "Übergabe" %}</li>
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry sb-urgent" x1="14" y1="1" x2="14" y2="13"/></svg>{% translate "Dringend" %}</li>
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-event" x="4" y="3" width="20" height="8"/></svg>{% translate "Termin" %}</li>
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-lock" x="4" y="2" width="20" height="10"/><line class="sb-lock-rule" x1="4" y1="2" x2="24" y2="2"/><line class="sb-lock-rule" x1="4" y1="12" x2="24" y2="12"/></svg>{% translate "Gerät gesperrt" %}</li>
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-due" x1="14" y1="1" x2="14" y2="13"/></svg>{% translate "Frist fällig" %}</li>
+  <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-now" x1="14" y1="0" x2="14" y2="14"/><line class="sb-now-core" x1="14" y1="0" x2="14" y2="14"/></svg>{% translate "Jetzt" %}</li>
+</ul>

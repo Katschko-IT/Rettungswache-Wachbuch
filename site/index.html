@@ -54,7 +54,7 @@
     </div>
     <div class="pub-devices">
       <figure class="device">
-        <img src="assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: oben die Zeile „5 Punkte brauchen Aufmerksamkeit“, darunter eine dringende Übergabe, fällige Fahrzeugfristen, Medizingeräte, ein Artikel unter Mindestbestand und eine offene Dienstanweisung.">
+        <img src="assets/design/screens/overview-desktop-light.webp" width="1440" height="900" alt="Übersicht einer Wache am Desktop: oben die Zeile „7 Punkte brauchen Aufmerksamkeit“, darunter zwei dringende Übergaben, drei offene Mängel, zwei nicht einsatzbereite Fahrzeuge, nicht quittierte Übergaben, Ausstattung, Medizingeräte und Artikel unter Mindestbestand.">
       </figure>
       <figure class="device device-phone">
         <img src="assets/design/screens/overview-phone-dark.webp" width="390" height="844" alt="Dieselbe Übersicht auf dem Handy im dunklen Nachtdienst-Modus.">
@@ -86,6 +86,14 @@
       </svg>
       <ol class="shift-band-hours"><li>0</li><li>6</li><li>12</li><li>18</li><li>24</li></ol>
     </div>
+    <ul class="shift-band-key" aria-label="Zeichen im Zeitstab">
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry" x1="14" y1="2" x2="14" y2="12"/></svg>Übergabe</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-entry sb-urgent" x1="14" y1="1" x2="14" y2="13"/></svg>Dringend</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-event" x="4" y="3" width="20" height="8"/></svg>Termin</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><rect class="sb-lock" x="4" y="2" width="20" height="10"/><line class="sb-lock-rule" x1="4" y1="2" x2="24" y2="2"/><line class="sb-lock-rule" x1="4" y1="12" x2="24" y2="12"/></svg>Gerät gesperrt</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-due" x1="14" y1="1" x2="14" y2="13"/></svg>Frist fällig</li>
+      <li><svg viewBox="0 0 28 14" aria-hidden="true" focusable="false"><line class="sb-now" x1="14" y1="0" x2="14" y2="14"/><line class="sb-now-core" x1="14" y1="0" x2="14" y2="14"/></svg>Jetzt</li>
+    </ul>
   </div>
 </section>
 

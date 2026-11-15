@@ -214,6 +214,34 @@ und legt nichts an.
 - Display: dieselbe Leiste über die volle Breite, aufgebaut von `display.js`
   aus den vorhandenen Feldern `events[].time` und
   `fleet_vehicles[].locked_until`.
+- Zeichenerklärung: Die Startseite und die Projektseite zeigen unter dem Band
+  eine Legende (`templates/core/_shift_band_key.html`, `.shift-band-key`) mit
+  Übergabe, Dringend, Termin, Gerät gesperrt, Frist fällig und Jetzt. Das Band
+  selbst bleibt `aria-hidden`; die Legende steht außerhalb davon.
+- Jetzt-Marke („Stab“): Tinte-Rand (`--on-signal`, im Display fest `#14212b`)
+  mit Lime-Kern `--signal`. Lime steht nie allein, weil es auf hellem Papier
+  keinen Kontrast hat.
+
+### Wandmonitor: Schriftgrößen nach Lesedistanz
+
+Maßstab ist DIN 1450 (Mittellänge in cm = Lesedistanz in cm / 250; für helle
+Schrift auf dunklem Grund +10 %). Gerechnet für ein 43-Zoll-Gerät mit 1080p
+(0,496 mm je Pixel), Versalien-Stempel mit Versalhöhe ≈ 0,7 em, gemischte
+Schrift mit Mittellänge ≈ 0,5 em:
+
+| Element | Größe vorher → jetzt (1920 px) | Lesedistanz vorher → jetzt |
+|---|---|---|
+| Fahrzeug-Stempel (Versalien) | 24 → 28,8 px | 1,9 → 2,3 m |
+| Skala unter dem Band | 24 → 28,8 px | – |
+| Quellenangabe Verkehr | 19,2 → 24 px | 1,1 → 1,4 m |
+| Meta-Zeile Verkehr | 22 → 25,9 px | 1,2 → 1,5 m |
+
+Das sind Rechenwerte, keine Messung vor Ort. Für 3 m Abstand reichen diese
+Größen nicht: Auch Terminzeile und Name (33,6 und 30,7 px) tragen auf 43 Zoll
+nur ca. 1,7–1,9 m, auf 55 Zoll ca. 2,2–2,4 m (Stempel bis ca. 2,9 m). Für 3 m
+müsste die Hauptschrift rund 2,8 vw statt 1,75 vw betragen; das ändert das
+Raster und ist bewusst nicht Teil dieses Branches. Die Werte stehen in
+`display.css` (`--vw`-Skalierung) und gelten für den Kiosk-Rahmen 16:9.
 
 ## Bewegung
 
