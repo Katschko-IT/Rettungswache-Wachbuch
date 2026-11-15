@@ -171,6 +171,13 @@ class ProgressiveWebAppTests(PilotTestCase):
         text = (Path(settings.BASE_DIR) / ".env.example").read_text(encoding="utf-8")
         self.assertIn("APP_NAME=Staffeta\n", text)
 
+    def test_hero_shows_phone_image_large_on_narrow_screens(self):
+        # Gemessen: Das Desktop-Bild wäre auf 390 px nur 0,22-fach (Schrift ca. 3,6 px). Unter
+        # 46rem steht stattdessen das Handy-Bild groß (0,63-fach) und mittig.
+        css = (Path(settings.BASE_DIR) / "core" / "static" / "core" / "public.css").read_text(encoding="utf-8")
+        self.assertIn(".pub-devices > .device:not(.device-phone) { display: none; }", css)
+        self.assertIn(".pub-devices > .device-phone { position: static; width: min(72%, 19rem); margin-inline: auto; }", css)
+
     def test_landing_explains_the_time_bar_marks(self):
         # Prüfer-Fund: Das Band zeigte fünf Markenarten ohne Erklärung (aria-hidden). Die Legende
         # steht außerhalb des versteckten Bandes und nennt nur Begriffe aus der App.

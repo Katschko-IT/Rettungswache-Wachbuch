@@ -235,13 +235,18 @@ Schrift mit Mittellänge ≈ 0,5 em:
 | Skala unter dem Band | 24 → 28,8 px | – |
 | Quellenangabe Verkehr | 19,2 → 24 px | 1,1 → 1,4 m |
 | Meta-Zeile Verkehr | 22 → 25,9 px | 1,2 → 1,5 m |
+| Termine und Listen | 33,6 → 42,2 px (1,75 → 2,2 vw) | 1,7 → 2,4 m |
+| Fahrzeugname | 30,7 → 38,4 px (1,6 → 2 vw) | 1,5 → 2,2 m |
+| Titel Verkehr | 25,9 → 32,6 px (1,35 → 1,7 vw) | 1,4 → 1,8 m |
 
-Das sind Rechenwerte, keine Messung vor Ort. Für 3 m Abstand reichen diese
-Größen nicht: Auch Terminzeile und Name (33,6 und 30,7 px) tragen auf 43 Zoll
-nur ca. 1,7–1,9 m, auf 55 Zoll ca. 2,2–2,4 m (Stempel bis ca. 2,9 m). Für 3 m
-müsste die Hauptschrift rund 2,8 vw statt 1,75 vw betragen; das ändert das
-Raster und ist bewusst nicht Teil dieses Branches. Die Werte stehen in
-`display.css` (`--vw`-Skalierung) und gelten für den Kiosk-Rahmen 16:9.
+Das sind Rechenwerte, keine Messung vor Ort. Auf **55 Zoll** tragen Termine
+und Listen jetzt bis ca. 3,0 m, der Fahrzeugname bis 2,8 m und der Stempel bis
+2,9 m. Auf **43 Zoll** reicht es für 3 m nicht: Termine bis 2,4 m, Fahrzeugname
+bis 2,2 m (für 3 m bräuchte die Hauptschrift dort rund 2,8 vw). Wer ein
+kleineres Gerät hat, sitzt näher dran oder nimmt ein größeres. Größere Schrift
+heißt weniger Zeilen: Was nicht passt, kürzt `display.js` auf „+N weitere“
+oder macht die Spalte scrollbar. Die Werte stehen in `display.css`
+(`--vw`-Skalierung) und gelten für den Kiosk-Rahmen 16:9.
 
 ## Bewegung
 

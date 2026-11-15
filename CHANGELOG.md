@@ -24,12 +24,15 @@ noch nicht vergeben; `core/version.py` steht weiter auf 0.28.0.
   neue App-Icons, Farbwerte für hell und dunkel (`docs/DESIGN-SYSTEM.md`).
 - Zeitstab mit Lime-Kern in der Jetzt-Marke (App, Wandmonitor, Projektseite)
   und mit Zeichenerklärung auf der Startseite und der Projektseite.
-- Wandmonitor: größere Stempel, Skala und Quellenangaben, dickerer
-  Fortschrittsbalken, Farben der Nacht-Palette; auf einem 43-Zoll-Gerät
-  rechnerisch nach DIN 1450 lesbar bis ca. 2,3 m statt 1,9 m (Stempel; Rechnung
-  in `docs/DESIGN-SYSTEM.md`, keine Messung vor Ort).
+- Wandmonitor: größere Hauptschrift (Termine, Listen, Fahrzeugnamen), Stempel,
+  Skala und Quellenangaben, dickerer Fortschrittsbalken, Farben der
+  Nacht-Palette. Rechnerisch nach DIN 1450 tragen Termine auf 55 Zoll bis
+  ca. 3,0 m, auf 43 Zoll bis ca. 2,4 m (vorher 1,7 m); Rechnung in
+  `docs/DESIGN-SYSTEM.md`, keine Messung vor Ort. Größere Schrift heißt
+  weniger Zeilen je Spalte.
 - Projektseite: breitere Bühne, das Desktop-Bild ist größer und wird weniger
-  vom Handybild verdeckt.
+  vom Handybild verdeckt; auf schmalen Bildschirmen steht stattdessen das
+  Handy-Bild groß und mittig (vorher ein unlesbares Desktop-Bild).
 - Produktbilder und Sperrbildschirm-Aufnahme neu erzeugt (Musterdaten).
 
 **Behoben:**

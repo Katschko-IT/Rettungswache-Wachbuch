@@ -366,6 +366,13 @@
 @media (max-width: 46rem) {
   .pub-actions .pub-button, .pub-actions form { flex: 1 1 100%; }
 }
+/* Schmale Bildschirme: Das Desktop-Bild wäre nur ca. 0,2-fach und damit unlesbar.
+   Stattdessen steht das Handy-Bild groß und mittig; es zeigt dieselbe Übersicht. */
+@media (max-width: 46rem) {
+  .pub-devices { padding: 0 0 2rem; margin-inline: 0; }
+  .pub-devices > .device:not(.device-phone) { display: none; }
+  .pub-devices > .device-phone { position: static; width: min(72%, 19rem); margin-inline: auto; }
+}
 @media (prefers-contrast: more) {
   .device { box-shadow: none; border: 2px solid var(--text); }
 }
